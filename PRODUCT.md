@@ -148,7 +148,17 @@ Elles ne modifient jamais rétroactivement une routine existante.
 
 Les maquettes Figma validées définissent la présentation et les interactions. La documentation Obsidian reste la source détaillée des règles fonctionnelles.
 
-## 7. Socle technique initial
+## 7. Contraintes techniques
+
+- Une base de code unique (React Native / Expo).
+- Compatible iOS et Android.
+- L'interface doit s'adapter automatiquement aux différentes tailles d'écran de smartphone.
+- Le design doit respecter les conventions natives de chaque plateforme lorsque cela améliore l'expérience utilisateur.
+- Les tablettes ne font pas partie du MVP mais l'architecture doit permettre leur prise en charge ultérieure.
+- L'application doit fonctionner en mode portrait.
+- L'accessibilité (tailles de texte, contraste, zones tactiles) doit être prise en compte dès le MVP.
+
+## 8. Socle technique initial
 
 - React Native ;
 - Expo SDK 57 ;
@@ -157,7 +167,19 @@ Les maquettes Figma validées définissent la présentation et les interactions.
 - stockage local à définir pendant la conception technique ;
 - cible : iOS et Android, avec support web utile au développement.
 
-## 8. Règle de gouvernance
+## 9 Évolution prévue – Intelligence artificielle
+
+L’application pourra intégrer ultérieurement des fonctionnalités d’intelligence artificielle, notamment pour :
+
+- proposer ou adapter des routines selon les objectifs, contraintes et historique de l’utilisateur ;
+- suggérer des activités, durées, répétitions, pauses ou progressions ;
+- analyser l’exécution et l’assiduité ;
+- générer des recommandations personnalisées ;
+- assister un professionnel dans la préparation ou l’ajustement d’un programme.
+
+Ces fonctions ne font pas partie du MVP.
+
+## 10. Règle de gouvernance
 
 En cas de contradiction entre documents :
 
