@@ -1,13 +1,12 @@
-# 06 - Registre des décisions
 
 Ce document devient le registre permanent des décisions de conception du produit.
 
-## Format
+# Format
 
-| ID | Décision | Statut | Intégrée |
-|---|---|---|---|
+| ID  | Décision | Statut | Intégrée |
+| --- | -------- | ------ | -------- |
 
-## Décisions validées
+# Décisions validées
 
 | ID    | Décision                                                                                                                        | Statut  | Intégrée |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
@@ -27,3 +26,15 @@ Ce document devient le registre permanent des décisions de conception du produi
 | D-017 | Le plan d'exécution est une structure interne calculée au démarrage d'une séance et ne constitue pas une entité métier.         | Validée | Oui      |
 | D-018 | Le compte à rebours initial est représenté comme une étape d'exécution à part entière.                                          | Validée | Oui      |
 | D-019 | La fin de routine est un événement déclenché après la dernière étape et non une étape d'exécution.                              | Validée | Oui      |
+| D-020 | Les concepts métier définitifs sont : Séance, Routine, Activité, Bloc et Cycle. Les séries restent une notion d'exécution et ne constituent pas une entité métier. | Validée | Oui |
+| D-021 | Une routine est une planification d'une séance. Une séance peut être utilisée par plusieurs routines. | Validée | Oui |
+| D-022 | Les exceptions de planification (modifier une seule occurrence) sont exclues du MVP. Toute modification s'effectue sur la routine. | Validée | Oui |
+| D-023 | Les routines peuvent être activées ou désactivées. Les routines désactivées sont masquées par défaut dans le calendrier. | Validée | Oui |
+| D-024 | La couleur est un attribut de la séance. Les routines héritent automatiquement de cette couleur et ne possèdent pas de couleur propre. | Validée | Oui |
+| D-025 | La couleur de la séance est conservée dans l'instantané enregistré lors de chaque exécution afin de préserver l'historique. | Validée | Oui |
+| D-026 | La création d'une séance nécessite obligatoirement un nom et une couleur sélectionnée dans une palette prédéfinie. | Validée | Oui |
+| D-027 | Le détail d'une séance exécutée est consulté directement dans la liste du Suivi grâce à une vue déployée ; aucun écran dédié n'est prévu pour le MVP. | Validée | Oui |
+| D-028 | L'écran d'exécution ne comporte que trois commandes : Réinitialiser, Pause/Reprendre et Activité suivante. L'arrêt d'une séance est accessible uniquement depuis l'état Pause. | Validée | Oui |
+| D-029 | La réinitialisation d'une activité est immédiate et ne demande pas de confirmation. | Validée | Oui |
+| D-030 | Le passage à l'activité suivante demande une confirmation avant interruption de l'activité en cours. | Validée | Oui |
+| D-031 | Les séances exécutées peuvent être recherchées, triées, filtrées et affichées sous forme condensée ou déployée directement depuis l'écran Suivi. | Validée | Oui |

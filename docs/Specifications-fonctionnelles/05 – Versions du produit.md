@@ -2,22 +2,22 @@
 
 ### Objectif
 
-Permettre à un utilisateur de créer une routine structurée, de l’exécuter en étant guidé et de conserver un historique minimal, sans compte utilisateur ni synchronisation.
+Permettre à un utilisateur de créer une séance structurée, la planifier si nécessaire, l’exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
 
 ### Fonctionnalités
 
-- créer, modifier, dupliquer et supprimer une routine simple ;
-- créer des exercices ou des étapes ;
+- créer, modifier, dupliquer et supprimer une séance ;
+- créer des activités de type Exercice ou Récupération ;
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
   - une durée ou un nombre de répétitions ;
   - une photo ou une vidéo ;
-- ajouter des pauses entre les exercices ;
-- ordonner et réorganiser les éléments d’une routine ;
-- configurer des séries et des cycles, égaux à 1 par défaut ;
-- placer explicitement les pauses et récupérations dans le série, le cycle ou la fin de routine ;
-- lancer immédiatement une routine ;
+- définir une pause facultative après un exercice ou créer une activité de type Récupération ;
+- ordonner les activités d’un bloc ;
+- configurer des cycles et leurs blocs, créés avec une répétition par défaut ;
+- placer des activités de récupération dans un bloc, en fin de cycle ou en fin de séance ;
+- exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
 - annoncer vocalement le nom de chaque exercice, pause ou récupération au moment où l’étape commence ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
@@ -34,14 +34,16 @@ Permettre à un utilisateur de créer une routine structurée, de l’exécuter 
 - mettre la séance en pause et la reprendre ;
 - maintenir, dans la mesure permise par le système d’exploitation, le guidage sonore lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan ;
 - terminer ou ignorer un exercice ;
-- afficher la série, le série et le cycle en cours lorsqu’ils sont utilisés ;
+- afficher le bloc et le cycle en cours ;
 - interrompre ou terminer une séance ;
 - enregistrer localement :
   - la date de la séance ;
   - sa durée ;
   - son statut ;
   - les exercices terminés ou ignorés ;
-  - les séries, séries et cycles réalisés ;
+  - les cycles réalisés ;
+  - la version de la séance ;
+  - la routine éventuelle ;
 - consulter un historique simple des séances ;
 - renseigner facultativement, en fin de séance :
 	- un ressenti général ;
@@ -55,11 +57,17 @@ Le guidage sonore doit, dans la mesure permise par le système d’exploitation,
 
 Toutes les données sont enregistrées uniquement sur l’appareil.
 
-Le modèle de données de la V1 est hiérarchique et compatible avec l’imbrication future, mais l’interface limite la composition aux exercices, pauses, séries, séries et cycles prévus dans cette version.
+La V1 permet également :
+- de créer une routine ;
+- d'associer une séance à une routine ;
+- de définir une planification unique ou récurrente ;
+- d'ajouter un ou plusieurs rappels.
+
+Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Bloc → Activité.
 
 ---
 
-## V2 – Composition avancée des routines
+## V2 – Réutilisation avancée des séances
 
 ### Objectif
 
@@ -67,34 +75,30 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 
 ### Fonctionnalités
 
-- intégrer une routine existante dans une autre routine ;
-- conserver le nom et le regroupement visuel d’une routine intégrée ;
-- copier son contenu afin qu’il devienne indépendant de la routine source ;
-- développer, replier et modifier une routine intégrée ;
+- intégrer une séance existante dans une autre séance ;
+- conserver le nom et le regroupement visuel d’une séance intégrée ;
+- copier son contenu afin qu’il devienne indépendant de la séance source ;
+- développer, replier et modifier une séance intégrée ;
 - enrichir les structures d’échauffement et de fin de séance si les tests montrent ce besoin ;
 - calculer la durée estimée des structures complexes ;
-- afficher la progression dans les structures et routines intégrées ;
+- afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
+
+#### Internationalisation
+
+- interface multilingue ;
+- gestion des langues ;
+- contenus traduisibles.
 
 ---
 
-## V3 – Planification, synchronisation et relation avec un kinésithérapeute
+## V3 – Synchronisation et relation avec un kinésithérapeute
 
 ### Objectif
 
 Faire évoluer l’application personnelle vers un service synchronisé permettant la planification des séances et la collaboration avec un professionnel.
 
 ### Fonctionnalités
-
-#### Programmation et notifications
-
-- programmer une routine à une date et une heure ;
-- créer une programmation récurrente ;
-- choisir les jours et la fréquence ;
-- définir une période ou une date de fin ;
-- recevoir des notifications et des rappels ;
-- reporter, ignorer ou annuler une occurrence programmée ;
-- distinguer les séances prévues des séances réellement effectuées.
 
 #### Comptes et synchronisation
 
@@ -107,10 +111,10 @@ Faire évoluer l’application personnelle vers un service synchronisé permetta
 #### Relation avec un kinésithérapeute
 
 - associer un utilisateur à un kinésithérapeute ;
-- permettre au kinésithérapeute de créer ou de prescrire une routine ;
+- permettre au kinésithérapeute de créer ou prescrire une séance ;
 - transmettre des exercices, des consignes, des photos et des vidéos ;
 - faire évoluer une routine prescrite ;
-- distinguer les routines personnelles des routines prescrites ;
+- distinguer les séances personnelles des routines prescrites ;
 - partager avec le kinésithérapeute les séances réalisées ;
 - transmettre un retour simple sur la douleur, la difficulté ou la fatigue ;
 - conserver l’historique des versions prescrites.
@@ -127,16 +131,24 @@ Développer les fonctions avancées, sociales et intelligentes de l’applicatio
 
 ### Fonctionnalités envisagées
 
+#### Intelligence artificielle
+
+- génération assistée de séances ;
+- recommandations personnalisées ;
+- adaptation des séances selon l'historique ;
+- aide à la création d'activités ;
+
+
 - suivi détaillé de la douleur, de la fatigue et de la progression ;
 - tableaux de bord et analyses comparatives ;
 - comparaison avancée entre les séances prévues et réalisées ;
-- adaptation progressive des routines ;
+- adaptation progressive des séances ;
 - recommandations assistées par intelligence artificielle ;
-- partage de routines entre utilisateurs ;
-- bibliothèque publique de routines ;
+- partage de séances entre utilisateurs ;
+- bibliothèque publique de séances ;
 - groupes et communautés ;
 - messagerie avec les professionnels ;
-- synchronisation d’une routine intégrée avec sa source ;
+- synchronisation d’une séance intégrée avec sa source ;
 - choix entre plusieurs voix ;
 - personnalisation des sons ;
 - réglage indépendant du volume des différents signaux dans l’application ;
@@ -149,6 +161,6 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 
 ### V1 (MVP)
-- Gestion des routines actives et archivées.
-- La planification des routines est hors périmètre (V2).
+- Gestion des séances actives et archivées.
+- Gestion des routines de planification.
 
