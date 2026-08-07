@@ -2,196 +2,261 @@
 
 ## 1. Finalité
 
-Application mobile permettant à un utilisateur d’organiser, exécuter et suivre des routines personnelles, notamment des exercices physiques, de mobilité ou de rééducation.
+Application mobile permettant à un utilisateur de créer, exécuter, planifier et suivre des séances personnelles, notamment des exercices physiques, de mobilité ou de rééducation.
 
-L’application doit remplacer l’usage dispersé de notes, vidéos, alarmes et minuteurs par un parcours unique, simple et guidé.
+L’application remplace l’usage dispersé de notes, vidéos, alarmes et minuteurs par un parcours unique, simple et guidé.
 
 ## 2. Utilisateur prioritaire
 
 Le MVP est conçu pour un utilisateur individuel qui :
-
-- crée ses propres routines ;
-- les exécute sur son appareil ;
-- consulte son historique ;
+- crée ses propres séances ;
+- les exécute immédiatement ou les planifie ;
+- consulte l’historique détaillé de ses exécutions ;
 - utilise l’application sans compte et sans synchronisation cloud.
 
-La kinésithérapie est un premier cas d’usage, mais le produit reste généraliste.
+La kinésithérapie constitue un premier cas d’usage, mais le produit reste généraliste.
 
-## 3. Périmètre du MVP
+## 3. Concepts fonctionnels structurants
 
-### Routines
+### Séance
 
-- créer une routine en commençant par son nom ;
-- associer zéro, une ou plusieurs catégories ;
-- modifier, dupliquer, archiver et supprimer une routine ;
-- afficher les routines actives et archivées ;
-- empêcher l’exécution d’une routine vide.
+Une séance est un contenu exécutable défini par l’utilisateur.
 
-### Activités
-
-Une activité est une étape élémentaire de type :
-
-- exercice ;
-- pause ;
-- récupération.
-
-Une activité peut comprendre :
-
+Elle possède notamment :
 - un nom ;
-- une consigne ;
-- une durée ou un nombre de répétitions ;
-- un média facultatif ;
-- zéro, une ou plusieurs zones corporelles pour un exercice.
+- une couleur ;
+- zéro, une ou plusieurs catégories ;
+- une structure composée d’activités, d’un bloc et d’un cycle ;
+- des paramètres de guidage et d’exécution.
 
-Les pauses et récupérations ne possèdent pas de zone corporelle.
+### Routine
 
-### Structure d’une routine
+Une routine est la planification d’une séance.
 
-Ordre logique :
+Une même séance peut être utilisée par plusieurs routines. Une routine ne contient pas de copie de la séance et reprend sa couleur.
 
-```text
-Compte à rebours initial facultatif
+### Activité
 
-Cycle × N
-  Série × M
-    Activités ordonnées
-  Activités de fin de cycle facultatives
+Une activité est une étape élémentaire de la séance.
 
-Activités de fin de routine facultatives
-```
+Le MVP distingue deux types d’activité :
+- Exercice ;
+- Récupération.
 
-Les séries et cycles sont des structures internes de la routine, avec une valeur par défaut de 1. Ils ne constituent pas des entités métier autonomes.
+Un exercice peut être défini par une durée ou par un nombre de répétitions. Une récupération est chronométrée.
 
-Une pause ou une récupération est toujours une activité explicite. Elle n’est jamais ajoutée automatiquement à un exercice.
+### Bloc et cycle
+
+Un bloc est une séquence ordonnée d’activités.
+
+Dans le MVP, un cycle contient exactement un bloc et définit son nombre de répétitions.
+
+Le terme « série » ne désigne aucune entité métier de la solution.
+
+### Exécution de séance
+
+Une exécution de séance est la réalisation effective d’une séance.
+
+Chaque exécution repose sur un instantané immuable de la séance utilisée au démarrage.
+
+## 4. Périmètre du MVP
+
+### Catalogue des séances
+
+Le MVP permet de :
+- créer une séance avec un nom et une couleur obligatoires ;
+- composer et modifier une séance ;
+- associer des catégories ;
+- dupliquer, archiver et supprimer une séance ;
+- rechercher les séances ;
+- empêcher l’exécution d’une séance invalide ou vide.
+
+### Composition d’une séance
+
+Une séance peut comporter :
+- un compte à rebours initial facultatif ;
+- un bloc contenant des activités ordonnées ;
+- un cycle répétant ce bloc ;
+- des activités ordinaires placées après le dernier cycle ;
+- une fin de séance déclenchée après la dernière activité.
+
+Une séance est exécutable lorsqu’elle contient au moins un exercice valide.
+
+Aucune récupération n’est ajoutée implicitement entre deux activités.
+
+Un exercice peut comporter une pause après activité facultative. Cette pause est un paramètre de l’exercice et non une activité indépendante dans la composition.
 
 ### Exécution
 
-- créer une séance distincte à chaque démarrage ;
-- construire un plan d’exécution calculé ;
-- conserver un instantané de la routine exécutée ;
-- afficher l’activité en cours, l’activité suivante et la progression ;
-- afficher les séries et cycles en cours lorsque nécessaire ;
-- démarrer, mettre en pause, reprendre et réinitialiser une activité ;
-- passer à l’activité précédente ou suivante ;
-- terminer, interrompre ou abandonner une séance ;
+Le MVP permet de :
+- lancer une séance depuis le catalogue ou depuis une occurrence du calendrier ;
+- construire un plan d’exécution calculé à partir d’un instantané ;
+- afficher l’activité en cours, l’activité suivante, le temps et la progression ;
+- afficher la progression du bloc et du cycle ;
+- réinitialiser l’activité courante après confirmation ;
+- mettre la séance en pause et la reprendre ;
+- passer à l’activité suivante après confirmation ;
+- arrêter la séance uniquement depuis l’état Pause ;
 - afficher une synthèse de fin de séance.
+
+Aucun bouton permettant de revenir à l’activité précédente n’est inclus dans le MVP.
 
 ### Guidage
 
-- annonce vocale du nom de l’activité au démarrage ;
-- bip grave de rythme pendant un exercice chronométré ;
-- bip aigu pendant les trois dernières secondes d’une étape chronométrée ;
-- remplacement du bip grave par le bip aigu pendant les trois dernières secondes ;
-- activation indépendante des bips, annonces vocales et vibrations ;
-- poursuite du guidage en arrière-plan dans la mesure permise par le système d’exploitation.
+Le guidage comprend :
+- l’annonce vocale du nom de l’activité au démarrage ;
+- des bips pendant les activités chronométrées ;
+- un signal spécifique pendant les trois dernières secondes ;
+- l’activation indépendante des bips et des annonces vocales ;
+- la conservation d’un comportement cohérent en arrière-plan dans les limites permises par iOS et Android.
 
-### Historique et suivi
+Le comportement natif en arrière-plan et écran verrouillé doit faire l’objet d’une validation technique.
 
-- enregistrer localement la date, la durée et le statut de la séance ;
-- enregistrer les activités terminées ou ignorées ;
-- enregistrer les séries et cycles réalisés ;
-- permettre un ressenti général, une douleur ou gêne et une note libre facultative ;
-- préserver les séances passées lorsque la routine est modifiée.
+### Planification et calendrier
 
-### Préférences
+La planification est incluse dans le MVP.
 
-Les préférences globales servent de valeurs par défaut pour les nouvelles routines, notamment pour :
+Le MVP permet de :
+- créer une routine depuis le Calendrier ;
+- sélectionner la séance associée ;
+- définir une date de début et une heure ;
+- définir une récurrence quotidienne, hebdomadaire ou mensuelle ;
+- définir une fin de répétition ;
+- configurer un rappel ;
+- activer, désactiver, modifier ou supprimer une routine ;
+- consulter les occurrences dans des vues semaine et mois.
 
+Les occurrences sont calculées dynamiquement à partir de la routine et ne sont pas enregistrées individuellement.
+
+Le MVP ne permet pas de modifier une occurrence isolée.
+
+### Suivi et historique
+
+Chaque exécution conserve :
+- l’instantané de la séance ;
+- la date et l’heure ;
+- la durée réelle ;
+- le statut de l’exécution ;
+- le détail des activités réalisées ;
+- le ressenti et la note éventuellement renseignés.
+
+Les statuts d’exécution sont :
+- Terminée ;
+- Partielle ;
+- Interrompue.
+
+Le Suivi du MVP comprend :
+- une liste chronologique ;
+- une recherche ;
+- des tris et filtres ;
+- une vue condensée ou déployée ;
+- le détail d’exécution directement dans la carte déployée.
+
+La Vue d’ensemble avec graphiques et comparaisons avancées est hors MVP.
+
+### Profil et préférences
+
+Les préférences globales servent de valeurs par défaut pour les nouvelles séances, notamment pour :
 - le compte à rebours initial ;
-- les paramètres sonores ;
+- les sons ;
 - les annonces vocales ;
 - les vibrations.
 
-Elles ne modifient jamais rétroactivement une routine existante.
+Elles ne modifient jamais rétroactivement une séance existante ni une exécution passée.
 
-## 4. Hors périmètre du MVP
+## 5. Navigation principale
 
-- compte utilisateur ;
+Le MVP comporte quatre onglets :
+- Mes séances ;
+- Calendrier ;
+- Suivi ;
+- Profil.
+
+## 6. Hors périmètre du MVP
+
+- compte utilisateur distant ;
 - synchronisation cloud ou multi-appareils ;
-- partage de routines ;
+- partage de séances ;
 - relation avec un professionnel ;
 - groupes et communautés ;
-- planification et récurrence ;
-- notifications avancées ;
+- tableaux de bord analytiques avancés ;
+- signalement détaillé de douleur ou de gêne ;
 - intelligence artificielle ;
-- routines imbriquées.
+- séances imbriquées ;
+- combinaison de plusieurs blocs ou cycles dans un même cycle ;
+- modification individuelle d’une occurrence de calendrier.
 
-## 5. Principes métier structurants
+## 7. Principes métier structurants
 
-1. La définition d’une routine et son exécution sont séparées.
-2. Chaque séance conserve un instantané immuable de la routine exécutée.
-3. Une modification future ne change jamais une séance passée.
-4. Une routine appartient à un utilisateur local unique dans le MVP.
-5. Les catégories classent les routines.
-6. Les zones corporelles qualifient uniquement les exercices.
-7. Le plan d’exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
-8. Le compte à rebours initial est une étape d’exécution.
-9. La fin de routine est un événement, pas une activité.
-10. Toutes les données du MVP sont stockées localement sur l’appareil.
+1. Une séance est un contenu exécutable ; une routine est sa planification.
+2. Une séance et ses routines sont indépendantes.
+3. Chaque exécution conserve un instantané immuable de la séance utilisée.
+4. Une modification ou une suppression ultérieure ne change jamais une exécution passée.
+5. La suppression d’une routine ne supprime jamais l’historique.
+6. La suppression d’une séance supprime ses routines mais conserve les exécutions passées.
+7. Les catégories qualifient les séances.
+8. Les zones corporelles qualifient uniquement les exercices.
+9. La couleur appartient à la séance et est reprise par ses routines.
+10. Le plan d’exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
+11. Le compte à rebours initial est une étape d’exécution.
+12. La fin de séance est un événement déclenché après la dernière activité.
+13. Les occurrences du calendrier sont calculées dynamiquement.
+14. Toutes les données du MVP sont stockées localement sur l’appareil.
 
-## 6. Écrans de référence
+## 8. Écrans de référence
 
+Les principaux écrans du MVP sont :
 - Profil et préférences ;
-- Mes routines ;
-- Options d’une routine ;
-- création du nom d’une routine ;
-- composition d’une routine ;
-- sélection et création des catégories ;
-- création d’un exercice ;
-- création d’une pause ;
-- création d’une zone corporelle ;
-- exécution d’une routine ;
-- confirmation d’arrêt ;
+- Catalogue des séances ;
+- création du nom et de la couleur d’une séance ;
+- composition d’une séance ;
+- création ou modification d’un exercice ;
+- création ou modification d’une récupération ;
+- catégories de la séance ;
+- Calendrier semaine et mois ;
+- planification d’une séance ;
+- exécution d’une séance ;
+- modales d’interruption ;
 - synthèse de séance ;
-- suivi — vue d’ensemble ;
-- suivi — séances.
+- Suivi — Séances.
 
-Les maquettes Figma validées définissent la présentation et les interactions. La documentation Obsidian reste la source détaillée des règles fonctionnelles.
+Les maquettes Figma validées définissent la présentation de référence. Les règles fonctionnelles détaillées sont décrites dans `docs/Specifications-fonctionnelles`.
 
-## 7. Contraintes techniques
+## 9. Contraintes techniques initiales
 
-- Une base de code unique (React Native / Expo).
-- Compatible iOS et Android.
-- L'interface doit s'adapter automatiquement aux différentes tailles d'écran de smartphone.
-- Le design doit respecter les conventions natives de chaque plateforme lorsque cela améliore l'expérience utilisateur.
-- Les tablettes ne font pas partie du MVP mais l'architecture doit permettre leur prise en charge ultérieure.
-- L'application doit fonctionner en mode portrait.
-- L'accessibilité (tailles de texte, contraste, zones tactiles) doit être prise en compte dès le MVP.
-
-## 8. Socle technique initial
-
-- React Native ;
-- Expo SDK 57 ;
+- base de code unique React Native / Expo ;
 - TypeScript ;
 - Expo Router ;
-- stockage local à définir pendant la conception technique ;
-- cible : iOS et Android, avec support web utile au développement.
+- compatibilité iOS et Android ;
+- fonctionnement en mode portrait ;
+- adaptation aux différentes tailles d’écran de smartphone ;
+- accessibilité prise en compte dès le MVP ;
+- stockage local à définir dans l’architecture technique ;
+- support web utile au développement et à préparer sans complexifier le MVP mobile.
 
-## 9 Évolution prévue – Intelligence artificielle
+## 10. Évolutions prévues
 
-L’application pourra intégrer ultérieurement des fonctionnalités d’intelligence artificielle, notamment pour :
+Les versions futures pourront notamment introduire :
+- synchronisation et comptes ;
+- partage et relation avec des professionnels ;
+- tableaux de bord et analyses comparatives ;
+- signalement détaillé de douleur ou de gêne ;
+- structures de séances plus complexes ;
+- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des séances.
 
-- proposer ou adapter des routines selon les objectifs, contraintes et historique de l’utilisateur ;
-- suggérer des activités, durées, répétitions, pauses ou progressions ;
-- analyser l’exécution et l’assiduité ;
-- générer des recommandations personnalisées ;
-- assister un professionnel dans la préparation ou l’ajustement d’un programme.
+## 11. Gouvernance documentaire
 
-Ces fonctions ne font pas partie du MVP.
-
-## 10. Règle de gouvernance
-
-En cas de contradiction entre documents :
-
-1. décision validée dans le registre de conception ;
-2. modèle fonctionnel et modèle de données ;
-3. conception détaillée des écrans ;
-4. autres notes historiques.
+En cas de contradiction entre documents, l’ordre de référence est :
+1. registre des décisions de conception ;
+2. glossaire, modèle fonctionnel et modèle de données ;
+3. conception fonctionnelle détaillée ;
+4. écrans et navigation ;
+5. autres notes historiques.
 
 Toute évolution fonctionnelle doit préciser son impact sur :
-
 - Figma ;
-- documentation Obsidian ;
+- documentation fonctionnelle ;
 - modèle de données ;
 - API ou services ;
-- version produit.
+- architecture technique ;
+- version du produit.
