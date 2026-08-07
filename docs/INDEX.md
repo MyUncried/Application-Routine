@@ -24,9 +24,12 @@ Présentation générale du dépôt et indications de démarrage du projet.
 
 ### Revue Claude
 
-Le fichier `Revue-Claude-Initial.md`, placé à la racine du dépôt local, conserve la revue initiale réalisée par Claude.
+Les documents de travail relatifs à la revue de Claude sont regroupés dans le dossier [`Revue-claude`](./Revue-claude/).
 
-Il s’agit d’un document de travail et non d’une spécification de référence.
+- [`Revue-Claude-Initial.md`](./Revue-claude/Revue-Claude-Initial.md) conserve la revue initiale réalisée par Claude et constitue la source des remarques à traiter.
+- [`Revue_exhaustive_des_remarques_Claude.xlsx`](./Revue-claude/Revue_exhaustive_des_remarques_Claude.xlsx) est le registre de traitement de la revue. Il reprend les remarques individuellement, leur niveau de nécessité, la description précise du problème, la réponse actuelle du projet et le statut de traitement.
+
+Ces fichiers sont des documents de travail et non des spécifications de référence. Lors du traitement d’une remarque, la réponse doit être vérifiée contre la documentation fonctionnelle à jour. Une décision validée doit ensuite être intégrée dans les documents de référence concernés et, si nécessaire, dans le registre des décisions.
 
 ## 3. Documentation fonctionnelle
 
