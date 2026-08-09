@@ -48,7 +48,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%2008%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé du cycle de vie, de la composition, de l’exécution, de la planification et du suivi, avec les tableaux détaillés des écrans. | En cours de consolidation |
 | 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit les entités, attributs, relations, cycles de vie et règles de cohérence des données. | Disponible, à vérifier pendant la revue Claude |
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier identifiées par un ID. | À mettre à jour |
-| 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrira les opérations et services fonctionnels nécessaires au développement. | Contenu actuel incorrect à remplacer |
+| 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrira les opérations et services fonctionnels nécessaires au développement. | À définir avant développement |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrira l’architecture, le stockage, l’état applicatif, les intégrations natives et les tests. | À rédiger avec Claude avant développement |
 
 ## 4. Images et maquettes
@@ -117,6 +117,5 @@ Les prochains travaux sont :
 1. traiter les remarques de Claude point par point ;
 2. consolider le glossaire ;
 3. mettre à jour le chapitre 10 ;
-4. corriger ou remplacer le chapitre 11 ;
-5. rédiger le chapitre 12 ;
-6. effectuer une revue finale de cohérence avant le développement.
+4. rédiger le chapitre 12 ;
+5. effectuer une revue finale de cohérence avant le développement.
