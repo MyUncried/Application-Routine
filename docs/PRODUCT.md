@@ -45,13 +45,17 @@ Le MVP distingue deux types d’activité :
 
 Un exercice peut être défini par une durée ou par un nombre de répétitions. Une récupération est chronométrée.
 
+### Série
+
+Une Série désigne, au sens sportif, la répétition d’un même Exercice. Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
+
+Une Pause après Série peut être définie pour un Exercice. Lorsqu’elle est renseignée, elle s’applique après chaque Série de cet Exercice selon les règles fonctionnelles détaillées. Elle n’est pas une Activité autonome dans la composition de la Séance.
+
 ### Bloc et cycle
 
 Un bloc est une séquence ordonnée d’activités.
 
 Dans le MVP, un cycle contient exactement un bloc et définit son nombre de répétitions.
-
-Le terme « série » ne désigne aucune entité métier de la solution.
 
 ### Exécution de séance
 
@@ -84,7 +88,7 @@ Une séance est exécutable lorsqu’elle contient au moins un exercice valide.
 
 Aucune récupération n’est ajoutée implicitement entre deux activités.
 
-Un exercice peut comporter une pause après activité facultative. Cette pause est un paramètre de l’exercice et non une activité indépendante dans la composition.
+Un Exercice peut définir un Nombre de Séries et une Pause après Série facultative. Cette pause est un paramètre de l’Exercice, appliqué dans le contexte de ses Séries, et non une Activité indépendante dans la composition.
 
 ### Exécution
 
@@ -233,7 +237,7 @@ Les maquettes Figma validées définissent la présentation de référence. Les 
 - fonctionnement en mode portrait ;
 - adaptation aux différentes tailles d’écran de smartphone ;
 - accessibilité prise en compte dès le MVP ;
-- stockage local à définir dans l’architecture technique ;
+- stockage local avec SQLite, avec Drizzle ORM comme couche d’accès typée aux données ;
 - support web utile au développement et à préparer sans complexifier le MVP mobile.
 
 ## 10. Évolutions prévues
