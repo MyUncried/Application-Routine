@@ -26,8 +26,8 @@ Présentation générale du dépôt et indications de démarrage du projet.
 
 Les documents de travail relatifs à la revue de Claude sont regroupés dans le dossier [`Revue-claude`](./Revue-claude/).
 
-- [`Revue-Claude-Initial.md`](./Revue-claude/Revue-Claude-Initial.md) conserve la revue initiale réalisée par Claude et constitue la source des remarques à traiter.
-- [`Revue_exhaustive_des_remarques_Claude.xlsx`](./Revue-claude/Revue_exhaustive_des_remarques_Claude.xlsx) est le registre de traitement de la revue. Il reprend les remarques individuellement, leur niveau de nécessité, la description précise du problème, la réponse actuelle du projet et le statut de traitement.
+- [`Revue-Claude-Initial.md`](./Revue-claude/Revue-Claude-Initial.md) conserve la revue initiale réalisée par Claude et constitue une source historique des remarques traitées.
+- [`Revue_exhaustive_des_remarques_Claude.xlsx`](./Revue-claude/Revue_exhaustive_des_remarques_Claude.xlsx) est le registre consolidé de traitement des revues. Il reprend les remarques individuellement, leur niveau de nécessité, la description précise du problème, la réponse actuelle du projet et le statut de traitement.
 
 Ces fichiers sont des documents de travail et non des spécifications de référence. Lors du traitement d’une remarque, la réponse doit être vérifiée contre la documentation fonctionnelle à jour. Une décision validée doit ensuite être intégrée dans les documents de référence concernés et, si nécessaire, dans le registre des décisions.
 
@@ -37,19 +37,20 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 
 | Ordre | Document | Rôle | État actuel |
 | --- | --- | --- | --- |
-| 00 | [Glossaire](./Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md) | Définit les termes fonctionnels et les conventions de vocabulaire du projet. | À consolider pendant la revue Claude |
+| 00 | [Glossaire](./Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md) | Définit les termes fonctionnels et les conventions de vocabulaire du projet. | Disponible |
 | 01 | [Vision générale](./Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale%20mise%20%C3%A0%20jour.md) | Présente la finalité, la vision du produit et ses principes directeurs. | Disponible |
 | 02 | [Utilisateurs et besoins](./Specifications-fonctionnelles/02%20%E2%80%93%20Utilisateurs%20et%20besoins.md) | Décrit les utilisateurs visés, leurs besoins et les situations d’usage. | Disponible |
 | 03 | [Parcours utilisateur](./Specifications-fonctionnelles/03%20%E2%80%93%20Parcours%20utilisateur.md) | Décrit les parcours principaux et complémentaires du MVP. | Disponible |
 | 04 | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) | Définit les concepts fonctionnels et leurs relations. | Disponible |
-| 05 | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md) | Répartit les fonctionnalités entre le MVP et les versions futures. | Disponible, à vérifier pendant la revue Claude |
-| 06 | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) | Décrit les écrans, les modales, leur objectif, leur contenu et la navigation. | Mis à jour |
-| 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20-%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées et leur intégration dans la documentation. | Disponible, à compléter pendant la revue Claude |
-| 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%2008%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé du cycle de vie, de la composition, de l’exécution, de la planification et du suivi, avec les tableaux détaillés des écrans. | En cours de consolidation |
-| 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit les entités, attributs, relations, cycles de vie et règles de cohérence des données. | Disponible, à vérifier pendant la revue Claude |
-| 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier identifiées par un ID. | À mettre à jour |
-| 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrira les opérations et services fonctionnels nécessaires au développement. | À définir avant développement |
-| 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrira l’architecture, le stockage, l’état applicatif, les intégrations natives et les tests. | À rédiger avec Claude avant développement |
+| 05 | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md) | Répartit les fonctionnalités entre le MVP et les versions futures. | Disponible |
+| 06 | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) | Décrit les écrans, les modales, leur objectif, leur contenu et la navigation. | Disponible |
+| 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20-%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées et leur intégration dans la documentation. | Disponible |
+| 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé du cycle de vie, de la composition, de l’exécution, de la planification et du suivi, avec les tableaux détaillés des écrans. | Disponible |
+| 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit les entités, attributs, relations, cycles de vie et règles de cohérence des données. | Disponible |
+| 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier identifiées par un ID. | Disponible |
+| 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit les opérations et services fonctionnels nécessaires au développement. | Disponible |
+| 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les spikes techniques à réaliser. | Disponible |
+| 99 | [Journal des évolutions du projet](./Specifications-fonctionnelles/99%20%E2%80%93%20Journal%20des%20%C3%A9volutions%20du%20projet.md) | Conserve la chronologie des évolutions significatives du projet et de sa documentation. | Disponible |
 
 ## 4. Images et maquettes
 
@@ -111,11 +112,8 @@ Toute évolution fonctionnelle doit identifier son impact sur :
 
 Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dossier GitHub doit être synchronisé après chaque étape documentaire stabilisée.
 
-## 8. Travaux documentaires prioritaires
+## 8. État de la documentation avant développement
 
-Les prochains travaux sont :
-1. traiter les remarques de Claude point par point ;
-2. consolider le glossaire ;
-3. mettre à jour le chapitre 10 ;
-4. rédiger le chapitre 12 ;
-5. effectuer une revue finale de cohérence avant le développement.
+La revue de validation a confirmé que la documentation est suffisamment mature pour servir de référence au développement du MVP.
+
+Les éventuels points techniques explicitement identifiés comme spikes restent à valider pendant le développement conformément au chapitre 12. Les corrections documentaires résiduelles issues de la revue de validation doivent être intégrées avant le point de référence final précédant le développement.
