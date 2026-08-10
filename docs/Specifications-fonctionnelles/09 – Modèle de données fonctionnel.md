@@ -20,6 +20,8 @@ Dans le MVP, toutes les données sont stockées localement sur l'appareil.
 
 ## Principes structurants
 
+Le modèle de données fonctionnel est indépendant de la technologie de persistance. Les identifiants des entités sont stables et doivent rester compatibles avec l’ajout ultérieur d’une synchronisation cloud ou multi-appareils. Le choix du stockage local et des mécanismes de persistance relève du chapitre 12 – Architecture technique.
+
 - Une **Séance** décrit le contenu d'un entraînement.
 - Une **Routine** planifie l'exécution d'une séance.
 - Une même séance peut être associée à plusieurs routines.
@@ -619,7 +621,7 @@ Une exécution possède directement :
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
-| Statut | En cours, Suspendue, Terminée ou Partielle | Obligatoire | |
+| Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
 | Durée réelle | Temps réellement exécuté | Calculé | |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 
@@ -672,7 +674,7 @@ Contient notamment :
 - Les médias ne sont pas copiés dans l’Instantané.
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
-- Une exécution terminée ou partielle est conservée dans le suivi.
+- Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
 
 
 # 09.8 Structures internes du moteur d'exécution
@@ -970,10 +972,10 @@ Création → Modification → Suppression
 
 ## Cycle de vie d'une exécution de séance
 
-Création → En cours → Suspendue → Reprise → Terminée ou Partielle → Historique
+Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Interrompue → Historique
 
 ### Règles métier
 
 - Une exécution est créée au démarrage effectif d'une séance.
 - Une seule exécution peut être en cours simultanément.
-- Une exécution terminée ou partielle est conservée dans le suivi.
+- Une exécution terminée, partielle ou interrompue est conservée dans le suivi.

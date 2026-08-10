@@ -1,5 +1,3 @@
-# 12 – Architecture technique
-
 ## 12.0 Objet et périmètre
 
 Ce chapitre définit l’architecture technique du MVP.
@@ -44,6 +42,17 @@ Les principes suivants sont retenus :
 | Web | Hors MVP ; son ajout futur ne doit pas être artificiellement bloqué par l’architecture |
 
 L’application suit une approche **local-first** : les données locales constituent la source opérationnelle du MVP.
+### Internationalisation
+
+**Le MVP est livré uniquement en français et ne propose aucun sélecteur de langue à l'utilisateur.**
+
+L'architecture est néanmoins préparée pour une évolution multilingue sans refonte :
+- les textes affichés dans l'interface ne sont pas codés en dur dans les composants ;
+- ils sont externalisés dans un catalogue de ressources identifié par des clés stables ;
+- l'ajout d'une langue doit pouvoir être réalisé en ajoutant les traductions correspondantes sans modifier la logique métier ;
+- la langue de l'interface et la langue de synthèse vocale sont conçues comme deux paramètres pouvant être gérés lors d'une évolution future ;
+- aucun mécanisme de détection, de choix ou de changement de langue n'est exposé à l'utilisateur dans le MVP ;
+- aucune préférence utilisateur de langue n'est persistée dans le MVP.
 
 ## 12.2 Architecture logique générale
 
@@ -142,7 +151,9 @@ Cette séparation facilite :
 
 ### Principe
 
-Les données structurées du MVP sont persistées dans une **base de données locale transactionnelle**.
+Les données structurées du MVP sont persistées dans une **base SQLite locale**, via `expo-sqlite`.
+
+**Drizzle ORM** est utilisé pour la définition typée du schéma, les requêtes et la gestion des migrations, sous réserve de validation de sa compatibilité avec la version Expo retenue.
 
 Le stockage doit notamment permettre :
 - les relations entre les entités ;
@@ -158,7 +169,6 @@ Les données métier ne doivent pas être stockées uniquement dans l’état de
 
 Sont notamment persistés :
 - Utilisateur local ;
-- Profil ;
 - Préférences ;
 - Séances ;
 - Cycles ;
@@ -182,8 +192,13 @@ Cette abstraction doit permettre ultérieurement :
 - de changer de technologie de stockage ;
 - d’ajouter une source distante ;
 - d’introduire une synchronisation cloud ;
+- de prendre en charge les usages multi-appareils, le partage, la communauté et les relations avec des professionnels ;
 
-sans modifier les règles métier.
+sans modifier les règles métier ni coupler le domaine à SQLite ou à un fournisseur cloud.
+
+La technologie cloud et la stratégie précise de synchronisation ne sont pas choisies dans le MVP. Elles seront définies lorsqu’une version nécessitera effectivement des données partagées ou multi-appareils.
+
+Les médias ne sont pas stockés comme blobs dans SQLite : la base conserve leurs métadonnées et leurs références locales ou distantes.
 
 ## 12.7 Identité utilisateur
 
@@ -206,11 +221,14 @@ Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment 
 
 ### Évolution future
 
-L’architecture distingue :
+Dans le MVP, **Profil** n'est pas une entité métier autonome : il s'agit de l'espace UI regroupant les informations de l'Utilisateur et ses Préférences globales.
+
+Pour les évolutions futures, l’architecture distingue :
 - l’**Utilisateur**, identité interne de l’application ;
-- le **Profil**, contenant les préférences et informations applicatives ;
 - le **Compte**, permettant de retrouver un Utilisateur ;
 - le **Fournisseur d’identité**, par exemple Apple ou Google.
+
+Une entité Profil distincte ne sera introduite ultérieurement que si un besoin fonctionnel lié aux comptes, au cloud ou au partage le justifie.
 
 Cette séparation doit permettre ultérieurement d’associer un Utilisateur local existant à un compte authentifié sans recréer ses données métier.
 
@@ -238,7 +256,9 @@ Il correspond notamment :
 - à l’état visuel de l’interface ;
 - à certains états transitoires d’exécution.
 
-L’état temporaire est géré par le mécanisme de gestion d’état du framework.
+L’état temporaire est géré avec les mécanismes natifs de React : `useState`, `useReducer` et, lorsqu’un partage limité entre composants le justifie, Context.
+
+Aucune bibliothèque globale de gestion d’état telle que Zustand ou Redux n’est introduite au démarrage du MVP. Une telle bibliothèque ne pourra être ajoutée que si un besoin transverse concret apparaît pendant le développement et si les mécanismes natifs de React deviennent insuffisants.
 
 Les données métier persistantes ne doivent pas avoir pour source de vérité l’état de l’interface.
 
@@ -424,11 +444,20 @@ Les tests du domaine et du moteur d’exécution doivent être indépendants de 
 
 Les fonctions dépendantes du comportement réel de la plateforme sont validées sur au moins un appareil iOS réel et un appareil Android réel. Une première campagne est réalisée dans le cadre du spike RT-001 avant le développement complet du moteur d’Exécution ; une campagne complète est réalisée avant livraison du MVP.
 
+Les outils retenus sont :
+- **Jest + `jest-expo`** pour les tests unitaires du domaine, des règles métier, du moteur d’Exécution et de la persistance ;
+- **React Native Testing Library** pour les tests des composants et écrans ;
+- **Maestro** pour les parcours end-to-end critiques, introduit lorsque les premiers parcours bout-en-bout sont stabilisés.
+
+Les tests sur appareils réels iOS et Android complètent obligatoirement les tests automatisés pour les fonctions natives sensibles : timer, audio, arrière-plan, écran verrouillé, vibrations et notifications.
+
 Les plans de tests fonctionnels sont documentés séparément.
 
 ## 12.19 Crash reporting et observabilité
 
 Le MVP prévoit un mécanisme de remontée des erreurs techniques et crashs lors des versions distribuées aux testeurs.
+
+Sentry est la solution retenue à introduire avant les premiers tests externes.
 
 Les données collectées doivent être limitées aux informations nécessaires au diagnostic.
 
@@ -585,14 +614,14 @@ La couche Repository protège néanmoins l’application contre une dépendance 
 
 ### Gestion d’état
 
-Aucune bibliothèque globale de type Redux n’est imposée dans le MVP.
+Aucune bibliothèque globale de gestion d’état, notamment Zustand ou Redux, n’est introduite au démarrage du MVP.
 
-La stratégie initiale est :
-- SQLite pour l’état métier persistant ;
+La stratégie retenue est :
+- SQLite via les Repositories pour l’état métier persistant ;
 - services applicatifs pour les opérations métier ;
-- React state, reducer et Context pour l’état UI temporaire.
+- `useState`, `useReducer` et Context lorsque nécessaire pour l’état UI temporaire.
 
-Une bibliothèque supplémentaire n’est introduite que si un besoin concret apparaît.
+Une bibliothèque globale supplémentaire n’est introduite que si un besoin transverse concret apparaît pendant le développement et justifie cette complexité.
 
 ### Moteur d’exécution
 
@@ -641,7 +670,10 @@ La priorité est donnée :
 1. au domaine métier ;
 2. au moteur d’exécution ;
 3. à la persistance et aux migrations ;
-4. aux parcours critiques.
+4. aux composants et écrans critiques ;
+5. aux parcours end-to-end critiques.
+
+La stack retenue est **Jest + `jest-expo`** pour les tests unitaires, **React Native Testing Library** pour les composants et écrans, et **Maestro** pour les parcours end-to-end après stabilisation des premiers parcours fonctionnels. Les comportements natifs sensibles restent validés sur appareils réels iOS et Android.
 
 ## 12.26 Risques techniques et validations préalables
 
@@ -690,72 +722,7 @@ Le comportement de la synthèse vocale et de l’audio doit être validé sur ap
 - écouteurs / Bluetooth ;
 - autre application audio active.
 
-## 12.27 Crash reporting et observabilité
-
-Le MVP prévoit un mécanisme de remontée des erreurs techniques et crashs lors des versions distribuées aux testeurs.
-
-Sentry est la solution retenue à introduire avant les premiers tests externes.
-
-Les données collectées doivent être limitées aux informations nécessaires au diagnostic.
-
-Le MVP ne nécessite pas d’analytics comportemental détaillé.
-
-L’ajout ultérieur d’analytics devra faire l’objet d’une décision spécifique concernant :
-- les données collectées ;
-- leur finalité ;
-- la protection des données personnelles ;
-- les éventuels consentements nécessaires.
-
-## 12.28 Sécurité et données personnelles
-
-Le MVP applique les principes suivants :
-- minimisation des données personnelles ;
-- stockage uniquement des données nécessaires ;
-- absence de mot de passe géré par l’application dans le MVP ;
-- séparation entre identité interne et authentification future ;
-- absence d’informations sensibles dans les logs ;
-- utilisation des mécanismes sécurisés du système pour les secrets techniques lorsqu’ils existent.
-
-Si des comptes utilisateurs, une synchronisation cloud ou des données de santé sont introduits ultérieurement, une revue spécifique de sécurité et de protection des données devra être réalisée avant leur mise en production.
-
-## 12.29 Synchronisation future
-
-La synchronisation cloud ne fait pas partie du MVP.
-
-L’architecture doit néanmoins éviter de la rendre difficile à introduire ultérieurement.
-
-À cette fin :
-- les entités disposent d’identifiants stables ;
-- les données appartiennent à un Utilisateur interne ;
-- l’accès aux données passe par des Repositories ;
-- les règles métier ne dépendent pas du stockage local ;
-- les dates de création et modification sont conservées lorsque nécessaires ;
-- les Instantanés historiques sont immuables.
-
-Une future synchronisation devra définir explicitement :
-- la source de vérité ;
-- la résolution des conflits ;
-- le fonctionnement hors ligne ;
-- les suppressions ;
-- la synchronisation des médias ;
-- la gestion multi-appareils.
-
-Aucun de ces mécanismes n’est implémenté dans le MVP.
-
-## 12.30 Intégrations externes futures
-
-Les intégrations suivantes sont hors MVP :
-- Apple Calendar ;
-- Google Calendar ;
-- Microsoft Outlook ;
-- fournisseurs externes de vidéos ou contenus d’exercices ;
-- partage avec des kinésithérapeutes ou coachs ;
-- services cloud ;
-- API publiques ou partenaires.
-
-Elles devront utiliser des adaptateurs dédiés afin de ne pas introduire de dépendance directe entre le domaine métier et un fournisseur externe.
-
-## 12.31 Distribution
+## 12.27 Distribution
 
 Le développement est d’abord distribué sous forme de versions privées de test.
 
@@ -770,7 +737,7 @@ La stratégie prévue est :
 
 La publication publique sur l’App Store et Google Play intervient uniquement après validation fonctionnelle et technique du MVP.
 
-## 12.32 Évolutivité
+## 12.28 Évolutivité
 
 L’architecture du MVP doit permettre sans refonte majeure :
 - l’ajout de comptes Apple ou Google ;
@@ -786,18 +753,7 @@ L’architecture du MVP doit permettre sans refonte majeure :
 
 Cette capacité d’évolution ne doit toutefois pas conduire à implémenter dans le MVP des composants qui ne sont pas nécessaires à son fonctionnement.
 
-## 12.33 Internationalisation préparée
-
-Le MVP est monolingue en français et ne comporte aucun sélecteur de langue.
-
-L’architecture est toutefois préparée pour une évolution multilingue simple :
-- les textes affichés dans l’interface ne sont pas codés en dur dans les composants ;
-- ils sont externalisés dans un catalogue de ressources identifié par des clés stables ;
-- l’ajout d’une langue doit pouvoir être réalisé en ajoutant les traductions correspondantes sans modifier la logique métier ;
-- la langue de l’interface et la langue de synthèse vocale sont conçues comme deux paramètres pouvant être gérés lors d’une évolution future ;
-- aucun mécanisme de changement de langue n’est exposé à l’utilisateur dans le MVP.
-
-## 12.34 Organisation du code
+## 12.29 Organisation du code
 
 Le code est organisé principalement par domaine fonctionnel. Le dossier `app/` d’Expo Router porte les routes et les points d’entrée des écrans, sans contenir la logique métier principale.
 
@@ -845,7 +801,7 @@ Principes :
 - aucun dossier global `store/` n’est créé au démarrage, Zustand ou Redux n’étant pas retenus pour le MVP ;
 - les noms techniques du code sont en anglais et restent explicitement rattachables aux concepts du glossaire français.
 
-## 12.35 Architecture UI, accessibilité et responsive
+## 12.30 Architecture UI, accessibilité et responsive
 
 Le MVP utilise un seul layout de référence, issu des écrans Figma validés.
 
@@ -875,7 +831,7 @@ L’interface est responsive pour les principales tailles d’écran iOS et Andr
 
 Une interface spécifique tablette et le mode sombre sont hors MVP. Une revue d’accessibilité est réalisée avant livraison, sans reporter à cette étape l’application des règles de base.
 
-## 12.36 Stratégie de développement incrémental
+## 12.31 Stratégie de développement incrémental
 
 Le MVP est développé et validé progressivement. Les premières versions de développement ne reproduisent volontairement pas l’intégralité des écrans et fonctions Figma ; elles servent à valider les briques fonctionnelles et techniques avant d’ajouter la complexité suivante.
 
@@ -889,7 +845,7 @@ Ordre de développement retenu :
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
-9. **Catégories, Zones corporelles, Profil et Préférences**.
+9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; Zones corporelles utilisées comme référentiel prédéfini, sélectionnable et associable aux Exercices, sans création, modification ni suppression des valeurs du référentiel dans le MVP ; Profil et Préférences.
 10. **Robustesse, accessibilité, responsive, tests end-to-end et stabilisation**.
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.

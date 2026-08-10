@@ -272,7 +272,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 - L'application ne doit pas obliger l'utilisateur à justifier chaque activité ignorée.
 - La différence entre une séance suspendue, terminée et abandonnée doit rester compréhensible.
 - La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
-	- Si une séance reste en pause pendant plus de 30 minutes, l'application demande à l'utilisateur s'il souhaite reprendre son exécution.
+	- Si une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite reprendre son Exécution.
 	- Si l'utilisateur confirme, la séance reprend à l'activité où elle avait été interrompue.
 	- En l'absence de réponse, la séance est automatiquement enregistrée avec le statut Interrompue.
 	- Dans une version ultérieure, cette durée maximale pourra être configurée dans les préférences utilisateur.

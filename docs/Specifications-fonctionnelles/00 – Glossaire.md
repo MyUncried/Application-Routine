@@ -8,6 +8,7 @@ Ce glossaire constitue la référence terminologique fonctionnelle du projet. Le
 
 | Terme | Définition | Exemple |
 | --- | --- | --- |
+| **Utilisateur** | Propriétaire des données de l'application. Dans le MVP, une seule entité Utilisateur locale existe ; elle possède notamment ses Séances, Routines, Catégories, préférences et son historique. | Utilisateur local de l'application |
 | **Activité** | Plus petite unité exécutable d'une Séance. Une Activité est de type **Exercice** ou **Récupération**. Elle appartient à une seule Séance et possède ses paramètres d'exécution. | 12 pompes ; 30 s de récupération |
 | **Bloc** | Conteneur ordonné d'Activités appartenant à un Cycle. Dans le MVP, un Cycle contient un Bloc unique, répété une ou plusieurs fois. Le modèle prévoit l'évolution vers plusieurs Blocs ordonnés par Cycle. | Pompes → récupération → squats, répété 3 fois |
 | **Cycle** | Conteneur d'un Bloc et, éventuellement, d'Activités de fin de Cycle. Dans le MVP, une Séance contient un Cycle unique, répété une ou plusieurs fois. Le modèle prévoit l'évolution vers plusieurs Cycles ordonnés par Séance. | Répéter 4 fois un Bloc puis exécuter une récupération de fin de Cycle |
@@ -15,6 +16,7 @@ Ce glossaire constitue la référence terminologique fonctionnelle du projet. Le
 | **Routine** | Planification d'une Séance. Elle définit notamment la date de début, l'heure d'exécution et le mode de planification. Dans le MVP, la planification est sans répétition ou hebdomadaire ; une répétition hebdomadaire définit une fréquence en semaines, un ou plusieurs jours et une date de fin. | Séance « Haut du corps » tous les 2 semaines, lundi et jeudi à 18 h |
 | **Occurrence planifiée** | Trace historisée d'une planification arrivée à échéance. Les occurrences futures sont calculées dynamiquement et ne sont pas persistées. À l'échéance, l'occurrence est historisée avec le statut **Exécutée** ou **Non exécutée**. | Séance prévue lundi à 18 h, exécutée ou non exécutée |
 | **Exécution de séance** | Réalisation effective d'une Séance. Elle est créée uniquement au démarrage effectif de la Séance et conserve un instantané de la Séance exécutée. | Exécution démarrée lundi à 18 h 03 |
+| **Instantané de séance** | Copie fonctionnelle figée et allégée d'une Séance, créée au démarrage effectif d'une Exécution de séance. Il permet de restituer fidèlement l'historique indépendamment des modifications, de l'archivage ou de la suppression ultérieure de la Séance source. Les médias n'y sont pas dupliqués. | Structure de la Séance « Haut du corps » telle qu'elle était au démarrage de l'Exécution |
 | **Média** | Ressource visuelle associée à une Activité afin d'en faciliter la compréhension ou l'exécution. | Photo ou vidéo d'un exercice |
 | **Catégorie** | Libellé permettant de classer des Séances selon un thème ou un objectif. | Haut du corps, Mobilité, Kiné |
 | **Zone corporelle** | Partie du corps principalement sollicitée par une Activité de type Exercice, issue du référentiel prédéfini de l’application. | Épaules, Lombaires, Quadriceps |
@@ -32,6 +34,7 @@ Notion ou terme utilisé pour décrire le fonctionnement de l'application, son v
 | **Série** | Répétition propre à une Activité de type Exercice. Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution, suivie de sa pause éventuelle. Le nombre de Séries est un paramètre de l'Activité ; une Série n'est ni un conteneur structurel de la Séance ni une entité métier autonome. | 12 pompes + 30 s de pause, à répéter 3 fois |
 | **Planification** | Organisation dans le temps de l'exécution d'une Séance. Elle est matérialisée par une Routine. | Tous les lundis à 18 h |
 | **Calendrier** | Vue chronologique des Séances planifiées à partir des Routines. | Vue semaine des séances à venir |
+| **Plan d'exécution** | Séquence déterministe des étapes réellement exécutées, construite au démarrage à partir de l'Instantané de séance. Elle développe notamment les Séries, répétitions de Bloc et répétitions de Cycle afin de piloter l'Exécution. | Suite ordonnée : Série 1 de pompes → récupération → Série 2 → … |
 | **Exécution** | Processus consistant à réaliser une Séance en suivant son ordre d'exécution. Une **Exécution de séance** est créée lors du démarrage effectif. | Lancement d'une Séance |
 | **Historique** | Ensemble des Occurrences planifiées arrivées à échéance et des Exécutions de séance enregistrées. Il permet notamment de distinguer les séances planifiées exécutées et non exécutées. | Séances exécutées et non exécutées cette semaine |
 | **Compte à rebours initial** | Phase obligatoire précédant la première Activité d'une Séance. Sa durée peut être égale à 0 s, ce qui la rend instantanée. | « Get ready », 10 s |
@@ -42,6 +45,6 @@ Notion ou terme utilisé pour décrire le fonctionnement de l'application, son v
 | **Consigne** | Information textuelle destinée à guider l'utilisateur pendant la réalisation d'une Activité. | « Garder le dos droit » |
 | **Mode d'exécution** | Façon dont une Activité de type Exercice est réalisée dans le MVP. | Durée ou Répétitions |
 | **Statut de séance** | État de conservation d'une Séance. | Active, Archivée |
-| **Statut d'exécution** | État ou résultat d'une Exécution de séance. | En cours, Suspendue, Terminée, Partielle |
+| **Statut d'exécution** | État ou résultat d'une Exécution de séance. | En cours, Suspendue, Terminée, Partielle, Interrompue |
 | **Statut d'occurrence planifiée** | Résultat d'une Occurrence planifiée arrivée à échéance. | Exécutée, Non exécutée |
 | **Profil** | Ensemble des informations et préférences propres à l'utilisateur, accessibles depuis l'onglet Profil. | Préférences globales, référentiels utilisateur |

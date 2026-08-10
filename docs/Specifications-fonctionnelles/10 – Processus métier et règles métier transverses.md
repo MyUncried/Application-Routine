@@ -50,7 +50,7 @@
 | RM-020 | Chaque exécution crée une exécution de séance distincte.                                           |
 | RM-021 | Une séance est basée sur un instantané de la séance.                                               |
 | RM-022 | Les modifications ultérieures d'une séance ou de sa routine ne modifient jamais une séance passée. |
-| RM-023 | Une exécution de séance peut être terminée, suspendue ou partielle.                                |
+| RM-023 | Une exécution de séance peut être en cours, suspendue, terminée, partielle ou interrompue.                                |
 
 ## Préférences
 

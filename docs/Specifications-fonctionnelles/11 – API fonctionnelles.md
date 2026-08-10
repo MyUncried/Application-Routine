@@ -35,6 +35,8 @@ Les API fonctionnelles respectent les principes suivants :
 - une modification des Préférences globales n’altère pas rétroactivement les objets déjà créés lorsque ces préférences ont été copiées dans ces objets ;
 - les règles de validation définies dans les chapitres fonctionnels restent applicables aux opérations décrites ici ;
 - une opération ne modifie jamais rétroactivement les données historisées, sauf règle explicite contraire.
+- les services applicatifs accèdent aux données via des contrats de Repository et ne dépendent pas directement de SQLite, de Drizzle ORM ou d’un futur fournisseur cloud ;
+- les API fonctionnelles restent identiques qu’une donnée soit persistée localement ou, dans une version future, synchronisée avec une source distante.
 
 ## 11.2 API Séances
 
@@ -80,6 +82,7 @@ Les API fonctionnelles respectent les principes suivants :
 | API-ROU-05 | Calculer les occurrences futures             | Routine, début de période, fin de période                                                       | Occurrences futures calculées              | Les occurrences futures ne sont pas persistées ; le calcul respecte fréquence, jours, date de début et date de fin                                                      | Aucun objet persistant                     |
 | API-ROU-06 | Récupérer la prochaine occurrence            | ID Séance ou ID Routine                                                                         | Prochaine date et heure planifiées         | Calcul dynamique ; aucune occurrence future persistée                                                                                                                   | Aucun objet persistant                     |
 | API-ROU-07 | Historiser une occurrence arrivée à échéance | Routine, Séance, date/heure prévues, Exécution éventuelle                                       | Occurrence historisée                      | Si une Exécution existe : statut `Exécutée` ; sinon : `Non exécutée`                                                                                                    | Occurrence planifiée, Exécution éventuelle |
+| API-ROU-08 | Définir ou supprimer le rappel local          | ID Routine, délai de rappel ou absence de rappel                                                 | Rappel local planifié, modifié ou supprimé | Rappel facultatif ; dépend de l’activation des notifications dans les Préférences et de l’autorisation du système ; aucune notification distante n’est requise dans le MVP | Routine, Préférences globales |
 ### Règles de gestion des occurrences
 
 Les occurrences futures sont calculées dynamiquement à partir des paramètres de la Routine et ne sont pas persistées.
@@ -107,6 +110,7 @@ Une même Séance peut être associée à plusieurs Routines afin de permettre p
 | API-EXE-06 | Arrêter l’exécution               | ID Exécution, confirmation       | Exécution clôturée                                                        | Arrêt disponible depuis l’état Pause ; statut final calculé selon le niveau de réalisation                                                          | Exécution                        |
 | API-EXE-07 | Terminer l’exécution              | ID Exécution                     | Exécution terminée et résultats enregistrés                               | La Fin de séance a été atteinte selon le plan d’exécution                                                                                           | Exécution, Occurrence éventuelle |
 | API-EXE-08 | Obtenir l’état courant            | ID Exécution                     | Étape courante, progression, temps écoulé, temps restant, prochaine étape | Valeurs calculées à partir de l’état courant de l’Exécution                                                                                         | Exécution, lecture               |
+| API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 minutes consécutives en pause, l’application demande si l’utilisateur souhaite reprendre ; si oui, reprise à l’activité interrompue ; en l’absence de réponse, clôture automatique au statut `Interrompue` | Exécution |
 
 ### Règles de navigation pendant l’exécution
 
@@ -131,7 +135,10 @@ Une étape terminée ou passée ne peut pas être rejouée au cours de la même 
 | API-HIS-01 | Consulter l’historique            | Période, filtres éventuels | Occurrences historisées et Exécutions correspondant aux critères | Les occurrences `Non exécutée` apparaissent sans Exécution associée                                           | Occurrence planifiée, Exécution, lecture |
 | API-HIS-02 | Lire une exécution                | ID Exécution               | Détail de l’Exécution                                            | Les informations correspondent aux données historisées au moment de l’Exécution                               | Exécution, lecture                       |
 | API-HIS-03 | Lire une occurrence historisée    | ID Occurrence              | Détail de la planification passée et de son statut               | Une occurrence `Exécutée` peut référencer une Exécution ; une occurrence `Non exécutée` n’en référence aucune | Occurrence planifiée, lecture            |
-| API-HIS-04 | Calculer les indicateurs de suivi | Période, filtres           | Indicateurs de suivi                                             | Calculés uniquement à partir des données historisées disponibles                                              | Occurrence planifiée, Exécution, lecture |
+### Périmètre du Suivi dans le MVP
+
+Le MVP expose la liste chronologique des Séances/Exécutions et leur détail. Les tableaux de bord, graphiques, comparaisons de périodes et indicateurs analytiques avancés ne font pas partie des API fonctionnelles du MVP. Ils seront spécifiés dans une version ultérieure à partir des données historisées.
+
 ### Conservation de l’historique
 
 Les modifications ultérieures d’une Séance ou d’une Routine ne doivent pas rendre illisibles les Exécutions et occurrences déjà historisées.

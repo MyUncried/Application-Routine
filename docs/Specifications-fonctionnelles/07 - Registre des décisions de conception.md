@@ -6,6 +6,9 @@ Ce document devient le registre permanent des décisions de conception du produi
 | ID  | Décision | Statut | Intégrée |
 | --- | -------- | ------ | -------- |
 
+| D-046 | Dans le MVP, Profil n’est pas une entité métier autonome : il s’agit de l’espace UI regroupant les informations de l’Utilisateur et ses Préférences globales. Une entité Profil distincte ne sera introduite ultérieurement que si un besoin fonctionnel le justifie. | Validée | Oui |
+| D-047 | La règle de reprise tardive s’applique à partir de 30 minutes consécutives en pause, soit une durée de pause ≥ 30 min. | Validée | Oui |
+
 ## Identifiants de décision non utilisés
 
 Les identifiants suivants ne correspondent à aucune décision active et ne doivent pas être réattribués, afin de préserver la traçabilité du registre :
@@ -59,3 +62,6 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-040 | Un Exercice possède un nombre de Séries propre, entier et supérieur ou égal à 1. Une Série correspond à l'exécution de la durée ou du nombre de répétitions défini pour l'Exercice, suivie de sa pause éventuelle. | Validée | Oui |
 | D-041 | La pause configurée sur un Exercice est appliquée après chaque Série. Après la dernière Série, elle n'est pas exécutée si l'étape suivante du plan d'exécution est une Récupération explicite. | Validée | Oui |
 | D-042 | La création/modification d'un Exercice est organisée en deux écrans : paramètres essentiels puis informations complémentaires facultatives. `Valider` ouvre le second écran ; `Terminer` enregistre l'Activité et revient à la composition de la Séance. | Validée | Oui |
+| D-043 | Le MVP utilise SQLite via `expo-sqlite` comme stockage local principal, avec Drizzle ORM pour le schéma typé, les requêtes et les migrations sous réserve de compatibilité avec la version Expo retenue. L’accès aux données passe par une couche Repository afin de découpler le domaine du stockage. L’architecture permet l’ajout ultérieur d’une source distante et d’une synchronisation pour les usages multi-appareils, partage, communauté et relation avec des professionnels. La technologie cloud n’est pas choisie dans le MVP. | Validée | Oui |
+| D-044 | Le MVP n’introduit pas de bibliothèque globale de gestion d’état au démarrage : les données persistantes sont gérées dans SQLite via les Repositories et l’état UI temporaire avec `useState`, `useReducer` et Context lorsque nécessaire. Une bibliothèque globale ne sera ajoutée que si un besoin transverse concret apparaît. La stratégie de tests retient Jest + `jest-expo` pour le domaine et le moteur d’Exécution, React Native Testing Library pour les composants et écrans, Maestro pour les parcours end-to-end critiques après stabilisation, et des tests sur appareils réels iOS/Android pour les comportements natifs sensibles. | Validée | Oui |
+| D-045 | Lorsqu’une Exécution reste en pause pendant au moins 30 minutes consécutives, l’application demande à l’utilisateur s’il souhaite reprendre. En l’absence de réponse, l’Exécution est clôturée avec le statut Interrompue. Le statut Interrompue fait partie du modèle de données et de l’historique du MVP. | Validée | Oui |

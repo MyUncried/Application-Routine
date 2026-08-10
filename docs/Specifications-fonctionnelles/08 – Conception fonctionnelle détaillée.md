@@ -447,7 +447,7 @@ Lorsque l'utilisateur confirme cet arrêt :
 Les activités restantes ne sont pas exécutées.
 ### Pause prolongée
 
-Lorsqu'une séance reste en pause pendant 30 minutes, l'application demande à l'utilisateur s'il souhaite poursuivre la séance.
+Lorsqu'une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite poursuivre l'Exécution.
 
 L'utilisateur peut :
 
@@ -1036,18 +1036,18 @@ Le suivi repose sur les principes suivants :
 ## Profil – Préférences
 
 ### Eléments affichés
-| Élément affiché                     | Type            |  Visible | Obligatoire | Valeur par défaut          | Contraintes                                | Source      | Action               | Remarques                                  |
-| ----------------------------------- | --------------- | -------: | ----------: | -------------------------- | ------------------------------------------ | ----------- | -------------------- | ------------------------------------------ |
-| Titre de l'écran                    | Texte           | Toujours |         Oui | Profil                     | Texte fixe                                 | Statique    | Aucune               |                                            |
-| Avatar                              | Icône           | Toujours |         Oui | Initiales de l'utilisateur | Image personnalisée en V2                  | Profil      | Modifier le profil   |                                            |
-| Nom                                 | Texte           | Toujours |         Oui | Nom de l'utilisateur       | 1 à 80 caractères                          | Profil      | Modifier le profil   |                                            |
-| Lien « Modifier le profil »         | Lien            | Toujours |         Oui | Visible                    | V2 : édition complète du profil            | Profil      | Ouvrir l'édition     | MVP : peut rester inactif                  |
-| Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                                    | Préférences | Activer / Désactiver | Valeur par défaut des séances              |
-| Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                                    | Préférences | Activer / Désactiver | Utilise la voix système                    |
-| Vibrations                          | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                                    | Préférences | Activer / Désactiver | Si le téléphone le permet                  |
-| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 99 min 59 s                            | Préférences | Modifier             | Valeur utilisée à la création d'une séance |
-| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 0 s                        | 0 à 99 min 59 s                            | Préférences | Modifier             | 0 = désactivée                             |
-| Notifications                       | Interrupteur    | Toujours |         Oui | Désactivé                  | Booléen                                    | Préférences | Activer / Désactiver | Rappels locaux du MVP ; autorisation système requise |
+| Élément affiché                     | Type            |  Visible | Obligatoire | Valeur par défaut          | Contraintes                     | Source      | Action               | Remarques                                            |
+| ----------------------------------- | --------------- | -------: | ----------: | -------------------------- | ------------------------------- | ----------- | -------------------- | ---------------------------------------------------- |
+| Titre de l'écran                    | Texte           | Toujours |         Oui | Profil                     | Texte fixe                      | Statique    | Aucune               |                                                      |
+| Avatar                              | Icône           | Toujours |         Oui | Initiales de l'utilisateur | Image personnalisée en V2       | Profil      | Modifier le profil   |                                                      |
+| Nom                                 | Texte           | Toujours |         Oui | Nom de l'utilisateur       | 1 à 80 caractères               | Profil      | Modifier le profil   |                                                      |
+| Lien « Modifier le profil »         | Lien            | Toujours |         Oui | Visible                    | V2 : édition complète du profil | Profil      | Ouvrir l'édition     | MVP : peut rester inactif                            |
+| Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Valeur par défaut des séances                        |
+| Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
+| Vibrations                          | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Si le téléphone le permet                            |
+| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 99 min 59 s                 | Préférences | Modifier             | Valeur utilisée à la création d'une séance           |
+| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 0 s                        | 0 à 99 min 59 s                 | Préférences | Modifier             | 0 = désactivée                                       |
+| Notifications                       | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Rappels locaux du MVP ; autorisation système requise |
 ### Règles fonctionnelles
 
 | Règle                    | Description                                                                                                                              |

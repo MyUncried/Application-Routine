@@ -93,7 +93,7 @@ Les écrans principaux sont :
 
 Les panneaux servent aux actions courtes réalisées sans quitter le contexte courant, notamment :
 - créer ou modifier un exercice ;
-- personnaliser ou modifier une pause ;
+- personnaliser ou modifier une Activité de type Récupération ;
 - sélectionner un exercice existant ;
 - confirmer une action susceptible d’entraîner une perte.
 
@@ -321,7 +321,7 @@ La routine est représentée comme un parcours vertical inspiré de Duolingo, et
 
 La composition d’une séance est représentée sous la forme d’un parcours visuel vertical.
 
-Chaque exercice, étape ou pause constitue un nœud du parcours. Les nœuds sont reliés afin de matérialiser leur ordre d’exécution.
+Chaque Activité, de type Exercice ou Récupération, constitue un nœud du parcours. Les nœuds sont reliés afin de matérialiser leur ordre d’exécution.
 
 Cette représentation doit permettre de comprendre immédiatement :
 - le début et la fin de la séance ;
@@ -364,7 +364,7 @@ Un nœud d’exercice comporte :
 - sa durée ou son nombre de répétitions ;
 - éventuellement une indication visuelle de la présence d’une photo, d’une vidéo ou d’une consigne.
 
-Une pause utilise une représentation visuelle différente et plus discrète afin de ne pas être confondue avec un exercice.
+Une Activité de type Récupération utilise une représentation visuelle différente et plus discrète afin de ne pas être confondue avec un Exercice.
 Le parcours commence par un repère de départ et se termine par un repère de fin.
 
 ### Paramètres de répétition
@@ -424,7 +424,7 @@ L’élément est donc ajouté directement à la position choisie. Il n’est pa
 L’utilisateur peut activer un mode de réorganisation.
 
 Dans ce mode, il peut :
-- déplacer un exercice ou une pause ;
+- déplacer une Activité de type Exercice ou Récupération ;
 - dupliquer un élément ;
 - supprimer un élément.
 
@@ -438,7 +438,7 @@ Le mode de réorganisation peut temporairement simplifier l’affichage sous for
 Un bouton principal `Démarrer` permet de lancer la séance depuis son début.
 Le bouton reste facilement accessible, même lorsque l’utilisateur fait défiler un parcours long.
 La séance peut être exécutée dès qu’elle contient au moins un exercice.
-Les pauses seules ne suffisent pas à rendre la routine exécutable.
+Les Récupérations seules ne suffisent pas à rendre la Séance exécutable.
 
 ### Enregistrement
 
@@ -451,7 +451,7 @@ Lorsqu’une séance ne contient encore aucun exercice, l’écran affiche :
 - son nom ;
 - une courte indication expliquant comment commencer ;
 - une action principale `Ajouter un exercice` ;
-- une action secondaire `Ajouter une pause`.
+- une action secondaire `Ajouter une récupération`.
 
 Le bouton `Démarrer` est désactivé.
 ### Séance longue
@@ -672,7 +672,7 @@ L’utilisateur peut modifier :
 - son mode de fin ;
 - son nom, s’il souhaite remplacer l’intitulé `Pause`.
 
-Les modifications sont enregistrées automatiquement et concernent uniquement cette pause dans la routine.
+Les modifications sont enregistrées automatiquement et concernent uniquement cette Activité de type Récupération dans la Séance.
 ### Représentation dans le parcours
 
 Une activité de récupération doit être visuellement distincte d’un exercice.
@@ -1100,7 +1100,7 @@ Chaque élément représente une exécution de séance et présente au minimum :
 - le nom de la séance exécutée ;
 - la date et l’heure de la séance ;
 - sa durée ;
-- son statut : `Terminée` ou `Partielle`.
+- son statut : `Terminée`, `Partielle` ou `Interrompue`.
 
 Toucher une séance ouvre son détail.
 
@@ -1114,11 +1114,11 @@ Les séances peuvent être regroupées par périodes afin de faciliter leur lect
 
 Le choix précis du regroupement sera défini dans les wireframes en fonction du nombre de séances affichées.
 
-### Séances terminées et partielles
+### Séances terminées, partielles et interrompues
 
-Une séance terminée et une séance partielle doivent être clairement distinguables.
+Les Séances terminées, partielles et interrompues doivent être clairement distinguables.
 
-Une exécution partielle reste visible dans l’historique avec son statut. Elle n’est pas présentée comme une routine entièrement réalisée.
+Une Exécution partielle ou interrompue reste visible dans l’historique avec son statut. Elle n’est pas présentée comme une Séance entièrement réalisée.
 
 ### Conservation des informations
 
@@ -1164,7 +1164,7 @@ Chaque groupe est présenté sous un en-tête chronologique.
 Chaque séance affiche un état visuel :
 - **Terminée** ;
 - **Partielle** (une ou plusieurs activités ignorées) ;
-- **Partielle** (arrêt avant la fin de la séance).
+- **Interrompue** (arrêt avant la fin de la séance).
 
 Le statut est identifié par un texte et une couleur.
 ### Évaluation
@@ -1230,7 +1230,7 @@ Une carte affiche :
 Le statut est immédiatement identifiable grâce à un libellé et une couleur :
 - **Terminée** ;
 - **Partielle** ;
-- **Interrompue** (si ce statut est conservé).
+- **Interrompue**.
 ### Vue développée
 
 Toucher une carte développe son contenu.
@@ -1433,12 +1433,12 @@ La nouvelle catégorie devient immédiatement disponible pour toutes les séance
     - pause après Série ;
     - consigne ;
     - zones corporelles.
-- Le nom reste identique. Il n'est pas nécessaire d'ajouter « (copie) », puisque plusieurs activités peuvent déjà avoir le même nom dans une routine.
+- Le nom reste identique. Il n'est pas nécessaire d'ajouter « (copie) », puisque plusieurs Activités peuvent déjà avoir le même nom dans une Séance.
 
 **Supprimer**
 
 - Supprime l'activité de la séance.
-- S'il s'agit de la dernière activité de la routine, la suppression est également autorisée ; la séance devient alors vide et l'utilisateur peut ensuite ajouter une nouvelle activité.
+- S'il s'agit de la dernière Activité de la Séance, la suppression est également autorisée ; la Séance devient alors vide et l'utilisateur peut ensuite ajouter une nouvelle Activité.
 ### Modal – Options d'une séance
 
 ![[Modal - Catalogue des séances - Options.png]]
@@ -1713,7 +1713,7 @@ La progression de la séance est inchangée.
 L'action **Terminer la séance** :
 - met immédiatement fin à l'exécution ;
 - enregistre automatiquement la progression réalisée ;
-- enregistre la séance avec le statut **Partielle** ;
+- enregistre la séance avec le statut **Interrompue** ;
 - ouvre l'écran **Synthèse de séance**.
 
 Les activités non exécutées restent identifiées comme telles dans le détail de la séance.
@@ -1723,7 +1723,7 @@ L'arrêt d'une séance :
 - ne modifie jamais la séance d'origine ;
 - ne modifie jamais la routine de planification éventuelle ;
 - conserve les temps réellement exécutés ;
-- permet de consulter ultérieurement cette séance dans **Suivi** avec le statut **Partielle**.
+- permet de consulter ultérieurement cette séance dans **Suivi** avec le statut **Interrompue**.
 #### Fermeture
 
 Le modal ne peut être fermé que par l'une des deux actions proposées :
