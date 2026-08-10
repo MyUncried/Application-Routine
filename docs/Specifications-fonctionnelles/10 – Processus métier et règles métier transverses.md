@@ -64,8 +64,15 @@
 
 | ID     | Règle                                                                                |
 | ------ | ------------------------------------------------------------------------------------ |
-| RM-040 | L'historique conserve les exécutions de séance terminées ou partielles.              |
+| RM-040 | L'historique conserve les exécutions de séance terminées, partielles ou interrompues.              |
 | RM-041 | Chaque Exécution conserve un Instantané fonctionnel immuable de la Séance utilisée au moment du démarrage, contenant les informations nécessaires à la restitution fidèle de l’historique. |
+
+## Intégrité des Instantanés d’Exécution
+
+| ID | Règle |
+| --- | --- |
+| **RM-048** | Les médias associés aux Activités ne sont pas copiés dans l’Instantané d’Exécution. |
+| **RM-049** | Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur les Instantanés déjà enregistrés. |
 
 ## Couleur des séances
 
@@ -77,5 +84,3 @@
 | **RM-045** | La couleur d'une séance peut être utilisée dans le catalogue, le calendrier, le suivi, les indicateurs et les futurs tableaux de bord afin de faciliter son identification visuelle. |
 | **RM-046** | La modification de la couleur d'une séance est immédiatement répercutée sur la séance et sur toutes les routines qui lui sont associées.                                             |
 | **RM-047** | La couleur de la séance fait partie de l'instantané enregistré avec chaque exécution et est conservée dans l'historique.                                                             |
-| **RM-048** | Les médias associés aux Activités ne sont pas copiés dans l’Instantané d’Exécution. |
-| **RM-049** | Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur les Instantanés déjà enregistrés. |

@@ -387,14 +387,14 @@ Si l'utilisateur confirme :
 
 Si l'utilisateur annule, la séance reprend exactement à l'état où elle se trouvait.
 
-Je pense également qu'il faut être cohérent avec les autres actions :
+Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
-- **Réinitialiser** → confirmation (évite une perte de progression sur l'activité).
-- **Activité suivante** → confirmation (évite de sauter une activité par erreur).
-- **Pause** → aucune confirmation (action réversible).
-- **Terminer la séance** → confirmation (via le modal de pause).
+- **Réinitialiser** → confirmation, afin d'éviter une perte involontaire de progression sur l'Activité ;
+- **Activité suivante** → confirmation, afin d'éviter de passer une Activité par erreur ;
+- **Pause** → aucune confirmation, l'action étant réversible ;
+- **Arrêter la séance** → confirmation via le modal de pause.
 
-Cette logique est homogène et protège uniquement les actions ayant un impact irréversible sur la progression.
+Les confirmations protègent ainsi les actions ayant un impact irréversible sur la progression.
 
 ## 4.7 Passage à l'activité suivante
 
@@ -1105,7 +1105,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Action                                           | Confirmation      | Boutons                 | Conséquence                                                            |
 | ------------------------------------------------ | ----------------- | ----------------------- | ---------------------------------------------------------------------- |
 | Supprimer une séance                             | Oui               | Annuler / Supprimer     | Supprime la séance et les routines associées ; conserve les exécutions |
-| Arrêter une séance en cours                      | Oui               | Continuer / Arrêter     | Enregistre une exécution partielle                                     |
+| Arrêter une séance en cours                      | Oui               | Continuer / Arrêter     | Enregistre une exécution interrompue                                     |
 | Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
 | Supprimer une catégorie                          | Oui (si utilisée) | Annuler / Supprimer     | Retire la catégorie des Séances concernées ; les Instantanés historiques restent inchangés |

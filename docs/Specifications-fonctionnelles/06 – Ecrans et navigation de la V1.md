@@ -831,7 +831,7 @@ Une représentation compacte du parcours indique :
 
 Cette représentation reprend le langage visuel du parcours présenté dans la composition de la séance, sans afficher en permanence l’ensemble de ses détails.
 
-L’utilisateur peut ouvrir une vue plus complète du parcours s’il souhaite consulter les étapes restantes ou rejoindre directement une autre étape.
+L’utilisateur peut ouvrir une vue plus complète du parcours afin de consulter les étapes restantes. Cette vue est uniquement informative : elle ne permet pas de sélectionner directement une autre étape.
 ### Exercice chronométré
 
 Pour un exercice défini par une durée :
@@ -1137,74 +1137,14 @@ Une action permet de revenir au `Catalogue de séances` afin de lancer une premi
 
 ### Objectif
 
-Permettre à l'utilisateur de consulter les exécutions de séances enregistrées et d'accéder rapidement à leur historique.
-Cet écran présente une vue chronologique des exécutions ainsi que de leur statut.
-### Contenu
-
-Les séances sont affichées de la plus récente à la plus ancienne.
-Chaque séance présente :
-- la couleur de la séance ;
-- le nom de la séance exécutée ;
-- la date ou la période d'exécution ;
-- l'heure de début ;
-- la durée réelle ;
-- le statut de la séance ;
-- l'évaluation renseignée en fin de séance, lorsqu'elle existe.
-### Regroupement
-
-Les séances sont regroupées par période, par exemple :
-- Aujourd'hui ;
-- Hier ;
-- dates antérieures.
-
-Chaque groupe est présenté sous un en-tête chronologique.
-
-### Statut
-
-Chaque séance affiche un état visuel :
-- **Terminée** ;
-- **Partielle** (une ou plusieurs activités ignorées) ;
-- **Interrompue** (arrêt avant la fin de la séance).
-
-Le statut est identifié par un texte et une couleur.
-### Évaluation
-
-Lorsque l'utilisateur a évalué sa séance, un pictogramme de ressenti est affiché à droite de la carte.
-Ce pictogramme permet d'identifier rapidement les séances ayant été bien ou mal vécues.
-
-### Navigation
-
-Depuis cet écran, l'utilisateur peut :
-- parcourir son historique de séances ;
-- changer d'onglet entre **Vue d'ensemble** et **Séances**.
-
-Dans le MVP, sélectionner une séance n'ouvre pas de détail.
-### État vide
-
-Si aucune séance n'a encore été réalisée, l'écran affiche un message indiquant que le suivi est vide.
-Une action permet de revenir au **Catalogue de séances** afin de lancer une première séance.
-
-### Évolution prévue
-
-Dans une version ultérieure, chaque séance pourra être **déployée directement dans la liste**, sur le même principe que la vue déployée de **Catalogue de séances**.
-
-Le déploiement affichera notamment :
-
-- les activités exécutées ;
-- les activités ignorées ;
-- les durées prévues et réelles ;
-- les commentaires et le ressenti ;
-- les informations détaillées de la séance.
-
-### Objectif
-
 Permettre à l'utilisateur de consulter l'historique complet de ses séances exécutées, de retrouver rapidement une séance grâce à la recherche, aux filtres et aux tris, puis de consulter le détail de son déroulement directement depuis la liste.
 
 Cet écran constitue le point d'entrée principal du suivi des exécutions.
+
+Dans le MVP, l'écran **Suivi : séances** est affiché directement, sans sélecteur d'onglet. La **Vue d'ensemble** (écran 13) est réservée à une version ultérieure et n'est ni affichée ni accessible dans le MVP.
 ### Contenu
 
 L'écran est composé de :
-- un sélecteur d'onglet **Vue d'ensemble / Séances** ;
 - un champ de recherche ;
 - un bouton **Filtrer** ;
 - un bouton **Déployer tout** ou **Replier tout** selon l'état actuel de la liste ;
@@ -1660,7 +1600,7 @@ Ferme le modal et reprend immédiatement l'exécution de l'activité en cours, s
 
 ### Modal – Pause / Arrêt de l'exécution de la séance
 
-![[Exécution d'une séance - Mettre en pause ou Terminer la séance.png]]
+![[Exécution d'une séance - Mettre en pause ou Arrêter la séance.png]]
 #### Objectif
 
 Permettre à l'utilisateur de suspendre temporairement l'exécution d'une séance sans perdre sa progression, puis de la reprendre ou de l'arrêter définitivement.
@@ -1697,7 +1637,7 @@ La progression de la séance est intégralement conservée.
 **Actions**
 
 - ▶ **Reprendre la séance**
-- ⏹ **Terminer la séance**
+- ⏹ **Arrêter la séance**
 
 #### Reprendre la séance
 
@@ -1708,9 +1648,9 @@ L'action **Reprendre la séance** :
 - réactive les bips, annonces vocales et animations.
 
 La progression de la séance est inchangée.
-#### Terminer la séance
+#### Arrêter la séance
 
-L'action **Terminer la séance** :
+L'action **Arrêter la séance** :
 - met immédiatement fin à l'exécution ;
 - enregistre automatiquement la progression réalisée ;
 - enregistre la séance avec le statut **Interrompue** ;
@@ -1728,7 +1668,7 @@ L'arrêt d'une séance :
 
 Le modal ne peut être fermé que par l'une des deux actions proposées :
 - **Reprendre la séance** ;
-- **Terminer la séance**.
+- **Arrêter la séance**.
 
 Toucher en dehors du modal ou utiliser le geste système de fermeture n'a aucun effet.
 
