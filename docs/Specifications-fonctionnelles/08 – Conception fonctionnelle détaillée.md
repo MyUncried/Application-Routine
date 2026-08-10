@@ -771,33 +771,33 @@ Le suivi repose sur les principes suivants :
 | Bouton Démarrer       | Bouton            | Carte déployée | Oui         | Activé                           | Désactivé uniquement si la séance est invalide | Statique    | Ouvre l'écran d'exécution | Ne lance pas immédiatement la séance            |
 | Barre de navigation   | Navigation        | Toujours       | Oui         | Catalogue de séances sélectionné | 4 onglets fixes                                | Statique    | Navigation                |                                                 |
 ### Règles fonctionnelles
-| Règle                 | Description                                                                                                                                                                       |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chargement            | Les séances sont affichées dès l'ouverture de l'écran.                                                                                                                            |
-| Tri par défaut        | Les séances sont triées par date de dernière modification (plus récente en premier).                                                                                              |
-| Recherche             | Le filtrage est effectué en temps réel sur le nom de la séance.                                                                                                                   |
-| Onglet **Toutes**     | Affiche toutes les séances non archivées.                                                                                                                                         |
-| Onglet **Planifiées** | Affiche uniquement les Séances disposant d'au moins une Routine de planification existante.                                                                                          |
-| Onglet **Archivées**  | Affiche uniquement les séances archivées.                                                                                                                                         |
-| Carte repliée         | Une séance est affichée sous forme synthétique.                                                                                                                                   |
-| Couleur de la séance  | Chaque carte reprend la couleur associée à la séance. Cette couleur peut être affichée sous forme de barre, de bordure ou de repère visuel sans réduire la lisibilité du contenu. |
-| Carte déployée        | Affiche la liste des activités et le bouton **Démarrer**.                                                                                                                         |
-| Déploiement           | Une seule carte peut être déployée simultanément. L'ouverture d'une carte replie automatiquement la précédente.                                                                   |
-| Résumé                | Le nombre d'activités, la durée estimée, le nombre de Blocs et de Cycles sont calculés automatiquement.                                                                           |
-| Exercices en Répétition | Si la Séance contient au moins un Exercice en mode Répétition, la durée estimée est précédée du symbole **≈**, car sa durée théorique n'est pas déterminable.                                                                             |
-| Dernière séance       | Affiche la date de la dernière exécution si elle existe, sinon **Aucune**.                                                                                                        |
-| Prochaine séance      | Affiche la prochaine occurrence planifiée de la séance ou « Non planifiée » lorsqu'aucune occurrence future n'existe.                                                             |
-| Bouton **Démarrer**   | Ouvre l'écran d'exécution. La séance ne démarre qu'après appui sur le bouton **Lecture** de cet écran.                                                                            |
-| Bouton **+**          | Ouvre l'écran de création d'une nouvelle séance.                                                                                                                                  |
-| Menu **...**          | Donne accès aux actions sur la séance.                                                                                                                                            |
-| Modifier              | Ouvre l'écran de modification de la séance.                                                                                                                                       |
-| Archiver              | Déplace la séance dans l'onglet **Archivées** après confirmation.                                                                                                                 |
-| Restaurer             | Disponible uniquement pour une séance archivée. Replace la séance dans **Toutes**.                                                                                                |
-| Supprimer             | Supprime définitivement la séance après confirmation. L'historique associé est également supprimé.                                                                                |
-| Suppression           | Impossible à annuler une fois confirmée.                                                                                                                                          |
-| Liste vide            | Si aucune séance n'est disponible, un message et un bouton **Créer une séance** sont affichés.                                                                                    |
-| Actualisation         | Toute création, modification, archivage, restauration ou suppression met immédiatement la liste à jour.                                                                           |
-| Navigation            | Les quatre onglets inférieurs permettent de naviguer entre **Mes séances**, **Calendrier**, **Suivi** et **Profil**.                                                              |
+| Règle                   | Description                                                                                                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chargement              | Les séances sont affichées dès l'ouverture de l'écran.                                                                                                                            |
+| Tri par défaut          | Les séances sont triées par date de dernière modification (plus récente en premier).                                                                                              |
+| Recherche               | Le filtrage est effectué en temps réel sur le nom de la séance.                                                                                                                   |
+| Onglet **Toutes**       | Affiche toutes les séances non archivées.                                                                                                                                         |
+| Onglet **Planifiées**   | Affiche uniquement les Séances disposant d'au moins une Routine de planification existante.                                                                                       |
+| Onglet **Archivées**    | Affiche uniquement les séances archivées.                                                                                                                                         |
+| Carte repliée           | Une séance est affichée sous forme synthétique.                                                                                                                                   |
+| Couleur de la séance    | Chaque carte reprend la couleur associée à la séance. Cette couleur peut être affichée sous forme de barre, de bordure ou de repère visuel sans réduire la lisibilité du contenu. |
+| Carte déployée          | Affiche la liste des activités et le bouton **Démarrer**.                                                                                                                         |
+| Déploiement             | Une seule carte peut être déployée simultanément. L'ouverture d'une carte replie automatiquement la précédente.                                                                   |
+| Résumé                  | Le nombre d'activités, la durée estimée, le nombre de Blocs et de Cycles sont calculés automatiquement.                                                                           |
+| Exercices en Répétition | Si la Séance contient au moins un Exercice en mode Répétition, la durée estimée est précédée du symbole **≈**, car sa durée théorique n'est pas déterminable.                     |
+| Dernière séance         | Affiche la date de la dernière exécution si elle existe, sinon **Aucune**.                                                                                                        |
+| Prochaine séance        | Affiche la prochaine occurrence planifiée de la séance ou « Non planifiée » lorsqu'aucune occurrence future n'existe.                                                             |
+| Bouton **Démarrer**     | Ouvre l'écran d'exécution. La séance ne démarre qu'après appui sur le bouton **Lecture** de cet écran.                                                                            |
+| Bouton **+**            | Ouvre l'écran de création d'une nouvelle séance.                                                                                                                                  |
+| Menu **...**            | Donne accès aux actions sur la séance.                                                                                                                                            |
+| Modifier                | Ouvre l'écran de modification de la séance.                                                                                                                                       |
+| Archiver                | Déplace la séance dans l'onglet **Archivées** après confirmation.                                                                                                                 |
+| Restaurer               | Disponible uniquement pour une séance archivée  Replace la séance dans **Toutes**.                                                                                                |
+| Supprimer               | Supprime définitivement la séance après confirmation, et les Routines associées, mais conserve les Exécutions historisées.                                                        |
+| Suppression             | Impossible à annuler une fois confirmée.                                                                                                                                          |
+| Liste vide              | Si aucune séance n'est disponible, un message et un bouton **Créer une séance** sont affichés.                                                                                    |
+| Actualisation           | Toute création, modification, archivage, restauration ou suppression met immédiatement la liste à jour.                                                                           |
+| Navigation              | Les quatre onglets inférieurs permettent de naviguer entre **Mes séances**, **Calendrier**, **Suivi** et **Profil**.                                                              |
 
 ## Nouvelle séance — Saisie du nom et de la couleur
 
