@@ -120,11 +120,13 @@ Le MVP permet de :
 - créer une routine depuis le Calendrier ;
 - sélectionner la séance associée ;
 - définir une date de début et une heure ;
-- définir une récurrence quotidienne, hebdomadaire ou mensuelle ;
-- définir une fin de répétition ;
+- choisir entre Sans répétition et une récurrence hebdomadaire ;
+- pour une récurrence hebdomadaire, sélectionner un ou plusieurs jours de la semaine et définir une date de fin obligatoire ;
 - configurer un rappel ;
-- activer, désactiver, modifier ou supprimer une routine ;
+- modifier ou supprimer une routine ;
 - consulter les occurrences dans des vues semaine et mois.
+
+Une Routine ne possède pas d’état actif/inactif dans le MVP : elle existe ou est supprimée.
 
 Les occurrences sont calculées dynamiquement à partir de la routine et ne sont pas enregistrées individuellement.
 
