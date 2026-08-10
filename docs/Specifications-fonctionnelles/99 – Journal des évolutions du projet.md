@@ -56,3 +56,36 @@ Pour chaque nouvelle version :
 2. Mettre à jour ce journal.
 3. Lister les chapitres modifiés.
 4. Vérifier que toutes les décisions validées sont répercutées dans la documentation.
+
+## 2026-08-10 – Résolution des points B de la revue Claude
+
+- MVP confirmé monolingue français, avec architecture préparée pour l’internationalisation future des textes et de la synthèse vocale.
+- Organisation du code validée par domaines fonctionnels, avec séparation routes / domaine / infrastructure / partagé.
+- Accessibilité, responsive mobile et design tokens intégrés dès le socle ; portrait pour le MVP, paysage préparé pour une évolution ultérieure.
+- Un seul layout est développé dans le MVP ; séparation du design system et de la logique fonctionnelle pour faciliter les refontes futures.
+- Ordre de développement incrémental validé, avec spike timer/audio/arrière-plan placé avant la construction complète du produit.
+- Stratégie de robustesse du moteur d’Exécution validée : temps fondé sur des horodatages persistés et recalcul déterministe, horloge abstraite et adaptateurs natifs.
+- Spike technique iOS / Android rendu obligatoire avant développement complet du moteur, avec résultats documentés et validation sur appareils réels ; une validation complète est également requise avant livraison du MVP.
+
+
+## 2026-08-10 – Séries propres à l'Activité et simplification de la création d'un Exercice
+
+- Réintroduction du terme **Série** comme paramètre d'exécution propre à une Activité de type Exercice, sans création d'une nouvelle entité structurelle.
+- Ajout d'un **nombre de Séries** propre à chaque Exercice.
+- Une Série exécute la Durée ou les Répétitions de l'Exercice puis sa pause éventuelle.
+- La pause est répétée après chaque Série ; la pause finale est omise lorsque l'étape suivante est une Récupération explicite.
+- Refonte du parcours de création/modification d'un Exercice en deux écrans :
+  1. paramètres essentiels : type, nom, mode, durée/répétitions, pause, Séries ;
+  2. informations complémentaires facultatives : consigne et Zones corporelles.
+- `Valider` ouvre le second écran ; `Terminer` enregistre l'Activité et revient à la composition.
+- Figma et la documentation fonctionnelle ont été alignés sur ce nouveau parcours.
+
+## 2026-08-10 – Revue de cohérence transversale
+
+- Harmonisation du vocabulaire **Pause après Série** dans l'ensemble de la documentation.
+- Suppression des références résiduelles à un mode d'Exercice autonome **Manuel** : les seuls modes d'Exercice sont **Durée** et **Répétition**.
+- Conservation de l'action `Terminé` pour les Exercices en mode Répétition et adaptation des règles de durée estimée (`≈`).
+- Correction d'une incohérence résiduelle : le **Bloc** et le **Cycle** appartiennent à la **Séance**, et non à la Routine.
+- Complément des règles métier transverses sur le nombre de Séries et la pause après Série.
+- Harmonisation du modèle de données et des préférences avec la nouvelle notion de Série.
+

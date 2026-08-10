@@ -1,4 +1,3 @@
-
 ## L’idée en une phrase
 
 Une application mobile qui aide une personne à créer ses séances, les planifier sous forme de routines, les exécuter et suivre sa progression grâce à un guidage visuel, sonore et éventuellement vidéo.

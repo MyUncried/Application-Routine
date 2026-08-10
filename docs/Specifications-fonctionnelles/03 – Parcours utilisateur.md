@@ -10,11 +10,11 @@ Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des
 Présenter la couverture fonctionnelle du MVP et orienter vers les parcours utilisateur détaillés de ce chapitre.
 
 Le MVP permet à l'utilisateur :
-- de gérer ses catégories de séances et ses zones corporelles ;
+- de gérer ses catégories de séances et de sélectionner les zones corporelles du référentiel applicatif ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
 - de planifier une séance au moyen d'une routine ;
-- de modifier, désactiver, réactiver ou supprimer une routine ;
+- de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
 - de consulter le détail des séances exécutées dans le Suivi.
 ## Parcours de référence
@@ -22,7 +22,7 @@ Le MVP permet à l'utilisateur :
 | Besoin utilisateur                               | Parcours de référence                                                              |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | Gérer les catégories de séances                  | Gestion des référentiels utilisateur — Gestion des catégories                      |
-| Gérer les zones corporelles                      | Gestion des référentiels utilisateur — Gestion des zones corporelles               |
+| Utiliser les zones corporelles                   | Référentiel applicatif — Sélection des zones corporelles                            |
 | Créer, réorganiser et exécuter une séance        | Parcours principal — Créer et exécuter une séance                                  |
 | Créer une séance à partir d'une séance existante | Parcours complémentaire 1 — Créer une séance à partir d'une référence              |
 | Planifier et gérer une séance récurrente         | Parcours complémentaire 2 — Gérer les routines                                     |
@@ -52,53 +52,37 @@ Le MVP ne prend pas encore en charge :
 Ces fonctions sont prévues pour des versions ultérieures.
 # Gestion des référentiels utilisateur
 
-Les référentiels utilisateur regroupent les listes de valeurs personnalisables utilisées dans l'application.
+Les référentiels utilisés dans le MVP sont de deux natures :
+- les **Catégories de Séances**, personnalisables par l’utilisateur ;
+- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et non administrable par l’utilisateur.
 
-Dans le MVP, deux référentiels sont gérés :
-- les catégories de séances ;
-- les zones corporelles.
-
-Ces référentiels sont propres à chaque utilisateur et peuvent être enrichis ou adaptés selon ses besoins.
 ## Gestion des catégories
 
 Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
-Une séance peut appartenir à une ou plusieurs catégories.
+Une séance peut appartenir à zéro, une ou plusieurs catégories.
 
-Depuis l'écran **Gestion des catégories**, l'utilisateur peut :
-- consulter la liste des catégories ;
+L'utilisateur peut :
+- consulter les catégories existantes ;
 - créer une nouvelle catégorie ;
 - modifier son nom ;
-- désactiver une catégorie ;
-- réactiver une catégorie ;
-- supprimer une catégorie lorsqu'elle n'est utilisée par aucune séance.
+- supprimer une catégorie.
 
-Une catégorie désactivée n'est plus proposée lors de la création ou de la modification d'une séance, mais reste associée aux séances existantes.
+Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
+
 ### Parcours
 
-1. Ouvrir **Gestion des catégories**.
+1. Ouvrir la gestion ou la sélection des catégories.
 2. Consulter les catégories existantes.
-3. Choisir une action : créer, modifier, désactiver, réactiver ou supprimer.
-4. Les modifications sont immédiatement disponibles dans l'ensemble de l'application.
-## Gestion des zones corporelles
+3. Créer, modifier ou supprimer une catégorie selon le besoin.
+4. Les modifications sont immédiatement disponibles dans l'ensemble de l'application, sans modification des Instantanés historiques.
+
+## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
-Une activité de type **Exercice** peut être associée à une ou plusieurs zones corporelles.
+Une activité de type **Exercice** peut être associée à zéro, une ou plusieurs zones corporelles.
 
-Depuis l'écran **Gestion des zones corporelles**, l'utilisateur peut :
-- consulter la liste des zones existantes ;
-- créer une nouvelle zone ;
-- modifier son nom ;
-- désactiver une zone ;
-- réactiver une zone ;
-- supprimer une zone lorsqu'elle n'est utilisée par aucune activité.
+Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
 
-Une zone désactivée n'est plus proposée lors de la création ou de la modification d'une activité, mais reste associée aux activités existantes.
-### Parcours
-
-1. Ouvrir **Gestion des zones corporelles**.
-2. Consulter les zones existantes.
-3. Choisir une action : créer, modifier, désactiver, réactiver ou supprimer.
-4. Les modifications sont immédiatement disponibles lors de la création ou de la modification d'une activité.
 # Parcours principal — Créer et exécuter une séance
 
 ## Objectif du parcours
@@ -119,7 +103,7 @@ L'utilisateur crée une nouvelle séance.
 
 Il renseigne son nom, lui associe éventuellement une ou plusieurs catégories, puis construit progressivement son contenu en ajoutant les activités qui la composent.
 
-Pour chaque activité, il définit ses paramètres (type, durée ou répétitions, récupération, consignes, zones corporelles, médias...) ainsi que les paramètres généraux de la séance.
+Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée ou Répétitions, valeur d'exécution, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
 
 Il enregistre ensuite sa séance.
 ### 2. Réorganiser une séance
@@ -148,7 +132,6 @@ Il peut notamment :
 - suivre le minuteur ou les répétitions ;
 - mettre la séance en pause ;
 - reprendre la séance ;
-- revenir à l'activité précédente ;
 - passer directement à l'activité suivante ;
 - arrêter la séance.
 ### 5. Terminer une séance
@@ -204,7 +187,7 @@ L'utilisateur crée rapidement une nouvelle séance en s'appuyant sur une séanc
 
 ## Objectif du parcours
 
-Permettre à l'utilisateur de planifier l'exécution de ses séances, de modifier leur planification, de désactiver une routine ou de la supprimer.
+Permettre à l'utilisateur de planifier l'exécution de ses séances, de modifier leur planification ou de supprimer une routine.
 ## Situation de départ
 
 L'utilisateur dispose d'au moins une séance enregistrée.
@@ -219,12 +202,10 @@ Il souhaite programmer son exécution à une date précise ou de manière récur
 4. Définir :
    - la date de début ;
    - l'heure ;
-   - la récurrence ;
+   - le mode de planification et, le cas échéant, les paramètres de répétition hebdomadaire ;
    - la date de fin éventuelle ;
    - le rappel.
 5. Enregistrer.
-
-La routine est active par défaut.
 ### Modifier une routine
 
 1. Sélectionner une routine dans le calendrier.
@@ -233,36 +214,21 @@ La routine est active par défaut.
 4. Enregistrer.
 
 Les modifications s'appliquent uniquement aux occurrences futures.
-### Désactiver une routine
-
-1. Ouvrir la planification d'une routine.
-2. Désactiver l'interrupteur **Routine active**.
-3. Enregistrer.
-
-La routine disparaît de la liste des routines actives et reste accessible depuis le filtre **Désactivées**.
-### Réactiver une routine
-
-1. Afficher les routines désactivées.
-2. Modifier la routine.
-3. Réactiver l'interrupteur.
-4. Enregistrer.
-
-La routine réapparaît dans la liste des routines actives.
 ### Supprimer une routine
 
 1. Sélectionner une routine.
 2. Choisir **Supprimer la routine**.
 3. Confirmer la suppression.
 
-Les occurrences non exécutées sont supprimées.
+Les occurrences futures cessent d'être générées. Les occurrences déjà historisées, y compris celles ayant le statut **Non exécutée**, sont conservées.
 Les exécutions déjà réalisées sont conservées.
 ## Points d'attention
 
 - Une routine ne modifie jamais le contenu d'une séance.
 - Une séance peut être associée à plusieurs routines.
-- Une routine désactivée reste modifiable.
 - La suppression d'une routine ne supprime jamais la séance.
 - Les exécutions déjà réalisées sont toujours conservées.
+- L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
 ## Résultat attendu
 
 L'utilisateur gère facilement la planification de ses séances sans modifier leur contenu et conserve un historique fiable de toutes les exécutions réalisées.
@@ -279,7 +245,6 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 2. Pendant son exécution, il peut :
     - mettre la séance en pause ;
     - reprendre la séance ;
-    - revenir à l'activité précédente ;
     - passer directement à l'activité suivante ;
     - ignorer une activité ;
     - terminer une activité avant son terme ;
@@ -309,7 +274,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 - La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
 	- Si une séance reste en pause pendant plus de 30 minutes, l'application demande à l'utilisateur s'il souhaite reprendre son exécution.
 	- Si l'utilisateur confirme, la séance reprend à l'activité où elle avait été interrompue.
-	- En l'absence de réponse (au bout de 5 minutes), la séance est automatiquement enregistrée avec le statut Interrompue.
+	- En l'absence de réponse, la séance est automatiquement enregistrée avec le statut Interrompue.
 	- Dans une version ultérieure, cette durée maximale pourra être configurée dans les préférences utilisateur.
 ## Résultat attendu
 

@@ -12,16 +12,17 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - un nom ;
   - une consigne ;
   - une durée ou un nombre de répétitions ;
+  - un nombre de Séries propre à l'Exercice ;
+  - une pause éventuelle appliquée après chaque Série ;
   - une photo ou une vidéo ;
-- définir une pause facultative après un exercice ou créer une activité de type Récupération ;
 - ordonner les activités d’un bloc ;
 - configurer des cycles et leurs blocs, créés avec une répétition par défaut ;
 - placer des activités de récupération dans un bloc, en fin de cycle ou en fin de séance ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
-- annoncer vocalement le nom de chaque exercice, pause ou récupération au moment où l’étape commence ;
+- annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
-- ne pas émettre de bip de rythme pendant les pauses et les récupérations ;
+- ne pas émettre de bip de rythme pendant les activités de type Récupération, qu’elles aient été ajoutées explicitement ou générées par une pause après Série ;
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
@@ -29,7 +30,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
     - les bips de rythme ;
     - le compte à rebours sonore ;
     - les annonces vocales ;
-- afficher clairement l’exercice, la pause ou la récupération en cours, l’étape suivante et la progression dans la séance ;
+- afficher clairement l’activité en cours, son type ou son libellé, l’étape suivante et la progression dans la séance ;
 - utiliser une minuterie pour les exercices définis par une durée ;
 - mettre la séance en pause et la reprendre ;
 - maintenir, dans la mesure permise par le système d’exploitation, le guidage sonore lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan ;
@@ -47,11 +48,10 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - consulter un historique simple des séances ;
 - renseigner facultativement, en fin de séance :
 	- un ressenti général ;
-	- une douleur ou une gêne ;
 	- une note libre ;
-- retrouver ces informations dans le détail de la séance.
+- retrouver ces informations dans le détail déployé de l’Exécution dans le Suivi.
 
-Dans cette version, l’échauffement, les séries de fin de cycle et les séries de fin de routine utilisent des séries ordinaires. `Retour au calme` n’est pas un type structurel particulier.
+Dans cette version, l’échauffement, les activités de fin de cycle et les activités de fin de séance utilisent des Activités ordinaires. `Retour au calme` n’est pas un type structurel particulier.
 
 Le guidage sonore doit, dans la mesure permise par le système d’exploitation, continuer lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan.
 
@@ -60,7 +60,7 @@ Toutes les données sont enregistrées uniquement sur l’appareil.
 La V1 permet également :
 - de créer une routine ;
 - d'associer une séance à une routine ;
-- de définir une planification unique ou récurrente ;
+- de définir une planification sans répétition ou avec répétition hebdomadaire jusqu'à une date de fin ;
 - d'ajouter un ou plusieurs rappels.
 
 Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Bloc → Activité.
@@ -86,11 +86,24 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 
 #### Internationalisation
 
-- interface multilingue ;
-- gestion des langues ;
-- contenus traduisibles.
+Le MVP est monolingue en français. L’architecture est néanmoins préparée dès le MVP pour permettre une évolution multilingue simple.
 
----
+Les évolutions ultérieures pourront ajouter :
+- plusieurs langues d’interface à partir d’un catalogue de textes externalisés ;
+- la sélection de la langue de l’interface ;
+- la sélection de la langue utilisée pour les annonces vocales ;
+- des contenus traduisibles sans refonte des écrans ni de la logique métier.
+
+Aucun sélecteur de langue n’est affiché dans le MVP.
+#### Composition avancée des séances
+
+La structure d'une séance pourra être étendue afin de permettre :
+ 
+ - plusieurs Cycles ordonnés dans une même Séance ;
+ - plusieurs Blocs ordonnés dans un même Cycle ;
+ - un nombre de répétitions propre à chaque Cycle et à chaque Bloc.
+ 
+ Cette évolution ne rend pas les Cycles, Blocs ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 

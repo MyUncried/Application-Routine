@@ -55,7 +55,7 @@ Une séance peut être :
 Une séance ne contient jamais :
 - de date ;
 - d'heure ;
-- de récurrence ;
+- de paramètres de planification ;
 - de résultats d'exécution.
 ## Cycle
 
@@ -69,7 +69,7 @@ Un **cycle** est un conteneur composé :
 
 Un **bloc** est un ensemble ordonné d'activités exécutées successivement.
 Il est toujours contenu dans un cycle.
-Un bloc ne possède pas de nombre de répétitions propre : celui-ci est défini par le cycle qui le contient.
+Un bloc possède un nombre de répétitions propre, supérieur ou égal à 1.
 ## Activité
 
 Une **activité** représente une action élémentaire exécutée pendant une séance.
@@ -78,26 +78,34 @@ Il existe deux types d'activités :
 - **Exercice** ;
 - **Récupération**.
 
-Une activité de type **Exercice** peut intégrer une pause facultative après son exécution.
+Une activité de type **Exercice** possède un nombre de **Séries** propre, supérieur ou égal à 1.
+
+Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution (**Durée** ou **Répétitions**), suivie de sa pause éventuelle. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+
 Chaque activité possède notamment :
 - un nom ;
-- une consigne ;
-- un mode d'exécution (durée, répétitions ou manuel) ;
-- un ou plusieurs médias ;
-- une ou plusieurs zones corporelles (pour les exercices).
+- un mode d'exécution ;
+- une durée ou un nombre de répétitions selon le mode ;
+- un nombre de Séries ;
+- une pause facultative appliquée après chaque Série ;
+- une consigne facultative ;
+- une ou plusieurs zones corporelles facultatives pour les Exercices ;
+- un ou plusieurs médias éventuels.
+
+Après la dernière Série, la pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
 ## Routine
 
 Une routine est une **planification d'une séance**.
 
 Elle définit :
-
 - la séance concernée ;
 - sa date de début ;
-- son heure ;
-- sa fréquence ;
-- sa récurrence ;
+- son heure d'exécution ;
+- son mode de planification : sans répétition ou périodique ;
+- pour une planification périodique, sa fréquence hebdomadaire, les jours de la semaine concernés et sa date de fin ;
 - ses rappels éventuels ;
-- son état (active ou inactive).
+
+Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d'une même séance à des horaires différents sont représentées par plusieurs routines distinctes.
 
 Une routine ne contient jamais le contenu d'une séance.
 
@@ -119,13 +127,29 @@ Elle conserve notamment :
 Chaque exécution est indépendante des modifications ultérieures de la séance ou de la routine.
 ## Préférences globales
 
-Les préférences globales regroupent les paramètres personnels utilisés par défaut lors de la création de nouvelles routines.
+Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l'utilisation des séances et des routines.  
+Elles peuvent être modifiées dans le Profil. Leur modification n'altère pas rétroactivement les séances ou routines déjà créées.
 
-Elles concernent notamment :
-- les valeurs par défaut ;
-- les paramètres sonores ;
+Elles comprennent :
+
+**Préférences de création d'une séance :**
+
+- la durée par défaut du compte à rebours initial ;
+- le texte vocal par défaut du compte à rebours initial ;
+- la durée par défaut de la fin de séance ;
+- le texte vocal par défaut de la fin de séance.
+
+**Préférences de planification :**
+
+- les paramètres par défaut des rappels associés aux routines.
+
+**Préférences d'exécution :**
+
+- les sons ;
 - les annonces vocales ;
-- les comportements généraux de l'application.
+- les vibrations.
+
+Les préférences utilisées comme valeurs par défaut sont copiées dans la séance ou la routine lors de sa création lorsque le paramètre est propre à cet objet. Une modification ultérieure des préférences globales ne modifie donc pas les objets existants.
 
 ## Référentiels utilisateur
 
@@ -135,21 +159,26 @@ Dans le MVP, deux référentiels sont disponibles :
 - **Catégories**, utilisées pour classer les séances.
 - **Zones corporelles**, utilisées pour qualifier les activités de type Exercice.
 
-Ces référentiels sont indépendants des routines et des activités. Ils peuvent être enrichis, modifiés, désactivés ou supprimés par l'utilisateur, sous réserve des règles d'intégrité définies dans le modèle de données.
+Les Catégories sont personnalisables par l'utilisateur. Les Zones corporelles constituent en revanche un référentiel prédéfini dans le MVP : elles peuvent être sélectionnées pour les Exercices mais ne peuvent pas être créées, renommées ou supprimées par l'utilisateur.
 
 # 4.4 Structure d'une séance
 
 Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance → Cycle → Bloc → Activité. Chaque niveau apporte une responsabilité distincte.
 
-Une séance peut comprendre, dans l'ordre :
-1. un compte à rebours initial (facultatif) ;
-2. un ou plusieurs **cycles** ;
-3. des activités de fin de séance (facultatives).
+Une séance comprend, dans l'ordre :
+1. un compte à rebours initial ;
+2. un **Cycle unique** ;
+3. des activités de fin de séance facultatives ;
+4. une fin de séance.
 
-Chaque **cycle** est composé :
-- d'un **bloc** unique ;
-- d'un nombre de répétitions ;
-- éventuellement d'une ou plusieurs activités propres au cycle, exécutées après chaque répétition du bloc.
+Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
+
+Le **Cycle** est composé :
+- d'un **Bloc unique** ;
+- d'un nombre de répétitions propre ;
+- éventuellement d'une ou plusieurs activités propres au Cycle, exécutées après chaque répétition du Bloc.
+
+Le **Bloc** possède également son propre nombre de répétitions.
 
 Chaque **bloc** regroupe une suite ordonnée d'activités.
 
@@ -157,7 +186,7 @@ Une **activité** est de type :
 - **Exercice** ;
 - **Récupération**.
 
-Une activité de type **Exercice** peut intégrer une pause facultative après son exécution.
+Une activité de type **Exercice** possède un nombre de Séries propre et peut intégrer une pause facultative après chaque Série.
 
 Par défaut :
 - une séance contient un cycle ;
@@ -247,11 +276,10 @@ Ainsi :
 # 4.8 Périmètre du MVP
 
 La première version permet notamment :
-
 - créer, modifier, dupliquer, archiver et supprimer des séances ;
 - créer, modifier et supprimer des routines de planification ;
 - créer et modifier des activités ;
-- organiser les activités en blocs et cycles ;
+- organiser les Activités dans le Bloc et définir les nombres de répétitions du Bloc et du Cycle ;
 - associer plusieurs catégories à une séance ;
 - associer des zones corporelles aux exercices ;
 - exécuter une séance ;
