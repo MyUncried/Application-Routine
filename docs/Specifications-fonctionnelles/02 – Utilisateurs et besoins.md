@@ -35,7 +35,7 @@ Ces routines peuvent notamment concerner :
 - Réutiliser des exercices, des étapes ou des séquences déjà créés.
 - Construire une nouvelle séance en combinant plusieurs routines ou parties de routines existantes.
 - Associer à chaque exercice des instructions, une photo ou une vidéo.
-- Définir pour chaque exercice une durée ou un nombre de répétitions, puis organiser les activités en blocs et cycles.
+- Définir pour chaque exercice une durée ou un nombre de répétitions, puis organiser les activités en Sets et cycles.
 - Planifier une séance sous forme de routine dans un calendrier.
 - Recevoir des rappels.
 - Être guidé visuellement et sonorement, étape par étape, afin de pouvoir suivre la séance sans regarder constamment l’écran.
@@ -172,7 +172,7 @@ La planification, les comptes, la synchronisation et le partage avec d’autres 
 - Les membres d’un groupe recherchent-ils surtout de l’entraide, de la motivation ou un suivi par un responsable ?
 - Quels besoins professionnels justifieraient ultérieurement une interface spécifique ?
 - Une routine intégrée dans une autre doit-elle rester liée à la routine d’origine ou en devenir une copie indépendante ? **Une copie indépendante, ou alors demander s'il faut la lier ou pas**
-	- **Lorsqu’une routine, un bloc ou une séquence est intégré dans une autre routine, son contenu devient une copie indépendante. Les modifications ultérieures apportées à l’élément d’origine ne modifient pas automatiquement la routine qui l’a réutilisé.**
+	- **Lorsqu’une routine, un Set ou une séquence est intégré dans une autre routine, son contenu devient une copie indépendante. Les modifications ultérieures apportées à l’élément d’origine ne modifient pas automatiquement la routine qui l’a réutilisé.**
 - L’utilisateur doit-il pouvoir intégrer une routine entière ou seulement sélectionner certaines de ses étapes ? **Une routine entière.**
 - Quelles informations doivent apparaître en priorité sur le tableau de bord ?
 - Quelles statistiques sont réellement utiles selon le type de séance ?

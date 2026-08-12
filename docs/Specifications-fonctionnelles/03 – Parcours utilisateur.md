@@ -16,7 +16,7 @@ Le MVP permet à l'utilisateur :
 - de planifier une séance au moyen d'une routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
-- de consulter le détail des séances exécutées dans le Suivi.
+- de consulter les Exécutions enregistrées dans le Suivi.
 ## Parcours de référence
 
 | Besoin utilisateur                               | Parcours de référence                                                              |
@@ -115,7 +115,7 @@ Il peut notamment :
 - supprimer une activité ;
 - modifier une activité ;
 - déplacer une activité ;
-- modifier le nombre de répétitions du bloc ;
+- modifier le nombre de répétitions du Set ;
 - modifier le nombre de répétitions du cycle ;
 - modifier les paramètres généraux de la séance.
 
@@ -220,7 +220,7 @@ Les modifications s'appliquent uniquement aux occurrences futures.
 2. Choisir **Supprimer la routine**.
 3. Confirmer la suppression.
 
-Les occurrences futures cessent d'être générées. Les occurrences déjà historisées, y compris celles ayant le statut **Non exécutée**, sont conservées.
+Les occurrences futures cessent d'être générées. Les Exécutions déjà enregistrées sont conservées. Les occurrences planifiées passées non exécutées ne sont pas présentées dans l'interface du MVP.
 Les exécutions déjà réalisées sont conservées.
 ## Points d'attention
 
@@ -292,25 +292,19 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 ## Parcours
 
 1. L'utilisateur ouvre le menu **Suivi**.
-2. Il consulte la liste chronologique de ses séances exécutées.
-3. Il peut filtrer ou rechercher une séance selon différents critères.
-4. Il sélectionne une séance.
-5. La séance se déploie afin d'afficher le détail de son exécution.
-6. Il consulte notamment :
-   - la date et l'heure d'exécution ;
-   - la durée réelle ;
-   - le statut de la séance ;
-   - le déroulement des cycles, blocs et activités ;
-   - les activités terminées, partielles ou interrompues ;
-   - les éventuels commentaires ou ressentis enregistrés.
-7. Il replie la séance ou consulte une autre exécution.
+2. Il consulte la liste chronologique de ses Exécutions enregistrées.
+3. Il peut rechercher, filtrer ou trier les Exécutions selon les critères disponibles.
+4. Il consulte sur chaque carte condensée la date / heure, la durée réelle, le statut et le ressenti lorsqu'il existe.
+5. Il peut sélectionner une autre Exécution ou modifier ses critères de recherche, de filtre ou de tri.
+
+La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
+
 ## Points d'attention
 
-- Le suivi présente uniquement les exécutions réalisées et jamais les séances elles-mêmes.
-- Les informations affichées correspondent toujours à la version de la séance utilisée lors de son exécution.
-- Une modification ultérieure d'une séance ou d'une routine n'altère jamais les informations enregistrées dans le suivi.
-- Le détail d'une séance doit permettre de comprendre rapidement pourquoi son statut est **Terminée**, **Partielle** ou **Interrompue**.
-- La structure des données du suivi doit permettre d'ajouter ultérieurement des tableaux de bord, graphiques et indicateurs de progression sans modifier le modèle métier.
+- Le Suivi présente uniquement les Exécutions enregistrées ; les occurrences planifiées passées non exécutées n'y apparaissent pas.
+- Les informations affichées correspondent toujours à la version de la Séance utilisée lors de son Exécution.
+- Une modification ultérieure d'une Séance ou d'une Routine n'altère jamais les informations enregistrées dans le Suivi.
+- La structure des données doit permettre d'ajouter ultérieurement une vue détaillée, des tableaux de bord, graphiques et indicateurs de progression sans modifier le modèle métier.
 ## Résultat attendu
 
 L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut suivre facilement son activité ainsi que sa progression au fil du temps.

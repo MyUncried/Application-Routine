@@ -15,9 +15,9 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - un nombre de Séries propre à l'Exercice ;
   - une pause éventuelle appliquée après chaque Série ;
   - une photo ou une vidéo ;
-- ordonner les activités d’un bloc ;
-- configurer des cycles et leurs blocs, créés avec une répétition par défaut ;
-- placer des activités de récupération dans un bloc, en fin de cycle ou en fin de séance ;
+- ordonner les activités d’un Set ;
+- configurer des cycles et leurs Sets, créés avec une répétition par défaut ;
+- placer des activités de récupération dans un Set, en fin de cycle ou en fin de séance ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
 - annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
@@ -34,22 +34,21 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - utiliser une minuterie pour les exercices définis par une durée ;
 - mettre la séance en pause et la reprendre ;
 - maintenir, dans la mesure permise par le système d’exploitation, le guidage sonore lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan ;
-- terminer ou ignorer un exercice ;
-- afficher le bloc et le cycle en cours ;
+- terminer normalement un Exercice en Répétition ou passer manuellement à l’Activité suivante ;
+- afficher le Set et le cycle en cours ;
 - interrompre ou terminer une séance ;
 - enregistrer localement :
   - la date de la séance ;
   - sa durée ;
   - son statut ;
-  - les exercices terminés ou ignorés ;
+  - les Activités terminées, Partielles ou interrompues ;
   - les cycles réalisés ;
   - la version de la séance ;
   - la routine éventuelle ;
 - consulter un historique simple des séances ;
-- renseigner facultativement, en fin de séance :
-	- un ressenti général ;
-	- une note libre ;
-- retrouver ces informations dans le détail déployé de l’Exécution dans le Suivi.
+- renseigner obligatoirement, en fin de séance, un ressenti général ;
+- renseigner facultativement un Commentaire ;
+- retrouver les Exécutions enregistrées sous forme de cartes condensées dans le Suivi, avec recherche, filtres et tri.
 
 Dans cette version, l’échauffement, les activités de fin de cycle et les activités de fin de séance utilisent des Activités ordinaires. `Retour au calme` n’est pas un type structurel particulier.
 
@@ -63,7 +62,7 @@ La V1 permet également :
 - de définir une planification sans répétition ou avec répétition hebdomadaire jusqu'à une date de fin ;
 - d'ajouter un ou plusieurs rappels.
 
-Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Bloc → Activité.
+Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Set → Activité.
 
 ---
 
@@ -83,6 +82,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - calculer la durée estimée des structures complexes ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
+- l'activation/la désactivation du bip grave à chaque seconde pendant les exercices chronométrés devient paramétrable dans les Préférences.
 
 #### Internationalisation
 
@@ -100,10 +100,10 @@ Aucun sélecteur de langue n’est affiché dans le MVP.
 La structure d'une séance pourra être étendue afin de permettre :
  
  - plusieurs Cycles ordonnés dans une même Séance ;
- - plusieurs Blocs ordonnés dans un même Cycle ;
- - un nombre de répétitions propre à chaque Cycle et à chaque Bloc.
+ - plusieurs Sets ordonnés dans un même Cycle ;
+ - un nombre de répétitions propre à chaque Cycle et à chaque Set.
  
- Cette évolution ne rend pas les Cycles, Blocs ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
+ Cette évolution ne rend pas les Cycles, Sets ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 

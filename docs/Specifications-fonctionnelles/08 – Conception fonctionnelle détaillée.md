@@ -80,7 +80,7 @@ Les modifications apportées à une séance n'ont aucun effet sur les exécution
 La création d'une séance se déroule en quatre étapes successives :
 
 1. saisie du nom de la séance et sélection de sa couleur ;
-2. composition de la séance (activités, blocs, cycles...) ;
+2. composition de la séance (activités, Set, Cycle...) ;
 3. sélection des catégories ;
 4. retour au catalogue des séances.
 
@@ -92,7 +92,7 @@ Aucune routine n'est créée automatiquement.
 
 Une séance peut être modifiée à tout moment depuis le catalogue des séances.
 
-Toutes les modifications sont enregistrées automatiquement.
+La modification d'une séance démarre toujours par l'écran de définition du nom et de la couleur, puis se poursuit vers la Composition. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
 
 L'utilisateur peut notamment modifier :
 
@@ -196,7 +196,7 @@ La structure d'une séance est entièrement définie par son contenu. Aucun comp
 Une séance est composée, dans l'ordre, des éléments suivants :
 
 1. un compte à rebours initial ;
-2. un Cycle unique contenant un Bloc unique ;
+2. un Cycle unique contenant un Set unique ;
 3. des activités de fin de séance facultatives ;
 4. une fin de séance.
 
@@ -206,7 +206,7 @@ Le compte à rebours initial est exécuté une seule fois au démarrage de la s�
 
 Les activités de fin de séance sont exécutées une seule fois après la dernière répétition du Cycle et avant la Fin de séance.
 
-Une séance contient obligatoirement un Cycle et un Bloc et doit contenir au minimum une activité de type Exercice pour être exécutable.
+Une séance contient obligatoirement un Cycle et un Set et doit contenir au minimum une activité de type Exercice pour être exécutable.
 
 ## 3.3 Les activités
 
@@ -242,32 +242,34 @@ Elle peut être associée à une ou plusieurs zones corporelles.
 
 Une activité de type Récupération correspond à une période de repos chronométrée.
 
-Elle est définie uniquement par une durée.
+Son nom proposé par défaut est **Récupération**.
+
+Elle est définie uniquement par une durée et se termine automatiquement à l'échéance de cette durée.
 
 Elle ne possède ni répétitions, ni zones corporelles.
 
-## 3.5 Blocs
+## 3.5 Sets
 
-Un bloc est un conteneur regroupant plusieurs activités exécutées dans un ordre déterminé.
+Un Set est un conteneur regroupant plusieurs activités exécutées dans un ordre déterminé.
 
-Dans le MVP, chaque cycle contient un seul bloc.
+Dans le MVP, chaque cycle contient un seul Set.
 
-Les activités d'un bloc peuvent être réorganisées librement.
+Les activités d'un Set peuvent être réorganisées librement.
 
-Le bloc constitue principalement un élément fonctionnel de structuration. Son maintien dans le vocabulaire visible par l'utilisateur pourra être réévalué ultérieurement.
+Le Set constitue principalement un élément fonctionnel de structuration. Son maintien dans le vocabulaire visible par l'utilisateur pourra être réévalué ultérieurement.
 
 ## 3.6 Cycles
 
-Un cycle permet de répéter un bloc un nombre défini de fois.
+Un cycle permet de répéter un Set un nombre défini de fois.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle ;
-- le Cycle contient exactement un Bloc ;
+- le Cycle contient exactement un Set ;
 - le Cycle possède son propre nombre de répétitions ;
-- le Bloc possède son propre nombre de répétitions ;
-- à chaque répétition du Cycle, le Bloc est exécuté selon son nombre de répétitions, puis les éventuelles Activités propres au Cycle sont exécutées.
+- le Set possède son propre nombre de répétitions ;
+- à chaque répétition du Cycle, le Set est exécuté selon son nombre de répétitions, puis les éventuelles Activités propres au Cycle sont exécutées.
 
-Dans une version ultérieure, une Séance pourra comporter plusieurs Cycles et un Cycle pourra comporter plusieurs Blocs.
+Dans une version ultérieure, une Séance pourra comporter plusieurs Cycles et un Cycle pourra comporter plusieurs Sets.
 ## 3.7 Réorganisation
 
 Les activités peuvent être :
@@ -296,8 +298,11 @@ Une séance incomplète peut être enregistrée mais ne peut pas être exécuté
 À chaque modification, l'application recalcule automatiquement :
 
 - la durée estimée de la séance ;
-- le nombre total d'activités ;
-- le nombre total de cycles.
+- le nombre total d'Activités de la Composition.
+
+La **durée estimée** correspond à la durée prévisionnelle de l'exécution complète de la séance. Elle tient compte des durées des Activités, des pauses intermédiaires et de leurs répétitions liées aux Séries, Sets et Cycles.
+
+Le nombre total d'Activités correspond au nombre d'Exercices et de Récupérations présents dans la Composition, **sans tenir compte de leurs répétitions liées aux Séries, Sets ou Cycles et sans comptabiliser les pauses intermédiaires**.
 
 Ces informations sont affichées en temps réel.
 
@@ -306,8 +311,6 @@ Ces informations sont affichées en temps réel.
 La composition d'une séance repose sur les principes suivants :
 
 - chaque activité est indépendante ;
-- aucune activité n'est créée automatiquement ;
-- aucune récupération n'est ajoutée implicitement ;
 - l'utilisateur garde en permanence la maîtrise complète de la structure de sa séance ;
 - les modifications sont enregistrées automatiquement ;
 - toute séance peut être modifiée ultérieurement sans impact sur les exécutions déjà enregistrées.
@@ -327,7 +330,6 @@ Pendant toute l'exécution, l'application calcule en temps réel la progression 
 Une séance peut être démarrée :
 
 - depuis le catalogue des séances ;
-- depuis une routine planifiée.
 
 Avant de lancer la première activité, l'application :
 
@@ -343,7 +345,7 @@ Les activités sont exécutées dans l'ordre défini dans la séance.
 
 Chaque activité est exécutée intégralement avant le passage à la suivante.
 
-Les cycles répètent automatiquement leur bloc jusqu'à atteindre le nombre de répétitions défini.
+Les cycles répètent automatiquement leur Set jusqu'à atteindre le nombre de répétitions défini.
 
 Les activités de fin de séance sont exécutées une seule fois après le dernier cycle.
 
@@ -351,16 +353,19 @@ Lorsque la dernière activité est terminée, la séance est considérée comme 
 
 ## 4.4 Informations affichées
 
-Pendant toute l'exécution, l'utilisateur visualise notamment :
+Pendant l'Exécution, l'écran affiche principalement :
 
-- le nom de l'activité en cours ;
-- le temps restant de l'activité ou le nombre de répétitions ;
-- le temps total écoulé ;
-- la durée totale estimée de la séance ;
-- la progression dans les blocs et les cycles ;
-- la prochaine activité.
+- le nom de l'Activité en cours ;
+- la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
+- le temps de l'Activité : compte à rebours pour une Activité chronométrée, chronomètre croissant pour un Exercice en Répétition ;
+- `Set x/y • Cycle x/y` ;
+- l'Activité suivante et sa durée lorsqu'elle est connue ;
+- les commandes Réinitialiser, Pause et Activité suivante ;
+- le temps total écoulé / estimé et sa barre de progression.
 
-Ces informations sont mises à jour en temps réel.
+La notion d'« étape » n'est pas affichée comme indicateur de progression dans le MVP.
+
+Pour un Exercice en Répétition, le cercle effectue un tour complet par minute. Le chronomètre continue à croître au-delà d'une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
 
 ## 4.5 Actions disponibles
 
@@ -398,16 +403,12 @@ Les confirmations protègent ainsi les actions ayant un impact irréversible sur
 
 ## 4.7 Passage à l'activité suivante
 
-L'utilisateur peut interrompre l'activité en cours pour passer directement à l'activité suivante.
+L'action **Activité suivante** a deux comportements selon le mode de l'Activité :
 
-Une confirmation est systématiquement demandée.
+- pour une Activité chronométrée utilisée avant son terme, une confirmation est demandée ; après confirmation, l'Activité est enregistrée avec le statut **Partielle** ;
+- pour un Exercice en mode Répétition, l'action constitue la fin normale de l'Exercice et ne crée pas de statut Partielle.
 
-Le statut de l'activité dépend de son mode d'exécution :
-
-- si l'activité est chronométrée et interrompue avant la fin de sa durée, elle est enregistrée comme **Partielle** ;
-- si l'Activité est définie par un nombre de répétitions, elle est considérée comme **Réalisée** lorsque l'utilisateur touche `Terminé`.
-
-Après confirmation, la séance se poursuit normalement avec l'activité suivante.
+Dans les deux cas, l'Exécution poursuit ensuite le plan normal.
 
 ## 4.8 Mise en pause
 
@@ -468,11 +469,11 @@ Lorsque la dernière activité est terminée :
 
 Le statut de l'exécution est déterminé selon les règles suivantes :
 
-|Statut|Description|
-|---|---|
-|Terminée|Toutes les activités ont été exécutées jusqu'à leur terme.|
-|Partielle|La séance est arrivée à son terme, mais au moins une activité n'a pas été réalisée complètement.|
-|Interrompue|L'utilisateur a arrêté la séance avant son terme.|
+| Statut      | Description                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| Terminée    | Toutes les activités ont été exécutées jusqu'à leur terme.                                       |
+| Partielle   | La séance est arrivée à son terme, mais au moins une activité n'a pas été réalisée complètement. |
+| Interrompue | L'utilisateur a arrêté la séance avant son terme.                                                |
 
 ## 4.12 Historique d'exécution
 
@@ -520,7 +521,7 @@ Elle se déroule en deux étapes successives :
 1. sélection de la séance à planifier ;
 2. définition des paramètres de planification.
 
-À l'issue de la validation, la routine est immédiatement créée et activée.
+À l'issue de la validation, la Routine est immédiatement créée.
 
 Les occurrences correspondantes deviennent visibles dans le calendrier.
 
@@ -533,11 +534,15 @@ Chaque Routine possède les paramètres suivants :
 - l'heure d'exécution ;
 - le mode de planification :
     - **Sans répétition** : une seule occurrence est planifiée à la date définie ;
-    - **Périodique** : la séance est répétée selon une périodicité hebdomadaire ;
-- pour une planification périodique :
+    - **Hebdomadaire** : la Séance est répétée selon une fréquence en semaines ;
+- pour une planification hebdomadaire :
     - la fréquence en semaines, supérieure ou égale à 1 ;
     - un ou plusieurs jours de la semaine ;
     - une date de fin obligatoire.
+
+La présentation UI est compacte : `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel, sans titre intermédiaire `Quand ?`. Pour une répétition hebdomadaire, l'écran affiche `Toutes les`, puis `X semaine(s) jusqu'au <date>`, avec les jours sélectionnés en dessous.
+
+Il n'existe pas de mode `Quotidien` distinct : sélectionner les sept jours avec une fréquence d'une semaine produit un comportement quotidien.
 
 La fréquence hebdomadaire définit l’intervalle entre deux semaines d’exécution.  
 Exemple : une fréquence de `2` signifie que la Routine est exécutée toutes les deux semaines, uniquement les jours sélectionnés.
@@ -565,12 +570,14 @@ Les détails techniques de ce calcul sont décrits dans le chapitre **12 – Arc
 
 ## 5.6 Exécution d'une occurrence
 
-Lorsqu'une occurrence est exécutée :
-- une nouvelle exécution est créée dans le suivi ;
-- la routine reste inchangée ;
-- les occurrences futures restent planifiées.
+Une occurrence future peut être exécutée depuis ses options via **Exécuter maintenant**.
 
-L'exécution d'une occurrence ne modifie jamais la routine.
+Cette action ouvre l'écran d'Exécution sans démarrer automatiquement la première Activité.
+
+Lorsqu'une occurrence future est exécutée en avance, elle est considérée comme exécutée pour cette occurrence et n'est plus proposée à l'horaire initial.
+
+Une occurrence qui arrive à échéance sans Exécution disparaît de l'interface et n'apparaît pas dans le Suivi du MVP.
+
 ## 5.7 Suppression
 
 Une Routine peut être supprimée à tout moment.  
@@ -623,7 +630,7 @@ Cet instantané comprend notamment :
 - l’identifiant et le nom de la Séance source ;
 - sa couleur et ses catégories ;
 - le Compte à rebours initial ;
-- la structure ordonnée des Cycles, Blocs et Activités ;
+- la structure ordonnée des Cycles, Sets et Activités ;
 - les paramètres fonctionnels nécessaires de chaque Activité ;
 - les zones corporelles nécessaires à la consultation et au filtrage de l’historique ;
 - la Fin de séance ;
@@ -667,14 +674,13 @@ L'utilisateur peut consulter son historique depuis l'écran **Suivi**.
 
 Les séances exécutées sont présentées sous forme de liste chronologique.
 
-Pour chaque séance, l'utilisateur peut :
+Pour les Exécutions enregistrées, l'utilisateur peut :
 
-- rechercher une séance ;
+- rechercher une Exécution ;
 - filtrer les résultats ;
-- modifier le tri ;
-- développer ou replier le détail de la séance.
+- modifier le tri.
 
-Le détail affiche l'instantané de l'exécution, organisé par cycles et activités.
+Dans le MVP, les cartes restent condensées. La vue détaillée d'une Exécution est reportée à une version ultérieure.
 
 ## 6.6 Recherche
 
@@ -709,16 +715,9 @@ Les autres critères de tri pourront évoluer dans les versions futures.
 
 ## 6.9 Déploiement du détail
 
-Chaque séance peut être affichée sous deux formes :
+La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
 
-- vue condensée ;
-- vue développée.
-
-La vue développée présente le détail complet de l'exécution.
-
-L'utilisateur peut développer ou replier individuellement chaque séance.
-
-Une commande permet également de développer ou replier simultanément l'ensemble des séances affichées.
+Dans le MVP, les Exécutions sont présentées uniquement sous forme de cartes condensées. Aucun bouton **Déployer tout / Replier tout** n'est affiché.
 
 ## 6.10 Conservation des historiques
 
@@ -737,67 +736,50 @@ Le suivi repose sur les principes suivants :
 - chaque exécution constitue un enregistrement indépendant ;
 - chaque historique est construit à partir d'un instantané immuable ;
 - les historiques ne sont jamais modifiés par les évolutions ultérieures des séances ;
-- le suivi privilégie une consultation rapide grâce à la recherche, aux filtres et au déploiement des détails ;
+- le suivi privilégie une consultation rapide grâce à la recherche, aux filtres, au tri et à des cartes condensées ;
 - les données affichées correspondent toujours à l'état exact de la séance au moment de son exécution.
 
 # Annexe – Tableaux de spécification des écrans
 
 ## Catalogue de séances
+
 ### Champs affichés
 
-| Élément affiché       | Type              | Visible        | Obligatoire | **Valeur par défaut**            | **Contraintes**                                | Source      | Action                    | Remarques                                       |
-| --------------------- | ----------------- | -------------- | ----------- | -------------------------------- | ---------------------------------------------- | ----------- | ------------------------- | ----------------------------------------------- |
-| Titre de l'écran      | Texte             | Toujours       | Oui         | "Catalogue de séances"           | Texte fixe                                     | Statique    | Aucune                    |                                                 |
-| Bouton Ajouter (+)    | Bouton            | Toujours       | Oui         | Visible                          | Toujours actif                                 | Statique    | Créer une séance          |                                                 |
-| Champ Recherche       | Champ texte       | Toujours       | Oui         | Vide                             | 0 à 80 caractères                              | Utilisateur | Filtre la liste           | Recherche instantanée                           |
-| Onglet Toutes         | Onglet            | Toujours       | Oui         | Sélectionné                      | Une seule sélection possible                   | Statique    | Filtre                    | Onglet par défaut                               |
-| Onglet Planifiées     | Onglet            | Toujours       | Oui         | Non sélectionné                  | Une seule sélection possible                   | Statique    | Filtre                    |                                                 |
-| Onglet Archivées      | Onglet            | Toujours       | Oui         | Non sélectionné                  | Une seule sélection possible                   | Statique    | Filtre                    |                                                 |
-| Carte Séance          | Carte             | 1 par séance   | Oui         | Repliée                          | Une seule carte déployée à la fois             | Séance      | Déplier / Replier         |                                                 |
-| Indicateur de couleur | Indicateur visuel | Toujours       | Oui         | Couleur de la séance             | Une couleur parmi la palette de 16 couleurs    | Séance      | Aucune                    | Facilite l’identification visuelle de la séance |
-| Nom de la séance      | Texte             | Toujours       | Oui         | Aucun                            | 1 à 80 caractères                              | Séance      | Ouvrir l'édition          |                                                 |
-| Tags catégories       | Badges            | Si renseignés  | Non         | Non affichés                     | Zéro à plusieurs catégories                    | Séance      | Aucune                    | Affichage synthétique selon l’espace disponible |
-| Nombre d'étapes       | Texte             | Toujours       | Oui         | Calculé                          | ≥ 1                                            | Calculé     | Aucune                    |                                                 |
-| Durée estimée         | Texte             | Toujours       | Oui         | Calculée                         | Affiche "≈" si Exercice en mode Répétition               | Calculée    | Aucune                    |                                                 |
-| Nombre de Blocs       | Texte             | Toujours       | Oui         | Calculé                          | ≥ 1                                            | Calculé     | Aucune                    |                                                 |
-| Nombre de Cycles      | Texte             | Toujours       | Oui         | Calculé                          | ≥ 1                                            | Calculé     | Aucune                    |                                                 |
-| Dernière séance       | Texte             | Si disponible  | Non         | "Aucune"                         | Date relative ("Hier", "Aujourd'hui", etc.)    | Historique  | Aucune                    |                                                 |
-| Prochaine séance      | Texte             | Si planifiée   | Non         | "Non planifiée"                  | Date/heure relative                            | Planning    | Aucune                    |                                                 |
-| Icône Déplier         | Bouton            | Toujours       | Oui         | Carte repliée                    | Rotation selon l'état                          | Statique    | Déplier / Replier         |                                                 |
-| Icône Options (…)     | Bouton            | Toujours       | Oui         | Visible                          | Toujours disponible                            | Statique    | Ouvre le menu             |                                                 |
-| Liste des activités   | Liste             | Carte déployée | Oui         | Masquée                          | Ordre de la séance                             | Séance      | Aucune                    |                                                 |
-| Nom de l'activité     | Texte             | Carte déployée | Oui         | Aucun                            | 1 à 80 caractères                              | Activité    | Aucune                    |                                                 |
-| Durée / Répétitions   | Texte             | Carte déployée | Oui         | Selon le type                    | Durée ou répétitions                 | Activité    | Aucune                    |                                                 |
-| Bouton Démarrer       | Bouton            | Carte déployée | Oui         | Activé                           | Désactivé uniquement si la séance est invalide | Statique    | Ouvre l'écran d'exécution | Ne lance pas immédiatement la séance            |
-| Barre de navigation   | Navigation        | Toujours       | Oui         | Catalogue de séances sélectionné | 4 onglets fixes                                | Statique    | Navigation                |                                                 |
+| Élément affiché | Type | Visible | Valeur / comportement | Action |
+| --- | --- | --- | --- | --- |
+| Bouton Ajouter (+) | Bouton | Toujours | Visible | Créer une Séance |
+| Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |
+| Filtre `Toutes` | Filtre | Toujours | Affiche toutes les Séances actives, planifiées ou non ; exclut les archivées | Filtrer |
+| Filtre `Planifiées` | Filtre | Toujours | Séances ayant au moins une Routine | Filtrer |
+| Filtre `Archivées` | Filtre | Toujours | Séances archivées uniquement | Filtrer |
+| Carte Séance | Carte | 1 par Séance | Condensée ou déployée | Zone principale : ouvrir l’Exécution |
+| Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
+| Menu `⋯` | Bouton | Toujours | Visible | Ouvrir les options |
+| Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
+| Catégories | Badges | Si renseignées | Zéro à plusieurs | Aucune |
+| Nombre d’Activités / durée | Texte | Toujours | Calculés | Aucune |
+| Sets / Cycles | Texte | Toujours | Calculés | Aucune |
+| Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
+| Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |
+| Liste des Activités | Liste | Carte déployée | Ordre de la Séance | Aucune |
+| Résumé d’Activité | Texte | Carte déployée | À droite : `durée/reps · xN` ; `xN` seulement si N > 1 | Aucune |
+
 ### Règles fonctionnelles
-| Règle                   | Description                                                                                                                                                                       |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chargement              | Les séances sont affichées dès l'ouverture de l'écran.                                                                                                                            |
-| Tri par défaut          | Les séances sont triées par date de dernière modification (plus récente en premier).                                                                                              |
-| Recherche               | Le filtrage est effectué en temps réel sur le nom de la séance.                                                                                                                   |
-| Onglet **Toutes**       | Affiche toutes les séances non archivées.                                                                                                                                         |
-| Onglet **Planifiées**   | Affiche uniquement les Séances disposant d'au moins une Routine de planification existante.                                                                                       |
-| Onglet **Archivées**    | Affiche uniquement les séances archivées.                                                                                                                                         |
-| Carte repliée           | Une séance est affichée sous forme synthétique.                                                                                                                                   |
-| Couleur de la séance    | Chaque carte reprend la couleur associée à la séance. Cette couleur peut être affichée sous forme de barre, de bordure ou de repère visuel sans réduire la lisibilité du contenu. |
-| Carte déployée          | Affiche la liste des activités et le bouton **Démarrer**.                                                                                                                         |
-| Déploiement             | Une seule carte peut être déployée simultanément. L'ouverture d'une carte replie automatiquement la précédente.                                                                   |
-| Résumé                  | Le nombre d'activités, la durée estimée, le nombre de Blocs et de Cycles sont calculés automatiquement.                                                                           |
-| Exercices en Répétition | Si la Séance contient au moins un Exercice en mode Répétition, la durée estimée est précédée du symbole **≈**, car sa durée théorique n'est pas déterminable.                     |
-| Dernière séance         | Affiche la date de la dernière exécution si elle existe, sinon **Aucune**.                                                                                                        |
-| Prochaine séance        | Affiche la prochaine occurrence planifiée de la séance ou « Non planifiée » lorsqu'aucune occurrence future n'existe.                                                             |
-| Bouton **Démarrer**     | Ouvre l'écran d'exécution. La séance ne démarre qu'après appui sur le bouton **Lecture** de cet écran.                                                                            |
-| Bouton **+**            | Ouvre l'écran de création d'une nouvelle séance.                                                                                                                                  |
-| Menu **...**            | Donne accès aux actions sur la séance.                                                                                                                                            |
-| Modifier                | Ouvre l'écran de modification de la séance.                                                                                                                                       |
-| Archiver                | Déplace la séance dans l'onglet **Archivées** après confirmation.                                                                                                                 |
-| Restaurer               | Disponible uniquement pour une séance archivée  Replace la séance dans **Toutes**.                                                                                                |
-| Supprimer               | Supprime définitivement la séance après confirmation, et les Routines associées, mais conserve les Exécutions historisées.                                                        |
-| Suppression             | Impossible à annuler une fois confirmée.                                                                                                                                          |
-| Liste vide              | Si aucune séance n'est disponible, un message et un bouton **Créer une séance** sont affichés.                                                                                    |
-| Actualisation           | Toute création, modification, archivage, restauration ou suppression met immédiatement la liste à jour.                                                                           |
-| Navigation              | Les quatre onglets inférieurs permettent de naviguer entre **Mes séances**, **Calendrier**, **Suivi** et **Profil**.                                                              |
+
+| Règle | Description |
+| --- | --- |
+| Chargement | Les Séances sont affichées dès l’ouverture de l’écran. |
+| Recherche | Filtrage en temps réel sur le nom de la Séance. |
+| `Toutes` | Affiche toutes les Séances non archivées. |
+| `Planifiées` | Affiche les Séances disposant d’au moins une Routine. |
+| `Archivées` | Affiche uniquement les Séances archivées. |
+| Zone principale de la carte | Ouvre l’écran d’Exécution ; l’Exécution elle-même ne démarre pas automatiquement. |
+| Chevron | Sert exclusivement au déploiement / repli de la carte. |
+| Carte déployée | Affiche la liste des Activités ; aucun bouton `Ouvrir` ou `Démarrer` supplémentaire n’est affiché. |
+| Menu `⋯` | Donne accès à Modifier, Dupliquer, Planifier, Archiver / Restaurer et Supprimer. |
+| Modifier | Ouvre toujours l’écran Nom et couleur prérempli, puis la Composition. |
+| Supprimer | Demande confirmation ; supprime aussi les Routines associées mais conserve les Exécutions enregistrées. |
+| Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. |
 
 ## Nouvelle séance — Saisie du nom et de la couleur
 
@@ -854,55 +836,33 @@ Le suivi repose sur les principes suivants :
 
 ### Eléments affichés
 
-| Élément affiché                                  | Type                   | Visible        | Obligatoire | Valeur par défaut                                 | Contraintes                                            | Source   | Action            | Remarques                                                                   |
-| ------------------------------------------------ | ---------------------- | -------------- | ----------- | ------------------------------------------------- | ------------------------------------------------------ | -------- | ----------------- | --------------------------------------------------------------------------- |
-| Bouton Retour                                    | Bouton                 | Toujours       | Oui         | Visible                                           | Demande confirmation si modifications non enregistrées | Système  | Retour            |                                                                             |
-| Titre de l'écran                                 | Texte                  | Toujours       | Oui         | "Nouvelle séance" ou nom de la séance             | Texte fixe                                             | Séance   | Aucune            |                                                                             |
-| Couleur de la séance                             | Indicateur / Sélecteur | Toujours       | Oui         | Couleur enregistrée                               | Une couleur parmi 16                                   | Séance   | Modifier          | Peut être accessible avec la modification du nom                            |
-| Résumé (nb blocs / durée)                        | Texte                  | Toujours       | Oui         | Calculé                                           | Mis à jour automatiquement                             | Calculé  | Aucune            | Affiche ≈ si Exercice en mode Répétition                                              |
-| Liste des éléments                               | Liste                  | Toujours       | Oui         | Compte à rebours initial + Cycle +  fin de séance | Ordre structurel fixe ; ordre des Activités modifiable | Séance   | Défilement        |                                                                             |
-| Compte à rebours initial                         | Carte                  | Toujours       | Oui         | 10 s (profil)                                     | Une seule occurrence                                   | Séance   | Modifier          | 0 s = désactivé                                                             |
-| Bouton Options (Compte à rebours)                | Menu                   | Toujours       | Oui         | Visible                                           | Modifier / Supprimer (si durée = 0)                    | Statique | Ouvrir menu       |                                                                             |
-| Bouton Ajouter (+)                               | Bouton                 | Selon position | Oui         | Visible                                           | Ajoute un élément à cet emplacement                    | Statique | Ajouter           | Toujours entre deux éléments                                                |
-| Cycle                                            | Conteneur              | Toujours       | Oui         | 1                                                 | Exactement 1 dans le MVP                               | Séance   | Déplier / Replier | Présent automatiquement ; non ajoutable et non supprimable                  |
-| Compteur Cycle (- / +)                           | Sélecteur              | Toujours       | Oui         | 1                                                 | 1 à 99                                                 | Séance   | Modifier          |                                                                             |
-| Bloc                                             | Conteneur              | Toujours       | Oui         | 1                                                 | Exactement 1 dans le MVP                               | Séance   | Déplier / Replier | Présent automatiquement dans le Cycle ; non ajoutable et non supprimable    |
-| Compteur Bloc (- / +)                            | Sélecteur              | Toujours       | Oui         | 1                                                 | 1 à 99                                                 | Séance   | Modifier          |                                                                             |
-| Activité                                         | Carte                  | Selon contenu  | Oui         | Aucune                                            | Au moins une activité dans une séance valide           | Séance   | Modifier          | Déplaçable                                                                  |
-| Nom de l'activité                                | Texte                  | Toujours       | Oui         | Aucun                                             | 1 à 80 caractères                                      | Activité | Modifier          |                                                                             |
-| Badge fonctionnel (Échauffement / Retour au calme) | Badge                  | Si renseigné   | Non         | Masqué                                            | Une valeur maximum ; qualification visuelle uniquement, sans création d’un type d’Activité | Activité | Modifier          | |
-| Résumé activité                                  | Texte                  | Toujours       | Oui         | Calculé                                           | Durée ou répétitions, nombre de Séries, pause éventuelle | Activité | Modifier          |                                                                             |
-| Icône Déplacement                                | Bouton                 | Toujours       | Oui         | Visible                                           | Glisser-déposer                                        | Statique | Déplacer          |                                                                             |
-| Bouton Options activité                          | Menu                   | Toujours       | Oui         | Visible                                           | Modifier / Dupliquer / Supprimer                       | Statique | Ouvrir menu       |                                                                             |
-| Fin de séance                                    | Carte                  | Toujours       | Oui         | 0 s (Profil)                                      | Une seule occurence                                    | Séance   |                   |                                                                             |
-| Bouton Valider / Créer                           | Bouton                 | Toujours       | Oui         | Activé si séance valide                           | Désactivé si erreurs                                   | Statique | Valider           | En création, ouvre les catégories ; en modification, valide les changements |
+| Élément affiché | Type | Visible | Valeur / comportement | Action | Remarques |
+| --- | --- | --- | --- | --- | --- |
+| Titre / nom de la Séance | Texte | Toujours | Nom défini sur l’écran précédent | Retour vers Nom et couleur | Non modifiable directement ici |
+| Résumé | Texte | Toujours | `N activité(s) · durée estimée` | Aucune | Mis à jour automatiquement |
+| Bouton global `+` | Bouton | Toujours | Un seul bouton, à droite du résumé | Ajouter une Activité | Ajoute après la dernière Activité |
+| Compte à rebours initial | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
+| Cycle | Conteneur | Toujours | Un Cycle dans le MVP | Déployer / Replier | Fond distinct du Set |
+| Répétitions Cycle `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Juste à droite de `Cycle` |
+| Set | Conteneur | Toujours | Un Set dans le MVP | Déployer / Replier | Même taille de titre que Cycle |
+| Répétitions Set `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Juste à droite de `Set` |
+| Activité | Carte | Selon contenu | Ordre d’Exécution | Ouvrir options / déplacer | Aucune zone d’ajout intermédiaire |
+| Fin de séance | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
+| Valider les modifications | Bouton | Toujours | Actif si la Composition est valide | Valider | En création, poursuit vers Catégories |
+
 ### Règles fonctionnelles
-| Règle                                | Description                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mode de l'écran                      | L'écran fonctionne en mode **Création** ou **Modification**.                                                                                                                                                                                                                                                                      |
-| Nom de la séance                     | Saisi sur l’écran précédent lors d’une création ; modifiable sur une séance existante.                                                                                                                                                                                                                                            |
-| Couleur de la séance                 | La couleur est préremplie avec la valeur enregistrée et peut être modifiée.                                                                                                                                                                                                                                                       |
-| Modification du nom et de la couleur | Toucher le nom ou son action d’édition ouvre l’écran permettant de modifier simultanément le nom et la couleur.                                                                                                                                                                                                                   |
-| Création                             | Une nouvelle séance est initialisée avec un Compte à rebours initial, 1 Cycle contenant 1 Bloc vide et une Fin de séance. Le Compte à rebours initial et la Fin de séance sont des éléments obligatoires de la structure de la séance ; ils ne constituent pas des Activités.                                                     |
-| Modification                         | Tous les champs sont préremplis avec les valeurs de la séance.                                                                                                                                                                                                                                                                    |
-| Compte à rebours initial             | Une seule occurrence autorisée. Une durée de 0 s le désactive sans le masquer.                                                                                                                                                                                                                                                    |
-| Fin de séance                        | Une seule occurrence autorisée. Une durée de 0 s la désactive sans la masquer.                                                                                                                                                                                                                                                    |
-| Activités                            | Une séance valide doit contenir au moins une activité.                                                                                                                                                                                                                                                                            |
-| Cycle                                | La Séance contient exactement un Cycle dans le MVP. Il est créé automatiquement avec la Séance et ne peut être ni ajouté ni supprimé.                                                                                                                                                                                             |
-| Bloc                                 | Le Cycle contient exactement un Bloc dans le MVP. Il est créé automatiquement avec le Cycle et ne peut être ni ajouté ni supprimé.                                                                                                                                                                                                |
-| Déplacement                          | Les Activités peuvent être réordonnées par glisser-déposer en mode édition dans les zones où leur déplacement est autorisé. Le Cycle et le Bloc sont des éléments structurels fixes dans le MVP et ne peuvent pas être déplacés. Le compte à rebours initial reste en première position et la fin de séance en dernière position. |
-| Boutons "+"                          | Ajoutent une Activité à l'emplacement sélectionné. Dans le MVP, ils ne permettent pas d'ajouter un Cycle ou un Bloc.                                                                                                                                                                                                              |
-| Déplier / Replier                    | Les conteneurs Cycle et Bloc peuvent être repliés sans modifier leur contenu.                                                                                                                                                                                                                                                     |
-| Compteurs Bloc / Cycle               | Les boutons + et − modifient le nombre de répétitions sans modifier le contenu.                                                                                                                                                                                                                                                   |
-| Résumé de la séance                  | Le nombre d'activités et la durée estimée sont recalculés automatiquement à chaque modification.                                                                                                                                                                                                                                  |
-| Exercices en mode Répétition        | La durée estimée est calculée à partir des Activités chronométrées. Le symbole **≈** est affiché si au moins un Exercice en mode Répétition est présent.                                                                                                                                                                            |
-| Suppression d'un élément             | Une confirmation est demandée avant suppression.                                                                                                                                                                                                                                                                                  |
-| Suppression du dernier exercice      | Interdite si elle rendrait la séance invalide.                                                                                                                                                                                                                                                                                    |
-| Retour arrière                       | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                    |
-| Validation                           | Le bouton est activé uniquement lorsque la séance est valide. En création, il ouvre l’écran **Catégories de la séance**. En modification, il valide les changements.                                                                                                                                                              |
-| Enregistrement                       | Les modifications sont enregistrées uniquement après validation.                                                                                                                                                                                                                                                                  |
-| Annulation                           | Quitter sans enregistrer conserve la version précédente de la séance.                                                                                                                                                                                                                                                             |
-| Navigation                           | En création, la validation ouvre **Catégories de la séance** ; après enregistrement des catégories, retour à **Catalogue de séances**.                                                                                                                                                                                            |
+
+| Règle | Description |
+| --- | --- |
+| Nom / couleur | La modification d’une Séance commence par l’écran Nom et couleur ; la Composition ne les édite pas directement. |
+| Structure | Une nouvelle Séance possède un Compte à rebours initial, un Cycle contenant un Set et une Fin de séance. |
+| Ajout global | Un seul bouton `+` ajoute l’Activité après la dernière Activité existante ; l’utilisateur peut ensuite la réordonner manuellement. |
+| Cycle / Set | Le contrôle `xN` ouvre un picker ; aucun bouton `+ / −` n’est utilisé. |
+| Hiérarchie | Cycle et Set utilisent des fonds suffisamment contrastés ; le titre Set a la même taille que Cycle. |
+| Réorganisation | Les Activités peuvent être déplacées par glisser-déposer. |
+| Validation | Une Séance doit contenir au moins un Exercice valide pour être exécutable. |
+| Retour en création | Retour depuis la Composition revient à Nom et couleur en conservant la Composition ; Retour depuis Nom et couleur peut ouvrir la modale d’abandon et supprimer toute la création après confirmation. |
+| Navigation | En création, la validation ouvre Catégories ; `Enregistrer la séance` revient au Catalogue. |
 
 ## Activité
 
@@ -911,7 +871,7 @@ Le suivi repose sur les principes suivants :
 | Élément affiché           | Type              | Visible                            | Obligatoire | Valeur par défaut              | Contraintes                                    | Source   | Action         | Remarques                                                                                                                                                                                                                              |
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
-| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une étape"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une étape"                                                                                                                                                                                                 |
+| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
 | Type d'activité           | Segmented Control | Étape 1                            | Oui         | Exercice                       | Exercice / Récupération                        | Activité | Sélection      | Change le parcours et les champs affichés |
 | Nom                       | Champ texte       | Étape 1                            | Oui         | Vide                           | 1 à 80 caractères                              | Activité | Saisie         | Pré-rempli pour Récupération |
 | Mode d'exécution          | Segmented Control | Étape 1, Exercice uniquement       | Oui         | Durée                          | Durée / Répétition                             | Activité | Sélection      | Change la première roulette des paramètres |
@@ -940,65 +900,39 @@ Le suivi repose sur les principes suivants :
 
 ### Éléments affichés
 
-| Élément affiché               | Type            |                Visible | Obligatoire | Valeur par défaut                                  | Contraintes                                         | Source      | Action                       | Remarques                                                  |
-| ----------------------------- | --------------- | ---------------------: | ----------: | -------------------------------------------------- | --------------------------------------------------- | ----------- | ---------------------------- | ---------------------------------------------------------- |
-| Titre de la séance            | Texte           |               Toujours |         Oui | Nom de la séance                                   | 1 à 80 caractères                                   | Séance      | Aucune                       | En-tête fixe                                               |
-| Icône Bips                    | Bouton / état   |               Toujours |         Oui | Selon préférence utilisateur                       | Activé / désactivé                                  | Préférences | Activer / désactiver         | Changement d’icône selon l’état                            |
-| Icône Annonces vocales        | Bouton / état   |               Toujours |         Oui | Selon préférence utilisateur                       | Activé / désactivé                                  | Préférences | Activer / désactiver         | Utilise la voix système                                    |
-| Libellé Étapes                | Texte           |               Toujours |         Oui | `0 sur N`                                          | Valeurs comprises entre 0 et N                      | Séance      | Aucune                       | Progression réelle                                         |
-| Nombre d’étapes réalisées     | Valeur calculée |               Toujours |         Oui | 0                                                  | Ne peut pas dépasser le total                       | Séance      | Aucune                       | Inclut les activités terminées ou écourtées                |
-| Nombre total d’étapes         | Valeur calculée |               Toujours |         Oui | Calculé                                            | ≥ 1                                                 | Séance      | Aucune                       |                                                            |
-| Libellé Temps total           | Texte           |               Toujours |         Oui | Statique                                           | Texte fixe                                          | Statique    | Aucune                       |                                                            |
-| Temps total restant           | Durée dynamique |               Toujours |         Oui | Durée planifiée                                    | ≥ 0 ; jamais négatif                                | Séance      | Aucune                       | Remplace le temps écoulé                                   |
-| Durée totale planifiée        | Durée statique  |               Toujours |         Oui | Calculée                                           | Calculée uniquement sur les activités chronométrées | Séance      | Aucune                       | Format `temps restant / temps total`                       |
-| Symbole `≈`                   | Indicateur      |           Conditionnel |         Non | Masqué                                             | Affiché si au moins un Exercice en mode Répétition existe    | Séance      | Aucune                       | Devant les deux durées globales                            |
-| Barre de progression          | Barre           |               Toujours |         Oui | 0 %                                                | Entre 0 et 100 %                                    | Séance      | Aucune                       | Mise à jour dynamique                                      |
-| Libellé Bloc                  | Texte           |               Toujours |         Oui | `1 / N`                                            | Minimum 1                                           | Séance      | Aucune                       | Pas d’annonce vocale                                       |
-| Bloc courant                  | Valeur calculée |               Toujours |         Oui | 1                                                  | 1 à nombre total de Blocs                           | Séance      | Aucune                       | Réinitialisé à 1 à chaque nouveau Cycle                    |
-| Nombre total de Blocs         | Valeur calculée |               Toujours |         Oui | Calculé                                            | ≥ 1                                                 | Séance      | Aucune                       |                                                            |
-| Libellé Cycle                 | Texte           |               Toujours |         Oui | `1 / N`                                            | Minimum 1                                           | Séance      | Aucune                       | Pas d’annonce vocale                                       |
-| Cycle courant                 | Valeur calculée |               Toujours |         Oui | 1                                                  | 1 à nombre total de Cycles                          | Séance      | Aucune                       |                                                            |
-| Nombre total de Cycles        | Valeur calculée |               Toujours |         Oui | Calculé                                            | ≥ 1                                                 | Séance      | Aucune                       |                                                            |
-| Nom de l’activité courante    | Texte           |               Toujours |         Oui | Première activité                                  | 1 à 80 caractères                                   | Activité    | Aucune                       |                                                            |
-| Durée planifiée de l’activité | Texte           |  Activité chronométrée |         Oui | Durée définie                                      | ≥ 1 seconde                                         | Activité    | Aucune                       | Affichée après le nom                                      |
-| Libellé Répétitions           | Texte           | Exercice en Répétition |         Oui | Nombre de répétitions                               | Remplace la durée                                   | Activité    | Aucune                       |                                                            |
-| Cercle de progression         | Indicateur      |               Toujours |         Oui | Cercle complet                                     | Progression continue                                | Séance      | Aucune                       | Orange  / bleu selon le type                               |
-| Temps restant de l’activité   | Chronomètre     |  Activité chronométrée |         Oui | Durée planifiée                                    | Secondes entières ; jamais négatif                  | Séance      | Aucune                       | Passage automatique à 0                                    |
-| Temps écoulé de l’activité    | Chronomètre     | Exercice en Répétition |         Oui | `00:00`                                            | Exclut les périodes de pause                        | Séance      | Aucune                       | Enregistré à l’appui sur Terminé                           |
-| Libellé À suivre              | Texte           | Sauf dernière activité |         Non | Activité suivante                                  | Masqué si aucune activité suivante                  | Séance      | Aucune                       |                                                            |
-| Nom de l’activité suivante    | Texte           | Sauf dernière activité |         Non | Calculé                                            | 1 à 80 caractères                                   | Activité    | Aucune                       | Aucun Bloc/Cycle ajouté au libellé                         |
-| Durée de l’activité suivante  | Texte           |        Si chronométrée |         Non | Calculée                                           | ≥ 1 seconde                                         | Activité    | Aucune                       | Nombre de répétitions si Exercice en mode Répétition                              |
-| Bouton Réinitialiser          | Bouton          |               Toujours |         Oui | Actif                                              | Réinitialise uniquement l’activité courante         | Statique    | Réinitialiser                | Fonctionne aussi sur les comptes à rebours                 |
-| Bouton Pause / Lecture        | Bouton          |               Toujours |         Oui | Lecture avant démarrage, Pause pendant l’exécution | Une seule icône selon l’état                        | Séance      | Démarrer / Pause / Reprendre | La séance ne démarre pas à l’ouverture de l’écran          |
-| Bouton Arrêter                | Bouton          |               Toujours |         Oui | Actif                                              | Ouvre une confirmation                              | Statique    | Demander l’arrêt             | Action destructive visuellement distincte                  |
-| Bouton Suivant                | Bouton          |               Toujours |         Oui | Actif                                              | Passe à l’activité suivante                         | Séance      | Suivant                      | Une activité chronométrée est alors marquée comme écourtée |
-| Indicateur d’accueil          | Élément système |               Toujours |         Oui | Système                                            | Selon appareil                                      | Système     | Aucune                       |                                                            |
-### Couleur du minuteur
-| Type d’activité          | Couleur du cercle et du chronomètre                   |
-| ------------------------ | ----------------------------------------------------- |
-| Exercice                 | Orange                                                |
-| Récupération             | Bleu                                                  |
-| Compte à rebours initial | Couleur neutre ou couleur principale de l’application |
-### Sons et annonces
-| Événement                         | Comportement             |
-| --------------------------------- | ------------------------ |
-| Début du compte à rebours initial | Annonce « Soyez prêt »   |
-| Trois dernières secondes          | Un bip par seconde       |
-| Début d’un exercice               | Annonce « Exercice »     |
-| Début d’une pause                 | Annonce « Pause »        |
-| Début d’une récupération          | Annonce « Récupération » |
-| Changement de Bloc ou Cycle       | Aucune annonce           |
-| Fin de séance                     | Annonce « Bravo ! »      |
-### Dialogue : arrêt d'une séance
+| Élément affiché | Type | Visible | Obligatoire | Valeur / comportement | Source | Action | Remarques |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| Titre de la séance | Texte | Toujours | Oui | Nom de la séance | Séance | Aucune | En-tête |
+| Nom de l’Activité courante | Texte | Toujours | Oui | Activité courante | Plan d’Exécution | Aucune | |
+| Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
+| Temps de l’Activité | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
+| Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | En Répétition : un tour par minute |
+| Set / Cycle | Texte | Toujours | Oui | `Set x/y • Cycle x/y` | Plan d’Exécution | Aucune | |
+| À suivre | Texte | Sauf dernière Activité | Non | Nom + durée/reps de l’Activité suivante | Plan d’Exécution | Aucune | |
+| Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Activité courante |
+| Pause | Bouton | Pendant Exécution | Oui | Actif | Statique | Suspendre | Suspend aussi le chrono croissant en Répétition |
+| Activité suivante | Bouton | Pendant Exécution | Oui | Actif | Statique | Passer à la suite | Fin normale en Répétition ; confirmation avant terme pour une Activité chronométrée |
+| Temps total | Texte + barre | Toujours | Oui | Temps écoulé / estimé | Exécution | Aucune | |
+| Bips / annonces | Icônes / états | Toujours | Oui | Selon Préférences | Préférences | Activer / désactiver | |
 
-| Élément affiché          | Type              |         Visible | Obligatoire | Valeur par défaut     | Contraintes                           | Source   | Action    | Remarques                                                |
-| ------------------------ | ----------------- | --------------: | ----------: | --------------------- | ------------------------------------- | -------- | --------- | -------------------------------------------------------- |
-| Fond assombri            | Overlay           | Dialogue ouvert |         Oui | Visible               | Bloque les interactions avec l’écran  | Statique | Aucune    |                                                          |
-| Titre                    | Texte             |        Toujours |         Oui | `Arrêter la séance ?` | Texte fixe                            | Statique | Aucune    |                                                          |
-| Message                  | Texte             |        Toujours |         Oui | Message explicatif    | Texte fixe                            | Statique | Aucune    | Précise que la séance sera enregistrée comme interrompue |
-| Bouton Reprendre         | Bouton principal  |        Toujours |         Oui | Actif                 | Ferme le dialogue                     | Statique | Reprendre | La séance reste dans son état précédent                  |
-| Bouton Arrêter la séance | Bouton destructif |        Toujours |         Oui | Actif                 | Enregistre l’interruption             | Statique | Arrêter   | Ouvre ensuite la synthèse de séance                      |
-| Fermeture hors dialogue  | Interaction       |             Non |         Non | Désactivée            | L’utilisateur doit choisir une action | Statique | Aucune    | Évite un comportement ambigu                             |
+### Règles fonctionnelles
+
+| Règle | Description |
+| --- | --- |
+| Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement la première Activité. |
+| Exercice chronométré | Compte à rebours. `Activité suivante` avant zéro demande confirmation et enregistre l’Activité comme `Partielle`. |
+| Exercice en Répétition | Chronomètre croissant ; le cercle effectue un tour par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Activité suivante` termine normalement l’Exercice. |
+| Réinitialisation | Demande confirmation et remet l’Activité courante à son état initial sans revenir à une Activité antérieure. |
+| Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
+| Navigation | L’utilisateur ne revient pas à une Activité déjà exécutée. |
+| Étapes | Aucun compteur d’« étapes » n’est affiché dans le MVP. |
+
+### Sons et annonces
+
+- bip pendant les trois dernières secondes d’une Activité chronométrée selon les règles audio ;
+- annonce vocale du nom de l’Activité au démarrage ;
+- pour un Exercice en Répétition, bip fixe à chaque minute écoulée dans le MVP.
+
 ## Synthèse de séance
 
 ### Eléments affichés
@@ -1013,7 +947,7 @@ Le suivi repose sur les principes suivants :
 | Carte Votre séance    | Carte            | Toujours |         Oui | Visible                                              | Une seule                   | Séance      | Aucune         |                                      |
 | Durée réelle          | Durée            | Toujours |         Oui | Calculée                                             | Temps réellement exécuté    | Séance      | Aucune         |                                      |
 | Nombre d'activités    | Valeur           | Toujours |         Oui | Calculé                                              | X / Y                       | Séance      | Aucune         |                                      |
-| Activités écourtées   | Texte            |   Si > 0 |         Non | Masqué                                               | `n activité(s) écourtée(s)` | Séance      | Aucune         | Affiché dans la carte "Votre séance" |
+| Activités Partielles   | Texte            |   Si > 0 |         Non | Masqué                                               | `n activité(s) Partielle(s)` | Séance      | Aucune         | Affiché dans la carte "Votre séance" |
 | Question de ressenti  | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Obligatoire" | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
 | Choix du ressenti     | Sélecteur        | Toujours |         Oui | Aucun sélectionné                                    | Une seule sélection         | Utilisateur | Sélection      | MVP : 3 niveaux                      |
@@ -1025,8 +959,8 @@ Le suivi repose sur les principes suivants :
 | Règle               | Description                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
 | Durée affichée      | Toujours la durée réellement exécutée.                                           |
-| Blocs / Cycles      | Non affichés dans le MVP.                                                        |
-| Activités écourtées | Affichées uniquement si leur nombre est supérieur à zéro.                        |
+| Sets / Cycles      | Non affichés dans le MVP.                                                        |
+| Activités Partielles | Affichées uniquement si leur nombre est supérieur à zéro.                        |
 | Ressenti            | Obligatoire avant de quitter l'écran.                                            |
 | Commentaire         | Facultatif.                                                                      |
 | Validation          | Le bouton **Terminer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
@@ -1074,7 +1008,7 @@ Le suivi repose sur les principes suivants :
 - Une routine ne possède pas de couleur propre.
 - La modification de la couleur de la Séance est immédiatement reflétée par toutes les Routines existantes qui lui sont associées, celles-ci héritant de la couleur de la Séance.
 
-## Planifier une routine
+## Planifier une séance
 
 ### Règles liées à la couleur
 

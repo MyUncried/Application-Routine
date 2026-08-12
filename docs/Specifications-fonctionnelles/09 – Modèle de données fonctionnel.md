@@ -26,9 +26,9 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une **Routine** planifie l'exécution d'une séance.
 - Une même séance peut être associée à plusieurs routines.
 - Une séance contient un **cycle**.
-- Un cycle contient un **bloc**.
-- Le cycle et le bloc possèdent chacun un nombre de répétitions.
-- Un bloc contient une suite ordonnée d'activités.
+- Un cycle contient un **Set**.
+- Le cycle et le Set possèdent chacun un nombre de répétitions.
+- Un Set contient une suite ordonnée d'activités.
 - Une activité est de type **Exercice** ou **Récupération**.
 - Une activité de type Exercice possède un nombre de Séries propre, supérieur ou égal à 1, et peut définir une pause appliquée après chaque Série. Cette pause est présentée à l'utilisateur comme un paramètre de l'Exercice, mais elle est représentée dans le modèle de données par une activité de type Récupération liée à cet Exercice.
 - Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
@@ -45,7 +45,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Utilisateur | Propriétaire des données | Principale |
 | Séance | Définition réutilisable d'un entraînement | Principale |
 | Cycle | Structure ordonnée de la séance portant son propre nombre de répétitions | Structure interne de séance |
-| Bloc | Conteneur ordonné d'activités portant son propre nombre de répétitions | Structure interne de séance |
+| Set | Conteneur ordonné d'activités portant son propre nombre de répétitions | Structure interne de séance |
 | Routine | Planification d'une séance | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
@@ -62,15 +62,15 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-001 | Une activité est de type **Exercice** ou **Récupération**.                                                                                                                                                   | V1             |
 | DM-002 | La pause après Série est saisie comme un paramètre d'un Exercice mais est matérialisée dans le modèle de données par une activité de type Récupération liée à cet Exercice et réutilisée dans le plan après chaque Série. | V1 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
-| DM-004 | Un cycle contient un bloc unique.                                                                                                                                                                            | V1             |
-| DM-005 | Le cycle et le bloc sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
+| DM-004 | Un cycle contient un Set unique.                                                                                                                                                                            | V1             |
+| DM-005 | Le cycle et le Set sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
 | DM-006 | Une même séance peut être planifiée par plusieurs routines.                                                                                                                                                  | V1             |
 | DM-007 | Une exécution crée automatiquement un instantané fonctionnel immuable et allégé de la séance.                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
-| DM-011 | La cardinalité Cycle et Bloc est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Blocs par Cycle. | Évolution      |
-| DM-012 | Un Cycle, un Bloc et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
+| DM-011 | La cardinalité Cycle et Set est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Sets par Cycle. | Évolution      |
+| DM-012 | Un Cycle, un Set et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier et supérieur ou égal à 1. Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | La pause est appliquée après chaque Série ; après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. | V1 |
 
@@ -85,7 +85,7 @@ UTILISATEUR
 │       ├── contient 1 CYCLE
 │       │      │
 │       │      ├── nombre de répétitions
-│       │      ├── contient 1 BLOC
+│       │      ├── contient 1 SET
 │       │      │      │
 │       │      │      ├── nombre de répétitions
 │       │      │      └── contient 1..n ACTIVITÉS
@@ -105,7 +105,7 @@ UTILISATEUR
 └── possède 1 PRÉFÉRENCES GLOBALES
 ```
 
-Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Blocs sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
+Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Sets sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
 # 09.1 Entité Utilisateur
 
 ## Définition
@@ -155,7 +155,7 @@ Il ne contient pas directement les activités, les médias, les structures inter
 
 Une **Séance** est une entité métier représentant le contenu réutilisable d’un entraînement.
 
-Elle définit les activités à réaliser, leur ordre d’exécution, leur organisation en bloc et en cycle, ainsi que les paramètres nécessaires à leur exécution.
+Elle définit les activités à réaliser, leur ordre d’exécution, leur organisation en Set et en cycle, ainsi que les paramètres nécessaires à leur exécution.
 
 Une séance peut être exécutée immédiatement ou planifiée par une ou plusieurs routines. Elle ne contient jamais les informations produites lors d’une exécution réelle.
 
@@ -166,12 +166,12 @@ Une séance possède directement :
 - ses informations générales ;
 - un compte à rebours initial ;
 - un cycle ;
-- un bloc contenu dans le cycle ;
-- les activités contenues dans le bloc ;
+- un Set contenu dans le cycle ;
+- les activités contenues dans le Set ;
 - les activités éventuelles de fin de cycle ;
 - les activités éventuelles de fin de séance ;
 - une fin de séance ;
-- les paramètres de répétition de son Cycle et de son Bloc ;.
+- les paramètres de répétition de son Cycle et de son Set ;.
 
 Elle ne contient pas directement :
 
@@ -199,7 +199,7 @@ Elle ne contient pas directement :
 | Date d’archivage                        | Date de passage au statut archivé                                        |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                               |
 | Structure                               | Organisation complète de la séance                                       | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice          |
 | Durée théorique                         | Durée calculée de la séance                                              |           Calculé            | Calculée à partir des Activités chronométrées ; indicative si des Exercices sont en mode Répétition |
-| Nombre total d’activités exécutées      | Nombre d’occurrences d’activités générées pour une exécution complète    |           Calculé            | Tient compte des répétitions du bloc et du cycle                                                              |
+| Nombre total d’activités exécutées      | Nombre d’occurrences d’activités générées pour une exécution complète    |           Calculé            | Tient compte des répétitions du Set et du cycle                                                              |
 | Nom du compte à rebours initial         | Libellé affiché de la phase précédant la première activité               |         Obligatoire          | Valeur initiale issue des Préférences globales ; modifiable pour chaque séance                                |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première activité                         |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                            |
 | Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                               |
@@ -217,22 +217,22 @@ Dans le MVP, le Cycle contient :
 - son identifiant ;
 - sa position, égale à 1 ;
 - son nombre de répétitions, supérieur ou égal à 1 ;
-- un Bloc unique ;
+- un Set unique ;
 - zéro, une ou plusieurs activités de fin de Cycle.
 
-Dans le MVP, le Bloc contient :
+Dans le MVP, le Set contient :
 - son identifiant ;
 - sa position, égale à 1 ;
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Activités.
 
 À chaque répétition du cycle :
-1. le bloc est exécuté selon son nombre de répétitions ;
+1. le Set est exécuté selon son nombre de répétitions ;
 2. les activités de fin de cycle sont exécutées une fois.
 
 Après la dernière répétition du cycle, les éventuelles activités positionnées après le cycle sont exécutées une fois. La Fin de séance est ensuite exécutée.
 
-Le cycle et le bloc sont des structures internes de la séance. Ils ne constituent pas des entités métier autonomes dans le MVP et ne peuvent pas être supprimés. Leur nombre de répétitions est toujours au minimum égal à 1.
+Le cycle et le Set sont des structures internes de la séance. Ils ne constituent pas des entités métier autonomes dans le MVP et ne peuvent pas être supprimés. Leur nombre de répétitions est toujours au minimum égal à 1.
 
 #### Attributs fonctionnels du Cycle
 
@@ -241,39 +241,39 @@ Le cycle et le bloc sont des structures internes de la séance. Ils ne constitue
 | Identifiant           | Identifiant interne unique du Cycle      | Obligatoire | Stable pendant toute la durée de vie du Cycle                                            |
 | Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
 | Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Entier supérieur ou égal à 1                                                             |
-| Blocs                 | Collection ordonnée des Blocs du Cycle   | Obligatoire | Exactement 1 Bloc dans le MVP ; extensible à plusieurs Blocs dans une version ultérieure |
-#### Attributs fonctionnels du Bloc
+| Sets                 | Collection ordonnée des Sets du Cycle   | Obligatoire | Exactement 1 Set dans le MVP ; extensible à plusieurs Sets dans une version ultérieure |
+#### Attributs fonctionnels du Set
 
 | Attribut              | Description                               |  Caractère  | Règle principale                                              |
 | --------------------- | ----------------------------------------- | :---------: | ------------------------------------------------------------- |
-| Identifiant           | Identifiant interne unique du Bloc        | Obligatoire | Stable pendant toute la durée de vie du Bloc                  |
-| Position              | Position du Bloc dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
-| Nombre de répétitions | Nombre d’exécutions successives du Bloc   | Obligatoire | Entier supérieur ou égal à 1                                  |
-| Activités             | Collection ordonnée des Activités du Bloc | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
+| Identifiant           | Identifiant interne unique du Set        | Obligatoire | Stable pendant toute la durée de vie du Set                  |
+| Position              | Position du Set dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
+| Nombre de répétitions | Nombre d’exécutions successives du Set   | Obligatoire | Entier supérieur ou égal à 1                                  |
+| Activités             | Collection ordonnée des Activités du Set | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
 ### Évolutivité de la structure
 
 Dans le MVP :
  - une Séance contient exactement un Cycle ;
- - le Cycle contient exactement un Bloc.
+ - le Cycle contient exactement un Set.
 
 Cette cardinalité constitue une **règle fonctionnelle du MVP** et non une limitation structurelle du modèle.
  
 Le modèle doit permettre ultérieurement :
 - une collection ordonnée de Cycles appartenant à une même Séance ;
-- une collection ordonnée de Blocs appartenant à un même Cycle.
+- une collection ordonnée de Sets appartenant à un même Cycle.
  
 Chaque Cycle appartient exclusivement à une Séance.  
-Chaque Bloc appartient exclusivement à un Cycle et, par transitivité, à une seule Séance.  
-Les Cycles et les Blocs ne sont pas réutilisables ou partageables entre plusieurs Séances.
+Chaque Set appartient exclusivement à un Cycle et, par transitivité, à une seule Séance.  
+Les Cycles et les Sets ne sont pas réutilisables ou partageables entre plusieurs Séances.
 ## Relations principales
 
 - Une séance appartient à un seul utilisateur.
 - Une séance peut être associée à zéro, une ou plusieurs catégories.
 - Une séance peut être référencée par zéro, une ou plusieurs routines.
 - Une séance contient un cycle unique.
-- Le cycle contient un bloc unique. : Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Blocs sous forme de collections ordonnées afin de permettre leur extension ultérieure.
-- Le cycle contient un bloc unique.
-- Le bloc contient zéro, une ou plusieurs activités pendant l’édition.
+- Le cycle contient un Set unique. : Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Sets sous forme de collections ordonnées afin de permettre leur extension ultérieure.
+- Le cycle contient un Set unique.
+- Le Set contient zéro, une ou plusieurs activités pendant l’édition.
 - Une séance exécutable contient au moins une activité de type **Exercice**.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
 
@@ -296,8 +296,8 @@ Les Cycles et les Blocs ne sont pas réutilisables ou partageables entre plusieu
 - Après confirmation, les routines qui référencent la séance sont supprimées.
 - La suppression d’une séance ne supprime jamais les exécutions déjà enregistrées ni leurs instantanés.
 - Une modification de la séance n’altère jamais les exécutions déjà présentes dans le suivi.
-- Le cycle et le bloc ne peuvent pas être supprimés.
-- Le nombre de répétitions du cycle et du bloc est toujours supérieur ou égal à 1.
+- Le cycle et le Set ne peuvent pas être supprimés.
+- Le nombre de répétitions du cycle et du Set est toujours supérieur ou égal à 1.
 - Les activités peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
 - La durée théorique et le nombre total d’activités exécutées sont recalculés après toute modification influençant le déroulement.
@@ -431,6 +431,8 @@ Lorsqu'une occurrence planifiée arrive à échéance sans que la Séance ait é
 
 L'occurrence est alors historisée avec le statut **Non exécutée**.
 
+Dans le MVP, cette occurrence n'est toutefois pas exposée dans l'interface : elle disparaît du Calendrier une fois passée et n'apparaît pas dans le Suivi.
+
 Cette occurrence historisée permet de conserver la trace d'une séance planifiée mais non réalisée.
 
 ## Modification d'une routine
@@ -496,7 +498,7 @@ Une Occurrence planifiée possède directement :
 
 Une **Activité** est la plus petite unité exécutable d'une séance.
 
-Elle appartient au bloc d'un cycle et est de type **Exercice** ou **Récupération**.
+Elle appartient au Set d'un cycle et est de type **Exercice** ou **Récupération**.
 
 Une activité de type Récupération peut être créée explicitement par l'utilisateur ou être générée à partir du paramètre de pause d'un Exercice. Dans ce second cas, elle reste masquée comme activité autonome dans l'interface de composition et sert au plan d'exécution après les Séries de l'Exercice.
 
@@ -515,11 +517,11 @@ Une activité possède directement :
 - le lien vers l'Exercice d'origine lorsqu'elle est une Récupération générée par une pause après Série ;
 - ses zones corporelles ;
 - son média ;
-- sa position dans le bloc.
+- sa position dans le Set.
 
 Elle ne contient pas directement :
 
-- le bloc ;
+- le Set ;
 - le cycle ;
 - la séance ;
 - les préférences globales.
@@ -529,7 +531,7 @@ Elle ne contient pas directement :
 | Attribut                   | Description                                     |         Caractère         | Règle principale                                                              |
 | -------------------------- | ----------------------------------------------- | :-----------------------: | ----------------------------------------------------------------------------- |
 | Identifiant                | Identifiant unique                              |        Obligatoire        | Stable                                                                        |
-| Position                   | Position dans le bloc                           |        Obligatoire        | Ordre d'exécution                                                             |
+| Position                   | Position dans le Set                           |        Obligatoire        | Ordre d'exécution                                                             |
 | Type                       | Exercice ou Récupération                        |        Obligatoire        |                                                                               |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Consigne                   | Instructions                                    |        Facultatif         |                                                                               |
@@ -544,11 +546,11 @@ Elle ne contient pas directement :
 
 ## Règles métier
 
-- Une activité appartient à un seul bloc.
+- Une activité appartient à un seul Set.
 - Une activité est de type Exercice ou Récupération.
 - Une activité Exercice peut être exécutée selon une durée ou un nombre de répétitions.
 - Une activité Récupération est toujours chronométrée.
-- Une activité Exercice possède un nombre de Séries entier supérieur ou égal à 1.
+- Une activité Exercice possède un nombre de Séries entier supérieur ou égal à 1 ; la valeur par défaut à la création est 1.
 - Une Série correspond à une exécution de l'Exercice selon son mode, suivie de la récupération associée lorsqu'elle existe.
 - Une activité Exercice peut définir zéro ou une Récupération après Série.
 - Lorsqu'elle est définie, cette Récupération est matérialisée par une activité de type Récupération liée à l'Exercice et reste masquée comme activité autonome dans l'interface de composition.
@@ -558,7 +560,7 @@ Elle ne contient pas directement :
 - Cette modélisation permet de distinguer les durées de travail des durées de récupération dans l'exécution et l'historique.
 - Seules les activités Exercice peuvent être associées à des zones corporelles.
 - Les activités peuvent être ajoutées, déplacées, dupliquées et supprimées.
-- Leur ordre est conservé dans le bloc ou dans les activités de fin de cycle et de fin de séance.
+- Leur ordre est conservé dans le Set ou dans les activités de fin de cycle et de fin de séance.
 
 # 09.6 Entité Média
 
@@ -643,7 +645,7 @@ Il ne contient pas de copie physique des médias associés aux Activités.
 | Séance | Identifiant source, nom, couleur, catégorie(s) |
 | Compte à rebours initial | Nom, durée, texte vocal |
 | Cycle | Identifiant, position, nombre de répétitions |
-| Bloc | Identifiant, position, nombre de répétitions |
+| Set | Identifiant, position, nombre de répétitions |
 | Exercice | Identifiant source, nom, mode d’exécution, durée ou répétitions, nombre de Séries, consigne, zones corporelles |
 | Récupération | Identifiant source, nom éventuel, durée |
 | Pause après Série | Représentée par la Récupération correspondante et la règle d'insertion dans le plan d'exécution |
@@ -657,7 +659,7 @@ Les médias ne sont pas dupliqués dans l’Instantané. Leur modification ou su
 Contient notamment :
 
 - activité courante ;
-- bloc courant ;
+- Set courant ;
 - cycle courant ;
 - temps restant ;
 - état du chronomètre.
@@ -695,14 +697,14 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
 
-Le compte à rebours initial éventuel, les répétitions du bloc, les répétitions du cycle ainsi que les activités de fin de cycle et de fin de séance sont développés afin d'obtenir une liste ordonnée d'activités directement exploitable.
+Le compte à rebours initial éventuel, les répétitions du Set, les répétitions du cycle ainsi que les activités de fin de cycle et de fin de séance sont développés afin d'obtenir une liste ordonnée d'activités directement exploitable.
 
 ### Contenu
 
 - liste ordonnée des activités ;
 - ordre d'exécution ;
 - références vers les activités de l'instantané ;
-- numéro de répétition du bloc ;
+- numéro de répétition du Set ;
 - numéro de répétition du cycle ;
 - informations de navigation.
 
@@ -715,7 +717,7 @@ Le compte à rebours initial éventuel, les répétitions du bloc, les répétit
 | Position            | Rang dans le plan d'exécution              |   Calculé   | Numérotation continue             |
 | Activité            | Activité de l'instantané                   | Obligatoire | Référence unique                  |
 | Type                | Compte à rebours, Exercice ou Récupération |   Calculé   | Déduit de l'activité              |
-| Répétition du bloc  | Numéro de répétition du bloc               |   Calculé   | Généré automatiquement            |
+| Répétition du Set  | Numéro de répétition du Set               |   Calculé   | Généré automatiquement            |
 | Répétition du cycle | Numéro de répétition du cycle              |   Calculé   | Généré automatiquement            |
 | Activité suivante   | Navigation                                 |   Calculé   | Absente pour la dernière activité |
 
@@ -724,7 +726,7 @@ Le compte à rebours initial éventuel, les répétitions du bloc, les répétit
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
-- Les répétitions du bloc et du cycle sont résolues lors de la génération.
+- Les répétitions du Set et du cycle sont résolues lors de la génération.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
 
@@ -879,8 +881,8 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 ### Cohérence des relations
 
-- Toute activité appartient à un seul bloc.
-- Tout bloc appartient à un seul cycle.
+- Toute activité appartient à un seul Set.
+- Tout Set appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
 - Toute exécution de séance référence une seule séance.
@@ -890,14 +892,14 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 ### Cohérence des données
 
 - Une séance exécutable contient au moins une activité de type **Exercice**.
-- Une activité **Récupération** est toujours chronométrée et ne possède jamais de zone corporelle.
-- Les nombres de répétitions du bloc et du cycle sont toujours supérieurs ou égaux à 1.
+- Une activité **Récupération** est toujours chronométrée, se termine automatiquement, ne possède jamais de zone corporelle et reçoit par défaut le nom `Récupération` lors de sa création.
+- Les nombres de répétitions du Set et du cycle sont toujours supérieurs ou égaux à 1.
 
 ## Duplication d'une séance
 
 - Nouvelle séance avec un nouvel identifiant.
 - Copie de la couleur de la séance.
-- Copie du cycle, du bloc, des activités, des catégories et des références médias.
+- Copie du cycle, du Set, des activités, des catégories et des références médias.
 - Les routines et les exécutions de séance ne sont jamais copiées.
 
 ## Duplication d'une activité
@@ -957,7 +959,7 @@ Création → Édition → Active
 
 ## Cycle de vie d'une activité
 
-- Une activité appartient toujours à un seul bloc.
+- Une activité appartient toujours à un seul Set.
 - Sa copie crée une nouvelle activité indépendante.
 - Sa suppression peut être annulée via la snackbar.
 

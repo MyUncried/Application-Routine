@@ -11,8 +11,8 @@ Elle constitue le journal unique des évolutions fonctionnelles du projet. Chaqu
 ## Principales évolutions
 
 - Distinction entre **Séance** (modèle), **Routine** (planification) et **Exécution de séance**.
-- Nouvelle structure : **Séance → Cycle → Bloc → Activités**.
-- Remplacement de la notion de **Série** par **Bloc**.
+- Nouvelle structure : **Séance → Cycle → Set → Activités**.
+- Remplacement de la notion de **Série** par **Set**.
 - Les activités sont de type **Exercice** ou **Récupération**.
 - La pause après un exercice devient un paramètre de l'activité.
 - L'historique repose désormais sur les **Exécutions de séance**.
@@ -84,8 +84,18 @@ Pour chaque nouvelle version :
 
 - Harmonisation du vocabulaire **Pause après Série** dans l'ensemble de la documentation.
 - Suppression des références résiduelles à un mode d'Exercice autonome **Manuel** : les seuls modes d'Exercice sont **Durée** et **Répétition**.
-- Conservation de l'action `Terminé` pour les Exercices en mode Répétition et adaptation des règles de durée estimée (`≈`).
-- Correction d'une incohérence résiduelle : le **Bloc** et le **Cycle** appartiennent à la **Séance**, et non à la Routine.
+- Validation de `Activité suivante` comme action de fin normale des Exercices en mode Répétition ; maintien du chronomètre croissant et adaptation des règles de durée estimée (`≈`).
+- Correction d'une incohérence résiduelle : le **Set** et le **Cycle** appartiennent à la **Séance**, et non à la Routine.
 - Complément des règles métier transverses sur le nombre de Séries et la pause après Série.
 - Harmonisation du modèle de données et des préférences avec la nouvelle notion de Série.
 
+## 2026-08-12 – Revue finale du chapitre 06 et alignement Figma
+
+- Remplacement de **Set** comme concept métier de référence à la place de l'ancien terme.
+- Catalogue : recherche et filtres inclus dans le MVP ; `Toutes` exclut les Séances archivées ; interactions carte / chevron / `⋯` clarifiées.
+- Composition : contrôles `xN` avec picker pour Cycle et Set ; suppression des `+ / −` ; un seul bouton global `+` ajoute une Activité après la dernière ; hiérarchie visuelle Cycle / Set renforcée.
+- Exercice en Répétition : chronomètre croissant, Pause active, cercle d'une minute, bip à chaque minute et fin normale via `Activité suivante`.
+- Uniformisation du statut métier **Partielle** pour une Activité chronométrée interrompue avant son terme.
+- Récupération : nom par défaut `Récupération`, fin automatique ; nouvel Exercice : 1 Série par défaut.
+- Calendrier : seules les occurrences futures sont affichées ; `Exécuter maintenant` permet l'exécution anticipée ; les occurrences non exécutées passées disparaissent de l'interface et du Suivi.
+- Suivi MVP : `Vue d'ensemble` visible mais grisée, cartes d'Exécution condensées uniquement, sans `Déployer tout / Replier tout`.

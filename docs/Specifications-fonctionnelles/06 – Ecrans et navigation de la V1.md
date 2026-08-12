@@ -2,1262 +2,1034 @@
 
 L’interface du produit fini doit être principalement visuelle, intuitive et utilisable avec le moins de touchers possible.
 
-L’utilisateur doit notamment pouvoir lancer rapidement une séance, comprendre immédiatement l’action attendue pendant une séance et accéder facilement aux fonctions courantes.
+L’utilisateur doit notamment pouvoir ouvrir rapidement une séance, comprendre immédiatement l’action attendue pendant une Exécution et accéder facilement aux fonctions courantes.
 
-Pendant l’exécution, le guidage visuel est complété par des signaux sonores et des annonces vocales afin que l’utilisateur puisse suivre la séance sans regarder constamment l’écran.
+Pendant l’Exécution, le guidage visuel est complété par des signaux sonores et des annonces vocales afin que l’utilisateur puisse suivre la séance sans regarder constamment l’écran.
 
-La conception de la V1 respecte les principes suivants :
+La conception du MVP respecte les principes suivants :
 
 - limiter le nombre d’écrans et d’étapes intermédiaires ;
 - donner un accès direct aux actions les plus fréquentes ;
-- privilégier les images, les vidéos, les icônes et les indicateurs visuels ;
-- limiter les textes affichés pendant l’exécution ;
-- rendre les informations essentielles perceptibles visuellement et sonorement ;
-- réunir la consultation et la modification d’une routine lorsque cela simplifie le parcours ;
-- enregistrer automatiquement les modifications ;
-- éviter les confirmations inutiles lorsqu’une action peut être annulée ;
+- privilégier les icônes et les indicateurs visuels ;
+- limiter les textes affichés pendant l’Exécution ;
+- hiérarchiser clairement les informations selon leur importance pendant l’effort ;
+- enregistrer automatiquement les modifications lorsque la validation explicite d’un formulaire n’est pas nécessaire ;
+- éviter les confirmations inutiles ;
 - afficher clairement l’action principale de chaque écran ;
 - rendre les commandes essentielles facilement accessibles avec le pouce ;
 - placer les paramètres moins fréquents dans un niveau secondaire.
 
 ### Rapidité de création
 
-La création d’une séance, d’une activité ou d’une récupération doit pouvoir être réalisée en quelques secondes, avec un minimum de saisies et de touchers.
+La création d’une Séance, d’une Activité ou d’une Récupération doit pouvoir être réalisée en quelques secondes, avec un minimum de saisies et de touchers.
+
 L’application privilégie :
+
 - des valeurs par défaut immédiatement utilisables ;
 - l’affichage initial des seuls paramètres indispensables ;
-- l’ajout direct d’un élément à l’endroit choisi dans la séance ;
+- l’ajout direct d’un élément à l’endroit choisi dans la Séance ;
 - la possibilité de modifier ou d’enrichir ultérieurement chaque élément ;
-- un accès secondaire aux consignes, médias et réglages avancés. 
+- un accès secondaire aux consignes et informations complémentaires.
 
-La création rapide constitue le parcours principal. L’ajout d’une consigne, d’une photo, d’une vidéo ou de paramètres détaillés reste facultatif.
+La création rapide constitue le parcours principal. L’ajout d’une consigne, de zones corporelles ou d’informations complémentaires reste facultatif.
 
 ## Navigation principale et articulation des écrans
 
 ### Navigation principale
 
 La navigation principale donne accès à quatre onglets :
+
 - `Mes séances` ;
 - `Calendrier` ;
 - `Suivi` ;
-- `Profil`.
+- `Préférences`.
 
 `Mes séances` constitue l’écran d’accueil par défaut.
 
-L’onglet `Calendrier` permet de visualiser les séances planifiées et d’accéder à la création et à la gestion des routines.  
-L’onglet `Suivi` permet de consulter les exécutions enregistrées.  
-L’onglet `Profil` permet d’accéder au profil utilisateur et aux préférences globales.
+L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
+L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
+L’onglet `Préférences` permet d’accéder aux préférences globales de l’application.
 
-### Parcours de création et d’exécution
+### Parcours de création d’une Séance
 
-Depuis `Mes séances`, l’utilisateur peut :
+Depuis `Mes séances`, l’utilisateur peut créer une Séance.
 
-- créer une séance ;
-- ouvrir une séance existante ;
-- lancer directement une séance existante.
+La création suit le parcours suivant :
 
-La création d’une séance suit le parcours suivant :
+1. saisie obligatoire du nom et sélection d’une couleur ;
+2. composition de la Séance ;
+3. sélection facultative d’une ou plusieurs Catégories ;
+4. `Enregistrer la séance` ;
+5. retour au `Catalogue de séances`.
 
-1. saisie obligatoire du nom ;
-2. composition de la séance ;
-3. sélection facultative d’une ou plusieurs catégories ;
-4. enregistrement de la séance.
+Aucune Routine n’est créée automatiquement.
 
-L’ouverture d’une séance existante donne directement accès à sa composition.
+### Parcours d’ouverture et de modification d’une Séance
 
-Depuis la composition, l’utilisateur peut :
+Dans le `Catalogue de séances`, la zone principale d’une carte permet d’ouvrir directement l’écran d’Exécution de la Séance. Cette action est disponible que la carte soit condensée ou déployée.
 
-- ajouter, modifier ou réorganiser les activités ;
-- valider la composition afin d’accéder aux catégories de la séance ;
-- lancer une séance existante.
+Le déploiement de la carte est facultatif et sert uniquement à consulter rapidement son contenu.
 
-Le lancement ouvre l’exécution guidée. Lorsque la séance se termine, l’écran de fin est affiché. L’action `Terminer` ramène ensuite l’utilisateur à la séance exécutée.
+La modification d’une Séance passe par le menu `⋯` puis l’action `Modifier`.
 
-### Parcours de consultation
+Le parcours de modification est toujours :
 
-Depuis `Suivi`, l’utilisateur accède à la liste des séances enregistrées.
-Toucher une séance ouvre son détail.
-Une action de retour ramène à l’suivi sans modifier la séance ni la routine correspondante.
-### Écrans et panneaux
+1. écran `Nom et couleur` prérempli ;
+2. écran `Composition d’une séance` ;
+3. le cas échéant, écran `Catégories de la séance`.
 
-Les écrans principaux sont :
+Ainsi, modifier une Séance ne conduit jamais directement à l’écran de composition.
 
-1. `Mes séances` ;
-2. `Nouvelle séance — Saisie du nom` ;
-3. `Composition d’une séance` ;
-4. `Catégories de la séance` ;
-5. `Exécution guidée` ;
-6. `Fin de séance` ;
-7. `Suivi` ;
-8. `Détail d’une séance`.
+### Parcours d’Exécution
 
-Les panneaux servent aux actions courtes réalisées sans quitter le contexte courant, notamment :
-- créer ou modifier un exercice ;
-- personnaliser ou modifier une Activité de type Récupération ;
-- sélectionner un exercice existant ;
-- confirmer une action susceptible d’entraîner une perte.
+Ouvrir une Séance depuis le Catalogue, ou demander l’Exécution d’une occurrence depuis une Routine, ouvre d’abord l’écran d’Exécution.
 
-Un panneau se referme après la validation de l’action et ramène l’utilisateur à l’endroit précis depuis lequel il l’avait ouvert.
+L’ouverture de cet écran ne démarre pas immédiatement la première Activité.
+
+L’utilisateur déclenche l’Exécution depuis l’écran lui-même. Le Compte à rebours initial est alors exécuté, s’il est configuré avec une durée supérieure à zéro, puis la première Activité commence.
+
+Lorsque la Séance se termine, l’écran de synthèse est affiché. L’action `Terminer` ramène ensuite l’utilisateur au `Suivi`.
+
+### Parcours de consultation du Suivi
+
+Dans le MVP, le `Suivi` affiche la liste des Exécutions enregistrées.
+
+La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est grisée et inactive. Elle est prévue pour une version ultérieure.
+
+La vue détaillée déployée d’une Exécution est également reportée à une version ultérieure.
+
+### Écrans principaux
+
+Les écrans principaux du MVP sont :
+
+1. `Préférences` ;
+2. `Catalogue de séances` ;
+3. `Nouvelle séance — Nom et couleur` ;
+4. `Composition d’une séance` ;
+5. `Création / modification d’une Activité — Exercice` ;
+6. `Création / modification d’une Activité — Récupération` ;
+7. `Catégories de la séance` ;
+8. `Calendrier` ;
+9. `Planifier une séance` ;
+10. `Exécution de séance`, incluant les états et commandes d’interruption ;
+11. `Synthèse de séance` ;
+12. `Suivi — Vue d’ensemble` (prévue en V2, visible mais inactive dans le MVP) ;
+13. `Suivi — Séances`.
+
+Les modales servent aux actions courtes réalisées sans quitter le contexte courant, notamment :
+
+- confirmer l’abandon d’une création ;
+- créer une Catégorie ;
+- gérer les options d’une Activité, d’une Séance ou d’une Routine ;
+- confirmer une suppression ;
+- paramétrer le Compte à rebours initial et la Fin de séance ;
+- gérer les interruptions pendant l’Exécution.
+
 ### Retour et fermeture
 
-En dehors d’une séance en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées automatiquement.
-Fermer un panneau de création sans avoir ajouté l’élément ne crée rien.
-Quitter une séance en cours suit le comportement défini dans `Écran 3 – Exécution guidée`.
+En dehors d’une Exécution en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées ou lorsqu’aucune donnée temporaire ne risque d’être perdue.
+
+La modale `Abandonner la création d’une séance` ne concerne que la saisie initiale du nom et de la couleur avant création effective de la Séance.
+
+Pendant une Exécution, aucune sortie directe vers la navigation principale n’est proposée. L’arrêt de la Séance est accessible uniquement après mise en pause.
+
 ### Conservation du contexte
 
 L’application conserve autant que possible le contexte de l’utilisateur :
-- la séance précédemment ouverte ;
-- la position dans son parcours ;
-- l’étape en cours pendant une séance ;
-- la position dans l’suivi.
 
-Après la fermeture d’un panneau, l’utilisateur retrouve l’élément qu’il vient d’ajouter ou de modifier.
+- la Séance précédemment consultée ;
+- l’état déployé ou replié d’une carte tant que l’utilisateur reste dans la vue concernée ;
+- l’Activité et la Série en cours pendant une Exécution ;
+- la position dans le Suivi.
+
+Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis lequel elle a été ouverte.
+
 ### Enregistrement automatique
 
-Les créations et modifications apportées aux séances, activités et récupérations sont enregistrées automatiquement.
-Aucun bouton général `Enregistrer` n’est nécessaire.
-L’application indique discrètement lorsqu’une modification a été prise en compte ou si son enregistrement a échoué.
+Les modifications d’objets existants sont enregistrées automatiquement lorsque l’écran ne prévoit pas explicitement une action `Valider`, `Terminer` ou `Enregistrer`.
 
-### Navigation pendant une séance
+Les écrans de création ou les modales comportant une action explicite ne valident les données qu’après cette action.
 
-Pendant l’exécution guidée, la navigation principale n’est pas affichée.
+### Navigation pendant une Exécution
 
-L’utilisateur reste concentré sur la séance et utilise les commandes prévues pour :
-- consulter le parcours ;
-- changer d’étape ;
-- suspendre la séance ;
-- quitter la séance.
+Pendant l’Exécution, la navigation principale n’est pas affichée.
 
-Il ne peut pas rejoindre accidentellement `Mes séances` ou `Suivi` sans passer par l’action de sortie de séance.
+L’utilisateur dispose de trois commandes principales :
+
+- `Réinitialiser l’activité` ;
+- `Pause` ;
+- `Activité suivante`.
+
+Il n’existe pas de bouton `Quitter` ou `Arrêter` directement sur l’écran d’Exécution. L’action `Arrêter la séance` est accessible uniquement depuis la modale de pause.
+
+L’utilisateur ne peut pas revenir à une Activité déjà exécutée.
 
 ### Cohérence des libellés
 
 Les mêmes termes sont utilisés dans toute l’application :
-- `Séance` : contenu complet d'un entraînement ;
-- `Routine` : planification d'une séance ;
-- `Activité` : action élémentaire (Exercice ou Récupération) ;
-- `Exercice` : activité physique ;
-- `Récupération` : activité de récupération ;
-- `Bloc` : ensemble ordonné d'activités ;
-- `Cycle` : conteneur répétant un bloc et pouvant contenir des activités propres au cycle ;
-- `Exécution de séance` : réalisation effective d'une séance.
 
-Ces libellés seront vérifiés dans les wireframes afin de conserver des actions courtes et immédiatement compréhensibles.
+- `Séance` : contenu complet d’un entraînement ;
+- `Routine` : planification d’une Séance ;
+- `Activité` : action élémentaire, de type Exercice ou Récupération ;
+- `Exercice` : Activité physique ;
+- `Récupération` : Activité de repos chronométrée ;
+- `Série` : répétition propre à un Exercice ;
+- `Set` : conteneur ordonné d’Activités, répété un nombre défini de fois ;
+- `Cycle` : conteneur répétant le Set et pouvant contenir des Activités propres au Cycle ;
+- `Exécution de séance` : réalisation effective d’une Séance.
 
-## Ecran 1 – Profil et préférences
+Le terme `Set` n’est plus utilisé : il est remplacé par `Set` dans le vocabulaire visible et comme concept métier.
 
-![[Profil et préférences.png]]
+## Écran 1 – Préférences
+
+![[Profil et préférences.png|405]]
+
 ### Objectif
 
-Permettre à l'utilisateur de consulter ses informations personnelles et de personnaliser le comportement général de l'application.
+Permettre à l’utilisateur de consulter les informations générales de son compte et de définir les préférences globales de l’application.
 
-Cet écran regroupe les paramètres utilisés par défaut lors de la création de nouvelles séances ainsi que les préférences liées à l'exécution des séances.
 ### Contenu
 
-L'écran est organisé en plusieurs sections :
-#### Profil
+L’écran comporte notamment :
 
-Affiche les informations générales de l'utilisateur :
-- photo ou avatar ;
-- nom ou pseudonyme ;
-- informations du compte (versions futures).
+- l’identité ou l’avatar de l’utilisateur et l’action `Modifier le profil` ;
+- `Sons` ;
+- `Annonces vocales` ;
+- `Vibrations` ;
+- la durée par défaut du `Compte à rebours initial` ;
+- la durée par défaut de la `Fin de séance` ;
+- `Notifications` et rappels.
 
-Dans le MVP, cette section est principalement informative.
-#### Préférences de création
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance.
 
-Ces paramètres servent de valeurs par défaut lors de la création d'une nouvelle Séance ou d'une nouvelle Activité.
-
-L'utilisateur peut notamment définir :
-- la durée du compte à rebours initial ;
-- les valeurs proposées par défaut lors de la création d'une activité ;
-- les autres paramètres de création disponibles dans le MVP.
-
-Ces valeurs restent modifiables pour chaque séance.
-
-#### Préférences d'exécution
-
-L'utilisateur peut personnaliser le comportement des séances :
-- activation ou désactivation des annonces vocales ;
-- activation ou désactivation des bips de rythme ;
-- activation ou désactivation du compte à rebours sonore des trois dernières secondes.
-
-Ces préférences sont utilisées par défaut lors de l'exécution des nouvelles séances.
-#### Référentiels
-
-L'écran donne accès aux référentiels utilisés par l'application.
-
-Dans le MVP :
-- les **Catégories de Séance** sont personnalisables par l'utilisateur : création, modification et suppression ;
-- les **Zones corporelles** constituent un référentiel applicatif prédéfini : elles peuvent être consultées et sélectionnées, mais pas créées, renommées ou supprimées par l'utilisateur.
+Le MVP est disponible uniquement en français. Aucun sélecteur de langue n’est affiché. L’architecture du produit doit néanmoins rester compatible avec une évolution multilingue.
 
 ### Comportement
 
-Les modifications sont enregistrées automatiquement.
+Les modifications sont enregistrées immédiatement.
 
-Aucun bouton **Enregistrer** n'est nécessaire.
-Les nouvelles préférences sont immédiatement prises en compte pour les créations et exécutions suivantes.
-Les séances en cours ne sont pas modifiées.
+Les préférences ne modifient pas rétroactivement les Séances existantes ni une Exécution déjà en cours.
+
+Les notifications sont activées par défaut, sous réserve de l’autorisation du système d’exploitation.
 
 ### Navigation
 
-L'écran est accessible depuis l'icône **Profil** présente dans la barre inférieur de l'application.
-L'action **Retour** ramène l'utilisateur à l'écran précédemment affiché.
+L’écran est accessible depuis l’onglet **Préférences** de la barre de navigation inférieure.
+
+Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est nécessaire pour revenir à un autre onglet.
 
 ## Écran 2 – Catalogue des séances
 
-![[Catalogue des séances.png]]
+![[Catalogue des séances.png|531]]
 
 ### Objectif
 
-Permettre à l'utilisateur de consulter son catalogue de séances, de créer une nouvelle séance, d'ouvrir une séance existante, de l'exécuter immédiatement ou de la planifier.
+Permettre à l’utilisateur de consulter son Catalogue de Séances, de rechercher ou filtrer les Séances, de créer une nouvelle Séance et d’accéder rapidement à l’Exécution, à la consultation détaillée ou aux actions de gestion.
 
 Cet écran constitue l’accueil de l’application.
-### Contenu affiché
 
-Le catalogue présente l'ensemble des séances enregistrées par l'utilisateur.
+### Recherche et filtres
 
-Chaque séance affiche notamment :
-- sa couleur ;
-- son nom ;
-- sa catégorie ;
-- son nombre de cycles ;
+
+Le MVP comporte :
+
+- un champ de recherche ;
+- les filtres `Toutes`, `Planifiées` et `Archivées`.
+
+La recherche filtre la liste en temps réel sur le nom de la Séance. Les filtres peuvent être utilisés avec la recherche.
+
+Le filtre `Toutes` affiche toutes les Séances actives, qu’elles soient planifiées ou non. Il **n’affiche pas les Séances archivées**. Les Séances archivées ne sont accessibles que via le filtre `Archivées`.
+
+### Carte de Séance — vue condensée
+
+Chaque carte affiche notamment :
+
+- le nom de la Séance ;
+- sa Catégorie lorsqu’elle existe ;
+- le nombre d’Activités ;
 - sa durée estimée ;
-- ses informations principales.
+- le nombre de Sets et de Cycles ;
+- la dernière Exécution lorsqu’elle existe ;
+- la prochaine occurrence planifiée lorsqu’elle existe ;
+- un chevron de déploiement ;
+- le menu `⋯`.
 
-Les séances sont classées par dernière utilisation, de la plus récente à la plus ancienne. Pour une routine jamais exécutée, la date de dernière modification est utilisée.
-### Actions principales
+Les Séances sont présentées par défaut selon leur dernière utilisation, de la plus récente à la plus ancienne. Pour une Séance jamais exécutée, la date de dernière modification est utilisée.
 
-Depuis le **Catalogue de séances**, l'utilisateur peut :
-- créer une nouvelle séance ;
-- ouvrir une séance existante ;
-- exécuter immédiatement une séance ;
-- planifier une séance en créant une routine ;
-- dupliquer une séance ;
-- archiver une séance.
-### Création d'une séance
+### Actions sur une carte
 
-Toucher **`＋`** ouvre l'écran **`Nouvelle séance — Saisie du nom`**.
+La carte distingue trois zones d’action :
 
-Après validation du nom :
-- la séance est créée avec son identifiant et ses informations techniques ;
-- l'utilisateur accède à l'écran **`Composition d'une séance`** ;
-- il peut définir les nombres de répétitions du Cycle et du Bloc de la séance et ajouter les Activités correspondantes.
+- **zone principale de la carte** : ouvre l’écran d’Exécution de la Séance ;
+- **chevron** : déploie ou replie la carte sans ouvrir l’Exécution ;
+- **`⋯`** : ouvre le modal `Options d’une séance`.
 
-Lorsque la composition est validée, l'écran **`Catégories de la séance`** s'ouvre.
+La zone principale constitue une cible tactile large. Il n’est pas nécessaire d’afficher un bouton ou une icône `Ouvrir`.
 
-L'utilisateur peut :
-- sélectionner zéro, une ou plusieurs catégories existantes ;
-- créer une nouvelle catégorie ;
-- enregistrer la séance.
+### Carte de Séance — vue déployée
 
-Une fois la séance enregistrée, l'application lui propose :
-- **Exécuter maintenant** ;
-- **Planifier la séance** (création d'une routine) ;
-- **Retourner au Catalogue de séances**.
+
+Le déploiement est facultatif et permet de consulter les Activités de la Séance sans changer d’écran.
+
+La zone principale de la carte conserve la même action que dans la vue condensée : elle ouvre l’écran d’Exécution. Le chevron sert uniquement à déployer ou replier la carte et le menu `⋯` ouvre les options.
+
+Aucun bouton `Ouvrir` n’est affiché dans la vue déployée.
+
+Chaque ligne d’Activité présente :
+
+- le nom de l’Activité à gauche ;
+- un groupe compact aligné à droite sous la forme `durée/reps · xN`.
+
+`xN` n’est affiché que lorsque le nombre de Séries est supérieur à 1. En mode Répétition, l’abréviation `reps` est utilisée.
+
+Exemples : `12 reps · x3`, `45 s · x2` ou simplement `30 s` lorsque le nombre de Séries vaut 1.
+
+### Création d’une Séance
+
+Toucher `＋` ouvre l’écran `Nouvelle séance — Nom et couleur`.
+
+La création suit ensuite le parcours défini dans la section de navigation générale.
+
+Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur revient directement au `Catalogue de séances`.
+
 ### Actions secondaires
 
-Pour chaque séance, un menu secondaire permet de :
-- la dupliquer ;
-- la renommer ;
-- l'archiver ;
-- la supprimer.
-### Suppression d'une séance
+Le menu `⋯` propose :
 
-Lorsqu'un utilisateur demande la suppression d'une séance, l'application vérifie si celle-ci est référencée par une ou plusieurs routines.
-Si aucune routine n'est associée, la séance est supprimée immédiatement.
+- `Modifier` ;
+- `Dupliquer` ;
+- `Planifier` ;
+- `Archiver` ou `Restaurer` ;
+- `Supprimer`.
 
-Dans le cas contraire, l'application affiche un message de confirmation indiquant :
-- le nombre de routines concernées ;
-- les principales informations permettant de les identifier (nom, récurrence, prochaine exécution le cas échéant).
+`Modifier` ouvre toujours l’écran `Nom et couleur` prérempli, puis permet de poursuivre vers la Composition.
+
+### Suppression d’une Séance
+
+La suppression demande toujours une confirmation explicite.
+
+Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
 
 Après confirmation :
-- la séance est supprimée ;
-- toutes les routines qui la référencent sont supprimées ;
-- les exécutions déjà réalisées sont conservées dans l'historique.
 
-La suppression d'une séance n'a aucun impact sur l'historique des exécutions déjà réalisées. Les exécutions historiques restent consultables, car chacune conserve un instantané complet de la version de la séance exécutée.
+- la Séance est supprimée ;
+- toutes les Routines qui la référencent sont supprimées ;
+- les occurrences futures cessent d’être calculées ;
+- les Exécutions déjà enregistrées restent conservées dans le Suivi grâce à leur Instantané.
+
+### Archivage
+
+L’archivage retire la Séance de la liste principale.
+
+Si la Séance est utilisée par une ou plusieurs Routines, celles-ci sont supprimées après confirmation.
+
+La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
+
 ### Séance vide
 
-La V1 ne comporte pas de statut **Brouillon**.
-Une séance est créée dès que son nom est validé.
-Tant qu'elle ne contient aucune activité :
-- elle porte la mention **`Séance vide`** ;
-- elle ne peut pas être exécutée ;
-- elle peut être ouverte, complétée, renommée, archivée ou supprimée.
+Le MVP ne comporte pas de statut `Brouillon`.
+
+Une Séance existe dès validation de son nom et de sa couleur.
+
+Tant qu’elle ne contient aucun Exercice :
+
+- elle peut être modifiée, archivée ou supprimée ;
+- elle ne peut pas être exécutée.
+
 ### État vide
 
-Si aucune séance n’a encore été créée, l’écran présente :
-- une courte explication ;
-- une illustration ou une icône ;
-- une action principale `Créer ma première séance`.
-## Écran 3 – Nouvelle séance : saisie du nom
+Si aucune Séance n’a encore été créée, l’écran présente une action principale permettant de créer la première Séance.
+
+## Écran 3 – Nouvelle séance : nom et couleur
 
 ![[Nouvelle séance - Nom.png]]
+
 ### Objectif
 
-Créer l’identité minimale d’une séance avant d’accéder à sa composition.
+Créer l’identité minimale d’une Séance avant d’accéder à sa Composition, ou modifier cette identité pour une Séance existante.
+
 ### Contenu et comportement
 
-L'écran comporte :
-- un champ obligatoire **Nom de la séance** ;
-- un sélecteur de couleur composé d'une palette prédéfinie de 16 couleurs.
+L’écran comporte :
 
-Le champ **Nom de la séance** est obligatoire.
-Le bouton **Continuer** reste désactivé tant que le nom est vide ou invalide.
-La couleur est obligatoire et est sélectionnée par l'utilisateur lors de la création.
-Le retour annule la création si la séance n'a pas encore été créée.
-La validation crée la séance et ouvre l'écran **Composition d'une séance**.
+- un champ obligatoire `Nom de la séance` ;
+- un sélecteur de couleur composé d’une palette prédéfinie de 16 couleurs ;
+- l’action `Continuer`.
+
+Aucune couleur n’est présélectionnée lors de la création.
+
+`Continuer` reste désactivé tant que le nom ou la couleur ne sont pas valides.
+
+En création, la validation crée la Séance puis ouvre `Composition d’une séance`.
+
+En modification, les valeurs actuelles sont préremplies. La validation enregistre le nom et la couleur puis ouvre la Composition.
+
+### Retour
+
+Avant la création effective de la Séance, si l’utilisateur a commencé à saisir ou sélectionner des informations puis demande à quitter l’écran, la modale `Abandonner la création d’une séance` est affichée.
+
+Lorsqu’une Séance existe déjà, le retour n’entraîne pas sa suppression.
 
 ## Écran 4 – Composition d’une séance
 
 ![[Nouvelle séance - Etat initial et liste d'activités.png]]
+
 ### Objectif
 
-Permettre à l’utilisateur de composer une séance, d'organiser ses cycles, ses blocs et ses activités, puis de l'exécuter ou de la planifier.
+Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
 
-La routine est représentée comme un parcours vertical inspiré de Duolingo, et non comme une simple liste.
+L’écran de Composition ne lance pas directement l’Exécution.
 
-### Principe de représentation d’une séance
+### Structure affichée
 
-La composition d’une séance est représentée sous la forme d’un parcours visuel vertical.
+La Composition est présentée comme une structure hiérarchique ordonnée et non comme un parcours de type niveaux.
 
-Chaque Activité, de type Exercice ou Récupération, constitue un nœud du parcours. Les nœuds sont reliés afin de matérialiser leur ordre d’exécution.
+Elle comprend dans le MVP :
 
-Cette représentation doit permettre de comprendre immédiatement :
-- le début et la fin de la séance ;
-- l’ordre des exercices et des pauses ;
-- la position de l’utilisateur dans le parcours ;
-- les étapes terminées, en cours, suivantes ou ignorées ;
-- la progression générale de la séance.
-
-Un nœud peut comporter :
-- une icône ou une vignette ;
-- le nom abrégé de l’exercice ou de l’étape ;
-- sa durée ou son nombre de répétitions ;
-- un état visuel indiquant sa situation dans la séance.
-
-Le parcours ne constitue pas un système de niveaux à débloquer. Tous les éléments restent consultables et modifiables. Le bouton `Démarrer` lance l'exécution de la séance depuis son début.
-
-Dans la V1, cette représentation permet d'identifier les cycles, les blocs, les activités de fin de cycle et les activités de fin de séance.
-
-### En-tête
-
-L’en-tête affiche :
-- le nom de la séance ;
-- sa durée estimée ;
-- le nombre d’activités ;
-- un accès aux actions secondaires.
-
-Le nom de la séance peut être modifié directement, sans ouvrir un écran distinct.
-
-Les actions secondaires comprennent :
-- dupliquer la séance ;
-- supprimer la séance.
-### Parcours visuel
-
-Les activités apparaissent dans leur ordre d’exécution le long d’un parcours vertical.
-Chaque élément est représenté par un nœud relié au suivant.
-
-Un nœud d’exercice comporte :
-- une icône ou une vignette ;
-- le nom abrégé de l’exercice ;
-- sa durée ou son nombre de répétitions ;
-- éventuellement une indication visuelle de la présence d’une photo, d’une vidéo ou d’une consigne.
-
-Une Activité de type Récupération utilise une représentation visuelle différente et plus discrète afin de ne pas être confondue avec un Exercice.
-Le parcours commence par un repère de départ et se termine par un repère de fin.
-
-### Paramètres de répétition
-
-La structure de la séance comprend un **Cycle unique**, contenant un **Bloc unique**:
-- Le Cycle possède son propre nombre de répétitions.  
-- Le Bloc possède son propre nombre de répétitions.
-
-Le Bloc regroupe une suite ordonnée d'Activités. À chaque répétition du Cycle, le Bloc est exécuté selon son propre nombre de répétitions, puis les éventuelles activités propres au Cycle sont exécutées.
-
-Les nombres de répétitions du Bloc et du Cycle sont modifiables directement depuis leurs conteneurs respectifs.
-
-Le Cycle et le Bloc peuvent être développés ou repliés afin de faciliter la lecture de la séance.
-Le cycle peut être développé ou replié afin de faciliter la lecture des séances longues.
-
-Aucune récupération n'est ajoutée sans action de l'utilisateur. Si deux activités de type **Exercice** s'enchaînent sans **pause après Série** ni activité de type **Récupération**, un avertissement discret et non bloquant est affiché.
-### Guidage sonore
-
-L'écran permet uniquement d'activer ou de désactiver les bips et les annonces vocales de la Séance. Les principes généraux du guidage sonore sont décrits dans le chapitre 03 et les règles détaillées dans le chapitre 10.
-
-### Consultation d’un exercice
-
-Toucher un nœud ouvre le détail de l’exercice.
-
-L’utilisateur peut alors consulter :
-- son nom ;
-- sa consigne complète ;
-- sa photo ou sa vidéo ;
-- son mode d’exécution ;
-- sa durée ou son nombre de répétitions.
-
-Depuis ce détail, il peut modifier l’exercice.
-Le détail peut être présenté dans un panneau superposé afin que l’utilisateur conserve le contexte de la séance.
-
-### Ajout rapide d’un élément
-
-Des points d’insertion `＋` permettent d’ajouter directement un élément :
-- au début du parcours ;
-- entre deux éléments existants ;
-- à la fin du parcours.
-
-Toucher un point d’insertion ouvre un menu compact proposant :
-- `Exercice` ;
-- `Pause 15 s` ;
-- `Pause 30 s` ;
-- `Pause 45 s` ;
-- `Pause personnalisée`.
-
-Une pause prédéfinie est immédiatement insérée dans le parcours, sans ouvrir de panneau supplémentaire.
-
-Le choix `Exercice` ouvre la création rapide d’un exercice. Le choix `Pause personnalisée` ouvre les paramètres détaillés d’une pause.
-
-L’élément est donc ajouté directement à la position choisie. Il n’est pas nécessaire de l’ajouter à la fin, puis de le déplacer.
-
-### Réorganisation
-
-L’utilisateur peut activer un mode de réorganisation.
-
-Dans ce mode, il peut :
-- déplacer une Activité de type Exercice ou Récupération ;
-- dupliquer un élément ;
-- supprimer un élément.
-
-Le déplacement doit être direct, par glisser-déposer.
-La nouvelle organisation est enregistrée automatiquement.
-
-Le mode de réorganisation peut temporairement simplifier l’affichage sous forme de liste compacte si le déplacement des nœuds sur le parcours visuel s’avère difficile à comprendre ou à utiliser.
-
-### Exécution de la séance
-
-Un bouton principal `Démarrer` permet de lancer la séance depuis son début.
-Le bouton reste facilement accessible, même lorsque l’utilisateur fait défiler un parcours long.
-La séance peut être exécutée dès qu’elle contient au moins un exercice.
-Les Récupérations seules ne suffisent pas à rendre la Séance exécutable.
-
-### Enregistrement
-
-Toutes les modifications sont enregistrées automatiquement.
-Il n’existe pas de bouton général `Enregistrer`.
-Une indication discrète peut confirmer que les dernières modifications ont été prises en compte.
-### Séance vide
-
-Lorsqu’une séance ne contient encore aucun exercice, l’écran affiche :
-- son nom ;
-- une courte indication expliquant comment commencer ;
-- une action principale `Ajouter un exercice` ;
-- une action secondaire `Ajouter une récupération`.
-
-Le bouton `Démarrer` est désactivé.
-### Séance longue
-
-Lorsque le parcours dépasse la hauteur de l’écran :
-- l’utilisateur le parcourt verticalement ;
-- le bouton `Démarrer` reste accessible ;
-- un indicateur peut résumer sa longueur ou sa durée ;
-- l’écran revient à la dernière position consultée après la modification d’un élément.
-### Structure de la V1
-
-La composition d'une séance repose sur la hiérarchie suivante :
-- un Compte à rebours initial ;
-- un **Cycle unique** ;
-- le Cycle contient un **Bloc unique** ;
-- le Bloc contient une suite ordonnée d'**Activités** ;
-- le Bloc possède son propre nombre de répétitions ;
-- le Cycle possède son propre nombre de répétitions ;
-- le Cycle peut comporter des Activités propres exécutées après chaque répétition du Bloc ;
-- la séance peut comporter des Activités de fin de séance ;
-- une Fin de séance.
+- un `Compte à rebours initial` ;
+- un `Cycle` unique ;
+- un `Set` unique dans le Cycle ;
+- les Activités du Set ;
+- les éventuelles Activités propres au Cycle ;
+- les éventuelles Activités de fin de Séance ;
+- une `Fin de séance`.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités.
 
-Le Cycle et le Bloc peuvent être développés ou repliés afin de faciliter la lecture de la séance.
+Le Cycle et le Set peuvent être déployés ou repliés pour faciliter la lecture.
 
-## Écran 5 – Création / modification d'une activité (Exercice)
+### En-tête
 
-![[Pasted image 20260810184537.png]]
+L’en-tête affiche notamment :
+
+- le nom de la Séance ;
+- le nombre d’Activités ;
+- la durée estimée.
+
+Le nom et la couleur ne sont pas modifiés directement depuis cet écran. Le bouton Retour ramène à l’écran `Nom et couleur`.
+
+### Paramètres du Set et du Cycle
+
+
+Le Cycle et le Set possèdent chacun un nombre de répétitions supérieur ou égal à 1.
+
+Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Cycle` ou `Set`. Les anciens boutons `+ / −` ne sont pas utilisés.
+
+Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
+
+Le libellé `Set` utilise la même hiérarchie typographique que `Cycle`. Le fond du Set est visuellement distingué du fond du Cycle afin de rendre la hiérarchie claire.
+
+À chaque répétition du Cycle, le Set est exécuté selon son propre nombre de répétitions, puis les éventuelles Activités propres au Cycle sont exécutées.
+
+### Ajout d’une Activité
+
+
+Un seul bouton `＋` d’ajout d’Activité est affiché dans l’écran de Composition. Il est placé à droite du résumé indiquant le nombre d’Activités et la durée totale estimée.
+
+Aucun bouton `＋` intermédiaire n’est affiché dans le Set, dans le Cycle ou entre les Activités.
+
+Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
+
+La nouvelle Activité est insérée directement après la dernière Activité existante de la Composition. L’utilisateur peut ensuite modifier sa position manuellement par glisser-déposer.
+
+Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
+
+Aucune Récupération explicite n’est ajoutée implicitement par l’application. La seule exception est la matérialisation technique d’une pause après Série configurée sur un Exercice.
+
+Si deux Exercices s’enchaînent sans pause après Série ni Activité de type Récupération, un avertissement discret et non bloquant est affiché.
+
+### Consultation et modification d’une Activité
+
+Toucher une Activité ouvre le modal `Options de l’activité`.
+
+Ce modal permet de :
+
+- Modifier ;
+- Dupliquer ;
+- Supprimer.
+
+`Modifier` ouvre le parcours de modification correspondant au type d’Activité.
+
+### Réorganisation
+
+Les Activités peuvent être réorganisées par glisser-déposer dans les zones où leur déplacement est autorisé.
+
+Le Cycle, le Set, le Compte à rebours initial et la Fin de séance restent des éléments structurels fixes dans le MVP.
+
+### Validation de la Composition
+
+L’écran ne comporte pas de bouton `Démarrer`.
+
+L’action `Valider les modifications` valide la Composition.
+
+En création, elle ouvre l’écran `Catégories de la séance`.
+
+En modification d’une Séance existante, le parcours de validation conserve les catégories existantes et permet, le cas échéant, de les revoir conformément au flux Figma.
+
+La Séance n’est exécutable que si elle contient au moins un Exercice valide.
+
+### Enregistrement
+
+Les modifications internes sont conservées au fur et à mesure, sous réserve des validations explicites prévues par les écrans d’édition.
+
+## Écran 5 – Création / modification d’une Activité (Exercice)
+
+![[Nouvelle activité - Exercice.png]]
 
 ### Objectif
 
-Permettre à l'utilisateur de créer ou modifier une activité de type **Exercice** avec un écran principal volontairement allégé, centré sur les paramètres nécessaires à l'exécution.
+Permettre à l’utilisateur de créer ou modifier une Activité de type `Exercice`.
 
-La saisie d'un Exercice se déroule en **deux étapes** :
-1. paramètres essentiels de l'Activité ;
+La saisie se déroule en deux étapes :
+
+1. paramètres essentiels ;
 2. informations complémentaires facultatives.
 
 ### Ouverture
 
-L'écran est ouvert lorsque l'utilisateur :
-- ajoute une nouvelle activité de type **Exercice** ;
-- sélectionne une activité existante de type **Exercice**.
+L’écran est ouvert lorsque l’utilisateur :
 
-Le retour ramène à l'écran **Composition d'une séance**.
+- ajoute un Exercice depuis la Composition ;
+- choisit `Modifier` sur une Activité de type Exercice.
 
-### Étape 1 — Paramètres de l'Activité
+Le retour ramène à la Composition.
 
-L'écran principal comporte uniquement :
-- Type d'activité ;
+### Étape 1 — Paramètres essentiels
+
+L’écran comporte notamment :
+
+- Type d’Activité ;
 - Nom ;
-- Mode d'exécution ;
-- Paramètres de la Série ;
-- bouton **Valider**.
+- Mode d’Exécution ;
+- paramètres de la Série ;
+- bouton `Valider`.
 
-#### Nom
+Le nom est obligatoire.
 
-Le champ **Nom** est obligatoire.
-Il identifie l'activité dans la composition de la séance ainsi que pendant son exécution.
-Le bouton **Valider** reste désactivé tant que ce champ est vide.
+### Mode d’Exécution
 
-#### Mode d'exécution
+L’utilisateur choisit entre :
 
-L'utilisateur choisit entre :
-- **Durée** ;
-- **Répétition**.
+- `Durée` ;
+- `Répétition`.
 
-Le changement de mode adapte immédiatement la première roulette des paramètres.
+En mode `Durée`, les paramètres comportent :
 
-#### Paramètres de la Série
+- minutes ;
+- secondes ;
+- pause après Série ;
+- nombre de Séries.
 
-Les paramètres sont présentés dans une roulette de grande taille, conçue pour être facilement manipulable au doigt.
+En mode `Répétition`, la durée est remplacée par le nombre de répétitions. La pause et le nombre de Séries restent disponibles.
 
-En mode **Durée**, la roulette comporte :
-- Durée en **minutes** ;
-- Durée en **secondes** ;
-- **Pause** ;
-- **Séries**.
+Le nombre de Séries est toujours supérieur ou égal à 1. Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
-En mode **Répétition**, la zone Durée est remplacée par une roulette **Répétitions**, large et centrée. Les colonnes **Pause** et **Séries** restent inchangées.
+Une Série correspond à l’Exécution de la durée ou du nombre de répétitions défini pour l’Exercice, suivie de sa pause éventuelle.
 
-Le nombre de Séries est propre à l'Activité et est toujours supérieur ou égal à 1.
+La pause est exécutée après chaque Série. Après la dernière Série, elle est omise lorsque l’étape suivante du plan d’Exécution est une Récupération explicite.
 
-Une Série correspond à :
-- l'exécution de l'Exercice selon la durée ou le nombre de répétitions défini ;
-- puis la pause éventuelle.
+### Étape 2 — Informations complémentaires
 
-La pause est exécutée après chaque Série. Après la dernière Série, elle n'est pas exécutée lorsque l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
+L’écran comporte :
 
-#### Validation de l'étape 1
+- `Consigne` ;
+- `Zones corporelles` ;
+- bouton `Terminer`.
 
-L'action **Valider** :
-- valide les paramètres essentiels ;
-- ouvre l'écran **Informations complémentaires de l'activité** ;
-- ne termine pas encore la création ou la modification de l'Activité.
+La Consigne et les Zones corporelles sont facultatives.
 
-### Étape 2 — Informations complémentaires de l'activité
+Les Zones corporelles sont sélectionnées dans un référentiel prédéfini. Elles ne sont ni créées, ni renommées, ni supprimées par l’utilisateur dans le MVP.
 
-Cet écran est volontairement simple et contient uniquement les informations facultatives :
-- **Consigne** ;
-- **Zones corporelles** ;
-- bouton **Terminer**.
+`Terminer` enregistre l’Activité puis revient à la Composition.
 
-#### Consigne
+### Modification d’une Activité
 
-La consigne est facultative et permet notamment de préciser :
-- la manière d'exécuter le mouvement ;
-- des conseils techniques ;
-- des précautions particulières.
+Lorsqu’un Exercice existant est modifié, ses valeurs sont préremplies.
 
-Elle peut être affichée pendant l'exécution de l'activité.
+Les Exécutions déjà historisées ne sont jamais modifiées.
 
-#### Zones corporelles
+## Écran 6 – Création / modification d’une Activité (Récupération)
 
-Une ou plusieurs Zones corporelles prédéfinies peuvent être associées à l'Exercice.
-La sélection est multiple.
+![[Nouvelle activité - Récupération.png|305]]
 
-Dans le MVP, l'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle.
-
-#### Terminer
-
-L'action **Terminer** :
-- enregistre l'Activité et ses informations complémentaires ;
-- ferme le parcours de création ou de modification ;
-- revient à la **Composition d'une séance** ;
-- affiche immédiatement l'Activité à l'emplacement choisi.
-
-Les deux champs étant facultatifs, l'utilisateur peut toucher **Terminer** sans avoir renseigné de Consigne ni de Zone corporelle.
-
-### Modification d'une activité
-
-Lorsqu'une activité existante est ouverte :
-- ses paramètres sont préremplis ;
-- **Valider** permet de passer de l'écran principal aux informations complémentaires ;
-- **Terminer** enregistre la modification et revient à la composition de la séance ;
-- les modifications concernent uniquement cette activité dans cette séance ;
-- les Exécutions déjà historisées ne sont jamais modifiées.
-
-### Actions secondaires
-
-Depuis ce parcours, l'utilisateur peut également supprimer l'activité de la séance.
-
-## Écran 6 – Création / modification d'une activité (Récupération)
-
-![[Nouvelle activité - Récupération.png]]
 ### Objectif
 
-Permettre de créer ou modifier une **activité de type Récupération**.
+Permettre de créer ou modifier une Activité de type `Récupération`.
 
-Une activité de récupération peut être insérée dans un bloc, à la fin d'un cycle ou à la fin d'une séance.
+### Contenu
 
-### Ajout rapide
 
-Depuis un point d’insertion `＋`, l’utilisateur peut choisir directement :
-- `Pause 15 s` ;
-- `Pause 30 s` ;
-- `Pause 45 s` ;
-- `Pause 60 s` ;
+L’écran comporte :
 
-La pause sélectionnée est immédiatement insérée à l’endroit choisi avec les paramètres suivants :
-- nom : `Pause` ;
-- fin automatique ;
-- aucune consigne.
+- le type `Récupération` ;
+- `Nom` ;
+- `Durée` ;
+- bouton `Valider`.
 
-Aucun panneau de configuration ni aucune validation supplémentaire ne sont nécessaires.
-### Récupération personnalisée
+Le nom proposé par défaut est `Récupération`. Il peut être modifié par l’utilisateur.
 
-Le choix `Pause personnalisée` ouvre un panneau permettant de définir :
-- la durée ;
-- une consigne facultative ;
-- une fin automatique ou manuelle ;
-- éventuellement un nom personnalisé.
+Une Récupération est toujours chronométrée. Elle ne propose pas de mode Répétition ni de fin manuelle : sa fin temporelle est automatique.
 
-Ce même panneau est utilisé pour modifier une pause déjà insérée.
-### Durée
+Elle ne possède pas de Zones corporelles.
 
-Dans le panneau de personnalisation, l’utilisateur définit la durée de la pause en minutes et secondes.
+`Valider` enregistre l’Activité puis revient à la Composition.
 
-Les durées de 15, 30 et 45 secondes sont accessibles directement depuis l’ajout rapide et ne nécessitent pas l’ouverture de ce panneau.
+### Validation
 
-Pendant la séance, un compte à rebours indique le temps restant.
-### Consigne
+L’action de validation enregistre l’Activité et revient à la Composition.
 
-Une consigne facultative peut préciser ce que l’utilisateur doit faire pendant la pause, par exemple :
-- respirer profondément ;
-- changer de côté ;
-- préparer le matériel ;
-- boire ;
-- adopter une position particulière.
+L’utilisateur peut utiliser la commande `Activité suivante` avant la fin d’une Récupération. Après confirmation, la Récupération est enregistrée avec le statut `Partielle` selon les règles générales des Activités chronométrées.
 
-La consigne est affichée pendant l’exécution de la pause.
-### Mode de fin
+### Modification et actions secondaires
 
-L’utilisateur choisit entre deux comportements :
-- `Automatique` : l’application passe à l’élément suivant à la fin du compte à rebours ;
-- `Manuel` : la fin du compte à rebours est signalée, mais l’utilisateur décide quand passer à la suite.
+La modification utilise le même écran avec les valeurs préremplies.
 
-Le mode `Automatique` est sélectionné par défaut.
-Même en mode automatique, l’utilisateur peut passer immédiatement à l’élément suivant.
-### Ajout à la séance
+La duplication et la suppression sont accessibles depuis le modal `Options de l’activité`.
 
-Une pause prédéfinie est insérée immédiatement à l’emplacement depuis lequel l’utilisateur a touché `＋`.
-
-Pour une pause personnalisée, l’action principale du panneau est `Ajouter`.
-Après son activation :
-- la pause est insérée à l’emplacement choisi ;
-- le panneau se ferme ;
-- la nouvelle pause apparaît dans le parcours ;
-- les modifications sont enregistrées automatiquement.
-### Modification d’une activité de récupération
-
-Toucher une pause existante ouvre le même panneau avec ses paramètres actuels.
-
-L’utilisateur peut modifier :
-
-- sa durée ;
-- sa consigne ;
-- son mode de fin ;
-- son nom, s’il souhaite remplacer l’intitulé `Pause`.
-
-Les modifications sont enregistrées automatiquement et concernent uniquement cette Activité de type Récupération dans la Séance.
-### Représentation dans le parcours
-
-Une activité de récupération doit être visuellement distincte d’un exercice.
-
-Elle peut être représentée par :
-
-- un nœud plus petit ;
-- une icône de minuterie ou de pause ;
-- une couleur ou une forme différente ;
-- sa durée ;
-- sa consigne abrégée, lorsqu’elle existe.
-
-Cette représentation doit rester suffisamment discrète pour que les exercices constituent les étapes principales du parcours.
-
-### Actions secondaires
-
-En mode modification, l’utilisateur peut :
-
-- dupliquer l'activité ;
-- la supprimer de la séance.
-
-La suppression n’affecte pas les séances passées.
-
-### Fermeture sans ajout
-
-Si l’utilisateur ferme le panneau de personnalisation avant d’ajouter la pause, aucun élément n’est créé.
 ## Écran 7 – Catégories de la séance
 
-![[Nouvelle séance - Entrer une catégorie.png]]
+![[Nouvelle séance - Entrer une catégorie.png|314]]
+
 ### Objectif
 
-Permettre d'associer une ou plusieurs catégories à une séance avant son enregistrement final.
+Permettre d’associer zéro, une ou plusieurs Catégories à une Séance.
 
-Les catégories facilitent l'organisation, la recherche et le filtrage des séances. Elles n'ont aucun impact sur leur exécution.
+Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles n’ont aucun impact sur l’Exécution.
+
 ### Contenu et comportement
 
-- les catégories sont proposées sous forme de tags sélectionnables ;
+- les Catégories sont proposées sous forme de tags sélectionnables ;
 - la sélection est multiple ;
-- aucune catégorie n’est obligatoire ;
-- l’action `+ Créer une catégorie` permet d’ajouter une catégorie personnalisée ;
-- `Enregistrer la séance` enregistre les catégories puis propose :
-- **Exécuter maintenant** ;
-- **Planifier la séance** ;
-- **Retourner au Catalogue de séances**.
+- aucune Catégorie n’est obligatoire ;
+- `+ Créer une catégorie` ouvre la modale de création ;
+- `Enregistrer la séance` enregistre la sélection et ramène directement au `Catalogue de séances`.
 
-## Écran 8 – Visualiser le calendrier des séances
+Aucune proposition intermédiaire `Exécuter maintenant / Planifier / Retour Catalogue` n’est affichée.
 
+## Écran 8 – Calendrier
 
-![[Calendrier des routines.png]]
+![[Calendrier des routines.png|577]]
+
 ### Objectif
 
-Permettre à l'utilisateur de visualiser l'ensemble de ses routines planifiées, de naviguer dans son calendrier et d'accéder rapidement à la gestion d'une routine.
+Permettre à l’utilisateur de visualiser les Routines planifiées, de naviguer dans le calendrier et d’accéder rapidement à leur gestion.
+
 ### Ouverture
 
-L'écran est accessible :
-- depuis la barre de navigation inférieure en sélectionnant **Calendrier** ;
-- après la création ou la modification d'une routine.
+L’écran est accessible depuis l’onglet `Calendrier`.
+
 ### Contenu
 
-L'écran affiche :
-- un sélecteur permettant de basculer entre les vues **Semaine** et **Mois** ;
-- les commandes permettant de naviguer dans le temps (semaine précédente/suivante ou mois précédent/suivant) ;
-- le calendrier correspondant à la période sélectionnée ;
-- un indicateur coloré pour chaque jour contenant au moins une routine planifiée ;
-- la liste des routines planifiées pour le jour sélectionné ;
-- pour chaque routine :
-    - la couleur de la séance associée ;
-    - le nom de la séance ;
-    - les informations de planification (date ou récurrence, heure et durée estimée) ;
-    - le statut de la prochaine occurrence ;
-    - un accès aux options de gestion de la routine ;
-- le bouton **Planifier une routine**.
+
+L’écran affiche :
+
+- un calendrier ;
+- uniquement les occurrences futures calculées à partir des Routines ;
+- pour chaque occurrence : la Séance, sa couleur, la date / heure et le menu `⋯` ;
+- le bouton `+ Planifier une séance`.
+
+Le libellé `À faire` n’est pas affiché.
+
+Le calendrier reste fixe pendant le défilement ; seule la liste des occurrences située sous le calendrier défile.
+
 ### Comportement
 
-- Le changement entre les vues **Semaine** et **Mois** conserve le jour sélectionné lorsque cela est possible.
-- La sélection d'un autre jour met immédiatement à jour la liste des routines affichées.
-- Les indicateurs du calendrier utilisent la couleur de la séance associée à chaque routine.
-- La sélection d'une routine ouvre le modal **Options d'une routine**.
-- Le bouton **Planifier une routine** ouvre le modal de sélection d'une séance, puis l'écran **Planifier une séance**.
-### Fermeture
 
-L'écran est fermé lorsque l'utilisateur :
-- sélectionne un autre onglet de la barre de navigation ;
-- ouvre un autre écran depuis une action disponible sur le calendrier.
-## Ecran 9 – Planification d'une séance
+Le menu `⋯` d’une occurrence ouvre les actions disponibles sur cette occurrence.
 
-![[Planifier une séance.png]]
+Une occurrence future peut être exécutée en avance via `⋯` → `Exécuter maintenant`.
+
+Lorsqu’une occurrence future est exécutée en avance, elle est considérée exécutée pour cette occurrence et n’est plus proposée à son horaire initial.
+
+Lorsqu’une occurrence planifiée arrive à échéance sans avoir été exécutée, elle disparaît de l’interface. Elle n’est pas affichée dans le Suivi du MVP.
+
+La suppression ou modification d’une Routine agit sur les occurrences futures conformément aux règles de planification.
+
+## Écran 9 – Planifier une séance
+
+![[Planifier une séance.png|305]]
+
 ### Objectif
 
-Créer ou modifier la planification d'une séance.
+Créer ou modifier une Routine, c’est-à-dire la planification d’une Séance.
+
 ### Ouverture
 
-- depuis **Calendrier > + Planifier une séance** ;
-- depuis une routine existante (**Modifier la planification**).
-### Contenu
+L’écran est accessible :
 
-- Séance
-- Date de début
-- Heure
-- Récurrence
-- Date de fin
-- Rappel
-- Bouton **Enregistrer**
-### Comportement
+- depuis `Calendrier > + Planifier une séance` ;
+- depuis `Modifier la planification` sur une Routine existante ;
+- depuis `Planifier` dans les options d’une Séance.
 
-- le champ **Séance** ouvre le modal **Choisir une séance** ;
-- l'enregistrement crée ou met à jour la routine.
+### Paramètres
+
+La planification comporte :
+
+- la Séance associée ;
+- la date de début ;
+- l’heure ;
+- le mode de répétition ;
+- les paramètres de périodicité lorsque nécessaire ;
+- une date de fin lorsque nécessaire ;
+- le rappel ;
+- le bouton `Enregistrer`.
+
+### Modes de planification
+
+Le MVP propose :
+
+- `Sans répétition` : une seule occurrence ;
+- `Hebdomadaire` : répétition selon une fréquence en semaines et un ou plusieurs jours de la semaine.
+
+Il n’existe pas de mode `Quotidien` distinct. Une planification hebdomadaire sélectionnant les sept jours équivaut à une exécution quotidienne.
+
+En mode hebdomadaire :
+
+- la fréquence est un entier supérieur ou égal à 1 ;
+- un ou plusieurs jours sont sélectionnés ;
+- la date de fin est obligatoire.
+
+Dans l’interface, la répétition est présentée de manière compacte avec `Toutes les`, puis `X semaine(s) jusqu’au <date>`, et les jours sélectionnés en dessous. Aucun niveau de titre `Quand ?` n’est affiché ; `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel.
+
+Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur souhaite plusieurs horaires pour une même Séance, il crée plusieurs Routines distinctes.
+
+### Validation
+
+`Enregistrer` crée ou met à jour la Routine.
+
+Les occurrences futures sont recalculées à partir de la nouvelle planification. Les occurrences déjà historisées ne sont pas modifiées.
+
 ## Écran 10 – Exécution de séance
 
+![[Exécution d'une séance.png|245]]
 
-![[Exécution d'une séance.png]]
 ### Objectif
 
-Guider l'utilisateur tout au long de l'exécution d'une séance à l'aide d'une interface lisible à distance, nécessitant un minimum d'interactions.
+Guider l’utilisateur pendant l’Exécution avec une hiérarchie visuelle adaptée à une lecture rapide et à distance.
 
-L'écran met en avant l'activité en cours, la progression de la séance et les commandes essentielles.
-### Démarrage de la séance
+Un seul layout standard est utilisé pour les Activités en Durée, en Répétition et pour les Récupérations. Le comportement temporel s’adapte au type d’Activité sans changer la structure générale de l’écran ni les commandes principales.
 
-Toucher `Démarrer` depuis la composition d'une séance ou depuis une routine de planification lance immédiatement la première activité.
+### Entrée dans l’écran et démarrage
 
-Aucun écran de confirmation ou de préparation supplémentaire n’est imposé.
+L’écran peut être ouvert :
 
-Avant de commencer, un court compte à rebours peut être proposé afin de laisser à l’utilisateur le temps de poser son téléphone ou de se mettre en position.
+- depuis la zone principale d’une carte du Catalogue ;
+- depuis une occurrence planifiée ; pour une occurrence future exécutée en avance, l’accès se fait explicitement via `⋯` → `Exécuter maintenant`.
 
-Ce compte à rebours doit pouvoir être désactivé dans les réglages ou ignoré immédiatement.
+L’ouverture de l’écran ne démarre pas immédiatement l’Activité.
 
-Au commencement de chaque activité, une voix annonce son nom. Pour une Récupération générée par une pause après Série, l'annonce peut utiliser le libellé « Pause » défini pour cette récupération.
-### Informations affichées
+Avant le démarrage, l’utilisateur déclenche la Séance depuis la commande centrale.
 
-L’écran présente en priorité :
+Le Compte à rebours initial est alors exécuté s’il est configuré avec une durée supérieure à zéro, puis la première Activité commence.
 
-- le nom de l'activité en cours ;
-- sa photo, sa vidéo ou une illustration par défaut ;
-- sa consigne principale ;
-- le temps restant ou le nombre de répétitions ;
-- la progression dans la séance ;
-- le bloc et le cycle en cours ;
-- l’état des bips et des annonces vocales, représenté par des icônes discrètes ;
-- l’action permettant de terminer ou de passer à l’étape suivante.
+### Hiérarchie des informations affichées
 
-Les informations doivent rester lisibles lorsque le téléphone est posé à quelques mètres de l’utilisateur.
+L’écran affiche, de haut en bas :
 
-Les éléments secondaires ne doivent pas réduire inutilement la place accordée au média, au temps et à la consigne.
+- le nom de la Séance ;
+- l’état des sons / annonces vocales ;
+- le nom de l’Activité en cours ;
+- le compteur de Série lorsque l’Activité est un Exercice ;
+- l’indicateur temporel principal ;
+- la progression `Set x/y • Cycle x/y` ;
+- la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
+- les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
+- le temps total écoulé et la durée totale estimée de la Séance ;
+- une barre de progression temporelle globale.
 
-L’utilisateur peut activer ou couper séparément les bips et les annonces vocales depuis l’écran d’exécution, sans interrompre la séance.
-### Progression dans la séance
+Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
-Une représentation compacte du parcours indique :
+Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne.
 
-- la position de l’utilisateur dans la séance ;
-- les étapes déjà terminées ;
-- l’étape en cours ;
-- les prochaines étapes ;
-- la progression générale de la séance.
-- la progression dans le bloc et le cycle en cours.
+### Activité définie par une durée
 
-Cette représentation reprend le langage visuel du parcours présenté dans la composition de la séance, sans afficher en permanence l’ensemble de ses détails.
 
-L’utilisateur peut ouvrir une vue plus complète du parcours afin de consulter les étapes restantes. Cette vue est uniquement informative : elle ne permet pas de sélectionner directement une autre étape.
-### Exercice chronométré
+Pour un Exercice ou une Récupération chronométrée, le temps est présenté sous forme de compte à rebours.
 
-Pour un exercice défini par une durée :
-- le compte à rebours démarre au début de l’exercice ;
-- le temps restant est affiché de manière très visible ;
-- l’utilisateur peut mettre le compte à rebours en pause ;
-- il peut reprendre l’exercice ;
-- il peut terminer l’exercice avant la fin du temps prévu.
+Lorsque le compte à rebours atteint zéro, l’Activité se termine normalement et l’Exécution passe à la suite.
 
-Pendant l’exercice, un bip grave et discret retentit chaque seconde. Pendant les trois dernières secondes, un bip aigu remplace le bip grave à chaque seconde. Lorsque le compte à rebours atteint zéro, l’application passe automatiquement à l’étape suivante et en annonce le nom.
-### Exercice non chronométré
+Si l’utilisateur appuie sur `Activité suivante` avant zéro, une confirmation est demandée. Après confirmation, l’Activité est enregistrée avec le statut métier `Partielle` et l’Exécution continue.
 
-Pour un exercice défini par un nombre de répétitions :
-- le nombre prévu est affiché de manière très visible ;
-- aucun comptage automatique n’est requis dans la V1 ;
-- aucune durée n’est imposée ;
-- l’utilisateur touche `Terminé` lorsqu’il a réalisé l'exercice demandé.
+### Activité définie par un nombre de répétitions
 
-L’utilisateur n’est pas obligé de confirmer chaque répétition individuellement.
-Un bip de rythme est émis, mais aucun compte à rebours sonore n’est émis puisqu’aucun décompte temporel automatique n’est en cours. Le nom de l’exercice est néanmoins annoncé lorsqu’il commence.
-La durée réelle de l’exercice est  enregistrée automatiquement dans la séance sans être imposée à l’utilisateur.
-### Exécution d'une activité de récupération
 
-Pendant une pause, l’écran affiche :
-- la mention `Pause` ou son nom personnalisé ;
-- le temps restant ;
-- sa consigne éventuelle ;
-- l’exercice suivant ;
-- une action permettant de passer immédiatement à la suite.
+Pour un Exercice défini par un nombre de répétitions, l’écran conserve le même layout que pour un Exercice chronométré.
 
-Pour une pause à fin automatique, l’étape suivante commence à la fin du compte à rebours.
-Pour une pause à fin manuelle, la fin du temps est signalée, puis l’utilisateur touche `Continuer`.
+Le temps actif est affiché par un chronomètre croissant à partir de `00:00`. Il n’existe pas de durée cible.
 
-Au début de la pause ou de la récupération, une voix en annonce le nom ou le rôle. Aucun bip de rythme n’est émis pendant cette étape. Si elle est chronométrée, un bip aigu retentit pendant chacune de ses trois dernières secondes.
-### Enchaînement des activités
+Le cercle du minuteur effectue un tour complet par minute :
 
-À la fin d’un exercice, l’application affiche immédiatement l’étape suivante.
-L’enchaînement doit éviter les confirmations répétitives.
+- un tour = 60 secondes ;
+- à `01:00`, il recommence un nouveau tour ;
+- le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Le comportement dépend du type d’élément :
-- une pause à fin automatique enchaîne automatiquement ;
-- une pause à fin manuelle attend l’action de l’utilisateur ;
-- un exercice en mode Répétition se termine avec `Terminé` ;
-- un exercice minuté enchaîne automatiquement avec l’étape suivante à la fin du compte à rebours ;
-- les trois dernières secondes signalent l’imminence de cette transition ;
-- l’étape suivante est annoncée vocalement lorsqu’elle commence.
+Un bip est émis à chaque minute écoulée. Dans le MVP, ce bip est fixe et non paramétrable.
 
-L’utilisateur conserve la possibilité d'interrompre la séance (réinitialiser l'activité, la mettre en pause, terminer la séance avant son terme ou de passer manuellement à l'étape suivante).
-### Fin de la séance
+`Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
-Lorsque la dernière étape est terminée, la séance est enregistrée automatiquement.
-L’utilisateur accède alors à l’écran de fin de séance.
+L’utilisateur termine normalement l’Exercice avec `Activité suivante`. Cette action ne crée pas une Activité Partielle : elle valide la fin normale de l’Exercice en mode Répétition.
 
-La séance d'origine n'est jamais modifiée par son exécution. La routine de planification éventuelle n'est pas modifiée non plus.
-## Écran 11 – Interruptions de séance
+### Séries
 
-![[Modal - Exécution d'une séance - Interrompre.png]]
-### Objectif
+Lorsqu’un Exercice possède plusieurs Séries :
+
+- `Série x/y` indique la Série en cours ;
+- chaque Série exécute la durée ou les répétitions de l’Exercice ;
+- la pause après Série est appliquée selon la définition de l’Exercice ;
+- après la dernière Série, la pause technique est omise si l’élément suivant est déjà une Récupération explicite.
+
+### Récupération
+
+Une Récupération est toujours chronométrée et se termine automatiquement à zéro.
+
+Elle utilise le même écran standard.
+
+La zone `À suivre` permet de préparer l’Activité suivante.
 
 ### Commandes principales
 
-Pendant l'exécution de la séance, les commandes principales restent accessibles d’un seul toucher :
-- réinitialiser l'activité ;
-- mettre en pause ou reprendre la séance ;
-- quitter la séance ;
-- passer à l’étape suivante.
+Les trois commandes restent identiques quel que soit le type d’Activité :
 
-Les actions les plus fréquemment utilisées sont suffisamment grandes pour être activées facilement pendant un exercice.
-### Réinitialiser l'activité
+- `Réinitialiser l’activité` ;
+- `Pause` ;
+- `Activité suivante`.
 
-### Mise en pause de la séance
+Leur position et leur rôle visuel ne changent pas entre Durée et Répétition.
 
-Mettre la séance en pause suspend :
-- le compte à rebours en cours ;
+### Réinitialiser l’Activité
+
+L’action ouvre la modale de confirmation.
+
+Après confirmation :
+
+- la Série / Activité courante recommence depuis son état initial ;
+- pour une Activité chronométrée, le compte à rebours retrouve sa durée initiale ;
+- pour une Activité en Répétition, le chronomètre d’Activité revient à `00:00` ;
+- la cible de répétitions n’est pas modifiée ;
+- le temps total déjà écoulé dans la Séance reste conservé ;
+- le Set et le Cycle courants restent inchangés.
+
+### Mise en pause
+
+Toucher `Pause` suspend immédiatement l’Exécution et ouvre la modale `Séance en pause`.
+
+La pause suspend :
+
+- le compte à rebours ou le chronomètre d’Activité ;
 - l’enchaînement automatique ;
-- le calcul du temps actif de l’exercice ;
-- les bips de rythme et le compte à rebours sonore ;
-- toute annonce vocale liée à une transition qui n’a pas encore eu lieu.
+- le temps actif ;
+- les bips et annonces liés à la progression ;
+- les animations de progression.
 
-L'état de pause est immédiatement identifiable, l'application indique notamment que :
-- le chronomètre est figé ;
-- le bouton **Pause** est remplacé par **Reprendre** (ou **Démarrer**, selon le libellé retenu) ;
-- les animations et indicateurs de progression sont suspendus ;
-- un indicateur visuel (par exemple **⏸ En pause**) est affiché sur l'écran.
+La modale propose :
 
-L’utilisateur peut ensuite :
-- reprendre la séance ;
-- consulter le parcours ;
-- quitter la séance.
-
-La reprise ne répète l’annonce de l’étape en cours que si cette solution est jugée utile lors des tests d’usage.
-### Quitter une séance en cours
-
-Si l’utilisateur demande à quitter la séance, l’application propose :
-- `Reprendre` ;
+- `Reprendre la séance` ;
 - `Arrêter la séance`.
 
-`Enregistrer et quitter` conserve la séance partielle dans l’suivi.
+`Reprendre la séance` restaure l’état exact de l’Activité.
 
-`Abandonner la séance` ne crée pas de séance terminée, mais une confirmation est demandée afin d’éviter une perte accidentelle.
-### ### Navigation pendant l'exécution
+`Arrêter la séance` termine l’Exécution avec le statut `Interrompue` puis ouvre la Synthèse.
 
-L'ordre d'exécution des étapes est déterminé par la structure de la séance.
- 
-Une séance démarre toujours par le **compte à rebours initial**. L'utilisateur ne peut pas sélectionner directement une autre étape ni revenir à une étape déjà exécutée.
- 
-Pendant l'exécution, l'utilisateur peut :
- 
-- poursuivre l'enchaînement prévu ;
-- utiliser la commande **Activité suivante** pour interrompre l'étape en cours et passer directement à l'étape suivante.
- 
-Une étape déjà terminée ou passée ne peut pas être rejouée au cours de la même exécution.
-### Verrouillage et interruption
+Il n’existe pas de commande directe d’arrêt depuis l’écran principal d’Exécution.
 
-Si l’application passe temporairement en arrière-plan ou si l’écran se verrouille :
+### Activité suivante
 
-- la séance en cours est conservée ;
-- un compte à rebours actif continue de manière cohérente ;
-- le guidage sonore continue de fonctionner, dans la mesure permise par le système d’exploitation ;
-- l’utilisateur retrouve l’étape en cours à son retour.
+Le comportement dépend du type d’Activité :
 
-Une interruption courte, comme un appel ou une notification, ne doit pas entraîner la perte de la progression.
+- **Exercice en Répétition** : termine normalement l’Exercice et passe à la suite ;
+- **Activité chronométrée avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Activité est enregistrée avec le statut `Partielle`, puis l’Exécution continue ;
+- **Activité chronométrée arrivée à zéro** : la transition est automatique.
 
-Le comportement précis des minuteurs, des bips et des annonces vocales en arrière-plan ou lorsque l’écran est verrouillé devra respecter les possibilités techniques d’iOS et d’Android et être validé pendant le développement.
+### Navigation pendant l’Exécution
 
-## Écran 12 – Synthèse de séance
+L’ordre d’Exécution est déterminé par le Plan d’Exécution.
 
-![[Exécution d'une séance - Synthèse de séance.png]]
-### Objectif
+L’utilisateur ne peut pas sélectionner librement une autre Activité ni revenir à une Activité déjà terminée.
 
-Confirmer que la séance a été enregistrée, présenter un bilan immédiatement compréhensible et permettre à l’utilisateur de quitter l’écran sans étape inutile.
+### Guidage sonore
 
-Cet écran doit rester simple et positif. Il ne constitue pas un formulaire à remplir obligatoirement.
+Au début d’une Activité, son nom peut être annoncé vocalement selon les Préférences.
 
-### Affichage à la fin de la séance
+Pour les Activités chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
-Lorsque la dernière étape est terminée, l’écran affiche :
+Pour un Exercice en Répétition, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
 
-- le nom de la séance ;
-- la confirmation que la séance est terminée et enregistrée ;
-- sa durée totale ;
-- le nombre d’activités réalisées ;
-- les éventuelles activités ignorées ;
-- la date et l’heure de réalisation.
+### Arrière-plan et verrouillage
 
-Une représentation synthétique du parcours peut distinguer les étapes :
+Si l’application passe en arrière-plan ou si l’écran se verrouille :
 
-- réalisées ;
-- ignorées ;
-- répétées ;
-- interrompues.
+- l’état de l’Exécution est conservé ;
+- le temps est recalculé à partir des horodatages de référence plutôt qu’à partir d’un simple comptage de ticks ;
+- l’utilisateur retrouve l’état déterministe de l’Activité à son retour ;
+- les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
 
-### Séance partielle
+Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
 
-Si l’utilisateur a choisi `Arrêter la séance` avant son terme, l’écran indique clairement que la séance est **partielle**.
+### Fin de l’Exécution
 
-Le bilan précise notamment :
+Lorsque le Plan d’Exécution arrive à son terme, l’Exécution est enregistrée et l’écran `Synthèse de séance` est affiché.
 
-- le nombre d’activités réalisées ;
-- le nombre d’activités non réalisées ;
-- l’activité à laquelle la séance a été interrompue ;
-- la durée enregistrée.
+La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Exécution.
 
-Une séance partielle est conservée dans l’historique avec un statut distinct d’une séance terminée.
+## Écran 11 – Synthèse de séance
 
-### Ressenti après la séance
-
-L’utilisateur peut indiquer rapidement son ressenti général.
-
-La saisie doit pouvoir être réalisée en un seul toucher, par exemple avec une échelle visuelle courte :
-
-- `Difficile` ;
-- `Correct` ;
-- `Facile`.
-
-Cette information est facultative. L’utilisateur peut quitter l’écran sans répondre.
-
-L’échelle exacte et sa représentation seront testées dans les wireframes afin d’éviter toute ambiguïté entre difficulté de la séance, douleur et satisfaction.
-
-### Douleur ou gêne (dans la V2)
-
-L’utilisateur peut signaler facultativement une douleur ou une gêne ressentie pendant la séance.
-
-Cette action ouvre une saisie complémentaire permettant d’indiquer :
-
-- l’intensité ressentie ;
-- la zone concernée ;
-- l’exercice pendant lequel elle est apparue ;
-- une note libre.
-
-Le signalement d’une douleur ne doit jamais être imposé à chaque séance.
-
-Ce n'est pas mis en place dans la V1, et dans la V2 ces informations serveront uniquement au suivi personnel. Elles ne constituent ni un diagnostic ni une recommandation médicale.
-### Note de séance
-
-L’utilisateur peut ajouter une note libre, par exemple pour préciser :
-
-- un exercice particulièrement difficile ;
-- une amélioration ressentie ;
-- une adaptation réalisée ;
-- une consigne donnée par son kinésithérapeute ;
-- un événement ayant interrompu la séance.
-
-La note est facultative et peut également être ajoutée ou modifiée ultérieurement depuis le détail déployé de l’Exécution dans le Suivi.
-### Actions principales
-
-L’action principale est `Terminer`.
-
-Elle ramène l’utilisateur à l’écran depuis lequel la séance a été lancée, avec la dernière exécution mise à jour.
-
-L’utilisateur peut également :
-
-- consulter le détail déployé de l’Exécution dans le Suivi ;
-- revenir au `Catalogue de séances`.
-
-Aucune confirmation supplémentaire n’est demandée, puisque la séance est déjà enregistrée automatiquement.
-
-### Nouvelle exécution
-
-L’écran de fin ne doit pas encourager accidentellement le lancement immédiat d’une nouvelle séance.
-
-Une action secondaire `Relancer la séance` peut néanmoins être proposée si ce besoin est confirmé pendant les tests.
-
-### Enregistrement automatique
-
-La séance est enregistrée avant l’affichage de cet écran.
-
-Le ressenti et la note sont ensuite enregistrés automatiquement au fur et à mesure de leur saisie. Le signalement d’une douleur ou d’une gêne est hors MVP et prévu pour une version ultérieure.
-
-Une indication discrète confirme que les informations ont bien été prises en compte.
-
-### Préparation des versions suivantes
-
-La structure de cet écran doit pouvoir accueillir ultérieurement :
-
-- une comparaison avec les séances précédentes ;
-- l’évolution de la difficulté ou de la douleur ;
-- les recommandations d’adaptation de la séance ;
-- le partage du bilan avec un professionnel ;
-- les statistiques détaillées de progression.
-
-Ces éléments ne doivent pas alourdir l’écran de fin de séance dans la V1.
-
-## Écran 13 – Suivi : vue d’ensemble (V2)
-
-![[Suivi - Vue d'ensemble.png]]
-### Objectif
-
-Permettre à l’utilisateur de retrouver l’ensemble des exécutions de séances et d’accéder au détail de chacune d’elles.
-
-Le suivi présente les séances enregistrées, qu’elles soient terminées ou partielles.
-
-Ne sera pas mis en place dans la V1, mais dans la V2.
-### Accès à l’suivi
-
-L’suivi est accessible depuis la navigation principale de l’application.
-
-L’utilisateur peut le consulter indépendamment d’une routine particulière.
-
-### Présentation des séances
-
-Les séances sont affichées de la plus récente à la plus ancienne.
-
-Chaque élément représente une exécution de séance et présente au minimum :
-
-- le nom de la séance exécutée ;
-- la date et l’heure de la séance ;
-- sa durée ;
-- son statut : `Terminée`, `Partielle` ou `Interrompue`.
-
-Toucher une séance ouvre son détail.
-
-### Regroupement chronologique
-
-Les séances peuvent être regroupées par périodes afin de faciliter leur lecture, par exemple :
-
-- aujourd’hui ;
-- cette semaine ;
-- périodes précédentes.
-
-Le choix précis du regroupement sera défini dans les wireframes en fonction du nombre de séances affichées.
-
-### Séances terminées, partielles et interrompues
-
-Les Séances terminées, partielles et interrompues doivent être clairement distinguables.
-
-Une Exécution partielle ou interrompue reste visible dans l’historique avec son statut. Elle n’est pas présentée comme une Séance entièrement réalisée.
-
-### Conservation des informations
-
-Chaque exécution conserve un instantané complet de la séance telle qu'elle existait au moment de son lancement.
-
-Les modifications ultérieures apportées à la séance, aux activités, aux blocs, aux cycles ou aux routines n'ont aucun effet sur les exécutions déjà enregistrées.
-
-### État vide
-
-Si aucune séance n’a encore été enregistrée, l’écran indique simplement que l’suivi est vide.
-Une action permet de revenir au `Catalogue de séances` afin de lancer une première séance.
-
-## Écran 14 – Suivi : séances
-
-![[Suivi - Séances.png]]
+![[Exécution d'une séance - Synthèse de séance.png|292]]
 
 ### Objectif
 
-Permettre à l'utilisateur de consulter l'historique complet de ses séances exécutées, de retrouver rapidement une séance grâce à la recherche, aux filtres et aux tris, puis de consulter le détail de son déroulement directement depuis la liste.
+Présenter un bilan immédiatement compréhensible et recueillir le ressenti obligatoire avant de quitter l’écran.
 
-Cet écran constitue le point d'entrée principal du suivi des exécutions.
-
-Dans le MVP, l'écran **Suivi : séances** est affiché directement, sans sélecteur d'onglet. La **Vue d'ensemble** (écran 13) est réservée à une version ultérieure et n'est ni affichée ni accessible dans le MVP.
 ### Contenu
 
-L'écran est composé de :
+L’écran affiche notamment :
+
+- le nom de la Séance ;
+- le statut de l’Exécution ;
+- la durée réellement exécutée ;
+- le nombre d’Activités réalisées ;
+- le nombre d’Activités partielles, uniquement s’il est supérieur à zéro ;
+- le choix du ressenti ;
+- un champ `Commentaire` facultatif ;
+- le bouton `Terminer`.
+
+Les Sets et Cycles ne sont pas affichés dans la Synthèse du MVP.
+
+Aucun parcours détaillé des Activités n’est affiché sur cet écran dans le MVP.
+
+### Statut
+
+Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Activités réellement réalisées.
+
+Une Exécution arrêtée volontairement depuis la modale de pause est enregistrée avec le statut `Interrompue`.
+
+### Ressenti
+
+Le ressenti est obligatoire.
+
+Le MVP propose trois niveaux, conformément au wireframe.
+
+Le bouton `Terminer` reste désactivé tant qu’aucun ressenti n’a été sélectionné.
+
+### Commentaire
+
+Le `Commentaire` est facultatif.
+
+Il est enregistré avec l’Exécution.
+
+### Navigation
+
+`Terminer` enregistre le ressenti et le Commentaire puis ouvre le `Suivi`.
+
+Aucune action `Relancer la séance` n’est prévue dans le MVP.
+
+## Écran 12 – Suivi : Vue d’ensemble (V2)
+
+![[Suivi - Vue d'ensemble.png|307]]
+
+### Objectif
+
+Présenter à terme des indicateurs synthétiques de progression et d’activité.
+
+Cette vue n’est pas fonctionnelle dans le MVP.
+
+### Présence dans le MVP
+
+Le sélecteur du Suivi affiche :
+
+- `Vue d’ensemble`, grisée et inactive ;
+- `Séances`, active.
+
+La présence de l’onglet prépare la compréhension de l’évolution future sans rendre la fonctionnalité accessible.
+
+## Écran 13 – Suivi : Séances
+
+![[Suivi - Séances.png|492]]
+
+### Objectif
+
+
+Permettre à l’utilisateur de consulter les Exécutions de séance enregistrées, de les rechercher, filtrer et trier.
+
+Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi du MVP.
+
+### Contenu
+
+L’écran comporte :
+
+- le sélecteur `Vue d’ensemble / Séances`, avec `Vue d’ensemble` grisée et inactive dans le MVP ;
 - un champ de recherche ;
-- un bouton **Filtrer** ;
-- un bouton **Déployer tout** ou **Replier tout** selon l'état actuel de la liste ;
-- une liste chronologique des séances exécutées.
+- le bouton `Filtrer` ;
+- une liste chronologique des Exécutions.
 
-Les séances sont regroupées par période :
-- Aujourd'hui ;
-- Hier ;
-- puis par date.
+La vue détaillée déployée d’une Exécution est reportée à une version ultérieure. Aucun contrôle `Déployer tout / Replier tout` n’est affiché dans le MVP.
 
-Chaque groupe est précédé d'un en-tête chronologique.
-### Carte de séance (vue condensée)
+### Carte d’Exécution
 
-Par défaut, chaque séance est affichée sous forme condensée.
-Une carte affiche :
-- le nom de la séance ;
-- l'heure de début ;
+Chaque carte affiche au minimum :
+
+- le nom de la Séance exécutée ;
+- sa couleur issue de l’Instantané ;
+- la date et l’heure ;
 - la durée réelle ;
-- le statut d'exécution ;
-- le ressenti renseigné en fin de séance, lorsqu'il existe ;
-- un indicateur permettant de développer ou replier la séance.
+- le statut `Terminée`, `Partielle` ou `Interrompue` ;
+- le ressenti lorsqu’il a été renseigné.
 
-Le statut est immédiatement identifiable grâce à un libellé et une couleur :
-- **Terminée** ;
-- **Partielle** ;
-- **Interrompue**.
-### Vue développée
-
-Toucher une carte développe son contenu.
-La vue développée présente l'instantané de la séance exécutée, organisé par cycles.
-
-Pour chaque cycle sont affichés :
-- son numéro ;
-- les activités exécutées dans leur ordre réel ;
-- le statut de chaque activité.
-
-Chaque activité peut notamment apparaître avec les états suivants :
-- Terminée ;
-- Partielle ;
-- Ignorée (évolutions futures).
-
-Les activités sont affichées exactement telles qu'elles existaient au moment de l'exécution de la séance.
-Les modifications ultérieures apportées à la séance d'origine n'ont aucun impact sur cet historique.
-### Déployer tout / Replier tout
-
-Le bouton situé au-dessus de la liste permet :
-- de développer simultanément toutes les séances affichées ;
-- ou de toutes les replier.
-
-Son libellé s'adapte automatiquement :
-- **Déployer tout**
-- **Replier tout**
-
-Les cartes ouvertes individuellement restent cohérentes avec cet état global.
 ### Recherche
 
-Le champ de recherche filtre immédiatement la liste.
-La recherche s'effectue sur :
-- le nom de la séance ;
-- les catégories associées ;
-- les zones corporelles des activités (si présentes dans la séance).
+La recherche filtre immédiatement la liste.
 
-Les résultats sont mis à jour au fur et à mesure de la saisie.
+Elle porte sur les informations définies pour le Suivi dans la spécification fonctionnelle, notamment le nom de la Séance et les attributs indexés prévus pour le MVP.
+
 ### Filtrage
 
-Le bouton **Filtrer** ouvre le modal **Filtrer les séances**.
-Les critères peuvent être combinés.
+Le modal de filtrage permet de combiner les critères prévus pour le MVP :
 
-Les filtres disponibles sont :
-- catégories ;
-- zones corporelles ;
+- Catégories ;
+- Zones corporelles ;
 - période ;
 - statut.
 
-Le bouton **Réinitialiser** supprime l'ensemble des filtres actifs.
-Le bouton **Appliquer** ferme le modal et met immédiatement la liste à jour.
+`Réinitialiser` supprime les filtres actifs.  
+`Appliquer` ferme le modal et actualise la liste.
 
 ### Tri
 
-Une seule règle de tri peut être active à la fois.
+Une seule règle de tri est active à la fois.
+
 Les tris disponibles sont :
+
 - Plus récentes ;
 - Plus anciennes ;
 - Nom ;
 - Durée.
 
-Par défaut, les séances sont triées de la plus récente à la plus ancienne.
-### Comportement
-
-Les filtres, le tri et le texte de recherche sont appliqués simultanément.
-La liste est actualisée immédiatement après validation du modal.
-L'état développé ou replié des cartes est conservé tant que l'utilisateur reste sur cet écran.
+Par défaut, les Exécutions sont triées de la plus récente à la plus ancienne.
 
 ### État vide
 
-Si aucune séance ne correspond aux critères sélectionnés, l'écran affiche un message indiquant qu'aucune séance n'a été trouvée.
+Si aucune Exécution ne correspond aux critères, l’écran affiche un message et permet de réinitialiser les filtres.
 
-Une action **Réinitialiser les filtres** est proposée.
+Si aucune Exécution n’existe encore, l’écran invite l’utilisateur à revenir vers `Mes séances`.
 
-Si aucune séance n'a encore été exécutée, l'écran indique que l'historique est vide et propose de revenir vers **Mes séances** pour lancer une première séance.
 ## Les modales
 
 ### Modal – Abandonner la création d’une séance
 
-![[Nouvelle séance - Abandonner la création.png]]
+![[Modal - Nouvelle séance - Abandonner la création.png|286]]
+
 #### Objectif
 
-Éviter la perte accidentelle des informations saisies lorsqu’un utilisateur quitte la création d’une séance avant de l’avoir validée.
+Éviter la perte accidentelle des informations saisies sur l’écran initial `Nouvelle séance — Nom et couleur`.
+
 #### Ouverture
 
-La modale s’affiche lorsque l’utilisateur appuie sur le bouton **Retour** alors que des informations ont déjà été saisies ou modifiées.
 
-L’écran de création reste visible en arrière-plan, assombri et non interactif.
+La modale s’affiche depuis l’écran `Nouvelle séance — Nom et couleur` lorsque l’utilisateur appuie sur Retour pendant une création en cours.
+
+Depuis la Composition d’une nouvelle Séance, Retour ramène d’abord à l’écran `Nom et couleur` avec les valeurs déjà saisies. L’utilisateur peut alors modifier le nom ou la couleur, utiliser `Continuer` pour retrouver la Composition dans l’état où il l’avait laissée, ou appuyer de nouveau sur Retour pour ouvrir la modale d’abandon.
+
+L’écran `Nouvelle séance — Nom et couleur` reste visible en arrière-plan, assombri et non interactif.
+
 #### Contenu
 
 **Titre**
@@ -1270,474 +1042,325 @@ L’écran de création reste visible en arrière-plan, assombri et non interact
 
 **Actions**
 
-- **Continuer la création**
-- **Abandonner**
+- `Continuer la création`
+- `Abandonner`
+
 #### Comportement
 
-**Continuer la création**
 
-- ferme la modale ;
-- conserve toutes les informations saisies ;
-- ramène l’utilisateur à l’écran de création en cours.
+`Continuer la création` ferme la modale et conserve intégralement la création en cours.
 
-**Abandonner**
+`Abandonner` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue de séances`.
 
-- ferme la création ;
-- supprime les données temporaires ;
-- ne crée aucune séance ;
-- ramène l’utilisateur à **Catalogue de séances**.
+Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
-#### Cas sans modification
+### Modal – Création d’une Catégorie
 
-Si l’utilisateur n’a encore saisi ou modifié aucune information, le retour vers **Catalogue de séances** est immédiat, sans afficher la modale.
-### Modal – Création d'une catégorie
+![[Modal - Nouvelle catégorie.png|316]]
 
-
-![[Modal - Nouvelle catégorie.png]]
 #### Objectif
 
-Permettre à l'utilisateur de créer rapidement une nouvelle catégorie sans quitter l'écran **Catégories de la séance**.
+Permettre de créer une Catégorie sans quitter l’écran `Catégories de la séance`.
 
-La création d'une catégorie s'effectue dans une fenêtre modale afin de conserver le contexte de la séance en cours de création ou de modification.
-#### Ouverture
+#### Contenu et validation
 
-Le modal est ouvert lorsque l'utilisateur touche **+ Créer une catégorie**.
-L'écran **Catégories de la séance** reste visible en arrière-plan, assombri et non interactif.
+La modale comporte :
+
+- `Nouvelle catégorie` ;
+- un champ obligatoire `Nom de la catégorie` ;
+- `Annuler` ;
+- `Créer`.
+
+Le bouton `Créer` reste désactivé tant que le nom est vide.
+
+Après validation :
+
+- la Catégorie est créée ;
+- elle est ajoutée au référentiel ;
+- elle est automatiquement sélectionnée pour la Séance en cours ;
+- la modale se ferme.
+
+Le nom comporte de 1 à 50 caractères et ne peut pas dupliquer un nom existant sans tenir compte de la casse.
+
+### Modal – Options de l’Activité
+
+![[Nouvelle séance - Option d'activité.png|379]]
+
 #### Contenu
 
-Le modal comporte :
-- le titre **Nouvelle catégorie** ;
-- un champ obligatoire **Nom de la catégorie** ;
-- un bouton **Annuler** ;
-- un bouton principal **Créer**.
+Le modal affiche le nom de l’Activité et les actions :
 
-Le champ de saisie reçoit automatiquement le focus afin de permettre une saisie immédiate.
-#### Validation
+- `Modifier` ;
+- `Dupliquer` ;
+- `Supprimer` ;
+- `Annuler`.
 
-Le bouton **Créer** reste désactivé tant que le nom est vide.
-Lors de la validation :
-- la catégorie est créée ;
-- elle est ajoutée à la liste des catégories disponibles ;
-- elle est automatiquement sélectionnée pour la séance en cours ;
-- le modal se ferme ;
-- l'utilisateur revient à l'écran **Catégories de la séance**.
-#### Annulation
-
-Toucher **Annuler**, fermer le modal ou utiliser le geste système de fermeture :
-- ferme le modal ;
-- ne crée aucune catégorie ;
-- conserve la sélection précédente.
-#### Contraintes
-
-Le nom d'une catégorie :
-- est obligatoire ;
-- est propre à l'utilisateur ;
-- peut comporter entre **1 et 50 caractères** ;
-- ne peut pas être créé deux fois avec exactement le même nom (sans tenir compte des différences de casse).
 #### Comportement
 
-La création est enregistrée automatiquement.
-Aucune validation supplémentaire n'est demandée.
-La nouvelle catégorie devient immédiatement disponible pour toutes les séances de l'utilisateur.
+`Modifier` ouvre l’écran de modification correspondant au type de l’Activité.
 
-### Modal – Options de l'activité
+`Dupliquer` crée une copie immédiatement sous l’Activité d’origine avec tous ses paramètres, notamment :
 
-![[Nouvelle séance - Option d'activité.png]]
-![[Nouvelle séance - Option d'activité.png]]
-#### Contenu
-**Titre :**
+- nom ;
+- type ;
+- durée ou répétitions ;
+- nombre de Séries ;
+- pause après Série ;
+- Consigne ;
+- Zones corporelles, le cas échéant.
 
-> **Squat assisté** _(nom de l'activité sélectionnée)_
+`Supprimer` retire l’Activité de la Séance. La suppression de la dernière Activité est autorisée ; la Séance devient alors non exécutable jusqu’à l’ajout d’un nouvel Exercice.
 
-**Actions :**
-
-- ✏️ Modifier
-- 📄 Dupliquer
-- 🗑️ Supprimer _(en rouge)_
----
-- **Annuler**
-#### Comportement
-
-**Modifier**
-
-- Ouvre l'écran de modification de cette activité.
-
-**Dupliquer**
-
-- Crée une copie immédiatement sous l'activité d'origine.
-- La copie reprend **tous les paramètres** :
-    - nom ;
-    - type (Exercice ou Récupération) ;
-    - durée ou répétitions ;
-    - nombre de Séries ;
-    - pause après Série ;
-    - consigne ;
-    - zones corporelles.
-- Le nom reste identique. Il n'est pas nécessaire d'ajouter « (copie) », puisque plusieurs Activités peuvent déjà avoir le même nom dans une Séance.
-
-**Supprimer**
-
-- Supprime l'activité de la séance.
-- S'il s'agit de la dernière Activité de la Séance, la suppression est également autorisée ; la Séance devient alors vide et l'utilisateur peut ensuite ajouter une nouvelle Activité.
-### Modal – Options d'une séance
+### Modal – Options d’une Séance
 
 ![[Modal - Catalogue des séances - Options.png]]
 
 #### Objectif
 
-Permettre à l'utilisateur d'accéder aux principales actions disponibles pour une séance sans ouvrir son écran de modification.
+Donner accès aux actions de gestion sans surcharger les cartes du Catalogue.
 
-Le modal est affiché lorsque l'utilisateur touche le bouton **⋯** d'une carte de la liste **Catalogue de séances**.
-#### Ouverture
-
-Le modal est affiché au-dessus de l'écran **Catalogue de séances**.
-L'écran reste visible en arrière-plan, assombri et non interactif.
 #### Contenu
 
 Les actions proposées sont :
 
-- ✏️ Modifier
-- 📄 Dupliquer
-- 📅 Planifier
-- 📦 Archiver _(ou Restaurer si la séance est archivée)_
-- 🗑️ Supprimer _(en rouge)_
----
-- **Annuler**
-#### Comportement
-##### Modifier
+- `Modifier` ;
+- `Dupliquer` ;
+- `Planifier` ;
+- `Archiver` ou `Restaurer` ;
+- `Supprimer` ;
+- `Annuler`.
 
-Ouvre l'écran **Composition d'une séance**.
-Tous les paramètres de la séance sont préremplis.
-##### Dupliquer
+#### Modifier
 
-Crée immédiatement une copie complète de la séance.
-La copie comprend :
-- toutes les activités ;
-- les blocs ;
-- les cycles ;
-- les catégories ;
-- les paramètres d'exécution.
+Ouvre l’écran `Nouvelle séance — Nom et couleur` avec les valeurs de la Séance préremplies.
 
-La nouvelle séance est ajoutée au Catalogue de séances.
-##### Planifier
+Après validation, l’utilisateur poursuit vers la Composition.
 
-Ouvre l'écran **Planification** afin de créer une routine pour cette séance.
-La planification fait partie du MVP.
-##### Archiver
+#### Dupliquer
 
-Archive la séance.
+Crée une copie indépendante comprenant :
 
-Une séance archivée :
-- n'apparaît plus dans la liste principale ;
-- reste consultable ;
-- peut être restaurée ultérieurement ;
-- conserve son historique de séances.
+- nom, avec le comportement de suffixe défini par les règles produit ;
+- couleur ;
+- Catégories ;
+- structure du Cycle et du Set ;
+- Activités ;
+- paramètres d’Exécution.
 
-Lors de l'archivage d'une Séance, toutes les Routines qui lui sont associées sont supprimées après confirmation. Les occurrences futures cessent d'être calculées. Les occurrences déjà historisées et les Exécutions enregistrées sont conservées.
+#### Planifier
 
-La restauration d'une Séance ne restaure aucune ancienne Routine. Toute nouvelle planification nécessite la création d'une nouvelle Routine.
+Ouvre le parcours `Planifier une séance` pour créer une Routine liée à cette Séance.
 
-Si la séance est déjà archivée, cette action devient **Restaurer**.
-##### Supprimer
+#### Archiver / Restaurer
 
-Supprime définitivement la séance.
-Une confirmation est demandée avant la suppression.
-La suppression de la séance **n'efface jamais les exécutions déjà réalisées**, qui restent disponibles dans **Suivi**.
-##### Annuler
+L’archivage retire la Séance de la liste principale.
 
-Ferme le modal sans effectuer d'action.
-### Modal – Options d'une routine
+Les Routines associées sont supprimées après confirmation. Les occurrences historisées et les Exécutions existantes sont conservées.
+
+Restaurer la Séance ne restaure pas ses anciennes Routines.
+
+#### Supprimer
+
+Demande toujours une confirmation explicite.
+
+La suppression de la Séance ne supprime jamais les Exécutions historiques.
+
+### Modal – Options d’une Routine
 
 ![[Modal - Options d'une routine.png]]
 
 #### Objectif
 
-Permettre à l'utilisateur d'accéder rapidement aux principales actions disponibles sur une routine planifiée, sans ouvrir directement son écran de modification.
-#### Ouverture
+Permettre de modifier ou supprimer rapidement une Routine planifiée.
 
-Le modal s'ouvre lorsque l'utilisateur touche une routine dans la liste du Calendrier.
 #### Contenu
 
-Le modal affiche :
 
-- le nom de la séance associée à la routine ;
-- l'action **Modifier la planification** ;
-- l'action **Supprimer la routine** ;
-- le bouton **Annuler**.
-#### Comportement
+Le modal propose, selon le contexte :
 
-- **Modifier la planification** ouvre l'écran **Planifier une séance** prérempli avec les paramètres de la routine sélectionnée.
-- **Supprimer la routine** ouvre le modal **Confirmer la suppression d'une routine**.
-- **Annuler**, un toucher en dehors du modal ou un glissement vers le bas ferment le modal sans modification.
-#### Fermeture
+- `Exécuter maintenant` pour une occurrence future ;
+- `Modifier la planification` ;
+- `Supprimer la routine` ;
+- `Annuler`.
 
-Le modal est fermé :
-- après la sélection d'une action ;
-- après un appui sur **Annuler** ;
-- après un toucher en dehors du modal ;
-- après un glissement vers le bas.
-### Modal – Confirmer la suppression d'une routine
+`Exécuter maintenant` ouvre l’écran d’Exécution pour l’occurrence sélectionnée. Si cette occurrence est exécutée en avance, elle est considérée exécutée et n’est plus reproposée à son horaire initial.
 
+`Modifier la planification` ouvre `Planifier une séance` avec les paramètres préremplis.
+
+`Supprimer la routine` ouvre la modale de confirmation.
+
+### Modal – Confirmer la suppression d’une Routine
 
 ![[Modal - Confirmation de la suppression d'une routine.png]]
 
 #### Objectif
 
-Demander une confirmation explicite avant la suppression définitive d'une routine planifiée.
-#### Ouverture
+Demander une confirmation explicite avant suppression d’une Routine.
 
-Le modal s'ouvre après la sélection de l'action **Supprimer la routine** depuis le modal **Options d'une routine**.
-#### Contenu
-
-Le modal affiche :
-
-- le titre **Supprimer cette routine ?** ;
-- un message précisant que les occurrences futures ne seront plus planifiées et que l'historique existant sera conservé ;
-- un bouton **Supprimer la routine** ;
-- un bouton **Annuler**.
 #### Comportement
 
-- **Supprimer la routine** supprime définitivement la Routine et met fin à la génération de ses occurrences futures. Les occurrences déjà historisées et les Exécutions déjà enregistrées sont conservées.
-- Les séances déjà exécutées sont conservées dans le **Suivi**.
-- **Annuler**, un toucher en dehors du modal ou un glissement vers le bas ferment le modal sans suppression.
-#### Fermeture
+Après confirmation :
 
-Le modal est fermé :
+- la Routine est supprimée ;
+- aucune nouvelle occurrence future n’est générée ;
+- les occurrences déjà historisées sont conservées ;
+- les Exécutions déjà enregistrées sont conservées ;
+- la Séance associée n’est pas supprimée.
 
-- après la confirmation de la suppression ;
-- après un appui sur **Annuler** ;
-- après un toucher en dehors du modal ;
-- après un glissement vers le bas.
-### Modal – Réinitialisation de l'activité
+### Modal – Réinitialisation de l’Activité
 
-![[Exécution d'une séance - Réinitialiser l'activité.png]]
+![[Modal - Exécution d'une séance - Réinitialiser l'activité.png|243]]
+
 #### Objectif
 
-Permettre à l'utilisateur de recommencer immédiatement **l'activité en cours** depuis le début, sans modifier la progression de la séance.
+Permettre de recommencer l’Activité / Série en cours depuis son état initial sans revenir en arrière dans la Séance.
 
-Cette action est utile lorsqu'une activité a été mal exécutée ou interrompue et doit être recommencée.
 #### Ouverture
 
-Le modal est affiché lorsque l'utilisateur appuie sur le bouton Réinitialiser pendant l'exécution d'une activité.
+La modale s’affiche après appui sur `Réinitialiser l’activité`.
 
-L'écran d'exécution reste visible en arrière-plan, assombri et non interactif.
+L’Exécution est suspendue pendant l’affichage de la modale.
+
+#### Comportement
+
+Après confirmation :
+
+- l’Activité / Série courante reste l’Activité courante ;
+- une Activité chronométrée retrouve sa durée initiale ;
+- un Exercice en Répétition retrouve un chronomètre d’Activité à `00:00` ;
+- la cible de répétitions reste inchangée ;
+- le temps global déjà écoulé dans la Séance est conservé ;
+- le Set et le Cycle restent inchangés ;
+- l’Activité redémarre selon son comportement normal.
+
+`Annuler` ferme la modale et reprend l’Activité à son état précédent.
+
+### Modal – Passage à l’Activité suivante
+
+![[Modal - Exécution d'une séance - Passer à l'activité suivante.png|276]]
+
+#### Objectif
+
+Confirmer l’interruption anticipée d’une Activité chronométrée.
+
+#### Ouverture
+
+Cette modale s’affiche lorsque l’utilisateur appuie sur `Activité suivante` avant la fin d’une Activité chronométrée.
+
+Elle ne s’affiche pas pour un Exercice en mode Répétition : dans ce cas, `Activité suivante` constitue la validation normale de la fin de l’Exercice.
+
 #### Contenu
 
-Le modal affiche :
 
 **Titre**
 
-> Réinitialiser l'activité ?
+> Passer à l’activité suivante ?
 
 **Message**
 
-L'activité en cours recommencera depuis le début.
+> La séance continuera avec l’activité suivante. L’activité en cours sera enregistrée comme Partielle.
 
-La progression de la séance sera conservée.
-
-**Actions**
-
-- 🔄 Recommencer l'activité
-- Annuler
 #### Comportement
 
-##### Recommencer l'activité
 
-L'application :
-- remet à zéro le chronomètre de l'activité en cours ;
-- remet à zéro le nombre de répétitions ou la durée restante de cette activité ;
-- conserve la progression de la séance :
-    - activité courante inchangée ;
-    - bloc en cours inchangé ;
-    - cycle en cours inchangé ;
-    - temps total de la séance conservé ;
-- relance immédiatement l'activité selon son comportement normal (annonce vocale, chronomètre, etc.).
-##### Annuler
+Après confirmation :
 
-Ferme le modal et reprend immédiatement l'exécution de l'activité à l'endroit où elle avait été interrompue.
-### Modal – Passage à l'activité suivante
+- l’Activité chronométrée est arrêtée avant son terme ;
+- sa durée réellement exécutée est conservée ;
+- son statut métier devient `Partielle` ;
+- la progression est mise à jour ;
+- l’Activité suivante démarre selon les règles normales du Plan d’Exécution.
 
-![[Exécution d'une séance - Passer à l'activité suivante.png]]
+`Annuler` ferme la modale et reprend l’Activité en cours.
+
+### Modal – Pause / arrêt de l’Exécution
+
+![[Modal - Exécution d'une séance - Pause ou Arrêt de la séance.png|260]]
+
 #### Objectif
 
-Permettre à l'utilisateur de passer immédiatement à l'activité suivante de la séance lorsqu'il souhaite interrompre l'activité en cours.
-
-Cette action permet d'adapter l'exécution de la routine aux besoins de l'utilisateur sans interrompre la séance.
-#### Ouverture
-
-Le modal est affiché lorsque l'utilisateur appuie sur le bouton **Suivant** pendant l'exécution d'une activité.
-
-L'écran d'exécution reste visible en arrière-plan, assombri et non interactif.
-
-#### Contenu
-
-Le modal affiche :
-
-**Titre**
-
-> Passer à l'activité suivante ?
-
-**Message**
-
-L'activité en cours sera considérée comme terminée et la séance poursuivra son exécution avec l'activité suivante.
-
-**Actions**
-
-- ▶ Passer à l'activité suivante
-- Annuler
-#### Comportement
-
-##### Passer à l'activité suivante
-
-L'application :
-- arrête immédiatement l'activité en cours ;
-- met à jour les indicateurs de progression de la séance ;
-- démarre l'activité suivante selon les règles normales d'exécution (annonce vocale, compte à rebours, chronomètre, etc.) ;
-- si l'activité en cours est la dernière du Bloc ou du Cycle, applique les règles de passage à la répétition suivante du Bloc, à la répétition suivante du Cycle ou à la suite de la séance selon le plan d'exécution.
-##### Annuler
-
-Ferme le modal et reprend immédiatement l'exécution de l'activité en cours, sans modifier la progression de la séance.
-
-### Modal – Pause / Arrêt de l'exécution de la séance
-
-![[Exécution d'une séance - Mettre en pause ou Arrêter la séance.png]]
-#### Objectif
-
-Permettre à l'utilisateur de suspendre temporairement l'exécution d'une séance sans perdre sa progression, puis de la reprendre ou de l'arrêter définitivement.
-La mise en pause suspend immédiatement l'exécution tout en conservant l'état exact de la séance.
+Suspendre temporairement une Exécution puis permettre soit de la reprendre, soit de l’arrêter.
 
 #### Ouverture
 
-Le modal est affiché lorsque l'utilisateur touche le bouton **Pause** pendant l'exécution d'une séance.
-L'écran d'exécution reste visible en arrière-plan, assombri et non interactif.
-Dès l'ouverture du modal, la séance est automatiquement mise en pause.
+La modale est affichée après appui sur `Pause`.
 
-#### Comportement de la pause
+L’Exécution est immédiatement suspendue.
 
-La mise en pause suspend immédiatement :
-- le compte à rebours en cours ;
-- l'enchaînement automatique des activités ;
-- le calcul du temps actif de l'activité ;
-- les bips et annonces vocales ;
-- les animations et indicateurs de progression.
-
-L'activité en cours reste affichée avec le temps restant.
-La progression de la séance est intégralement conservée.
 #### Contenu
 
 **Titre**
 
 > Séance en pause
 
-**Message**
-
-> La séance « _Nom de la séance_ » est suspendue.  
-> Le chronomètre reprendra à **00:24**.
-
 **Actions**
 
-- ▶ **Reprendre la séance**
-- ⏹ **Arrêter la séance**
+- `Reprendre la séance`
+- `Arrêter la séance`
 
 #### Reprendre la séance
 
-L'action **Reprendre la séance** :
-- ferme le modal ;
-- reprend immédiatement la séance à l'instant exact où elle a été interrompue ;
-- relance le chronomètre ;
-- réactive les bips, annonces vocales et animations.
+Ferme la modale et reprend l’Activité à l’état exact où elle a été suspendue.
 
-La progression de la séance est inchangée.
+Pour une Activité chronométrée, le compte à rebours reprend.  
+Pour un Exercice en Répétition, le chronomètre croissant reprend.
+
 #### Arrêter la séance
 
-L'action **Arrêter la séance** :
-- met immédiatement fin à l'exécution ;
-- enregistre automatiquement la progression réalisée ;
-- enregistre la séance avec le statut **Interrompue** ;
-- ouvre l'écran **Synthèse de séance**.
+Met fin à l’Exécution :
 
-Les activités non exécutées restent identifiées comme telles dans le détail de la séance.
-#### Conséquences de l'arrêt
+- la progression réellement effectuée est enregistrée ;
+- le statut de l’Exécution devient `Interrompue` ;
+- l’écran `Synthèse de séance` est affiché.
 
-L'arrêt d'une séance :
-- ne modifie jamais la séance d'origine ;
-- ne modifie jamais la routine de planification éventuelle ;
-- conserve les temps réellement exécutés ;
-- permet de consulter ultérieurement cette séance dans **Suivi** avec le statut **Interrompue**.
-#### Fermeture
+La modale ne peut être fermée que par l’une des deux actions prévues.
 
-Le modal ne peut être fermé que par l'une des deux actions proposées :
-- **Reprendre la séance** ;
-- **Arrêter la séance**.
+### Modal – Paramétrer le Compte à rebours initial
 
-Toucher en dehors du modal ou utiliser le geste système de fermeture n'a aucun effet.
+![[Modal - Nouvelle séance - Compte à rebours initial.png|349]]
 
-### Modal – Paramétrer le compte à rebours initial
-
-![[Modal - Nouvelle séance - Compte à rebours initial.png]]
 #### Objectif
 
-Permettre à l’utilisateur de personnaliser les paramètres du **Compte à rebours initial** de la séance sans quitter l’écran de composition.  
-Le Compte à rebours initial est un élément structurel obligatoire de la séance et ne constitue pas une Activité.
+Permettre de personnaliser le Compte à rebours initial sans quitter la Composition.
+
+Le Compte à rebours initial est un élément structurel obligatoire et ne constitue pas une Activité.
 
 #### Contenu
 
-Le modal affiche trois paramètres modifiables :
+La modale comporte :
 
-- **Nom** : libellé affiché pour le compte à rebours initial ;
-- **Durée** : durée du compte à rebours, exprimée en secondes ;
-- **Texte vocal** : texte annoncé vocalement pendant ou au début du compte à rebours.
+- `Nom` ;
+- `Durée` ;
+- `Texte vocal`.
 
-Les valeurs proposées lors de la création d’une nouvelle séance proviennent des préférences globales du Profil.  
-Par défaut :
+Les valeurs initiales proviennent des Préférences.
 
-- Nom : `Compte à rebours initial` ;
-- Durée : `10 s` ;
-- Texte vocal : `Get ready`.
+Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
 
-Une durée de `0 s` rend le compte à rebours instantané sans supprimer l’élément de la structure de la séance.
+`Enregistrer` applique les modifications.  
+`Annuler` ferme la modale sans les appliquer.
 
-#### Actions
+### Modal – Paramétrer la Fin de séance
 
-- **Enregistrer** : applique les valeurs saisies au Compte à rebours initial de la séance et ferme le modal.
-- **Annuler** : ferme le modal sans appliquer les modifications.
+![[Modal - Nouvelle séance - Fin de séance.png|395]]
 
-#### Navigation
-
-Le modal s’ouvre lorsque l’utilisateur touche la carte **Compte à rebours initial** depuis l’écran de composition d’une séance.  
-Après fermeture, l’utilisateur revient au même emplacement dans la composition de la séance.
-
-### Modal – Paramétrer la fin de séance
-
-![[Modal - Nouvelle séance - Fin de séance.png]]
 #### Objectif
 
-Permettre à l’utilisateur de personnaliser les paramètres de la **Fin de séance** sans quitter l’écran de composition.  
-La Fin de séance est un élément structurel obligatoire, exécuté après la dernière Activité, et ne constitue pas elle-même une Activité.
+Permettre de personnaliser la Fin de séance sans quitter la Composition.
+
+La Fin de séance est un élément structurel obligatoire et ne constitue pas une Activité.
 
 #### Contenu
 
-Le modal affiche trois paramètres modifiables :
+La modale comporte :
 
-- **Nom** : libellé affiché pour la fin de séance ;
-- **Durée** : durée de la phase de fin de séance, exprimée en secondes ;
-- **Texte vocal** : texte annoncé vocalement pendant ou au début de la fin de séance.
+- `Nom` ;
+- `Durée` ;
+- `Texte vocal`.
 
-Les valeurs proposées lors de la création d’une nouvelle séance proviennent des préférences globales du Profil.  
-Par défaut :
+Les valeurs initiales proviennent des Préférences.
 
-- Nom : `Fin de séance` ;
-- Durée : `0 s` ;
-- Texte vocal : `Séance terminée, bravo`.
+Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
 
-Une durée de `0 s` rend la phase de fin instantanée sans supprimer l’élément de la structure de la séance.
-
-#### Actions
-
-- **Enregistrer** : applique les valeurs saisies à la Fin de séance et ferme le modal.
-- **Annuler** : ferme le modal sans appliquer les modifications.
-
-#### Navigation
-
-Le modal s’ouvre lorsque l’utilisateur touche la carte **Fin de séance** depuis l’écran de composition d’une séance.  
-Après fermeture, l’utilisateur revient au même emplacement dans la composition de la séance.
+`Enregistrer` applique les modifications.  
+`Annuler` ferme la modale sans les appliquer.

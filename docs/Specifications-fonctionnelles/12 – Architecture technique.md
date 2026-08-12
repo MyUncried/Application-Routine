@@ -114,7 +114,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | Service | Responsabilité |
 |---|---|
 | `SessionService` | Création, lecture, modification, duplication, archivage et restauration des Séances |
-| `CompositionService` | Gestion des Cycles, Blocs, Activités et de leur ordre |
+| `CompositionService` | Gestion des Cycles, Sets, Activités et de leur ordre |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
@@ -172,7 +172,7 @@ Sont notamment persistés :
 - Préférences ;
 - Séances ;
 - Cycles ;
-- Blocs ;
+- Sets ;
 - Activités ;
 - Routines ;
 - Catégories ;
@@ -217,7 +217,7 @@ Cet identifiant :
 
 Les principales données métier sont rattachées directement ou indirectement à cet Utilisateur.
 
-Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Bloc et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
+Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Set et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
 
 ### Évolution future
 
@@ -277,10 +277,10 @@ Au démarrage d’une Exécution :
 
 Le moteur gère ensuite :
 - l’étape courante ;
-- les répétitions du Bloc et du Cycle ;
+- les répétitions du Set et du Cycle ;
 - les Séries propres à chaque Exercice ;
 - l'insertion de la pause éventuelle après chaque Série, avec suppression de la pause finale lorsque l'étape suivante est une Récupération explicite ;
-- la progression dans le Bloc ;
+- la progression dans le Set ;
 - la progression dans le Cycle ;
 - les temps écoulés ;
 - les transitions entre étapes ;
@@ -839,9 +839,9 @@ Ordre de développement retenu :
 
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
-3. **Séance simple** : création et modification d’une Séance avec quelques Activités, avant introduction complète des répétitions Bloc/Cycle.
+3. **Séance simple** : création et modification d’une Séance avec quelques Activités, avant introduction complète des répétitions Set/Cycle.
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Activité suivante, arrêt et fin.
-5. **Structure complète du MVP** : Bloc, Cycle, répétitions, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : Set, Cycle, répétitions, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.

@@ -46,7 +46,7 @@ Devenir un assistant personnel de planification et de suivi de séances capable 
 - L’application commence par la création de séances personnelles pouvant être planifiées sous forme de routines. Elle propose notamment un agenda, des rappels, un minuteur et un guidage pendant l’exécution.
 - La kinésithérapie constitue un premier cas d’usage concret, mais l’application n’est pas limitée à ce domaine.
 - La première version est conçue pour l’utilisateur qui crée ses séances, les planifie, les exécute et suit leur historique sur son appareil, sans compte utilisateur.
-- Dès la première version, une séance est structurée en activités, blocs et cycles. Une activité de récupération peut être utilisée entre deux exercices ou deux blocs. Une activité de type Exercice peut également intégrer une pause facultative après son exécution.
+- Dès la première version, une séance est structurée en activités, Sets et cycles. Une activité de récupération peut être utilisée entre deux exercices ou deux Sets. Une activité de type Exercice peut également intégrer une pause facultative après son exécution.
 - Dès la première version, l’exécution peut être accompagnée de signaux sonores et d’annonces vocales, afin que l’utilisateur puisse suivre sa séance sans regarder constamment l’écran.
 - Le modèle de la première version est conçu pour permettre ultérieurement la réutilisation de séances, leur partage et leur composition, sans remettre en cause sa structure.
 - Le professionnel ne dispose pas nécessairement de sa propre interface dans la première version.

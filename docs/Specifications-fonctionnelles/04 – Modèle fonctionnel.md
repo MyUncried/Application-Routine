@@ -40,7 +40,7 @@ Elle définit :
 - son nom ;
 - sa couleur ;
 - ses catégories ;
-- sa structure (cycles, blocs et activités) ;
+- sa structure (cycles, Sets et activités) ;
 - ses paramètres généraux ;
 - les règles de guidage.
 
@@ -60,16 +60,16 @@ Une séance ne contient jamais :
 ## Cycle
 
 Un **cycle** est un conteneur composé :
-- d'un bloc unique ;
+- d'un Set unique ;
 - d'un nombre de répétitions ;
 - éventuellement d'activités propres au cycle.
 
-À chaque répétition, le bloc est exécuté, puis les activités propres au cycle.
-## Bloc
+À chaque répétition, le Set est exécuté, puis les activités propres au cycle.
+## Set
 
-Un **bloc** est un ensemble ordonné d'activités exécutées successivement.
+Un **Set** est un ensemble ordonné d'activités exécutées successivement.
 Il est toujours contenu dans un cycle.
-Un bloc possède un nombre de répétitions propre, supérieur ou égal à 1.
+Un Set possède un nombre de répétitions propre, supérieur ou égal à 1.
 ## Activité
 
 Une **activité** représente une action élémentaire exécutée pendant une séance.
@@ -163,7 +163,7 @@ Les Catégories sont personnalisables par l'utilisateur. Les Zones corporelles c
 
 # 4.4 Structure d'une séance
 
-Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance → Cycle → Bloc → Activité. Chaque niveau apporte une responsabilité distincte.
+Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance → Cycle → Set → Activité. Chaque niveau apporte une responsabilité distincte.
 
 Une séance comprend, dans l'ordre :
 1. un compte à rebours initial ;
@@ -174,13 +174,13 @@ Une séance comprend, dans l'ordre :
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
 
 Le **Cycle** est composé :
-- d'un **Bloc unique** ;
+- d'un **Set unique** ;
 - d'un nombre de répétitions propre ;
-- éventuellement d'une ou plusieurs activités propres au Cycle, exécutées après chaque répétition du Bloc.
+- éventuellement d'une ou plusieurs activités propres au Cycle, exécutées après chaque répétition du Set.
 
-Le **Bloc** possède également son propre nombre de répétitions.
+Le **Set** possède également son propre nombre de répétitions.
 
-Chaque **bloc** regroupe une suite ordonnée d'activités.
+Chaque **Set** regroupe une suite ordonnée d'activités.
 
 Une **activité** est de type :
 - **Exercice** ;
@@ -190,7 +190,7 @@ Une activité de type **Exercice** possède un nombre de Séries propre et peut 
 
 Par défaut :
 - une séance contient un cycle ;
-- un cycle contient un bloc ;
+- un cycle contient un Set ;
 - un cycle est exécuté une seule fois.
 
 L'ordre général d'exécution est le suivant :
@@ -200,7 +200,7 @@ Compte à rebours initial
 
 Cycle × N
 │
-├── Bloc
+├── Set
 │      ├── Activité
 │      ├── Activité
 │      └── Activité
@@ -215,7 +215,7 @@ Le déroulement d'un cycle est donc :
 ```
 Répéter N fois :
 
-    Exécuter le bloc
+    Exécuter le Set
 
     Exécuter les activités de fin de cycle
 ```
@@ -246,7 +246,7 @@ Elle affiche notamment :
 - l'activité suivante ;
 - le temps restant ou écoulé ;
 - la progression dans la séance ;
-- les blocs et cycles en cours.
+- les Sets et cycles en cours.
 
 Le guidage sonore peut comprendre :
 
@@ -279,7 +279,7 @@ La première version permet notamment :
 - créer, modifier, dupliquer, archiver et supprimer des séances ;
 - créer, modifier et supprimer des routines de planification ;
 - créer et modifier des activités ;
-- organiser les Activités dans le Bloc et définir les nombres de répétitions du Bloc et du Cycle ;
+- organiser les Activités dans le Set et définir les nombres de répétitions du Set et du Cycle ;
 - associer plusieurs catégories à une séance ;
 - associer des zones corporelles aux exercices ;
 - exécuter une séance ;
