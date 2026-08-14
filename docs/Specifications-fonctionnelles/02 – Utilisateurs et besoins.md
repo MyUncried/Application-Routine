@@ -160,7 +160,7 @@ L’utilisateur prioritaire est une personne qui crée ses séances, les planifi
 
 Elle doit pouvoir utiliser l’application de manière autonome, sans qu’un professionnel ou un groupe soit également inscrit.
 
-La planification, les comptes, la synchronisation et le partage avec d’autres utilisateurs doivent être pris en compte dans la conception, mais pourront être développés dans un second temps.
+Les comptes, la synchronisation et le partage avec d’autres utilisateurs doivent être pris en compte dans la conception, mais pourront être développés dans un second temps. La planification individuelle d’une Séance via une Routine fait partie du MVP.
 
 ## Questions à approfondir
 

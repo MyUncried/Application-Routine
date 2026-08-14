@@ -28,8 +28,8 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-004 | Valeurs par défaut : compte à rebours initial 10 s, fin de séance 0 s.                                                                                                                                                                                                                                                                                                                                                                                        | Validée | Oui      |
 | D-005 | Les préférences du profil servent de valeurs par défaut des nouvelles Séances                                                                                                                                                                                                                                                                                                                                                                                | Validée | Oui      |
 | D-006 | Le mode d'exécution autonome « Manuel » est supprimé. Un Exercice utilise exclusivement le mode Durée ou Répétition ; un Exercice en Répétition se termine normalement par l'action `Activité suivante`. | Révisée | Oui |
-| D-007 | Pour un Exercice en mode Répétition, la durée réelle peut être enregistrée pendant l'Exécution même si aucune durée théorique n'est imposée. | Révisée | Oui |
-| D-008 | La durée estimée d'une Séance est indicative et précédée du symbole ≈ lorsqu'elle contient au moins un Exercice en mode Répétition, dont la durée théorique n'est pas déterminable. | Révisée | Oui |
+| D-007 | Pour un Exercice en mode Répétition, la durée réelle peut être enregistrée pendant l'Exécution même si aucune durée estimée n'est imposée. | Révisée | Oui |
+| D-008 | La durée affichée comme borne minimale et précédée du symbole ≥ lorsqu'elle contient au moins un Exercice en mode Répétition, dont la durée estimée n'est pas déterminable. | Révisée | Oui |
 | D-011 | La synthèse n'affiche plus les compteurs de répétition du Set et du Cycle.                                                                                                                                                                                                                                                                                                                                                                                   | Validée | Oui      |
 | D-012 | Le Set et le Cycle sont des structures internes de la Séance et ne constituent pas des entités métier réutilisables de manière indépendante dans le MVP.                                                                                                                                                                                                                                                                                                     | Validée | Oui      |
 | D-013 | Les occurrences futures du calendrier sont calculées dynamiquement à partir des Routines et ne sont pas persistées. À leur échéance, les occurrences peuvent être historisées techniquement afin de conserver leur résultat : exécutée ou non exécutée. Les occurrences non exécutées ne sont toutefois pas exposées dans l'interface du MVP ni dans le Suivi.                                                                                                                                                                                                                             | Validée | Oui      |
@@ -82,3 +82,31 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-056 | Dans le Suivi MVP, `Vue d'ensemble` reste visible mais grisée ; les cartes d'Exécution restent condensées et aucun contrôle `Déployer tout / Replier tout` n'est affiché. | Validée | Oui |
 | D-057 | Les occurrences planifiées passées non exécutées disparaissent de l'interface et n'apparaissent pas dans le Suivi. Une occurrence future peut être exécutée en avance via `Exécuter maintenant` et n'est alors plus reproposée à l'horaire initial. | Validée | Oui |
 | D-058 | Dans la Composition, Set et Cycle utilisent un contrôle `xN` ouvrant un picker. Un seul bouton global `+` ajoute une Activité après la dernière Activité existante ; l'utilisateur peut ensuite la réordonner. | Validée | Oui |
+
+## Décisions issues de la contre-revue finale — étapes 1 à 3
+
+| ID | Décision | Statut | MVP |
+| --- | --- | --- | :---: |
+| D-069 | Une Activité possède zéro ou un média maximum dans le MVP. | Validée | Oui |
+| D-059 | Le Commentaire de Synthèse est facultatif et limité à 200 caractères ; le Ressenti est obligatoire dès lors que la Synthèse est présentée. | Validée | Oui |
+| D-060 | Une Routine possède zéro ou un rappel maximum et une heure d’exécution obligatoire. | Validée | Oui |
+| D-061 | Les Activités peuvent être positionnées avant le Cycle, dans le Set, après le Set et dans le Cycle, ou après le Cycle et avant la Fin de séance. | Validée | Oui |
+| D-062 | Le mode de planification récurrent est nommé `Périodique` ; seule la périodicité hebdomadaire est disponible dans le MVP. | Validée | Oui |
+| D-063 | Après interruption technique d’une Exécution `En cours`, l’utilisateur doit choisir Reprendre ou Arrêter avant toute nouvelle Exécution. | Validée | Oui |
+| D-064 | Une occurrence future exécutée en avance est persistée immédiatement avec sa date/heure planifiées et son lien vers l’Exécution réelle. | Validée | Oui |
+| D-065 | L’Instantané est un JSON immuable ; les critères du Suivi sont conservés dans des champs/index dédiés. | Validée | Oui |
+| D-066 | La duplication peut réutiliser un même fichier média physique ; la suppression d’un média reste autorisée et retire toutes ses associations sans supprimer les Activités/Séances. | Validée | Oui |
+| D-067 | Les rappels périodiques utilisent une fenêtre glissante de notifications locales. | Validée | Oui |
+| D-068 | Le stockage local privilégie la non-duplication des données volumineuses, notamment des médias. | Validée | Oui |
+
+## Décisions relatives aux règles de calcul du MVP
+
+| ID | Décision | Statut | MVP |
+| --- | --- | --- | :---: |
+| D-070 | Lorsqu’un plan contient au moins un Exercice en mode Répétition, la Durée estimée n’attribue aucune durée conventionnelle à cet Exercice et est affichée comme une borne minimale avec le signe `≥`. | Validée | Oui |
+| D-071 | Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur. | Validée | Oui |
+| D-072 | La barre de progression utilise une pondération hybride : les Activités chronométrées sont pondérées selon leur durée et chaque occurrence d’Exercice en Répétition reçoit un poids `1/N`. La barre reste visuellement continue, sans frontières de segments. | Validée | Oui |
+| D-073 | Le Nombre total d’Activités à exécuter est calculé sur le plan développé et inclut les Récupérations techniques générées par les Pauses après Série. | Validée | Oui |
+| D-074 | Le Nombre d’Activités exécutées correspond au nombre de Résultats d’Activité exécutée créés ; une Activité Partielle compte comme exécutée. | Validée | Oui |
+| D-075 | Le calcul des occurrences périodiques utilise la semaine contenant la Date de début comme ancrage ; les bornes Date de début et Date de fin sont inclusives. | Validée | Oui |
+

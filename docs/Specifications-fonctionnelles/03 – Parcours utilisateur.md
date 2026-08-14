@@ -137,7 +137,7 @@ Il peut notamment :
 ### 5. Terminer une séance
 
 À la fin de l'exécution, l'application enregistre automatiquement la séance réalisée.
-L'utilisateur peut ajouter un commentaire ou un ressenti avant de revenir à l'écran principal.
+L'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum** avant de revenir à l'écran principal.
 ### 6. Consulter l'historique
 
 L'utilisateur retrouve l'ensemble des séances déjà exécutées.
@@ -249,9 +249,9 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - ignorer une activité ;
     - terminer une activité avant son terme ;
     - interrompre complètement la séance.
-3. En cas d'interruption, l'application lui propose :
+3. En cas d'interruption volontaire, l'application lui propose :
     - de reprendre immédiatement ;
-    - d'abandonner définitivement la séance.
+    - d'arrêter définitivement la séance.
 4. Si la séance est reprise, l'exécution reprend à la dernière activité enregistrée.
 5. Lorsque la séance est terminée ou abandonnée, l'application présente un récapitulatif indiquant notamment :
     - les activités réalisées ;
@@ -260,14 +260,14 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - les activités non commencées ;
     - la durée réelle de la séance ;
     - son statut.
-6. L'utilisateur peut ajouter un commentaire ou un ressenti.
+6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.
 7. La séance est enregistrée dans l'historique avec son statut :
 - Terminée : la séance a été exécutée jusqu'à son terme et toutes les activités ont été terminées.
 - Partielle : la séance a été exécutée jusqu'à son terme, mais au moins une activité a été interrompue ou ignorée.
 - Interrompue : la séance a été arrêtée avant la fin prévue.
 ## Points d'attention
 
-- Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours.
+- Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours. Au retour dans l’application, si une Exécution était `En cours`, l’utilisateur doit choisir **Reprendre la séance** ou **Arrêter la séance** avant de pouvoir démarrer une nouvelle Exécution.
 - Les données déjà enregistrées doivent pouvoir être restaurées.
 - L'application ne doit pas obliger l'utilisateur à justifier chaque activité ignorée.
 - La différence entre une séance suspendue, terminée et abandonnée doit rester compréhensible.

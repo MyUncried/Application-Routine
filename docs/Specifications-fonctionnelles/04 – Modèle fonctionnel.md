@@ -90,7 +90,7 @@ Chaque activité possède notamment :
 - une pause facultative appliquée après chaque Série ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
-- un ou plusieurs médias éventuels.
+- zéro ou un média éventuel.
 
 Après la dernière Série, la pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
 ## Routine
@@ -103,7 +103,7 @@ Elle définit :
 - son heure d'exécution ;
 - son mode de planification : sans répétition ou périodique ;
 - pour une planification périodique, sa fréquence hebdomadaire, les jours de la semaine concernés et sa date de fin ;
-- ses rappels éventuels ;
+- un rappel éventuel (0 ou 1 maximum) ;
 
 Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d'une même séance à des horaires différents sont représentées par plusieurs routines distinctes.
 
@@ -167,16 +167,19 @@ Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance 
 
 Une séance comprend, dans l'ordre :
 1. un compte à rebours initial ;
-2. un **Cycle unique** ;
-3. des activités de fin de séance facultatives ;
-4. une fin de séance.
+2. zéro, une ou plusieurs Activités avant le Cycle ;
+3. un **Cycle unique** ;
+4. zéro, une ou plusieurs Activités après le Cycle et avant la Fin de séance ;
+5. une Fin de séance.
+
+Dans le Cycle, les Activités peuvent se trouver dans le Set ou après le Set et avant la fin de la répétition du Cycle.
 
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
 
 Le **Cycle** est composé :
 - d'un **Set unique** ;
 - d'un nombre de répétitions propre ;
-- éventuellement d'une ou plusieurs activités propres au Cycle, exécutées après chaque répétition du Set.
+- éventuellement d'une ou plusieurs Activités propres au Cycle, exécutées une seule fois après l’ensemble des répétitions du Set, à chaque répétition du Cycle.
 
 Le **Set** possède également son propre nombre de répétitions.
 
@@ -198,6 +201,8 @@ L'ordre général d'exécution est le suivant :
 ```
 Compte à rebours initial
 
+Activités avant le Cycle
+
 Cycle × N
 │
 ├── Set
@@ -205,9 +210,9 @@ Cycle × N
 │      ├── Activité
 │      └── Activité
 │
-└── Activités de fin de cycle
+└── Activités après le Set et dans le Cycle
 
-Activités de fin de séance
+Activités après le Cycle et avant la Fin de séance
 ```
 
 Le déroulement d'un cycle est donc :
@@ -217,7 +222,7 @@ Répéter N fois :
 
     Exécuter le Set
 
-    Exécuter les activités de fin de cycle
+    Exécuter les Activités après le Set et dans le Cycle
 ```
 
 Cette organisation permet de construire des séances simples comme des séances complexes tout en conservant un nombre limité de concepts métier.

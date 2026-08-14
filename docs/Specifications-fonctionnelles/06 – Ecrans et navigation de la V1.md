@@ -178,11 +178,9 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Cycle` : conteneur répétant le Set et pouvant contenir des Activités propres au Cycle ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
-Le terme `Set` n’est plus utilisé : il est remplacé par `Set` dans le vocabulaire visible et comme concept métier.
-
 ## Écran 1 – Préférences
 
-![[Profil et préférences.png|405]]
+![[Profil et préférences.png|299]]
 
 ### Objectif
 
@@ -220,7 +218,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 ## Écran 2 – Catalogue des séances
 
-![[Catalogue des séances.png|531]]
+![[Catalogue des séances.png|499]]
 
 ### Objectif
 
@@ -248,7 +246,7 @@ Chaque carte affiche notamment :
 - sa Catégorie lorsqu’elle existe ;
 - le nombre d’Activités ;
 - sa durée estimée ;
-- le nombre de Sets et de Cycles ;
+- le nombre de répétitions du Set et du Cycle (`xN`) ;
 - la dernière Exécution lorsqu’elle existe ;
 - la prochaine occurrence planifiée lorsqu’elle existe ;
 - un chevron de déploiement ;
@@ -325,6 +323,8 @@ Si la Séance est utilisée par une ou plusieurs Routines, celles-ci sont suppri
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
+Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Son menu `⋯` permet uniquement de la **Dupliquer**, la **Restaurer** ou la **Supprimer**. La duplication crée une nouvelle Séance active indépendante.
+
 ### Séance vide
 
 Le MVP ne comporte pas de statut `Brouillon`.
@@ -372,8 +372,7 @@ Lorsqu’une Séance existe déjà, le retour n’entraîne pas sa suppression.
 
 ## Écran 4 – Composition d’une séance
 
-![[Nouvelle séance - Etat initial et liste d'activités.png]]
-
+![[Nouvelle séance - Etat initial et liste d'activités.png|560]]
 ### Objectif
 
 Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
@@ -411,7 +410,7 @@ Le nom et la couleur ne sont pas modifiés directement depuis cet écran. Le bou
 ### Paramètres du Set et du Cycle
 
 
-Le Cycle et le Set possèdent chacun un nombre de répétitions supérieur ou égal à 1.
+Le Cycle et le Set possèdent chacun un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
 Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Cycle` ou `Set`. Les anciens boutons `+ / −` ne sont pas utilisés.
 
@@ -431,6 +430,8 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Set, dans le Cycle ou
 Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
 
 La nouvelle Activité est insérée directement après la dernière Activité existante de la Composition. L’utilisateur peut ensuite modifier sa position manuellement par glisser-déposer.
+
+Le glisser-déposer permet de placer une Activité dans l’une des quatre positions structurelles du MVP : **avant le Cycle**, **dans le Set**, **après le Set et dans le Cycle**, ou **après le Cycle et avant la Fin de séance**.
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
@@ -647,7 +648,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 ## Écran 9 – Planifier une séance
 
-![[Planifier une séance.png|305]]
+![[Planifier une séance.png|289]]
 
 ### Objectif
 
@@ -679,11 +680,11 @@ La planification comporte :
 Le MVP propose :
 
 - `Sans répétition` : une seule occurrence ;
-- `Hebdomadaire` : répétition selon une fréquence en semaines et un ou plusieurs jours de la semaine.
+- `Périodique` : répétition selon une périodicité hebdomadaire définie par une fréquence en semaines et un ou plusieurs jours de la semaine. Dans le MVP, seule cette périodicité hebdomadaire est disponible.
 
-Il n’existe pas de mode `Quotidien` distinct. Une planification hebdomadaire sélectionnant les sept jours équivaut à une exécution quotidienne.
+Il n’existe pas de mode `Quotidien` distinct. Une planification périodique sélectionnant les sept jours toutes les semaines équivaut à une exécution quotidienne.
 
-En mode hebdomadaire :
+En mode périodique :
 
 - la fréquence est un entier supérieur ou égal à 1 ;
 - un ou plusieurs jours sont sélectionnés ;
@@ -734,8 +735,8 @@ L’écran affiche, de haut en bas :
 - la progression `Set x/y • Cycle x/y` ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
 - les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
-- le temps total écoulé et la durée totale estimée de la Séance ;
-- une barre de progression temporelle globale.
+- le temps total écoulé et la durée estimée de la Séance ; si le plan contient au moins un Exercice en mode Répétition, la durée estimée est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
+- une barre de progression globale continue, sans frontières de segments visibles. Cette barre représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; elle n’est pas le simple rapport `temps écoulé / durée estimée`.
 
 Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
@@ -873,7 +874,7 @@ La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Ex
 
 ## Écran 11 – Synthèse de séance
 
-![[Exécution d'une séance - Synthèse de séance.png|292]]
+![[Exécution d'une séance - Synthèse de séance.png|285]]
 
 ### Objectif
 
@@ -912,7 +913,9 @@ Le bouton `Terminer` reste désactivé tant qu’aucun ressenti n’a été sél
 
 ### Commentaire
 
-Le `Commentaire` est facultatif.
+Le `Commentaire` est facultatif et limité à **200 caractères maximum**.
+
+Le Ressenti est obligatoire dès lors que cet écran de Synthèse est présenté, y compris pour une Exécution `Interrompue`. Il peut être absent uniquement lorsqu’une interruption technique n’a pas permis de présenter la Synthèse.
 
 Il est enregistré avec l’Exécution.
 
@@ -1084,7 +1087,7 @@ Le nom comporte de 1 à 50 caractères et ne peut pas dupliquer un nom existant 
 
 ### Modal – Options de l’Activité
 
-![[Nouvelle séance - Option d'activité.png|379]]
+![[Modal - Nouvelle séance - Option d'activité.png]]
 
 #### Contenu
 
@@ -1113,7 +1116,7 @@ Le modal affiche le nom de l’Activité et les actions :
 
 ### Modal – Options d’une Séance
 
-![[Modal - Catalogue des séances - Options.png]]
+![[Modal - Catalogue des séances - Options.png|284]]
 
 #### Objectif
 
@@ -1191,7 +1194,7 @@ Le modal propose, selon le contexte :
 
 ### Modal – Confirmer la suppression d’une Routine
 
-![[Modal - Confirmation de la suppression d'une routine.png]]
+![[Modal - Confirmation de la suppression d'une routine.png|295]]
 
 #### Objectif
 
@@ -1275,7 +1278,7 @@ Après confirmation :
 
 ### Modal – Pause / arrêt de l’Exécution
 
-![[Modal - Exécution d'une séance - Pause ou Arrêt de la séance.png|260]]
+![[Modal - Exécution d'une séance - Pause ou Arrêt de la séance.png|261]]
 
 #### Objectif
 

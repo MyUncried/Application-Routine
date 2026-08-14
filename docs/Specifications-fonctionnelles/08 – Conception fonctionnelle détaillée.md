@@ -219,7 +219,7 @@ Une activité possède notamment :
 - un type ;
 - un nom ;
 - une durée ou un nombre de répétitions ;
-- une pause optionnelle exécutée immédiatement après l'activité ;
+- une **Pause après Série** facultative, appliquée après chaque Série de l’Exercice selon les règles définies pour ce paramètre ;
 - des informations complémentaires (consigne, zones corporelles, média, etc.).
 
 Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
@@ -297,12 +297,37 @@ Une séance incomplète peut être enregistrée mais ne peut pas être exécuté
 
 À chaque modification, l'application recalcule automatiquement :
 
-- la durée estimée de la séance ;
-- le nombre total d'Activités de la Composition.
+- la **durée estimée** de la séance ;
+- le **nombre d'Activités de la Composition**.
 
-La **durée estimée** correspond à la durée prévisionnelle de l'exécution complète de la séance. Elle tient compte des durées des Activités, des pauses intermédiaires et de leurs répétitions liées aux Séries, Sets et Cycles.
+### Durée estimée
 
-Le nombre total d'Activités correspond au nombre d'Exercices et de Récupérations présents dans la Composition, **sans tenir compte de leurs répétitions liées aux Séries, Sets ou Cycles et sans comptabiliser les pauses intermédiaires**.
+La durée estimée correspond à la somme de toutes les durées déterminables de l'Exécution complète construite à partir de la Composition.
+
+Le calcul tient compte :
+
+- du Compte à rebours initial et de la Fin de séance ;
+- de toutes les occurrences d'Activités chronométrées ;
+- des Récupérations explicites ;
+- des Récupérations techniques générées par les Pauses après Série lorsqu'elles sont effectivement insérées dans le plan ;
+- des Séries ;
+- des répétitions du Set ;
+- des répétitions du Cycle ;
+- de la position structurelle de chaque Activité dans la Séance.
+
+Un Exercice en mode Répétition ne reçoit **aucune durée conventionnelle** dans ce calcul.
+
+- Si toutes les durées sont déterminables, la durée est affichée normalement, par exemple `18 min`.
+- Si au moins un Exercice est en mode Répétition, la somme des durées connues constitue une **borne minimale** et l'interface affiche le signe `≥`, par exemple `≥ 18 min`.
+
+### Nombre d'Activités de la Composition
+
+Le nombre d'Activités de la Composition correspond au nombre d'Exercices et de Récupérations explicitement définis dans la Composition.
+
+Il :
+
+- ne tient pas compte des répétitions liées aux Séries, Sets ou Cycles ;
+- ne comptabilise pas les Récupérations techniques générées par les Pauses après Série.
 
 Ces informations sont affichées en temps réel.
 
@@ -335,9 +360,9 @@ Avant de lancer la première activité, l'application :
 
 - crée un instantané de la séance ;
 - initialise les indicateurs de progression ;
-- démarre le compte à rebours initial, lorsqu'il est défini.
+- démarre le compte à rebours initial, lorsque sa durée est supérieure à `0 s`.
 
-En l'absence de compte à rebours initial, la première activité débute immédiatement.
+Lorsque le Compte à rebours initial est configuré à `0 s`, cette phase est instantanée et la première Activité débute immédiatement.
 
 ## 4.3 Déroulement
 
@@ -364,6 +389,48 @@ Pendant l'Exécution, l'écran affiche principalement :
 - le temps total écoulé / estimé et sa barre de progression.
 
 La notion d'« étape » n'est pas affichée comme indicateur de progression dans le MVP.
+
+### Temps écoulé et durée réelle
+
+Le **temps total écoulé** correspond au temps actif réellement passé dans l'Exécution depuis son démarrage effectif, en excluant les périodes pendant lesquelles l'utilisateur a placé la Séance en Pause.
+
+Il inclut notamment :
+
+- le temps réellement passé dans les Exercices en mode Répétition ;
+- les Activités chronométrées ;
+- les Récupérations explicites ;
+- les Récupérations techniques liées aux Pauses après Série ;
+- les phases chronométrées du Compte à rebours initial et de la Fin de séance.
+
+La **durée réelle** enregistrée à la fin de l'Exécution suit la même règle : les périodes de Pause utilisateur en sont exclues.
+
+### Barre de progression globale
+
+La barre est visuellement continue : **aucune frontière de segment n'est affichée**.
+
+Son calcul s'appuie cependant sur les occurrences d'Activités du plan d'Exécution :
+
+- `N` = nombre total d'Activités à exécuter dans le plan ;
+- `R` = nombre d'occurrences d'Exercices en mode Répétition ;
+- `T` = somme des durées des occurrences d'Activités chronométrées du plan.
+
+Chaque occurrence d'Exercice en mode Répétition reçoit un poids de `1 / N` dans la barre.
+
+La part restante, `1 - R / N`, est répartie entre les occurrences d'Activités chronométrées proportionnellement à leur durée. Pour une Activité chronométrée de durée `d`, son poids est donc :
+
+`(1 - R / N) × d / T`
+
+Cas particuliers :
+
+- si `R = 0`, la barre est entièrement proportionnelle aux durées ;
+- si `R = N`, chaque Activité reçoit un poids de `1 / N` ;
+- une Activité chronométrée en cours remplit progressivement sa part selon le temps écoulé sur sa durée cible ;
+- un Exercice en mode Répétition conserve sa part non remplie pendant son exécution puis la remplit entièrement lorsque l'utilisateur valide sa fin avec `Activité suivante` ;
+- une Activité chronométrée passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
+- `Pause` suspend la progression de la part courante ;
+- `Réinitialiser` remet à zéro la progression interne de l'Activité courante sans modifier les parts déjà franchies.
+
+La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée.
 
 Pour un Exercice en Répétition, le cercle effectue un tour complet par minute. Le chronomètre continue à croître au-delà d'une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
 
@@ -395,7 +462,7 @@ Si l'utilisateur annule, la séance reprend exactement à l'état où elle se tr
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
 - **Réinitialiser** → confirmation, afin d'éviter une perte involontaire de progression sur l'Activité ;
-- **Activité suivante** → confirmation, afin d'éviter de passer une Activité par erreur ;
+- **Activité suivante** → pour une Activité chronométrée avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétition, fin normale sans confirmation ;
 - **Pause** → aucune confirmation, l'action étant réversible ;
 - **Arrêter la séance** → confirmation via le modal de pause.
 
@@ -534,11 +601,12 @@ Chaque Routine possède les paramètres suivants :
 - l'heure d'exécution ;
 - le mode de planification :
     - **Sans répétition** : une seule occurrence est planifiée à la date définie ;
-    - **Hebdomadaire** : la Séance est répétée selon une fréquence en semaines ;
-- pour une planification hebdomadaire :
+    - **Périodique** : dans le MVP, la Séance est répétée selon une périodicité hebdomadaire définie par une fréquence en semaines ;
+- pour une planification périodique :
     - la fréquence en semaines, supérieure ou égale à 1 ;
     - un ou plusieurs jours de la semaine ;
-    - une date de fin obligatoire.
+    - une date de fin obligatoire ;
+- un rappel facultatif, avec **0 ou 1 rappel maximum** par Routine.
 
 La présentation UI est compacte : `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel, sans titre intermédiaire `Quand ?`. Pour une répétition hebdomadaire, l'écran affiche `Toutes les`, puis `X semaine(s) jusqu'au <date>`, avec les jours sélectionnés en dessous.
 
@@ -561,6 +629,19 @@ Toute modification s'applique à l'ensemble de la routine.
 ## 5.5 Calcul des occurrences
 
 Les occurrences sont calculées dynamiquement à partir des paramètres de la routine.
+
+Pour une Routine en mode `Périodique`, la semaine contenant la **Date de début** constitue la semaine d'ancrage n°1.
+
+Pour une fréquence de `N` semaines :
+
+- seules les semaines dont l'écart avec la semaine d'ancrage est un multiple de `N` génèrent des occurrences ;
+- dans chacune de ces semaines, une occurrence est générée pour chaque jour de la semaine sélectionné ;
+- aucune occurrence n'est générée avant la Date de début ;
+- la Date de fin est **incluse** : une occurrence située ce jour-là est générée si le jour est sélectionné ;
+- toutes les occurrences utilisent l'Heure définie par la Routine.
+
+Exemple : si la Date de début est un mercredi et que lundi et jeudi sont sélectionnés, le lundi de cette première semaine n'est pas généré car il précède la Date de début ; le jeudi l'est.
+
 Ce calcul dynamique concerne les occurrences futures. Lorsqu'une occurrence arrive à échéance, elle est historisée avec son résultat afin de conserver la trace des séances exécutées et non exécutées.
 Le calendrier calcule uniquement les occurrences correspondant à la période consultée.
 Les occurrences ne peuvent pas être modifiées individuellement.
@@ -698,8 +779,8 @@ L'utilisateur peut combiner plusieurs critères de filtrage :
 
 - catégories ;
 - zones corporelles ;
-- statut ;
-- ressenti.
+- période ;
+- statut.
 
 Les filtres sont appliqués simultanément.
 
@@ -843,9 +924,9 @@ Le suivi repose sur les principes suivants :
 | Bouton global `+` | Bouton | Toujours | Un seul bouton, à droite du résumé | Ajouter une Activité | Ajoute après la dernière Activité |
 | Compte à rebours initial | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
 | Cycle | Conteneur | Toujours | Un Cycle dans le MVP | Déployer / Replier | Fond distinct du Set |
-| Répétitions Cycle `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Juste à droite de `Cycle` |
+| Répétitions Cycle `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Valeurs **1 à 99** ; juste à droite de `Cycle` |
 | Set | Conteneur | Toujours | Un Set dans le MVP | Déployer / Replier | Même taille de titre que Cycle |
-| Répétitions Set `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Juste à droite de `Set` |
+| Répétitions Set `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Valeurs **1 à 99** ; juste à droite de `Set` |
 | Activité | Carte | Selon contenu | Ordre d’Exécution | Ouvrir options / déplacer | Aucune zone d’ajout intermédiaire |
 | Fin de séance | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
 | Valider les modifications | Bouton | Toujours | Actif si la Composition est valide | Valider | En création, poursuit vers Catégories |
@@ -855,7 +936,7 @@ Le suivi repose sur les principes suivants :
 | Règle | Description |
 | --- | --- |
 | Nom / couleur | La modification d’une Séance commence par l’écran Nom et couleur ; la Composition ne les édite pas directement. |
-| Structure | Une nouvelle Séance possède un Compte à rebours initial, un Cycle contenant un Set et une Fin de séance. |
+| Structure | Une nouvelle Séance possède un Compte à rebours initial, un Cycle contenant un Set et une Fin de séance. Les Activités peuvent être placées **avant le Cycle**, **dans le Set**, **après le Set et dans le Cycle**, ou **après le Cycle et avant la Fin de séance**. |
 | Ajout global | Un seul bouton `+` ajoute l’Activité après la dernière Activité existante ; l’utilisateur peut ensuite la réordonner manuellement. |
 | Cycle / Set | Le contrôle `xN` ouvre un picker ; aucun bouton `+ / −` n’est utilisé. |
 | Hiérarchie | Cycle et Set utilisent des fonds suffisamment contrastés ; le titre Set a la même taille que Cycle. |
@@ -884,18 +965,18 @@ Le suivi repose sur les principes suivants :
 | Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom + durée/répétitions obligatoires           | Statique | Enregistrer    |                                                                                                                                                                                                                                        |
 ### Règles fonctionnelles
 
-| Règle                | Description                                                                                                                                                                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Type Exercice        | Autorise les modes Durée et Répétitions.                                                                                                                                                                                                                                |
-| Type Récupération    | Nom pré-rempli "Récupération". Le mode d'exécution est masqué.                                                                                                                                                                                                          |
-| Mode Durée           | Affiche le sélecteur de durée.                                                                                                                                                                                                                                          |
-| Mode Répétitions     | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                               |
-| Séries              | Un Exercice possède un nombre de Séries propre, supérieur ou égal à 1. Une Série répète la durée ou le nombre de répétitions défini pour l'Exercice puis sa pause éventuelle. |
-| Pause après Série   | Disponible uniquement pour les Exercices. Lorsqu’une durée est renseignée, l’application crée techniquement une activité de type `Récupération`, liée à l’Exercice et utilisée après chaque Série. Après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. Cette activité technique reste masquée dans l’interface de composition. |
-| Zones corporelles    | Disponibles uniquement pour une activité de type Exercice ; sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
-| Récupération         | La section Zones corporelles est masquée. |
-| Validation           | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                     |
-| Retour               | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                          |
+| Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Type Exercice     | Autorise les modes Durée et Répétitions.                                                                                                                                                                                                                                                                                                                                                   |
+| Type Récupération | Nom pré-rempli "Récupération". Le mode d'exécution est masqué.                                                                                                                                                                                                                                                                                                                             |
+| Mode Durée        | Affiche le sélecteur de durée.                                                                                                                                                                                                                                                                                                                                                             |
+| Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
+| Séries            | Un Exercice possède un nombre de Séries propre, supérieur ou égal à 1. Une Série répète la durée ou le nombre de répétitions défini pour l'Exercice puis sa pause éventuelle.                                                                                                                                                                                                              |
+| Pause après Série | Disponible uniquement pour les Exercices. Lorsqu’une durée est renseignée, l’application crée techniquement une activité de type `Récupération`, liée à l’Exercice et utilisée après chaque Série. Après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. Cette activité technique reste masquée dans l’interface de composition. |
+| Zones corporelles | Disponibles uniquement pour une activité de type Exercice ; sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP.                                                                                                                                                                                  |
+| Récupération      | La section Zones corporelles est masquée.                                                                                                                                                                                                                                                                                                                                                  |
+| Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
+| Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
 ## Exécution d'une séance
 
 ### Éléments affichés
@@ -941,28 +1022,28 @@ Le suivi repose sur les principes suivants :
 | --------------------- | ---------------- | -------: | ----------: | ---------------------------------------------------- | --------------------------- | ----------- | -------------- | ------------------------------------ |
 | Titre de la séance    | Texte            | Toujours |         Oui | Nom de la séance                                     | 1 à 80 caractères           | Séance      | Aucune         | En-tête fixe                         |
 | Carte Statut          | Carte            | Toujours |         Oui | Visible                                              | Une seule                   | Séance      | Aucune         |                                      |
-| Icône de statut       | Icône            | Toujours |         Oui | ✓                                                    | Terminée ou interrompue     | Séance      | Aucune         | Couleur selon le statut              |
-| Libellé du statut     | Texte            | Toujours |         Oui | Séance terminée                                      | Terminée ou interrompue     | Séance      | Aucune         |                                      |
+| Icône de statut       | Icône            | Toujours |         Oui | ✓                                                    | Terminée, Partielle ou Interrompue     | Séance      | Aucune         | Couleur selon le statut              |
+| Libellé du statut     | Texte            | Toujours |         Oui | Séance terminée                                      | Terminée, Partielle ou Interrompue     | Séance      | Aucune         |                                      |
 | Date / heure de fin   | Texte            | Toujours |         Oui | Date courante                                        | Format local                | Séance      | Aucune         |                                      |
 | Carte Votre séance    | Carte            | Toujours |         Oui | Visible                                              | Une seule                   | Séance      | Aucune         |                                      |
 | Durée réelle          | Durée            | Toujours |         Oui | Calculée                                             | Temps réellement exécuté    | Séance      | Aucune         |                                      |
 | Nombre d'activités    | Valeur           | Toujours |         Oui | Calculé                                              | X / Y                       | Séance      | Aucune         |                                      |
-| Activités Partielles   | Texte            |   Si > 0 |         Non | Masqué                                               | `n activité(s) Partielle(s)` | Séance      | Aucune         | Affiché dans la carte "Votre séance" |
+| Activités partiellement réalisées | Texte | Si > 0 | Non | Masqué | `n activité(s) partiellement réalisée(s)` | Séance | Aucune | Libellé UI ; le statut métier de l’Activité reste `Partielle` |
 | Question de ressenti  | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Obligatoire" | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
 | Choix du ressenti     | Sélecteur        | Toujours |         Oui | Aucun sélectionné                                    | Une seule sélection         | Utilisateur | Sélection      | MVP : 3 niveaux                      |
 | Titre Commentaire     | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Facultatif"  | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
-| Champ Commentaire     | Texte multiligne | Toujours |         Non | Vide                                                 | 500 caractères max          | Utilisateur | Saisie         |                                      |
+| Champ Commentaire     | Texte multiligne | Toujours |         Non | Vide                                                 | **200 caractères max**      | Utilisateur | Saisie         | Environ 2 à 3 lignes                 |
 | Bouton Terminer       | Bouton           | Toujours |         Oui | Désactivé tant que le ressenti n'est pas sélectionné | Une seule action            | Statique    | Aller au Suivi | Enregistre définitivement la séance  |
 ### Règles fonctionnelles
 | Règle               | Description                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
 | Durée affichée      | Toujours la durée réellement exécutée.                                           |
 | Sets / Cycles      | Non affichés dans le MVP.                                                        |
-| Activités Partielles | Affichées uniquement si leur nombre est supérieur à zéro.                        |
-| Ressenti            | Obligatoire avant de quitter l'écran.                                            |
-| Commentaire         | Facultatif.                                                                      |
+| Activités partiellement réalisées | Affichées uniquement si leur nombre est supérieur à zéro ; `Partielle` reste le terme métier. |                        |
+| Ressenti            | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après une interruption technique sans Synthèse.                                            |
+| Commentaire         | Facultatif, **200 caractères maximum**.                                                                      |
 | Validation          | Le bouton **Terminer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
 | Navigation          | Appui sur **Terminer** → écran **Suivi**.                                        |
 | Sauvegarde          | Le ressenti et le commentaire sont enregistrés avec la séance.                   |
@@ -980,7 +1061,7 @@ Le suivi repose sur les principes suivants :
 | Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
 | Vibrations                          | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Si le téléphone le permet                            |
 | Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 99 min 59 s                 | Préférences | Modifier             | Valeur utilisée à la création d'une séance           |
-| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 0 s                        | 0 à 99 min 59 s                 | Préférences | Modifier             | 0 = désactivée                                       |
+| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 0 s                        | 0 à 99 min 59 s                 | Préférences | Modifier             | 0 s = phase instantanée                              |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Rappels locaux du MVP ; autorisation système requise |
 ### Règles fonctionnelles
 
@@ -992,8 +1073,8 @@ Le suivi repose sur les principes suivants :
 | Sons                     | Désactive tous les bips de l'application.                                                                                                |
 | Annonces vocales         | Désactive toutes les annonces vocales sans modifier les bips.                                                                            |
 | Vibrations               | Désactive toutes les vibrations générées par l'application.                                                                              |
-| Compte à rebours initial | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s désactive le compte à rebours initial. |
-| Fin de séance            | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s désactive la fin de séance.            |
+| Compte à rebours initial | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure. |
+| Fin de séance            | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure.            |
 | Langue du MVP            | Le MVP est disponible uniquement en français. Aucun sélecteur de langue n'est affiché. L'évolution multilingue est préparée techniquement. |
 | Voix                     | La voix utilisée est toujours celle du système d'exploitation. Aucun choix de voix n'est proposé dans le MVP. La langue de synthèse vocale pourra être sélectionnable lors d'une évolution multilingue. |
 | Volume                   | Le volume des annonces dépend exclusivement du réglage du téléphone.                                                                     |

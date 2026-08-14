@@ -17,7 +17,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une photo ou une vidéo ;
 - ordonner les activités d’un Set ;
 - configurer des cycles et leurs Sets, créés avec une répétition par défaut ;
-- placer des activités de récupération dans un Set, en fin de cycle ou en fin de séance ;
+- placer des Activités avant le Cycle, dans le Set, après le Set et dans le Cycle, ou après le Cycle et avant la Fin de séance ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
 - annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
@@ -26,10 +26,8 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
-- permettre d’activer ou de désactiver séparément :
-    - les bips de rythme ;
-    - le compte à rebours sonore ;
-    - les annonces vocales ;
+- permettre d’activer ou de désactiver globalement les sons de l’application ; dans le MVP, ce réglage agit sur l’ensemble des bips sonores et ne permet pas de désactiver séparément le bip grave de rythme ;
+- permettre d’activer ou de désactiver séparément les annonces vocales ;
 - afficher clairement l’activité en cours, son type ou son libellé, l’étape suivante et la progression dans la séance ;
 - utiliser une minuterie pour les exercices définis par une durée ;
 - mettre la séance en pause et la reprendre ;
@@ -47,7 +45,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - la routine éventuelle ;
 - consulter un historique simple des séances ;
 - renseigner obligatoirement, en fin de séance, un ressenti général ;
-- renseigner facultativement un Commentaire ;
+- renseigner facultativement un Commentaire de **200 caractères maximum** ;
 - retrouver les Exécutions enregistrées sous forme de cartes condensées dans le Suivi, avec recherche, filtres et tri.
 
 Dans cette version, l’échauffement, les activités de fin de cycle et les activités de fin de séance utilisent des Activités ordinaires. `Retour au calme` n’est pas un type structurel particulier.
@@ -59,8 +57,8 @@ Toutes les données sont enregistrées uniquement sur l’appareil.
 La V1 permet également :
 - de créer une routine ;
 - d'associer une séance à une routine ;
-- de définir une planification sans répétition ou avec répétition hebdomadaire jusqu'à une date de fin ;
-- d'ajouter un ou plusieurs rappels.
+- de définir une planification `Sans répétition` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
+- d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
 Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Set → Activité.
 

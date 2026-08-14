@@ -134,6 +134,8 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
+Les calculs de Durée estimée, Durée réelle, nombres d’Activités, progression hybride et occurrences périodiques sont implémentés comme des règles déterministes du Domaine conformément au chapitre 10. Ils ne doivent pas être redéfinis différemment dans l’interface ou la couche de persistance.
+
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
 - de la base de données ;
@@ -353,6 +355,8 @@ Elles sont planifiées à partir des occurrences calculées par `PlanningService
 
 Aucun serveur n’est nécessaire pour envoyer ces notifications dans le MVP.
 
+Pour les Routines périodiques, les notifications sont programmées selon une **fenêtre glissante** d’occurrences futures plutôt que jusqu’à la date de fin complète. Cette fenêtre est réapprovisionnée lors de l’ouverture de l’application et lors de toute création, modification, suppression ou autre changement affectant la planification. Sa taille technique est déterminée à l’implémentation selon les contraintes iOS et Android.
+
 Lorsqu’une Routine est :
 - créée ;
 - modifiée ;
@@ -366,6 +370,10 @@ L’application doit tenir compte des autorisations de notification accordées o
 ## 12.14 Médias
 
 Les médias associés aux Activités sont stockés localement sur l’appareil dans le MVP.
+
+La duplication d’une Activité ou d’une Séance ne duplique pas nécessairement le fichier physique : plusieurs associations Média peuvent référencer le même fichier local. La suppression explicite d’un média par l’utilisateur reste toujours autorisée ; elle supprime le fichier physique et retire toutes ses associations, sans supprimer ni invalider les Activités/Séances concernées.
+
+Le stockage local du MVP privilégie la **non-duplication des données volumineuses**. Les médias ne sont pas intégrés aux Instantanés historiques et les données futures ou dérivables ne sont persistées que lorsqu’une règle fonctionnelle l’exige.
 
 La base de données conserve une référence au fichier et ses métadonnées utiles.
 
@@ -389,6 +397,8 @@ Cet Instantané est :
 - dépourvu de copie des médias.
 
 Le format physique de stockage doit permettre de relire les anciens Instantanés même après une évolution du modèle de données.
+
+Dans le MVP, l’Instantané est persisté sous forme de **JSON immuable** associé à l’Exécution. Les données nécessaires aux filtres du Suivi — notamment date, statut, Catégories et Zones corporelles historiques — sont conservées en parallèle sous forme de champs ou index dédiés. Le JSON constitue la photographie historique complète ; les index servent à la recherche efficace.
 
 Les migrations futures doivent donc préserver la compatibilité avec l’historique existant.
 
@@ -850,3 +860,6 @@ Ordre de développement retenu :
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.
 
+## 12.32 Réconciliation après interruption technique
+
+Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la Synthèse.
