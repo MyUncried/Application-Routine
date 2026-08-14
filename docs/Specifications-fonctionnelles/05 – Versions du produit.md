@@ -46,7 +46,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - consulter un historique simple des séances ;
 - renseigner obligatoirement, en fin de séance, un ressenti général ;
 - renseigner facultativement un Commentaire de **200 caractères maximum** ;
-- retrouver les Exécutions enregistrées sous forme de cartes condensées dans le Suivi, avec recherche, filtres et tri.
+- retrouver les Exécutions enregistrées sous forme de cartes condensées ou déployées individuellement dans le Suivi, avec recherche et tri chronologique du plus récent au plus ancien ou inversement.
 
 Dans cette version, l’échauffement, les activités de fin de cycle et les activités de fin de séance utilisent des Activités ordinaires. `Retour au calme` n’est pas un type structurel particulier.
 
@@ -80,6 +80,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - calculer la durée estimée des structures complexes ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
+- ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
 - l'activation/la désactivation du bip grave à chaque seconde pendant les exercices chronométrés devient paramétrable dans les Préférences.
 
 #### Internationalisation

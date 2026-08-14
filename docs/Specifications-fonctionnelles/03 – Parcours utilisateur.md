@@ -293,9 +293,9 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 
 1. L'utilisateur ouvre le menu **Suivi**.
 2. Il consulte la liste chronologique de ses Exécutions enregistrées.
-3. Il peut rechercher, filtrer ou trier les Exécutions selon les critères disponibles.
+3. Il peut rechercher une Exécution et modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement.
 4. Il consulte sur chaque carte condensée la date / heure, la durée réelle, le statut et le ressenti lorsqu'il existe.
-5. Il peut sélectionner une autre Exécution ou modifier ses critères de recherche, de filtre ou de tri.
+5. Il peut sélectionner une autre Exécution, modifier sa recherche ou inverser l’ordre chronologique d’affichage.
 
 La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
 

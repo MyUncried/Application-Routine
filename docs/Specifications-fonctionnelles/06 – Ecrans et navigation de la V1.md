@@ -42,13 +42,15 @@ La navigation principale donne accès à quatre onglets :
 - `Mes séances` ;
 - `Calendrier` ;
 - `Suivi` ;
-- `Préférences`.
+- `Profil`.
 
 `Mes séances` constitue l’écran d’accueil par défaut.
 
 L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
-L’onglet `Préférences` permet d’accéder aux préférences globales de l’application.
+L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application.
+
+La barre de navigation principale comporte quatre destinations. L’onglet actif est matérialisé par une capsule arrondie contenant son pictogramme et son libellé. Les destinations non actives sont représentées par leur pictogramme centré verticalement dans la barre, sans libellé visible.
 
 ### Parcours de création d’une Séance
 
@@ -102,7 +104,7 @@ La vue détaillée déployée d’une Exécution est également reportée à une
 
 Les écrans principaux du MVP sont :
 
-1. `Préférences` ;
+1. `Profil` ;
 2. `Catalogue de séances` ;
 3. `Nouvelle séance — Nom et couleur` ;
 4. `Composition d’une séance` ;
@@ -178,9 +180,9 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Cycle` : conteneur répétant le Set et pouvant contenir des Activités propres au Cycle ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
-## Écran 1 – Préférences
+## Écran 1 – Profil
 
-![[Profil et préférences.png|299]]
+![[Profil et préférences.png|288]]
 
 ### Objectif
 
@@ -212,13 +214,13 @@ Les notifications sont activées par défaut, sous réserve de l’autorisation 
 
 ### Navigation
 
-L’écran est accessible depuis l’onglet **Préférences** de la barre de navigation inférieure.
+L’écran est accessible depuis l’onglet **Profil** de la barre de navigation inférieure.
 
 Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est nécessaire pour revenir à un autre onglet.
 
 ## Écran 2 – Catalogue des séances
 
-![[Catalogue des séances.png|499]]
+![[Catalogue des séances.png|484]]
 
 ### Objectif
 
@@ -342,7 +344,7 @@ Si aucune Séance n’a encore été créée, l’écran présente une action pr
 
 ## Écran 3 – Nouvelle séance : nom et couleur
 
-![[Nouvelle séance - Nom.png]]
+![[Nouvelle séance - Nom.png|275]]
 
 ### Objectif
 
@@ -372,7 +374,7 @@ Lorsqu’une Séance existe déjà, le retour n’entraîne pas sa suppression.
 
 ## Écran 4 – Composition d’une séance
 
-![[Nouvelle séance - Etat initial et liste d'activités.png|560]]
+![[Nouvelle séance - Etat initial et liste des activités.png|455]]
 ### Objectif
 
 Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
@@ -415,6 +417,10 @@ Le Cycle et le Set possèdent chacun un nombre de répétitions compris entre **
 Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Cycle` ou `Set`. Les anciens boutons `+ / −` ne sont pas utilisés.
 
 Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
+
+### Retour haptique des roulettes
+
+Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibrations` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
 
 Le libellé `Set` utilise la même hiérarchie typographique que `Cycle`. Le fond du Set est visuellement distingué du fond du Cycle afin de rendre la hiérarchie claire.
 
@@ -475,8 +481,8 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 ## Écran 5 – Création / modification d’une Activité (Exercice)
 
-![[Nouvelle activité - Exercice.png]]
 
+![[Nouvelle activité - Exercice.png]]
 ### Objectif
 
 Permettre à l’utilisateur de créer ou modifier une Activité de type `Exercice`.
@@ -502,7 +508,7 @@ L’écran comporte notamment :
 - Type d’Activité ;
 - Nom ;
 - Mode d’Exécution ;
-- paramètres de la Série ;
+- `Paramètres de l’activité`, regroupant les valeurs d’exécution ;
 - bouton `Valider`.
 
 Le nom est obligatoire.
@@ -514,14 +520,14 @@ L’utilisateur choisit entre :
 - `Durée` ;
 - `Répétition`.
 
-En mode `Durée`, les paramètres comportent :
+En mode `Durée`, la section `Paramètres de l’activité` comporte des roulettes de sélection pour :
 
 - minutes ;
 - secondes ;
 - pause après Série ;
 - nombre de Séries.
 
-En mode `Répétition`, la durée est remplacée par le nombre de répétitions. La pause et le nombre de Séries restent disponibles.
+En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Le Nombre de répétitions, la Pause et le Nombre de Séries sont sélectionnés par roulettes. La Pause et le Nombre de Séries restent disponibles.
 
 Le nombre de Séries est toujours supérieur ou égal à 1. Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
@@ -551,7 +557,7 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 ## Écran 6 – Création / modification d’une Activité (Récupération)
 
-![[Nouvelle activité - Récupération.png|305]]
+![[Nouvelle activité - Récupération.png|284]]
 
 ### Objectif
 
@@ -564,7 +570,8 @@ L’écran comporte :
 
 - le type `Récupération` ;
 - `Nom` ;
-- `Durée` ;
+- `Paramètres de l’activité` ;
+- `Durée`, sélectionnée par une roulette minutes/secondes ;
 - bouton `Valider`.
 
 Le nom proposé par défaut est `Récupération`. Il peut être modifié par l’utilisateur.
@@ -589,7 +596,7 @@ La duplication et la suppression sont accessibles depuis le modal `Options de l�
 
 ## Écran 7 – Catégories de la séance
 
-![[Nouvelle séance - Entrer une catégorie.png|314]]
+![[Nouvelle séance - Entrer une catégorie.png|265]]
 
 ### Objectif
 
@@ -609,7 +616,7 @@ Aucune proposition intermédiaire `Exécuter maintenant / Planifier / Retour Cat
 
 ## Écran 8 – Calendrier
 
-![[Calendrier des routines.png|577]]
+![[Calendrier des routines.png|522]]
 
 ### Objectif
 
@@ -648,7 +655,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 ## Écran 9 – Planifier une séance
 
-![[Planifier une séance.png|289]]
+![[Planifier une séance.png|290]]
 
 ### Objectif
 
@@ -927,7 +934,7 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 ## Écran 12 – Suivi : Vue d’ensemble (V2)
 
-![[Suivi - Vue d'ensemble.png|307]]
+![[Suivi - Vue d'ensemble.png|313]]
 
 ### Objectif
 
@@ -937,21 +944,16 @@ Cette vue n’est pas fonctionnelle dans le MVP.
 
 ### Présence dans le MVP
 
-Le sélecteur du Suivi affiche :
-
-- `Vue d’ensemble`, grisée et inactive ;
-- `Séances`, active.
-
-La présence de l’onglet prépare la compréhension de l’évolution future sans rendre la fonctionnalité accessible.
+La `Vue d’ensemble` n’est pas exposée dans l’interface du MVP. Elle est reportée à une version ultérieure et ne doit pas apparaître comme onglet ou option inactive dans la V1.
 
 ## Écran 13 – Suivi : Séances
 
-![[Suivi - Séances.png|492]]
+![[Suivi - Séances.png|229]]
 
 ### Objectif
 
 
-Permettre à l’utilisateur de consulter les Exécutions de séance enregistrées, de les rechercher, filtrer et trier.
+Permettre à l’utilisateur de consulter les Exécutions de séance enregistrées, de les rechercher et de modifier leur ordre chronologique.
 
 Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi du MVP.
 
@@ -959,12 +961,11 @@ Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi
 
 L’écran comporte :
 
-- le sélecteur `Vue d’ensemble / Séances`, avec `Vue d’ensemble` grisée et inactive dans le MVP ;
-- un champ de recherche ;
-- le bouton `Filtrer` ;
+- un champ de recherche placé sous l’en-tête ;
+- une commande de tri chronologique discrète à droite de la recherche ;
 - une liste chronologique des Exécutions.
 
-La vue détaillée déployée d’une Exécution est reportée à une version ultérieure. Aucun contrôle `Déployer tout / Replier tout` n’est affiché dans le MVP.
+Chaque carte peut être condensée ou déployée individuellement afin d’afficher le détail de l’Exécution directement dans la liste. Aucun contrôle `Déployer tout / Replier tout` n’est affiché dans le MVP.
 
 ### Carte d’Exécution
 
@@ -981,44 +982,34 @@ Chaque carte affiche au minimum :
 
 La recherche filtre immédiatement la liste.
 
-Elle porte sur les informations définies pour le Suivi dans la spécification fonctionnelle, notamment le nom de la Séance et les attributs indexés prévus pour le MVP.
+Elle porte sur le nom de la Séance et les informations textuelles explicitement prévues pour le Suivi du MVP.
 
-### Filtrage
+### Filtres avancés
 
-Le modal de filtrage permet de combiner les critères prévus pour le MVP :
-
-- Catégories ;
-- Zones corporelles ;
-- période ;
-- statut.
-
-`Réinitialiser` supprime les filtres actifs.  
-`Appliquer` ferme le modal et actualise la liste.
+Le MVP ne propose pas de modale de filtres avancés. Le filtrage par Catégories, Zones corporelles, période ou statut est reporté à une version ultérieure.
 
 ### Tri
 
 Une seule règle de tri est active à la fois.
 
-Les tris disponibles sont :
+Les deux ordres disponibles dans le MVP sont :
 
-- Plus récentes ;
-- Plus anciennes ;
-- Nom ;
-- Durée.
+- plus récent au plus ancien ;
+- plus ancien au plus récent.
 
 Par défaut, les Exécutions sont triées de la plus récente à la plus ancienne.
 
 ### État vide
 
-Si aucune Exécution ne correspond aux critères, l’écran affiche un message et permet de réinitialiser les filtres.
+Si aucune Exécution ne correspond à la recherche, l’écran affiche un message indiquant qu’aucun résultat ne correspond.
 
 Si aucune Exécution n’existe encore, l’écran invite l’utilisateur à revenir vers `Mes séances`.
 
 ## Les modales
 
-### Modal – Abandonner la création d’une séance
+### Modale – Abandonner la création d’une séance
 
-![[Modal - Nouvelle séance - Abandonner la création.png|286]]
+![[Modale - Nouvelle séance - Abandonner la création.png|272]]
 
 #### Objectif
 
@@ -1057,9 +1048,9 @@ L’écran `Nouvelle séance — Nom et couleur` reste visible en arrière-plan,
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
-### Modal – Création d’une Catégorie
+### Modale – Création d’une Catégorie
 
-![[Modal - Nouvelle catégorie.png|316]]
+![[Modale - Nouvelle catégorie.png|302]]
 
 #### Objectif
 
@@ -1085,9 +1076,9 @@ Après validation :
 
 Le nom comporte de 1 à 50 caractères et ne peut pas dupliquer un nom existant sans tenir compte de la casse.
 
-### Modal – Options de l’Activité
+### Modale – Options de l’Activité
 
-![[Modal - Nouvelle séance - Option d'activité.png]]
+![[Modale - Nouvelle séance - Option d'activité.png|252]]
 
 #### Contenu
 
@@ -1114,9 +1105,9 @@ Le modal affiche le nom de l’Activité et les actions :
 
 `Supprimer` retire l’Activité de la Séance. La suppression de la dernière Activité est autorisée ; la Séance devient alors non exécutable jusqu’à l’ajout d’un nouvel Exercice.
 
-### Modal – Options d’une Séance
+### Modale – Options d’une Séance
 
-![[Modal - Catalogue des séances - Options.png|284]]
+![[Modale - Catalogue des séances - Options.png|284]]
 
 #### Objectif
 
@@ -1168,9 +1159,9 @@ Demande toujours une confirmation explicite.
 
 La suppression de la Séance ne supprime jamais les Exécutions historiques.
 
-### Modal – Options d’une Routine
+### Modale – Options d’une Routine
 
-![[Modal - Options d'une routine.png]]
+![[Modale - Options d'une routine.png]]
 
 #### Objectif
 
@@ -1192,9 +1183,9 @@ Le modal propose, selon le contexte :
 
 `Supprimer la routine` ouvre la modale de confirmation.
 
-### Modal – Confirmer la suppression d’une Routine
+### Modale – Confirmer la suppression d’une Routine
 
-![[Modal - Confirmation de la suppression d'une routine.png|295]]
+![[Modale - Confirmation de la suppression d'une routine.png|295]]
 
 #### Objectif
 
@@ -1210,9 +1201,9 @@ Après confirmation :
 - les Exécutions déjà enregistrées sont conservées ;
 - la Séance associée n’est pas supprimée.
 
-### Modal – Réinitialisation de l’Activité
+### Modale – Réinitialisation de l’Activité
 
-![[Modal - Exécution d'une séance - Réinitialiser l'activité.png|243]]
+![[Modale - Exécution d'une séance - Réinitialiser l'activité.png|243]]
 
 #### Objectif
 
@@ -1238,9 +1229,9 @@ Après confirmation :
 
 `Annuler` ferme la modale et reprend l’Activité à son état précédent.
 
-### Modal – Passage à l’Activité suivante
+### Modale – Passage à l’Activité suivante
 
-![[Modal - Exécution d'une séance - Passer à l'activité suivante.png|276]]
+![[Modale - Exécution d'une séance - Passer à l'activité suivante.png|276]]
 
 #### Objectif
 
@@ -1276,9 +1267,9 @@ Après confirmation :
 
 `Annuler` ferme la modale et reprend l’Activité en cours.
 
-### Modal – Pause / arrêt de l’Exécution
+### Modale – Pause / arrêt de l’Exécution
 
-![[Modal - Exécution d'une séance - Pause ou Arrêt de la séance.png|261]]
+![[Modale - Exécution d'une séance - Pause ou Arrêt de la séance.png|261]]
 
 #### Objectif
 
@@ -1318,9 +1309,9 @@ Met fin à l’Exécution :
 
 La modale ne peut être fermée que par l’une des deux actions prévues.
 
-### Modal – Paramétrer le Compte à rebours initial
+### Modale – Paramétrer le Compte à rebours initial
 
-![[Modal - Nouvelle séance - Compte à rebours initial.png|349]]
+![[Modale - Nouvelle séance - Compte à rebours initial.png|289]]
 
 #### Objectif
 
@@ -1332,20 +1323,19 @@ Le Compte à rebours initial est un élément structurel obligatoire et ne const
 
 La modale comporte :
 
-- `Nom` ;
 - `Durée` ;
 - `Texte vocal`.
+
+Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
 
 Les valeurs initiales proviennent des Préférences.
 
 Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
 
 `Enregistrer` applique les modifications.  
-`Annuler` ferme la modale sans les appliquer.
+### Modale – Paramétrer la Fin de séance
 
-### Modal – Paramétrer la Fin de séance
-
-![[Modal - Nouvelle séance - Fin de séance.png|395]]
+![[Modale - Nouvelle séance - Fin de séance.png|323]]
 
 #### Objectif
 
@@ -1357,13 +1347,73 @@ La Fin de séance est un élément structurel obligatoire et ne constitue pas un
 
 La modale comporte :
 
-- `Nom` ;
 - `Durée` ;
 - `Texte vocal`.
+
+Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
 
 Les valeurs initiales proviennent des Préférences.
 
 Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
 
 `Enregistrer` applique les modifications.  
-`Annuler` ferme la modale sans les appliquer.
+### Modale – Durée par défaut du Compte à rebours initial
+
+![[Modale - Profil - Comptes à rebours initial.png|263]]
+#### Objectif
+
+Permettre à l’utilisateur de définir depuis le Profil la durée proposée par défaut pour le Compte à rebours initial lors de la création d’une nouvelle Séance.
+
+#### Ouverture
+
+La modale s’ouvre lorsque l’utilisateur touche la ligne `Compte à rebours initial` dans la section `Exécution des séances` du Profil.
+
+#### Contenu
+
+La durée est sélectionnée au moyen de deux roulettes :
+
+- minutes ;
+- secondes.
+
+Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
+
+La valeur initialement sélectionnée correspond à la préférence actuellement enregistrée. La valeur par défaut initiale de l’application est `10 s`.
+
+#### Action
+
+`Enregistrer` enregistre la nouvelle valeur et ferme la modale.
+
+La nouvelle valeur devient la durée proposée par défaut pour le Compte à rebours initial des **nouvelles Séances**. Elle ne modifie ni les Séances déjà existantes ni les Exécutions passées.
+
+Une valeur de `0 s` désactive par défaut le Compte à rebours initial pour les nouvelles Séances.
+
+### Modale – Durée par défaut de la Fin de séance
+
+
+![[Modale - Profil - Fin de séance.png|241]]
+#### Objectif
+
+Permettre à l’utilisateur de définir depuis le Profil la durée proposée par défaut pour la Fin de séance lors de la création d’une nouvelle Séance.
+
+#### Ouverture
+
+La modale s’ouvre lorsque l’utilisateur touche la ligne `Fin de séance` dans la section `Exécution des séances` du Profil.
+
+#### Contenu
+
+La durée est sélectionnée au moyen de deux roulettes :
+
+- minutes ;
+- secondes.
+
+Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
+
+La valeur initialement sélectionnée correspond à la préférence actuellement enregistrée. La valeur par défaut initiale de l’application est `0 s`.
+
+#### Action
+
+`Enregistrer` enregistre la nouvelle valeur et ferme la modale.
+
+La nouvelle valeur devient la durée proposée par défaut pour la Fin de séance des **nouvelles Séances**. Elle ne modifie ni les Séances déjà existantes ni les Exécutions passées.
+
+Une valeur de `0 s` désactive par défaut la Fin de séance pour les nouvelles Séances.

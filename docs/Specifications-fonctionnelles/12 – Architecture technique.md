@@ -323,6 +323,8 @@ Ils prennent en charge :
 
 Le moteur d’exécution demande le déclenchement d’un événement sans dépendre directement de l’API native utilisée.
 
+Le feedback haptique des roulettes numériques relève de l’interface et non du moteur d’Exécution. Le composant de roulette déclenche un retour haptique léger et bref à chaque changement effectif de valeur, une seule fois par cran. Ce déclenchement est systématique et ne consulte pas la préférence `Vibrations`, réservée aux vibrations fonctionnelles de séance. L’implémentation reste isolée derrière l’adaptateur haptique natif afin de conserver un comportement cohérent sur iOS et Android.
+
 Cette abstraction permet de gérer les différences entre iOS et Android.
 
 Les comportements doivent être testés notamment :
@@ -398,7 +400,7 @@ Cet Instantané est :
 
 Le format physique de stockage doit permettre de relire les anciens Instantanés même après une évolution du modèle de données.
 
-Dans le MVP, l’Instantané est persisté sous forme de **JSON immuable** associé à l’Exécution. Les données nécessaires aux filtres du Suivi — notamment date, statut, Catégories et Zones corporelles historiques — sont conservées en parallèle sous forme de champs ou index dédiés. Le JSON constitue la photographie historique complète ; les index servent à la recherche efficace.
+Dans le MVP, l’Instantané est persisté sous forme de **JSON immuable** associé à l’Exécution. Les données nécessaires à la recherche et au tri chronologique du Suivi MVP sont conservées sous une forme permettant un accès efficace. Le JSON constitue la photographie historique complète. Les index dédiés aux filtres avancés — notamment Catégories, Zones corporelles, statut et période — sont reportés avec la fonctionnalité de filtrage avancé.
 
 Les migrations futures doivent donc préserver la compatibilité avec l’historique existant.
 

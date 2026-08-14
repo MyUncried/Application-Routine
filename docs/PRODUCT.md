@@ -155,7 +155,8 @@ Le guidage comprend :
 - le signal des trois dernières secondes ;
 - un réglage global des sons dans le MVP ;
 - un réglage séparé des annonces vocales ;
-- les vibrations selon les préférences définies.
+- les vibrations fonctionnelles de séance selon les préférences définies ;
+- un feedback haptique léger et systématique à chaque changement effectif de valeur d’une roulette numérique, indépendant du réglage `Vibrations`.
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
@@ -202,11 +203,11 @@ Une Activité `Partielle` compte comme exécutée dans le Nombre d’Activités 
 Le Suivi du MVP comprend :
 - une liste chronologique ;
 - une recherche ;
-- des tris et filtres ;
+- un tri chronologique du plus récent au plus ancien ou inversement ;
 - une vue condensée ou déployée ;
 - le détail d’Exécution directement dans la carte déployée.
 
-La Vue d’ensemble avec graphiques et comparaisons avancées est hors MVP.
+Les filtres avancés et la Vue d’ensemble avec graphiques et comparaisons avancées sont hors MVP.
 
 ### Profil et préférences
 
@@ -214,8 +215,10 @@ Les Préférences globales définissent notamment :
 - les valeurs par défaut du Compte à rebours initial et de la Fin de séance ;
 - les sons ;
 - les annonces vocales ;
-- les vibrations ;
+- les vibrations fonctionnelles de séance ;
 - l’activation des notifications.
+
+Le réglage `Vibrations` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
 
 Elles ne modifient jamais rétroactivement une Séance existante ni une Exécution passée.
 
@@ -235,6 +238,7 @@ Le MVP comporte quatre onglets :
 - relation avec un professionnel ;
 - groupes et communautés ;
 - tableaux de bord analytiques avancés ;
+- filtres avancés du Suivi ;
 - signalement détaillé de douleur ou de gêne ;
 - intelligence artificielle ;
 - Séances imbriquées ;
@@ -261,7 +265,7 @@ Le MVP comporte quatre onglets :
 ## 8. Écrans de référence
 
 Les principaux écrans du MVP sont :
-- Profil et Préférences ;
+- Profil ;
 - Catalogue des Séances ;
 - création du nom et de la couleur d’une Séance ;
 - Composition d’une Séance ;
@@ -301,6 +305,7 @@ Les versions futures pourront notamment introduire :
 - synchronisation et comptes ;
 - partage et relation avec des professionnels ;
 - tableaux de bord et analyses comparatives ;
+- filtres avancés et critères de tri supplémentaires dans le Suivi ;
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;

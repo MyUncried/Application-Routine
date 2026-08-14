@@ -186,27 +186,25 @@ Elle ne contient pas directement :
 
 ## Attributs fonctionnels
 
-| Attribut                                | Description                                                              |          Caractère           | Règle principale                                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------ | :--------------------------: | ------------------------------------------------------------------------------------------------------------- |
-| Identifiant                             | Identifiant interne unique de la séance                                  |         Obligatoire          | Stable pendant toute la durée de vie de la séance                                                             |
-| Nom                                     | Nom affiché de la séance                                                 |         Obligatoire          | Saisi avant la création effective de la séance                                                                |
-| Couleur                                 | Couleur d'identification de la séance                                    |         Obligatoire          | Choisie par l'utilisateur parmi une palette prédéfinie de 16 couleurs                                         |
-| Catégories                              | Catégories de classement                                                 |          Facultatif          | Zéro, une ou plusieurs catégories appartenant au même utilisateur                                             |
-| Statut                                  | État de la séance                                                        |         Obligatoire          | Active ou archivée                                                                                            |
-| Date de création                        | Date de création effective                                               |         Obligatoire          | Générée automatiquement                                                                                       |
-| Date de modification                    | Date de dernière modification                                            |         Obligatoire          | Mise à jour automatiquement                                                                                   |
-| Date de dernière exécution              | Date de la dernière exécution de séance                                  |          Facultatif          | Sert notamment au classement du Catalogue de séances                                                          |
-| Date d’archivage                        | Date de passage au statut archivé                                        |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                               |
-| Structure                               | Organisation complète de la séance                                       | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice          |
-| Durée estimée                           | Somme des durées déterminables de l’Exécution complète                   |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétition, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥` |
-| Nombre d’Activités de la Composition     | Nombre d’Exercices et de Récupérations définis dans la Composition       |           Calculé            | Ne multiplie pas les Activités par les Séries, Sets ou Cycles et exclut les pauses intermédiaires techniques |
-| Nombre total d’Activités à exécuter      | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Set et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
-| Nom du compte à rebours initial         | Libellé affiché de la phase précédant la première activité               |         Obligatoire          | Valeur initiale issue des Préférences globales ; modifiable pour chaque séance                                |
-| Durée du compte à rebours initial       | Durée de la phase précédant la première activité                         |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                            |
-| Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                               |
-| Nom de la fin de séance                 | Libellé affiché de la phase suivant la dernière activité                 |         Obligatoire          | Valeur initiale issue des Préférences globales ; modifiable pour chaque séance                                |
-| Durée de la fin de séance               | Durée de la phase suivant la dernière activité                           |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                            |
-| Texte vocal de la fin de séance         | Texte annoncé vocalement pendant ou au début de la fin de séance         |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                               |
+| Attribut                                | Description                                                               |          Caractère           | Règle principale                                                                                                                                                                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------- | :--------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identifiant                             | Identifiant interne unique de la séance                                   |         Obligatoire          | Stable pendant toute la durée de vie de la séance                                                                                                                                                                                                      |
+| Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
+| Couleur                                 | Couleur d'identification de la séance                                     |         Obligatoire          | Choisie par l'utilisateur parmi une palette prédéfinie de 16 couleurs                                                                                                                                                                                  |
+| Catégories                              | Catégories de classement                                                  |          Facultatif          | Zéro, une ou plusieurs catégories appartenant au même utilisateur                                                                                                                                                                                      |
+| Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
+| Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
+| Date de modification                    | Date de dernière modification                                             |         Obligatoire          | Mise à jour automatiquement                                                                                                                                                                                                                            |
+| Date de dernière exécution              | Date de la dernière exécution de séance                                   |          Facultatif          | Sert notamment au classement du Catalogue de séances                                                                                                                                                                                                   |
+| Date d’archivage                        | Date de passage au statut archivé                                         |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                                                                                                                                                                        |
+| Structure                               | Organisation complète de la séance                                        | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice                                                                                                                                                   |
+| Durée estimée                           | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétition, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥`                                                       |
+| Nombre d’Activités de la Composition    | Nombre d’Exercices et de Récupérations définis dans la Composition        |           Calculé            | Ne multiplie pas les Activités par les Séries, Sets ou Cycles et exclut les pauses intermédiaires techniques                                                                                                                                           |
+| Nombre total d’Activités à exécuter     | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Set et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
+| Durée du compte à rebours initial       | Durée de la phase précédant la première activité                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
+| Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial  |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
+| Durée de la fin de séance               | Durée de la phase suivant la dernière activité                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
+| Texte vocal de la fin de séance         | Texte annoncé vocalement pendant ou au début de la fin de séance          |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
 ## Structure interne de la séance
 
 La structure d’une séance est composée, dans l’ordre, de :
@@ -648,21 +646,21 @@ Il contient uniquement les informations nécessaires pour :
 
 Il ne contient pas de copie physique des médias associés aux Activités.
 
-| Élément conservé | Contenu |
-| --- | --- |
-| Séance | Identifiant source, nom, couleur, catégorie(s) |
-| Compte à rebours initial | Nom, durée, texte vocal |
-| Cycle | Identifiant, position, nombre de répétitions |
-| Set | Identifiant, position, nombre de répétitions |
-| Exercice | Identifiant source, nom, mode d’exécution, durée ou répétitions, nombre de Séries, consigne, zones corporelles |
-| Récupération | Identifiant source, nom éventuel, durée |
-| Pause après Série | Représentée par la Récupération correspondante et la règle d'insertion dans le plan d'exécution |
-| Fin de séance | Nom, durée, texte vocal |
-| Structure | Ordre exact des éléments et relations nécessaires au plan d’exécution |
+| Élément conservé         | Contenu                                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Séance                   | Identifiant source, nom, couleur, catégorie(s)                                                                 |
+| Compte à rebours initial | Durée, texte vocal                                                                                             |
+| Cycle                    | Identifiant, position, nombre de répétitions                                                                   |
+| Set                      | Identifiant, position, nombre de répétitions                                                                   |
+| Exercice                 | Identifiant source, nom, mode d’exécution, durée ou répétitions, nombre de Séries, consigne, zones corporelles |
+| Récupération             | Identifiant source, nom éventuel, durée                                                                        |
+| Pause après Série        | Représentée par la Récupération correspondante et la règle d'insertion dans le plan d'exécution                |
+| Fin de séance            | Durée, texte vocal                                                                                             |
+| Structure                | Ordre exact des éléments et relations nécessaires au plan d’exécution                                          |
 
 Les médias ne sont pas dupliqués dans l’Instantané. Leur modification ou suppression ultérieure ne remet pas en cause la lisibilité fonctionnelle de l’historique.
 
-L’Instantané est persisté sous forme de **JSON immuable**. Les critères nécessaires au Suivi, notamment la date, le statut, les Catégories et les Zones corporelles historiques, sont également conservés sous forme de champs ou index dédiés afin de permettre des filtres efficaces sans dépendre de la Séance courante.
+L’Instantané est persisté sous forme de **JSON immuable**. Les champs nécessaires à la consultation du Suivi MVP, notamment la date et les informations utiles à la recherche et au tri chronologique, sont conservés sous une forme permettant un accès efficace sans dépendre de la Séance courante. Les index spécifiques à des filtres avancés (catégories, zones corporelles, statut, période) ne sont pas requis par l’interface MVP et pourront être ajoutés lors de l’évolution correspondante.
 
 ### État d'exécution
 
@@ -783,24 +781,22 @@ Elles ne contiennent pas directement :
 
 ## Attributs fonctionnels
 
-| Attribut                                           | Description                                                                |  Caractère  | Règle principale                             |
-| -------------------------------------------------- | -------------------------------------------------------------------------- | :---------: | -------------------------------------------- |
-| Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                           |
-| Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                           |
-| Notifications                                      | Active les rappels locaux des Routines planifiées                          | Obligatoire | Valeur initiale : activée ; soumise à l’autorisation système |
-| Vibrations                                         | Active le retour haptique                                                  | Facultatif  | Selon l'appareil                             |
-| Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement               |
-| Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                          |
-| Durée par défaut d'une activité Récupération       | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                          |
-| Pause après Série par défaut           | Valeur proposée après chaque Série d'un Exercice                                          | Facultatif  | Création uniquement                          |
-| Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                      |
-| Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                  |
-| Nom du compte à rebours initial par défaut         | Nom proposé pour le compte à rebours initial d'une nouvelle séance         | Obligatoire | Valeur initiale : `Compte à rebours initial` |
-| Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                     |
-| Texte vocal du compte à rebours initial par défaut | Texte vocal proposé pour le compte à rebours initial d'une nouvelle séance | Facultatif  | Valeur initiale : `Préparez-vous`                |
-| Nom de la fin de séance par défaut                 | Nom proposé pour la fin de séance d'une nouvelle séance                    | Obligatoire | Valeur initiale : `Fin de séance`            |
-| Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `0 s`                      |
-| Texte vocal de la fin de séance par défaut         | Texte vocal proposé pour la fin de séance d'une nouvelle séance            | Facultatif  | Valeur initiale : `Séance terminée, bravo`   |
+| Attribut                                           | Description                                                                |  Caractère  | Règle principale                                                         |
+| -------------------------------------------------- | -------------------------------------------------------------------------- | :---------: | ------------------------------------------------------------------------ |
+| Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                                                       |
+| Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                                                       |
+| Notifications                                      | Active les rappels locaux des Routines planifiées                          | Obligatoire | Valeur initiale : activée ; soumise à l’autorisation système             |
+| Vibrations                                         | Active les vibrations fonctionnelles de séance                             | Facultatif  | N'affecte pas le feedback haptique systématique des roulettes numériques |
+| Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
+| Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
+| Durée par défaut d'une activité Récupération       | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
+| Pause après Série par défaut                       | Valeur proposée après chaque Série d'un Exercice                           | Facultatif  | Création uniquement                                                      |
+| Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
+| Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
+| Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                                                 |
+| Texte vocal du compte à rebours initial par défaut | Texte vocal proposé pour le compte à rebours initial d'une nouvelle séance | Facultatif  | Valeur initiale : `Préparez-vous`                                        |
+| Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `0 s`                                                  |
+| Texte vocal de la fin de séance par défaut         | Texte vocal proposé pour la fin de séance d'une nouvelle séance            | Facultatif  | Valeur initiale : `Séance terminée, bravo`                               |
 ## Règles métier
 
 - Chaque utilisateur possède une seule structure de préférences globales.

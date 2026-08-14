@@ -53,14 +53,14 @@ Les API fonctionnelles respectent les principes suivants :
 
 | ID         | Opération                              | Entrées principales                                             | Résultat                           | Règles / validations                                                                           | Objets impactés     |
 | ---------- | -------------------------------------- | --------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
-| API-COM-01 | Modifier les paramètres du Cycle       | ID Cycle, nombre de répétitions                                 | Cycle mis à jour                   | Nombre de répétitions de **1 à 99**                                                                      | Cycle               |
-| API-COM-02 | Modifier les paramètres du Set        | ID Set, nombre de répétitions                                  | Set mis à jour                    | Nombre de répétitions de **1 à 99**                                                                      | Set                |
+| API-COM-01 | Modifier les paramètres du Cycle       | ID Cycle, nombre de répétitions                                 | Cycle mis à jour                   | Nombre de répétitions de **1 à 99**                                                            | Cycle               |
+| API-COM-02 | Modifier les paramètres du Set         | ID Set, nombre de répétitions                                   | Set mis à jour                     | Nombre de répétitions de **1 à 99**                                                            | Set                 |
 | API-COM-03 | Ajouter une activité                   | Conteneur ou emplacement, type d’Activité, paramètres, position | Nouvelle Activité avec identifiant | Type `Exercice` ou `Récupération` ; destination valide ; paramètres obligatoires selon le type | Activité, conteneur |
 | API-COM-04 | Modifier une activité                  | ID Activité, valeurs à modifier                                 | Activité mise à jour               | Respect des règles propres à son type ; les Exécutions historisées ne sont pas modifiées       | Activité            |
 | API-COM-05 | Supprimer une activité                 | ID Activité                                                     | Activité retirée de la composition | L’Activité doit exister ; les données historiques restent exploitables                         | Activité, conteneur |
 | API-COM-06 | Réordonner les activités               | Conteneur, ordre des Activités                                  | Nouvelles positions enregistrées   | Chaque Activité doit appartenir au conteneur concerné ; positions uniques                      | Activités           |
-| API-COM-07 | Paramétrer le compte à rebours initial | ID Séance, nom, durée, texte vocal                              | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; une durée de 0 s rend la phase instantanée              | Séance              |
-| API-COM-08 | Paramétrer la fin de séance            | ID Séance, nom, durée, texte vocal                              | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; la Fin de séance n’est pas une Activité                 | Séance              |
+| API-COM-07 | Paramétrer le compte à rebours initial | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; une durée de 0 s rend la phase instantanée              | Séance              |
+| API-COM-08 | Paramétrer la fin de séance            | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; la Fin de séance n’est pas une Activité                 | Séance              |
 ## 11.4 API Activités
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
@@ -134,7 +134,7 @@ Une étape terminée ou passée ne peut pas être rejouée au cours de la même 
 
 | ID         | Opération                         | Entrées principales        | Résultat                                                         | Règles / validations                                                                                          | Objets impactés                          |
 | ---------- | --------------------------------- | -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| API-HIS-01 | Consulter l’historique            | Période, filtres éventuels | Occurrences historisées et Exécutions correspondant aux critères | Les occurrences `Non exécutée` ne sont pas exposées dans le Suivi du MVP                                           | Occurrence planifiée, Exécution, lecture |
+| API-HIS-01 | Consulter l’historique            | Recherche éventuelle, ordre chronologique | Exécutions correspondant à la recherche, ordonnées du plus récent au plus ancien ou inversement | Les occurrences `Non exécutée` ne sont pas exposées dans le Suivi du MVP ; les filtres avancés sont hors MVP | Occurrence planifiée, Exécution, lecture |
 | API-HIS-02 | Lire une exécution                | ID Exécution               | Détail de l’Exécution                                            | Les informations correspondent aux données historisées au moment de l’Exécution                               | Exécution, lecture                       |
 | API-HIS-03 | Lire une occurrence historisée    | ID Occurrence              | Détail de la planification passée et de son statut               | Une occurrence `Exécutée` peut référencer une Exécution ; une occurrence `Non exécutée` n’en référence aucune | Occurrence planifiée, lecture            |
 ### Périmètre du Suivi dans le MVP
@@ -245,5 +245,5 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 ## Compléments de cohérence MVP
 
 - Une Exécution anticipée via `Exécuter maintenant` persiste immédiatement l’Occurrence planifiée satisfaite avec sa date/heure initialement prévues et son lien vers l’Exécution réelle.
-- L’Instantané d’Exécution est un JSON immuable ; les critères nécessaires aux filtres du Suivi sont indexés séparément.
+- L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
 - La suppression d’un média est autorisée même s’il est référencé : toutes ses associations sont retirées et les Activités concernées restent valides sans média.

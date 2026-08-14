@@ -713,7 +713,7 @@ Cet instantané comprend notamment :
 - le Compte à rebours initial ;
 - la structure ordonnée des Cycles, Sets et Activités ;
 - les paramètres fonctionnels nécessaires de chaque Activité ;
-- les zones corporelles nécessaires à la consultation et au filtrage de l’historique ;
+- les zones corporelles nécessaires à la restitution fidèle de l’historique ;
 - la Fin de séance ;
 - les paramètres nécessaires à la génération du plan d’exécution.
 
@@ -758,10 +758,9 @@ Les séances exécutées sont présentées sous forme de liste chronologique.
 Pour les Exécutions enregistrées, l'utilisateur peut :
 
 - rechercher une Exécution ;
-- filtrer les résultats ;
-- modifier le tri.
+- modifier l’ordre chronologique d’affichage.
 
-Dans le MVP, les cartes restent condensées. La vue détaillée d'une Exécution est reportée à une version ultérieure.
+Dans le MVP, les cartes peuvent être condensées ou déployées individuellement. Le détail d’une Exécution est présenté directement dans la carte déployée.
 
 ## 6.6 Recherche
 
@@ -775,30 +774,22 @@ Les résultats sont mis à jour au fur et à mesure de la saisie.
 
 ## 6.7 Filtres
 
-L'utilisateur peut combiner plusieurs critères de filtrage :
-
-- catégories ;
-- zones corporelles ;
-- période ;
-- statut.
-
-Les filtres sont appliqués simultanément.
-
-Ils peuvent être réinitialisés à tout moment.
+Les filtres avancés du Suivi ne font pas partie du MVP. Ils sont reportés à une version ultérieure.
 
 ## 6.8 Tri
 
-Le suivi permet de trier les exécutions selon différents critères.
+Le Suivi permet d’inverser l’ordre chronologique des Exécutions :
 
-Par défaut, les séances sont triées de la plus récente à la plus ancienne.
+- plus récent au plus ancien ;
+- plus ancien au plus récent.
 
-Les autres critères de tri pourront évoluer dans les versions futures.
+Par défaut, les Exécutions sont triées de la plus récente à la plus ancienne. Les autres critères de tri sont reportés à une version ultérieure.
 
 ## 6.9 Déploiement du détail
 
-La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
+Chaque Exécution peut être déployée individuellement dans le MVP afin d’afficher son détail directement dans la carte.
 
-Dans le MVP, les Exécutions sont présentées uniquement sous forme de cartes condensées. Aucun bouton **Déployer tout / Replier tout** n'est affiché.
+Aucun bouton **Déployer tout / Replier tout** n'est affiché ; le déploiement est géré carte par carte.
 
 ## 6.10 Conservation des historiques
 
@@ -817,7 +808,7 @@ Le suivi repose sur les principes suivants :
 - chaque exécution constitue un enregistrement indépendant ;
 - chaque historique est construit à partir d'un instantané immuable ;
 - les historiques ne sont jamais modifiés par les évolutions ultérieures des séances ;
-- le suivi privilégie une consultation rapide grâce à la recherche, aux filtres, au tri et à des cartes condensées ;
+- le suivi privilégie une consultation rapide grâce à la recherche, au tri chronologique et à des cartes condensées ou déployées individuellement ;
 - les données affichées correspondent toujours à l'état exact de la séance au moment de son exécution.
 
 # Annexe – Tableaux de spécification des écrans
@@ -866,16 +857,16 @@ Le suivi repose sur les principes suivants :
 
 ### Éléments affichés
 
-| Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraintes | Source | Action | Remarques |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bouton Retour | Bouton | Toujours | Oui | Visible | Annule la création tant que la séance n’est pas validée | Système | Retour | |
-| Titre de l’écran | Texte | Toujours | Oui | « Nouvelle séance » | Texte fixe | Statique | Aucune | En-tête fixe |
-| Nom de la séance | Champ texte | Toujours | Oui | Vide | 1 à 80 caractères | Séance | Saisie | Focus initial sur le champ |
-| Texte d’aide du nom | Texte | Toujours | Non | « Le nom est obligatoire pour continuer. » | Texte fixe | Statique | Aucune | |
-| Libellé Couleur | Texte | Toujours | Oui | « Couleur de la séance » | Texte fixe | Statique | Aucune | |
-| Palette de couleurs | Sélecteur | Toujours | Oui | Aucune sélection | Une seule couleur parmi 16 | Séance | Sélectionner | La couleur sélectionnée est entourée et cochée |
-| Texte d’aide de la couleur | Texte | Toujours | Non | « Utilisée dans le catalogue, le calendrier et le suivi. » | Texte fixe | Statique | Aucune | |
-| Bouton Continuer | Bouton | Toujours | Oui | Désactivé | Activé uniquement si le nom et la couleur sont valides | Statique | Continuer | Ouvre la composition |
+| Élément affiché            | Type        | Visible  | Obligatoire | Valeur par défaut                                          | Contraintes                                             | Source   | Action       | Remarques                                      |
+| -------------------------- | ----------- | -------- | ----------- | ---------------------------------------------------------- | ------------------------------------------------------- | -------- | ------------ | ---------------------------------------------- |
+| Bouton Retour              | Bouton      | Toujours | Oui         | Visible                                                    | Annule la création tant que la séance n’est pas validée | Système  | Retour       |                                                |
+| Titre de l’écran           | Texte       | Toujours | Oui         | « Nouvelle séance »                                        | Texte fixe                                              | Statique | Aucune       | En-tête fixe                                   |
+| Nom de la séance           | Champ texte | Toujours | Oui         | Vide                                                       | 1 à 80 caractères                                       | Séance   | Saisie       | Focus initial sur le champ                     |
+| Texte d’aide du nom        | Texte       | Toujours | Non         | « Le nom est obligatoire pour continuer. »                 | Texte fixe                                              | Statique | Aucune       |                                                |
+| Libellé Couleur            | Texte       | Toujours | Oui         | « Couleur de la séance »                                   | Texte fixe                                              | Statique | Aucune       |                                                |
+| Palette de couleurs        | Sélecteur   | Toujours | Oui         | Aucune sélection                                           | Une seule couleur parmi 16                              | Séance   | Sélectionner | La couleur sélectionnée est entourée et cochée |
+| Texte d’aide de la couleur | Texte       | Toujours | Non         | « Utilisée dans le catalogue, le calendrier et le suivi. » | Texte fixe                                              | Statique | Aucune       |                                                |
+| Bouton Continuer           | Bouton      | Toujours | Oui         | Désactivé                                                  | Activé uniquement si le nom et la couleur sont valides  | Statique | Continuer    | Ouvre la composition                           |
 
 ### Règles fonctionnelles
 
@@ -917,19 +908,19 @@ Le suivi repose sur les principes suivants :
 
 ### Eléments affichés
 
-| Élément affiché | Type | Visible | Valeur / comportement | Action | Remarques |
-| --- | --- | --- | --- | --- | --- |
-| Titre / nom de la Séance | Texte | Toujours | Nom défini sur l’écran précédent | Retour vers Nom et couleur | Non modifiable directement ici |
-| Résumé | Texte | Toujours | `N activité(s) · durée estimée` | Aucune | Mis à jour automatiquement |
-| Bouton global `+` | Bouton | Toujours | Un seul bouton, à droite du résumé | Ajouter une Activité | Ajoute après la dernière Activité |
-| Compte à rebours initial | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
-| Cycle | Conteneur | Toujours | Un Cycle dans le MVP | Déployer / Replier | Fond distinct du Set |
-| Répétitions Cycle `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Valeurs **1 à 99** ; juste à droite de `Cycle` |
-| Set | Conteneur | Toujours | Un Set dans le MVP | Déployer / Replier | Même taille de titre que Cycle |
-| Répétitions Set `xN` | Contrôle | Toujours | `x1` par défaut | Ouvrir picker | Valeurs **1 à 99** ; juste à droite de `Set` |
-| Activité | Carte | Selon contenu | Ordre d’Exécution | Ouvrir options / déplacer | Aucune zone d’ajout intermédiaire |
-| Fin de séance | Carte | Toujours | Valeur issue des Préférences | Modifier | Élément structurel |
-| Valider les modifications | Bouton | Toujours | Actif si la Composition est valide | Valider | En création, poursuit vers Catégories |
+| Élément affiché           | Type      | Visible       | Valeur / comportement              | Action                     | Remarques                                      |
+| ------------------------- | --------- | ------------- | ---------------------------------- | -------------------------- | ---------------------------------------------- |
+| Titre / nom de la Séance  | Texte     | Toujours      | Nom défini sur l’écran précédent   | Retour vers Nom et couleur | Non modifiable directement ici                 |
+| Résumé                    | Texte     | Toujours      | `N activité(s) · durée estimée`    | Aucune                     | Mis à jour automatiquement                     |
+| Bouton global `+`         | Bouton    | Toujours      | Un seul bouton, à droite du résumé | Ajouter une Activité       | Ajoute après la dernière Activité              |
+| Compte à rebours initial  | Carte     | Toujours      | Valeur issue des Préférences       | Modifier                   | Élément structurel                             |
+| Cycle                     | Conteneur | Toujours      | Un Cycle dans le MVP               | Déployer / Replier         | Fond distinct du Set                           |
+| Répétitions Cycle `xN`    | Contrôle  | Toujours      | `x1` par défaut                    | Ouvrir picker              | Valeurs **1 à 99** ; juste à droite de `Cycle` |
+| Set                       | Conteneur | Toujours      | Un Set dans le MVP                 | Déployer / Replier         | Même taille de titre que Cycle                 |
+| Répétitions Set `xN`      | Contrôle  | Toujours      | `x1` par défaut                    | Ouvrir picker              | Valeurs **1 à 99** ; juste à droite de `Set`   |
+| Activité                  | Carte     | Selon contenu | Ordre d’Exécution                  | Ouvrir options / déplacer  | Aucune zone d’ajout intermédiaire              |
+| Fin de séance             | Carte     | Toujours      | Valeur issue des Préférences       | Modifier                   | Élément structurel                             |
+| Valider les modifications | Bouton    | Toujours      | Actif si la Composition est valide | Valider                    | En création, poursuit vers Catégories          |
 
 ### Règles fonctionnelles
 
@@ -960,6 +951,8 @@ Le suivi repose sur les principes suivants :
 | Nombre de répétitions     | Roulette          | Étape 1, mode Répétition           | Oui         | 1                              | Entier ≥ 1                                     | Activité | Sélection      | Roulette unique, large et centrée |
 | Pause après Série         | Roulette durée    | Étape 1, Exercice uniquement       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Appliquée après chaque Série ; la pause finale est omise si l'étape suivante du plan est une Récupération explicite |
 | Nombre de Séries          | Roulette          | Étape 1, Exercice uniquement       | Oui         | 1                              | Entier ≥ 1                                     | Activité | Sélection      | Paramètre propre à l'Activité ; une Série n'est pas une entité autonome |
+
+**Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 | Consigne                  | Texte multiligne  | Étape 2                            | Non         | Vide                           | 1000 caractères max                            | Activité | Saisie         | Écran Informations complémentaires |
 | Zones corporelles         | Tags              | Étape 2, Exercice uniquement       | Non         | Aucune                         | Plusieurs zones autorisées                     | Activité | Sélection      | Référentiel prédéfini ; écran Informations complémentaires |
 | Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom + durée/répétitions obligatoires           | Statique | Enregistrer    |                                                                                                                                                                                                                                        |
@@ -1048,7 +1041,7 @@ Le suivi repose sur les principes suivants :
 | Navigation          | Appui sur **Terminer** → écran **Suivi**.                                        |
 | Sauvegarde          | Le ressenti et le commentaire sont enregistrés avec la séance.                   |
 | Séance interrompue  | Même écran, avec un statut et une icône adaptés.                                 |
-## Profil – Préférences
+## Profil
 
 ### Eléments affichés
 | Élément affiché                     | Type            |  Visible | Obligatoire | Valeur par défaut          | Contraintes                     | Source      | Action               | Remarques                                            |
@@ -1072,7 +1065,7 @@ Le suivi repose sur les principes suivants :
 | Surcharge                | Une séance peut remplacer les valeurs par défaut (compte à rebours initial et fin de séance).                                            |
 | Sons                     | Désactive tous les bips de l'application.                                                                                                |
 | Annonces vocales         | Désactive toutes les annonces vocales sans modifier les bips.                                                                            |
-| Vibrations               | Désactive toutes les vibrations générées par l'application.                                                                              |
+| Vibrations               | Active ou désactive les vibrations fonctionnelles de séance. Ce réglage n'affecte pas le feedback haptique des roulettes numériques.     |
 | Compte à rebours initial | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure. |
 | Fin de séance            | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure.            |
 | Langue du MVP            | Le MVP est disponible uniquement en français. Aucun sélecteur de langue n'est affiché. L'évolution multilingue est préparée techniquement. |

@@ -259,7 +259,7 @@ Le guidage sonore peut comprendre :
 - un bip grave pendant les exercices chronométrés ;
 - un bip aigu pendant les trois dernières secondes de toute étape chronométrée.
 
-Les annonces vocales, les bips et les vibrations peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur.
+Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct de ces vibrations fonctionnelles : il est systématique et n'est pas piloté par la préférence `Vibrations`.
 
 La couleur de la séance peut être utilisée pour faciliter son identification dans les différents écrans de l'application.
 
