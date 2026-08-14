@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "temp",
-    "slug": "temp",
+    "name": "Routine",
+    "slug": "routine",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "temp",
+    "scheme": "routine",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -37,6 +37,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "110c4abe-921e-44b3-aff3-465ee1573efe"
+      }
+    },
+    "owner": "ankushas-team"
   }
 }
