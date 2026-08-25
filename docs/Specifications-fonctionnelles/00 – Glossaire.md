@@ -1,51 +1,110 @@
-Le glossaire définit le vocabulaire officiel du projet. Chaque terme est identifié comme une _entité métier_ ou un _concept métier_. Une entité métier est représentée dans le modèle de données et manipulée par l'application. Un concept métier décrit le fonctionnement ou le vocabulaire du domaine, sans correspondre nécessairement à un objet persistant.
+# Glossaire
 
-# Glossaire - Entités métier
+Le glossaire définit le vocabulaire officiel du projet KODJO. Les écrans, la documentation, les tests et le code doivent rester rattachables à ces termes et ne doivent pas introduire de concept concurrent.
 
-Élément métier manipulé par l'application, possédant sa propre identité et représenté dans le modèle de données. Certaines entités sont autonomes ; d'autres appartiennent exclusivement à la structure d'une Séance.
+Une **entité métier** possède une identité propre et peut être représentée dans le modèle de données. Un **concept métier** décrit une règle, un état ou une structure sans correspondre nécessairement à un objet persistant.
 
-Ce glossaire constitue la référence terminologique fonctionnelle du projet. Les noms techniques du code doivent rester explicitement rattachables à ces concepts et ne doivent pas introduire de concept métier concurrent.
+## 1. Identité du produit
 
-| Terme | Définition | Exemple |
-| --- | --- | --- |
-| **Utilisateur** | Propriétaire des données de l'application. Dans le MVP, une seule entité Utilisateur locale existe ; elle possède notamment ses Séances, Routines, Catégories, préférences et son historique. | Utilisateur local de l'application |
-| **Activité** | Plus petite unité exécutable d'une Séance. Une Activité est de type **Exercice** ou **Récupération**. Elle appartient à une seule Séance et possède ses paramètres d'exécution. | 12 pompes ; 30 s de récupération |
-| **Set** | Conteneur ordonné d'Activités appartenant à un Cycle. Dans le MVP, un Cycle contient un Set unique, répété une ou plusieurs fois. Le modèle prévoit l'évolution vers plusieurs Sets ordonnés par Cycle. | Pompes → récupération → squats, répété 3 fois |
-| **Cycle** | Conteneur d'un Set et, éventuellement, d'Activités de fin de Cycle. Dans le MVP, une Séance contient un Cycle unique, répété une ou plusieurs fois. Le modèle prévoit l'évolution vers plusieurs Cycles ordonnés par Séance. | Répéter 4 fois un Set puis exécuter une récupération de fin de Cycle |
-| **Séance** | Contenu exécutable d'un entraînement. Dans le MVP, elle comprend un compte à rebours initial, un Cycle unique contenant un Set unique et ses Activités, puis une fin de Séance. Elle peut être exécutée directement ou planifiée par une ou plusieurs Routines. | Séance « Haut du corps » |
-| **Routine** | Planification d'une Séance. Elle définit notamment la date de début, l'heure d'exécution et le mode de planification. Dans le MVP, le mode de planification est `Sans répétition` ou `Périodique` ; le mode Périodique propose uniquement une périodicité hebdomadaire définie par une fréquence en semaines, un ou plusieurs jours et une date de fin. | Séance « Haut du corps » tous les 2 semaines, lundi et jeudi à 18 h |
-| **Occurrence planifiée** | Instance temporelle calculée à partir d'une Routine. Les occurrences futures sont calculées dynamiquement. Une occurrence future peut être exécutée en avance. Une occurrence arrivée à échéance sans Exécution disparaît de l'interface du MVP et n'apparaît pas dans le Suivi. | Séance prévue lundi à 18 h |
-| **Exécution de séance** | Réalisation effective d'une Séance. Elle est créée uniquement au démarrage effectif de la Séance et conserve un instantané de la Séance exécutée. | Exécution démarrée lundi à 18 h 03 |
-| **Instantané de séance** | Copie fonctionnelle figée et allégée d'une Séance, créée au démarrage effectif d'une Exécution de séance. Il permet de restituer fidèlement l'historique indépendamment des modifications, de l'archivage ou de la suppression ultérieure de la Séance source. Les médias n'y sont pas dupliqués. | Structure de la Séance « Haut du corps » telle qu'elle était au démarrage de l'Exécution |
-| **Média** | Ressource visuelle associée à une Activité afin d'en faciliter la compréhension ou l'exécution. | Photo ou vidéo d'un exercice |
-| **Catégorie** | Libellé permettant de classer des Séances selon un thème ou un objectif. | Haut du corps, Mobilité, Kiné |
-| **Zone corporelle** | Partie du corps principalement sollicitée par une Activité de type Exercice, issue du référentiel prédéfini de l’application. | Épaules, Lombaires, Quadriceps |
-| **Préférences globales** | Paramètres personnels servant de valeurs par défaut lors de la création ou de l'utilisation des Séances et des Routines. Leur modification n'altère pas rétroactivement les objets déjà créés lorsque la valeur a été copiée dans ceux-ci. | Durée du compte à rebours initial, annonces vocales, rappels |
+| Terme | Définition |
+| --- | --- |
+| **KODJO** | Nom du produit et de l’application mobile. |
+| **ANKUSHA** | Société propriétaire, marque mère et éditeur de KODJO. KODJO ne remplace pas la dénomination ANKUSHA. |
+| **Keep On. Do Just One.** | Slogan produit affiché notamment sur le splash. |
 
-# Glossaire - Concepts métier
-
-Notion ou terme utilisé pour décrire le fonctionnement de l'application, son vocabulaire ou ses règles métier, mais qui ne correspond pas à un objet distinct du modèle de données.
+## 2. Entités métier
 
 | Terme | Définition | Exemple |
 | --- | --- | --- |
-| **Exercice** | Type d'Activité correspondant à une action réalisée par l'utilisateur. Un Exercice est exécuté selon une durée ou un nombre de répétitions et possède un nombre de séries propre, supérieur ou égal à 1. | Pompes, squats, gainage, étirement |
-| **Récupération** | Type d'Activité correspondant à une période de repos. Elle est toujours chronométrée. Elle peut être créée explicitement ou être générée à partir du paramètre **Pause après Série** d'un Exercice. | 30 s de récupération |
-| **Pause après Série** | Paramètre facultatif d'un Exercice, appliqué après chaque Série. Dans le modèle, il est matérialisé par une Activité de type Récupération liée à l'Exercice et masquée comme objet autonome dans l'interface de composition. Après la dernière Série, cette pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Récupération explicite. | 30 s après chaque série de pompes |
-| **Série** | Répétition propre à une Activité de type Exercice. Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution, suivie de sa pause éventuelle. Le nombre de Séries est un paramètre de l'Activité ; une Série n'est ni un conteneur structurel de la Séance ni une entité métier autonome. | 12 pompes + 30 s de pause, à répéter 3 fois |
-| **Planification** | Organisation dans le temps de l'exécution d'une Séance. Elle est matérialisée par une Routine. | Tous les lundis à 18 h |
-| **Calendrier** | Vue chronologique des Séances planifiées à partir des Routines. | Vue semaine des séances à venir |
-| **Durée estimée** | Durée calculée de l’Exécution complète à partir de toutes les durées déterminables du plan. Si au moins un Exercice est en mode Répétition, aucune durée conventionnelle ne lui est attribuée et la valeur affichée devient une borne minimale précédée de `≥`. | `18 min` ou `≥ 18 min` |
-| **Plan d'exécution** | Séquence déterministe des étapes réellement exécutées, construite au démarrage à partir de l'Instantané de séance. Elle développe notamment les Séries, répétitions de Set et répétitions de Cycle afin de piloter l'Exécution. | Suite ordonnée : Série 1 de pompes → récupération → Série 2 → … |
-| **Exécution** | Processus consistant à réaliser une Séance en suivant son ordre d'exécution. Une **Exécution de séance** est créée lors du démarrage effectif. | Lancement d'une Séance |
-| **Historique** | Ensemble des données conservées à des fins de traçabilité. Dans l'interface MVP, le Suivi expose uniquement les Exécutions de séance enregistrées ; les occurrences planifiées non exécutées n'y sont pas affichées. | Exécutions enregistrées cette semaine |
-| **Compte à rebours initial** | Phase obligatoire précédant la première Activité d'une Séance. Sa durée peut être égale à 0 s, ce qui la rend instantanée. | « Préparez-vous », 10 s |
-| **Fin de séance** | Phase obligatoire exécutée après la dernière Activité de la Séance. Sa durée peut être égale à 0 s, ce qui la rend instantanée. Elle n'est pas une Activité. | « Séance terminée, bravo », 5 s |
-| **Échauffement** | Qualification fonctionnelle d'Activités destinées à préparer l'utilisateur à l'effort. | Mobilité articulaire |
-| **Retour au calme** | Libellé ou qualification fonctionnelle facultative d’Activités réalisées en fin de Séance afin de favoriser la récupération. Il ne constitue ni un type d’Activité ni un conteneur structurel. Les Activités concernées restent de type Exercice ou Récupération. | Étirements légers |
-| **Objectif** | Finalité recherchée par une Séance ou une Routine. | Renforcement, Mobilité, Rééducation, Cardio |
-| **Consigne** | Information textuelle destinée à guider l'utilisateur pendant la réalisation d'une Activité. | « Garder le dos droit » |
-| **Mode d'exécution** | Façon dont une Activité de type Exercice est réalisée dans le MVP. | Durée ou Répétitions |
-| **Statut de séance** | État de conservation d'une Séance. | Active, Archivée |
-| **Statut d'exécution** | État ou résultat d'une Exécution de séance. | En cours, Suspendue, Terminée, Partielle, Interrompue |
-| **Statut d'occurrence planifiée** | Résultat technique éventuel d'une Occurrence arrivée à échéance. Ce statut n'est pas exposé dans le Suivi du MVP pour les occurrences non exécutées. | Exécutée, Non exécutée |
-| **Profil** | Ensemble des informations et préférences propres à l'utilisateur, accessibles depuis l'onglet Profil. | Préférences globales, référentiels utilisateur |
+| **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
+| **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Activités, un Tour unique, un Cycle technique et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
+| **Activité** | Plus petite unité fonctionnelle exécutable définie par l’utilisateur. Une Activité est un Exercice ou une Récupération explicite et appartient à une seule Séance. | 12 squats ; 30 s de récupération |
+| **Exercice** | Activité définie par une durée ou un nombre de Répétitions. Elle possède au moins une Série et peut inclure une Pause après Série. | 3 Séries de 12 squats |
+| **Récupération** | Activité toujours chronométrée, utilisée pour matérialiser un temps de repos explicite dans la Composition. | Récupération de 30 s |
+| **Tour** | Conteneur ordonné d’Activités appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
+| **Cycle** | Structure technique unique qui enveloppe les Activités placées avant le Tour, le Tour et les Activités placées après le Tour. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
+| **Routine** | Planification d’une Séance. Elle est unique ou périodique et possède zéro ou un rappel. | Mobilité chaque lundi à 8 h |
+| **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Séance prévue mardi à 18 h |
+| **Exécution** ou **Exécution de séance** | Réalisation effective d’une Séance. Elle est créée au démarrage effectif et repose sur un Instantané de séance. | Exécution démarrée à 18 h 03 |
+| **Résultat d’Activité** | Résultat enregistré pour une occurrence d’Activité effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
+| **Instantané de séance** | Copie fonctionnelle immuable de la Séance au démarrage d’une Exécution. Il garantit la restitution de l’historique après modification, archivage ou suppression de la Séance source. | Version de `Renforcement du genou` exécutée lundi |
+| **Catégorie** | Classement facultatif d’une Séance. Une Séance peut posséder plusieurs Catégories prédéfinies ou personnalisées. | Mobilité |
+| **Zone corporelle** | Valeur d’un référentiel prédéfini pouvant être associée à un Exercice. Elle n’est pas applicable à une Récupération. | Genou |
+| **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. | Fin de séance : 5 s |
+| **Ressenti** | Évaluation obligatoire sélectionnée sur la Synthèse lorsqu’elle est présentée. | Positif, moyen ou difficile |
+| **Commentaire de Synthèse** | Texte facultatif associé à une Exécution, limité à 200 caractères. | `Douleur légère au genou` |
+
+## 3. Concepts de composition
+
+| Terme | Définition |
+| --- | --- |
+| **Composition** | Structure ordonnée d’une Séance et écran unique permettant de renseigner son nom, sa couleur et ses Activités. |
+| **Compte à rebours initial** | Phase structurelle précédant la première Activité. Sa valeur initiale est 10 s ; 0 s la rend instantanée. Ce n’est pas une Activité. |
+| **Fin de séance** | Phase structurelle suivant la dernière Activité. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Ce n’est pas une Activité. |
+| **Série** | Exécution de la durée ou du nombre de Répétitions d’un Exercice, suivie de sa Pause après Série éventuelle. La Série n’est pas une entité métier autonome. |
+| **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
+| **Pause après Série** | Durée facultative exécutée après chaque Série. Elle génère une Récupération technique dans le Plan d’Exécution. |
+| **Récupération technique** | Étape calculée à partir d’une Pause après Série. Elle apparaît dans le Plan d’Exécution et ses résultats, mais pas comme Activité autonome dans la Composition. |
+| **Activité avant le Tour** | Activité exécutée une seule fois avant la première répétition du Tour. |
+| **Activité dans le Tour** | Activité exécutée à chaque répétition du Tour. |
+| **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
+| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Récupérations techniques et répétitions du Tour. |
+
+## 4. Concepts de planification
+
+| Terme | Définition |
+| --- | --- |
+| **Planification unique** | Routine produisant une occurrence à une date et une heure déterminées. Le libellé d’interface utilisé est `Aucune` dans le choix de répétition. |
+| **Planification périodique** | Routine produisant des occurrences hebdomadaires selon une fréquence en semaines, des jours sélectionnés et une date de fin incluse. |
+| **Rappel** | Notification locale facultative associée à une Routine. Une Routine possède zéro ou un rappel. |
+| **Calendrier** | Écran de consultation des occurrences planifiées, disponible en vues Jour, Semaine et Mois dans le MVP. |
+
+## 5. Concepts d’exécution et de suivi
+
+| Terme | Définition |
+| --- | --- |
+| **Activité suivante** | Commande terminant normalement un Exercice en Répétitions ou demandant confirmation avant d’interrompre une Activité chronométrée non terminée. |
+| **Réinitialiser l’activité** | Commande recommençant uniquement l’Activité ou la Série courante sans revenir à une Activité précédente. |
+| **Suspendue** | État technique d’une Exécution mise en pause par l’utilisateur ou par une garde de sécurité. |
+| **Terminée** | Statut d’une Exécution ou d’une Activité accomplie conformément au Plan d’Exécution. |
+| **Partielle** | Statut métier court d’une Exécution ou d’une Activité seulement partiellement réalisée. `Partiellement réalisée` peut être utilisé dans une phrase explicative. |
+| **Interrompue** | Statut d’une Exécution arrêtée avant l’achèvement de son Plan. |
+| **Non exécutée** | État d’une Activité du Plan jamais atteinte avant la fin ou l’interruption de l’Exécution. |
+| **Synthèse** | Écran présenté à la fin ou lors de l’arrêt d’une Exécution, permettant de choisir un Ressenti et d’ajouter un commentaire. |
+| **Suivi** | Écran affichant l’historique des Exécutions terminées, partielles ou interrompues. |
+| **Nombre d’Activités de la Composition** | Nombre d’Activités définies par l’utilisateur, sans développement des Séries ou Tours et sans Récupérations techniques. |
+| **Nombre total d’Activités à exécuter** | Nombre d’occurrences d’Activités du Plan développé, Récupérations techniques incluses, Compte à rebours initial et Fin de séance exclus. |
+| **Nombre d’Activités exécutées** | Nombre de Résultats d’Activité enregistrés. Une Activité Partielle compte ; une Activité jamais atteinte ne compte pas. |
+| **Durée estimée** | Somme des durées déterminables du Plan. En présence d’un Exercice en Répétitions, elle devient une borne minimale précédée de `≥`. |
+| **Durée réelle** | Temps effectivement exécuté, hors Pauses déclenchées par l’utilisateur. |
+
+## 6. Interface et navigation
+
+| Terme | Définition |
+| --- | --- |
+| **Catalogue des séances** | Écran d’accueil après le splash. Il présente les Séances actives, planifiées ou archivées selon la vue sélectionnée. |
+| **Toutes** | Vue du Catalogue affichant les Séances non archivées. |
+| **Planifiées** | Vue du Catalogue affichant les Séances possédant au moins une Routine. |
+| **Archivées** | Vue du Catalogue dans laquelle une Séance peut être restaurée ou supprimée définitivement après confirmation. |
+| **Profil** | Espace relatif à l’identité locale de l’utilisateur et à ses Préférences. |
+| **Safe Area** | Zone d’affichage utilisable fournie par le système, hors encoche, barre d’état, indicateur d’accueil et autres éléments système. |
+
+## 7. Termes réservés aux évolutions post-MVP
+
+| Terme | Définition |
+| --- | --- |
+| **Média** | Photo ou vidéo associable à une Activité dans une version ultérieure, avec une limite prévue d’un média par Activité. Aucun média n’est disponible dans le MVP. |
+| **Groupe** | Ensemble d’Utilisateurs partageant une Séance dans une version ultérieure. |
+| **Partage** | Mise à disposition d’une Séance ou de données d’Exécution à d’autres Utilisateurs selon des autorisations à définir. |
+| **Tableau de bord** | Présentation statistique prévue après le MVP. Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. |
+
+## 8. Termes obsolètes ou interdits
+
+| Terme | Règle |
+| --- | --- |
+| **Set** | Terme remplacé par **Tour**. Il ne doit plus être utilisé dans l’interface, les spécifications actives, le modèle de données, les API ou le code. |
+| **Bloc** | Ancienne appellation non retenue pour la structure répétable. |
+| **Mes séances** | Ancienne appellation de l’écran désormais nommé **Catalogue des séances**. |
+| **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise **Aucune**. |
+| **Routine** pour désigner une Séance | Usage incorrect. Une Routine désigne uniquement la planification d’une Séance. |
+

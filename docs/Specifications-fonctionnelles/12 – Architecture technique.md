@@ -35,7 +35,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Stockage local ; références conservées dans le modèle |
+| Médias | Hors MVP ; extension future limitée à un média par Activité |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -49,6 +49,8 @@ L’application suit une approche **local-first** : les données locales constit
 L'architecture est néanmoins préparée pour une évolution multilingue sans refonte :
 - les textes affichés dans l'interface ne sont pas codés en dur dans les composants ;
 - ils sont externalisés dans un catalogue de ressources identifié par des clés stables ;
+- ce catalogue couvre également les pluriels, interpolations, messages d’erreur, notifications et libellés d’accessibilité ;
+- les dates, heures et nombres utilisent les formats de la locale sélectionnée ;
 - l'ajout d'une langue doit pouvoir être réalisé en ajoutant les traductions correspondantes sans modifier la logique métier ;
 - la langue de l'interface et la langue de synthèse vocale sont conçues comme deux paramètres pouvant être gérés lors d'une évolution future ;
 - aucun mécanisme de détection, de choix ou de changement de langue n'est exposé à l'utilisateur dans le MVP ;
@@ -82,7 +84,7 @@ Services applicatifs
         ├── Notifications
         ├── Audio / voix
         ├── Vibrations
-        ├── Médias
+        ├── Médias (adaptateur post-MVP)
         └── Horloge / temps
 ```
 
@@ -114,7 +116,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | Service | Responsabilité |
 |---|---|
 | `SessionService` | Création, lecture, modification, duplication, archivage et restauration des Séances |
-| `CompositionService` | Gestion des Cycles, Sets, Activités et de leur ordre |
+| `CompositionService` | Gestion des Cycles, Tours, Activités et de leur ordre |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
@@ -159,7 +161,7 @@ Les données structurées du MVP sont persistées dans une **base SQLite locale*
 
 Le stockage doit notamment permettre :
 - les relations entre les entités ;
-- les recherches et tris ;
+- l’affichage chronologique du MVP et l’ajout ultérieur de recherche, tri et filtres ;
 - les transactions ;
 - les migrations du schéma ;
 - la conservation durable de l’historique ;
@@ -174,7 +176,7 @@ Sont notamment persistés :
 - Préférences ;
 - Séances ;
 - Cycles ;
-- Sets ;
+- Tours ;
 - Activités ;
 - Routines ;
 - Catégories ;
@@ -200,7 +202,7 @@ sans modifier les règles métier ni coupler le domaine à SQLite ou à un fourn
 
 La technologie cloud et la stratégie précise de synchronisation ne sont pas choisies dans le MVP. Elles seront définies lorsqu’une version nécessitera effectivement des données partagées ou multi-appareils.
 
-Les médias ne sont pas stockés comme blobs dans SQLite : la base conserve leurs métadonnées et leurs références locales ou distantes.
+Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
 
 ## 12.7 Identité utilisateur
 
@@ -219,7 +221,7 @@ Cet identifiant :
 
 Les principales données métier sont rattachées directement ou indirectement à cet Utilisateur.
 
-Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Set et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
+Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Tour et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
 
 ### Évolution future
 
@@ -279,11 +281,11 @@ Au démarrage d’une Exécution :
 
 Le moteur gère ensuite :
 - l’étape courante ;
-- les répétitions du Set et du Cycle ;
+- les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Exercice ;
 - l'insertion de la pause éventuelle après chaque Série, avec suppression de la pause finale lorsque l'étape suivante est une Récupération explicite ;
-- la progression dans le Set ;
-- la progression dans le Cycle ;
+- la progression dans le Tour ;
+- la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
 - la pause et la reprise ;
@@ -340,10 +342,17 @@ Le MVP vise à maintenir une Exécution cohérente lorsque l’application passe
 
 L’architecture ne suppose pas que le code JavaScript ou le processus applicatif continue nécessairement à s’exécuter en permanence en arrière-plan.
 
-Lors du retour au premier plan, l’état de l’Exécution est recalculé à partir :
+Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Exécution en pause. Le Plan d’Exécution continue logiquement selon ses horodatages persistés. Lors du retour au premier plan, l’état de l’Exécution est recalculé à partir :
 - de l’étape en cours ;
 - des références temporelles persistées ;
 - de l’état enregistré.
+
+Le moteur applique une pause de sécurité en l’absence d’interaction :
+
+- 30 minutes après la fin théorique d’une Activité chronométrée ;
+- 2 heures après le démarrage d’un Exercice en Répétitions.
+
+Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
 Les fonctions nécessitant un comportement natif spécifique sont encapsulées derrière des interfaces dédiées. Les différences iOS / Android sont traitées dans ces adaptateurs et ne doivent pas modifier les règles métier du moteur d’Exécution.
 
@@ -367,21 +376,21 @@ Lorsqu’une Routine est :
 
 les notifications futures correspondantes doivent être recalculées ou supprimées.
 
-L’application doit tenir compte des autorisations de notification accordées ou refusées par l’utilisateur.
+L’application ne demande pas l’autorisation de notification au lancement. Elle vérifie l’état de l’autorisation lorsque l’utilisateur active pour la première fois un rappel pendant une planification, explique l’usage, puis déclenche la demande système. Si l’autorisation est refusée, le rappel n’est pas activé et l’interface indique que l’autorisation peut être modifiée dans les réglages du système.
 
 ## 12.14 Médias
 
-Les médias associés aux Activités sont stockés localement sur l’appareil dans le MVP.
+Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Activités dans cette version.
 
-La duplication d’une Activité ou d’une Séance ne duplique pas nécessairement le fichier physique : plusieurs associations Média peuvent référencer le même fichier local. La suppression explicite d’un média par l’utilisateur reste toujours autorisée ; elle supprime le fichier physique et retire toutes ses associations, sans supprimer ni invalider les Activités/Séances concernées.
+L’architecture doit néanmoins permettre une évolution limitée à un média maximum par Activité. Lors de cette évolution, la duplication d’une Activité ou d’une Séance ne devra pas nécessairement dupliquer le fichier physique : plusieurs associations Média pourront référencer le même fichier local.
 
-Le stockage local du MVP privilégie la **non-duplication des données volumineuses**. Les médias ne sont pas intégrés aux Instantanés historiques et les données futures ou dérivables ne sont persistées que lorsqu’une règle fonctionnelle l’exige.
+Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les médias ne seront pas intégrés aux Instantanés historiques.
 
-La base de données conserve une référence au fichier et ses métadonnées utiles.
+Le schéma MVP peut réserver l’extension future sans imposer de table ou de fichier Média tant que la fonctionnalité n’est pas développée.
 
 Les fichiers binaires volumineux ne sont pas stockés directement dans les entités métier.
 
-Les médias ne sont pas copiés dans les Instantanés d’Exécution.
+Les futurs médias ne seront pas copiés dans les Instantanés d’Exécution.
 
 La suppression ou la modification ultérieure d’un média ne doit pas compromettre la lisibilité fonctionnelle de l’historique.
 
@@ -666,13 +675,9 @@ Les rappels utilisent des notifications locales afin de :
 - ne nécessiter aucun backend ;
 - rester cohérents avec l’approche local-first.
 
-### Médias
+### Médias — préparation post-MVP
 
-Les médias restent dans le système de fichiers.
-
-SQLite conserve uniquement leur référence et leurs métadonnées nécessaires.
-
-Cette séparation évite de stocker de gros objets binaires dans la base et reste cohérente avec l’exclusion des médias des Instantanés d’Exécution.
+Aucun média n’est manipulé dans le MVP. Après leur introduction, les fichiers resteront dans le système de fichiers et SQLite conservera uniquement leur référence et leurs métadonnées nécessaires.
 
 ### Tests
 
@@ -687,7 +692,227 @@ La priorité est donnée :
 
 La stack retenue est **Jest + `jest-expo`** pour les tests unitaires, **React Native Testing Library** pour les composants et écrans, et **Maestro** pour les parcours end-to-end après stabilisation des premiers parcours fonctionnels. Les comportements natifs sensibles restent validés sur appareils réels iOS et Android.
 
-## 12.26 Risques techniques et validations préalables
+## 12.26 Mise en page adaptative et bornes sûres
+
+Le gabarit Figma de référence mesure `402 × 874` pixels de maquette, interprétés comme des points logiques pour l’implémentation. Il ne constitue pas une taille fixe. Les composants utilisent la largeur disponible et sont contrôlés au minimum autour de `360`, `390`, `402` et `430–440` points logiques, sur iOS et Android en portrait.
+
+Les règles techniques suivantes rendent cette adaptation opératoire :
+
+- utiliser les insets de Safe Area fournis par le système, sans coder en dur la hauteur d’une encoche, de la Dynamic Island, de la barre d’état ou de l’indicateur d’accueil ;
+- autoriser les fonds à atteindre les bords physiques, tout en maintenant titres, commandes et contenus interactifs dans les bornes sûres haute et basse ;
+- intégrer l’inset inférieur à la navigation basse fixe ; le contenu défilant conserve un espace final suffisant pour ne jamais être masqué par cette navigation ;
+- gérer l’apparition du clavier afin que le champ actif et l’action principale restent atteignables ;
+- utiliser des contraintes adaptatives, contrôler les retours à la ligne et le grossissement du texte, et ne jamais coder les coordonnées du gabarit Figma comme positions absolues ;
+- conserver la navigation basse opaque et au premier plan, notamment dans les listes et cartes déployées.
+
+Ces exigences font l’objet de tests visuels et d’interaction sur les largeurs cibles et avec les tailles de texte accessibles.
+
+### Unités d’implémentation
+
+- Les valeurs Figma sont interprétées comme des points logiques React Native, pas comme des pixels physiques.
+- Aucun calcul ne dépend de la densité de pixels de l’appareil ; React Native et le système assurent la conversion physique.
+- Les dimensions verticales comprenant les barres système sont calculées à partir des insets réels.
+- Le gabarit `402 × 874` sert aux comparaisons visuelles, jamais à un redimensionnement global proportionnel de l’interface.
+
+### Paliers de largeur du MVP
+
+| Palier | Largeur logique | Marge horizontale | Comportement |
+| --- | ---: | ---: | --- |
+| Compact | `360–389` | `16` | Les groupes horizontaux peuvent passer en pile ; les textes conservent leur taille. |
+| Standard | `390–419` | `24` | Reproduction directe de la hiérarchie Figma ; `402` est la largeur de comparaison principale. |
+| Large téléphone | `420–440` | `24` | Les composants s’étendent jusqu’à la largeur utile sans agrandir les textes ou icônes. |
+| Hors cible téléphone | `> 440` | Contenu centré | Largeur principale maximale `440` ; l’interface tablette spécifique est hors MVP. |
+
+La largeur minimale officiellement supportée par le MVP est `360`. Une largeur inférieure peut rester fonctionnelle, mais ne constitue pas un critère de recette avant décision explicite d’élargir la cible.
+
+### Design tokens canoniques
+
+Le Figma contient désormais les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`, ainsi que les Text Styles `KODJO` correspondant à la hiérarchie typographique ci-dessous. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente les modes `Compact 360`, `Standard 402` et `Grand téléphone 440` pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail. Le `Prototype MVP` n’est pas encore intégralement relié à toutes les variables, mais la couleur des sélections actives, les niveaux typographiques, les espacements, les rayons, les cibles tactiles et les icônes audités y ont été corrigés. Les autres valeurs historiques répétées dans ses frames sont normalisées vers les tokens ci-dessous lors du développement. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+
+#### Couleurs
+
+| Token | Valeur | Usage |
+| --- | --- | --- |
+| `color.primary` | `#0508E5` | Actions principales, navigation active, texte ou contour d’action secondaire |
+| `color.selection` | `#5F60EE` | Fond d’un contrôle de sélection actif portant un texte blanc ; contraste texte/fond de `4,78:1` |
+| `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné |
+| `color.background` | `#FFFFFF` | Fond principal |
+| `color.surface` | `#F5F7FA` | Cartes, navigation et surfaces secondaires |
+| `color.surfaceSubtle` | `#F9FAFC` | Contrôles neutres et fonds légers |
+| `color.textPrimary` | `#141414` | Texte principal canonique |
+| `color.textSecondary` | `#595E66` | Texte secondaire |
+| `color.iconNeutral` | `#5C636E` | Icônes inactives |
+| `color.border` | `#E0E3E8` | Bordure standard |
+| `color.divider` | `#DBE0E8` | Séparateurs et démarcation d’en-tête |
+| `color.disabled` | `#BEC2CC` | Fond d’action désactivée |
+| `color.snackbar` | `#292B33` | Fond des messages temporaires |
+| `color.positive` | `#4F9F83` | Ressenti positif sélectionné |
+| `color.warning` | `#FF8D28` | Ressenti intermédiaire et avertissement non destructif |
+| `color.danger` | `#D92D20` | Action destructive et état négatif |
+| `color.dangerSurface` | `#FFF1F0` | Fond destructif léger |
+
+Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
+
+L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de taille normale. Elle peut rester présente sur un élément décoratif ou sans texte dans l’attente de l’audit complet des couleurs, mais ne constitue plus le token de sélection active.
+
+#### Typographie
+
+La famille du MVP est `Inter`. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
+
+| Token | Graisse | Taille | Hauteur de ligne | Usage |
+| --- | --- | ---: | ---: | --- |
+| `type.timerPrimary` | Semi Bold | `58` | `64` | Temps principal pendant l’Exécution |
+| `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Activité en cours d’Exécution |
+| `type.metricPrimary` | Semi Bold | `22` | `28` | Durée, résultat ou métrique dominante |
+| `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
+| `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
+| `type.sectionTitle` | Semi Bold | `16` | `20` | Titre de section ou de formulaire |
+| `type.cardTitle` | Semi Bold | `16` | `20` | Nom fonctionnel ou titre de carte standard |
+| `type.compactCardTitle` | Semi Bold | `13` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
+| `type.body` | Regular | `14` | `20` | Texte courant |
+| `type.label` | Medium | `14` | `18` | Libellé de champ ou valeur importante |
+| `type.button` | Semi Bold | `14` | `18` | Bouton principal et secondaire |
+| `type.supporting` | Regular | `12` | `16` | Aide, métadonnée et information secondaire |
+| `type.caption` | Regular | `11` | `16` | Légende compacte et information contrainte |
+| `type.navLabel` | Regular | `11` | `16` | Libellé de destination active |
+
+La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent au minimum `type.cardTitle` en `16`, sauf le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est réservée à une éventuelle expression de marque et n’est pas un niveau fonctionnel.
+
+Tous les textes conservent `allowFontScaling=true`. Les tests doivent couvrir au minimum `100 %`, `135 %` et une taille d’accessibilité proche de `200 %`. Les composants grandissent ou passent sur plusieurs lignes ; la réduction automatique de la taille de police est interdite pour masquer un défaut de mise en page. Après toute modification d’un token typographique, la largeur et la hauteur de son conteneur sont recalculées et contrôlées afin d’éviter retour à la ligne involontaire, troncature, débordement ou chevauchement. Les glyphes employés comme pictogrammes (`+`, `×`, `‹`, `›`, coche ou points d’occurrence) sont gérés comme des icônes et ne créent pas de niveau typographique.
+
+#### Icônes et pictogrammes
+
+La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne conserve son ratio et peut occuper une surface plus petite pour assurer un équilibre optique. Cette boîte reste indépendante de la cible tactile minimale de `48 × 48`.
+
+| Token | Taille visuelle | Usage |
+| --- | ---: | --- |
+| `icon.control` | `14 × 14` | Chevrons et indicateurs de sélecteurs compacts |
+| `icon.compact` | `16 × 16` | Réorganisation, coches et commandes compactes |
+| `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
+| `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
+| `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
+| `icon.navigation` | `32 × 32` | Boîte optique commune des quatre destinations de navigation basse |
+| `icon.status` | `32 × 32` | Statuts illustrés nécessitant une présence visuelle renforcée |
+
+Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
+
+Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas utilisés comme icônes dans l’application. Ils sont remplacés par des tracés vectoriels nommés, centrés dans la boîte visuelle appropriée et colorés avec les tokens d’icône ou d’action.
+
+#### Espacements et rayons
+
+| Famille | Tokens autorisés | Usage principal |
+| --- | --- | --- |
+| Espacements | `2`, `4`, `6`, `8`, `12`, `16`, `24`, `32` | Écart interne et externe ; `24` est la marge standard, `16` la marge compacte |
+| Rayons fixes | `6`, `8`, `10`, `12`, `16`, `20`, `24` | Petits indicateurs, contrôles, champs, cartes, modales et boutons |
+| Rayons dérivés | Demi-hauteur ou demi-largeur du composant | Cercles et capsules ; notamment `28`, `29` et `33` dans les composants actuellement validés |
+| Bordure | `1`, `2` | `1` par défaut ; `2` pour un état actif ou fortement accentué |
+
+Le choix d’un token existant est obligatoire. Une nouvelle valeur ne peut être ajoutée que si aucun token ne permet de reproduire une différence réellement visible et intentionnelle du Figma.
+
+##### Échelle et usages des espacements
+
+| Token | Usage canonique |
+| ---: | --- |
+| `2` | Séparation minimale ou ajustement optique exceptionnel à l’intérieur d’un composant ; ne structure pas deux sections distinctes |
+| `4` | Micro-espacement entre pictogramme et élément associé, ou padding interne très contraint |
+| `6` | Espacement compact explicitement validé, notamment marge interne droite des groupes d’actions de carte |
+| `8` | Écart compact entre contrôles ou cartes d’une même liste ; écart titre/contrôle lorsque les deux appartiennent au même bloc |
+| `12` | Padding interne standard d’un petit contrôle ou écart intermédiaire à l’intérieur d’une carte |
+| `16` | Écart standard entre éléments fonctionnels associés, entre message et action, et respiration avant une zone fixe |
+| `24` | Marge horizontale standard, séparation entre groupes fonctionnels et espacement information/progression de l’Exécution |
+| `32` | Séparation majeure entre sections ou entre une barre d’actions et le début d’une liste |
+
+Les valeurs `10`, `14`, `18`, `26`, `29` et `30` observées historiquement dans certaines frames ne sont pas des tokens. Elles ont été rationalisées vers l’échelle ci-dessus lorsqu’elles représentaient un véritable espacement. Une distance mesurée entre deux boîtes Figma peut néanmoins résulter de la hauteur de ligne, de la hauteur d’un contrôle, d’une grille horaire ou d’un sélecteur système : elle n’est alors pas convertie en token et ne doit pas être arrondie mécaniquement.
+
+##### Espacements validés par composant
+
+| Famille ou composant | Espacement validé |
+| --- | ---: |
+| Profil — cartes de réglage successives | `16` |
+| Calendrier Semaine — en-tête journalier et cartes successives | `8` |
+| Calendrier Semaine — fin de la zone défilante avant la séparation de navigation | `16` |
+| Suivi — groupes de dates successifs | `16` |
+| Suivi — groupe `Filtrer / Trier` vers la liste | `32` |
+| Catalogue — action `Créer une séance` vers le début de la liste | `32` |
+| Bottom sheet — message de confirmation vers la première action | `16` |
+| Exécution — libellé du temps écoulé vers la progression par Tours | `24` |
+| Synthèse — statut vers date et heure | `16` |
+| Synthèse — résumé vers section Ressenti | `32` |
+| Synthèse — titre Ressenti vers les choix | `8` |
+| Synthèse — choix du Ressenti vers la section Commentaire | `24` |
+
+Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structure du composant, jamais par reproduction d’une coordonnée absolue du gabarit Figma. Une liste défilante conserve un padding final permettant à son dernier élément d’être entièrement consultable sans toucher une séparation, une navigation ou une action fixe.
+
+##### Échelle et usages des rayons
+
+| Token | Usage canonique |
+| ---: | --- |
+| `6` | Petit indicateur ou contrôle très compact |
+| `8` | Petit champ ou contrôle compact |
+| `10` | Options de contrôles segmentés, options de rappel et pull-down compact de répétitions |
+| `12` | Carte et champ standard |
+| `16` | Bouton secondaire compact, calendrier contextuel et message temporaire |
+| `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
+| `24` | Bouton principal de hauteur minimale `48` |
+
+Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs `28`, `29` et `33` ne complètent pas l’échelle fixe : elles correspondent à la moitié de la hauteur ou du diamètre d’une destination active, de la recherche globale ou de la navigation principale. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
+
+#### Dimensions structurantes
+
+| Élément | Règle |
+| --- | --- |
+| Bouton principal | Hauteur minimale `48`, rayon `24`, largeur utile complète |
+| Bouton secondaire compact | Hauteur visuelle `32`, rayon `16`, dans une cible tactile de `48 × 48` minimum |
+| Cible tactile commune | Minimum `48 × 48` points logiques sur iOS et Android |
+| Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
+| Minimum natif Android | `48 × 48 dp` |
+| En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
+| Action finale | Bouton de `48` dans un conteneur intégrant marges, espacement supérieur et inset inférieur |
+| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée au-dessus de l’inset inférieur |
+| Destination active | Hauteur visuelle `56`, rayon `28` |
+| Recherche globale | Diamètre visuel `58`, rayon `29` |
+| Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
+
+### Règles de dimensionnement des composants
+
+- Les largeurs utilisent le flux Flexbox, `width: '100%'`, des contraintes `minWidth` / `maxWidth` et les marges du palier ; aucune largeur de `354`, `302` ou position `x/y` du Figma n’est recopiée directement.
+- Les hauteurs contenant du texte sont des minima et non des valeurs fixes.
+- Les groupes horizontaux utilisent `flexWrap` ou basculent en colonne lorsque la largeur minimale de leurs enfants n’est plus disponible.
+- Les icônes conservent leur taille visuelle et leur ratio ; seule leur cible tactile s’étend.
+- La taille visuelle et la cible tactile sont deux propriétés distinctes. Une icône, un radio, un interrupteur, un contrôle segmenté ou une action compacte de `32` à `42` points n’est pas agrandi visuellement lorsque sa dimension est intentionnelle. Un conteneur interactif transparent ou un `hitSlop` porte sa cible effective à `48 × 48` au minimum.
+- Deux cibles tactiles voisines ne se chevauchent pas. Elles sont réparties en zones contiguës ou séparées afin qu’un même point de contact ne puisse déclencher deux actions différentes.
+- Les boutons d’action principaux, dont `Enregistrer` dans la Synthèse, possèdent une hauteur visible minimale de `48` points. Les anciennes zones explicitement tactiles de `42 × 42` sont normalisées à `48 × 48` dans le Figma.
+- Les images de marque utilisent `contain` et conservent leur ratio d’origine.
+- Les listes utilisent un composant virtualisé lorsqu’elles peuvent croître ; leur `contentContainerStyle` réserve l’espace de la navigation ou de l’action finale.
+- La zone visible d’une liste s’arrête avant la navigation fixe ; son conteneur réserve la hauteur de la navigation, l’inset inférieur et `16` points de respiration. Le contenu peut continuer à défiler dans cette zone, mais il n’est jamais rendu par-dessus la navigation.
+- Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
+- Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
+- Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
+- La navigation basse est composée d’une barre principale flexible et d’une recherche de diamètre fixe `58`. La barre principale contient quatre emplacements de poids égal avec marges internes constantes. Le calcul de ces emplacements exclut la largeur de la recherche et son espacement.
+- Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
+- Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
+- Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.
+- La barre de jours du Calendrier utilise `width: '100%'` et sept cellules de même poids (`flex: 1`). Les espacements sont inclus dans la largeur disponible : aucune cellule ne conserve la largeur ou la position du gabarit `402`.
+- Le groupe `Série / Tour` de l’Exécution comporte deux zones flexibles symétriques et un séparateur central fixe. Il ne repose sur aucune coordonnée absolue et reste sur une ligne à partir de `360` points avec le texte à `100 %` ou `135 %` ; à une taille d’accessibilité supérieure, son conteneur peut grandir verticalement sans rendre les valeurs ambiguës.
+- La progression par Tours est contenue dans un parent de largeur utile avec débordement masqué. Pour `n` Tours, la largeur de chaque segment est calculée à partir de la largeur disponible après déduction des `n - 1` espacements ; aucune largeur de segment provenant du Figma n’est codée en dur.
+
+### Matrice de validation responsive
+
+Chaque écran principal, état vide, carte déployée, sélecteur et modale critique est contrôlé au minimum dans la matrice suivante :
+
+| Profil de test | Dimensions logiques indicatives | Plateformes | Texte |
+| --- | --- | --- | --- |
+| Petit téléphone | `360 × 640` ou hauteur équivalente | Android, puis iOS compact disponible | `100 %` et `135 %` |
+| Téléphone iOS compact | `375 × 667` ou équivalent | iOS | `100 %` et `135 %` |
+| Référence Figma | `402 × 874` | iOS et Android | `100 %` |
+| Grand téléphone | `430–440 × 900+` | iOS et Android | `100 %` et `135 %` |
+| Accessibilité | Une largeur compacte et une largeur standard | iOS et Android | Taille proche de `200 %` |
+
+Pour chaque profil, les critères sont : aucun chevauchement, aucune action essentielle masquée, aucun texte principal tronqué sans règle, aucune cible tactile insuffisante, aucun contenu sous les barres système, clavier ou navigation, et conservation de l’ordre fonctionnel.
+
+Les captures comparatives automatisées utilisent `402 × 874` pour la non-régression visuelle. Les autres profils contrôlent l’adaptation et ne doivent pas être comparés par redimensionnement proportionnel à la capture Figma.
+
+## 12.27 Risques techniques et validations préalables
 
 Trois sujets doivent faire l’objet de validations techniques précoces.
 
@@ -734,7 +959,7 @@ Le comportement de la synthèse vocale et de l’audio doit être validé sur ap
 - écouteurs / Bluetooth ;
 - autre application audio active.
 
-## 12.27 Distribution
+## 12.28 Distribution
 
 Le développement est d’abord distribué sous forme de versions privées de test.
 
@@ -749,7 +974,7 @@ La stratégie prévue est :
 
 La publication publique sur l’App Store et Google Play intervient uniquement après validation fonctionnelle et technique du MVP.
 
-## 12.28 Évolutivité
+## 12.29 Évolutivité
 
 L’architecture du MVP doit permettre sans refonte majeure :
 - l’ajout de comptes Apple ou Google ;
@@ -765,7 +990,7 @@ L’architecture du MVP doit permettre sans refonte majeure :
 
 Cette capacité d’évolution ne doit toutefois pas conduire à implémenter dans le MVP des composants qui ne sont pas nécessaires à son fonctionnement.
 
-## 12.29 Organisation du code
+## 12.30 Organisation du code
 
 Le code est organisé principalement par domaine fonctionnel. Le dossier `app/` d’Expo Router porte les routes et les points d’entrée des écrans, sans contenir la logique métier principale.
 
@@ -813,7 +1038,7 @@ Principes :
 - aucun dossier global `store/` n’est créé au démarrage, Zustand ou Redux n’étant pas retenus pour le MVP ;
 - les noms techniques du code sont en anglais et restent explicitement rattachables aux concepts du glossaire français.
 
-## 12.30 Architecture UI, accessibilité et responsive
+## 12.31 Architecture UI, accessibilité et responsive
 
 Le MVP utilise un seul layout de référence, issu des écrans Figma validés.
 
@@ -843,7 +1068,7 @@ L’interface est responsive pour les principales tailles d’écran iOS et Andr
 
 Une interface spécifique tablette et le mode sombre sont hors MVP. Une revue d’accessibilité est réalisée avant livraison, sans reporter à cette étape l’application des règles de base.
 
-## 12.31 Stratégie de développement incrémental
+## 12.32 Stratégie de développement incrémental
 
 Le MVP est développé et validé progressivement. Les premières versions de développement ne reproduisent volontairement pas l’intégralité des écrans et fonctions Figma ; elles servent à valider les briques fonctionnelles et techniques avant d’ajouter la complexité suivante.
 
@@ -851,9 +1076,9 @@ Ordre de développement retenu :
 
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
-3. **Séance simple** : création et modification d’une Séance avec quelques Activités, avant introduction complète des répétitions Set/Cycle.
+3. **Séance simple** : création et modification d’une Séance avec quelques Activités et un Cycle technique déjà fixé à 1.
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Activité suivante, arrêt et fin.
-5. **Structure complète du MVP** : Set, Cycle, répétitions, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
@@ -862,6 +1087,6 @@ Ordre de développement retenu :
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.
 
-## 12.32 Réconciliation après interruption technique
+## 12.33 Réconciliation après interruption technique
 
 Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la Synthèse.

@@ -26,9 +26,9 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une **Routine** planifie l'exécution d'une séance.
 - Une même séance peut être associée à plusieurs routines.
 - Une séance contient un **cycle**.
-- Un cycle contient un **Set**.
-- Le cycle et le Set possèdent chacun un nombre de répétitions.
-- Un Set contient une suite ordonnée d'activités.
+- Un cycle contient un **Tour**.
+- Le cycle et le Tour possèdent chacun un nombre de répétitions.
+- Un Tour contient une suite ordonnée d'activités.
 - Une activité est de type **Exercice** ou **Récupération**.
 - Une activité de type Exercice possède un nombre de Séries propre, supérieur ou égal à 1, et peut définir une pause appliquée après chaque Série. Cette pause est présentée à l'utilisateur comme un paramètre de l'Exercice, mais elle est représentée dans le modèle de données par une activité de type Récupération liée à cet Exercice.
 - Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
@@ -45,11 +45,11 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Utilisateur | Propriétaire des données | Principale |
 | Séance | Définition réutilisable d'un entraînement | Principale |
 | Cycle | Structure ordonnée de la séance portant son propre nombre de répétitions | Structure interne de séance |
-| Set | Conteneur ordonné d'activités portant son propre nombre de répétitions | Structure interne de séance |
+| Tour | Conteneur ordonné d'activités portant son propre nombre de répétitions | Structure interne de séance |
 | Routine | Planification d'une séance | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
-| Média | Illustration d'une activité | Secondaire |
+| Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
 | Catégorie | Classement des séances | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
 | Exécution de séance | Réalisation effective d'une séance | Principale |
@@ -62,15 +62,15 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-001 | Une activité est de type **Exercice** ou **Récupération**.                                                                                                                                                   | V1             |
 | DM-002 | La pause après Série est saisie comme un paramètre d'un Exercice mais est matérialisée dans le modèle de données par une activité de type Récupération liée à cet Exercice et réutilisée dans le plan après chaque Série. | V1 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
-| DM-004 | Un cycle contient un Set unique.                                                                                                                                                                            | V1             |
-| DM-005 | Le cycle et le Set sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
+| DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
+| DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
 | DM-006 | Une même séance peut être planifiée par plusieurs routines.                                                                                                                                                  | V1             |
 | DM-007 | Une exécution crée automatiquement un instantané fonctionnel immuable et allégé de la séance.                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
-| DM-011 | La cardinalité Cycle et Set est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Sets par Cycle. | Évolution      |
-| DM-012 | Un Cycle, un Set et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
+| DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
+| DM-012 | Un Cycle, un Tour et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier et supérieur ou égal à 1. Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | La pause est appliquée après chaque Série ; après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. | V1 |
 
@@ -86,11 +86,11 @@ UTILISATEUR
 │       ├── contient 1 CYCLE
 │       │      │
 │       │      ├── nombre de répétitions
-│       │      ├── contient 1 SET
+│       │      ├── contient 1 TOUR
 │       │      │      │
 │       │      │      ├── nombre de répétitions
-│       │      │      └── contient 0..n ACTIVITÉS DANS LE SET
-│       │      └── contient 0..n ACTIVITÉS APRÈS LE SET ET DANS LE CYCLE
+│       │      │      └── contient 0..n ACTIVITÉS DANS LE TOUR
+│       │      └── contient 0..n ACTIVITÉS APRÈS LE TOUR ET DANS LE CYCLE
 │       └── contient 0..n ACTIVITÉS APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
 │
 ├── possède 0..n ROUTINES
@@ -106,7 +106,7 @@ UTILISATEUR
 └── possède 1 PRÉFÉRENCES GLOBALES
 ```
 
-Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Sets sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
+Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Tours sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
 # 09.1 Entité Utilisateur
 
 ## Définition
@@ -156,7 +156,7 @@ Il ne contient pas directement les activités, les médias, les structures inter
 
 Une **Séance** est une entité métier représentant le contenu réutilisable d’un entraînement.
 
-Elle définit les activités à réaliser, leur ordre d’exécution, leur organisation en Set et en cycle, ainsi que les paramètres nécessaires à leur exécution.
+Elle définit les Activités à réaliser, leur position avant le Tour, dans le Tour ou après le Tour, ainsi que les paramètres nécessaires à leur Exécution. Le Cycle reste une enveloppe technique fixée à une répétition.
 
 Une séance peut être exécutée immédiatement ou planifiée par une ou plusieurs routines. Elle ne contient jamais les informations produites lors d’une exécution réelle.
 
@@ -167,13 +167,10 @@ Une séance possède directement :
 - ses informations générales ;
 - un compte à rebours initial ;
 - un cycle ;
-- un Set contenu dans le cycle ;
-- les activités éventuelles avant le Cycle ;
-- les activités contenues dans le Set ;
-- les activités éventuelles après le Set et dans le Cycle ;
-- les activités éventuelles après le Cycle et avant la Fin de séance ;
+- un Tour contenu dans le cycle ;
+- les activités contenues dans le Tour ;
 - une fin de séance ;
-- les paramètres de répétition de son Cycle et de son Set ;.
+- le paramètre de répétition de son Tour ; le Cycle vaut toujours 1 dans le MVP.
 
 Elle ne contient pas directement :
 
@@ -182,7 +179,7 @@ Elle ne contient pas directement :
 - l’historique ;
 - les préférences globales ;
 - les résultats ou états d’exécution ;
-- les médias physiques, qui sont rattachés aux activités.
+- les médias physiques, hors périmètre du MVP.
 
 ## Attributs fonctionnels
 
@@ -190,7 +187,7 @@ Elle ne contient pas directement :
 | --------------------------------------- | ------------------------------------------------------------------------- | :--------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Identifiant                             | Identifiant interne unique de la séance                                   |         Obligatoire          | Stable pendant toute la durée de vie de la séance                                                                                                                                                                                                      |
 | Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
-| Couleur                                 | Couleur d'identification de la séance                                     |         Obligatoire          | Choisie par l'utilisateur parmi une palette prédéfinie de 16 couleurs                                                                                                                                                                                  |
+| Couleur                                 | Couleur d'identification de la séance                                     |         Obligatoire          | Valeur proposée par défaut ; choix possible parmi une palette prédéfinie de 12 couleurs                                                                                                                                                                 |
 | Catégories                              | Catégories de classement                                                  |          Facultatif          | Zéro, une ou plusieurs catégories appartenant au même utilisateur                                                                                                                                                                                      |
 | Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
 | Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
@@ -199,8 +196,8 @@ Elle ne contient pas directement :
 | Date d’archivage                        | Date de passage au statut archivé                                         |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                                                                                                                                                                        |
 | Structure                               | Organisation complète de la séance                                        | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice                                                                                                                                                   |
 | Durée estimée                           | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétition, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥`                                                       |
-| Nombre d’Activités de la Composition    | Nombre d’Exercices et de Récupérations définis dans la Composition        |           Calculé            | Ne multiplie pas les Activités par les Séries, Sets ou Cycles et exclut les pauses intermédiaires techniques                                                                                                                                           |
-| Nombre total d’Activités à exécuter     | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Set et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
+| Nombre d’Activités de la Composition    | Nombre d’Exercices et de Récupérations définis dans la Composition        |           Calculé            | Ne multiplie pas les Activités par les Séries, Tours ou Cycles et exclut les pauses intermédiaires techniques                                                                                                                                           |
+| Nombre total d’Activités à exécuter     | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Tour et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première activité                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
 | Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial  |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
 | Durée de la fin de séance               | Durée de la phase suivant la dernière activité                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
@@ -208,32 +205,29 @@ Elle ne contient pas directement :
 ## Structure interne de la séance
 
 La structure d’une séance est composée, dans l’ordre, de :
-1. un compte à rebours initial obligatoire, exécuté une seule fois ;
-2. zéro, une ou plusieurs Activités avant le Cycle ;
-3. un Cycle unique ;
-4. zéro, une ou plusieurs Activités après le Cycle et avant la Fin de séance ;
-5. une Fin de séance obligatoire, exécutée une seule fois après la dernière Activité.
+1. un Compte à rebours initial obligatoire, exécuté une seule fois ;
+2. un Cycle technique unique et non affiché, toujours exécuté une fois ;
+3. zéro, une ou plusieurs Activités placées avant le Tour ;
+4. un Tour unique contenant une suite ordonnée d’Activités et répété de 1 à 99 fois ;
+5. zéro, une ou plusieurs Activités placées après le Tour ;
+6. une Fin de séance obligatoire, exécutée une seule fois après la dernière Activité.
 
 Dans le MVP, le Cycle contient :
 - son identifiant ;
 - sa position, égale à 1 ;
-- son nombre de répétitions, supérieur ou égal à 1 ;
-- un Set unique ;
-- zéro, une ou plusieurs activités de fin de Cycle.
+- son nombre de répétitions, imposé à 1 ;
+- un Tour unique ;
+- les Activités positionnées avant ou après le Tour ;
 
-Dans le MVP, le Set contient :
+Dans le MVP, le Tour contient :
 - son identifiant ;
 - sa position, égale à 1 ;
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Activités.
 
-À chaque répétition du cycle :
-1. le Set est exécuté selon son nombre de répétitions ;
-2. les activités de fin de cycle sont exécutées une fois.
+Le Cycle technique est exécuté une fois : les Activités placées avant le Tour sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Activités placées après le Tour sont exécutées une fois. La Fin de séance est ensuite exécutée.
 
-Après la dernière répétition du cycle, les éventuelles activités positionnées après le cycle sont exécutées une fois. La Fin de séance est ensuite exécutée.
-
-Le cycle et le Set sont des structures internes de la séance. Ils ne constituent pas des entités métier autonomes dans le MVP et ne peuvent pas être supprimés. Leur nombre de répétitions est toujours au minimum égal à 1.
+Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seule la répétition du Tour est modifiable.
 
 #### Attributs fonctionnels du Cycle
 
@@ -241,40 +235,41 @@ Le cycle et le Set sont des structures internes de la séance. Ils ne constituen
 | --------------------- | ---------------------------------------- | :---------: | ---------------------------------------------------------------------------------------- |
 | Identifiant           | Identifiant interne unique du Cycle      | Obligatoire | Stable pendant toute la durée de vie du Cycle                                            |
 | Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
-| Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Entier de **1 à 99** ; valeur par défaut **1**                                           |
-| Sets                 | Collection ordonnée des Sets du Cycle   | Obligatoire | Exactement 1 Set dans le MVP ; extensible à plusieurs Sets dans une version ultérieure |
-#### Attributs fonctionnels du Set
+| Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Valeur imposée **1** dans le MVP ; non modifiable et non exposée dans l’interface       |
+| Tours                 | Collection ordonnée des Tours du Cycle   | Obligatoire | Exactement 1 Tour dans le MVP ; extensible à plusieurs Tours dans une version ultérieure |
+| Activités hors Tour   | Activités ordonnées avant ou après le Tour | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
+#### Attributs fonctionnels du Tour
 
 | Attribut              | Description                               |  Caractère  | Règle principale                                              |
 | --------------------- | ----------------------------------------- | :---------: | ------------------------------------------------------------- |
-| Identifiant           | Identifiant interne unique du Set        | Obligatoire | Stable pendant toute la durée de vie du Set                  |
-| Position              | Position du Set dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
-| Nombre de répétitions | Nombre d’exécutions successives du Set   | Obligatoire | Entier de **1 à 99** ; valeur par défaut **1**                |
-| Activités             | Collection ordonnée des Activités du Set | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
+| Identifiant           | Identifiant interne unique du Tour        | Obligatoire | Stable pendant toute la durée de vie du Tour                  |
+| Position              | Position du Tour dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
+| Nombre de répétitions | Nombre d’exécutions successives du Tour   | Obligatoire | Entier de **1 à 99** ; valeur par défaut **1**                |
+| Activités             | Collection ordonnée des Activités du Tour | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
 ### Évolutivité de la structure
 
 Dans le MVP :
  - une Séance contient exactement un Cycle ;
- - le Cycle contient exactement un Set.
+ - le Cycle contient exactement un Tour.
 
 Cette cardinalité constitue une **règle fonctionnelle du MVP** et non une limitation structurelle du modèle.
  
 Le modèle doit permettre ultérieurement :
 - une collection ordonnée de Cycles appartenant à une même Séance ;
-- une collection ordonnée de Sets appartenant à un même Cycle.
+- une collection ordonnée de Tours appartenant à un même Cycle.
  
 Chaque Cycle appartient exclusivement à une Séance.  
-Chaque Set appartient exclusivement à un Cycle et, par transitivité, à une seule Séance.  
-Les Cycles et les Sets ne sont pas réutilisables ou partageables entre plusieurs Séances.
+Chaque Tour appartient exclusivement à un Cycle et, par transitivité, à une seule Séance.  
+Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieurs Séances.
 ## Relations principales
 
 - Une séance appartient à un seul utilisateur.
 - Une séance peut être associée à zéro, une ou plusieurs catégories.
 - Une séance peut être référencée par zéro, une ou plusieurs routines.
 - Une séance contient un cycle unique.
-- Le cycle contient un Set unique. : Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Sets sous forme de collections ordonnées afin de permettre leur extension ultérieure.
-- Le cycle contient un Set unique.
-- Le Set contient zéro, une ou plusieurs activités pendant l’édition.
+- Le Cycle contient un Tour unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
+- Le Cycle peut contenir zéro, une ou plusieurs Activités avant le Tour et zéro, une ou plusieurs Activités après le Tour.
+- Le Tour contient zéro, une ou plusieurs Activités pendant l’édition.
 - Une séance exécutable contient au moins une activité de type **Exercice**.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
 
@@ -283,22 +278,21 @@ Les Cycles et les Sets ne sont pas réutilisables ou partageables entre plusieur
 - Le nom est obligatoire pour créer une séance.
 - Deux séances peuvent porter le même nom.
 - Chaque séance possède une couleur.
-- La couleur est choisie parmi une palette prédéfinie de 16 couleurs.
+- Une couleur est proposée par défaut et peut être choisie parmi une palette prédéfinie de 12 couleurs.
 - Une séance vide peut être conservée et modifiée, mais elle ne peut pas être exécutée.
 - Une séance est exécutable dès qu’elle contient au moins une activité valide de type **Exercice**.
 - Une séance composée uniquement d’activités de type **Récupération** n’est pas exécutable.
-- Une séance peut être modifiée, dupliquée, archivée, restaurée ou supprimée.
+- Une séance peut être modifiée, dupliquée, archivée ou restaurée. Elle ne peut être supprimée qu’après archivage.
 - La duplication crée une nouvelle séance indépendante avec un nouvel identifiant.
 - La duplication conserve la couleur de la séance d'origine.
 - La duplication copie la structure, les activités, les catégories et les paramètres de la séance, mais ne copie ni les routines, ni les exécutions passées.
 - L’archivage conserve intégralement la séance et ses exécutions historiques.
 - Une séance archivée ne peut plus être utilisée pour créer une nouvelle routine ou démarrer une nouvelle exécution tant qu’elle n’est pas restaurée.
-- La suppression d’une séance demande confirmation lorsqu’elle est référencée par une ou plusieurs routines.
-- Après confirmation, les routines qui référencent la séance sont supprimées.
+- La suppression d’une Séance archivée demande toujours confirmation. Les Routines associées ont déjà été supprimées lors de l’archivage.
 - La suppression d’une séance ne supprime jamais les exécutions déjà enregistrées ni leurs instantanés.
 - Une modification de la séance n’altère jamais les exécutions déjà présentes dans le suivi.
-- Le cycle et le Set ne peuvent pas être supprimés.
-- Le nombre de répétitions du cycle et du Set est toujours supérieur ou égal à 1.
+- Le cycle et le Tour ne peuvent pas être supprimés.
+- Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de répétitions du Tour est compris entre 1 et 99.
 - Les activités peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
 - La Durée estimée, le Nombre d’Activités de la Composition et le Nombre total d’Activités à exécuter sont recalculés après toute modification influençant le déroulement.
@@ -342,7 +336,7 @@ Elle ne contient pas directement :
 | Heure d’exécution      | Heure prévue pour l’occurrence                     | Obligatoire  | Identique pour toutes les occurrences de la routine dans le MVP                                   |
 | Rappel                 | Rappel associé à la Routine                        |  Facultatif  | Zéro ou un rappel maximum ; délai appliqué à chaque occurrence                                    |
 | Date de création       | Date de création de la routine                     | Obligatoire  | Générée automatiquement                                                                           |
-| Mode de planification  | Définit si la Routine est répétée                  | Obligatoire  | Sans répétition ou Périodique                                                                     |
+| Mode de planification  | Définit si la Routine est répétée                  | Obligatoire  | Libellés UI : `Aucune` ou `Périodique`                                                            |
 | Date de fin            | Dernière date d'application de la Routine          | Conditionnel | Obligatoire pour une planification périodique ; doit être postérieure ou égale à la date de début |
 | Fréquence hebdomadaire | Nombre de semaines entre deux périodes d’exécution | Conditionnel | Entier ≥ 1 ; obligatoire pour une planification périodique                                        |
 | Jours de la semaine    | Jours d'exécution de la Routine                    | Conditionnel | Au moins un jour obligatoire pour une planification périodique                                    |
@@ -355,7 +349,7 @@ Elle ne contient pas directement :
 - Une séance peut être planifiée par zéro, une ou plusieurs routines.
 - Une séance peut être exécutée directement sans être associée à une routine.
 - Une routine définit une seule règle de planification.
-- Une Routine utilise le mode `Sans répétition` ou `Périodique`. Dans le MVP, le mode `Périodique` utilise uniquement une périodicité hebdomadaire.
+- Une Routine utilise le mode affiché `Aucune` ou `Périodique`. Dans le MVP, le mode `Périodique` utilise uniquement une périodicité hebdomadaire.
 - Une Routine périodique possède une date de fin obligatoire.  
 - Une Routine périodique possède une fréquence hebdomadaire supérieure ou égale à 1 et au moins un jour de la semaine sélectionné.  
 - Plusieurs exécutions d'une même Séance à des horaires différents, y compris le même jour, sont représentées par plusieurs Routines distinctes.
@@ -382,7 +376,7 @@ Il précise la génération des occurrences, les règles de récurrence, les rap
 
 Le MVP prend en charge deux modes de planification :
 
-- **Sans répétition** : une seule occurrence est créée à la date et à l'heure définies.
+- **Aucune** : une seule occurrence est créée à la date et à l'heure définies.
 - **Périodique** : les occurrences sont générées selon une périodicité hebdomadaire définie par :
     - une fréquence en semaines supérieure ou égale à 1 ;
     - un ou plusieurs jours de la semaine ;
@@ -487,7 +481,7 @@ Une Occurrence planifiée possède directement :
 | Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la Séance a été démarrée      |
 ### Règles métier
 
-- Une Occurrence planifiée est normalement persistée à son échéance. **Exception :** lorsqu’une occurrence future est exécutée en avance via `Exécuter maintenant`, elle est persistée immédiatement avec sa date/heure initialement planifiées et son lien vers l’Exécution réelle, afin de ne pas être reproposée à son horaire initial.
+- Une Occurrence planifiée est normalement persistée à son échéance. **Exception :** lorsqu’une occurrence future est exécutée en avance depuis l’action `Démarrer` de sa carte, elle est persistée immédiatement avec sa date/heure initialement planifiées et son lien vers l’Exécution réelle, afin de ne pas être reproposée à son horaire initial.
 - Une occurrence future reste calculée dynamiquement et n'est pas persistée.
 - Le statut d'une occurrence historisée est `Exécutée` ou `Non exécutée`.
 - Une occurrence `Exécutée` référence l'Exécution correspondante.
@@ -499,7 +493,7 @@ Une Occurrence planifiée possède directement :
 
 Une **Activité** est la plus petite unité exécutable d'une séance.
 
-Elle appartient à une seule Séance et est de type **Exercice** ou **Récupération**. Sa position structurelle détermine si elle est placée avant le Cycle, dans le Set, après le Set et dans le Cycle, ou après le Cycle et avant la Fin de séance.
+Elle appartient à une seule Séance et est de type **Exercice** ou **Récupération**. Dans le MVP, sa position détermine son ordre à l’intérieur du Tour visible.
 
 Une activité de type Récupération peut être créée explicitement par l'utilisateur ou être générée à partir du paramètre de pause d'un Exercice. Dans ce second cas, elle reste masquée comme activité autonome dans l'interface de composition et sert au plan d'exécution après les Séries de l'Exercice.
 
@@ -517,12 +511,12 @@ Une activité possède directement :
 - sa Récupération après Série éventuelle, lorsqu'elle est de type Exercice ;
 - le lien vers l'Exercice d'origine lorsqu'elle est une Récupération générée par une pause après Série ;
 - ses zones corporelles ;
-- son média ;
+- aucun média dans le MVP ; une association optionnelle sera ajoutée après le MVP ;
 - sa position structurelle dans la Séance et son ordre au sein de cette position.
 
 Elle ne contient pas directement :
 
-- le Set ;
+- le Tour ;
 - le cycle ;
 - la séance ;
 - les préférences globales.
@@ -532,8 +526,9 @@ Elle ne contient pas directement :
 | Attribut                   | Description                                     |         Caractère         | Règle principale                                                              |
 | -------------------------- | ----------------------------------------------- | :-----------------------: | ----------------------------------------------------------------------------- |
 | Identifiant                | Identifiant unique                              |        Obligatoire        | Stable                                                                        |
+| Position structurelle      | Emplacement de l’Activité dans la Composition   |        Obligatoire        | `Avant Tour`, `Dans Tour` ou `Après Tour`                                      |
 | Position                   | Ordre au sein de la position structurelle       |        Obligatoire        | Entier déterminant l’ordre d’exécution                                         |
-| Position structurelle      | Emplacement de l’Activité dans la Composition   |        Obligatoire        | `Avant Cycle`, `Dans Set`, `Après Set dans Cycle` ou `Après Cycle`             |
+| Tour                       | Tour contenant l’Activité                       |       Conditionnel        | Obligatoire uniquement pour une Activité `Dans Tour`                           |
 | Type                       | Exercice ou Récupération                        |        Obligatoire        |                                                                               |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Consigne                   | Instructions                                    |        Facultatif         |                                                                               |
@@ -544,11 +539,11 @@ Elle ne contient pas directement :
 | Récupération après Série   | Activité Récupération liée à l'Exercice        |        Facultatif         | Exercice uniquement ; référence zéro ou une activité Récupération associée    |
 | Exercice d'origine         | Exercice ayant généré cette Récupération        |       Conditionnel        | Renseigné uniquement pour une Récupération créée via « Pause après Série » |
 | Zones corporelles          | Zones sollicitées                               |        Facultatif         | Exercice uniquement                                                           |
-| Média                      | Photo ou vidéo                                  |        Facultatif         | Un seul média                                                                 |
+| Média                      | Photo ou vidéo                                  |        Hors MVP           | Évolution prévue : zéro ou un média                                           |
 
 ## Règles métier
 
-- Une Activité appartient à une seule Séance et occupe exactement une des quatre positions structurelles du MVP : `Avant Cycle`, `Dans Set`, `Après Set dans Cycle` ou `Après Cycle`.
+- Une Activité appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Seules les Activités `Dans Tour` référencent le Tour.
 - Une activité est de type Exercice ou Récupération.
 - Une activité Exercice peut être exécutée selon une durée ou un nombre de répétitions.
 - Une activité Récupération est toujours chronométrée.
@@ -566,9 +561,11 @@ Elle ne contient pas directement :
 
 # 09.6 Entité Média
 
+> **Périmètre : post-MVP.** Cette entité est conservée pour préparer l’évolution, mais aucune fonctionnalité Média n’est exposée ni persistée dans le MVP.
+
 ## Définition
 
-Un **Média** est une ressource visuelle associée à une activité d'une séance.
+Un **Média** est une ressource visuelle qui pourra être associée à une Activité après le MVP. Aucune association Média n’est créée ni exposée dans le MVP.
 
 ## Périmètre
 
@@ -631,7 +628,7 @@ Une exécution possède directement :
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
 | Nombre d’Activités exécutées | Nombre de Résultats d’Activité exécutée effectivement créés | Calculé | Une Activité `Partielle` compte comme exécutée ; une Activité jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
-| Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lors de `Exécuter maintenant` sur une occurrence future |
+| Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lorsqu’une occurrence future est démarrée en avance |
 
 ## Structures internes
 
@@ -651,7 +648,7 @@ Il ne contient pas de copie physique des médias associés aux Activités.
 | Séance                   | Identifiant source, nom, couleur, catégorie(s)                                                                 |
 | Compte à rebours initial | Durée, texte vocal                                                                                             |
 | Cycle                    | Identifiant, position, nombre de répétitions                                                                   |
-| Set                      | Identifiant, position, nombre de répétitions                                                                   |
+| Tour                      | Identifiant, position, nombre de répétitions                                                                   |
 | Exercice                 | Identifiant source, nom, mode d’exécution, durée ou répétitions, nombre de Séries, consigne, zones corporelles |
 | Récupération             | Identifiant source, nom éventuel, durée                                                                        |
 | Pause après Série        | Représentée par la Récupération correspondante et la règle d'insertion dans le plan d'exécution                |
@@ -660,14 +657,14 @@ Il ne contient pas de copie physique des médias associés aux Activités.
 
 Les médias ne sont pas dupliqués dans l’Instantané. Leur modification ou suppression ultérieure ne remet pas en cause la lisibilité fonctionnelle de l’historique.
 
-L’Instantané est persisté sous forme de **JSON immuable**. Les champs nécessaires à la consultation du Suivi MVP, notamment la date et les informations utiles à la recherche et au tri chronologique, sont conservés sous une forme permettant un accès efficace sans dépendre de la Séance courante. Les index spécifiques à des filtres avancés (catégories, zones corporelles, statut, période) ne sont pas requis par l’interface MVP et pourront être ajoutés lors de l’évolution correspondante.
+L’Instantané est persisté sous forme de **JSON immuable**. Les champs nécessaires à la consultation chronologique du Suivi MVP sont conservés sous une forme permettant un accès efficace sans dépendre de la Séance courante. Les index spécifiques à la recherche, au tri et aux filtres avancés ne sont pas requis par l’interface MVP et pourront être ajoutés lors de l’activation de ces fonctions.
 
 ### État d'exécution
 
 Contient notamment :
 
 - activité courante ;
-- Set courant ;
+- Tour courant ;
 - cycle courant ;
 - état temporel courant ;
 - état du chronomètre.
@@ -690,7 +687,7 @@ Contient notamment :
 
 # 09.7.1 Résultat d’Activité exécutée
 
-Chaque occurrence d’Activité parcourue pendant une Exécution produit un **Résultat d’Activité exécutée** distinct. Il permet de distinguer les occurrences issues des Séries, répétitions de Set et répétitions de Cycle.
+Chaque occurrence d’Activité parcourue pendant une Exécution produit un **Résultat d’Activité exécutée** distinct. Il permet de distinguer les occurrences issues des Séries, répétitions de Tour et répétitions de Cycle.
 
 | Attribut | Description | Caractère | Règle principale |
 | --- | --- | :---: | --- |
@@ -698,7 +695,7 @@ Chaque occurrence d’Activité parcourue pendant une Exécution produit un **R�
 | Exécution | Exécution concernée | Obligatoire | Une seule Exécution |
 | Activité de l’Instantané | Activité source | Obligatoire | Référence l’Instantané, pas la Séance courante |
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
-| Série / Set / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
+| Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Activité | Obligatoire | Chronométré pour les modes Durée et Répétition |
 
@@ -722,14 +719,14 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
 
-Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les répétitions du Set, les répétitions du cycle ainsi que les activités de fin de cycle et de fin de séance sont développés afin d'obtenir une liste ordonnée d'activités directement exploitable.
+Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Activités placées avant le Tour, les répétitions du Tour et les Activités placées après le Tour sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
 ### Contenu
 
 - liste ordonnée des activités ;
 - ordre d'exécution ;
 - références vers les activités de l'instantané ;
-- numéro de répétition du Set ;
+- numéro de répétition du Tour ;
 - numéro de répétition du cycle ;
 - informations de navigation.
 
@@ -742,7 +739,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 | Position            | Rang dans le plan d'exécution              |   Calculé   | Numérotation continue             |
 | Activité            | Activité de l'instantané                   | Obligatoire | Référence unique                  |
 | Type                | Compte à rebours, Exercice ou Récupération |   Calculé   | Déduit de l'activité              |
-| Répétition du Set  | Numéro de répétition du Set               |   Calculé   | Généré automatiquement            |
+| Répétition du Tour  | Numéro de répétition du Tour               |   Calculé   | Généré automatiquement            |
 | Répétition du cycle | Numéro de répétition du cycle              |   Calculé   | Généré automatiquement            |
 | Activité suivante   | Navigation                                 |   Calculé   | Absente pour la dernière activité |
 
@@ -751,7 +748,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
-- Les répétitions du Set et du cycle sont résolues lors de la génération.
+- Les répétitions du Tour et du cycle sont résolues lors de la génération.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
 
@@ -785,8 +782,8 @@ Elles ne contiennent pas directement :
 | -------------------------------------------------- | -------------------------------------------------------------------------- | :---------: | ------------------------------------------------------------------------ |
 | Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                                                       |
 | Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                                                       |
-| Notifications                                      | Active les rappels locaux des Routines planifiées                          | Obligatoire | Valeur initiale : activée ; soumise à l’autorisation système             |
-| Vibrations                                         | Active les vibrations fonctionnelles de séance                             | Facultatif  | N'affecte pas le feedback haptique systématique des roulettes numériques |
+| Notifications                                      | Autorisation effective des rappels locaux                                  | Obligatoire | Non autorisées par défaut ; demande système lors de la première activation d’un rappel |
+| Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
 | Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Durée par défaut d'une activité Récupération       | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
@@ -795,7 +792,7 @@ Elles ne contiennent pas directement :
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
 | Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                                                 |
 | Texte vocal du compte à rebours initial par défaut | Texte vocal proposé pour le compte à rebours initial d'une nouvelle séance | Facultatif  | Valeur initiale : `Préparez-vous`                                        |
-| Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `0 s`                                                  |
+| Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `5 s`                                                  |
 | Texte vocal de la fin de séance par défaut         | Texte vocal proposé pour la fin de séance d'une nouvelle séance            | Facultatif  | Valeur initiale : `Séance terminée, bravo`                               |
 ## Règles métier
 
@@ -905,8 +902,8 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 ### Cohérence des relations
 
-- Toute Activité appartient à une seule Séance et occupe une seule position structurelle ; seules les Activités `Dans Set` appartiennent au Set pour l’exécution structurelle.
-- Tout Set appartient à un seul cycle.
+- Toute Activité appartient à une seule Séance et occupe une seule position structurelle ; seules les Activités `Dans Tour` appartiennent au Tour pour l’exécution structurelle.
+- Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
 - Toute exécution de séance référence une seule séance.
@@ -917,22 +914,24 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 - Une séance exécutable contient au moins une activité de type **Exercice**.
 - Une activité **Récupération** est toujours chronométrée, se termine automatiquement, ne possède jamais de zone corporelle et reçoit par défaut le nom `Récupération` lors de sa création.
-- Les nombres de répétitions du Set et du cycle sont toujours supérieurs ou égaux à 1.
+- Les nombres de répétitions du Tour et du cycle sont toujours supérieurs ou égaux à 1.
 
 ## Duplication d'une séance
 
 - Nouvelle séance avec un nouvel identifiant.
 - Copie de la couleur de la séance.
-- Copie du Cycle, du Set, des Activités et des Catégories. Pour chaque média réutilisé, une nouvelle association/entité Média est créée pour l’Activité dupliquée ; elle peut référencer le même fichier physique.
+- Copie du Cycle, du Tour, des Activités et des Catégories. Après le MVP, si un média est réutilisé, une nouvelle association Média pourra référencer le même fichier physique.
 - Les routines et les exécutions de séance ne sont jamais copiées.
 
 ## Duplication d'une activité
 
 - Nouvelle activité avec un nouvel identifiant.
-- Copie des propriétés et des Zones corporelles. Si un média existe, une nouvelle association/entité Média est créée et peut référencer le même fichier physique.
+- Copie des propriétés et des Zones corporelles. Après le MVP, si un média existe, une nouvelle association Média pourra référencer le même fichier physique.
 - Si l'Exercice possède une Récupération après Série, une nouvelle activité Récupération associée est également créée avec un nouvel identifiant.
 
 ## Suppression d’un média
+
+Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’introduction des médias :
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Activité.
 - La suppression explicite d’un média/fichier par l’utilisateur reste autorisée même si ce fichier est référencé par plusieurs entités Média.
@@ -991,7 +990,7 @@ Création → Édition → Active
 
 ## Cycle de vie d'une activité
 
-- Une activité appartient toujours à un seul Set.
+- Une activité appartient toujours à un seul Tour.
 - Sa copie crée une nouvelle activité indépendante.
 - Sa suppression peut être annulée via la snackbar.
 

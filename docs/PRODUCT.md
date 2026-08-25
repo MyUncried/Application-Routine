@@ -1,8 +1,8 @@
-# PRODUCT — Application Routine
+# PRODUCT — KODJO
 
 ## 1. Finalité
 
-Application mobile permettant à un utilisateur de créer, exécuter, planifier et suivre des séances personnelles, notamment des exercices physiques, de mobilité ou de rééducation.
+KODJO est l’application mobile éditée par ANKUSHA permettant à un utilisateur de créer, exécuter, planifier et suivre des séances personnelles, notamment des exercices physiques, de mobilité ou de rééducation. Sa signature est `Keep On. Do Just One.`
 
 L’application remplace l’usage dispersé de notes, vidéos, alarmes et minuteurs par un parcours unique, simple et guidé.
 
@@ -26,7 +26,7 @@ Elle possède notamment :
 - un nom ;
 - une couleur ;
 - zéro, une ou plusieurs catégories ;
-- une Composition structurée autour d’un Set unique et d’un Cycle unique ;
+- une Composition présentée autour d’un Tour unique ;
 - des paramètres de guidage et d’exécution.
 
 ### Routine
@@ -47,11 +47,7 @@ Le MVP distingue :
 
 Un Exercice est défini soit par une Durée, soit par un Nombre de répétitions. Une Récupération est chronométrée.
 
-Une Activité peut être placée :
-- avant le Cycle ;
-- dans le Set ;
-- après le Set et dans le Cycle ;
-- après le Cycle et avant la Fin de séance.
+Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
 ### Série
 
@@ -61,13 +57,13 @@ Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un co
 
 Une Pause après Série peut être définie pour un Exercice. Lorsqu’elle est renseignée, elle s’applique après chaque Série selon les règles détaillées. Les Récupérations techniques effectivement générées font partie du plan d’Exécution, mais pas du nombre d’Activités de la Composition.
 
-### Set et Cycle
+### Tour et Cycle
 
-Le MVP contient exactement un Set et un Cycle.
+Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Set contient une séquence ordonnée d’Activités et possède un nombre de répétitions de 1 à 99.
+Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois.
 
-Le Cycle contient l’exécution du Set puis, le cas échéant, les Activités placées après le Set et dans le Cycle. Le Cycle possède lui aussi un nombre de répétitions de 1 à 99.
+Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
 ### Exécution
 
@@ -83,28 +79,27 @@ Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
 - associer des catégories ;
-- dupliquer, archiver et supprimer une Séance ;
-- rechercher les Séances ;
+- dupliquer et archiver une Séance active ;
+- restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
+- effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
 - empêcher l’exécution d’une Séance invalide ou vide.
 
 ### Composition d’une Séance
 
-La structure comprend, dans l’ordre :
+La structure affichée comprend, dans l’ordre :
 1. un Compte à rebours initial structurellement présent, éventuellement instantané à `0 s` ;
-2. zéro, une ou plusieurs Activités avant le Cycle ;
-3. un Cycle unique ;
-4. zéro, une ou plusieurs Activités après le Cycle et avant la Fin de séance ;
-5. une Fin de séance structurellement présente, éventuellement instantanée à `0 s`.
+2. zéro, une ou plusieurs Activités avant le Tour ;
+3. un Tour unique contenant zéro, une ou plusieurs Activités et répété de 1 à 99 fois ;
+4. zéro, une ou plusieurs Activités après le Tour ;
+5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
-À l’intérieur de chaque répétition du Cycle :
-1. le Set est exécuté selon son nombre de répétitions ;
-2. les Activités après le Set et dans le Cycle sont ensuite exécutées une seule fois.
+Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
 Aucune Récupération n’est ajoutée implicitement entre deux Activités, hors Récupérations techniques explicitement générées par une Pause après Série configurée.
 
-Une Activité possède zéro ou un média dans le MVP.
+Une Activité ne possède aucun média dans le MVP. Le modèle et l’architecture doivent permettre d’ajouter au plus un média par Activité dans une version ultérieure.
 
 ### Exécution d’une Séance
 
@@ -112,7 +107,7 @@ Le MVP permet de :
 - lancer une Séance depuis le catalogue ou depuis une occurrence du Calendrier ;
 - construire le plan d’Exécution à partir de l’instantané ;
 - afficher l’Activité en cours, l’Activité suivante, le temps et la progression ;
-- afficher les compteurs de Set et de Cycle ;
+- afficher les informations de Série et de Tour, sans jamais exposer le Cycle ;
 - réinitialiser l’Activité courante ;
 - mettre la Séance en Pause et la reprendre ;
 - passer à l’Activité suivante ;
@@ -160,7 +155,7 @@ Le guidage comprend :
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
-Le comportement natif en arrière-plan et écran verrouillé reste soumis aux validations techniques prévues dans l’architecture.
+En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
 
 ### Planification et Calendrier
 
@@ -170,17 +165,17 @@ Le MVP permet de :
 - créer une Routine depuis le Calendrier ;
 - sélectionner la Séance associée ;
 - définir une Date de début et une Heure ;
-- choisir entre `Sans répétition` et `Périodique` ;
+- choisir entre `Aucune` et `Périodique` ;
 - pour `Périodique`, définir une fréquence en semaines, sélectionner un ou plusieurs jours et définir une Date de fin obligatoire ;
 - configurer zéro ou un rappel ;
 - modifier ou supprimer une Routine ;
-- consulter les occurrences dans les vues semaine et mois.
+- consulter les occurrences dans les vues Jour, Semaine et Mois.
 
 Pour une Routine périodique, la semaine contenant la Date de début est la semaine d’ancrage. Les Date de début et Date de fin sont inclusives.
 
 Une Routine ne possède pas d’état actif/inactif dans le MVP : elle existe ou est supprimée.
 
-Les occurrences futures sont calculées dynamiquement et ne sont pas enregistrées individuellement. Le MVP ne permet pas de modifier une occurrence isolée.
+Les occurrences futures sont calculées dynamiquement. Pour une planification périodique, la suppression propose `Cette occurrence` ou `Cette occurrence et les suivantes` ; les Exécutions historiques sont conservées.
 
 ### Suivi et historique
 
@@ -201,13 +196,11 @@ Les statuts d’Exécution sont :
 Une Activité `Partielle` compte comme exécutée dans le Nombre d’Activités exécutées. Une Activité jamais atteinte ne compte pas.
 
 Le Suivi du MVP comprend :
-- une liste chronologique ;
-- une recherche ;
-- un tri chronologique du plus récent au plus ancien ou inversement ;
+- une liste chronologique du plus récent au plus ancien ;
 - une vue condensée ou déployée ;
 - le détail d’Exécution directement dans la carte déployée.
 
-Les filtres avancés et la Vue d’ensemble avec graphiques et comparaisons avancées sont hors MVP.
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées. Les fonctions correspondantes, dont les graphiques et comparaisons avancées, sont hors MVP.
 
 ### Profil et préférences
 
@@ -218,14 +211,16 @@ Les Préférences globales définissent notamment :
 - les vibrations fonctionnelles de séance ;
 - l’activation des notifications.
 
-Le réglage `Vibrations` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
+Les valeurs initiales sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. Le réglage `Vibration` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
+
+Les notifications ne sont pas autorisées par défaut. La demande d’autorisation système est déclenchée dans le contexte de la première activation d’un rappel pendant une planification. En cas de refus, le rappel reste désactivé.
 
 Elles ne modifient jamais rétroactivement une Séance existante ni une Exécution passée.
 
 ## 5. Navigation principale
 
 Le MVP comporte quatre onglets :
-- Mes séances ;
+- Séances ;
 - Calendrier ;
 - Suivi ;
 - Profil.
@@ -242,7 +237,7 @@ Le MVP comporte quatre onglets :
 - signalement détaillé de douleur ou de gêne ;
 - intelligence artificielle ;
 - Séances imbriquées ;
-- structures comportant plusieurs Sets ou plusieurs Cycles ;
+- structures comportant plusieurs Tours ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier.
 
 ## 7. Principes métier structurants
@@ -290,11 +285,16 @@ Les maquettes Figma validées définissent la présentation de référence. Les 
 - compatibilité iOS et Android ;
 - fonctionnement en mode portrait ;
 - adaptation aux différentes tailles d’écran de smartphone ;
+- respect des Safe Areas système et navigation basse intégrant l’inset inférieur ;
+- largeur minimale cible de `360` points logiques, contrôles à `360`, `390`, `402` et `430–440` points, avec contenu centré au-delà de `440` points ;
+- utilisation exclusive d’unités logiques et de contraintes Flexbox, sans coordonnées absolues copiées du gabarit Figma `402 × 874` ;
+- design tokens canoniques pour les couleurs, typographies, espacements, rayons, dimensions partagées et tailles visuelles d’icônes ;
+- cibles tactiles communes minimales de `48 × 48` points logiques sur iOS et Android, indépendamment de la taille visuelle du pictogramme ou du contrôle ;
+- gestion du clavier, du défilement, des textes agrandis et des modales conformément au contrat adaptatif des chapitres 06 et 12 ;
 - accessibilité prise en compte dès le MVP ;
 - stockage local avec SQLite et couche d’accès typée aux données ;
 - données métier et historique conservés localement ;
 - notifications locales planifiées selon une fenêtre glissante conformément à l’architecture ;
-- médias stockés de manière économe, avec suppression possible même lorsqu’ils sont utilisés par une ou plusieurs Séances, les associations concernées étant alors retirées ;
 - support web utile au développement sans complexifier le MVP mobile.
 
 Les choix d’implémentation détaillés et les spikes techniques sont définis dans le chapitre 12 — Architecture technique.
@@ -309,6 +309,7 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
+- association d’au plus un média par Activité ;
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
 

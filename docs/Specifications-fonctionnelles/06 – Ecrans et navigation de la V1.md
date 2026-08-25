@@ -33,18 +33,133 @@ L’application privilégie :
 
 La création rapide constitue le parcours principal. L’ajout d’une consigne, de zones corporelles ou d’informations complémentaires reste facultatif.
 
+## Contrat d’affichage commun aux écrans du MVP
+
+Les captures Figma définissent l’apparence de référence à une largeur de `402` points logiques. Elles ne doivent pas être reproduites avec des coordonnées absolues. Les valeurs partagées sont centralisées dans les design tokens décrits au chapitre 12 ; les règles ci-dessous définissent le comportement fonctionnel attendu lorsque la taille disponible change.
+
+### Unités et largeur utile
+
+- Les dimensions de l’interface sont exprimées en points logiques React Native (`dp` côté Android, points côté iOS), jamais en pixels physiques.
+- La largeur minimale cible du MVP est `360` points. Les largeurs de contrôle sont `360`, `390`, `402` et `430–440` points.
+- Jusqu’à `389` points, l’écran est considéré comme **compact** : la marge horizontale standard peut passer de `24` à `16` points.
+- À partir de `390` points, la marge horizontale standard est de `24` points.
+- Au-delà de `440` points, le contenu principal est centré avec une largeur maximale de `440` points ; l’interface spécifique tablette reste hors MVP.
+- Les cartes, champs et boutons principaux occupent la largeur utile disponible. La largeur Figma de `354` points correspond à `402 − 2 × 24` et ne doit pas être codée en dur.
+
+### Structure verticale standard
+
+Un écran standard est composé de trois zones indépendantes :
+
+1. un en-tête placé sous la Safe Area supérieure ;
+2. un contenu central, défilant lorsqu’il ne tient pas dans la hauteur disponible ;
+3. selon le parcours, une navigation basse fixe ou une zone d’action finale fixe, complétée par la Safe Area inférieure.
+
+Le contenu central ne doit jamais passer sous la navigation ou l’action finale. Son espacement inférieur comprend la hauteur réelle de l’élément fixe, l’inset système et au moins `16` points de respiration.
+
+### En-têtes
+
+- L’en-tête standard possède une hauteur de contenu de `48` points, ajoutée à l’inset supérieur fourni par le système.
+- Le titre d’écran utilise le token `type.screenTitle`, reste aligné sur la grille horizontale et peut occuper deux lignes sur un écran compact.
+- Lorsqu’un bouton Retour est présent, sa cible tactile reste distincte du titre et mesure au minimum `48 × 48` points logiques sur toutes les plateformes du MVP.
+- Une action placée à droite de l’en-tête conserve la même cible tactile minimale.
+- La ligne de démarcation reste attachée au bas de l’en-tête, quelle que soit la hauteur de la Safe Area.
+
+### Textes et contenus longs
+
+- Les textes utilisateur autorisent l’agrandissement système.
+- Un titre d’écran ou de modale peut passer sur deux lignes ; il n’est jamais tronqué silencieusement.
+- Les noms de Séance et d’Activité utilisent au maximum deux lignes dans une carte. Au-delà, ils sont tronqués avec une ellipse et leur contenu complet reste disponible dans l’écran de détail ou d’édition.
+- Les libellés d’action ne sont pas réduits pour tenir. Un bouton principal peut augmenter sa hauteur ou son libellé peut passer sur deux lignes si nécessaire.
+- Les valeurs numériques et leurs unités restent regroupées autant que possible ; elles ne doivent pas être séparées sur deux lignes de manière ambiguë.
+
+### Boutons et zones tactiles
+
+- Un bouton principal occupe la largeur utile, possède une hauteur minimale de `48` points et un rayon de `24` points.
+- Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile d’au moins `48 × 48` points logiques sur toutes les plateformes du MVP.
+- Une icône seule possède la même cible tactile minimale, même si son dessin est plus petit.
+- Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `48 × 48` au minimum, sans chevauchement avec une cible voisine.
+- Deux actions adjacentes conservent au moins `8` points entre leurs cibles. Si elles ne tiennent plus, elles passent verticalement plutôt que de réduire leur surface tactile.
+- Les états actif, pressé, désactivé, sélectionné et destructif utilisent les tokens sémantiques ; leur signification ne repose jamais uniquement sur la couleur.
+
+### Contrôles segmentés
+
+- Chaque option occupe une fraction égale de la largeur intérieure du contrôle, y compris lorsqu’une option est désactivée dans le MVP.
+- Le fond sélectionné occupe exactement une option ; il ne doit jamais dépasser la moitié disponible dans un contrôle à deux options.
+- Le libellé de chaque option est centré horizontalement et verticalement dans sa propre zone, et non par rapport au gabarit d’écran ou au contrôle complet.
+- Les segments utilisent une mise en page flexible. Les largeurs et positions observées dans le gabarit `402` ne sont pas codées en dur.
+
+### Navigation basse
+
+- La barre visuelle de référence mesure `66` points de haut ; elle est positionnée au-dessus de l’inset inférieur réel.
+- Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
+- La recherche conserve un bouton circulaire distinct. La barre principale absorbe la variation de largeur tandis que la recherche conserve sa cible tactile.
+- Les quatre destinations principales occupent quatre emplacements répartis régulièrement entre les marges internes de la barre principale. Leur distribution est recalculée à partir de la largeur réelle de cette barre ; elle n’inclut pas la zone réservée à la recherche.
+- Les pictogrammes conservent leur taille visuelle. Sur écran compact, c’est l’espacement entre leurs emplacements qui diminue ; aucun pictogramme, libellé actif ou halo de sélection ne peut chevaucher la recherche.
+- L’onglet actif peut afficher son libellé ; les autres conservent uniquement leur pictogramme. Le libellé actif ne doit pas chevaucher les pictogrammes voisins avec l’agrandissement du texte.
+
+### Listes et cartes
+
+- Les listes utilisent toute la largeur utile et défilent verticalement.
+- Deux cartes successives d’une liste compacte utilisent un écart de `8` points. Un regroupement chronologique de plusieurs cartes, notamment dans le Suivi, sépare ses groupes de dates de `16` points.
+- Les cartes grandissent verticalement lorsque leur contenu passe sur plusieurs lignes ; aucune hauteur de carte contenant du texte variable n’est considérée comme fixe.
+- Un groupe d’actions placé à droite d’une carte est ancré au bord droit intérieur de cette carte, avec une marge de `6` points. L’écart entre ses actions reste constant lorsque la carte s’élargit ; les actions ne sont ni distribuées sur la largeur de la carte ni positionnées depuis le bord de l’écran.
+- Les actions révélées par glissement se superposent à la carte conformément au Figma ; elles ne provoquent pas une réduction permanente de sa largeur.
+- Les états condensé et déployé conservent les mêmes marges horizontales.
+- Après ajout, restauration, archivage ou suppression, la position de défilement reste stable lorsque cela ne masque pas le résultat de l’action.
+
+### Formulaires, roulettes et clavier
+
+- Les champs occupent la largeur utile et leurs libellés restent visibles lorsque la valeur est saisie.
+- L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles.
+- Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
+- Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
+- Une roulette ou un pop-up compact est ancré au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, il est repositionné au-dessus ou transformé en présentation basse défilante.
+
+### Modales et bottom sheets
+
+- Un bottom sheet occupe la largeur disponible et intègre l’inset inférieur.
+- Sa hauteur est déterminée par son contenu, dans la limite de `85 %` de la hauteur sûre. Au-delà, son contenu interne défile tandis que le titre et les actions essentielles restent accessibles.
+- Une action destructrice et son action d’annulation ne doivent jamais être masquées par l’indicateur d’accueil ou le clavier.
+- Le premier bouton d’action est placé `16` points après le message de confirmation. Les actions suivantes conservent l’espacement interne défini par leur groupe.
+- Le fond de contexte reste visible selon l’état Figma de référence, mais n’est pas interactif tant que la modale est ouverte.
+
+### Exceptions adaptatives par famille d’écran
+
+| Famille d’écran | Règle adaptative spécifique |
+| --- | --- |
+| Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
+| Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
+| Composition, Activité, Catégories, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
+| Activité | Les contrôles `Type d’activité` et `Mode d’exécution` utilisent deux segments strictement égaux. La rangée `Durée / Pause / Séries` s’adapte à la largeur utile et le récapitulatif occupe cette même largeur. |
+| Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
+| Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
+| Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
+| Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Activité courante, le temps et les commandes restent atteignables. |
+| Synthèse | Le choix du ressenti reste composé de trois options de largeur égale. Les séparations verticales structurantes utilisent `16` points entre statut et date, `32` points avant la section Ressenti et `24` points avant la section Commentaire. Sur écran compact ou texte agrandi, les libellés explicatifs se placent sous les icônes sans réduire leur cible tactile. |
+| Suivi | `Séances` et `Vue d’ensemble` occupent deux segments égaux. Le groupe `Filtrer / Trier` est centré comme un ensemble et précède la liste de `32` points. Les groupes de dates sont séparés de `16` points. Les actions de chaque carte restent ancrées à droite et la liste défile dans une zone arrêtée au moins `16` points avant la navigation basse. |
+| Recherche globale | Le champ utilise la largeur disponible entre Retour et les limites sûres ; les résultats défilent indépendamment de l’en-tête. |
+| Modales d’Exécution ou de suppression | Les actions passent en pile verticale si elles ne tiennent pas horizontalement ; l’ordre fonctionnel défini par le Figma est conservé. |
+
+Ces règles communes prévalent sur les coordonnées des captures. Une exception non décrite doit être résolue avec les mêmes tokens et principes, puis ajoutée à ce chapitre si elle affecte le comportement utilisateur.
+
 ## Navigation principale et articulation des écrans
+
+## Écran de lancement – Splash KODJO
+
+![[images/splash-kodjo.png|260]]
+
+Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances — État vide` avec une transition `DISSOLVE` de 0,3 seconde.
 
 ### Navigation principale
 
 La navigation principale donne accès à quatre onglets :
 
-- `Mes séances` ;
+- `Séances` ;
 - `Calendrier` ;
 - `Suivi` ;
 - `Profil`.
 
-`Mes séances` constitue l’écran d’accueil par défaut.
+Après le splash, le `Catalogue des séances` constitue l’écran d’accueil par défaut. Le splash affiche `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`, puis ouvre automatiquement le Catalogue après 2,5 s avec une transition de fondu de 0,3 s.
 
 L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
@@ -54,33 +169,25 @@ La barre de navigation principale comporte quatre destinations. L’onglet actif
 
 ### Parcours de création d’une Séance
 
-Depuis `Mes séances`, l’utilisateur peut créer une Séance.
+Depuis `Séances`, l’utilisateur peut créer une Séance.
 
 La création suit le parcours suivant :
 
-1. saisie obligatoire du nom et sélection d’une couleur ;
-2. composition de la Séance ;
-3. sélection facultative d’une ou plusieurs Catégories ;
-4. `Enregistrer la séance` ;
-5. retour au `Catalogue de séances`.
+1. saisie du nom, choix de la couleur et composition de la Séance dans l’écran unique `Composition d’une séance` ;
+2. ajout d’au moins un Exercice valide ;
+3. action `Continuer` ;
+4. sélection facultative d’une ou plusieurs Catégories ;
+5. retour au `Catalogue des séances` après validation.
 
 Aucune Routine n’est créée automatiquement.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
-Dans le `Catalogue de séances`, la zone principale d’une carte permet d’ouvrir directement l’écran d’Exécution de la Séance. Cette action est disponible que la carte soit condensée ou déployée.
+Dans le `Catalogue des séances`, toucher la zone principale d’une carte active ouvre directement la Séance en mode modification dans `Composition d’une séance`. Cette action est disponible que la carte soit condensée ou déployée.
 
 Le déploiement de la carte est facultatif et sert uniquement à consulter rapidement son contenu.
 
-La modification d’une Séance passe par le menu `⋯` puis l’action `Modifier`.
-
-Le parcours de modification est toujours :
-
-1. écran `Nom et couleur` prérempli ;
-2. écran `Composition d’une séance` ;
-3. le cas échéant, écran `Catégories de la séance`.
-
-Ainsi, modifier une Séance ne conduit jamais directement à l’écran de composition.
+Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d’Exécution. Ces zones tactiles conservent chacune leur comportement propre.
 
 ### Parcours d’Exécution
 
@@ -98,40 +205,39 @@ Dans le MVP, le `Suivi` affiche la liste des Exécutions enregistrées.
 
 La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est grisée et inactive. Elle est prévue pour une version ultérieure.
 
-La vue détaillée déployée d’une Exécution est également reportée à une version ultérieure.
+Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.
+
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. Les fonctions correspondantes restent post-MVP.
 
 ### Écrans principaux
 
 Les écrans principaux du MVP sont :
 
 1. `Profil` ;
-2. `Catalogue de séances` ;
-3. `Nouvelle séance — Nom et couleur` ;
-4. `Composition d’une séance` ;
-5. `Création / modification d’une Activité — Exercice` ;
-6. `Création / modification d’une Activité — Récupération` ;
-7. `Catégories de la séance` ;
-8. `Calendrier` ;
-9. `Planifier une séance` ;
-10. `Exécution de séance`, incluant les états et commandes d’interruption ;
-11. `Synthèse de séance` ;
-12. `Suivi — Vue d’ensemble` (prévue en V2, visible mais inactive dans le MVP) ;
-13. `Suivi — Séances`.
+2. `Catalogue des séances` ;
+3. `Composition d’une séance`, incluant le nom et la couleur ;
+4. `Création / modification d’une Activité — Exercice` ;
+5. `Création / modification d’une Activité — Récupération` ;
+6. `Catégories de la séance` ;
+7. `Calendrier` ;
+8. `Planifier une séance` ;
+9. `Exécution de séance`, incluant les états et commandes d’interruption ;
+10. `Synthèse de séance` ;
+11. `Suivi — Séances`.
 
 Les modales servent aux actions courtes réalisées sans quitter le contexte courant, notamment :
 
 - confirmer l’abandon d’une création ;
-- créer une Catégorie ;
-- gérer les options d’une Activité, d’une Séance ou d’une Routine ;
+- confirmer la suppression d’une Séance archivée ;
+- gérer les options d’une Routine ;
 - confirmer une suppression ;
-- paramétrer le Compte à rebours initial et la Fin de séance ;
 - gérer les interruptions pendant l’Exécution.
 
 ### Retour et fermeture
 
 En dehors d’une Exécution en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées ou lorsqu’aucune donnée temporaire ne risque d’être perdue.
 
-La modale `Abandonner la création d’une séance` ne concerne que la saisie initiale du nom et de la couleur avant création effective de la Séance.
+La modale `Abandonner la création d’une séance` concerne la création en cours dans l’écran `Composition d’une séance`.
 
 Pendant une Exécution, aucune sortie directe vers la navigation principale n’est proposée. L’arrêt de la Séance est accessible uniquement après mise en pause.
 
@@ -176,13 +282,28 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Exercice` : Activité physique ;
 - `Récupération` : Activité de repos chronométrée ;
 - `Série` : répétition propre à un Exercice ;
-- `Set` : conteneur ordonné d’Activités, répété un nombre défini de fois ;
-- `Cycle` : conteneur répétant le Set et pouvant contenir des Activités propres au Cycle ;
+- `Tour` : groupe ordonné d’Activités exécuté intégralement un nombre défini de fois ;
+- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Activités placées avant le Tour, le Tour et les Activités placées après le Tour ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
 ## Écran 1 – Profil
 
-![[Profil et préférences.png|288]]
+![[images/profil.png|260]]
+
+L’écran de modification du Profil est illustré par :
+
+![[images/modifier-profil.png|260]]
+
+### États Figma de référence
+
+Les états complémentaires suivants font partie de la référence de développement :
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Vibration activée | ![[images/profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` |
+| Sélecteur du compte à rebours | ![[images/profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné |
+| Sélecteur de fin de séance | ![[images/profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné |
+| Profil d’un parcours encore vide | ![[images/profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu |
 
 ### Objectif
 
@@ -192,25 +313,29 @@ Permettre à l’utilisateur de consulter les informations générales de son co
 
 L’écran comporte notamment :
 
-- l’identité ou l’avatar de l’utilisateur et l’action `Modifier le profil` ;
+- l’avatar ou les initiales, le nom d’affichage et l’action `Modifier` ;
 - `Sons` ;
 - `Annonces vocales` ;
-- `Vibrations` ;
+- `Vibration` ;
 - la durée par défaut du `Compte à rebours initial` ;
 - la durée par défaut de la `Fin de séance` ;
 - `Notifications` et rappels.
 
 Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance.
 
-Le MVP est disponible uniquement en français. Aucun sélecteur de langue n’est affiché. L’architecture du produit doit néanmoins rester compatible avec une évolution multilingue.
+Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
+
+Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant de la préférence `Vibration`, réservée aux vibrations fonctionnelles de séance.
+
+Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
 
 ### Comportement
 
-Les modifications sont enregistrées immédiatement.
+Les préférences sont enregistrées immédiatement. L’écran `Modifier le profil — MVP` permet de modifier la photo et le nom d’affichage, puis demande une action explicite `Enregistrer`.
 
 Les préférences ne modifient pas rétroactivement les Séances existantes ni une Exécution déjà en cours.
 
-Les notifications sont activées par défaut, sous réserve de l’autorisation du système d’exploitation.
+Les notifications ne sont pas autorisées par défaut. La demande d’autorisation du système d’exploitation est présentée lorsque l’utilisateur active pour la première fois un rappel lors d’une planification. En cas de refus, le rappel n’est pas activé et l’application indique que l’autorisation peut être modifiée dans les réglages du système.
 
 ### Navigation
 
@@ -220,11 +345,27 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 ## Écran 2 – Catalogue des séances
 
-![[Catalogue des séances.png|484]]
+![[images/catalogue-seances.png|260]]
+
+L’état de résultats de la recherche globale est illustré par :
+
+![[images/recherche-globale-resultats.png|260]]
+
+### États Figma de référence
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Séance déployée | ![[images/catalogue-seance-deployee.png\|220]] | Consultation de la Composition sans quitter le Catalogue |
+| Champ de recherche déployé | ![[images/recherche-globale-champ.png\|220]] | État de saisie précédant les résultats globaux |
+| Carte condensée avec actions | ![[images/catalogue-condense-actions.png\|220]] | Superposition de `Planifier`, `Dupliquer` et `Archiver` sans déplacement de la carte |
+| Carte déployée avec actions | ![[images/catalogue-deployee-actions.png\|220]] | Même convention de glissement sur une carte déployée |
+| Liste des Séances archivées | ![[images/catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles |
+| Séance restaurée | ![[images/catalogue-archivees-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` |
+| Catalogue après archivage | ![[images/catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active |
 
 ### Objectif
 
-Permettre à l’utilisateur de consulter son Catalogue de Séances, de rechercher ou filtrer les Séances, de créer une nouvelle Séance et d’accéder rapidement à l’Exécution, à la consultation détaillée ou aux actions de gestion.
+Permettre à l’utilisateur de consulter son Catalogue de Séances, d’effectuer une recherche globale, de créer une nouvelle Séance et d’accéder rapidement à la modification, à l’Exécution, à la consultation détaillée ou aux actions de gestion.
 
 Cet écran constitue l’accueil de l’application.
 
@@ -233,10 +374,12 @@ Cet écran constitue l’accueil de l’application.
 
 Le MVP comporte :
 
-- un champ de recherche ;
-- les filtres `Toutes`, `Planifiées` et `Archivées`.
+- une action de recherche globale ;
+- le sélecteur `Toutes`, `Planifiées` et `Archivées`.
 
-La recherche filtre la liste en temps réel sur le nom de la Séance. Les filtres peuvent être utilisés avec la recherche.
+La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
+
+L’écran de résultats n’affiche pas de sous-titre. Dans l’application, Retour ramène à l’écran depuis lequel la recherche a été ouverte ; dans le prototype MVP, il revient au Catalogue condensé.
 
 Le filtre `Toutes` affiche toutes les Séances actives, qu’elles soient planifiées ou non. Il **n’affiche pas les Séances archivées**. Les Séances archivées ne sont accessibles que via le filtre `Archivées`.
 
@@ -248,11 +391,9 @@ Chaque carte affiche notamment :
 - sa Catégorie lorsqu’elle existe ;
 - le nombre d’Activités ;
 - sa durée estimée ;
-- le nombre de répétitions du Set et du Cycle (`xN`) ;
-- la dernière Exécution lorsqu’elle existe ;
+- le nombre de répétitions du Tour (`xN`) ;
 - la prochaine occurrence planifiée lorsqu’elle existe ;
 - un chevron de déploiement ;
-- le menu `⋯`.
 
 Les Séances sont présentées par défaut selon leur dernière utilisation, de la plus récente à la plus ancienne. Pour une Séance jamais exécutée, la date de dernière modification est utilisée.
 
@@ -260,9 +401,9 @@ Les Séances sont présentées par défaut selon leur dernière utilisation, de 
 
 La carte distingue trois zones d’action :
 
-- **zone principale de la carte** : ouvre l’écran d’Exécution de la Séance ;
+- **zone principale de la carte** : ouvre la Séance en mode modification ;
 - **chevron** : déploie ou replie la carte sans ouvrir l’Exécution ;
-- **`⋯`** : ouvre le modal `Options d’une séance`.
+- **zone `Démarrer`** : ouvre l’écran initial d’Exécution.
 
 La zone principale constitue une cible tactile large. Il n’est pas nécessaire d’afficher un bouton ou une icône `Ouvrir`.
 
@@ -271,7 +412,7 @@ La zone principale constitue une cible tactile large. Il n’est pas nécessaire
 
 Le déploiement est facultatif et permet de consulter les Activités de la Séance sans changer d’écran.
 
-La zone principale de la carte conserve la même action que dans la vue condensée : elle ouvre l’écran d’Exécution. Le chevron sert uniquement à déployer ou replier la carte et le menu `⋯` ouvre les options.
+La zone principale de la carte conserve la même action que dans la vue condensée : elle ouvre la Séance en mode modification. Le chevron sert uniquement à déployer ou replier la carte et la zone `Démarrer` ouvre l’écran initial d’Exécution.
 
 Aucun bouton `Ouvrir` n’est affiché dans la vue déployée.
 
@@ -286,27 +427,25 @@ Exemples : `12 reps · x3`, `45 s · x2` ou simplement `30 s` lorsque le nombre 
 
 ### Création d’une Séance
 
-Toucher `＋` ouvre l’écran `Nouvelle séance — Nom et couleur`.
+Toucher l’action de création ouvre un nouvel écran `Composition d’une séance` réunissant le nom, la couleur et la composition.
 
 La création suit ensuite le parcours défini dans la section de navigation générale.
 
-Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur revient directement au `Catalogue de séances`.
+Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur revient directement au `Catalogue des séances`.
 
 ### Actions secondaires
 
-Le menu `⋯` propose :
+Sur une Séance active, un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. La carte reste immobile : les boutons d’action apparaissent en superposition sur sa partie droite, conformément au prototype. Ces actions ne sont pas généralisées aux autres contextes.
 
-- `Modifier` ;
-- `Dupliquer` ;
-- `Planifier` ;
-- `Archiver` ou `Restaurer` ;
-- `Supprimer`.
-
-`Modifier` ouvre toujours l’écran `Nom et couleur` prérempli, puis permet de poursuivre vers la Composition.
+Depuis `Archivées`, `Restaurer` affiche un snackbar `Séance restaurée` avec l’action `Annuler`.
 
 ### Suppression d’une Séance
 
-La suppression demande toujours une confirmation explicite.
+Une Séance ne peut pas être supprimée depuis `Toutes` ou `Planifiées`. Elle doit d’abord être archivée.
+
+Depuis `Archivées`, un glissement gauche superpose l’action `Supprimer` à la carte, sans déplacer celle-ci. L’action ouvre une modale de confirmation sur le fond de la liste archivée laissant l’option `Supprimer` visible.
+
+La suppression demande toujours une confirmation explicite. Dans le prototype MVP, seul `Annuler` est relié et revient à la liste `Archivées` ; le bouton de confirmation ne possède pas de lien tant qu’un état actualisé de la liste n’est pas représenté.
 
 Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
 
@@ -325,7 +464,7 @@ Si la Séance est utilisée par une ou plusieurs Routines, celles-ci sont suppri
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
-Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Son menu `⋯` permet uniquement de la **Dupliquer**, la **Restaurer** ou la **Supprimer**. La duplication crée une nouvelle Séance active indépendante.
+Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Elle peut être restaurée ou supprimée selon les interactions propres à la vue `Archivées`.
 
 ### Séance vide
 
@@ -340,41 +479,34 @@ Tant qu’elle ne contient aucun Exercice :
 
 ### État vide
 
-Si aucune Séance n’a encore été créée, l’écran présente une action principale permettant de créer la première Séance.
+![[images/catalogue-vide.png|260]]
 
-## Écran 3 – Nouvelle séance : nom et couleur
+Si aucune Séance n’a encore été créée, l’écran affiche : `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` Il présente également l’action permettant de créer la première Séance.
 
-![[Nouvelle séance - Nom.png|275]]
+Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration.
 
-### Objectif
+Lorsque la recherche globale ne retourne aucun résultat, l’écran conserve le bouton Retour, le titre et la requête saisie, puis affiche un message d’absence de correspondance. Aucun résultat fictif, filtre supplémentaire ou sous-titre n’est ajouté.
 
-Créer l’identité minimale d’une Séance avant d’accéder à sa Composition, ou modifier cette identité pour une Séance existante.
+Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame dédiée dans le `Prototype MVP`. Ils réutilisent le composant d’état vide et la structure de leurs écrans parents ; aucune capture non issue de Figma n’est créée.
 
-### Contenu et comportement
+## Écran 3 – Composition d’une séance
 
-L’écran comporte :
+![[images/composition-seance.png|260]]
 
-- un champ obligatoire `Nom de la séance` ;
-- un sélecteur de couleur composé d’une palette prédéfinie de 16 couleurs ;
-- l’action `Continuer`.
+L’état révélant les actions d’une Activité est illustré par :
 
-Aucune couleur n’est présélectionnée lors de la création.
+![[images/composition-actions-glissees.png|260]]
 
-`Continuer` reste désactivé tant que le nom ou la couleur ne sont pas valides.
+### États Figma de référence
 
-En création, la validation crée la Séance puis ouvre `Composition d’une séance`.
-
-En modification, les valeurs actuelles sont préremplies. La validation enregistre le nom et la couleur puis ouvre la Composition.
-
-### Retour
-
-Avant la création effective de la Séance, si l’utilisateur a commencé à saisir ou sélectionner des informations puis demande à quitter l’écran, la modale `Abandonner la création d’une séance` est affichée.
-
-Lorsqu’une Séance existe déjà, le retour n’entraîne pas sa suppression.
-
-## Écran 4 – Composition d’une séance
-
-![[Nouvelle séance - Etat initial et liste des activités.png|455]]
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial et action principale désactivée |
+| Nom renseigné | ![[images/composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` |
+| Palette de couleurs ouverte | ![[images/composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé |
+| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage intégré minutes/secondes |
+| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage intégré avec valeur de référence `5 s` |
+| Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Sélection compacte du nombre de répétitions du Tour |
 ### Objectif
 
 Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
@@ -388,56 +520,49 @@ La Composition est présentée comme une structure hiérarchique ordonnée et no
 Elle comprend dans le MVP :
 
 - un `Compte à rebours initial` ;
-- un `Cycle` unique ;
-- un `Set` unique dans le Cycle ;
-- les Activités du Set ;
-- les éventuelles Activités propres au Cycle ;
-- les éventuelles Activités de fin de Séance ;
+- zéro, une ou plusieurs Activités placées avant le Tour ;
+- un `Tour` unique, qui peut lui-même contenir des Activités ;
+- zéro, une ou plusieurs Activités placées après le Tour ;
 - une `Fin de séance`.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités.
 
-Le Cycle et le Set peuvent être déployés ou repliés pour faciliter la lecture.
+Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
 
 ### En-tête
 
-L’en-tête affiche notamment :
+L’écran affiche notamment :
 
-- le nom de la Séance ;
-- le nombre d’Activités ;
-- la durée estimée.
+- le champ `Nom de la séance` ;
+- un contrôle de couleur compact placé à côté du nom ;
+- une palette de 12 couleurs organisée en grille 4 × 3 ;
+- le résumé `N activités · durée estimée`, centré en bas de la Composition.
 
-Le nom et la couleur ne sont pas modifiés directement depuis cet écran. Le bouton Retour ramène à l’écran `Nom et couleur`.
+Une couleur est proposée par défaut. L’ouverture de la palette ne grise pas le reste de l’écran.
 
-### Paramètres du Set et du Cycle
+### Paramètres du Tour
 
 
-Le Cycle et le Set possèdent chacun un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
+Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Cycle` ou `Set`. Les anciens boutons `+ / −` ne sont pas utilisés.
+Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Tour`. Les anciens boutons `+ / −` ne sont pas utilisés.
 
 Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
 
 ### Retour haptique des roulettes
 
-Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibrations` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
-
-Le libellé `Set` utilise la même hiérarchie typographique que `Cycle`. Le fond du Set est visuellement distingué du fond du Cycle afin de rendre la hiérarchie claire.
-
-À chaque répétition du Cycle, le Set est exécuté selon son propre nombre de répétitions, puis les éventuelles Activités propres au Cycle sont exécutées.
+Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibration` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
 
 ### Ajout d’une Activité
 
 
-Un seul bouton `＋` d’ajout d’Activité est affiché dans l’écran de Composition. Il est placé à droite du résumé indiquant le nombre d’Activités et la durée totale estimée.
+Un seul bouton secondaire `+ Ajouter une activité` est affiché en haut de l’écran de Composition.
 
-Aucun bouton `＋` intermédiaire n’est affiché dans le Set, dans le Cycle ou entre les Activités.
+Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Activités.
 
 Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
 
-La nouvelle Activité est insérée directement après la dernière Activité existante de la Composition. L’utilisateur peut ensuite modifier sa position manuellement par glisser-déposer.
-
-Le glisser-déposer permet de placer une Activité dans l’une des quatre positions structurelles du MVP : **avant le Cycle**, **dans le Set**, **après le Set et dans le Cycle**, ou **après le Cycle et avant la Fin de séance**.
+La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour, au moyen de la poignée de glisser-déposer.
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
@@ -447,27 +572,19 @@ Si deux Exercices s’enchaînent sans pause après Série ni Activité de type 
 
 ### Consultation et modification d’une Activité
 
-Toucher une Activité ouvre le modal `Options de l’activité`.
-
-Ce modal permet de :
-
-- Modifier ;
-- Dupliquer ;
-- Supprimer.
-
-`Modifier` ouvre le parcours de modification correspondant au type d’Activité.
+Toucher une carte Activité ouvre directement son parcours de modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`.
 
 ### Réorganisation
 
-Les Activités peuvent être réorganisées par glisser-déposer dans les zones où leur déplacement est autorisé.
+Les Activités peuvent être réorganisées par glisser-déposer avant le Tour, dans le Tour ou après le Tour.
 
-Le Cycle, le Set, le Compte à rebours initial et la Fin de séance restent des éléments structurels fixes dans le MVP.
+Le Tour, le Compte à rebours initial et la Fin de séance restent des éléments structurels fixes dans le MVP.
 
 ### Validation de la Composition
 
 L’écran ne comporte pas de bouton `Démarrer`.
 
-L’action `Valider les modifications` valide la Composition.
+L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou que la Composition ne contient pas au moins un Exercice valide.
 
 En création, elle ouvre l’écran `Catégories de la séance`.
 
@@ -479,10 +596,21 @@ La Séance n’est exécutable que si elle contient au moins un Exercice valide.
 
 Les modifications internes sont conservées au fur et à mesure, sous réserve des validations explicites prévues par les écrans d’édition.
 
-## Écran 5 – Création / modification d’une Activité (Exercice)
+## Écran 4 – Création / modification d’une Activité (Exercice)
 
 
-![[Nouvelle activité - Exercice.png]]
+![[images/creation-activite-exercice.png|260]]
+
+### États Figma de référence
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions |
+| Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette minutes/secondes et grisage des autres contrôles |
+| Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série |
+| Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Sélecteur compact du nombre de Séries |
+| Répétitions ouvertes | ![[images/creation-activite-repetitions-ouvert.png\|220]] | Sélecteur compact de la cible de répétitions |
+| Informations complémentaires | ![[images/creation-activite-informations.png\|220]] | Deuxième étape facultative : Consigne et Zones corporelles |
 ### Objectif
 
 Permettre à l’utilisateur de créer ou modifier une Activité de type `Exercice`.
@@ -509,9 +637,11 @@ L’écran comporte notamment :
 - Nom ;
 - Mode d’Exécution ;
 - `Paramètres de l’activité`, regroupant les valeurs d’exécution ;
-- bouton `Valider`.
+- bouton `Terminer`.
 
 Le nom est obligatoire.
+
+Les contrôles `Exercice / Récupération` et `Durée / Répétition` partagent chacun leur largeur intérieure en deux zones égales. Le texte de chaque option reste centré dans sa zone, quel que soit le palier de largeur. Le texte récapitulatif des paramètres est placé dans un cadre de largeur utile complète ; il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
 
 ### Mode d’Exécution
 
@@ -555,9 +685,13 @@ Lorsqu’un Exercice existant est modifié, ses valeurs sont préremplies.
 
 Les Exécutions déjà historisées ne sont jamais modifiées.
 
-## Écran 6 – Création / modification d’une Activité (Récupération)
+## Écran 5 – Création / modification d’une Activité (Récupération)
 
-![[Nouvelle activité - Récupération.png|284]]
+![[images/creation-activite-recuperation.png|260]]
+
+L’état du sélecteur de durée ouvert est la référence du composant de saisie :
+
+![[images/creation-recuperation-duree-ouverte.png|220]]
 
 ### Objectif
 
@@ -580,7 +714,7 @@ Une Récupération est toujours chronométrée. Elle ne propose pas de mode Rép
 
 Elle ne possède pas de Zones corporelles.
 
-`Valider` enregistre l’Activité puis revient à la Composition.
+`Terminer` enregistre l’Activité puis revient à la Composition, y compris lorsque le sélecteur de durée est ouvert.
 
 ### Validation
 
@@ -592,11 +726,15 @@ L’utilisateur peut utiliser la commande `Activité suivante` avant la fin d’
 
 La modification utilise le même écran avec les valeurs préremplies.
 
-La duplication et la suppression sont accessibles depuis le modal `Options de l’activité`.
+La duplication et la suppression sont accessibles par glissement gauche sur la carte de l’Activité dans la Composition.
 
-## Écran 7 – Catégories de la séance
+## Écran 6 – Catégories de la séance
 
-![[Nouvelle séance - Entrer une catégorie.png|265]]
+![[images/categories-seance.png|260]]
+
+L’état de création intégrée d’une nouvelle Catégorie est illustré par :
+
+![[images/categories-nouvelle-inline.png|220]]
 
 ### Objectif
 
@@ -609,14 +747,36 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - les Catégories sont proposées sous forme de tags sélectionnables ;
 - la sélection est multiple ;
 - aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre la modale de création ;
-- `Enregistrer la séance` enregistre la sélection et ramène directement au `Catalogue de séances`.
+- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ;
+- `Enregistrer la séance` enregistre la sélection et ramène directement au `Catalogue des séances`.
 
-Aucune proposition intermédiaire `Exécuter maintenant / Planifier / Retour Catalogue` n’est affichée.
+## Écran 7 – Calendrier
 
-## Écran 8 – Calendrier
+![[images/calendrier-jour.png|260]]
 
-![[Calendrier des routines.png|522]]
+La vue Semaine est illustrée par :
+
+![[images/calendrier-semaine.png|260]]
+
+La vue Mois est illustrée par :
+
+![[images/calendrier-mois.png|260]]
+
+### États Figma de référence
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Appui long en vue Jour | ![[images/calendrier-jour-appui-long.png\|220]] | Sélection d’une plage horaire avant planification |
+| Choix de la Séance | ![[images/calendrier-choisir-seance.png\|220]] | Bottom sheet défilant ouvert par `+ Planifier` |
+| Créneau à planifier | ![[images/calendrier-creneau-a-planifier.png\|220]] | Étape intermédiaire issue de la plage sélectionnée |
+| Jour après planification | ![[images/calendrier-jour-apres-planification.png\|220]] | Résultat attendu après enregistrement |
+| Jour suivant | ![[images/calendrier-jour-suivant.png\|220]] | Résultat d’un glissement gauche ou du chevron suivant |
+| Semaine, mardi sélectionné | ![[images/calendrier-semaine-mardi.png\|220]] | Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible |
+| Séance hebdomadaire déployée | ![[images/calendrier-semaine-deployee.png\|220]] | Détail d’une occurrence et zone `Démarrer` |
+| Actions glissées | ![[images/calendrier-semaine-actions.png\|220]] | `Dupliquer` et `Supprimer` sur une occurrence hebdomadaire |
+| Actions sur Étirements | ![[images/calendrier-etirements-actions.png\|220]] | Même interaction appliquée à une autre occurrence représentée |
+| Après suppression | ![[images/calendrier-apres-suppression.png\|220]] | Liste hebdomadaire actualisée après suppression |
+| Calendrier vide | ![[images/calendrier-vide.png\|220]] | État sans occurrence planifiée |
 
 ### Objectif
 
@@ -629,23 +789,29 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 ### Contenu
 
 
+L’écran comporte les vues `Jour`, `Semaine` et `Mois`. L’onglet `Calendrier` ouvre la vue `Jour`.
+
 L’écran affiche :
 
 - un calendrier ;
 - uniquement les occurrences futures calculées à partir des Routines ;
-- pour chaque occurrence : la Séance, sa couleur, la date / heure et le menu `⋯` ;
-- le bouton `+ Planifier une séance`.
+- pour chaque occurrence : la Séance, sa couleur et la date / heure ;
+- le bouton secondaire `+ Planifier`.
 
-Le libellé `À faire` n’est pas affiché.
-
-Le calendrier reste fixe pendant le défilement ; seule la liste des occurrences située sous le calendrier défile.
+En vue Jour, un glissement horizontal de la grille vers la gauche affiche le jour suivant et un glissement vers la droite le jour précédent. Les chevrons restent disponibles. Un appui long sur une plage horaire prépare une nouvelle planification ; le texte `créneau libre` n’est pas utilisé.
 
 ### Comportement
 
 
-Le menu `⋯` d’une occurrence ouvre les actions disponibles sur cette occurrence.
+En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche.
 
-Une occurrence future peut être exécutée en avance via `⋯` → `Exécuter maintenant`.
+L’état obtenu par glissement ne remplace pas la liste : il décale seulement la carte concernée pour révéler ses actions. Les autres jours et occurrences restent rendus à leur position chronologique. Dans l’exemple de référence, la section `Mardi 4 août` et `Mobilité du matin` restent donc visibles sous les cartes du lundi.
+
+En vue Semaine, la liste est organisée chronologiquement en sections journalières. L’exemple affiche les trois Activités du lundi 3 août, puis la section du mardi 4 août avec `Mobilité du matin`. Lorsque le défilement place un nouveau jour en tête de la liste, le curseur coloré de la barre de semaine sélectionne ce jour. Inversement, sélectionner un jour dans la barre positionne sa section comme première section visible de la liste.
+
+La barre de semaine occupe toute la largeur utile. Les sept jours forment sept colonnes flexibles de même largeur ; aucune largeur de cellule ni position horizontale issue du gabarit `402` n’est conservée en dur. Les espacements s’adaptent afin que les sept jours restent entièrement visibles dès `360` points et utilisent l’espace supplémentaire sur un grand téléphone. La grille de la vue Mois applique la même répartition en sept colonnes égales.
+
+`+ Planifier` ouvre le bottom sheet `Choisir une séance`. La liste y défile si nécessaire et `Sélectionner` poursuit le parcours de planification.
 
 Lorsqu’une occurrence future est exécutée en avance, elle est considérée exécutée pour cette occurrence et n’est plus proposée à son horaire initial.
 
@@ -653,9 +819,21 @@ Lorsqu’une occurrence planifiée arrive à échéance sans avoir été exécut
 
 La suppression ou modification d’une Routine agit sur les occurrences futures conformément aux règles de planification.
 
-## Écran 9 – Planifier une séance
+## Écran 8 – Planifier une séance
 
-![[Planifier une séance.png|290]]
+![[images/planifier-seance.png|260]]
+
+### États Figma de référence
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Date ouverte | ![[images/planifier-date-ouverte.png\|220]] | Sélecteur de date compact |
+| Heure ouverte | ![[images/planifier-heure-ouverte.png\|220]] | Roulette heures/minutes |
+| Rappel personnalisé ouvert | ![[images/planifier-rappel-ouvert.png\|220]] | Réglage du délai de rappel |
+| Rappel personnalisé sélectionné | ![[images/planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement |
+| Nombre de semaines ouvert | ![[images/planifier-semaines-ouvert.png\|220]] | Fréquence hebdomadaire compacte |
+| Aucune répétition | ![[images/planifier-sans-repetition.png\|220]] | Variante de planification unique |
+| Changer la Séance | ![[images/planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée |
 
 ### Objectif
 
@@ -667,7 +845,7 @@ L’écran est accessible :
 
 - depuis `Calendrier > + Planifier une séance` ;
 - depuis `Modifier la planification` sur une Routine existante ;
-- depuis `Planifier` dans les options d’une Séance.
+- depuis l’action glissée `Planifier` d’une Séance active dans le Catalogue.
 
 ### Paramètres
 
@@ -686,7 +864,7 @@ La planification comporte :
 
 Le MVP propose :
 
-- `Sans répétition` : une seule occurrence ;
+- `Aucune` : une seule occurrence ;
 - `Périodique` : répétition selon une périodicité hebdomadaire définie par une fréquence en semaines et un ou plusieurs jours de la semaine. Dans le MVP, seule cette périodicité hebdomadaire est disponible.
 
 Il n’existe pas de mode `Quotidien` distinct. Une planification périodique sélectionnant les sept jours toutes les semaines équivaut à une exécution quotidienne.
@@ -699,6 +877,10 @@ En mode périodique :
 
 Dans l’interface, la répétition est présentée de manière compacte avec `Toutes les`, puis `X semaine(s) jusqu’au <date>`, et les jours sélectionnés en dessous. Aucun niveau de titre `Quand ?` n’est affiché ; `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel.
 
+Le contrôle de rappel comporte deux options fixes : `Aucun` à gauche et `Personnalisé` à droite. Les choix rapides intermédiaires (`5 min`, `15 min`, `30 min`, `1 h` dans le MVP) sont placés dans une zone horizontale défilante. Cette zone peut recevoir de nouveaux choix rapides sans déplacer les deux options fixes ni réduire la taille des libellés. Le récapitulatif de planification est multi-ligne et reste intégralement contenu dans son cadre.
+
+La flèche ouvrant le détail du `Rappel` est alignée sur la marge droite du contenu, comme les autres commandes de section. Son pictogramme reste centré dans une boîte visuelle de `24 × 24` et dans une cible tactile d’au moins `48 × 48`.
+
 Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur souhaite plusieurs horaires pour une même Séance, il crée plusieurs Routines distinctes.
 
 ### Validation
@@ -707,9 +889,16 @@ Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur 
 
 Les occurrences futures sont recalculées à partir de la nouvelle planification. Les occurrences déjà historisées ne sont pas modifiées.
 
-## Écran 10 – Exécution de séance
+## Écran 9 – Exécution de séance
 
-![[Exécution d'une séance.png|245]]
+![[images/execution-seance.png|260]]
+
+### États Figma de référence
+
+| État | Capture | Règle matérialisée |
+| --- | --- | --- |
+| Avant démarrage | ![[images/execution-etat-initial.png\|220]] | La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseigné dans le prototype |
+| Sons et annonces désactivés | ![[images/execution-bips-vocal-desactives.png\|220]] | État alternatif des deux commandes de guidage sonore |
 
 ### Objectif
 
@@ -722,11 +911,13 @@ Un seul layout standard est utilisé pour les Activités en Durée, en Répétit
 L’écran peut être ouvert :
 
 - depuis la zone principale d’une carte du Catalogue ;
-- depuis une occurrence planifiée ; pour une occurrence future exécutée en avance, l’accès se fait explicitement via `⋯` → `Exécuter maintenant`.
+- depuis l’action `Démarrer` d’une occurrence planifiée, y compris lorsqu’une occurrence future est exécutée en avance.
 
 L’ouverture de l’écran ne démarre pas immédiatement l’Activité.
 
 Avant le démarrage, l’utilisateur déclenche la Séance depuis la commande centrale.
+
+Avant le démarrage, Retour renvoie dans l’application à l’écran depuis lequel l’Exécution a été lancée. Dans le prototype MVP, toutes les zones du bouton Retour renvoient explicitement au `Catalogue des séances — Séance déployée` (`1992:10014`) ; aucune ne pointe vers l’état vide du Catalogue.
 
 Le Compte à rebours initial est alors exécuté s’il est configuré avec une durée supérieure à zéro, puis la première Activité commence.
 
@@ -739,13 +930,14 @@ L’écran affiche, de haut en bas :
 - le nom de l’Activité en cours ;
 - le compteur de Série lorsque l’Activité est un Exercice ;
 - l’indicateur temporel principal ;
-- la progression `Set x/y • Cycle x/y` ;
+- la Série sous l’indicateur principal, à gauche, et le Tour à droite. À partir de `360` points et avec le texte à `100 %` ou `135 %`, les deux valeurs restent sur une même ligne dans deux zones flexibles symétriques, séparées par un repère central de largeur fixe ;
+- une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
 - les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
 - le temps total écoulé et la durée estimée de la Séance ; si le plan contient au moins un Exercice en mode Répétition, la durée estimée est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
-- une barre de progression globale continue, sans frontières de segments visibles. Cette barre représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; elle n’est pas le simple rapport `temps écoulé / durée estimée`.
+- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée`.
 
-Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
+Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
 Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne.
 
@@ -765,10 +957,10 @@ Pour un Exercice défini par un nombre de répétitions, l’écran conserve le 
 
 Le temps actif est affiché par un chronomètre croissant à partir de `00:00`. Il n’existe pas de durée cible.
 
-Le cercle du minuteur effectue un tour complet par minute :
+Le cercle du minuteur effectue une rotation complète par minute :
 
-- un tour = 60 secondes ;
-- à `01:00`, il recommence un nouveau tour ;
+- une rotation complète représente 60 secondes ;
+- à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
 Un bip est émis à chaque minute écoulée. Dans le MVP, ce bip est fixe et non paramétrable.
@@ -815,7 +1007,7 @@ Après confirmation :
 - pour une Activité en Répétition, le chronomètre d’Activité revient à `00:00` ;
 - la cible de répétitions n’est pas modifiée ;
 - le temps total déjà écoulé dans la Séance reste conservé ;
-- le Set et le Cycle courants restent inchangés.
+- le Tour et le Cycle courants restent inchangés.
 
 ### Mise en pause
 
@@ -866,10 +1058,15 @@ Pour un Exercice en Répétition, aucun signal de fin de compte à rebours n’e
 
 Si l’application passe en arrière-plan ou si l’écran se verrouille :
 
-- l’état de l’Exécution est conservé ;
-- le temps est recalculé à partir des horodatages de référence plutôt qu’à partir d’un simple comptage de ticks ;
-- l’utilisateur retrouve l’état déterministe de l’Activité à son retour ;
+- le Plan d’Exécution continue selon ses horodatages de référence ;
+- l’Activité chronométrée ne se fige pas ;
+- au retour, l’application reconstitue l’Activité et la position temporelle qui auraient dû être atteintes, plutôt que de reprendre le compteur à l’endroit où l’interface a été suspendue ;
 - les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
+
+Une mise en pause de sécurité est appliquée en cas d’inactivité prolongée :
+
+- pour une Activité chronométrée, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
+- pour un Exercice en Répétitions, après 2 heures sans interaction depuis son démarrage.
 
 Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
 
@@ -879,9 +1076,13 @@ Lorsque le Plan d’Exécution arrive à son terme, l’Exécution est enregistr
 
 La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Exécution.
 
-## Écran 11 – Synthèse de séance
+## Écran 10 – Synthèse de séance
 
-![[Exécution d'une séance - Synthèse de séance.png|285]]
+![[images/synthese-seance.png|260]]
+
+L’état initial, avant sélection du ressenti, est illustré par :
+
+![[images/synthese-evaluation-initiale.png|220]]
 
 ### Objectif
 
@@ -900,7 +1101,7 @@ L’écran affiche notamment :
 - un champ `Commentaire` facultatif ;
 - le bouton `Terminer`.
 
-Les Sets et Cycles ne sont pas affichés dans la Synthèse du MVP.
+Les Tours et Cycles ne sont pas affichés dans la Synthèse du MVP.
 
 Aucun parcours détaillé des Activités n’est affiché sur cet écran dans le MVP.
 
@@ -915,6 +1116,8 @@ Une Exécution arrêtée volontairement depuis la modale de pause est enregistr�
 Le ressenti est obligatoire.
 
 Le MVP propose trois niveaux, conformément au wireframe.
+
+Le libellé `Comment s’est passée la séance ?` utilise `type.cardTitle` (`16/20`, Semi Bold). À la taille système standard, son conteneur occupe la largeur utile et maintient le libellé sur une ligne sur les largeurs prises en charge de `360` à `440` points ; la référence Figma `402` utilise une largeur de `322` points. Avec l’agrandissement d’accessibilité, le conteneur grandit verticalement et autorise le retour à la ligne sans chevaucher les choix de ressenti.
 
 Le bouton `Terminer` reste désactivé tant qu’aucun ressenti n’a été sélectionné.
 
@@ -932,9 +1135,7 @@ Il est enregistré avec l’Exécution.
 
 Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
-## Écran 12 – Suivi : Vue d’ensemble (V2)
-
-![[Suivi - Vue d'ensemble.png|313]]
+## Écran post-MVP – Suivi : Vue d’ensemble
 
 ### Objectif
 
@@ -944,16 +1145,24 @@ Cette vue n’est pas fonctionnelle dans le MVP.
 
 ### Présence dans le MVP
 
-La `Vue d’ensemble` n’est pas exposée dans l’interface du MVP. Elle est reportée à une version ultérieure et ne doit pas apparaître comme onglet ou option inactive dans la V1.
+La commande `Vue d’ensemble` reste visible mais désactivée dans le MVP. La vue analytique et ses graphiques ne sont pas fonctionnels et restent reportés à une version ultérieure.
 
-## Écran 13 – Suivi : Séances
+## Écran 11 – Suivi : Séances
 
-![[Suivi - Séances.png|229]]
+![[images/suivi-condense.png|260]]
+
+La vue déployée est illustrée par :
+
+![[images/suivi-deploye.png|260]]
+
+L’état sans Exécution enregistrée est illustré par :
+
+![[images/suivi-vide.png|220]]
 
 ### Objectif
 
 
-Permettre à l’utilisateur de consulter les Exécutions de séance enregistrées, de les rechercher et de modifier leur ordre chronologique.
+Permettre à l’utilisateur de consulter les Exécutions de séance enregistrées et de déployer leur détail.
 
 Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi du MVP.
 
@@ -961,11 +1170,13 @@ Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi
 
 L’écran comporte :
 
-- un champ de recherche placé sous l’en-tête ;
-- une commande de tri chronologique discrète à droite de la recherche ;
+- la destination active `Séances` ;
+- les commandes visibles mais désactivées `Vue d’ensemble`, `Filtrer` et `Trier` ;
 - une liste chronologique des Exécutions.
 
 Chaque carte peut être condensée ou déployée individuellement afin d’afficher le détail de l’Exécution directement dans la liste. Aucun contrôle `Déployer tout / Replier tout` n’est affiché dans le MVP.
+
+Le contrôle `Séances / Vue d’ensemble` est divisé en deux zones égales, même si `Vue d’ensemble` est désactivée. Les commandes `Filtrer` et `Trier` conservent leur écart et sont centrées comme un groupe. Dans chaque carte, le chevron et le Ressenti forment un groupe ancré au bord droit intérieur : le Ressenti ne peut pas disparaître sur écran compact et le groupe ne s’éloigne pas du bord sur grand téléphone. La liste est la seule zone défilante et s’arrête visuellement au moins `16` points avant la navigation basse fixe.
 
 ### Carte d’Exécution
 
@@ -978,51 +1189,36 @@ Chaque carte affiche au minimum :
 - le statut `Terminée`, `Partielle` ou `Interrompue` ;
 - le ressenti lorsqu’il a été renseigné.
 
-### Recherche
-
-La recherche filtre immédiatement la liste.
-
-Elle porte sur le nom de la Séance et les informations textuelles explicitement prévues pour le Suivi du MVP.
-
 ### Filtres avancés
 
-Le MVP ne propose pas de modale de filtres avancés. Le filtrage par Catégories, Zones corporelles, période ou statut est reporté à une version ultérieure.
+Le filtrage par Catégories, Zones corporelles, période ou statut est reporté à une version ultérieure. La commande `Filtrer` reste visible mais désactivée.
 
 ### Tri
 
-Une seule règle de tri est active à la fois.
-
-Les deux ordres disponibles dans le MVP sont :
-
-- plus récent au plus ancien ;
-- plus ancien au plus récent.
-
-Par défaut, les Exécutions sont triées de la plus récente à la plus ancienne.
+La fonction de tri est reportée à une version ultérieure. La commande `Trier` reste visible mais désactivée. L’ordre d’affichage initial reste chronologique, du plus récent au plus ancien.
 
 ### État vide
 
 Si aucune Exécution ne correspond à la recherche, l’écran affiche un message indiquant qu’aucun résultat ne correspond.
 
-Si aucune Exécution n’existe encore, l’écran invite l’utilisateur à revenir vers `Mes séances`.
+Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vos séances exécutées dès que vous aurez terminé votre première séance.`
 
 ## Les modales
 
 ### Modale – Abandonner la création d’une séance
 
-![[Modale - Nouvelle séance - Abandonner la création.png|272]]
+![[images/abandon-creation.png|260]]
 
 #### Objectif
 
-Éviter la perte accidentelle des informations saisies sur l’écran initial `Nouvelle séance — Nom et couleur`.
+Éviter la perte accidentelle des informations saisies dans la nouvelle `Composition d’une séance`.
 
 #### Ouverture
 
 
-La modale s’affiche depuis l’écran `Nouvelle séance — Nom et couleur` lorsque l’utilisateur appuie sur Retour pendant une création en cours.
+La modale s’affiche depuis `Composition d’une séance` lorsque l’utilisateur appuie sur Retour pendant une création en cours.
 
-Depuis la Composition d’une nouvelle Séance, Retour ramène d’abord à l’écran `Nom et couleur` avec les valeurs déjà saisies. L’utilisateur peut alors modifier le nom ou la couleur, utiliser `Continuer` pour retrouver la Composition dans l’état où il l’avait laissée, ou appuyer de nouveau sur Retour pour ouvrir la modale d’abandon.
-
-L’écran `Nouvelle séance — Nom et couleur` reste visible en arrière-plan, assombri et non interactif.
+La Composition reste visible en arrière-plan, assombrie et non interactive.
 
 #### Contenu
 
@@ -1044,166 +1240,35 @@ L’écran `Nouvelle séance — Nom et couleur` reste visible en arrière-plan,
 
 `Continuer la création` ferme la modale et conserve intégralement la création en cours.
 
-`Abandonner` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue de séances`.
+`Abandonner` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue des séances`.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
-### Modale – Création d’une Catégorie
+### Modale – Confirmer la suppression d’une Séance archivée
 
-![[Modale - Nouvelle catégorie.png|302]]
+![[images/catalogue-archivees-actions.png|260]]
 
-#### Objectif
+L’action `Supprimer` est révélée par glissement gauche dans la liste `Archivées`. Elle se superpose à la carte sans déplacer celle-ci.
 
-Permettre de créer une Catégorie sans quitter l’écran `Catégories de la séance`.
+![[images/suppression-seance-archivee.png|260]]
 
-#### Contenu et validation
+La modale demande une confirmation explicite. L’arrière-plan conserve la liste des Séances archivées et l’option `Supprimer` visible. `Annuler` ferme la modale et revient à la liste `Archivées`.
 
-La modale comporte :
+Dans le prototype MVP, le bouton de confirmation `Supprimer la séance` ne possède volontairement aucun lien tant qu’un état actualisé de la liste n’est pas représenté. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
-- `Nouvelle catégorie` ;
-- un champ obligatoire `Nom de la catégorie` ;
-- `Annuler` ;
-- `Créer`.
+### Modales – Suppression d’une planification
 
-Le bouton `Créer` reste désactivé tant que le nom est vide.
+![[images/calendrier-suppression-unique.png|260]]
 
-Après validation :
+Pour une planification unique, `Supprimer` ouvre une confirmation. Après validation, la planification est supprimée, la Séance associée et les Exécutions historiques sont conservées.
 
-- la Catégorie est créée ;
-- elle est ajoutée au référentiel ;
-- elle est automatiquement sélectionnée pour la Séance en cours ;
-- la modale se ferme.
+![[images/calendrier-suppression-periodique.png|260]]
 
-Le nom comporte de 1 à 50 caractères et ne peut pas dupliquer un nom existant sans tenir compte de la casse.
-
-### Modale – Options de l’Activité
-
-![[Modale - Nouvelle séance - Option d'activité.png|252]]
-
-#### Contenu
-
-Le modal affiche le nom de l’Activité et les actions :
-
-- `Modifier` ;
-- `Dupliquer` ;
-- `Supprimer` ;
-- `Annuler`.
-
-#### Comportement
-
-`Modifier` ouvre l’écran de modification correspondant au type de l’Activité.
-
-`Dupliquer` crée une copie immédiatement sous l’Activité d’origine avec tous ses paramètres, notamment :
-
-- nom ;
-- type ;
-- durée ou répétitions ;
-- nombre de Séries ;
-- pause après Série ;
-- Consigne ;
-- Zones corporelles, le cas échéant.
-
-`Supprimer` retire l’Activité de la Séance. La suppression de la dernière Activité est autorisée ; la Séance devient alors non exécutable jusqu’à l’ajout d’un nouvel Exercice.
-
-### Modale – Options d’une Séance
-
-![[Modale - Catalogue des séances - Options.png|284]]
-
-#### Objectif
-
-Donner accès aux actions de gestion sans surcharger les cartes du Catalogue.
-
-#### Contenu
-
-Les actions proposées sont :
-
-- `Modifier` ;
-- `Dupliquer` ;
-- `Planifier` ;
-- `Archiver` ou `Restaurer` ;
-- `Supprimer` ;
-- `Annuler`.
-
-#### Modifier
-
-Ouvre l’écran `Nouvelle séance — Nom et couleur` avec les valeurs de la Séance préremplies.
-
-Après validation, l’utilisateur poursuit vers la Composition.
-
-#### Dupliquer
-
-Crée une copie indépendante comprenant :
-
-- nom, avec le comportement de suffixe défini par les règles produit ;
-- couleur ;
-- Catégories ;
-- structure du Cycle et du Set ;
-- Activités ;
-- paramètres d’Exécution.
-
-#### Planifier
-
-Ouvre le parcours `Planifier une séance` pour créer une Routine liée à cette Séance.
-
-#### Archiver / Restaurer
-
-L’archivage retire la Séance de la liste principale.
-
-Les Routines associées sont supprimées après confirmation. Les occurrences historisées et les Exécutions existantes sont conservées.
-
-Restaurer la Séance ne restaure pas ses anciennes Routines.
-
-#### Supprimer
-
-Demande toujours une confirmation explicite.
-
-La suppression de la Séance ne supprime jamais les Exécutions historiques.
-
-### Modale – Options d’une Routine
-
-![[Modale - Options d'une routine.png]]
-
-#### Objectif
-
-Permettre de modifier ou supprimer rapidement une Routine planifiée.
-
-#### Contenu
-
-
-Le modal propose, selon le contexte :
-
-- `Exécuter maintenant` pour une occurrence future ;
-- `Modifier la planification` ;
-- `Supprimer la routine` ;
-- `Annuler`.
-
-`Exécuter maintenant` ouvre l’écran d’Exécution pour l’occurrence sélectionnée. Si cette occurrence est exécutée en avance, elle est considérée exécutée et n’est plus reproposée à son horaire initial.
-
-`Modifier la planification` ouvre `Planifier une séance` avec les paramètres préremplis.
-
-`Supprimer la routine` ouvre la modale de confirmation.
-
-### Modale – Confirmer la suppression d’une Routine
-
-![[Modale - Confirmation de la suppression d'une routine.png|295]]
-
-#### Objectif
-
-Demander une confirmation explicite avant suppression d’une Routine.
-
-#### Comportement
-
-Après confirmation :
-
-- la Routine est supprimée ;
-- aucune nouvelle occurrence future n’est générée ;
-- les occurrences déjà historisées sont conservées ;
-- les Exécutions déjà enregistrées sont conservées ;
-- la Séance associée n’est pas supprimée.
+Pour une planification périodique, `Supprimer` propose `Cette occurrence` ou `Cette occurrence et les suivantes`. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
 
 ### Modale – Réinitialisation de l’Activité
 
-![[Modale - Exécution d'une séance - Réinitialiser l'activité.png|243]]
+![[images/execution-reinitialiser.png|260]]
 
 #### Objectif
 
@@ -1224,14 +1289,14 @@ Après confirmation :
 - un Exercice en Répétition retrouve un chronomètre d’Activité à `00:00` ;
 - la cible de répétitions reste inchangée ;
 - le temps global déjà écoulé dans la Séance est conservé ;
-- le Set et le Cycle restent inchangés ;
+- le Tour et le Cycle restent inchangés ;
 - l’Activité redémarre selon son comportement normal.
 
 `Annuler` ferme la modale et reprend l’Activité à son état précédent.
 
 ### Modale – Passage à l’Activité suivante
 
-![[Modale - Exécution d'une séance - Passer à l'activité suivante.png|276]]
+![[images/execution-activite-suivante.png|260]]
 
 #### Objectif
 
@@ -1269,7 +1334,7 @@ Après confirmation :
 
 ### Modale – Pause / arrêt de l’Exécution
 
-![[Modale - Exécution d'une séance - Pause ou Arrêt de la séance.png|261]]
+![[images/execution-pause.png|260]]
 
 #### Objectif
 
@@ -1309,111 +1374,47 @@ Met fin à l’Exécution :
 
 La modale ne peut être fermée que par l’une des deux actions prévues.
 
-### Modale – Paramétrer le Compte à rebours initial
+### Contrôles intégrés – Compte à rebours initial et Fin de séance
 
-![[Modale - Nouvelle séance - Compte à rebours initial.png|289]]
+Ces réglages ne sont plus des modales dans le MVP.
 
-#### Objectif
+Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Dans le Profil, toucher la préférence correspondante ouvre un sélecteur intégré présentant visuellement `0 s`, `5 s`, `10 s` et `15 s` ; la sélection s’applique immédiatement et revient à la vue Profil.
 
-Permettre de personnaliser le Compte à rebours initial sans quitter la Composition.
+Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
-Le Compte à rebours initial est un élément structurel obligatoire et ne constitue pas une Activité.
+## Couverture du Prototype MVP et exclusions justifiées
 
-#### Contenu
+### Périmètre intégré
 
-La modale comporte :
+La page Figma `Prototype MVP` (`510:101`) contient **74 frames de premier niveau**. Chacune de ces 74 frames possède une capture référencée dans le présent chapitre, à proximité de l’écran ou du comportement qu’elle documente.
 
-- `Durée` ;
-- `Texte vocal`.
+Cette couverture comprend notamment :
 
-Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
+- les écrans principaux et leurs états vides ;
+- les vues condensées et déployées ;
+- les sélecteurs et roulettes ouverts ;
+- les actions révélées par glissement ;
+- les modales de confirmation ;
+- les états avant et après une action ;
+- les variantes nécessaires à la compréhension des liens du prototype.
 
-Les valeurs initiales proviennent des Préférences.
+Une capture ne remplace pas la règle écrite. Les textes du présent chapitre définissent le comportement à implémenter ; les captures définissent la référence visuelle et l’état représenté.
 
-Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
+### Éléments non intégrés comme écrans distincts
 
-`Enregistrer` applique les modifications.  
-### Modale – Paramétrer la Fin de séance
+Aucune frame de premier niveau du `Prototype MVP` n’est exclue. Les éléments suivants ne font toutefois pas l’objet de captures autonomes :
 
-![[Modale - Nouvelle séance - Fin de séance.png|323]]
+| Élément non capturé séparément | Justification |
+| --- | --- |
+| Calques internes d’une frame : textes, icônes, séparateurs, fonds et cartes | Ils sont déjà visibles dans la capture de leur frame parente et ne constituent pas un état d’écran autonome. |
+| Zones tactiles transparentes et groupes servant uniquement au prototypage | Leur rôle est documenté par les règles d’interaction et les liens ; une capture serait visuellement identique à celle de l’écran parent. |
+| Cibles de défilement internes (`SCROLL_TO`) | Elles représentent une position dans une même liste, pas un nouvel écran. |
+| Duplication d’un même lien sur le conteneur du bouton, son icône et son libellé | Ces couches assurent une cible tactile complète ; elles sont consolidées en une seule action fonctionnelle dans la documentation. |
+| Écrans situés sur d’autres pages Figma, essais, variantes abandonnées ou références post-MVP | La page `Prototype MVP` est la source de vérité. Les autres pages ne doivent pas être utilisées pour compléter ou contredire le MVP. |
+| `Suivi — Vue d’ensemble` analytique | La commande est visible mais désactivée dans le MVP ; aucun écran fonctionnel correspondant n’appartient au parcours MVP de référence. |
+| État vide `Archivées` et recherche globale sans résultat | Ces états sont requis et décrits fonctionnellement, mais aucune frame dédiée n’existe dans le `Prototype MVP`. Ils doivent réutiliser les composants documentés de leurs écrans parents ; une fausse capture Figma ne doit pas être inventée. |
+| Demande d’autorisation système des notifications | Il s’agit d’une interface native iOS/Android, dont le rendu dépend du système. La documentation précise son déclenchement contextuel mais ne fige pas une capture applicative. |
 
-#### Objectif
+### Règle de maintenance
 
-Permettre de personnaliser la Fin de séance sans quitter la Composition.
-
-La Fin de séance est un élément structurel obligatoire et ne constitue pas une Activité.
-
-#### Contenu
-
-La modale comporte :
-
-- `Durée` ;
-- `Texte vocal`.
-
-Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
-
-Les valeurs initiales proviennent des Préférences.
-
-Une durée de `0 s` rend l’élément instantané sans le supprimer de la structure.
-
-`Enregistrer` applique les modifications.  
-### Modale – Durée par défaut du Compte à rebours initial
-
-![[Modale - Profil - Comptes à rebours initial.png|263]]
-#### Objectif
-
-Permettre à l’utilisateur de définir depuis le Profil la durée proposée par défaut pour le Compte à rebours initial lors de la création d’une nouvelle Séance.
-
-#### Ouverture
-
-La modale s’ouvre lorsque l’utilisateur touche la ligne `Compte à rebours initial` dans la section `Exécution des séances` du Profil.
-
-#### Contenu
-
-La durée est sélectionnée au moyen de deux roulettes :
-
-- minutes ;
-- secondes.
-
-Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
-
-La valeur initialement sélectionnée correspond à la préférence actuellement enregistrée. La valeur par défaut initiale de l’application est `10 s`.
-
-#### Action
-
-`Enregistrer` enregistre la nouvelle valeur et ferme la modale.
-
-La nouvelle valeur devient la durée proposée par défaut pour le Compte à rebours initial des **nouvelles Séances**. Elle ne modifie ni les Séances déjà existantes ni les Exécutions passées.
-
-Une valeur de `0 s` désactive par défaut le Compte à rebours initial pour les nouvelles Séances.
-
-### Modale – Durée par défaut de la Fin de séance
-
-
-![[Modale - Profil - Fin de séance.png|241]]
-#### Objectif
-
-Permettre à l’utilisateur de définir depuis le Profil la durée proposée par défaut pour la Fin de séance lors de la création d’une nouvelle Séance.
-
-#### Ouverture
-
-La modale s’ouvre lorsque l’utilisateur touche la ligne `Fin de séance` dans la section `Exécution des séances` du Profil.
-
-#### Contenu
-
-La durée est sélectionnée au moyen de deux roulettes :
-
-- minutes ;
-- secondes.
-
-Le sélecteur reprend le même principe d’interaction que les sélecteurs de durée utilisés lors de la création ou de la modification d’une Activité.
-
-La valeur initialement sélectionnée correspond à la préférence actuellement enregistrée. La valeur par défaut initiale de l’application est `0 s`.
-
-#### Action
-
-`Enregistrer` enregistre la nouvelle valeur et ferme la modale.
-
-La nouvelle valeur devient la durée proposée par défaut pour la Fin de séance des **nouvelles Séances**. Elle ne modifie ni les Séances déjà existantes ni les Exécutions passées.
-
-Une valeur de `0 s` désactive par défaut la Fin de séance pour les nouvelles Séances.
+Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit inscrite dans le tableau d’exclusion avec une justification explicite. Une variante ne peut plus être omise silencieusement.

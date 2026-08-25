@@ -1,182 +1,173 @@
-## Objectif de cette note
+# Utilisateurs et besoins
 
-Identifier les personnes susceptibles d’utiliser l’application, les situations dans lesquelles elles en auraient besoin et les problèmes qu’elle doit résoudre pour elles.
+## Objectif du chapitre
 
-## 1. Utilisateur individuel
+Ce chapitre décrit les utilisateurs visés, leurs problèmes et leurs besoins. Il sépare explicitement l’utilisateur prioritaire du MVP des profils et usages envisagés après le MVP.
+
+## 1. Utilisateur individuel — cible du MVP
 
 ### Profil
 
-Une personne qui souhaite créer, planifier et suivre seule une ou plusieurs séances.
+Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séances concernant notamment :
 
-Ces routines peuvent notamment concerner :
-
-- des exercices physiques ou de mobilité ;
-- des exercices de rééducation ;
-- une préparation ou une récupération sportive ;
-- des habitudes quotidiennes ;
-- des activités nécessitant un enchaînement, un calendrier, des rappels ou un minuteur.
+- l’activité physique ou la mobilité ;
+- la rééducation ;
+- la préparation ou la récupération sportive ;
+- la santé quotidienne ;
+- des habitudes nécessitant un enchaînement, un calendrier ou un minuteur.
 
 ### Problèmes rencontrés
 
-- Les consignes sont dispersées entre la mémoire, des notes, des messages, des photos et des vidéos.
-- Il est difficile d’organiser plusieurs exercices dans un ordre précis.
-- L’utilisateur peut oublier quand effectuer sa séance planifiée.
-- Il doit utiliser plusieurs outils distincts : calendrier, alarmes, minuteur, notes et vidéos.
-- Il peut perdre le fil pendant l’exécution ou oublier le nombre de répétitions, la durée ou le temps de repos.
-- Pendant un exercice, l’utilisateur ne peut pas toujours regarder l’écran : le téléphone peut être posé à distance, son attention mobilisée par le mouvement ou sa position incompatible avec la consultation de l’affichage.
-- Il dispose de peu de visibilité sur ce qu’il a réellement effectué dans le temps.
-- Il est difficile de faire évoluer une séance sans perdre l’historique de ses exécutions.
-- Construire une nouvelle séance peut être fastidieux lorsque l’utilisateur doit recréer des exercices ou des séquences qu’il utilise déjà dans d’autres séances.
+- Les consignes sont dispersées entre la mémoire, des notes, des messages et différents médias.
+- Plusieurs outils sont nécessaires pour organiser, planifier, chronométrer et suivre une séance.
+- Il est difficile de respecter un ordre d’exécution, des durées, des répétitions, des Séries et des temps de récupération.
+- Pendant une activité, l’utilisateur ne peut pas toujours regarder l’écran.
+- Les séances planifiées peuvent être oubliées.
+- L’utilisateur dispose de peu de visibilité sur ce qu’il a réellement exécuté.
+- Une modification de la Séance peut rendre son historique difficile à comprendre.
 
-### Besoins
+### Besoins couverts dans le MVP
 
-- Créer une séance simplement et visuellement.
-- Ajouter et organiser plusieurs exercices ou étapes.
-- Réutiliser des exercices, des étapes ou des séquences déjà créés.
-- Construire une nouvelle séance en combinant plusieurs routines ou parties de routines existantes.
-- Associer à chaque exercice des instructions, une photo ou une vidéo.
-- Définir pour chaque exercice une durée ou un nombre de répétitions, puis organiser les activités en Sets et cycles.
-- Planifier une séance sous forme de routine dans un calendrier.
-- Recevoir des rappels.
-- Être guidé visuellement et sonorement, étape par étape, afin de pouvoir suivre la séance sans regarder constamment l’écran.
-- Identifier par le son les phases d’effort, les dernières secondes d’une étape et les transitions.
-- Entendre le nom de l’exercice, de la pause ou de la récupération qui commence.
-- Pouvoir activer ou désactiver séparément les bips et les annonces vocales.
-- Utiliser un minuteur lorsque cela est nécessaire.
-- Indiquer si la séance a été réalisée entièrement, partiellement ou abandonnée.
-- Enregistrer la date, l’heure et éventuellement la durée réelle d’exécution.
-- Retrouver l’historique de ses réalisations.
-- Modifier une séance tout en préservant la cohérence de son suivi.
+#### Retrouver et gérer ses Séances
 
-## 2. Utilisateur accompagné par un professionnel
+- Arriver dans le Catalogue des séances après le splash.
+- Rechercher une Séance.
+- Ouvrir une carte directement en mode modification.
+- Planifier, dupliquer ou archiver une Séance active.
+- Consulter les Séances archivées, les restaurer ou les supprimer après confirmation.
+- Ne jamais supprimer directement une Séance depuis les vues `Toutes` ou `Planifiées`.
+- Comprendre l’état vide du Catalogue et pouvoir créer sa première Séance.
 
-### Profil
+#### Créer une Séance
 
-Une personne à laquelle un professionnel transmet une séance ou des exercices à effectuer de manière autonome.
+- Saisir le nom et choisir une couleur dans le même écran de Composition.
+- Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
+- Ajouter des Exercices ou des Récupérations.
+- Définir un Exercice par une durée ou un nombre de Répétitions.
+- Définir le nombre de Séries et une Pause après Série éventuelle.
+- Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
+- Répéter le Tour de 1 à 99 fois.
+- Réordonner manuellement les Activités par glisser-déposer.
+- Régler le Compte à rebours initial et la Fin de séance.
+- Associer facultativement plusieurs Catégories et Zones corporelles compatibles.
+- Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
+- Pouvoir abandonner explicitement une création commencée.
 
-Le professionnel peut notamment être un kinésithérapeute, un coach sportif, un professionnel de santé ou un professionnel des services à la personne. Cette liste reste volontairement ouverte.
+Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 
-### Problèmes rencontrés
+#### Planifier une Séance
 
-- Les consignes données pendant une séance peuvent être oubliées ou mal comprises.
-- Les exercices peuvent être communiqués sur différents supports difficiles à retrouver.
-- L’utilisateur ne sait pas toujours s’il réalise correctement la séance prévue.
-- Il peut avoir du mal à expliquer ensuite ce qu’il a réellement effectué.
-- Les évolutions successives de la séance peuvent devenir difficiles à suivre.
+- Visualiser le Calendrier en vues Jour, Semaine et Mois.
+- Créer une planification unique ou périodique.
+- Définir la date, l’heure, la fréquence, les jours concernés et la date de fin selon le type de planification.
+- Configurer zéro ou un rappel.
+- N’être sollicité pour l’autorisation système des notifications qu’au moment de la première activation d’un rappel.
+- Conserver l’accès à la planification même si les notifications sont refusées, le rappel restant alors désactivé.
 
-### Besoins
+#### Exécuter une Séance
 
-- Recevoir ou enregistrer simplement la séance définie par le professionnel.
-- Retrouver les consignes exactes, notamment sous forme de vidéo.
-- Savoir quels exercices effectuer, dans quel ordre et à quel moment.
-- Être guidé pendant l’exécution par des annonces vocales et des signaux sonores, afin de rester concentré sur le mouvement.
-- Renseigner ses exécutions sans procédure complexe.
-- Partager, s’il le souhaite, certaines informations d’exécution : statut, date, heure et durée.
-- Conserver une vision claire des versions successives de sa séance.
+- Démarrer une Séance depuis son contexte de consultation ou depuis une occurrence planifiée.
+- Être guidé visuellement, par des sons et par des annonces vocales.
+- Voir l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression.
+- Mettre l’Exécution en pause, reprendre, réinitialiser l’Activité courante ou passer à l’Activité suivante.
+- Terminer normalement un Exercice en Répétitions avec `Activité suivante`.
+- Être averti avant de quitter une Activité chronométrée non terminée, qui devient alors `Partielle` après confirmation.
+- Continuer l’Exécution lorsque l’application est en arrière-plan ou l’écran verrouillé.
+- Retrouver un état temporel recalculé au retour.
+- Être protégé contre une Exécution laissée sans interaction trop longtemps.
 
-## 3. Créateur ou administrateur d’une routine partagée
+#### Suivre ses réalisations
 
-### Profil
+- Enregistrer chaque Exécution avec son statut `Terminée`, `Partielle` ou `Interrompue`.
+- Sélectionner un ressenti obligatoire sur l’écran de Synthèse.
+- Ajouter facultativement un commentaire de 200 caractères maximum.
+- Retrouver le nom, la date, l’heure, la durée, le statut et le détail disponible de chaque Exécution.
+- Conserver un historique fidèle même après modification ou suppression de la Séance source.
+- Voir les commandes futures `Vue d’ensemble`, `Filtrer` et `Trier`, clairement désactivées dans le MVP.
 
-Une personne qui crée une séance et la partage avec un ou plusieurs utilisateurs. Il peut s’agir d’un professionnel, d’un coach, d’un proche ou de l’un des membres d’un groupe.
+#### Régler l’application
 
-### Problèmes rencontrés
+- Modifier séparément Sons, Annonces vocales et Vibration.
+- Définir les valeurs globales du Compte à rebours initial et de la Fin de séance pour les nouvelles Séances.
+- Comprendre que le feedback haptique des roulettes reste indépendant de `Vibration`.
+- Modifier la photo et le nom d’affichage du Profil.
+- Retrouver une interface en français, cohérente et compatible avec les Safe Areas du téléphone.
 
-- Transmettre et mettre à jour une séance pour plusieurs personnes peut être fastidieux.
-- Plusieurs copies différentes d’une même routine peuvent circuler.
-- Une modification peut rendre difficile la comparaison des exécutions réalisées avant et après cette modification.
-- Les informations partagées peuvent ne pas être adaptées à chaque groupe ou à chaque membre.
-
-### Besoins
-
-- Créer et administrer une séance partagée.
-- Inviter un ou plusieurs membres à la rejoindre.
-- Définir qui peut consulter ou modifier la séance.
-- Autoriser éventuellement certains membres à contribuer à sa modification.
-- Faire évoluer la séance sans perdre son historique.
-- Choisir les informations d’exécution visibles par les autres membres.
-- Retirer un membre ou mettre fin au partage.
-- Permettre à un membre quittant le groupe de conserver une copie personnelle de la séance.
-
-## 4. Membre d’un groupe
+## 2. Utilisateur accompagné — pris en compte pour l’évolution
 
 ### Profil
 
-Une personne qui rejoint un groupe pour suivre une séance commune avec plusieurs utilisateurs.
+Une personne à laquelle un kinésithérapeute, un coach, un professionnel de santé ou un autre accompagnant transmet une Séance à réaliser de manière autonome.
 
-### Problèmes rencontrés
+### Besoins futurs
 
-- Une séance commune doit rester commune tout en permettant une exécution individuelle.
-- Tous les membres ne souhaitent pas nécessairement partager le même niveau d’information.
-- Les modifications apportées à la séance doivent être compréhensibles par chacun.
+- Recevoir ou copier une Séance préparée par un tiers.
+- Retrouver des consignes et éventuellement un média associé à chaque Activité.
+- Partager volontairement certaines informations d’Exécution.
+- Comprendre les versions successives d’une Séance.
 
-### Besoins
+Ces fonctions de réception et de partage ne font pas partie du MVP.
 
-- Rejoindre facilement une routine ou un groupe.
-- Utiliser la séance commune avec son propre calendrier.
-- Renseigner et conserver ses exécutions individuellement.
-- Savoir quelles informations sont visibles par les autres membres.
-- Consulter, lorsque cela est autorisé, les réalisations des autres membres.
-- Conserver une copie personnelle de la routine en quittant le groupe.
-
-## 5. Professionnel
+## 3. Professionnel — profil post-MVP
 
 ### Profil
 
-Un professionnel qui prépare, transmet ou fait évoluer des routines destinées aux personnes qu’il accompagne.
+Un professionnel qui prépare, transmet et fait évoluer des Séances destinées aux personnes qu’il accompagne.
 
-Ce profil est pris en compte dès la conception, même si une interface professionnelle spécifique n’est pas nécessairement incluse dans la première version.
+### Besoins futurs
 
-### Besoins possibles
+- Créer des modèles et réutiliser des Activités ou des Séances.
+- Associer un média à une Activité.
+- Transmettre et mettre à jour une Séance.
+- Consulter uniquement les informations que l’utilisateur a accepté de partager.
+- Distinguer les versions successives et leurs Exécutions.
+- Gérer plusieurs personnes sans mélanger leurs informations.
 
-- Créer une séance à partir de modèles ou d’exercices réutilisables.
-- Ajouter rapidement une vidéo réalisée pendant une séance.
-- Transmettre une séance à une personne ou à un groupe.
-- Modifier la séance à mesure que l’accompagnement évolue.
-- Consulter les informations d’exécution que l’utilisateur a accepté de partager.
-- Distinguer clairement les différentes versions d’une séance.
-- Gérer plusieurs personnes accompagnées sans mélanger leurs informations.
+Aucune interface professionnelle spécifique n’est incluse dans le MVP.
 
-## Besoins communs à tous les utilisateurs
+## 4. Groupe et partage — périmètre post-MVP
 
-- Une utilisation simple et visuelle.
-- Une création de séance simple, rapide et visuelle, notamment par réutilisation ou combinaison de contenus existants.
-- Des consignes faciles à retrouver et à comprendre.
-- Un calendrier, des rappels et un minuteur intégrés.
-- Un guidage visuel et, lorsque la séance s’y prête, sonore, permettant de comprendre l’étape en cours, les transitions et la progression sans consulter constamment l’écran.
-- Une distinction entre la séance (modèle), la routine (planification) et son exécution réelle.
-- Un historique compréhensible lorsque la séance évolue.
-- Une maîtrise claire du partage et de la confidentialité.
-- La possibilité de quitter un partage ou un groupe.
-- Un historique permettant de retrouver les routines planifiées et les séances exécutées et leurs exécutions.
-- Des statistiques simples pour comprendre la fréquence, la régularité et la durée des réalisations.
-- Un tableau de bord synthétique donnant une vision de l’activité récente et de son évolution.
-- La possibilité de filtrer l’analyse par période, routine ou catégorie de routines.
-- Une présentation visuelle des informations, facile à comprendre et sans saisie supplémentaire complexe.
+Les fonctions suivantes sont envisagées après le MVP :
 
-## Utilisateur prioritaire pour la première version
+- créer ou rejoindre un groupe ;
+- partager une Séance ;
+- définir les droits de consultation et de modification ;
+- conserver une Exécution et un Suivi individuels ;
+- choisir les informations visibles par les autres membres ;
+- quitter un groupe et, si la règle future le permet, conserver une copie indépendante.
 
-L’utilisateur prioritaire est une personne qui crée ses séances, les planifie, les exécute et suit leur historique.
+Les comptes, la synchronisation, les autorisations de partage et la confidentialité associée devront être spécifiés avant leur développement.
 
-Elle doit pouvoir utiliser l’application de manière autonome, sans qu’un professionnel ou un groupe soit également inscrit.
+## 5. Besoins transverses
 
-Les comptes, la synchronisation et le partage avec d’autres utilisateurs doivent être pris en compte dans la conception, mais pourront être développés dans un second temps. La planification individuelle d’une Séance via une Routine fait partie du MVP.
+- Une interface simple, visuelle et utilisable d’une seule main lorsque le contexte le permet.
+- Des cibles tactiles suffisantes et le respect des Safe Areas système.
+- Un vocabulaire cohérent : Séance, Activité, Exercice, Récupération, Série, Tour, Routine, Exécution.
+- Un guidage compréhensible sans consultation permanente de l’écran.
+- Des actions destructives explicites et confirmées.
+- Une distinction claire entre la Séance, sa planification sous forme de Routine et chaque Exécution réelle.
+- Une sauvegarde locale fiable et un historique immuable.
+- Un lexique centralisé permettant de modifier un terme partout et d’ajouter d’autres langues ultérieurement.
+- Une évolution possible vers les médias, la synchronisation, le partage et les statistiques sans les confondre avec le périmètre MVP.
 
-## Questions à approfondir
+## 6. Critère de réussite du MVP
 
-- Quelles sont les principales catégories de séances utilisées au lancement ?
-- Dans quelles circonstances un utilisateur crée-t-il une séance plutôt que de recevoir ou de copier une routine existante ?
-- De quelles informations l’utilisateur a-t-il besoin pendant l’exécution d’un exercice ?
-- Que doit-il pouvoir renseigner lorsqu’une séance n’a été réalisée que partiellement ?
-- Faut-il pouvoir noter une difficulté ou ajouter un commentaire après une exécution ?
-- Les membres d’un groupe recherchent-ils surtout de l’entraide, de la motivation ou un suivi par un responsable ?
-- Quels besoins professionnels justifieraient ultérieurement une interface spécifique ?
-- Une routine intégrée dans une autre doit-elle rester liée à la routine d’origine ou en devenir une copie indépendante ? **Une copie indépendante, ou alors demander s'il faut la lier ou pas**
-	- **Lorsqu’une routine, un Set ou une séquence est intégré dans une autre routine, son contenu devient une copie indépendante. Les modifications ultérieures apportées à l’élément d’origine ne modifient pas automatiquement la routine qui l’a réutilisé.**
-- L’utilisateur doit-il pouvoir intégrer une routine entière ou seulement sélectionner certaines de ses étapes ? **Une routine entière.**
-- Quelles informations doivent apparaître en priorité sur le tableau de bord ?
-- Quelles statistiques sont réellement utiles selon le type de séance ?
-- Faut-il comparer les réalisations aux séances planifiées, aux objectifs définis ou aux périodes précédentes ?
-- Comment préserver la continuité des statistiques lorsqu’une séance évolue ?
-- Les statistiques d’un groupe doivent-elles être individuelles, collectives ou proposer les deux visions ?
-- Quelles informations du tableau de bord peuvent être partagées avec un groupe ou un professionnel ?
+Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
+
+1. créer une Séance exécutable ;
+2. la retrouver et la modifier ;
+3. la planifier avec ou sans rappel ;
+4. l’exécuter avec un guidage adapté ;
+5. enregistrer son ressenti ;
+6. retrouver une trace fidèle de l’Exécution dans le Suivi.
+
+## 7. Questions reportées après le MVP
+
+- Quelles fonctions nécessiteront un compte ou une synchronisation distante ?
+- Comment partager une Séance tout en maîtrisant les droits et la confidentialité ?
+- Comment gérer les versions lorsqu’une Séance partagée évolue ?
+- Quel média unique pourra être associé à une Activité et comment sera-t-il stocké ?
+- Quelles statistiques et quels filtres apporteront une valeur réelle ?
+- Quelles intégrations calendrier, santé ou sport seront prioritaires ?
+- Quelles langues seront proposées après le français ?
+

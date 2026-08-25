@@ -40,7 +40,7 @@ Elle définit :
 - son nom ;
 - sa couleur ;
 - ses catégories ;
-- sa structure (cycles, Sets et activités) ;
+- sa structure (cycles, Tours et activités) ;
 - ses paramètres généraux ;
 - les règles de guidage.
 
@@ -59,17 +59,12 @@ Une séance ne contient jamais :
 - de résultats d'exécution.
 ## Cycle
 
-Un **cycle** est un conteneur composé :
-- d'un Set unique ;
-- d'un nombre de répétitions ;
-- éventuellement d'activités propres au cycle.
+Un **Cycle** est conservé comme structure technique unique de la Composition. Il ordonne les Activités placées avant le Tour, le Tour unique et les Activités placées après le Tour. Dans le MVP, son nombre de répétitions vaut toujours `1`, il n’est pas modifiable et n’est jamais affiché à l’utilisateur.
+## Tour
 
-À chaque répétition, le Set est exécuté, puis les activités propres au cycle.
-## Set
-
-Un **Set** est un ensemble ordonné d'activités exécutées successivement.
+Un **Tour** est un groupe ordonné d'Activités exécuté intégralement un nombre défini de fois.
 Il est toujours contenu dans un cycle.
-Un Set possède un nombre de répétitions propre, supérieur ou égal à 1.
+Un Tour possède un nombre de répétitions propre, supérieur ou égal à 1.
 ## Activité
 
 Une **activité** représente une action élémentaire exécutée pendant une séance.
@@ -90,7 +85,7 @@ Chaque activité possède notamment :
 - une pause facultative appliquée après chaque Série ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
-- zéro ou un média éventuel.
+- aucun média dans le MVP ; le modèle reste extensible afin d’autoriser au plus un média par Activité dans une version ultérieure.
 
 Après la dernière Série, la pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
 ## Routine
@@ -101,7 +96,7 @@ Elle définit :
 - la séance concernée ;
 - sa date de début ;
 - son heure d'exécution ;
-- son mode de planification : sans répétition ou périodique ;
+- son mode de planification affiché : `Aucune` ou `Périodique` ;
 - pour une planification périodique, sa fréquence hebdomadaire, les jours de la semaine concernés et sa date de fin ;
 - un rappel éventuel (0 ou 1 maximum) ;
 
@@ -163,27 +158,23 @@ Les Catégories sont personnalisables par l'utilisateur. Les Zones corporelles c
 
 # 4.4 Structure d'une séance
 
-Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance → Cycle → Set → Activité. Chaque niveau apporte une responsabilité distincte.
+Le modèle fonctionnel repose sur une hiérarchie de concepts métier : Séance → Cycle → Tour → Activité. Chaque niveau apporte une responsabilité distincte.
 
 Une séance comprend, dans l'ordre :
-1. un compte à rebours initial ;
-2. zéro, une ou plusieurs Activités avant le Cycle ;
-3. un **Cycle unique** ;
-4. zéro, une ou plusieurs Activités après le Cycle et avant la Fin de séance ;
-5. une Fin de séance.
-
-Dans le Cycle, les Activités peuvent se trouver dans le Set ou après le Set et avant la fin de la répétition du Cycle.
+1. un Compte à rebours initial ;
+2. un **Cycle technique unique**, fixé à une répétition ;
+3. zéro, une ou plusieurs Activités avant le Tour ;
+4. un **Tour unique**, contenant zéro, une ou plusieurs Activités et répété de 1 à 99 fois ;
+5. zéro, une ou plusieurs Activités après le Tour ;
+6. une Fin de séance.
 
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
 
-Le **Cycle** est composé :
-- d'un **Set unique** ;
-- d'un nombre de répétitions propre ;
-- éventuellement d'une ou plusieurs Activités propres au Cycle, exécutées une seule fois après l’ensemble des répétitions du Set, à chaque répétition du Cycle.
+Le **Cycle** contient un **Tour unique** et peut également contenir des Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
-Le **Set** possède également son propre nombre de répétitions.
+Le **Tour** possède également son propre nombre de répétitions.
 
-Chaque **Set** regroupe une suite ordonnée d'activités.
+Chaque **Tour** regroupe une suite ordonnée d'Activités. Les Activités placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position.
 
 Une **activité** est de type :
 - **Exercice** ;
@@ -191,38 +182,34 @@ Une **activité** est de type :
 
 Une activité de type **Exercice** possède un nombre de Séries propre et peut intégrer une pause facultative après chaque Série.
 
-Par défaut :
-- une séance contient un cycle ;
-- un cycle contient un Set ;
-- un cycle est exécuté une seule fois.
+Dans le MVP :
+- une Séance contient exactement un Cycle technique ;
+- ce Cycle contient exactement un Tour ;
+- le Cycle est exécuté une seule fois et n’est jamais exposé dans l’interface ;
+- le nombre de répétitions du Tour reste configurable de 1 à 99.
 
 L'ordre général d'exécution est le suivant :
 
 ```
 Compte à rebours initial
 
-Activités avant le Cycle
-
-Cycle × N
-│
-├── Set
+Cycle technique × 1 — non affiché
+├── Activité avant le Tour
+├── Tour × N
 │      ├── Activité
 │      ├── Activité
 │      └── Activité
-│
-└── Activités après le Set et dans le Cycle
-
-Activités après le Cycle et avant la Fin de séance
+└── Activité après le Tour
 ```
 
 Le déroulement d'un cycle est donc :
 
 ```
-Répéter N fois :
+Exécuter une fois le Cycle technique :
 
-    Exécuter le Set
-
-    Exécuter les Activités après le Set et dans le Cycle
+    Exécuter les Activités placées avant le Tour
+    Répéter N fois le Tour et ses Activités
+    Exécuter les Activités placées après le Tour
 ```
 
 Cette organisation permet de construire des séances simples comme des séances complexes tout en conservant un nombre limité de concepts métier.
@@ -251,7 +238,7 @@ Elle affiche notamment :
 - l'activité suivante ;
 - le temps restant ou écoulé ;
 - la progression dans la séance ;
-- les Sets et cycles en cours.
+- les Tours et cycles en cours.
 
 Le guidage sonore peut comprendre :
 
@@ -284,7 +271,7 @@ La première version permet notamment :
 - créer, modifier, dupliquer, archiver et supprimer des séances ;
 - créer, modifier et supprimer des routines de planification ;
 - créer et modifier des activités ;
-- organiser les Activités dans le Set et définir les nombres de répétitions du Set et du Cycle ;
+- organiser les Activités dans le Tour et définir les nombres de répétitions du Tour et du Cycle ;
 - associer plusieurs catégories à une séance ;
 - associer des zones corporelles aux exercices ;
 - exécuter une séance ;

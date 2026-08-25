@@ -85,6 +85,8 @@ Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l
 
 # Parcours principal — Créer et exécuter une séance
 
+Au lancement, le splash KODJO ouvre automatiquement le `Catalogue des séances`. Celui-ci est l’écran d’accueil du MVP.
+
 ## Objectif du parcours
 
 Permettre à l'utilisateur de créer une séance, de l'exécuter immédiatement en étant guidé par l'application et de retrouver ensuite son exécution dans l'historique.
@@ -99,13 +101,13 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 ### 1. Créer une séance
 
-L'utilisateur crée une nouvelle séance.
+L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Il renseigne son nom, lui associe éventuellement une ou plusieurs catégories, puis construit progressivement son contenu en ajoutant les activités qui la composent.
+Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
 Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée ou Répétitions, valeur d'exécution, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
 
-Il enregistre ensuite sa séance.
+`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
 ### 2. Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
@@ -115,14 +117,13 @@ Il peut notamment :
 - supprimer une activité ;
 - modifier une activité ;
 - déplacer une activité ;
-- modifier le nombre de répétitions du Set ;
-- modifier le nombre de répétitions du cycle ;
+- modifier le nombre de répétitions du Tour ;
 - modifier les paramètres généraux de la séance.
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
 ### 3. Démarrer une séance
 
-L'utilisateur choisit une séance et démarre son exécution.
+L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
 Avant le lancement, il peut consulter un résumé de la séance et vérifier ses principaux paramètres.
 ### 4. Exécuter une séance
 
@@ -196,8 +197,8 @@ Il souhaite programmer son exécution à une date précise ou de manière récur
 
 ### Créer une routine
 
-1. Ouvrir le calendrier.
-2. Choisir **Planifier une séance**.
+1. Ouvrir le calendrier, affiché par défaut en vue Jour.
+2. Choisir **+ Planifier**.
 3. Sélectionner la séance à planifier.
 4. Définir :
    - la date de début ;
@@ -216,12 +217,22 @@ Il souhaite programmer son exécution à une date précise ou de manière récur
 Les modifications s'appliquent uniquement aux occurrences futures.
 ### Supprimer une routine
 
-1. Sélectionner une routine.
-2. Choisir **Supprimer la routine**.
+1. Depuis la vue Semaine, révéler l’action **Supprimer** par glissement gauche.
+2. Pour une planification périodique, choisir **Cette occurrence** ou **Cette occurrence et les suivantes**.
 3. Confirmer la suppression.
 
 Les occurrences futures cessent d'être générées. Les Exécutions déjà enregistrées sont conservées. Les occurrences planifiées passées non exécutées ne sont pas présentées dans l'interface du MVP.
 Les exécutions déjà réalisées sont conservées.
+
+# Parcours complémentaire 3 — Archiver puis supprimer une Séance
+
+1. Depuis `Toutes` ou `Planifiées`, révéler les actions d’une Séance active par glissement gauche.
+2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
+3. Ouvrir `Archivées`.
+4. Glisser la carte vers la gauche : l’action `Supprimer` se superpose à la carte sans la déplacer.
+5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
+
+Les Exécutions historiques restent conservées après suppression.
 ## Points d'attention
 
 - Une routine ne modifie jamais le contenu d'une séance.
@@ -352,4 +363,3 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - comparer les performances entre différentes séances ;
 - produire des tableaux de bord personnalisés ;
 - partager certaines statistiques avec un professionnel.
-

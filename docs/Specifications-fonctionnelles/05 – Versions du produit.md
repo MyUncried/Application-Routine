@@ -1,4 +1,4 @@
-## V1 – Routine structurée et exécution locale
+## V1 – KODJO MVP : séance structurée et exécution locale
 
 ### Objectif
 
@@ -6,7 +6,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 
 ### Fonctionnalités
 
-- créer, modifier, dupliquer et supprimer une séance ;
+- créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
 - créer des activités de type Exercice ou Récupération ;
 - définir pour chaque exercice :
   - un nom ;
@@ -14,10 +14,10 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une durée ou un nombre de répétitions ;
   - un nombre de Séries propre à l'Exercice ;
   - une pause éventuelle appliquée après chaque Série ;
-  - une photo ou une vidéo ;
-- ordonner les activités d’un Set ;
-- configurer des cycles et leurs Sets, créés avec une répétition par défaut ;
-- placer des Activités avant le Cycle, dans le Set, après le Set et dans le Cycle, ou après le Cycle et avant la Fin de séance ;
+- ne pas associer de média à une Activité dans le MVP ; préparer l’évolution vers au plus un média par Activité ;
+- ordonner les activités d’un Tour ;
+- utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
+- ordonner les Activités dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
 - annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
@@ -33,22 +33,22 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - mettre la séance en pause et la reprendre ;
 - maintenir, dans la mesure permise par le système d’exploitation, le guidage sonore lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan ;
 - terminer normalement un Exercice en Répétition ou passer manuellement à l’Activité suivante ;
-- afficher le Set et le cycle en cours ;
+- afficher la Série et le Tour en cours, sans afficher le Cycle ;
 - interrompre ou terminer une séance ;
 - enregistrer localement :
   - la date de la séance ;
   - sa durée ;
   - son statut ;
   - les Activités terminées, Partielles ou interrompues ;
-  - les cycles réalisés ;
+  - les Tours et Activités réalisés ;
   - la version de la séance ;
   - la routine éventuelle ;
 - consulter un historique simple des séances ;
 - renseigner obligatoirement, en fin de séance, un ressenti général ;
 - renseigner facultativement un Commentaire de **200 caractères maximum** ;
-- retrouver les Exécutions enregistrées sous forme de cartes condensées ou déployées individuellement dans le Suivi, avec recherche et tri chronologique du plus récent au plus ancien ou inversement.
+- retrouver les Exécutions enregistrées sous forme de cartes condensées ou déployées individuellement dans le Suivi ; afficher `Vue d’ensemble`, `Filtrer` et `Trier` comme commandes désactivées.
 
-Dans cette version, l’échauffement, les activités de fin de cycle et les activités de fin de séance utilisent des Activités ordinaires. `Retour au calme` n’est pas un type structurel particulier.
+Dans cette version, l’échauffement et le retour au calme utilisent des Activités ordinaires, placées selon le besoin avant le Tour, dans le Tour ou après le Tour. `Retour au calme` n’est pas un type structurel particulier.
 
 Le guidage sonore doit, dans la mesure permise par le système d’exploitation, continuer lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan.
 
@@ -57,10 +57,10 @@ Toutes les données sont enregistrées uniquement sur l’appareil.
 La V1 permet également :
 - de créer une routine ;
 - d'associer une séance à une routine ;
-- de définir une planification `Sans répétition` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
+- de définir une planification `Aucune` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
 - d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
-Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Set → Activité.
+Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Tour → Activité.
 
 ---
 
@@ -81,6 +81,8 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
+- ajouter la Vue d’ensemble analytique et activer les commandes `Filtrer` et `Trier` déjà visibles dans le MVP ;
+- permettre l’association d’au plus un média par Activité ;
 - l'activation/la désactivation du bip grave à chaque seconde pendant les exercices chronométrés devient paramétrable dans les Préférences.
 
 #### Internationalisation
@@ -99,10 +101,10 @@ Aucun sélecteur de langue n’est affiché dans le MVP.
 La structure d'une séance pourra être étendue afin de permettre :
  
  - plusieurs Cycles ordonnés dans une même Séance ;
- - plusieurs Sets ordonnés dans un même Cycle ;
- - un nombre de répétitions propre à chaque Cycle et à chaque Set.
+ - plusieurs Tours ordonnés dans un même Cycle ;
+ - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Sets ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
+ Cette évolution ne rend pas les Cycles, Tours ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -175,4 +177,3 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### V1 (MVP)
 - Gestion des séances actives et archivées.
 - Gestion des routines de planification.
-
