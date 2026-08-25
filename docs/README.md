@@ -36,7 +36,7 @@ Expo affiche ensuite un QR code et les options permettant d’ouvrir l’applica
 
 ```text
 Application-routine/
-├── src/app/        # écrans et navigation Expo Router
+├── app/            # routes et écrans Expo Router
 ├── src/components/ # composants d’interface réutilisables
 ├── assets/         # ressources graphiques
 ├── scripts/        # scripts utilitaires
