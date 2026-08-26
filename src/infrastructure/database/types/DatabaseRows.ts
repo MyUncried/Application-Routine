@@ -1,0 +1,38 @@
+export type SessionAggregateRow = {
+  session_id: string;
+  owner_id: string;
+  session_name: string;
+  color: string;
+  status: "ACTIVE";
+  initial_countdown_seconds: number;
+  final_phase_seconds: number;
+  session_created_at: string;
+  session_updated_at: string;
+  cycle_id: string;
+  cycle_position: 1;
+  cycle_repeat_count: 1;
+  tour_id: string;
+  tour_position: 1;
+  tour_repeat_count: 1;
+  activity_id: string;
+  activity_name: string;
+  structural_position: "IN_TOUR";
+  activity_position: 0;
+  execution_mode: "DURATION";
+  duration_seconds: number;
+  repetition_count: null;
+  series_count: 1;
+  pause_seconds: 0;
+  instruction: string | null;
+};
+export type SessionSummaryRow = {
+  id: string;
+  name: string;
+  color: string;
+  activity_count: number;
+  initial_countdown_seconds: number;
+  final_phase_seconds: number;
+  exercise_duration_seconds: number;
+  tour_repeat_count: number;
+  updated_at: string;
+};

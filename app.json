@@ -32,7 +32,8 @@
           "image": "./assets/branding/sigil_white_1024.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
