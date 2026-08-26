@@ -4,7 +4,11 @@ import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
+import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
+import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
 
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn("Impossible de conserver le splash natif affiché.", error);
@@ -12,6 +16,23 @@ void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
 
 /**
  * Layout racine : une pile Stack contenant le groupe d’onglets principal.
+ *
+ * `RootErrorBoundary` et `SessionServiceProvider` sont montés dès le tout
+ * premier rendu, inconditionnellement — le chargement des polices
+ * (`useFonts`) et l’ouverture/migration de la base SQLite (portées par
+ * `SessionServiceProvider`) démarrent donc réellement en parallèle. Le
+ * `<Stack>` passé en enfant du provider ne s’affiche qu’une fois les deux
+ * initialisations réglées : polices chargées (ou en erreur) ET
+ * `SessionService` effectivement construit (signalé par `onReady`).
+ * `SessionServiceProvider` relaie ce `children` variable directement à son
+ * propre contexte, sans jamais le faire transiter par `SQLiteProvider`
+ * (voir `SessionServiceProvider.tsx` pour le détail — `SQLiteProvider` est
+ * mémoïsé par `expo-sqlite` avec un comparateur qui ignore `children`, ce
+ * qui rendrait une telle mise à jour invisible).
+ *
+ * Le splash natif ne se masque que lorsque les polices ET l’initialisation
+ * SQLite sont l’une et l’autre réglées (prêtes ou en erreur) — voir
+ * docs/Specifications-fonctionnelles/12 – Architecture technique.
  *
  * Les écrans hors onglets (composition, exécution, planification, etc.)
  * seront ajoutés ici comme écrans de pile au fil des prochaines tranches
@@ -23,9 +44,22 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
   });
+  const [databaseReady, setDatabaseReady] = useState(false);
+  const [rootError, setRootError] = useState<Error | null>(null);
+
+  // Références stables : un unique setState par callback, sans dépendance
+  // recréée à chaque rendu. setDatabaseReady(true) est intrinsèquement
+  // idempotent — plusieurs appels successifs (par ex. lors d’un remontage
+  // en développement) laissent l’état inchangé après le premier, sans
+  // effet de bord supplémentaire.
+  const handleDatabaseReady = useCallback(() => setDatabaseReady(true), []);
+  const handleRootError = useCallback((error: Error) => setRootError(error), []);
+
+  const fontsSettled = fontsLoaded || Boolean(fontError);
+  const databaseSettled = databaseReady || rootError !== null;
 
   useEffect(() => {
-    if (!fontsLoaded && !fontError) {
+    if (!fontsSettled || !databaseSettled) {
       return;
     }
 
@@ -36,15 +70,17 @@ export default function RootLayout() {
     void SplashScreen.hideAsync().catch((error: unknown) => {
       console.warn("Impossible de masquer le splash natif.", error);
     });
-  }, [fontError, fontsLoaded]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
+  }, [fontsSettled, databaseSettled, fontError]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <RootErrorBoundary fallback={<RootErrorFallback />} onError={handleRootError}>
+      <SessionServiceProvider onReady={handleDatabaseReady}>
+        {fontsSettled && databaseReady ? (
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        ) : null}
+      </SessionServiceProvider>
+    </RootErrorBoundary>
   );
 }

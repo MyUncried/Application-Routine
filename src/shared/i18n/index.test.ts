@@ -32,4 +32,10 @@ describe("strings", () => {
     expect(strings.screens.notFound.accessibility.title.length).toBeGreaterThan(0);
     expect(strings.screens.notFound.accessibility.backHome.length).toBeGreaterThan(0);
   });
+
+  it("exposes the exact generic root error message", () => {
+    expect(strings.errors.root.message).toBe(
+      "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
+    );
+  });
 });

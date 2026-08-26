@@ -1,5 +1,6 @@
 import * as SQLite from "expo-sqlite";
 
+import { STANDARD_PRAGMAS } from "./constants";
 import type {
   Database,
   SqlParameters,
@@ -39,8 +40,9 @@ export type OpenedExpoDatabase = {
 
 export async function openExpoDatabase(databaseName: string): Promise<OpenedExpoDatabase> {
   const nativeDatabase = await SQLite.openDatabaseAsync(databaseName);
-  await nativeDatabase.execAsync("PRAGMA foreign_keys = ON");
-  await nativeDatabase.execAsync("PRAGMA journal_mode = WAL");
+  for (const pragma of STANDARD_PRAGMAS) {
+    await nativeDatabase.execAsync(pragma);
+  }
 
   return {
     database: new ExpoDatabase(nativeDatabase),

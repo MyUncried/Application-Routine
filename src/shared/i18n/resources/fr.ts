@@ -11,6 +11,11 @@
  * modifier la logique métier ni les composants qui consomment ces clés.
  */
 export const fr = {
+  errors: {
+    root: {
+      message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
+    },
+  },
   nav: {
     sessions: "Mes séances",
     calendar: "Calendrier",

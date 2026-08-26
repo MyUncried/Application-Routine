@@ -15,4 +15,4 @@ Domaine de la Séance simple (T01) :
 - `SessionDraft.ts` — brouillon local potentiellement incomplet et sa conversion (`toCreateSessionInput`) vers une entrée de création validée, avec le même contrat de résultat structuré ; et sa fonction inverse `toSessionDraft(session)` (T01-S04), qui reconstruit un brouillon modifiable à partir d'une Séance persistée, sans perte des champs éditables.
 - `index.ts` — point d'entrée réexportant l'ensemble ci-dessus.
 
-La gestion de plusieurs Activités et des positions `BEFORE_TOUR`/`AFTER_TOUR` reste hors périmètre de cette tranche. L'orchestration applicative (`SessionService`) est décrite dans `src/features/sessions/README.md`.
+La gestion de plusieurs Activités et des positions `BEFORE_TOUR`/`AFTER_TOUR` reste hors périmètre de cette tranche. L'orchestration applicative (`SessionService`) est décrite dans `src/features/sessions/README.md`, désormais câblée à une connexion SQLite réelle au démarrage de l'application (T01-S05, voir `src/infrastructure/database/README.md`) — aucun type ni règle du Domaine n'est concerné par ce câblage.
