@@ -14,7 +14,7 @@
 
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import { toCreateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
-import type { ValidationResult } from "@/domain/sessions/errors";
+import type { ValidationResult, ValidationViolation } from "@/domain/sessions/errors";
 import type { SessionRepository } from "@/domain/sessions/SessionRepository";
 
 /**
@@ -23,6 +23,19 @@ import type { SessionRepository } from "@/domain/sessions/SessionRepository";
  * le Domaine, aucun message traduit). Alias direct du contrat du Domaine.
  */
 export type CreateSessionResult = ValidationResult<Session>;
+
+/**
+ * Résultat métier discriminé d'une tentative de modification. Reprend les
+ * trois issues déjà connues du Repository (`UPDATED`/`NOT_FOUND`/`ARCHIVED`)
+ * et y ajoute la seule branche que le Repository ne connaît pas : un
+ * brouillon invalide (`INVALID`), tranchée avant même d'atteindre le
+ * Repository.
+ */
+export type UpdateSessionResult =
+  | { readonly status: "UPDATED"; readonly session: Session }
+  | { readonly status: "INVALID"; readonly violations: readonly ValidationViolation[] }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "ARCHIVED" };
 
 export class SessionService {
   constructor(private readonly sessionRepository: SessionRepository) {}
@@ -41,6 +54,26 @@ export class SessionService {
 
     const session = await this.sessionRepository.create(validated.value);
     return { ok: true, value: session };
+  }
+
+  /**
+   * Convertit le brouillon via `toCreateSessionInput` (Domaine). En cas
+   * d'échec, aucune tentative d'appel au Repository n'est faite : un
+   * résultat `INVALID` est renvoyé immédiatement — y compris lorsque
+   * `sessionId` ne correspond à aucune Séance existante, puisque la
+   * validation précède systématiquement la recherche. En cas de succès,
+   * délègue à `SessionRepository.update` et renvoie son résultat
+   * (`UPDATED`/`NOT_FOUND`/`ARCHIVED`) tel quel. Aucune erreur du
+   * Repository (technique, ou `SessionValidationError` en défense de
+   * dernier recours) n'est interceptée ni transformée.
+   */
+  async updateSession(sessionId: string, draft: SessionDraft): Promise<UpdateSessionResult> {
+    const validated = toCreateSessionInput(draft);
+    if (!validated.ok) {
+      return { status: "INVALID", violations: validated.violations };
+    }
+
+    return this.sessionRepository.update(sessionId, validated.value);
   }
 
   /**

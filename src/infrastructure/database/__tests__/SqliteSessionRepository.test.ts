@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import * as Crypto from "expo-crypto";
+import { randomUUID } from "node:crypto";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 
 import { SessionValidationError } from "@/domain/sessions/errors";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
-import type { Database } from "@/infrastructure/database/Database";
+import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
   mapSessionRow,
@@ -19,6 +23,13 @@ const IDS = [
   "10000000-0000-4000-8000-000000000002",
   "10000000-0000-4000-8000-000000000003",
   "10000000-0000-4000-8000-000000000004",
+];
+
+const SECOND_IDS = [
+  "20000000-0000-4000-8000-000000000001",
+  "20000000-0000-4000-8000-000000000002",
+  "20000000-0000-4000-8000-000000000003",
+  "20000000-0000-4000-8000-000000000004",
 ];
 
 describe("SqliteSessionRepository", () => {
@@ -189,6 +200,198 @@ describe("SqliteSessionRepository", () => {
     } as unknown as SessionAggregateRow;
     expect(() => mapSessionRow(incoherentRow)).toThrow("does not satisfy");
   });
+
+  it("rejects a row whose session status is ARCHIVED, expressible without a cast now that the type allows it", () => {
+    // SessionAggregateRow.status is "ACTIVE" | "ARCHIVED": this literal
+    // assigns directly, no `as unknown as SessionAggregateRow` needed.
+    const archivedRow: SessionAggregateRow = { ...validRow(), status: "ARCHIVED" };
+    expect(() => mapSessionRow(archivedRow)).toThrow("does not satisfy");
+  });
+
+  describe("update", () => {
+    it("updates all modifiable fields in place, preserving identifiers/owner/createdAt and renewing updatedAt", async () => {
+      const clock = fixedClock(["2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z"]);
+      const repository = new SqliteSessionRepository(database, uuidFactory(), clock);
+      const created = await repository.create(validInput());
+
+      const outcome = await repository.update(created.id, {
+        name: "Nom modifié",
+        color: "#5A5BD7",
+        initialCountdownSeconds: 15,
+        finalPhaseSeconds: 8,
+        exercise: { name: "Exercice modifié", durationSeconds: 45, instruction: "Nouvelle consigne" },
+      });
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") {
+        throw new Error("expected update() to report UPDATED");
+      }
+      const updated = outcome.session;
+
+      // Identifiants strictement préservés.
+      expect(updated.id).toBe(created.id);
+      expect(updated.cycle.id).toBe(created.cycle.id);
+      expect(updated.cycle.tour.id).toBe(created.cycle.tour.id);
+      expect(updated.cycle.tour.exercise.id).toBe(created.cycle.tour.exercise.id);
+      expect(updated.ownerId).toBe(created.ownerId);
+      expect(updated.createdAt).toBe(created.createdAt);
+
+      // updatedAt renouvelé, via l'horloge injectée (déterministe).
+      expect(updated.updatedAt).toBe("2026-02-01T00:00:00.000Z");
+      expect(updated.updatedAt).not.toBe(created.updatedAt);
+
+      // Tous les champs modifiables ont bien été appliqués.
+      expect(updated.name).toBe("Nom modifié");
+      expect(updated.color).toBe("#5A5BD7");
+      expect(updated.initialCountdownSeconds).toBe(15);
+      expect(updated.finalPhaseSeconds).toBe(8);
+      expect(updated.cycle.tour.exercise.name).toBe("Exercice modifié");
+      expect(updated.cycle.tour.exercise.durationSeconds).toBe(45);
+      expect(updated.cycle.tour.exercise.instruction).toBe("Nouvelle consigne");
+    });
+
+    it("targets only the exact activity row by id and session_id, leaving another session's activity untouched", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const sessionA = await repository.create(validInput());
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const sessionB = await secondRepository.create({ ...validInput(), name: "Séance B" });
+
+      await repository.update(sessionA.id, { ...validInput(), name: "A modifiée" });
+
+      const stillB = await repository.findById(sessionB.id);
+      expect(stillB?.name).toBe("Séance B");
+      expect(stillB?.cycle.tour.exercise.name).toBe("Gainage");
+      expect(stillB?.id).toBe(sessionB.id);
+    });
+
+    it("returns NOT_FOUND and performs no write, no implicit creation, for an unknown id", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+
+      const outcome = await repository.update("00000000-0000-4000-8000-000000000099", validInput());
+
+      expect(outcome).toEqual({ status: "NOT_FOUND" });
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sessions",
+      );
+      expect(count?.count).toBe(0);
+    });
+
+    it("returns ARCHIVED and performs no write for a session archived via direct SQL (no archiving feature exists in code)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+
+      await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [
+        "2026-01-02T00:00:00.000Z",
+        created.id,
+      ]);
+
+      const outcome = await repository.update(created.id, {
+        ...validInput(),
+        name: "Tentative de modification",
+      });
+
+      expect(outcome).toEqual({ status: "ARCHIVED" });
+      const row = await database.getFirstAsync<{ name: string; updated_at: string }>(
+        "SELECT name, updated_at FROM sessions WHERE id = ?",
+        [created.id],
+      );
+      expect(row?.name).toBe("Séance simple");
+      expect(row?.updated_at).toBe(created.updatedAt);
+    });
+
+    it("rejects invalid input via SessionValidationError before any write (defense in depth)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+
+      await expect(
+        repository.update(created.id, { ...validInput(), name: "   " }),
+      ).rejects.toBeInstanceOf(SessionValidationError);
+
+      const row = await database.getFirstAsync<{ name: string; updated_at: string }>(
+        "SELECT name, updated_at FROM sessions WHERE id = ?",
+        [created.id],
+      );
+      expect(row?.name).toBe("Séance simple");
+      expect(row?.updated_at).toBe(created.updatedAt);
+    });
+
+    it("rolls the whole update back when the activity update fails after the session update already ran", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+
+      const failingDatabase = new FailingActivityUpdateDatabase(database);
+      const failingRepository = new SqliteSessionRepository(failingDatabase, uuidFactory());
+
+      await expect(
+        failingRepository.update(created.id, { ...validInput(), name: "Nom modifié" }),
+      ).rejects.toThrow("forced activity update failure");
+
+      const reread = await repository.findById(created.id);
+      expect(reread?.name).toBe("Séance simple");
+      expect(reread?.updatedAt).toBe(created.updatedAt);
+    });
+
+    it("rolls back completely when the final reread is incoherent, without leaving a partial write", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+
+      const tamperingDatabase = new IncoherentRereadDatabase(database);
+      const tamperingRepository = new SqliteSessionRepository(tamperingDatabase, uuidFactory());
+
+      await expect(
+        tamperingRepository.update(created.id, { ...validInput(), name: "Nom modifié" }),
+      ).rejects.toThrow("could not be read back coherently");
+
+      const reread = await repository.findById(created.id);
+      expect(reread?.name).toBe("Séance simple");
+      expect(reread?.updatedAt).toBe(created.updatedAt);
+    });
+
+    it("persists an update durably across a connection close and reopen (real SQLite file)", async () => {
+      const filePath = path.join(os.tmpdir(), `kodjo-t01s04-${randomUUID()}.db`);
+      let writer: NodeSqliteDatabase | undefined;
+      let reader: NodeSqliteDatabase | undefined;
+
+      try {
+        writer = NodeSqliteDatabase.openFile(filePath);
+        await migrateDatabase(writer);
+        const repository = new SqliteSessionRepository(writer, uuidFactory());
+        const created = await repository.create(validInput());
+
+        const outcome = await repository.update(created.id, {
+          ...validInput(),
+          name: "Nom modifié sur fichier",
+        });
+        expect(outcome.status).toBe("UPDATED");
+
+        writer.close();
+        writer = undefined;
+
+        reader = NodeSqliteDatabase.openFile(filePath);
+        const rereadRepository = new SqliteSessionRepository(reader);
+        const reread = await rereadRepository.findById(created.id);
+
+        expect(reread?.id).toBe(created.id);
+        expect(reread?.name).toBe("Nom modifié sur fichier");
+
+        reader.close();
+        reader = undefined;
+      } finally {
+        try {
+          writer?.close();
+        } catch {
+          // Déjà fermée ou jamais ouverte : sans conséquence pour le nettoyage.
+        }
+        try {
+          reader?.close();
+        } catch {
+          // Déjà fermée ou jamais ouverte : sans conséquence pour le nettoyage.
+        }
+        fs.rmSync(filePath, { force: true });
+      }
+    });
+  });
 });
 
 function validInput() {
@@ -204,6 +407,17 @@ function validInput() {
 function uuidFactory(): () => string {
   let index = 0;
   return () => IDS[index++];
+}
+
+function secondUuidFactory(): () => string {
+  let index = 0;
+  return () => SECOND_IDS[index++];
+}
+
+/** Horloge factice déterministe : renvoie les horodatages fournis, dans l'ordre, un par appel. */
+function fixedClock(timestamps: readonly string[]): () => string {
+  let index = 0;
+  return () => timestamps[index++];
 }
 
 class FailingActivityInsertDatabase implements Database {
@@ -225,6 +439,77 @@ class FailingActivityInsertDatabase implements Database {
   withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
     return this.delegate.withExclusiveTransactionAsync((transaction) =>
       task(new FailingActivityInsertDatabase(transaction)),
+    );
+  }
+}
+
+/** Fait échouer le second `UPDATE` (`activities`) d'`update()`, après que le premier (`sessions`) a déjà réussi — pour prouver le rollback complet. */
+class FailingActivityUpdateDatabase implements Database {
+  constructor(private readonly delegate: Database) {}
+
+  execAsync = (source: string) => this.delegate.execAsync(source);
+  getFirstAsync = <T>(source: string, parameters = []) =>
+    this.delegate.getFirstAsync<T>(source, parameters);
+  getAllAsync = <T>(source: string, parameters = []) =>
+    this.delegate.getAllAsync<T>(source, parameters);
+
+  runAsync(source: string, parameters = []) {
+    if (source.includes("UPDATE activities")) {
+      return Promise.reject(new Error("forced activity update failure"));
+    }
+    return this.delegate.runAsync(source, parameters);
+  }
+
+  withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
+    return this.delegate.withExclusiveTransactionAsync((transaction) =>
+      task(new FailingActivityUpdateDatabase(transaction)),
+    );
+  }
+}
+
+/**
+ * Laisse les écritures réelles s'exécuter contre la vraie base, mais
+ * intercepte précisément la **seconde** relecture de l'agrégat (celle qui
+ * suit les deux `UPDATE` dans `SqliteSessionRepository.update`) pour la
+ * faire paraître incohérente. Le premier appel (lecture avant écriture)
+ * n'est jamais altéré. Sert à prouver que le Repository lève réellement à
+ * l'intérieur de la transaction et déclenche un `ROLLBACK` réel sur la
+ * vraie base — ce n'est pas un faux Repository qui contournerait la
+ * transaction SQLite.
+ */
+class IncoherentRereadDatabase implements Database {
+  private aggregateQueryCalls = 0;
+
+  constructor(private readonly delegate: Database) {}
+
+  execAsync = (source: string) => this.delegate.execAsync(source);
+  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
+    this.delegate.getAllAsync<T>(source, parameters);
+  runAsync = (source: string, parameters: SqlParameters = []) =>
+    this.delegate.runAsync(source, parameters);
+
+  async getFirstAsync<T>(source: string, parameters: SqlParameters = []): Promise<T | null> {
+    const result = await this.delegate.getFirstAsync<T>(source, parameters);
+    const isAggregateQuery =
+      source.includes("FROM sessions") && source.includes("activities.instruction");
+    if (!isAggregateQuery || !result) {
+      return result;
+    }
+
+    this.aggregateQueryCalls += 1;
+    if (this.aggregateQueryCalls !== 2) {
+      return result;
+    }
+
+    return {
+      ...(result as unknown as Record<string, unknown>),
+      activity_id: "tampered-activity-id",
+    } as T;
+  }
+
+  withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
+    return this.delegate.withExclusiveTransactionAsync((transaction) =>
+      task(new IncoherentRereadDatabase(transaction)),
     );
   }
 }

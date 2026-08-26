@@ -1,10 +1,11 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
+import { DEFAULT_SESSION_COLOR, type Session } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
   createExerciseDraft,
   toCreateSessionInput,
+  toSessionDraft,
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
 import {
@@ -37,6 +38,80 @@ describe("createExerciseDraft", () => {
   it("really uses DEFAULT_EXERCISE_DURATION_SECONDS (30 s), not a duplicated literal", () => {
     expect(createExerciseDraft().durationSeconds).toBe(30);
     expect(createExerciseDraft().durationSeconds).toBe(DEFAULT_EXERCISE_DURATION_SECONDS);
+  });
+});
+
+describe("toSessionDraft", () => {
+  function aSession(instruction: string | null = "Respirer profondément"): Session {
+    return {
+      id: "session-1",
+      ownerId: "usr_test",
+      name: "Séance simple",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      cycle: {
+        id: "cycle-1",
+        position: 1,
+        repeatCount: 1,
+        tour: {
+          id: "tour-1",
+          position: 1,
+          repeatCount: 1,
+          exercise: {
+            id: "activity-1",
+            type: "EXERCISE",
+            executionMode: "DURATION",
+            structuralPosition: "IN_TOUR",
+            position: 0,
+            name: "Gainage",
+            durationSeconds: 30,
+            repetitionCount: null,
+            seriesCount: 1,
+            pauseSeconds: 0,
+            instruction,
+          },
+        },
+      },
+    };
+  }
+
+  it("copies the seven editable fields exactly, without any identity or audit field", () => {
+    const session = aSession();
+    expect(toSessionDraft(session)).toEqual({
+      name: "Séance simple",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercise: { name: "Gainage", durationSeconds: 30, instruction: "Respirer profondément" },
+    });
+  });
+
+  it("preserves a null instruction without turning it into an empty string", () => {
+    const draft = toSessionDraft(aSession(null));
+    expect(draft.exercise?.instruction).toBeNull();
+  });
+
+  it("round-trips through toCreateSessionInput to reproduce the original editable fields", () => {
+    const session = aSession();
+    const result = toCreateSessionInput(toSessionDraft(session));
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        name: session.name,
+        color: session.color,
+        initialCountdownSeconds: session.initialCountdownSeconds,
+        finalPhaseSeconds: session.finalPhaseSeconds,
+        exercise: {
+          name: session.cycle.tour.exercise.name,
+          durationSeconds: session.cycle.tour.exercise.durationSeconds,
+          instruction: session.cycle.tour.exercise.instruction,
+        },
+      },
+    });
   });
 });
 

@@ -3,7 +3,7 @@ export type SessionAggregateRow = {
   owner_id: string;
   session_name: string;
   color: string;
-  status: "ACTIVE";
+  status: "ACTIVE" | "ARCHIVED";
   initial_countdown_seconds: number;
   final_phase_seconds: number;
   session_created_at: string;

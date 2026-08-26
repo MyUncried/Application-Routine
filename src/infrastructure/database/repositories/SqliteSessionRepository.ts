@@ -20,7 +20,10 @@ import {
   type SessionColor,
   type SessionSummary,
 } from "@/domain/sessions/Session";
-import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import type {
+  SessionRepository,
+  UpdateSessionOutcome,
+} from "@/domain/sessions/SessionRepository";
 import { validateCreateSessionInput } from "@/domain/sessions/validation";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
@@ -73,6 +76,7 @@ export class SqliteSessionRepository implements SessionRepository {
   constructor(
     private readonly database: Database,
     private readonly uuidFactory: UuidFactory = Crypto.randomUUID,
+    private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
   async create(input: CreateSessionInput): Promise<Session> {
@@ -85,10 +89,10 @@ export class SqliteSessionRepository implements SessionRepository {
     const cycleId = this.uuidFactory();
     const tourId = this.uuidFactory();
     const activityId = this.uuidFactory();
-    const timestamp = new Date().toISOString();
     let created: Session | null = null;
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const timestamp = this.now();
       const user = await getLocalUser(transaction);
 
       await transaction.runAsync(
@@ -161,6 +165,88 @@ export class SqliteSessionRepository implements SessionRepository {
     }
 
     return created;
+  }
+
+  async update(sessionId: string, input: CreateSessionInput): Promise<UpdateSessionOutcome> {
+    const validated = validateCreateSessionInput(input);
+    if (!validated.ok) {
+      throw new SessionValidationError(validated.violations);
+    }
+    const normalized = validated.value;
+
+    let outcome: UpdateSessionOutcome = { status: "NOT_FOUND" };
+
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const timestamp = this.now();
+      const user = await getLocalUser(transaction);
+
+      const existingRow = await transaction.getFirstAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+        sessionId,
+        user.id,
+      ]);
+      if (!existingRow) {
+        return;
+      }
+      if (existingRow.status !== "ACTIVE") {
+        outcome = { status: "ARCHIVED" };
+        return;
+      }
+
+      assertT01S01Row(existingRow);
+      const activityId = existingRow.activity_id;
+
+      const sessionUpdate = await transaction.runAsync(
+        `UPDATE sessions SET name = ?, color = ?, initial_countdown_seconds = ?,
+           final_phase_seconds = ?, updated_at = ?
+         WHERE id = ? AND owner_id = ?`,
+        [
+          normalized.name,
+          normalized.color,
+          normalized.initialCountdownSeconds,
+          normalized.finalPhaseSeconds,
+          timestamp,
+          sessionId,
+          user.id,
+        ],
+      );
+      if (sessionUpdate.changes !== 1) {
+        throw new Error("Expected exactly one session row to be updated.");
+      }
+
+      const activityUpdate = await transaction.runAsync(
+        `UPDATE activities SET name = ?, duration_seconds = ?, instruction = ?, updated_at = ?
+         WHERE id = ? AND session_id = ?`,
+        [
+          normalized.exercise.name,
+          normalized.exercise.durationSeconds,
+          normalized.exercise.instruction ?? null,
+          timestamp,
+          activityId,
+          sessionId,
+        ],
+      );
+      if (activityUpdate.changes !== 1) {
+        throw new Error("Expected exactly one activity row to be updated.");
+      }
+
+      const reread = await transaction.getFirstAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+        sessionId,
+        user.id,
+      ]);
+      if (
+        !reread ||
+        reread.session_id !== sessionId ||
+        reread.activity_id !== activityId ||
+        reread.cycle_id !== existingRow.cycle_id ||
+        reread.tour_id !== existingRow.tour_id
+      ) {
+        throw new Error("The updated session could not be read back coherently.");
+      }
+
+      outcome = { status: "UPDATED", session: mapSessionRow(reread) };
+    });
+
+    return outcome;
   }
 
   async findById(sessionId: string): Promise<Session | null> {

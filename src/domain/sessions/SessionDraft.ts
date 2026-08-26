@@ -13,7 +13,7 @@
  * l'entrée persistable. Elle ne lève jamais d'exception.
  */
 
-import type { CreateSessionInput, SessionColor } from "./Session";
+import type { CreateSessionInput, Session, SessionColor } from "./Session";
 import { DEFAULT_SESSION_COLOR } from "./Session";
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -67,6 +67,32 @@ export function createExerciseDraft(): SessionDraftExercise {
     name: "",
     durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
     instruction: null,
+  };
+}
+
+/**
+ * Convertit une `Session` persistée vers un `SessionDraft` modifiable —
+ * l'inverse de `toCreateSessionInput`. Fonction pure, aucune dépendance
+ * React ou SQLite. Copie sans perte les sept champs éditables (nom,
+ * couleur, phases, nom/durée/consigne de l'Exercice) ; les champs
+ * d'identité et d'audit (`id`, `ownerId`, `status`, `createdAt`,
+ * `updatedAt`, identifiants et `repeatCount` de `cycle`/`tour`, et sur
+ * l'Exercice `id`/`type`/`executionMode`/`structuralPosition`/`position`/
+ * `repetitionCount`/`seriesCount`/`pauseSeconds`) ne sont volontairement
+ * pas repris : `SessionDraft` ne les modélise pas, et `sessionId` est
+ * transmis séparément lors de l'enregistrement d'une modification.
+ */
+export function toSessionDraft(session: Session): SessionDraft {
+  return {
+    name: session.name,
+    color: session.color,
+    initialCountdownSeconds: session.initialCountdownSeconds,
+    finalPhaseSeconds: session.finalPhaseSeconds,
+    exercise: {
+      name: session.cycle.tour.exercise.name,
+      durationSeconds: session.cycle.tour.exercise.durationSeconds,
+      instruction: session.cycle.tour.exercise.instruction,
+    },
   };
 }
 

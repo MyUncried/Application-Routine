@@ -13,7 +13,10 @@ import {
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
 } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
-import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import type {
+  SessionRepository,
+  UpdateSessionOutcome,
+} from "@/domain/sessions/SessionRepository";
 
 import { SessionService } from "@/features/sessions/SessionService";
 
@@ -23,6 +26,8 @@ class FakeSessionRepository implements SessionRepository {
   create = jest.fn<(input: CreateSessionInput) => Promise<Session>>();
   findById = jest.fn<(sessionId: string) => Promise<Session | null>>();
   listActive = jest.fn<() => Promise<readonly SessionSummary[]>>();
+  update =
+    jest.fn<(sessionId: string, input: CreateSessionInput) => Promise<UpdateSessionOutcome>>();
 }
 
 function aSession(overrides: Partial<Session> = {}): Session {
@@ -166,6 +171,111 @@ describe("SessionService.createSession", () => {
         exercise: expect.objectContaining({ durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS }),
       }),
     );
+  });
+});
+
+describe("SessionService.updateSession", () => {
+  it("does not call the repository for an invalid draft", async () => {
+    const repository = new FakeSessionRepository();
+    const service = new SessionService(repository);
+
+    await service.updateSession("session-1", createEmptyDraft());
+
+    expect(repository.update).not.toHaveBeenCalled();
+  });
+
+  it("returns INVALID for an invalid draft, without capturing violations from anywhere else", async () => {
+    const repository = new FakeSessionRepository();
+    const service = new SessionService(repository);
+
+    const result = await service.updateSession("session-1", createEmptyDraft());
+
+    expect(result).toEqual({
+      status: "INVALID",
+      violations: [
+        { code: "REQUIRED", field: "session.name" },
+        { code: "REQUIRED", field: "exercise.name" },
+        { code: "REQUIRED", field: "exercise.durationSeconds" },
+      ],
+    });
+  });
+
+  it("returns INVALID rather than NOT_FOUND when both the draft is invalid and the id is unknown, because validation precedes lookup", async () => {
+    const repository = new FakeSessionRepository();
+    const service = new SessionService(repository);
+
+    const result = await service.updateSession("does-not-exist", createEmptyDraft());
+
+    expect(repository.update).not.toHaveBeenCalled();
+    expect(result.status).toBe("INVALID");
+  });
+
+  it("calls the repository exactly once with the normalized input for a valid draft, and returns UPDATED unchanged", async () => {
+    const repository = new FakeSessionRepository();
+    const updated = aSession({ name: "Nom modifié" });
+    const outcome: UpdateSessionOutcome = { status: "UPDATED", session: updated };
+    repository.update.mockResolvedValue(outcome);
+    const service = new SessionService(repository);
+
+    const draft: SessionDraft = {
+      ...aValidDraft(),
+      name: "  Nom modifié  ",
+      exercise: { ...createExerciseDraft(), name: "  Gainage  " },
+    };
+
+    const result = await service.updateSession("session-1", draft);
+
+    expect(repository.update).toHaveBeenCalledTimes(1);
+    expect(repository.update).toHaveBeenCalledWith("session-1", {
+      name: "Nom modifié",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+    });
+    expect(result).toEqual(outcome);
+  });
+
+  it("returns NOT_FOUND unchanged when the repository reports it", async () => {
+    const repository = new FakeSessionRepository();
+    repository.update.mockResolvedValue({ status: "NOT_FOUND" });
+    const service = new SessionService(repository);
+
+    const result = await service.updateSession("session-1", aValidDraft());
+
+    expect(result).toEqual({ status: "NOT_FOUND" });
+  });
+
+  it("returns ARCHIVED unchanged when the repository reports it", async () => {
+    const repository = new FakeSessionRepository();
+    repository.update.mockResolvedValue({ status: "ARCHIVED" });
+    const service = new SessionService(repository);
+
+    const result = await service.updateSession("session-1", aValidDraft());
+
+    expect(result).toEqual({ status: "ARCHIVED" });
+  });
+
+  it("propagates a SessionValidationError from the repository unchanged (defense-in-depth path)", async () => {
+    const repository = new FakeSessionRepository();
+    const repositoryValidationError = new SessionValidationError([
+      { code: "INVALID_COLOR", field: "session.color" },
+    ]);
+    repository.update.mockRejectedValue(repositoryValidationError);
+    const service = new SessionService(repository);
+
+    await expect(service.updateSession("session-1", aValidDraft())).rejects.toBe(
+      repositoryValidationError,
+    );
+  });
+
+  it("propagates a technical error from the repository unchanged, without turning it into a structured result", async () => {
+    const repository = new FakeSessionRepository();
+    const technicalError = new Error("The stable local user is missing.");
+    repository.update.mockRejectedValue(technicalError);
+    const service = new SessionService(repository);
+
+    await expect(service.updateSession("session-1", aValidDraft())).rejects.toBe(technicalError);
   });
 });
 

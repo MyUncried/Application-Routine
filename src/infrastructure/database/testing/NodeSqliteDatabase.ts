@@ -27,6 +27,17 @@ export class NodeSqliteDatabase implements Database {
     return new NodeSqliteDatabase(database);
   }
 
+  /**
+   * Ouvre (ou crée) un fichier SQLite réel sur disque, pour les tests qui
+   * doivent prouver une persistance durable au-delà d'une simple connexion
+   * `:memory:` (fermeture puis réouverture du même fichier).
+   */
+  static openFile(path: string): NodeSqliteDatabase {
+    const database = new DatabaseSync(path) as NativeDatabase;
+    database.exec("PRAGMA foreign_keys = ON");
+    return new NodeSqliteDatabase(database);
+  }
+
   async execAsync(source: string): Promise<void> {
     this.nativeDatabase.exec(source);
   }
