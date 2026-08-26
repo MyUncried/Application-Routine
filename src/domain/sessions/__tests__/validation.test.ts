@@ -1,0 +1,279 @@
+import { describe, expect, it } from "@jest/globals";
+
+import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
+import {
+  normalizeInstruction,
+  normalizeName,
+  validateCreateSessionInput,
+  validateExerciseDurationSeconds,
+  validateExerciseName,
+  validateFinalPhaseSeconds,
+  validateInitialCountdownSeconds,
+  validateInstruction,
+  validateSessionColor,
+  validateSessionName,
+} from "@/domain/sessions/validation";
+
+describe("validateSessionName / validateExerciseName", () => {
+  it("accepts 1 character after normalization", () => {
+    expect(validateSessionName("A")).toEqual({ ok: true, value: "A" });
+  });
+
+  it("accepts exactly 80 characters after normalization", () => {
+    const name = "A".repeat(80);
+    expect(validateSessionName(name)).toEqual({ ok: true, value: name });
+  });
+
+  it("rejects an empty or whitespace-only string with REQUIRED", () => {
+    expect(validateSessionName("   ")).toEqual({
+      ok: false,
+      violations: [{ code: "REQUIRED", field: "session.name" }],
+    });
+  });
+
+  it("rejects 81 characters after normalization with TOO_LONG", () => {
+    const name = "A".repeat(81);
+    expect(validateSessionName(name)).toEqual({
+      ok: false,
+      violations: [{ code: "TOO_LONG", field: "session.name", details: { max: 80 } }],
+    });
+  });
+
+  it("uses the exercise.name field for exercise names", () => {
+    expect(validateExerciseName("   ")).toEqual({
+      ok: false,
+      violations: [{ code: "REQUIRED", field: "exercise.name" }],
+    });
+  });
+
+  it("trims leading and trailing whitespace, tabs and newlines", () => {
+    expect(normalizeName("  \tGainage\n  ")).toBe("Gainage");
+  });
+
+  it("collapses internal runs of spaces, tabs and newlines to a single space", () => {
+    expect(normalizeName("Gainage   dos\tfacile")).toBe("Gainage dos facile");
+  });
+
+  it("preserves case, accents and punctuation", () => {
+    expect(normalizeName("Étirement  —  dos")).toBe("Étirement — dos");
+  });
+
+  it("checks the length after normalization, not before", () => {
+    const raw = `${"A".repeat(40)}${" ".repeat(10)}${"B".repeat(39)}`;
+    const result = validateSessionName(raw);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toHaveLength(80);
+    }
+  });
+
+  it("counts an emoji made of a surrogate pair as a single Unicode code point", () => {
+    // U+1F600 (GRINNING FACE) is one Unicode code point but two UTF-16 code
+    // units, so `string.length` would count it as 2 and wrongly push this
+    // 80-code-point name over the limit. Array.from(...).length counts it
+    // correctly as 1, matching SQLite's character-based length().
+    const name = `${"A".repeat(79)}😀`;
+    const jsLength = name.length;
+    const codePointLength = Array.from(name).length;
+
+    expect(codePointLength).toBe(80);
+    expect(jsLength).toBe(81);
+    expect(validateSessionName(name)).toEqual({ ok: true, value: name });
+  });
+});
+
+describe("validateSessionColor", () => {
+  it("accepts every canonical color", () => {
+    const colors = [
+      "#E5484D",
+      "#F47B20",
+      "#F7D154",
+      "#2E9B62",
+      "#20B2AA",
+      "#32B8D8",
+      "#3B82F6",
+      "#5A5BD7",
+      "#7B61D1",
+      "#A34AB7",
+      "#E45C9A",
+      "#8E8E93",
+    ];
+    for (const color of colors) {
+      expect(validateSessionColor(color)).toEqual({ ok: true, value: color });
+    }
+  });
+
+  it("rejects a color outside the palette", () => {
+    expect(validateSessionColor("#000000")).toEqual({
+      ok: false,
+      violations: [{ code: "INVALID_COLOR", field: "session.color" }],
+    });
+  });
+});
+
+describe("validateExerciseDurationSeconds", () => {
+  it("accepts the bounds 1 and 5999", () => {
+    expect(validateExerciseDurationSeconds(1)).toEqual({ ok: true, value: 1 });
+    expect(validateExerciseDurationSeconds(5999)).toEqual({ ok: true, value: 5999 });
+  });
+
+  it("rejects 0 and 6000 with OUT_OF_RANGE", () => {
+    expect(validateExerciseDurationSeconds(0)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.durationSeconds", details: { min: 1, max: 5999 } },
+      ],
+    });
+    expect(validateExerciseDurationSeconds(6000)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.durationSeconds", details: { min: 1, max: 5999 } },
+      ],
+    });
+  });
+
+  it("rejects a non-integer value with NOT_INTEGER", () => {
+    expect(validateExerciseDurationSeconds(30.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.durationSeconds" }],
+    });
+  });
+});
+
+describe("validateInstruction (normalization distinct from name)", () => {
+  it("normalizes undefined to null without error", () => {
+    expect(normalizeInstruction(undefined)).toBeNull();
+    expect(validateInstruction(undefined)).toEqual({ ok: true, value: null });
+  });
+
+  it("normalizes null to null without error", () => {
+    expect(normalizeInstruction(null)).toBeNull();
+    expect(validateInstruction(null)).toEqual({ ok: true, value: null });
+  });
+
+  it("normalizes a whitespace-only string to null", () => {
+    expect(normalizeInstruction("   \n\t  ")).toBeNull();
+  });
+
+  it("trims only the external whitespace", () => {
+    expect(normalizeInstruction("  Respirer profondément  ")).toBe("Respirer profondément");
+  });
+
+  it("preserves internal newlines and spaces of a multiline instruction", () => {
+    const raw = "Ligne 1\n\nLigne 2   avec   espaces";
+    expect(normalizeInstruction(raw)).toBe(raw);
+  });
+
+  it("accepts exactly 1000 characters after normalization", () => {
+    const instruction = "A".repeat(1000);
+    expect(validateInstruction(instruction)).toEqual({ ok: true, value: instruction });
+  });
+
+  it("rejects 1001 characters with TOO_LONG", () => {
+    const instruction = "A".repeat(1001);
+    expect(validateInstruction(instruction)).toEqual({
+      ok: false,
+      violations: [{ code: "TOO_LONG", field: "exercise.instruction", details: { max: 1000 } }],
+    });
+  });
+
+  it("counts an emoji made of a surrogate pair as a single character at the boundary", () => {
+    const instruction = `${"A".repeat(999)}😀`;
+    expect(Array.from(instruction)).toHaveLength(1000);
+    expect(validateInstruction(instruction)).toEqual({ ok: true, value: instruction });
+  });
+});
+
+describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
+  it("accepts 0 and any positive integer", () => {
+    expect(validateInitialCountdownSeconds(0)).toEqual({ ok: true, value: 0 });
+    expect(validateInitialCountdownSeconds(10)).toEqual({ ok: true, value: 10 });
+    expect(validateFinalPhaseSeconds(0)).toEqual({ ok: true, value: 0 });
+    expect(validateFinalPhaseSeconds(5)).toEqual({ ok: true, value: 5 });
+  });
+
+  it("rejects a negative value with the matching field", () => {
+    expect(validateInitialCountdownSeconds(-1)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "session.initialCountdownSeconds", details: { min: 0 } },
+      ],
+    });
+    expect(validateFinalPhaseSeconds(-1)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "session.finalPhaseSeconds", details: { min: 0 } },
+      ],
+    });
+  });
+
+  it("rejects a non-integer value with NOT_INTEGER", () => {
+    expect(validateInitialCountdownSeconds(1.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "session.initialCountdownSeconds" }],
+    });
+  });
+});
+
+describe("validateCreateSessionInput (aggregated structured result)", () => {
+  function validInput() {
+    return {
+      name: "Séance simple",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercise: { name: "Gainage", durationSeconds: 30 },
+    };
+  }
+
+  it("returns a success with the fully normalized input", () => {
+    const result = validateCreateSessionInput(validInput());
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        name: "Séance simple",
+        color: DEFAULT_SESSION_COLOR,
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+        exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+      },
+    });
+  });
+
+  it("aggregates every violation across multiple invalid fields at once", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      name: "   ",
+      color: "#000000" as never,
+      exercise: { name: "Exercice", durationSeconds: 0 },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toEqual(
+        expect.arrayContaining([
+          { code: "REQUIRED", field: "session.name" },
+          { code: "INVALID_COLOR", field: "session.color" },
+          {
+            code: "OUT_OF_RANGE",
+            field: "exercise.durationSeconds",
+            details: { min: 1, max: 5999 },
+          },
+        ]),
+      );
+      expect(result.violations).toHaveLength(3);
+    }
+  });
+
+  it("never throws, even on a fully invalid input", () => {
+    expect(() =>
+      validateCreateSessionInput({
+        name: "",
+        color: "#000000" as never,
+        initialCountdownSeconds: -1,
+        finalPhaseSeconds: -1,
+        exercise: { name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
+      }),
+    ).not.toThrow();
+  });
+});

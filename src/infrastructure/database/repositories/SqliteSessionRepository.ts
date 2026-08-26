@@ -1,6 +1,19 @@
 import * as Crypto from "expo-crypto";
 
 import {
+  computeActivityCount,
+  computeEstimatedDurationSeconds,
+} from "@/domain/sessions/calculations";
+import {
+  FIXED_ACTIVITY_POSITION,
+  FIXED_ACTIVITY_STRUCTURAL_POSITION,
+  FIXED_CYCLE_REPEAT_COUNT,
+  FIXED_PAUSE_SECONDS,
+  FIXED_SERIES_COUNT,
+  FIXED_TOUR_REPEAT_COUNT,
+} from "@/domain/sessions/defaults";
+import { SessionValidationError } from "@/domain/sessions/errors";
+import {
   SESSION_COLORS,
   type CreateSessionInput,
   type Session,
@@ -8,6 +21,7 @@ import {
   type SessionSummary,
 } from "@/domain/sessions/Session";
 import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import { validateCreateSessionInput } from "@/domain/sessions/validation";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
@@ -62,7 +76,11 @@ export class SqliteSessionRepository implements SessionRepository {
   ) {}
 
   async create(input: CreateSessionInput): Promise<Session> {
-    const normalized = validateCreateInput(input);
+    const validated = validateCreateSessionInput(input);
+    if (!validated.ok) {
+      throw new SessionValidationError(validated.violations);
+    }
+    const normalized = validated.value;
     const sessionId = this.uuidFactory();
     const cycleId = this.uuidFactory();
     const tourId = this.uuidFactory();
@@ -93,14 +111,14 @@ export class SqliteSessionRepository implements SessionRepository {
 
       await transaction.runAsync(
         `INSERT INTO cycles (id, session_id, position, repeat_count)
-         VALUES (?, ?, 1, 1)`,
-        [cycleId, sessionId],
+         VALUES (?, ?, 1, ?)`,
+        [cycleId, sessionId, FIXED_CYCLE_REPEAT_COUNT],
       );
 
       await transaction.runAsync(
         `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count)
-         VALUES (?, ?, ?, 1, 1)`,
-        [tourId, cycleId, sessionId],
+         VALUES (?, ?, ?, 1, ?)`,
+        [tourId, cycleId, sessionId, FIXED_TOUR_REPEAT_COUNT],
       );
 
       await transaction.runAsync(
@@ -110,17 +128,21 @@ export class SqliteSessionRepository implements SessionRepository {
           repetition_count, series_count, pause_seconds, instruction,
           created_at, updated_at
         ) VALUES (
-          ?, ?, ?, ?, 'EXERCISE', 'IN_TOUR',
-          0, ?, 'DURATION', ?,
-          NULL, 1, 0, ?, ?, ?
+          ?, ?, ?, ?, 'EXERCISE', ?,
+          ?, ?, 'DURATION', ?,
+          NULL, ?, ?, ?, ?, ?
         )`,
         [
           activityId,
           sessionId,
           cycleId,
           tourId,
+          FIXED_ACTIVITY_STRUCTURAL_POSITION,
+          FIXED_ACTIVITY_POSITION,
           normalized.exercise.name,
           normalized.exercise.durationSeconds,
+          FIXED_SERIES_COUNT,
+          FIXED_PAUSE_SECONDS,
           normalized.exercise.instruction ?? null,
           timestamp,
           timestamp,
@@ -202,43 +224,6 @@ async function getLocalUser(database: Database): Promise<LocalUserRow> {
   return user;
 }
 
-function validateCreateInput(input: CreateSessionInput): CreateSessionInput {
-  const name = input.name.trim();
-  const exerciseName = input.exercise.name.trim();
-  const instruction = input.exercise.instruction?.trim() || null;
-
-  if (name.length < 1 || name.length > 80) {
-    throw new Error("Session name must contain between 1 and 80 characters.");
-  }
-  if (!SESSION_COLORS.includes(input.color)) {
-    throw new Error("Session color must belong to the canonical palette.");
-  }
-  if (exerciseName.length < 1 || exerciseName.length > 80) {
-    throw new Error("Exercise name must contain between 1 and 80 characters.");
-  }
-  if (!Number.isInteger(input.exercise.durationSeconds)) {
-    throw new Error("Exercise duration must be an integer number of seconds.");
-  }
-  if (input.exercise.durationSeconds < 1 || input.exercise.durationSeconds > 5999) {
-    throw new Error("Exercise duration must be between 1 and 5999 seconds.");
-  }
-  if (instruction && instruction.length > 1000) {
-    throw new Error("Exercise instruction cannot exceed 1000 characters.");
-  }
-  if (!Number.isInteger(input.initialCountdownSeconds) || input.initialCountdownSeconds < 0) {
-    throw new Error("Initial countdown must be a non-negative integer.");
-  }
-  if (!Number.isInteger(input.finalPhaseSeconds) || input.finalPhaseSeconds < 0) {
-    throw new Error("Final phase must be a non-negative integer.");
-  }
-
-  return {
-    ...input,
-    name,
-    exercise: { ...input.exercise, name: exerciseName, instruction },
-  };
-}
-
 export function mapSessionRow(row: SessionAggregateRow): Session {
   assertT01S01Row(row);
 
@@ -279,19 +264,26 @@ export function mapSessionRow(row: SessionAggregateRow): Session {
 }
 
 function mapSummaryRow(row: SessionSummaryRow): SessionSummary {
-  if (row.activity_count !== 1 || row.tour_repeat_count !== 1) {
+  if (row.activity_count !== 1 || row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT) {
     throw new Error("T01-S01 summaries require one activity and one tour repetition.");
   }
+
+  const activityCount = computeActivityCount({
+    compositionActivityCount: row.activity_count,
+    tourRepeatCount: row.tour_repeat_count,
+  });
+  const estimatedDurationSeconds = computeEstimatedDurationSeconds({
+    initialCountdownSeconds: row.initial_countdown_seconds,
+    finalPhaseSeconds: row.final_phase_seconds,
+    activityDurationSeconds: row.exercise_duration_seconds,
+  });
 
   return {
     id: row.id,
     name: row.name,
     color: row.color as SessionColor,
-    activityCount: 1,
-    estimatedDurationSeconds:
-      row.initial_countdown_seconds +
-      row.exercise_duration_seconds +
-      row.final_phase_seconds,
+    activityCount: activityCount as 1,
+    estimatedDurationSeconds,
     tourRepeatCount: 1,
     updatedAt: row.updated_at,
   };
@@ -304,15 +296,15 @@ function assertT01S01Row(row: SessionAggregateRow): void {
   if (
     row.status !== "ACTIVE" ||
     row.cycle_position !== 1 ||
-    row.cycle_repeat_count !== 1 ||
+    row.cycle_repeat_count !== FIXED_CYCLE_REPEAT_COUNT ||
     row.tour_position !== 1 ||
-    row.tour_repeat_count !== 1 ||
-    row.structural_position !== "IN_TOUR" ||
-    row.activity_position !== 0 ||
+    row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT ||
+    row.structural_position !== FIXED_ACTIVITY_STRUCTURAL_POSITION ||
+    row.activity_position !== FIXED_ACTIVITY_POSITION ||
     row.execution_mode !== "DURATION" ||
     row.repetition_count !== null ||
-    row.series_count !== 1 ||
-    row.pause_seconds !== 0
+    row.series_count !== FIXED_SERIES_COUNT ||
+    row.pause_seconds !== FIXED_PAUSE_SECONDS
   ) {
     throw new Error("Persisted session does not satisfy the T01-S01 aggregate contract.");
   }

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import * as Crypto from "expo-crypto";
 
+import { SessionValidationError } from "@/domain/sessions/errors";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -63,6 +64,38 @@ describe("SqliteSessionRepository", () => {
     ]);
   });
 
+  it("persists the exact T01 structural literals via bound parameters after the FIXED_* refactor", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const created = await repository.create(validInput());
+
+    const cycleRow = await database.getFirstAsync<{ position: number; repeat_count: number }>(
+      "SELECT position, repeat_count FROM cycles WHERE session_id = ?",
+      [created.id],
+    );
+    const tourRow = await database.getFirstAsync<{ position: number; repeat_count: number }>(
+      "SELECT position, repeat_count FROM tours WHERE session_id = ?",
+      [created.id],
+    );
+    const activityRow = await database.getFirstAsync<{
+      structural_position: string;
+      position: number;
+      series_count: number;
+      pause_seconds: number;
+    }>(
+      "SELECT structural_position, position, series_count, pause_seconds FROM activities WHERE session_id = ?",
+      [created.id],
+    );
+
+    expect(cycleRow).toEqual({ position: 1, repeat_count: 1 });
+    expect(tourRow).toEqual({ position: 1, repeat_count: 1 });
+    expect(activityRow).toEqual({
+      structural_position: "IN_TOUR",
+      position: 0,
+      series_count: 1,
+      pause_seconds: 0,
+    });
+  });
+
   it("uses Crypto.randomUUID for all aggregate identifiers by default", async () => {
     jest.mocked(Crypto.randomUUID).mockImplementation(uuidFactory());
     const repository = new SqliteSessionRepository(database);
@@ -78,16 +111,56 @@ describe("SqliteSessionRepository", () => {
     ]).toEqual(IDS);
   });
 
-  it("rejects incomplete or out-of-contract input before persistence", async () => {
+  it("rejects incomplete or out-of-contract input before persistence with a structured SessionValidationError", async () => {
     const repository = new SqliteSessionRepository(database, uuidFactory());
 
-    await expect(repository.create({ ...validInput(), name: "   " })).rejects.toThrow();
+    await expect(repository.create({ ...validInput(), name: "   " })).rejects.toBeInstanceOf(
+      SessionValidationError,
+    );
     await expect(
       repository.create({
         ...validInput(),
         exercise: { name: "Exercice", durationSeconds: 0 },
       }),
-    ).rejects.toThrow();
+    ).rejects.toBeInstanceOf(SessionValidationError);
+
+    const count = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM sessions",
+    );
+    expect(count?.count).toBe(0);
+  });
+
+  it("exposes the exact violations (code + field) on SessionValidationError, without any message text", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+
+    try {
+      await repository.create({ ...validInput(), name: "   " });
+      throw new Error("expected repository.create to reject");
+    } catch (error) {
+      expect(error).toBeInstanceOf(SessionValidationError);
+      expect((error as SessionValidationError).violations).toEqual([
+        { code: "REQUIRED", field: "session.name" },
+      ]);
+    }
+  });
+
+  it("validates any CreateSessionInput it receives directly, with no way to bypass validation", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+
+    // No draft, no toCreateSessionInput involved: an invalid CreateSessionInput
+    // built by hand is still rejected before any SQL write, because the
+    // Repository revalidates every input independently of its origin.
+    const handCraftedInvalidInput = {
+      name: "Nom valide",
+      color: "#000000" as never,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercise: { name: "Exercice", durationSeconds: 30 },
+    };
+
+    await expect(repository.create(handCraftedInvalidInput)).rejects.toBeInstanceOf(
+      SessionValidationError,
+    );
 
     const count = await database.getFirstAsync<{ count: number }>(
       "SELECT COUNT(*) AS count FROM sessions",
