@@ -1,1 +1,2 @@
 @AGENTS.md
+@.github/AI_ORCHESTRATION.md
