@@ -18,22 +18,30 @@ export type CompositionSummaryFacts = {
 
 /**
  * Résumé `N activités · durée estimée` de la Composition (§9 du plan
- * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B).
+ * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B ; Séries/Pause
+ * après Série corrigées en T01-S08, revue PR #9 —
+ * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736).
  *
  * État vide (`exercise === null`) : chaîne locale et complète
  * `"0 activité · 0 min"` (arbitrage V2) — n'appelle jamais
  * `formatActivityCount(0)`, qui produit délibérément `"0 activités"`
  * (pluriel) pour le Catalogue et reste inchangé.
  *
- * État non vide, mode Durée : réutilise `formatActivityCount`/
- * `formatEstimatedDuration` (T01-S06) sans modification, avec
- * `Math.ceil(totalSeconds / 60)` déjà porté par `formatEstimatedDuration`.
+ * État non vide, mode Durée (RM-036/RM-037/RM-071) : une Série répète la
+ * durée de l'Exercice puis sa Pause après Série éventuelle (RM-036) ; chaque
+ * Pause après Série génère une Récupération technique comptée dans la durée
+ * estimée (RM-037/RM-071, l'exception de la dernière Série omise avant une
+ * Récupération explicite suivante étant hors périmètre de T01-S08, aucune
+ * Récupération n'existant encore) — d'où
+ * `seriesCount × durationSeconds + seriesCount × pauseSeconds`. Arrondi à la
+ * minute supérieure via `formatEstimatedDuration` (`Math.ceil`, RM-101,
+ * inchangé).
  *
- * État non vide, mode Répétitions (RM-072/D-070/D-008, déjà validées) :
- * aucune durée conventionnelle n'est attribuée à l'Exercice lui-même (le
- * Compte à rebours initial et la Fin de séance restent comptés) ; la durée
- * estimée devient une borne minimale, précédée de `≥` — jamais présentée
- * comme une valeur exacte.
+ * État non vide, mode Répétitions (RM-072, déjà validée) : aucune durée
+ * conventionnelle n'est attribuée à l'Exercice lui-même, mais les Pauses
+ * après Série restent déterminables et donc comptées
+ * (`seriesCount × pauseSeconds`) ; la durée estimée reste une borne
+ * minimale, précédée de `≥` — jamais présentée comme une valeur exacte.
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
   if (facts.exercise === null) {
@@ -41,9 +49,13 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   }
 
   const isRepetitionMode = facts.exercise.executionMode === "REPETITIONS";
-  const activityDurationSeconds = isRepetitionMode ? 0 : facts.exercise.durationSeconds ?? 0;
+  const seriesCount = facts.exercise.seriesCount;
+  const activityDurationSeconds = isRepetitionMode
+    ? 0
+    : seriesCount * (facts.exercise.durationSeconds ?? 0);
+  const pauseSeconds = seriesCount * facts.exercise.pauseSeconds;
   const estimatedDurationSeconds =
-    facts.initialCountdownSeconds + activityDurationSeconds + facts.finalPhaseSeconds;
+    facts.initialCountdownSeconds + activityDurationSeconds + pauseSeconds + facts.finalPhaseSeconds;
   const formattedDuration = formatEstimatedDuration(estimatedDurationSeconds);
   const durationLabel = isRepetitionMode ? `≥ ${formattedDuration}` : formattedDuration;
 

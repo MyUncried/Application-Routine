@@ -113,6 +113,118 @@ describe("formatCompositionSummary", () => {
       expect(result).not.toContain("≥");
     });
   });
+
+  describe("Séries et Pause après Série (T01-S08, revue PR #9 — RM-036/RM-037/RM-071/RM-072)", () => {
+    it("mode Durée : multiplie durationSeconds ET pauseSeconds par seriesCount (90s, 3 Séries, pause 15s -> 330s -> 6 min)", () => {
+      expect(
+        formatCompositionSummary({
+          exercise: {
+            ...createExerciseDraft(),
+            name: "Gainage",
+            durationSeconds: 90,
+            seriesCount: 3,
+            pauseSeconds: 15,
+          },
+          initialCountdownSeconds: 10,
+          finalPhaseSeconds: 5,
+        }),
+      ).toBe("1 activité · 6 min"); // 10 + 3*90 + 3*15 + 5 = 330s -> ceil(330/60) = 6 min
+    });
+
+    it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 75s min -> ≥ 2 min)", () => {
+      expect(
+        formatCompositionSummary({
+          exercise: {
+            ...createExerciseDraft(),
+            name: "Fentes",
+            executionMode: "REPETITIONS",
+            durationSeconds: null,
+            repetitionCount: 12,
+            seriesCount: 3,
+            pauseSeconds: 20,
+          },
+          initialCountdownSeconds: 10,
+          finalPhaseSeconds: 5,
+        }),
+      ).toBe("1 activité · ≥ 2 min"); // 10 + 3*20 + 5 = 75s -> ceil(75/60) = 2 min
+    });
+
+    it("Pause nulle : n'ajoute rien à la durée estimée, quel que soit seriesCount", () => {
+      expect(
+        formatCompositionSummary({
+          exercise: {
+            ...createExerciseDraft(),
+            name: "Gainage",
+            durationSeconds: 45,
+            seriesCount: 4,
+            pauseSeconds: 0,
+          },
+          initialCountdownSeconds: 10,
+          finalPhaseSeconds: 5,
+        }),
+      ).toBe("1 activité · 4 min"); // 10 + 4*45 + 4*0 + 5 = 195s -> ceil(195/60) = 4 min
+    });
+
+    it("une seule Série : non-régression, formule équivalente à l'ancienne (seriesCount=1)", () => {
+      expect(
+        formatCompositionSummary({
+          exercise: {
+            ...createExerciseDraft(),
+            name: "Gainage",
+            durationSeconds: 45,
+            seriesCount: 1,
+            pauseSeconds: 0,
+          },
+          initialCountdownSeconds: 10,
+          finalPhaseSeconds: 5,
+        }),
+      ).toBe("1 activité · 1 min"); // 10 + 45 + 5 = 60s -> ceil = 1 min, identique au comportement T01-S07
+    });
+
+    it("fait varier seriesCount seul : le résultat change en conséquence", () => {
+      const oneSeries = formatCompositionSummary({
+        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      const threeSeries = formatCompositionSummary({
+        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      expect(oneSeries).toBe("1 activité · 1 min"); // 10 + 45 + 5 = 60s
+      expect(threeSeries).toBe("1 activité · 3 min"); // 10 + 135 + 5 = 150s -> ceil(150/60) = 3 min
+      expect(oneSeries).not.toBe(threeSeries);
+    });
+
+    it("fait varier pauseSeconds seul : le résultat change en conséquence", () => {
+      const noPause = formatCompositionSummary({
+        exercise: {
+          ...createExerciseDraft(),
+          name: "Gainage",
+          durationSeconds: 45,
+          seriesCount: 2,
+          pauseSeconds: 0,
+        },
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      const withPause = formatCompositionSummary({
+        exercise: {
+          ...createExerciseDraft(),
+          name: "Gainage",
+          durationSeconds: 45,
+          seriesCount: 2,
+          pauseSeconds: 30,
+        },
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      expect(noPause).toBe("1 activité · 2 min"); // 10 + 90 + 0 + 5 = 105s -> ceil = 2 min
+      expect(withPause).toBe("1 activité · 3 min"); // 10 + 90 + 60 + 5 = 165s -> ceil = 3 min
+      expect(noPause).not.toBe(withPause);
+    });
+  });
 });
 
 describe("formatDurationRowValue", () => {
