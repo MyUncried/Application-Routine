@@ -1,9 +1,9 @@
 ## TRANCHE
 
-- ID : `Txx-Sxx`
+- ID : `Txx-Sxx` (ou bloc `Txx` si la PR couvre plusieurs tranches — voir `.github/AI_ORCHESTRATION.md` § Git et clôture)
 - Issue liée :
 - Baseline :
-- Branche :
+- Branche (de bloc ou dédiée, selon la stratégie en vigueur) :
 
 ## PLAN
 
@@ -45,9 +45,13 @@ Aucun | ...
 
 Statut : `À FAIRE | CONFORME | CHANGES_REQUESTED | RETEST_REQUIRED | CLARIFICATION_REQUIRED`
 
+Publiée comme commentaire sur cette PR (ou sur l’Issue liée), préfixé `[ChatGPT]`.
+
 La revue doit confronter : `spécification → plan approuvé → diff réel → tests → résultat`.
 
 ## CONTRE-VÉRIFICATION FINALE
+
+Relecture indépendante **du travail** par Claude Code (même lignée que l’implémentation — pas une indépendance d’agent ; la revue ChatGPT ci-dessus reste le seul contrôle par un système distinct).
 
 - [ ] seconde passe indépendante effectuée ;
 - [ ] anciennes hypothèses / formulations recherchées ;
@@ -59,5 +63,5 @@ La revue doit confronter : `spécification → plan approuvé → diff réel →
 ## CLÔTURE
 
 - [ ] `READY_TO_CLOSE`
-- [ ] état Git propre et traçable
+- [ ] état Git propre, synchronisé avec `origin`, et traçable
 - [ ] branche prête à intégrer

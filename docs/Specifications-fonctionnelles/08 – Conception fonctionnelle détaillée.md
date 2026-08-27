@@ -877,7 +877,7 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Tour | Seul conteneur affiché ; `x1` par défaut, réglable de 1 à 99 par pop-up compact. |
 | Activités | Cartes ordonnées ; toucher ouvre la modification ; glisser à gauche révèle `Dupliquer` et `Supprimer`. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
-| Résumé | `N activités · durée estimée`, centré en bas de la Composition. |
+| Résumé | `N activités · durée estimée`, centré en bas de la Composition. À l'état vide (aucun Exercice défini), affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
 | Continuer | Désactivé lorsque le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent ; ouvre les Catégories. |
 
@@ -1026,8 +1026,8 @@ Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Contin
 | Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Valeur par défaut des séances                        |
 | Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
 | Vibration                           | Interrupteur    | Toujours |         Oui | Activée                    | Booléen                         | Préférences | Activer / Désactiver | Vibrations fonctionnelles de séance uniquement       |
-| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 99 min 59 s                 | Préférences | Modifier             | Valeur utilisée à la création d'une séance           |
-| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 99 min 59 s                 | Préférences | Modifier             | 0 s = phase instantanée                              |
+| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 59 min 59 s                 | Préférences | Modifier             | Valeur utilisée à la création d'une séance (D-089)   |
+| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 59 min 59 s                 | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |
 ### Règles fonctionnelles
 

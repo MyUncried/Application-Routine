@@ -1,2 +1,2 @@
-@AGENTS.md
+@docs/AGENTS.md
 @.github/AI_ORCHESTRATION.md

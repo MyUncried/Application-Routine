@@ -56,12 +56,12 @@ Ce qui ne doit pas être anticipé.
 - Code.
 - Tests.
 - Preuves.
-- Rapport d’implémentation structuré.
-- Commit(s) sur la branche dédiée.
-- Pull Request liée à cette Issue.
+- Rapport d’implémentation structuré, publié comme commentaire sur cette Issue.
+- Commit(s) sur la branche active de la stratégie en vigueur (voir `.github/AI_ORCHESTRATION.md` § Git et clôture — branche de bloc ou branche dédiée selon l’arbitrage en cours).
+- Pull Request liée à cette tranche ou à son bloc, selon la même stratégie.
 
 ## ÉTAT INITIAL
 
 `SPEC_PREPARED`
 
-Claude Code doit produire un plan avec le statut `PLAN_READY_FOR_REVIEW` et attendre `PLAN_APPROVED` avant toute implémentation.
+Claude Code doit produire un plan avec le statut `PLAN_READY_FOR_REVIEW`, le publier comme commentaire sur cette Issue, puis attendre un verdict ChatGPT (`PLAN_APPROVED` | `PLAN_CHANGES_REQUESTED` | `CLARIFICATION_REQUIRED`) publié dans cette même Issue et préfixé `[ChatGPT]`, avant toute implémentation.

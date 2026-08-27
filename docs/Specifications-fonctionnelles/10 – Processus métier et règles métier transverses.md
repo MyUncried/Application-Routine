@@ -126,6 +126,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-075 | Le Nombre total d’Activités à exécuter compte les occurrences du plan développé après Séries et Tours, y compris les Récupérations techniques effectivement générées, mais exclut le Compte à rebours initial et la Fin de séance. |
 | RM-076 | Le Nombre d’Activités exécutées correspond aux Résultats d’Activité créés. Une Activité `Partielle` compte ; une Activité jamais atteinte ne compte pas. |
 | RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
+| RM-101 | La durée estimée (RM-071), exprimée en secondes, est convertie en minutes pour son affichage à l’utilisateur (Catalogue, Composition) par arrondi à la minute supérieure, afin de ne jamais sous-estimer la durée réelle (D-090). |
 
 ## 10. Synthèse, Suivi et historique
 

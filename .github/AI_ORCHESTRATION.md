@@ -32,11 +32,13 @@ Boucles :
 - `IMPLEMENTATION_REVIEW → RETEST_REQUIRED → IMPLEMENTATION_REPORT → IMPLEMENTATION_REVIEW`
 
 À tout moment : `CLARIFICATION_REQUIRED` si une décision nécessaire n’est pas déterminable par les sources.
-`USER_VALIDATION` est utilisé uniquement lorsqu’un contrôle humain est réellement nécessaire.
+`USER_VALIDATION` est utilisé uniquement lorsqu’un contrôle humain est réellement nécessaire, ou lorsqu’une boucle de revue (`PLAN_REVIEW ↔ PLAN_CHANGES_REQUESTED`, `IMPLEMENTATION_REVIEW ↔ CHANGES_REQUESTED`/`RETEST_REQUIRED`) ne progresse plus malgré des itérations successives. Aucune règle mécanique de nombre de boucles n’est imposée : c’est la stagnation réelle, pas un compteur, qui déclenche l’escalade.
 
 ## Barrière avant implémentation
 
 Claude Code ne doit modifier aucun fichier métier d’une nouvelle tranche avant que ChatGPT ait publié explicitement `PLAN_APPROVED`.
+
+Cette barrière est **procédurale**, pas techniquement verrouillée : elle repose sur la discipline de Claude Code et la vérification de l’utilisateur à chaque étape, pas sur une protection de branche GitHub (aucune n’est active sur ce dépôt/ce plan).
 
 Le plan doit suivre ce format :
 
@@ -141,6 +143,10 @@ Elle recherche notamment : critère non démontré, omission, hors-périmètre, 
 
 Toute demande de reprise distingue explicitement : modification du code ; ajout/correction de tests ; vérification supplémentaire sans changement de code.
 
+### Contre-vérification Claude, distincte de la revue ChatGPT
+
+La « contre-vérification indépendante » réalisée par Claude Code est une relecture indépendante **du travail** (code, tests, preuves relus directement, pas seulement le rapport pris pour argent comptant) — ce n’est pas une indépendance **d’agent** : c’est la même lignée Claude Code, dans la continuité de l’implémentation, qui l’effectue. Seule la revue ChatGPT constitue un contrôle par un système distinct. Les deux restent toutes deux exigées, séparément, avant `READY_TO_CLOSE`.
+
 ## Ressources IA
 
 Les ressources IA pilotent le moment et la méthode de travail, jamais le niveau de conformité requis.
@@ -151,12 +157,32 @@ Les ressources IA pilotent le moment et la méthode de travail, jamais le niveau
 - Coût additionnel significatif ou blocage : `ARBITRAGE` utilisateur.
 - Donnée inaccessible : `NON VÉRIFIABLE`, sans estimation inventée.
 
-Aucun contrôle obligatoire ne peut être supprimé pour économiser des crédits.
+`NON VÉRIFIABLE` est la valeur par défaut de toute métrique (quota, coût additionnel, prochain reset) que Claude Code n’a aucun moyen fiable de mesurer avec les outils dont il dispose actuellement — ce n’est pas un aveu d’échec du suivi, c’est l’état honnête attendu tant qu’aucun outil de mesure fiable n’existe. Ne jamais inventer une valeur plausible à sa place.
+
+Aucun contrôle obligatoire ne peut être supprimé pour économiser des crédits. Le suivi des ressources IA ne réduit jamais, à lui seul, le niveau de conformité exigé d’une tranche.
 
 ## Git et clôture
 
-Pour chaque tranche : une Issue porte le contrat de tâche ; une branche est créée depuis la baseline validée ; une Pull Request porte plan, rapports, revues et corrections ; intégration seulement après `READY_TO_CLOSE`.
+Pour chaque tranche : une Issue porte le contrat de tâche ; les commits sont réalisés sur la branche active de la stratégie en vigueur (voir ci-dessous) ; une Pull Request porte plan, rapports, revues et corrections ; intégration seulement après `READY_TO_CLOSE`.
+
+### Stratégie de branche — arbitrage `T01`
+
+`feat/creation-seance-catalogue` est la **branche de bloc** de `T01` : tous les commits des tranches `T01-Sxx` y sont réalisés jusqu’à la clôture complète du bloc `T01`. Aucune branche dédiée n’est créée par sous-tranche pour `T01`.
+
+À partir de `T01-S08` : chaque tranche `T01-Sxx` porte néanmoins sa propre Issue, avec traçabilité complète de son plan, de ses revues et de son rapport sur GitHub (voir « Traçabilité GitHub » ci-dessous) — seuls les commits restent groupés sur la branche de bloc, pas une branche par tranche.
+
+À la clôture de `T01` : une Pull Request unique porte l’intégration de `feat/creation-seance-catalogue` vers `main`.
+
+Ce choix (branche par bloc plutôt que par tranche) est un arbitrage explicite pour `T01`, pas une règle permanente : il doit être **réévalué explicitement** au démarrage de `T02`, sans reconduction automatique.
+
+### Traçabilité GitHub des boucles
+
+Le plan `PLAN_READY_FOR_REVIEW` de chaque tranche est publié par Claude Code comme commentaire sur l’Issue de cette tranche. Tout verdict ou demande ChatGPT (`PLAN_APPROVED`, `PLAN_CHANGES_REQUESTED`, `CLARIFICATION_REQUIRED`, demande de modification du code, demande de tests/vérification supplémentaire, contre-vérification) est publié dans la même Issue ou dans la Pull Request associée, **préfixé `[ChatGPT]`** — seul repère technique disponible pour distinguer ce contenu d’un message rédigé directement par l’utilisateur, en l’absence d’identité GitHub propre à ChatGPT. Claude Code récupère ces demandes depuis GitHub (Issue/PR) avant de reprendre le travail, plutôt que de se fier uniquement à un message relayé hors GitHub pour une décision qui engage une tranche.
+
+### Synchronisation
+
+Avant de démarrer une tranche et avant toute clôture, vérifier explicitement la synchronisation avec `origin` et la propreté du répertoire de travail (`git status`, `git fetch`, comparaison avec la branche distante) — pas seulement au moment du commit final.
 
 Les rapports temporaires ne doivent pas être commités sauf exigence explicite.
 
-`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; critères d’acceptation démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; contre-vérification indépendante conforme ; validation utilisateur si requise ; aucun `À CLARIFIER` ouvert ; aucune contradiction connue résiduelle ; état Git propre et traçable.
+`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; critères d’acceptation démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; contre-vérification indépendante conforme ; validation utilisateur si requise ; aucun `À CLARIFIER` ouvert ; aucune contradiction connue résiduelle ; état Git propre, synchronisé avec `origin`, et traçable.
