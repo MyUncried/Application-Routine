@@ -32,6 +32,13 @@ const SECOND_IDS = [
   "20000000-0000-4000-8000-000000000004",
 ];
 
+const THIRD_IDS = [
+  "30000000-0000-4000-8000-000000000001",
+  "30000000-0000-4000-8000-000000000002",
+  "30000000-0000-4000-8000-000000000003",
+  "30000000-0000-4000-8000-000000000004",
+];
+
 describe("SqliteSessionRepository", () => {
   let database: NodeSqliteDatabase;
 
@@ -392,6 +399,101 @@ describe("SqliteSessionRepository", () => {
       }
     });
   });
+
+  // T01-S06 : couverture ajoutée pour la Séance simple, sans modifier le
+  // contrat ni le code de production (`listActive()` — SqliteSessionRepository.ts —
+  // reste inchangé ; ces tests prouvent seulement ce qu'il fait déjà).
+  describe("listActive", () => {
+    it("excludes a session archived directly via SQL (no archiving feature exists in code)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const active = await repository.create(validInput());
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const archived = await secondRepository.create({ ...validInput(), name: "À archiver" });
+      await database.runAsync(
+        "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
+        ["2026-01-02T00:00:00.000Z", archived.id],
+      );
+
+      const summaries = await repository.listActive();
+
+      expect(summaries.map((summary) => summary.id)).toEqual([active.id]);
+      expect(summaries.some((summary) => summary.id === archived.id)).toBe(false);
+    });
+
+    it("sorts by COALESCE(last_executed_at, updated_at) DESC independently of insertion order", async () => {
+      // Trois Séances, délibérément insérées dans un ordre qui ne
+      // correspond ni à l'ordre attendu du résultat ni à son inverse :
+      //
+      //   ordre d'insertion : oldest, mostRecent, middle
+      //   ordre attendu (DESC sur COALESCE) : mostRecent, middle, oldest
+      //
+      // Si `listActive()` restituait simplement les lignes dans leur ordre
+      // d'insertion (ou son inverse, ce que certains moteurs font sans
+      // `ORDER BY` explicite), ce test échouerait : les deux permutations
+      // sont distinctes de l'ordre attendu. Seul un tri réellement fondé
+      // sur `COALESCE(last_executed_at, updated_at) DESC` peut le
+      // satisfaire.
+
+      // 1ʳᵉ Séance insérée : jamais exécutée, repli sur `updated_at`
+      // (2026-01-01) — clé de tri la plus ancienne des trois, doit finir
+      // EN DERNIER dans le résultat.
+      const clockOldest = fixedClock(["2026-01-01T00:00:00.000Z"]);
+      const repositoryOldest = new SqliteSessionRepository(database, uuidFactory(), clockOldest);
+      const sessionOldest = await repositoryOldest.create({
+        ...validInput(),
+        name: "Jamais exécutée",
+      });
+
+      // 2ᵉ Séance insérée : `updated_at` volontairement ancien (2026-01-02)
+      // mais `last_executed_at` posé directement en SQL au 2026-01-30 — la
+      // clé de tri la plus récente des trois, doit finir EN PREMIER. Si le
+      // tri ignorait `last_executed_at`, cette Séance apparaîtrait en
+      // dernier (son `updated_at` est le plus ancien) : le résultat attendu
+      // ne peut donc être obtenu qu'en utilisant réellement
+      // `last_executed_at` lorsqu'il existe.
+      const clockMostRecent = fixedClock(["2026-01-02T00:00:00.000Z"]);
+      const repositoryMostRecent = new SqliteSessionRepository(
+        database,
+        secondUuidFactory(),
+        clockMostRecent,
+      );
+      const sessionMostRecent = await repositoryMostRecent.create({
+        ...validInput(),
+        name: "Exécutée très récemment",
+      });
+      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
+        "2026-01-30T00:00:00.000Z",
+        sessionMostRecent.id,
+      ]);
+
+      // 3ᵉ Séance insérée : `updated_at` = 2026-01-03, `last_executed_at`
+      // posé directement en SQL au 2026-01-15 — clé de tri intermédiaire,
+      // doit finir AU MILIEU.
+      const clockMiddle = fixedClock(["2026-01-03T00:00:00.000Z"]);
+      const repositoryMiddle = new SqliteSessionRepository(
+        database,
+        thirdUuidFactory(),
+        clockMiddle,
+      );
+      const sessionMiddle = await repositoryMiddle.create({
+        ...validInput(),
+        name: "Exécutée il y a deux semaines",
+      });
+      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
+        "2026-01-15T00:00:00.000Z",
+        sessionMiddle.id,
+      ]);
+
+      const summaries = await repositoryOldest.listActive();
+
+      expect(summaries.map((summary) => summary.id)).toEqual([
+        sessionMostRecent.id,
+        sessionMiddle.id,
+        sessionOldest.id,
+      ]);
+    });
+  });
 });
 
 function validInput() {
@@ -412,6 +514,11 @@ function uuidFactory(): () => string {
 function secondUuidFactory(): () => string {
   let index = 0;
   return () => SECOND_IDS[index++];
+}
+
+function thirdUuidFactory(): () => string {
+  let index = 0;
+  return () => THIRD_IDS[index++];
 }
 
 /** Horloge factice déterministe : renvoie les horodatages fournis, dans l'ordre, un par appel. */

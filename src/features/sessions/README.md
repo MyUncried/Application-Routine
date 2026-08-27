@@ -15,8 +15,16 @@ Cette séparation n'est pas cosmétique : `SQLiteProvider` (expo-sqlite@57.0.1) 
 
 Monté une seule fois, dans `app/_layout.tsx` : le `<Stack>` applicatif ne s'affiche qu'une fois les polices réglées **et** `SessionService` effectivement construit (signalé par `onReady`, sans jamais remonter l'instance elle-même jusqu'à `RootLayout`).
 
+**Catalogue des séances (T01-S06)** : premier consommateur réel de `useSessionService()`. `CatalogueScreen.tsx` (rendu par la route `app/(tabs)/index.tsx`) câble `useSessionCatalogue()` (hook de chargement pur, ce fichier) à `useFocusEffect` (`expo-router`) — seul point d'appel à la navigation de la feature. `useSessionCatalogue` n'importe ni `SqliteSessionRepository`, ni `Database`, ni `expo-sqlite` : son unique accès aux données est `useSessionService().listActiveSessions()`.
+
+Contrat du hook : identifiant de requête croissant (le dernier `reload()` déclenché fait seul autorité sur l'état, une résolution périmée est ignorée) ; `cancelPending()` invalide explicitement toute requête en vol (appelé au blur, via le nettoyage retourné à `useFocusEffect` — pas laissée à expirer avant qu'un focus suivant ne la supplante) ; garde de montage réinitialisé **dans le corps de l'effet** (pas dans l'initialiseur de `useRef`), pour rester correct sous React Strict Mode ; `error` et `empty` sont deux branches distinctes du type d'état, jamais confondues — une erreur technique n'est jamais présentée comme un Catalogue vide.
+
+`SessionCard.tsx` est une présentation pure d'un `SessionSummary` (couleur, nom, nombre d'activités, durée estimée, nombre de tours — via `formatSessionSummary.ts`, qui porte les pluriels et l'arrondi de la durée : `Math.ceil(secondes / 60)`, pour ne jamais sous-estimer une durée réelle). Aucune fonction n'a été introduite dans `src/shared/i18n/resources/fr.ts` pour ce besoin : ce fichier reste un arbre de chaînes statiques, cohérent avec son contrat existant ; la logique de pluriel/arrondi vit dans `formatSessionSummary.ts`, testée isolément.
+
+Le chevron et le bouton `Démarrer` sont visibles sur chaque carte (conformes aux captures Catalogue de référence, où ils apparaissent sur toute carte condensée sans interaction) mais désactivés : aucun écran de détail ni d'Exécution n'existe encore. Le sélecteur `Toutes` / `Planifiées` / `Archivées` et le bouton `+ Créer` (cadre commun, affiché dans les quatre états `loading`/`empty`/`ready`/`error`) suivent le même principe — `Toutes` seule est fonctionnelle, les autres sont visibles et désactivées, sans aucun appel Repository/Service possible pour elles (`listArchived()` n'existe pas ; aucun domaine Routine/planification n'existe). Ni la zone principale de la carte (ouverture en modification) ni `+ Créer` ne naviguent : `Composition d'une séance` n'existe pas avant T01-S07.
+
 Hors périmètre pour l'instant, séquencé explicitement :
 
-- **T01-S06 à T01-S10** — Catalogue, Composition, Exercice, Catégories, puis réouverture/modification de bout en bout à l'écran. Aucun écran ne consomme encore `useSessionService()`.
+- **T01-S07 à T01-S10** — Composition, Exercice, Catégories, puis réouverture/modification de bout en bout à l'écran.
 
-Duplication, archivage (l'écriture du statut `ARCHIVED`), restauration et suppression restent sans sous-étape assignée à ce stade.
+Duplication, archivage (l'écriture du statut `ARCHIVED`), restauration, suppression, filtres `Planifiées`/`Archivées`, déploiement de carte, recherche globale et exécution restent sans sous-étape assignée à ce stade.

@@ -1,0 +1,246 @@
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+
+import type { SessionSummary } from "@/domain/sessions/Session";
+import { SessionCard } from "@/features/sessions/SessionCard";
+import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
+import { strings } from "@/shared/i18n";
+import { colors, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Écran du Catalogue des séances (T01-S06). Seul point d'appel à
+ * `useFocusEffect` de la feature — `useSessionCatalogue` reste pur et ne
+ * connaît pas la navigation.
+ *
+ * Le cadre commun (en-tête, sélecteur de filtres, bouton `+ Créer`) reste
+ * affiché dans les quatre états ; seul le corps central varie. Confirmé par
+ * `catalogue-vide.png`, qui montre ce cadre conservé même à vide (voir le
+ * plan d'implémentation).
+ */
+export function CatalogueScreen() {
+  const { state, reload, cancelPending } = useSessionCatalogue();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+      return () => {
+        cancelPending();
+      };
+    }, [reload, cancelPending]),
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title} accessibilityRole="header">
+        {strings.screens.sessions.title}
+      </Text>
+
+      <FilterSelector />
+      <CreateAction />
+
+      <View style={styles.body}>
+        {state.status === "loading" ? <LoadingBody /> : null}
+        {state.status === "empty" ? <EmptyBody /> : null}
+        {state.status === "error" ? <ErrorBody onRetry={reload} /> : null}
+        {state.status === "ready" ? <ReadyBody sessions={state.sessions} /> : null}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Sélecteur `Toutes` / `Planifiées` / `Archivées`. Seule `Toutes` est
+ * fonctionnelle dans T01-S06 : `Planifiées` et `Archivées` n'ont aucune
+ * capacité Repository/Service à appeler (aucune méthode `listArchived()`,
+ * aucun domaine Routine/planification) — elles restent visibles pour ne
+ * pas altérer la structure de référence, mais désactivées. Aucune
+ * sous-étape connue ne les active à ce jour.
+ */
+function FilterSelector() {
+  return (
+    <View style={styles.filterRow} accessibilityRole="tablist">
+      <Pressable
+        accessibilityRole="tab"
+        accessibilityState={{ selected: true }}
+        accessibilityLabel={strings.screens.sessions.filters.all}
+        style={[styles.filterOption, styles.filterOptionSelected]}
+      >
+        <Text style={[styles.filterLabel, styles.filterLabelSelected]}>
+          {strings.screens.sessions.filters.all}
+        </Text>
+      </Pressable>
+      <Pressable
+        disabled
+        accessibilityRole="tab"
+        accessibilityState={{ disabled: true, selected: false }}
+        accessibilityLabel={strings.screens.sessions.filters.scheduled}
+        style={styles.filterOption}
+      >
+        <Text style={styles.filterLabel}>{strings.screens.sessions.filters.scheduled}</Text>
+      </Pressable>
+      <Pressable
+        disabled
+        accessibilityRole="tab"
+        accessibilityState={{ disabled: true, selected: false }}
+        accessibilityLabel={strings.screens.sessions.filters.archived}
+        style={styles.filterOption}
+      >
+        <Text style={styles.filterLabel}>{strings.screens.sessions.filters.archived}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * `+ Créer`. Visible et désactivé dans T01-S06 : la documentation
+ * fonctionnelle (RM-014) exige que l'état vide permette de lancer la
+ * création, mais cette exigence n'est pleinement satisfaite qu'à partir de
+ * T01-S07, lorsque la route `Composition d'une séance` existera. Ce bouton
+ * désactivé n'est pas présenté comme la conformité finale à RM-014 — voir
+ * le plan d'implémentation.
+ */
+function CreateAction() {
+  return (
+    <Pressable
+      disabled
+      accessibilityRole="button"
+      accessibilityState={{ disabled: true }}
+      accessibilityLabel={strings.screens.sessions.createAction}
+      style={styles.createAction}
+    >
+      <Text style={styles.createActionLabel}>+ {strings.screens.sessions.createAction}</Text>
+    </Pressable>
+  );
+}
+
+function LoadingBody() {
+  return (
+    <View style={styles.centeredBody}>
+      <ActivityIndicator
+        size="large"
+        color={colors.primary}
+        accessibilityLabel={strings.screens.sessions.loading.accessibilityLabel}
+      />
+    </View>
+  );
+}
+
+function EmptyBody() {
+  return (
+    <View style={styles.centeredBody}>
+      <Text style={styles.emptyMessage}>{strings.screens.sessions.empty.message}</Text>
+    </View>
+  );
+}
+
+function ErrorBody({ onRetry }: { onRetry: () => void }) {
+  return (
+    <View style={styles.centeredBody}>
+      <Text style={styles.errorMessage}>{strings.screens.sessions.error.message}</Text>
+      <Pressable
+        onPress={onRetry}
+        accessibilityRole="button"
+        accessibilityLabel={strings.screens.sessions.error.retry}
+        style={styles.retryAction}
+      >
+        <Text style={styles.retryLabel}>{strings.screens.sessions.error.retry}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function ReadyBody({ sessions }: { sessions: readonly SessionSummary[] }) {
+  return (
+    <FlatList
+      data={sessions}
+      keyExtractor={(session) => session.id}
+      renderItem={({ item }) => <SessionCard session={item} />}
+      contentContainerStyle={styles.list}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: spacing[24],
+    paddingHorizontal: spacing[24],
+    gap: spacing[16],
+  },
+  title: {
+    ...type.screenTitle,
+    color: colors.textPrimary,
+  },
+  filterRow: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: spacing[4],
+    gap: spacing[4],
+  },
+  filterOption: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing[8],
+    borderRadius: 20,
+  },
+  filterOptionSelected: {
+    backgroundColor: colors.selection,
+  },
+  filterLabel: {
+    ...type.label,
+    color: colors.textSecondary,
+  },
+  filterLabelSelected: {
+    color: colors.background,
+  },
+  createAction: {
+    alignSelf: "center",
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.disabled,
+  },
+  createActionLabel: {
+    ...type.button,
+    color: colors.disabled,
+  },
+  body: {
+    flex: 1,
+  },
+  centeredBody: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing[16],
+    paddingHorizontal: spacing[24],
+  },
+  emptyMessage: {
+    ...type.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  errorMessage: {
+    ...type.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  retryAction: {
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+  },
+  retryLabel: {
+    ...type.button,
+    color: colors.background,
+  },
+  list: {
+    gap: spacing[8],
+    paddingBottom: spacing[16],
+  },
+});

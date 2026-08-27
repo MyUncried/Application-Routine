@@ -33,8 +33,32 @@ export const fr = {
     },
     sessions: {
       title: "Catalogue des séances",
-      placeholder:
-        "Le catalogue des séances sera développé dans une prochaine tranche.",
+      filters: {
+        all: "Toutes",
+        scheduled: "Planifiées",
+        archived: "Archivées",
+      },
+      createAction: "Créer",
+      loading: {
+        accessibilityLabel: "Chargement des séances en cours",
+      },
+      empty: {
+        message:
+          "Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.",
+      },
+      error: {
+        message: "Impossible de charger vos séances.",
+        retry: "Réessayer",
+      },
+      card: {
+        activitySingular: "activité",
+        activityPlural: "activités",
+        tourSingular: "tour",
+        tourPlural: "tours",
+        durationUnit: "min",
+        expandAccessibilityLabel: "Déployer la séance",
+        startAccessibilityLabel: "Démarrer la séance",
+      },
     },
     calendar: {
       title: "Calendrier",
