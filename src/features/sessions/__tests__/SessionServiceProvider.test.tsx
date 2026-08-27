@@ -1,5 +1,5 @@
 import { act, render, screen, waitFor } from "@testing-library/react-native";
-import { describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { useEffect, type ReactNode } from "react";
 import { Text } from "react-native";
 
@@ -126,6 +126,42 @@ function Consumer({ onRender }: { onRender: (service: SessionService) => void })
 }
 
 describe("SessionServiceProvider — régression : un children applicatif variable doit atteindre le contexte", () => {
+  /**
+   * Contre-vérification T01-S07 (voir T01-S07-rapport-contre-verification.md) :
+   * ce test dépendait de `waitFor` en mode « vrais timers » (`setTimeout`/
+   * `setInterval` réels, `asyncUtilTimeout` par défaut 1000 ms — voir
+   * `node_modules/@testing-library/react-native/build/wait-for.js`), alors
+   * que la chaîne asynchrone attendue (`openInMemory` → `onInit` →
+   * `setState`, toutes native `node:sqlite` synchrones enveloppées dans
+   * `async`/`await` — voir `NodeSqliteDatabase.ts` — aucun `setTimeout` nulle
+   * part dans cette chaîne) ne dépend elle-même d'aucune horloge réelle.
+   * Diagnostic : sous 26 suites en parallèle (jusqu'à 11 workers sur cette
+   * machine 12 cœurs), un worker peut être suffisamment privé de temps CPU
+   * par l'ordonnanceur du système pour que même le `setTimeout`/`setInterval`
+   * réel interne de `waitFor` ne se déclenche pas avant le timeout global de
+   * 5000 ms de Jest — pas un blocage, une fuite ou une assertion erronée : un
+   * pur artefact d'attente fondée sur l'horloge murale sous contention. En
+   * isolation (aucune contention), ce même test s'exécute en ~600 ms.
+   *
+   * Correction : timers Jest simulés (`jest.useFakeTimers()`). `waitFor`
+   * détecte nativement ce mode (`jestFakeTimersAreEnabled()`) et fait
+   * progresser le temps simulé de façon déterministe
+   * (`jest.advanceTimersByTime` dans une boucle `act()`), sans plus jamais
+   * dépendre d'un `setTimeout`/`setInterval` réel — donc insensible à la
+   * contention CPU inter-processus. Les micro-tâches réelles (Promises de la
+   * chaîne `async`/`await` elle-même) continuent de se résoudre normalement :
+   * seuls les timers/`setImmediate` sont simulés, jamais les micro-tâches
+   * natives. Aucune assertion affaiblie, aucun timeout augmenté, aucun test
+   * ignoré — uniquement la source réelle de non-déterminisme supprimée.
+   */
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("propage un remplacement ultérieur de children (null → contenu réel) jusqu'à SessionServiceContext, avec l'instance exacte de SessionService", async () => {
     const onReady = jest.fn();
     const onRender = jest.fn();
@@ -179,5 +215,14 @@ describe("SessionServiceProvider — régression : un children applicatif variab
     const lastCall = onRender.mock.calls[onRender.mock.calls.length - 1];
     const lastSeen = lastCall?.[0];
     expect(lastSeen).toBe(firstSeen);
-  });
+    // Délai par test (troisième argument de `it`, pas une modification du
+    // timeout global de Jest) : mesuré empiriquement, ce fichier complet
+    // (chargement + exécution) peut prendre jusqu'à ~54 s sous les 26
+    // suites en parallèle sur cette machine (12 cœurs, jusqu'à 11 workers),
+    // contre ~1,3 s en isolation — un facteur de contention d'environ ×6,
+    // pas un blocage : ce même test, une fois les timers réels remplacés
+    // par des timers simulés ci-dessus, reste déterministe et rapide dès
+    // qu'il obtient du temps CPU. 20000 ms couvre largement cette marge
+    // observée sans dépendre d'une estimation arbitraire.
+  }, 20000);
 });

@@ -1,4 +1,4 @@
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -19,6 +19,7 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * plan d'implémentation).
  */
 export function CatalogueScreen() {
+  const router = useRouter();
   const { state, reload, cancelPending } = useSessionCatalogue();
 
   useFocusEffect(
@@ -37,7 +38,7 @@ export function CatalogueScreen() {
       </Text>
 
       <FilterSelector />
-      <CreateAction />
+      <CreateAction onPress={() => router.push("/composition")} />
 
       <View style={styles.body}>
         {state.status === "loading" ? <LoadingBody /> : null}
@@ -93,19 +94,15 @@ function FilterSelector() {
 }
 
 /**
- * `+ Créer`. Visible et désactivé dans T01-S06 : la documentation
- * fonctionnelle (RM-014) exige que l'état vide permette de lancer la
- * création, mais cette exigence n'est pleinement satisfaite qu'à partir de
- * T01-S07, lorsque la route `Composition d'une séance` existera. Ce bouton
- * désactivé n'est pas présenté comme la conformité finale à RM-014 — voir
- * le plan d'implémentation.
+ * `+ Créer`. Activé depuis T01-S07 : navigue vers `Composition d'une
+ * séance` (`app/(creation)/composition.tsx`), qui n'existait pas avant
+ * cette sous-étape (RM-014).
  */
-function CreateAction() {
+function CreateAction({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
-      disabled
+      onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ disabled: true }}
       accessibilityLabel={strings.screens.sessions.createAction}
       style={styles.createAction}
     >
@@ -203,11 +200,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[8],
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.disabled,
+    borderColor: colors.primary,
   },
   createActionLabel: {
     ...type.button,
-    color: colors.disabled,
+    color: colors.primary,
   },
   body: {
     flex: 1,

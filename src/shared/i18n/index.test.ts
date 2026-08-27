@@ -66,6 +66,38 @@ describe("strings", () => {
     });
   });
 
+  it("exposes the Composition screen texts (T01-S07)", () => {
+    expect(strings.screens.composition.title).toBe("Composition d’une séance");
+    expect(strings.screens.composition.name).toBe("Nom de la séance");
+    expect(strings.screens.composition.colorPicker).toEqual({
+      label: "Couleur",
+      paletteAccessibilityLabel: "Palette de couleurs",
+      swatchAccessibilityLabel: "Couleur",
+    });
+    expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
+    expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
+    expect(strings.screens.composition.tour.label).toBe("Tour");
+    expect(strings.screens.composition.wheelPicker).toEqual({
+      minutesAccessibilityLabel: "Minutes",
+      secondsAccessibilityLabel: "Secondes",
+    });
+    expect(strings.screens.composition.addActivity).toBe("Ajouter une activité");
+    expect(strings.screens.composition.continueAction).toBe("Continuer");
+  });
+
+  it("exposes the exact local Composition empty-summary label (V2 — singular, distinct from formatActivityCount(0))", () => {
+    expect(strings.screens.composition.summary.empty).toBe("0 activité · 0 min");
+  });
+
+  it("exposes the exact abandon-creation modal texts (docs §06, « Les modales »)", () => {
+    expect(strings.screens.composition.abandonModal).toEqual({
+      title: "Abandonner la création ?",
+      message: "Les informations saisies seront perdues et la séance ne sera pas créée.",
+      continueCreating: "Continuer la création",
+      abandon: "Abandonner",
+    });
+  });
+
   it("exposes the not-found screen texts and accessibility labels", () => {
     expect(strings.screens.notFound.title.length).toBeGreaterThan(0);
     expect(strings.screens.notFound.backHome.length).toBeGreaterThan(0);

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
@@ -18,8 +18,12 @@ import { strings } from "@/shared/i18n";
  * nouveau focus — un mock qui se contenterait d'exécuter immédiatement le
  * callback une seule fois ne permettrait de prouver ni le rechargement au
  * retour sur l'onglet, ni l'invalidation au blur.
+ *
+ * `useRouter` est mocké (T01-S07) pour exposer un `mockPush` contrôlable —
+ * `+ Créer` navigue désormais vers `Composition d'une séance`.
  */
 const focusEffectHarness: { effect: (() => (() => void) | void) | null } = { effect: null };
+const mockPush = jest.fn();
 
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
@@ -28,6 +32,7 @@ jest.mock("expo-router", () => {
     useFocusEffect: (effect: () => (() => void) | void) => {
       focusEffectHarness.effect = effect;
     },
+    useRouter: () => ({ push: mockPush }),
   };
 });
 
@@ -79,8 +84,12 @@ function simulateFocus(): (() => void) | void {
   return focusEffectHarness.effect();
 }
 
+beforeEach(() => {
+  mockPush.mockClear();
+});
+
 describe("CatalogueScreen — cadre commun", () => {
-  it("displays the title, the full filter selector, and the disabled Créer action in every state", async () => {
+  it("displays the title, the full filter selector, and the active Créer action in every state", async () => {
     const { service, listActiveSessions } = makeFakeService();
     const pending = deferred<readonly SessionSummary[]>();
     listActiveSessions.mockReturnValue(pending.promise);
@@ -123,20 +132,38 @@ describe("CatalogueScreen — cadre commun", () => {
     const all = screen.getByLabelText(strings.screens.sessions.filters.all);
     const scheduled = screen.getByLabelText(strings.screens.sessions.filters.scheduled);
     const archived = screen.getByLabelText(strings.screens.sessions.filters.archived);
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
 
     expect(all.props.accessibilityState).toMatchObject({ selected: true });
     expect(scheduled.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
     expect(archived.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
-    expect(createAction.props.accessibilityState).toMatchObject({ disabled: true });
 
     const callsBefore = listActiveSessions.mock.calls.length;
     fireEvent.press(scheduled);
     fireEvent.press(archived);
-    fireEvent.press(createAction);
 
     // No navigation, no additional Service call from any disabled control.
     expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("navigates to Composition d'une séance exactly once when Créer is pressed (T01-S07)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
+    expect(createAction.props.accessibilityState?.disabled).toBeFalsy();
+
+    fireEvent.press(createAction);
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith("/composition");
   });
 
   it("pressing Toutes (already selected) changes nothing: no re-render effect, no reload, no navigation", async () => {
@@ -167,14 +194,14 @@ describe("CatalogueScreen — cadre commun", () => {
     // Behavioural confirmation, not just the structural one above: no new
     // Service call, the selection state is unchanged, and the displayed
     // content (still the empty state) is unaffected — nothing was
-    // re-triggered by the press. No navigation function is imported
-    // anywhere in this feature (verified separately by inspection: the
-    // only `expo-router` import in `CatalogueScreen.tsx` is
-    // `useFocusEffect`), so there is structurally nothing a press here
-    // could navigate to either.
+    // re-triggered by the press. `all` itself has no `onPress` at all
+    // (asserted above), so there is structurally nothing it could navigate
+    // to, even though `+ Créer` elsewhere on this screen does navigate
+    // since T01-S07.
     expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
     expect(all.props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByText(strings.screens.sessions.empty.message)).toBe(emptyMessageBefore);
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
 

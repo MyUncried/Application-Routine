@@ -1,0 +1,29 @@
+import { Stack } from "expo-router/stack";
+
+import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
+
+/**
+ * Groupe de routes de la création/modification d'une Séance (T01-S07).
+ *
+ * `SessionDraftProvider` enveloppe un `Stack` imbriqué explicite — même
+ * patron déjà éprouvé que `(tabs)/_layout.tsx` — plutôt que le primitif de
+ * bas niveau `Slot` (`@hidden`, persistance entre routes non établie avec
+ * confiance suffisante par lecture statique seule). Un navigateur ne
+ * démonte pas ses ancêtres React lors d'une navigation entre ses propres
+ * écrans : le brouillon survit donc à toute navigation entre écrans
+ * enfants de ce `Stack` (T01-S08 ajoutera `exercise` au même `Stack`, sous
+ * le même Provider, sans restructuration).
+ *
+ * `headerShown: false` est répété explicitement ici : ne se propage pas
+ * automatiquement depuis le `Stack` racine (`app/_layout.tsx`) vers un
+ * navigateur imbriqué distinct.
+ */
+export default function CreationLayout() {
+  return (
+    <SessionDraftProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="composition" />
+      </Stack>
+    </SessionDraftProvider>
+  );
+}

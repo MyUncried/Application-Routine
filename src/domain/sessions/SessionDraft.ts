@@ -96,6 +96,33 @@ export function toSessionDraft(session: Session): SessionDraft {
   };
 }
 
+function exerciseEquals(
+  a: SessionDraftExercise | null,
+  b: SessionDraftExercise | null,
+): boolean {
+  if (a === null || b === null) {
+    return a === b;
+  }
+  return a.name === b.name && a.durationSeconds === b.durationSeconds && a.instruction === b.instruction;
+}
+
+/**
+ * Compare les champs fonctionnels d'un brouillon à ceux d'un brouillon vide
+ * (`createEmptyDraft()`) — utilisé par la garde de sortie de Composition
+ * (T01-S07) pour décider si une navigation sortante doit être bloquée.
+ * Fonction pure, aucune dépendance React/navigation.
+ */
+export function isSessionDraftDirty(draft: SessionDraft): boolean {
+  const initial = createEmptyDraft();
+  return (
+    draft.name !== initial.name ||
+    draft.color !== initial.color ||
+    draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
+    draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
+    !exerciseEquals(draft.exercise, initial.exercise)
+  );
+}
+
 function collectViolations(
   ...results: readonly ValidationResult<unknown>[]
 ): readonly ValidationViolation[] {

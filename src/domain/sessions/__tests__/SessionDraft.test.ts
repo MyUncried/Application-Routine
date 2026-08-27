@@ -4,6 +4,7 @@ import { DEFAULT_SESSION_COLOR, type Session } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
   createExerciseDraft,
+  isSessionDraftDirty,
   toCreateSessionInput,
   toSessionDraft,
   type SessionDraft,
@@ -112,6 +113,123 @@ describe("toSessionDraft", () => {
         },
       },
     });
+  });
+});
+
+describe("isSessionDraftDirty", () => {
+  it("is false for a freshly created empty draft", () => {
+    expect(isSessionDraftDirty(createEmptyDraft())).toBe(false);
+  });
+
+  it("is false for a draft structurally equal to createEmptyDraft(), even as a distinct object", () => {
+    const draft: SessionDraft = {
+      name: "",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
+      finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
+      exercise: null,
+    };
+    expect(isSessionDraftDirty(draft)).toBe(false);
+  });
+
+  it("is true when only the name differs from the empty draft", () => {
+    expect(isSessionDraftDirty({ ...createEmptyDraft(), name: "Séance simple" })).toBe(true);
+  });
+
+  it("is true when only the color differs from the empty draft", () => {
+    expect(isSessionDraftDirty({ ...createEmptyDraft(), color: "#E5484D" })).toBe(true);
+  });
+
+  it("is true when only initialCountdownSeconds differs from the empty draft", () => {
+    expect(
+      isSessionDraftDirty({
+        ...createEmptyDraft(),
+        initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS + 1,
+      }),
+    ).toBe(true);
+  });
+
+  it("is true when only finalPhaseSeconds differs from the empty draft", () => {
+    expect(
+      isSessionDraftDirty({
+        ...createEmptyDraft(),
+        finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS + 1,
+      }),
+    ).toBe(true);
+  });
+
+  it("is true as soon as an exercise is present (empty draft has exercise: null)", () => {
+    expect(
+      isSessionDraftDirty({ ...createEmptyDraft(), exercise: createExerciseDraft() }),
+    ).toBe(true);
+  });
+
+  it("is false again once the exercise is explicitly reset to null, matching the empty draft exactly", () => {
+    const withExercise: SessionDraft = { ...createEmptyDraft(), exercise: createExerciseDraft() };
+    expect(isSessionDraftDirty({ ...withExercise, exercise: null })).toBe(false);
+  });
+
+  it("is false again once every scalar field is individually modified then restored to its exact initial value", () => {
+    const initial = createEmptyDraft();
+
+    // Each field modified (proving detection), then restored on its own
+    // (proving the round trip back to false) — one at a time, not only the
+    // one already covered above (exercise).
+    const nameModified: SessionDraft = { ...initial, name: "Séance simple" };
+    expect(isSessionDraftDirty(nameModified)).toBe(true);
+    expect(isSessionDraftDirty({ ...nameModified, name: initial.name })).toBe(false);
+
+    const colorModified: SessionDraft = { ...initial, color: "#E5484D" };
+    expect(isSessionDraftDirty(colorModified)).toBe(true);
+    expect(isSessionDraftDirty({ ...colorModified, color: initial.color })).toBe(false);
+
+    const countdownModified: SessionDraft = {
+      ...initial,
+      initialCountdownSeconds: initial.initialCountdownSeconds + 30,
+    };
+    expect(isSessionDraftDirty(countdownModified)).toBe(true);
+    expect(
+      isSessionDraftDirty({
+        ...countdownModified,
+        initialCountdownSeconds: initial.initialCountdownSeconds,
+      }),
+    ).toBe(false);
+
+    const finalPhaseModified: SessionDraft = {
+      ...initial,
+      finalPhaseSeconds: initial.finalPhaseSeconds + 30,
+    };
+    expect(isSessionDraftDirty(finalPhaseModified)).toBe(true);
+    expect(
+      isSessionDraftDirty({ ...finalPhaseModified, finalPhaseSeconds: initial.finalPhaseSeconds }),
+    ).toBe(false);
+  });
+
+  it("is false again after every field is modified simultaneously, then all restored to their initial values at once", () => {
+    const initial = createEmptyDraft();
+    const modified: SessionDraft = {
+      name: "Séance simple",
+      color: "#E5484D",
+      initialCountdownSeconds: initial.initialCountdownSeconds + 30,
+      finalPhaseSeconds: initial.finalPhaseSeconds + 30,
+      exercise: createExerciseDraft(),
+    };
+    expect(isSessionDraftDirty(modified)).toBe(true);
+
+    const restored: SessionDraft = { ...modified, ...initial };
+    expect(isSessionDraftDirty(restored)).toBe(false);
+  });
+
+  it("is true when several fields differ simultaneously", () => {
+    expect(
+      isSessionDraftDirty({
+        name: "Séance simple",
+        color: "#E5484D",
+        initialCountdownSeconds: 20,
+        finalPhaseSeconds: 15,
+        exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+      }),
+    ).toBe(true);
   });
 });
 

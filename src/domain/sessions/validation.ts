@@ -18,7 +18,8 @@ import {
 } from "./errors";
 
 const NAME_MIN_LENGTH = 1;
-const NAME_MAX_LENGTH = 80;
+/** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Composition, T01-S07) — jamais dupliquée en dur. */
+export const NAME_MAX_LENGTH = 80;
 const INSTRUCTION_MAX_LENGTH = 1000;
 const EXERCISE_DURATION_MIN_SECONDS = 1;
 const EXERCISE_DURATION_MAX_SECONDS = 5999;

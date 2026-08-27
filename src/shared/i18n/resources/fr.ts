@@ -60,6 +60,39 @@ export const fr = {
         startAccessibilityLabel: "Démarrer la séance",
       },
     },
+    composition: {
+      title: "Composition d’une séance",
+      name: "Nom de la séance",
+      colorPicker: {
+        label: "Couleur",
+        paletteAccessibilityLabel: "Palette de couleurs",
+        swatchAccessibilityLabel: "Couleur",
+      },
+      countdown: {
+        label: "Compte à rebours initial",
+      },
+      finalPhase: {
+        label: "Fin de séance",
+      },
+      tour: {
+        label: "Tour",
+      },
+      wheelPicker: {
+        minutesAccessibilityLabel: "Minutes",
+        secondsAccessibilityLabel: "Secondes",
+      },
+      addActivity: "Ajouter une activité",
+      continueAction: "Continuer",
+      summary: {
+        empty: "0 activité · 0 min",
+      },
+      abandonModal: {
+        title: "Abandonner la création ?",
+        message: "Les informations saisies seront perdues et la séance ne sera pas créée.",
+        continueCreating: "Continuer la création",
+        abandon: "Abandonner",
+      },
+    },
     calendar: {
       title: "Calendrier",
       placeholder:

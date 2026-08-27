@@ -37,6 +37,11 @@ void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
  * Les écrans hors onglets (composition, exécution, planification, etc.)
  * seront ajoutés ici comme écrans de pile au fil des prochaines tranches
  * (voir docs/Specifications-fonctionnelles/06 – Écrans et navigation de la V1).
+ *
+ * `(creation)` (T01-S07) est le premier de ces groupes : il porte son
+ * propre `SessionDraftProvider` et son propre `Stack` imbriqué (voir
+ * `app/(creation)/_layout.tsx`) — `headerShown: false` n'est pas hérité par
+ * ce navigateur imbriqué, il y est donc répété explicitement.
  */
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -78,6 +83,7 @@ export default function RootLayout() {
         {fontsSettled && databaseReady ? (
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(creation)" />
           </Stack>
         ) : null}
       </SessionServiceProvider>
