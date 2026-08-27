@@ -30,7 +30,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
 - Un Tour contient une suite ordonnée d'activités.
 - Une activité est de type **Exercice** ou **Récupération**.
-- Une activité de type Exercice possède un nombre de Séries propre, supérieur ou égal à 1, et peut définir une pause appliquée après chaque Série. Cette pause est présentée à l'utilisateur comme un paramètre de l'Exercice, mais elle est représentée dans le modèle de données par une activité de type Récupération liée à cet Exercice.
+- Une activité de type Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), et peut définir une pause appliquée après chaque Série. Cette pause est présentée à l'utilisateur comme un paramètre de l'Exercice, mais elle est représentée dans le modèle de données par une activité de type Récupération liée à cet Exercice.
 - Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
 - Chaque exécution conserve un **instantané fonctionnel** immuable et allégé de la séance utilisée.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
@@ -71,7 +71,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
-| DM-013 | Un Exercice possède un nombre de Séries propre, entier et supérieur ou égal à 1. Une Série n'est pas une entité autonome. | V1 |
+| DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | La pause est appliquée après chaque Série ; après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. | V1 |
 
 ## Relations principales
@@ -547,7 +547,7 @@ Elle ne contient pas directement :
 - Une activité est de type Exercice ou Récupération.
 - Une activité Exercice peut être exécutée selon une durée ou un nombre de répétitions.
 - Une activité Récupération est toujours chronométrée.
-- Une activité Exercice possède un nombre de Séries entier supérieur ou égal à 1 ; la valeur par défaut à la création est 1.
+- Une activité Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Une Série correspond à une exécution de l'Exercice selon son mode, suivie de la récupération associée lorsqu'elle existe.
 - Une activité Exercice peut définir zéro ou une Récupération après Série.
 - Lorsqu'elle est définie, cette Récupération est matérialisée par une activité de type Récupération liée à l'Exercice et reste masquée comme activité autonome dans l'interface de composition.
@@ -885,6 +885,21 @@ Les activités référencent zéro, une ou plusieurs zones corporelles. Une zone
 - Une Activité de type **Récupération** ne peut jamais être associée à une Zone corporelle.
 - Les Zones corporelles constituent un référentiel prédéfini de l’application.
 - L’utilisateur ne peut ni créer, ni modifier, ni supprimer une Zone corporelle dans le MVP.
+
+## Référentiel MVP (D-093)
+
+1. Cou
+2. Épaules
+3. Bras
+4. Poignets et mains
+5. Dos
+6. Hanches et bassin
+7. Cuisses
+8. Genoux
+9. Jambes
+10. Chevilles et pieds
+
+Aucune zone `Corps entier`, aucune distinction gauche/droite. Le référentiel est volontairement structuré pour rester évolutif (identité, nom, ordre d’affichage ci-dessus) — cette liste n’est pas figée dans le code applicatif.
 
 # 09.12 Règles d’intégrité et de copie
 

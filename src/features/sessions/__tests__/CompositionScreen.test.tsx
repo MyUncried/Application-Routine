@@ -4,13 +4,26 @@ import { Keyboard, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
+import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
+import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
+import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import { strings } from "@/shared/i18n";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
+
+/** `useRouter` mocké (T01-S08) — `+ Ajouter une activité`/la ligne Exercice naviguent désormais vers `/exercise`. */
+const mockPush = jest.fn();
+jest.mock("expo-router", () => {
+  const actual = jest.requireActual("expo-router") as object;
+  return {
+    ...actual,
+    useRouter: () => ({ push: mockPush }),
+  };
+});
 
 /**
  * `useCompositionExitGuard` mocké : cet écran ne re-teste pas le mécanisme
@@ -37,11 +50,32 @@ function renderScreen() {
   );
 }
 
+/** Contourne `SessionDraftProvider` pour préremplir `draft.exercise` — celui-ci n'expose aucun moyen interactif de le faire depuis Composition seule. */
+function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> | null) {
+  const contextValue: SessionDraftContextValue = {
+    draft: {
+      name: "Séance simple",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercise,
+    },
+    updateDraft: jest.fn(),
+    resetDraft: jest.fn(),
+  };
+  return render(
+    <SessionDraftContext.Provider value={contextValue}>
+      <CompositionScreen />
+    </SessionDraftContext.Provider>,
+  );
+}
+
 const composition = strings.screens.composition;
 
 beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
+  mockPush.mockReset();
 });
 
 describe("CompositionScreen — état initial", () => {
@@ -56,11 +90,18 @@ describe("CompositionScreen — état initial", () => {
     expect(tour.props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByText("×1")).toBeTruthy();
 
-    const addActivity = screen.getByLabelText(composition.addActivity);
-    expect(addActivity.props.accessibilityState).toMatchObject({ disabled: true });
-
     const continueAction = screen.getByLabelText(composition.continueAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("enables '+ Ajouter une activité' while no Exercise exists yet, and navigates to /exercise on press (T01-S08)", () => {
+    renderScreen();
+
+    const addActivity = screen.getByLabelText(composition.addActivity);
+    expect(addActivity.props.accessibilityState).toMatchObject({ disabled: false });
+
+    fireEvent.press(addActivity);
+    expect(mockPush).toHaveBeenCalledWith("/exercise");
   });
 
   it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
@@ -209,6 +250,43 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(StyleSheet.flatten(compactSwatchAfter.props.style).backgroundColor).toBe(chosenColor);
     // Fermeture automatique de la palette après sélection.
     expect(screen.queryByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeNull();
+  });
+});
+
+describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
+  it("hides '+ Ajouter une activité' and shows the Exercise row once draft.exercise is set", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+    expect(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeTruthy();
+    expect(screen.getByText("Gainage")).toBeTruthy();
+  });
+
+  it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
+    renderScreenWithDraft({
+      ...createExerciseDraft(),
+      name: "Gainage",
+      durationSeconds: 90,
+      seriesCount: 3,
+      pauseSeconds: 15,
+      instruction: "Ne pas creuser le dos",
+    });
+
+    expect(screen.getByText("Gainage")).toBeTruthy();
+    expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
+    expect(screen.queryByText("Ne pas creuser le dos")).toBeNull();
+  });
+
+  it("pressing the Exercise row navigates to /exercise (reopen for editing)", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    fireEvent.press(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel));
+    expect(mockPush).toHaveBeenCalledWith("/exercise");
+  });
+
+  it("never shows the Exercise row while draft.exercise is null", () => {
+    renderScreenWithDraft(null);
+    expect(screen.queryByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeNull();
   });
 });
 

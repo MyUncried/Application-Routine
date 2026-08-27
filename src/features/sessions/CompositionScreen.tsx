@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -6,7 +7,11 @@ import { FIXED_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { isSessionDraftDirty } from "@/domain/sessions/SessionDraft";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
-import { formatCompositionSummary, formatDurationRowValue } from "@/features/sessions/compositionPresentation";
+import {
+  formatCompositionSummary,
+  formatDurationRowValue,
+  formatExerciseRowSummary,
+} from "@/features/sessions/compositionPresentation";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -28,8 +33,17 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * d'un contrôle interactif ferme le sélecteur ouvert : l'écran entier est
  * enveloppé dans un `Pressable` qui ne reçoit le toucher que si aucun
  * contrôle imbriqué (ligne, roulette, palette) ne l'a déjà capté.
+ *
+ * `+ Ajouter une activité` (T01-S08) navigue vers l'écran Exercice
+ * (`/exercise`) ; celui-ci lit lui-même `draft.exercise` pour déterminer
+ * s'il s'agit d'un ajout ou d'une modification — aucun paramètre de route
+ * n'est nécessaire. Le modèle `SessionDraft.exercise` restant un unique
+ * champ nullable (pas un tableau, hors périmètre T01), le bouton d'ajout
+ * est masqué dès qu'un Exercice existe : une ligne récapitulative le
+ * remplace, pressable pour rouvrir l'écran en modification.
  */
 export function CompositionScreen() {
+  const router = useRouter();
   const { draft, updateDraft, resetDraft } = useSessionDraft();
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
 
@@ -110,15 +124,27 @@ export function CompositionScreen() {
         <Text style={styles.rowValue}>×{FIXED_TOUR_REPEAT_COUNT}</Text>
       </View>
 
-      <Pressable
-        disabled
-        accessibilityRole="button"
-        accessibilityState={{ disabled: true }}
-        accessibilityLabel={composition.addActivity}
-        style={styles.addActivityAction}
-      >
-        <Text style={styles.addActivityLabel}>+ {composition.addActivity}</Text>
-      </Pressable>
+      {draft.exercise === null ? (
+        <Pressable
+          onPress={() => router.push("/exercise")}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: false }}
+          accessibilityLabel={composition.addActivity}
+          style={styles.addActivityAction}
+        >
+          <Text style={styles.addActivityLabel}>+ {composition.addActivity}</Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          onPress={() => router.push("/exercise")}
+          accessibilityRole="button"
+          accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
+          style={styles.exerciseRow}
+        >
+          <Text style={styles.rowLabel}>{draft.exercise.name}</Text>
+          <Text style={styles.exerciseRowSummary}>{formatExerciseRowSummary(draft.exercise)}</Text>
+        </Pressable>
+      )}
 
       <Text style={styles.summary}>
         {formatCompositionSummary({
@@ -217,11 +243,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[8],
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.disabled,
+    borderColor: colors.primary,
   },
   addActivityLabel: {
     ...type.button,
-    color: colors.disabled,
+    color: colors.primary,
+  },
+  exerciseRow: {
+    paddingVertical: spacing[12],
+    paddingHorizontal: spacing[16],
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    gap: spacing[4],
+  },
+  exerciseRowSummary: {
+    ...type.supporting,
+    color: colors.textSecondary,
   },
   summary: {
     ...type.body,

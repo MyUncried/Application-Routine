@@ -1,11 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 
 import {
+  WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+  WHEEL_NUMBER_MAX,
+  WHEEL_NUMBER_MIN,
+  WHEEL_PAUSE_SECONDS_MAX,
   WHEEL_TOTAL_SECONDS_MAX,
   clampIndex,
   formatTwoDigits,
   fromTotalSeconds,
   indexToOffset,
+  minutesMaxIndexFor,
   offsetToIndex,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
@@ -113,5 +118,56 @@ describe("formatTwoDigits", () => {
   it("leaves two-digit values unchanged", () => {
     expect(formatTwoDigits(10)).toBe("10");
     expect(formatTwoDigits(59)).toBe("59");
+  });
+});
+
+describe("toTotalSeconds/fromTotalSeconds with an explicit maxTotalSeconds (T01-S08, Exercise Durée/Pause)", () => {
+  it("still defaults to WHEEL_TOTAL_SECONDS_MAX (3599) when maxTotalSeconds is omitted", () => {
+    expect(toTotalSeconds(99, 99)).toBe(WHEEL_TOTAL_SECONDS_MAX);
+    expect(fromTotalSeconds(999999)).toEqual({ minutes: 59, seconds: 59 });
+  });
+
+  it("converts 99 min 59 s to 5999 seconds (Exercise Durée/Pause upper bound)", () => {
+    expect(toTotalSeconds(99, 59, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toBe(
+      WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+    );
+    expect(toTotalSeconds(99, 59, WHEEL_PAUSE_SECONDS_MAX)).toBe(WHEEL_PAUSE_SECONDS_MAX);
+  });
+
+  it("clamps a theoretically excessive total to the supplied bound, not the default 3599", () => {
+    expect(toTotalSeconds(999, 999, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toBe(
+      WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+    );
+  });
+
+  it("decomposes 5999 seconds into 99 min 59 s when given the Exercise bound", () => {
+    expect(fromTotalSeconds(5999, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toEqual({
+      minutes: 99,
+      seconds: 59,
+    });
+  });
+
+  it("clamps an excessive input to the supplied bound, not the default 59 min 59 s", () => {
+    expect(fromTotalSeconds(999999, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toEqual({
+      minutes: 99,
+      seconds: 59,
+    });
+  });
+});
+
+describe("minutesMaxIndexFor", () => {
+  it("returns 59 for the default 3599s bound", () => {
+    expect(minutesMaxIndexFor(WHEEL_TOTAL_SECONDS_MAX)).toBe(59);
+  });
+
+  it("returns 99 for the 5999s Exercise Durée/Pause bound", () => {
+    expect(minutesMaxIndexFor(WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toBe(99);
+  });
+});
+
+describe("WHEEL_NUMBER_MIN/WHEEL_NUMBER_MAX (Répétitions/Séries, D-092)", () => {
+  it("are exactly 1 and 99", () => {
+    expect(WHEEL_NUMBER_MIN).toBe(1);
+    expect(WHEEL_NUMBER_MAX).toBe(99);
   });
 });

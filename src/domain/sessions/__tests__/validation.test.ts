@@ -10,6 +10,9 @@ import {
   validateFinalPhaseSeconds,
   validateInitialCountdownSeconds,
   validateInstruction,
+  validatePauseSeconds,
+  validateRepetitionCount,
+  validateSeriesCount,
   validateSessionColor,
   validateSessionName,
 } from "@/domain/sessions/validation";
@@ -136,6 +139,89 @@ describe("validateExerciseDurationSeconds", () => {
     expect(validateExerciseDurationSeconds(30.5)).toEqual({
       ok: false,
       violations: [{ code: "NOT_INTEGER", field: "exercise.durationSeconds" }],
+    });
+  });
+});
+
+describe("validateRepetitionCount (T01-S08, D-092)", () => {
+  it("accepts the bounds 1 and 99", () => {
+    expect(validateRepetitionCount(1)).toEqual({ ok: true, value: 1 });
+    expect(validateRepetitionCount(99)).toEqual({ ok: true, value: 99 });
+  });
+
+  it("rejects 0 and 100 with OUT_OF_RANGE", () => {
+    expect(validateRepetitionCount(0)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.repetitionCount", details: { min: 1, max: 99 } },
+      ],
+    });
+    expect(validateRepetitionCount(100)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.repetitionCount", details: { min: 1, max: 99 } },
+      ],
+    });
+  });
+
+  it("rejects a non-integer value with NOT_INTEGER", () => {
+    expect(validateRepetitionCount(12.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.repetitionCount" }],
+    });
+  });
+});
+
+describe("validateSeriesCount (T01-S08, D-092)", () => {
+  it("accepts the bounds 1 and 99", () => {
+    expect(validateSeriesCount(1)).toEqual({ ok: true, value: 1 });
+    expect(validateSeriesCount(99)).toEqual({ ok: true, value: 99 });
+  });
+
+  it("rejects 0 and 100 with OUT_OF_RANGE", () => {
+    expect(validateSeriesCount(0)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "exercise.seriesCount", details: { min: 1, max: 99 } }],
+    });
+    expect(validateSeriesCount(100)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "exercise.seriesCount", details: { min: 1, max: 99 } }],
+    });
+  });
+
+  it("rejects a non-integer value with NOT_INTEGER", () => {
+    expect(validateSeriesCount(2.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.seriesCount" }],
+    });
+  });
+});
+
+describe("validatePauseSeconds (T01-S08)", () => {
+  it("accepts the bounds 0 and 5999", () => {
+    expect(validatePauseSeconds(0)).toEqual({ ok: true, value: 0 });
+    expect(validatePauseSeconds(5999)).toEqual({ ok: true, value: 5999 });
+  });
+
+  it("rejects a negative value and 6000 with OUT_OF_RANGE", () => {
+    expect(validatePauseSeconds(-1)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.pauseSeconds", details: { min: 0, max: 5999 } },
+      ],
+    });
+    expect(validatePauseSeconds(6000)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.pauseSeconds", details: { min: 0, max: 5999 } },
+      ],
+    });
+  });
+
+  it("rejects a non-integer value with NOT_INTEGER", () => {
+    expect(validatePauseSeconds(1.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.pauseSeconds" }],
     });
   });
 });
