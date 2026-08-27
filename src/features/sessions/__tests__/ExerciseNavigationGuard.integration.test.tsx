@@ -75,6 +75,17 @@ function ExerciseRouteStub() {
     <View>
       <Text>exercise-screen</Text>
       <Text testID="exercise-name">{local.name}</Text>
+      {/* Action Retour visible (KODJO-CMD-0002) — appelle `router.back()`
+          sans aucun traitement spécial, exactement comme dans
+          `ExerciseScreen.tsx` : la navigation arrière normale déclenchée
+          reste interceptée par `usePreventRemove` comme n'importe quelle
+          autre sortie (geste système, bouton matériel). */}
+      <Pressable
+        accessibilityLabel={strings.screens.exercise.backAccessibilityLabel}
+        onPress={() => router.back()}
+      >
+        <Text>{strings.screens.exercise.backAccessibilityLabel}</Text>
+      </Pressable>
       <Pressable
         accessibilityLabel="modifier-exercice-local"
         onPress={() => setLocal((current) => ({ ...current, name: "Pompes" }))}
@@ -259,6 +270,80 @@ describe("Isolation du brouillon local — abandon, vrai navigateur", () => {
     expect(router.getPathname()).toBe("/");
     expect(screen.queryByText("exercise-screen")).toBeNull();
     expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+  });
+});
+
+describe("Action Retour visible (KODJO-CMD-0002, revue PR #9 — 5044116021)", () => {
+  it("l'action Retour est visible et accessible", () => {
+    renderCreationRouter();
+
+    testRouter.push("/exercise");
+
+    expect(screen.getByLabelText(strings.screens.exercise.backAccessibilityLabel)).toBeTruthy();
+  });
+
+  it("retour propre sans modification : appui sur Retour revient directement à Composition, sans modale", () => {
+    const router = renderCreationRouter();
+
+    testRouter.push("/exercise");
+    act(() => {
+      pressLabel(strings.screens.exercise.backAccessibilityLabel);
+    });
+
+    expect(router.getPathname()).toBe("/");
+    expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+  });
+
+  it("appui sur Retour après modification ouvre la modale D-094 sans perdre les valeurs locales", () => {
+    const router = renderCreationRouter();
+
+    testRouter.push("/exercise");
+    act(() => {
+      pressLabel("modifier-exercice-local");
+    });
+    expect(screen.getByTestId("exercise-name").props.children).toBe("Pompes");
+
+    act(() => {
+      pressLabel(strings.screens.exercise.backAccessibilityLabel);
+    });
+
+    // Sortie interceptée : toujours sur Exercice, modale affichée, valeur
+    // locale toujours "Pompes" (rien n'a été perdu ni écrit).
+    expect(router.getPathname()).toBe("/exercise");
+    expect(screen.getAllByText("Abandonner les modifications ?")).toHaveLength(1);
+    expect(screen.getByTestId("exercise-name").props.children).toBe("Pompes");
+    expect(updateDraftCallCount).toBe(0);
+  });
+
+  it("les deux issues de la modale déclenchée par Retour restent conformes : Continuer la modification conserve la copie locale, Abandonner rejoue le retour", () => {
+    const router = renderCreationRouter();
+
+    // Issue 1 : « Continuer la modification ».
+    testRouter.push("/exercise");
+    act(() => {
+      pressLabel("modifier-exercice-local");
+    });
+    act(() => {
+      pressLabel(strings.screens.exercise.backAccessibilityLabel);
+    });
+    act(() => {
+      pressLabel(strings.screens.exercise.exitConfirmModal.continueEditing);
+    });
+    expect(router.getPathname()).toBe("/exercise");
+    expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+    expect(screen.getByTestId("exercise-name").props.children).toBe("Pompes");
+
+    // Issue 2 : « Abandonner », depuis le même écran toujours actif.
+    act(() => {
+      pressLabel(strings.screens.exercise.backAccessibilityLabel);
+    });
+    act(() => {
+      pressLabel(strings.screens.exercise.exitConfirmModal.abandon);
+    });
+    expect(router.getPathname()).toBe("/");
+    expect(screen.queryByText("exercise-screen")).toBeNull();
+    expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+    expect(updateDraftCallCount).toBe(0);
   });
 });
 

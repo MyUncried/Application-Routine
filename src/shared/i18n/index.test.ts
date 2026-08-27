@@ -122,6 +122,7 @@ describe("strings", () => {
   it("exposes the Exercise screen texts (T01-S08)", () => {
     expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
     expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
+    expect(strings.screens.exercise.backAccessibilityLabel).toBe("Retour");
     expect(strings.screens.exercise.name).toBe("Nom");
     expect(strings.screens.exercise.executionMode).toEqual({
       label: "Mode d’exécution",

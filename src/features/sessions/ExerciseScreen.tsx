@@ -32,7 +32,7 @@ import {
   WHEEL_PAUSE_SECONDS_MAX,
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "duration" | "repetitionCount" | "pauseSeconds" | "seriesCount";
 
@@ -175,7 +175,18 @@ export function ExerciseScreen() {
 
   return (
     <Pressable style={styles.container} onPress={closeOverlay} accessible={false}>
-      <Text style={styles.title}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t.backAccessibilityLabel}
+          hitSlop={spacing[8]}
+          style={styles.backButton}
+        >
+          <Text style={styles.backIcon}>‹</Text>
+        </Pressable>
+        <Text style={styles.title}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -390,6 +401,22 @@ const styles = StyleSheet.create({
     paddingTop: spacing[24],
     paddingHorizontal: spacing[24],
     gap: spacing[16],
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+  },
+  backButton: {
+    minWidth: minTouchTarget,
+    minHeight: minTouchTarget,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: -spacing[12],
+  },
+  backIcon: {
+    ...type.activityTitle,
+    color: colors.textPrimary,
   },
   title: {
     ...type.screenTitle,

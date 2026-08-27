@@ -100,6 +100,19 @@ describe("ExerciseScreen — mode ajout (draft.exercise === null)", () => {
   });
 });
 
+describe("ExerciseScreen — action Retour visible (KODJO-CMD-0002, revue PR #9 — 5044116021)", () => {
+  it("expose une action Retour visible et accessible", () => {
+    renderScreen(null);
+    expect(screen.getByLabelText(t.backAccessibilityLabel)).toBeTruthy();
+  });
+
+  it("appuyer sur Retour demande une navigation arrière normale (router.back()), sans traitement spécial", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.backAccessibilityLabel));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("ExerciseScreen — mode Répétitions", () => {
   it("switching to Répétitions clears durationSeconds and requires a valid repetitionCount for Valider", () => {
     renderScreen(null);

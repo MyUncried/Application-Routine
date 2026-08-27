@@ -108,6 +108,7 @@ export const fr = {
     exercise: {
       titleAdd: "Ajouter une activité",
       titleEdit: "Modifier une activité",
+      backAccessibilityLabel: "Retour",
       name: "Nom",
       executionMode: {
         label: "Mode d’exécution",

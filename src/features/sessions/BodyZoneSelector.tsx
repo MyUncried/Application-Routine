@@ -17,6 +17,15 @@ export type BodyZoneSelectorProps = {
  * référentiel — reçoit `zones` en prop, ne l'importe jamais lui-même
  * (arbitrage A, plan §COMPRÉHENSION : « jamais codée en dur dans
  * `ExerciseScreen.tsx` », étendu ici au composant de sélection lui-même).
+ *
+ * Le conteneur ne porte aucun `accessibilityRole` (revue PR #9,
+ * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5044116021,
+ * KODJO-CMD-0002) : `radiogroup` signifie un choix exclusif et contredit la
+ * multisélection réelle (chaque zone reste un `checkbox` indépendant, avec
+ * son propre `accessibilityState.checked`) ; un `View` par défaut
+ * (`accessible` non positionné) laisse chaque enfant exposé
+ * individuellement, sans intercaler de nœud d'accessibilité intermédiaire
+ * susceptible d'en perturber l'exposition.
  */
 export function BodyZoneSelector({
   zones,
@@ -25,12 +34,7 @@ export function BodyZoneSelector({
   accessibilityLabel,
 }: BodyZoneSelectorProps) {
   return (
-    <View
-      style={styles.container}
-      accessibilityRole="radiogroup"
-      accessibilityLabel={accessibilityLabel}
-      testID="body-zone-selector"
-    >
+    <View style={styles.container} accessibilityLabel={accessibilityLabel} testID="body-zone-selector">
       {zones.map((zone) => {
         const isSelected = selectedIds.includes(zone.id);
         return (
