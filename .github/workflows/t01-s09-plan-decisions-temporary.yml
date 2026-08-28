@@ -168,7 +168,7 @@ jobs:
             complet préfixé "[Claude Code]" et finit exactement par "STATUT : PLAN_READY_FOR_REVIEW",
             "STATUT : CLARIFICATION_REQUIRED", "STATUT : WORKTREE_LOCKED" ou "STATUT : ARBITRAGE".
           claude_args: |
-            --max-turns 40
+            --max-turns 80
             --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(sha256sum:*),Bash(jq:*)"
             --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
       - name: Publish structured plan comment
@@ -180,6 +180,6 @@ jobs:
           set -euo pipefail
           MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
           if [ -z "$MESSAGE" ]; then
-            MESSAGE="CLOUD_PLAN_SOURCE_FAILURE_RUN-${{ github.run_id }} — structured_output absent ou invalide. STATUT : ARBITRAGE"
+            MESSAGE="CLOUD_PLAN_TECHNICAL_FAILURE_RUN-${{ github.run_id }} — structured_output absent ou invalide. ACTION : reprise d'orchestration requise ; aucune décision utilisateur déduite."
           fi
           printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
