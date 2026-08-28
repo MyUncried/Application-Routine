@@ -1,0 +1,7 @@
+Test d'écriture Cloud V1.2 (protocole KODJO).
+
+Ce fichier valide un cycle d'écriture contrôlé en mode CLOUD, conformément
+à l'Issue #14 du dépôt MyUncried/Application-Routine, depuis la baseline
+feat/creation-seance-catalogue @ c3af9990c8a35013bbad372c2eca2ce16d66d138.
+
+Aucun secret, aucune donnée personnelle, aucune configuration exécutable.
