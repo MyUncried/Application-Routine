@@ -1,0 +1,91 @@
+name: Claude Audit AI Orchestration V1.3 [TEMPORAIRE]
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+jobs:
+  audit-v1-3:
+    if: >
+      github.event.issue.number == 17 &&
+      contains(github.event.comment.body, '@claude-audit-orchestration-v1-3')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 1
+      - name: Verify audit source
+        run: |
+          set -euo pipefail
+          test -f .github/AI_ORCHESTRATION.md
+          grep -q 'V1.3' .github/AI_ORCHESTRATION.md
+          git rev-parse HEAD
+          sha256sum .github/AI_ORCHESTRATION.md
+      - name: Run focused Claude audit
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            AUDIT CIBLÉ — PROTOCOLE KODJO V1.3 — LECTURE SEULE.
+
+            Source principale et suffisante : `.github/AI_ORCHESTRATION.md` sur le checkout courant.
+            Ne lis PAS l'Issue #17, ses commentaires, la documentation produit, Figma ni le code applicatif : ils ne sont pas nécessaires à cet audit de protocole.
+            Ne tente aucun accès réseau. Ne modifie aucun fichier, commit, branche, Issue ou PR.
+
+            Contexte factuel du run qui a motivé V1.3 :
+            - un plan T01-S09 a nécessité environ 20 minutes et 111 tours ;
+            - le workflow GitHub hors Claude prenait seulement quelques secondes ;
+            - 9 refus de permissions ont été observés ;
+            - un JSON de commentaires d'environ 79 000 caractères sur une ligne a provoqué des lectures/recherches répétées ;
+            - le prompt demandait simultanément Issue + tous commentaires + protocole + docs 06 à 12 + registre + visuels + code historique T01-S01 à S08 ;
+            - des runs précédents avaient échoué au niveau wrapper malgré un résultat Claude interne réussi, à cause de limites de tours ;
+            - l'objectif de V1.3 est de préserver les barrières de conformité tout en supprimant reconstruction de contexte, vérifications redondantes et méta-travail inutile.
+
+            IMPORTANT — PERFORMANCE :
+            La performance est un axe de conformité de cet audit, au même niveau que robustesse et traçabilité. Analyse explicitement les risques de relecture, inflation de contexte, boucles, duplication, permissions refusées, reprise de session, checkpoint/delta, structured output et répartition des responsabilités entre GitHub/orchestrateur/ChatGPT/Claude.
+            N'utilise PAS un nombre fixe de tours comme critère de qualité ou d'escalade. Le nombre de tours n'est qu'un signal diagnostique ; juge la progression utile, la stagnation et la proportionnalité du travail.
+            Ne propose jamais de gagner du temps en supprimant une barrière de conformité.
+
+            Vérifie aussi :
+            1. absence de régression de sécurité par rapport aux principes explicitement conservés dans V1.3 ;
+            2. cohérence de la machine à états et des barrières ;
+            3. distinction source de vérité / mémoire de session / checkpoint ;
+            4. comportement si `resume` n'est pas disponible, perdu ou périmé ;
+            5. risque qu'un checkpoint devienne silencieusement obsolète ;
+            6. capacité à détecter un delta incomplet ou une décision supersédée ;
+            7. risque de confiance excessive dans `SOURCE_ATTESTATION` ;
+            8. faisabilité opérationnelle du passage plan → approbation → implémentation avec continuité de session ;
+            9. distinction `ORCHESTRATION_FAILURE` / `CLARIFICATION_REQUIRED` / `ARBITRAGE` / `WORKTREE_LOCKED` ;
+            10. éventuelles règles V1.2 importantes qui auraient été perdues ou affaiblies.
+
+            Pour chaque constat, classe : CRITIQUE / IMPORTANT / MINEUR / CONFORME.
+            Ne réécris pas le protocole. Produis uniquement un audit actionnable et concis avec :
+            - VERDICT GLOBAL ;
+            - POINTS CONFORMES ;
+            - ÉCARTS classés par sévérité avec citation de la règle V1.3 concernée ;
+            - CORRECTIONS MINIMALES recommandées ;
+            - PERFORMANCE : risques résiduels et améliorations ;
+            - GO / NO-GO pour utiliser V1.3 sur T01-S09 après corrections éventuelles.
+
+            La sortie JSON doit contenir le rapport complet dans `message`, préfixé `[Claude Code] AUDIT ORCHESTRATION V1.3`.
+          claude_args: |
+            --max-turns 80
+            --allowedTools "Read,Grep"
+            --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
+      - name: Publish audit
+        if: always()
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE="[Claude Code] AUDIT ORCHESTRATION V1.3 — ORCHESTRATION_FAILURE run ${{ github.run_id }} : structured_output absent ou invalide. Aucune conclusion d'audit déduite."
+          fi
+          printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
