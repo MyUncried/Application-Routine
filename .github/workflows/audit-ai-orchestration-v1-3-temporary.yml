@@ -22,9 +22,10 @@ jobs:
         run: |
           set -euo pipefail
           test -f .github/AI_ORCHESTRATION.md
+          test -f .github/AI_ORCHESTRATION_CONTINUITY.md
           grep -q 'V1.3' .github/AI_ORCHESTRATION.md
           git rev-parse HEAD
-          sha256sum .github/AI_ORCHESTRATION.md
+          sha256sum .github/AI_ORCHESTRATION.md .github/AI_ORCHESTRATION_CONTINUITY.md
       - name: Run focused Claude audit
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -34,7 +35,7 @@ jobs:
           prompt: |
             AUDIT CIBLÉ — PROTOCOLE KODJO V1.3 — LECTURE SEULE.
 
-            Source principale et suffisante : `.github/AI_ORCHESTRATION.md` sur le checkout courant.
+            Sources principales et suffisantes : `.github/AI_ORCHESTRATION.md` et son extension normative `.github/AI_ORCHESTRATION_CONTINUITY.md` sur le checkout courant. Audite leur cohérence ensemble.
             Ne lis PAS l'Issue #17, ses commentaires, la documentation produit, Figma ni le code applicatif : ils ne sont pas nécessaires à cet audit de protocole.
             Ne tente aucun accès réseau. Ne modifie aucun fichier, commit, branche, Issue ou PR.
 
@@ -62,7 +63,11 @@ jobs:
             7. risque de confiance excessive dans `SOURCE_ATTESTATION` ;
             8. faisabilité opérationnelle du passage plan → approbation → implémentation avec continuité de session ;
             9. distinction `ORCHESTRATION_FAILURE` / `CLARIFICATION_REQUIRED` / `ARBITRAGE` / `WORKTREE_LOCKED` ;
-            10. éventuelles règles V1.2 importantes qui auraient été perdues ou affaiblies.
+            10. éventuelles règles V1.2 importantes qui auraient été perdues ou affaiblies ;
+            11. reprise après `ARBITRAGE`, `USER_VALIDATION` et `CLARIFICATION_REQUIRED`, notamment `waiting_for`, `next_actor`, `required_input` et interdiction d'autorisation d'écriture implicite ;
+            12. cohérence du mode transitoire avec le prompt standard `Reprends le protocole KODJO.` tant que GitHub ne peut pas réveiller automatiquement ChatGPT ;
+            13. résilience à la limite, perte ou remplacement d'une conversation ChatGPT : une nouvelle conversation doit pouvoir reprendre depuis GitHub/checkpoint/delta sans mémoire de l'ancienne ;
+            14. distinction entre capacités actuellement démontrées et pistes futures de réveil automatique GitHub → ChatGPT ; le polling ne doit pas être présenté comme solution retenue.
 
             Pour chaque constat, classe : CRITIQUE / IMPORTANT / MINEUR / CONFORME.
             Ne réécris pas le protocole. Produis uniquement un audit actionnable et concis avec :
@@ -71,6 +76,7 @@ jobs:
             - ÉCARTS classés par sévérité avec citation de la règle V1.3 concernée ;
             - CORRECTIONS MINIMALES recommandées ;
             - PERFORMANCE : risques résiduels et améliorations ;
+            - CONTINUITÉ / REPRISE : arbitrage, prompt standard et changement de conversation ChatGPT ;
             - GO / NO-GO pour utiliser V1.3 sur T01-S09 après corrections éventuelles.
 
             La sortie JSON doit contenir le rapport complet dans `message`, préfixé `[Claude Code] AUDIT ORCHESTRATION V1.3`.
