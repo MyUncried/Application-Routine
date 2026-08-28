@@ -85,13 +85,24 @@ Après revue, seuls trois résultats sont valides : `PLAN_APPROVED`, `PLAN_CHANG
 
 ## Contexte d’exécution autorisé
 
-Toute opération d’écriture est bornée par un contexte explicite : tâche active, état du protocole, branche autorisée, baseline ou HEAD attendu, worktree utilisé, périmètre de fichiers et opérations Git autorisées par le plan ou par une demande de correction.
+Toute opération d’écriture est bornée par un contexte explicite : tâche active, état du protocole, branche autorisée, baseline ou HEAD attendu, mode d’exécution, worktree utilisé lorsqu’il existe, périmètre de fichiers et opérations Git autorisées par le plan ou par une demande de correction.
 
 Claude Code ne doit jamais, pour rendre le contexte conforme, décider spontanément d’un `reset`, `rebase`, merge, force-push, changement de branche de référence, changement de baseline ou autre réalignement susceptible de modifier l’historique ou le périmètre. Si une telle opération devient nécessaire, arrêter et demander l’autorisation appropriée.
 
-Une seule session ou un seul agent peut être **écrivain** dans un worktree à un instant donné. Les autres sessions peuvent travailler en lecture seule ou via GitHub, sans modifier fichiers, index, HEAD, références Git locales ou historique de ce worktree.
+### Mode d’exécution : local ou cloud
 
-### Verrou d’écrivain local
+Chaque tâche qui autorise des écritures doit identifier son mode d’exécution : `LOCAL` ou `CLOUD`. Le mode fait partie du contexte autorisé ; passer de l’un à l’autre exige une nouvelle vérification des préconditions et ne prolonge jamais implicitement un `PLAN_APPROVED` antérieur.
+
+- `LOCAL` : Claude Code travaille dans un worktree présent sur la machine de l’utilisateur. Les règles de verrou d’écrivain local et de contrôle best-effort ci-dessous s’appliquent.
+- `CLOUD` : Claude Code travaille dans un environnement isolé distant connecté au dépôt GitHub. Cet environnement ne partage pas le worktree physique de la machine de l’utilisateur ; le verrou local du PC n’est donc ni créé ni interprété comme mécanisme de coordination avec la session cloud. La coordination porte alors sur GitHub : dépôt autorisé, branche/base/head autorisés, absence de push concurrent observé sur la branche de travail et respect des opérations Git permises par la plateforme et le plan.
+
+Une tâche `CLOUD` ne doit jamais supposer l’accès à un fichier uniquement local, un émulateur local, un appareil physique connecté au PC, une clé ou un secret présent sur la machine de l’utilisateur. Si un tel accès devient nécessaire, utiliser `USER_VALIDATION`, `CLARIFICATION_REQUIRED` ou changer explicitement vers `LOCAL` après revalidation selon le besoin.
+
+L’accès cloud au dépôt privé doit être accordé par le mécanisme d’autorisation GitHub prévu par la plateforme Claude, limité au dépôt nécessaire lorsque cette granularité est disponible. Ne jamais copier un token GitHub, une clé API ou un secret dans un prompt ou dans le dépôt pour contourner l’authentification gérée par la plateforme.
+
+Une seule session ou un seul agent peut être **écrivain dans un même worktree physique local** à un instant donné. Les autres sessions locales peuvent travailler en lecture seule ou via GitHub, sans modifier fichiers, index, HEAD, références Git locales ou historique de ce worktree. Des environnements cloud isolés ne partagent pas ce verrou local ; leur concurrence éventuelle est traitée au niveau des branches et références GitHub.
+
+### Verrou d’écrivain local — mode `LOCAL`
 
 Avant la première opération locale susceptible de modifier le worktree, l’index, `HEAD` ou les références Git locales, la session écrivain doit acquérir un verrou local non commité. Son emplacement est résolu par `git rev-parse --git-path ai-orchestration-writer.lock` afin de fonctionner aussi avec les worktrees liés ; le verrou est un répertoire créé atomiquement à ce chemin. S’il existe déjà ou si sa création échoue, ne rien supprimer ni écraser : publier `WORKTREE_LOCKED` et s’arrêter.
 
@@ -99,7 +110,7 @@ Le verrou contient au minimum un fichier de métadonnées indiquant la tâche, l
 
 La session propriétaire libère son verrou uniquement après avoir terminé sa phase d’écriture, confirmé un état Git cohérent et atteint une barrière d’arrêt. Si une interruption brutale laisse un verrou résiduel, Claude Code ne le supprime pas spontanément : diagnostic en lecture seule, publication de `WORKTREE_LOCKED`, puis suppression uniquement après `[ChatGPT] WORKTREE_RESUME_APPROVED` autorisant explicitement le retrait du verrou résiduel et la reprise.
 
-### Contrôle best-effort de concurrence
+### Contrôle best-effort de concurrence — mode `LOCAL`
 
 L’absence absolue d’un autre écrivain n’est pas prouvable avec les outils disponibles. Le protocole impose donc un contrôle **best-effort**, borné et reproductible, et non une preuve négative impossible.
 
@@ -116,6 +127,10 @@ Avant d’acquérir le verrou puis immédiatement après son acquisition, contr�
 Si un de ces signaux est contradictoire, change entre les deux lectures ou indique une activité concurrente : `WORKTREE_LOCKED` et arrêt. Si tous sont stables, le contrôle est considéré suffisant pour poursuivre **sans prétendre démontrer l’absence absolue de concurrence**.
 
 Après une suspension `WORKTREE_LOCKED`, aucune hypothèse sur l’état précédent n’est conservée. Claude Code effectue uniquement les vérifications en lecture seule demandées, publie les preuves, puis attend `[ChatGPT] WORKTREE_RESUME_APPROVED` avant toute suppression de verrou résiduel ou reprise d’écriture.
+
+### Contrôle de concurrence — mode `CLOUD`
+
+Avant toute écriture cloud, vérifier le dépôt, la branche de travail, la base/head autorisées et l’état distant pertinent. Une session cloud ne doit pas écrire sur une branche pour laquelle une autre session écrivain est connue comme active, ni modifier une branche différente de celle autorisée par son contexte. Si un push concurrent, une avancée distante inattendue ou une divergence de branche est observé, arrêter sans rebase/reset/force-push implicite et publier `WORKTREE_LOCKED` par analogie de sécurité, avec les preuves GitHub disponibles.
 
 ## Preuves Git
 
@@ -244,9 +259,11 @@ Le plan `PLAN_READY_FOR_REVIEW` de chaque tranche est publié par Claude Code co
 
 ### Préconditions Git, synchronisation et verrouillage du worktree
 
-Avant de démarrer une tranche, avant toute opération d’écriture, après toute reprise et avant toute clôture, vérifier explicitement la synchronisation avec `origin`, la branche/HEAD attendus et la propreté du répertoire de travail — notamment via `git status`, `git fetch` lorsque l’écriture des références locales est autorisée, et comparaison avec la branche distante — ainsi que les signaux best-effort de concurrence définis plus haut.
+Avant de démarrer une tranche, avant toute opération d’écriture, après toute reprise et avant toute clôture, vérifier explicitement la synchronisation avec `origin`, la branche/HEAD attendus et la propreté du répertoire de travail — notamment via `git status`, `git fetch` lorsque l’écriture des références locales est autorisée, et comparaison avec la branche distante — ainsi que les signaux de concurrence applicables au mode d’exécution.
 
-Si un autre processus/session est observé en écriture dans le même worktree, si l’état Git change pendant la fenêtre de diagnostic, si le verrou d’écrivain ne peut pas être acquis, ou si les préconditions ne correspondent plus au contexte autorisé : publier `WORKTREE_LOCKED`, ne rien réparer implicitement et arrêter.
+En mode `LOCAL`, appliquer le verrou d’écrivain et le contrôle best-effort définis plus haut. En mode `CLOUD`, ne pas rechercher ni créer le verrou du worktree physique de l’utilisateur ; vérifier à la place les références et écritures distantes pertinentes sur GitHub.
+
+Si un autre processus/session est observé en écriture dans le même worktree local, si l’état Git change pendant la fenêtre de diagnostic, si le verrou d’écrivain local ne peut pas être acquis, ou si les préconditions locales ou distantes ne correspondent plus au contexte autorisé : publier `WORKTREE_LOCKED`, ne rien réparer implicitement et arrêter.
 
 Les rapports temporaires ne doivent pas être commités sauf exigence explicite.
 
@@ -254,6 +271,6 @@ Les rapports temporaires ne doivent pas être commités sauf exigence explicite.
 
 `READY_TO_CLOSE` ne signifie pas automatiquement `CLOSED` lorsqu’un nettoyage est requis. Toute branche temporaire, PR de test ou artefact temporaire dont la suppression fait partie de la tâche doit suivre : nettoyage → rapport avec preuves → vérification ChatGPT → fermeture.
 
-Avant `CLOSED`, contrôler l’état Git final : branche attendue, synchronisation avec `origin`, working tree propre, absence de résidu temporaire demandé au nettoyage et, lorsqu’une branche de test a été utilisée, absence d’intégration involontaire de ses commits/fichiers dans la branche de référence.
+Avant `CLOSED`, contrôler l’état Git final : branche attendue, synchronisation avec `origin`, working tree propre lorsque le mode en possède un, absence de résidu temporaire demandé au nettoyage et, lorsqu’une branche de test a été utilisée, absence d’intégration involontaire de ses commits/fichiers dans la branche de référence.
 
 `READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; critères d’acceptation démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; contre-vérification indépendante conforme ; validation utilisateur si requise ; aucun `À CLARIFIER` ouvert ; aucune contradiction connue résiduelle ; état Git propre, synchronisé avec `origin`, et traçable.
