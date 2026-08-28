@@ -3,6 +3,8 @@
 Ce fichier est le contrat permanent d’orchestration pour les tranches `Txx-Sxx`.
 
 V1.3 conserve les barrières de conformité de V1.2 et remplace la reconstruction exhaustive du contexte à chaque run par une orchestration incrémentale : contexte de travail persistant lorsqu’il est réellement disponible, checkpoint compact de secours, delta vérifié et lectures ciblées.
+La parité textuelle exhaustive avec V1.2 reste `NON VÉRIFIABLE` tant qu’un audit différentiel dédié n’a pas comparé les deux textes ; cette limite de preuve n’autorise aucune suppression ni aucun affaiblissement d’une barrière connue.
+
 
 ## Évolutions V1.2 → V1.3
 
@@ -58,7 +60,7 @@ Boucles :
 
 `PLAN_READY_FOR_REVIEW`, `IMPLEMENTATION_READY_FOR_REVIEW`, `CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED`, `USER_VALIDATION` et `ARBITRAGE` sont des barrières d’arrêt. `ORCHESTRATION_FAILURE` arrête le run technique mais appelle un diagnostic/reprise d’orchestration, pas une décision produit. `PLAN_CHANGES_REQUESTED`, `CHANGES_REQUESTED` et `RETEST_REQUIRED` autorisent uniquement le travail explicitement demandé. Le silence ne vaut jamais approbation.
 
-Une stagnation dont la cause démontrée est technique, contextuelle, liée au transport, aux permissions ou aux outils relève de `ORCHESTRATION_FAILURE`. Une stagnation de fond dans une boucle de revue, malgré des sources, un contexte et des outils corrects, peut relever de `USER_VALIDATION`.
+Une stagnation dont la cause démontrée est technique, contextuelle, liée au transport, aux permissions ou aux outils relève de `ORCHESTRATION_FAILURE`. Une stagnation de fond dans une boucle de revue, malgré des sources, un contexte et des outils corrects, peut relever de `USER_VALIDATION`. Si le contenu de la stagnation exige une décision produit, fonctionnelle, UX ou de périmètre, `ARBITRAGE` prévaut ; `USER_VALIDATION` est réservé aux contrôles humains ne nécessitant pas de décision produit.
 
 Après résolution d’un `ARBITRAGE` ou d’un `USER_VALIDATION`, la décision ou validation humaine est enregistrée dans l’Issue/PR, le contexte autorisé et son delta sont revalidés, puis la reprise s’effectue depuis le dernier état stable compatible ; aucune autorisation d’écriture antérieure n’est supposée encore valide.
 
@@ -82,7 +84,7 @@ Une session reprise reçoit le delta depuis le dernier checkpoint validé. Elle 
 
 ### Checkpoint compact
 
-L’orchestration maintient un checkpoint compact après chaque tranche clôturée et à chaque barrière stable qui doit pouvoir servir de point de reprise : `PLAN_READY_FOR_REVIEW`, `PLAN_APPROVED`, `IMPLEMENTATION_READY_FOR_REVIEW`, fin d’une revue avant demande de correction, ainsi qu’avant un arrêt `ARBITRAGE`, `USER_VALIDATION`, `WORKTREE_LOCKED` ou `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles. Un checkpoint intermédiaire n’accorde jamais à lui seul une autorisation d’écriture.
+L’orchestration maintient un checkpoint compact après chaque tranche clôturée et à chaque barrière stable qui doit pouvoir servir de point de reprise : `PLAN_READY_FOR_REVIEW`, `PLAN_APPROVED`, `IMPLEMENTATION_READY_FOR_REVIEW`, fin d’une revue avant demande de correction, ainsi qu’avant un arrêt `ARBITRAGE`, `USER_VALIDATION`, `CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED` ou `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles. Un checkpoint intermédiaire n’accorde jamais à lui seul une autorisation d’écriture.
 
 Le checkpoint contient au minimum lorsque disponible :
 
@@ -96,7 +98,7 @@ Le checkpoint contient au minimum lorsque disponible :
 - points ouverts ;
 - identifiant de session Claude si la reprise est validée.
 
-Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité. Avant réutilisation, l’orchestration vérifie sa relation avec le HEAD et le delta courant **et** revalide la fraîcheur des sources documentaires/décisionnelles pertinentes référencées. Une décision supersédée, une source plus récente pertinente, un checkpoint incohérent, incomplet ou devenu obsolète invalide les éléments concernés ; ils sont recalculés depuis la source de vérité et ne sont jamais acceptés silencieusement.
+Le checkpoint n’est pas un nouvel historique narratif. Chaque nouveau checkpoint remplace le checkpoint opérationnel précédent du bloc concerné ; il n’est pas cumulatif. Les anciens checkpoints peuvent rester disponibles comme preuves d’audit mais ne sont jamais concaténés au contexte courant. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité. Avant réutilisation, l’orchestration vérifie sa relation avec le HEAD et le delta courant **et** revalide la fraîcheur des sources documentaires/décisionnelles pertinentes référencées. Une décision supersédée, une source plus récente pertinente, un checkpoint incohérent, incomplet ou devenu obsolète invalide les éléments concernés ; ils sont recalculés depuis la source de vérité et ne sont jamais acceptés silencieusement.
 
 ### Delta de reprise
 
@@ -149,9 +151,9 @@ Le chemin nominal fournit un paquet structuré et compact, par exemple :
 - `OPEN_POINTS`
 - `CHECKPOINT`
 
-`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Il atteste au minimum, lorsque ces éléments sont applicables et vérifiables : dépôt, Issue/PR, branche, HEAD/baseline ou checkpoint, relation du delta, intégrité des entrées matérialisées, fraîcheur des sources documentaires/décisionnelles pertinentes et résultat du préflight. Il doit distinguer explicitement les éléments `VERIFIED`, `FAILED` et `NON_VÉRIFIABLE`. Il n’atteste jamais un fait que le producteur n’a pas contrôlé. Son absence, son invalidité ou une contradiction avec le paquet/delta déclenche `ORCHESTRATION_FAILURE` ou une revalidation par l’orchestration ; Claude ne transforme jamais cette anomalie en conformité implicite.
+`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Avant publication de `PLAN_APPROVED`, ChatGPT effectue un contrôle indépendant ponctuel de cohérence entre cette attestation et l’état GitHub / les sources de vérité réellement accessibles, au minimum sur les champs critiques pertinents. Ce sondage reste ciblé et ne devient jamais une seconde reconstruction exhaustive du contexte ; toute divergence significative déclenche revalidation ou `ORCHESTRATION_FAILURE` avant `IMPLEMENTING`. Il atteste au minimum, lorsque ces éléments sont applicables et vérifiables : dépôt, Issue/PR, branche, HEAD/baseline ou checkpoint, relation du delta, intégrité des entrées matérialisées, fraîcheur des sources documentaires/décisionnelles pertinentes et résultat du préflight. Il doit distinguer explicitement les éléments `VERIFIED`, `FAILED` et `NON_VÉRIFIABLE`. Il n’atteste jamais un fait que le producteur n’a pas contrôlé. Son absence, son invalidité ou une contradiction avec le paquet/delta déclenche `ORCHESTRATION_FAILURE` ou une revalidation par l’orchestration ; Claude ne transforme jamais cette anomalie en conformité implicite.
 
-Avant toute entrée en `IMPLEMENTING`, les champs critiques d’autorisation — dépôt, branche, HEAD/baseline autorisé, relation du delta/checkpoint, mode et écrivain — doivent être `VERIFIED`. Un champ critique `FAILED` ou `NON_VÉRIFIABLE` interdit l’écriture et déclenche revalidation ou `ORCHESTRATION_FAILURE`. Les champs non critiques peuvent rester `NON_VÉRIFIABLE` uniquement si cette absence de preuve est explicitement tracée et n’affecte ni le périmètre, ni les critères d’acceptation, ni l’autorisation d’écriture.
+Avant toute entrée en `IMPLEMENTING`, les champs critiques d’autorisation — dépôt, branche, HEAD/baseline autorisé, relation du delta/checkpoint, fraîcheur des sources documentaires/décisionnelles pertinentes, mode et écrivain — doivent être `VERIFIED`. Un champ critique `FAILED` ou `NON_VÉRIFIABLE` interdit l’écriture et déclenche revalidation ou `ORCHESTRATION_FAILURE`. Les champs non critiques peuvent rester `NON_VÉRIFIABLE` uniquement si cette absence de preuve est explicitement tracée et n’affecte ni le périmètre, ni les critères d’acceptation, ni l’autorisation d’écriture.
 
 Éviter toute duplication d’une même source dans le prompt et dans un fichier à relire. Les historiques bruts ne sont consultés que si une contradiction, une lacune de traçabilité ou une revue précise l’exige, et restent soumis à la règle de structuration/segmentation des données brutes.
 
