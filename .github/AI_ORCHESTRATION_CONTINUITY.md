@@ -97,3 +97,23 @@ Les pistes retenues pour étude ultérieure sont :
 - service intermédiaire d’orchestration KODJO recevant les événements GitHub et appelant l’acteur IA approprié.
 
 Ces pistes sont des options d’architecture à valider et non des capacités actuellement acquises. Le polling n’est pas retenu.
+
+## Durcissement des reprises et de l’autorisation d’écriture
+
+Les règles suivantes complètent explicitement le protocole principal et s’appliquent à toute reprise, y compris lorsqu’une session Claude existante est techniquement réutilisable.
+
+### Fraîcheur documentaire comme condition critique
+
+Avant toute entrée ou réentrée en `IMPLEMENTING`, la fraîcheur des sources documentaires et décisionnelles pertinentes référencées par le checkpoint fait partie des champs critiques d’autorisation. Elle doit être `VERIFIED` au même titre que le dépôt, la branche, le HEAD/baseline autorisé, la relation du delta/checkpoint, le mode et l’écrivain. Une fraîcheur pertinente `FAILED` ou `NON_VÉRIFIABLE` interdit l’écriture jusqu’à revalidation ou classement `ORCHESTRATION_FAILURE`.
+
+Cette exigence précise la relation du delta/checkpoint du protocole principal : une relation Git correcte ne suffit pas si une décision ou une source documentaire pertinente a été supersédée ou ne peut plus être attestée fraîche.
+
+### Aucune dispense liée à la continuité de session
+
+La reprise d’une session Claude est uniquement une optimisation de contexte. Elle ne dispense jamais du `SOURCE_ATTESTATION`, du préflight ni de la vérification de tous les champs critiques avant `IMPLEMENTING`. Une session reprise ne conserve aucune autorisation d’écriture implicite provenant d’un état antérieur ; l’autorisation applicable est celle revalidée pour le contexte courant.
+
+### Reprise après `WORKTREE_LOCKED`
+
+`WORKTREE_LOCKED` suit les mêmes exigences de reprise que les autres barrières stables. Avant `WORKTREE_RESUME_APPROVED`, l’état de reprise doit identifier, lorsque applicable, `waiting_for`, `next_actor`, `resume_from`, `reason` et `required_input`. Après résolution de la cause du verrou, ChatGPT revalide le contexte autorisé, le checkpoint, le delta, la branche, le HEAD et les champs critiques ; aucune autorisation d’écriture antérieure n’est supposée encore valide.
+
+`WORKTREE_RESUME_APPROVED` ne peut être publié qu’après cette revalidation. Il autorise uniquement la reprise depuis le dernier état stable compatible et ne vaut jamais nouveau `PLAN_APPROVED` si celui-ci a été invalidé par un changement de contexte ou de périmètre.
