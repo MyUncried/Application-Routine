@@ -10,13 +10,24 @@ jobs:
   plan-t01-s09:
     if: >
       github.event.issue.number == 17 &&
-      contains(github.event.comment.body, '@claude-plan-t01-s09-decisions-validated')
+      contains(github.event.comment.body, '@claude-plan-t01-s09-github-source')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           ref: feat/creation-seance-catalogue
           fetch-depth: 0
+      - name: Materialize current GitHub source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/t01-s09-source
+          gh api repos/${{ github.repository }}/issues/17 > /tmp/t01-s09-source/issue.json
+          gh api --paginate repos/${{ github.repository }}/issues/17/comments > /tmp/t01-s09-source/comments.json
+          jq -e '.number == 17 and .state == "open" and .html_url == "https://github.com/MyUncried/Application-Routine/issues/17"' /tmp/t01-s09-source/issue.json >/dev/null
+          sha256sum /tmp/t01-s09-source/issue.json /tmp/t01-s09-source/comments.json > /tmp/t01-s09-source/SHA256SUMS
+          printf 'repository=%s\nrun_id=%s\nfetched_at=%s\n' "${{ github.repository }}" "${{ github.run_id }}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > /tmp/t01-s09-source/MANIFEST
       - name: Run Claude plan
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -25,12 +36,18 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             Dépôt MyUncried/Application-Routine, tranche T01-S09.
-            L'Issue privée #17 ne doit pas être relue par réseau : son corps intégral,
-            revalidé depuis GitHub par l'orchestrateur, est fourni ci-dessous entre
-            SOURCE_ISSUE_BEGIN et SOURCE_ISSUE_END. Les commentaires de protocole
-            confirment seulement : premier run rejeté par plafond de tours, relance
-            autorisée à 40 tours, puis CLARIFICATION_REQUIRED purement technique faute
-            d'accès réseau ; cette source fournie lève cette barrière.
+            La première étape du même run a récupéré directement l'état courant de
+            l'Issue privée #17 et tous ses commentaires via l'API GitHub authentifiée
+            avec GITHUB_TOKEN. Les réponses brutes, leur manifeste et leurs empreintes
+            sont disponibles dans /tmp/t01-s09-source/{issue.json,comments.json,MANIFEST,SHA256SUMS}.
+            Lis et vérifie toi-même ces fichiers avant toute analyse. Cette entrée n'est
+            ni un texte relayé hors GitHub ni une substitution déclarative : elle est
+            l'export GitHub courant matérialisé par le transport du workflow dans ce run.
+            N'essaie pas d'utiliser gh, curl ou WebFetch depuis Claude : l'accès réseau
+            est volontairement isolé dans l'étape de transport précédente. Si les JSON,
+            le manifeste, les URLs, le numéro d'Issue, l'état ou les décisions ne concordent
+            pas, publie une barrière exacte. Le texte ci-dessous n'est qu'un repère ;
+            les JSON locaux issus de GitHub sont la source autoritative à revalider.
             
             SOURCE_ISSUE_BEGIN
             ## IDENTIFICATION
@@ -152,7 +169,7 @@ jobs:
             "STATUT : CLARIFICATION_REQUIRED", "STATUT : WORKTREE_LOCKED" ou "STATUT : ARBITRAGE".
           claude_args: |
             --max-turns 40
-            --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*)"
+            --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(sha256sum:*),Bash(jq:*)"
             --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
       - name: Publish structured plan comment
         if: always()
