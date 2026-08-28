@@ -34,6 +34,8 @@ Une réponse utilisateur ne constitue jamais à elle seule une autorisation d’
 
 Lorsqu’une situation pourrait relever des deux états, la cause de fond détermine le classement. Si la décision attendue porte sur le produit, le périmètre, une règle fonctionnelle ou UX, le classement est `ARBITRAGE`. Si aucune décision produit n’est nécessaire et que l’intervention humaine porte uniquement sur la qualité ou la procédure de revue, un contrôle perceptif, un test physique ou une stagnation de revue démontrée, le classement est `USER_VALIDATION`. Un défaut technique reste `ORCHESTRATION_FAILURE`.
 
+`CLARIFICATION_REQUIRED` s’applique lorsqu’une information indispensable ne peut pas encore être déterminée à partir des sources disponibles. Si cette clarification établit qu’une décision produit, UX, fonctionnelle ou de périmètre doit effectivement être prise par l’utilisateur, l’état est requalifié en `ARBITRAGE` ; il ne reste pas artificiellement en `CLARIFICATION_REQUIRED`.
+
 ### Reprise automatique cible et mode transitoire
 
 La cible est une reprise événementielle automatique : lorsqu’un événement GitHub satisfait une barrière et désigne ChatGPT comme `next_actor`, l’orchestration doit pouvoir réactiver ChatGPT puis poursuivre la machine à états jusqu’à la prochaine barrière humaine réelle.
@@ -112,9 +114,15 @@ Avant toute entrée ou réentrée en `IMPLEMENTING`, la fraîcheur des sources d
 
 Cette exigence précise la relation du delta/checkpoint du protocole principal : une relation Git correcte ne suffit pas si une décision ou une source documentaire pertinente a été supersédée ou ne peut plus être attestée fraîche.
 
+Pour une source non versionnée dans Git, la fraîcheur n’est `VERIFIED` que si l’orchestration dispose d’un identifiant de fraîcheur vérifiable adapté à cette source, par exemple un identifiant de version/révision ou un horodatage exposé par l’API ou le connecteur faisant autorité. Le protocole ne présume pas qu’un mécanisme particulier existe pour Figma ou un registre externe. En l’absence d’un tel identifiant vérifiable, la fraîcheur reste `NON_VÉRIFIABLE` et l’écriture demeure bloquée ; la définition et la validation du mécanisme concret relèvent de l’orchestrateur/intégration concerné et doivent être établies avant d’en dépendre dans un run d’écriture.
+
 ### Aucune dispense liée à la continuité de session
 
-La reprise d’une session Claude est uniquement une optimisation de contexte. Elle ne dispense jamais du `SOURCE_ATTESTATION`, du préflight ni de la vérification de tous les champs critiques avant `IMPLEMENTING`. Une session reprise ne conserve aucune autorisation d’écriture implicite provenant d’un état antérieur ; l’autorisation applicable est celle revalidée pour le contexte courant.
+La reprise d’une session Claude est uniquement une optimisation de contexte. Elle ne dispense jamais du `SOURCE_ATTESTATION`, du preflight ni de la vérification de tous les champs critiques avant `IMPLEMENTING`. Une session reprise ne conserve aucune autorisation d’écriture implicite provenant d’un état antérieur ; l’autorisation applicable est celle revalidée pour le contexte courant.
+
+### Reprise après `ORCHESTRATION_FAILURE`
+
+Après résolution d’un `ORCHESTRATION_FAILURE`, aucune autorisation d’écriture antérieure n’est supposée encore valide, y compris si une session Claude peut être techniquement reprise ou si un `PLAN_APPROVED` existait avant l’échec. Avant toute réentrée en `IMPLEMENTING`, ChatGPT/l’orchestration revalide le dernier état stable compatible, le checkpoint et son delta, la branche, le HEAD, le mode, l’écrivain et tous les champs critiques. Une écriture ou un commit partiel éventuellement produit avant l’échec fait partie du delta à examiner et ne vaut jamais preuve que l’autorisation précédente reste applicable.
 
 ### Reprise après `WORKTREE_LOCKED`
 
