@@ -16,7 +16,7 @@ V1.3 conserve explicitement les barrières V1.2 : revue indépendante ChatGPT av
 4. **Lecture ciblée.** Claude Code part des fichiers et sources concernés par la tranche et étend sa recherche uniquement lorsqu’une dépendance ou contradiction concrète le justifie.
 5. **Continuité sans confiance aveugle.** Réutiliser une session existante lorsqu’elle réduit réellement les relectures ; si la reprise de session n’est pas disponible ou fiable, reprendre depuis un checkpoint compact et le delta vérifié.
 6. **Performance = exigence d’orchestration.** Une consommation manifestement disproportionnée par rapport au travail utile est un défaut à diagnostiquer. Elle ne se corrige pas par une hausse mécanique des limites ni par la suppression de contrôles de conformité.
-7. **Pas de seuil artificiel de tours.** Aucun nombre fixe de tours ne définit à lui seul succès, échec ou escalade. Les tours, la durée, les refus de permissions, les relectures et les coûts observables sont des signaux diagnostiques. L’escalade repose sur la stagnation, les répétitions sans information nouvelle ou une consommation disproportionnée, pas sur un compteur isolé.
+7. **Pas de seuil artificiel de tours.** Aucun nombre fixe de tours ne définit à lui seul succès, échec ou escalade. Les tours, la durée, les refus de permissions, les relectures et les coûts observables sont des signaux diagnostiques. L’escalade repose sur la stagnation, les répétitions sans information nouvelle ou une consommation disproportionnée, pas sur un compteur isolé. Lorsqu’un runner impose un paramètre de type `max-turns`, sa valeur est exclusivement un coupe-circuit technique de sécurité, jamais le dimensionnement normal de la tâche. Son atteinte déclenche `ORCHESTRATION_FAILURE` et un diagnostic de cause ; elle n’autorise jamais une augmentation automatique du plafond.
 
 ## Rôles
 
@@ -82,18 +82,21 @@ Une session reprise reçoit le delta depuis le dernier checkpoint validé. Elle 
 
 ### Checkpoint compact
 
-Après chaque tranche clôturée, ou à une barrière stable pertinente, l’orchestration maintient un checkpoint compact du bloc contenant au minimum lorsque disponible :
+L’orchestration maintient un checkpoint compact après chaque tranche clôturée et à chaque barrière stable qui doit pouvoir servir de point de reprise : `PLAN_READY_FOR_REVIEW`, `PLAN_APPROVED`, `IMPLEMENTATION_READY_FOR_REVIEW`, fin d’une revue avant demande de correction, ainsi qu’avant un arrêt `ARBITRAGE`, `USER_VALIDATION`, `WORKTREE_LOCKED` ou `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles. Un checkpoint intermédiaire n’accorde jamais à lui seul une autorisation d’écriture.
+
+Le checkpoint contient au minimum lorsque disponible :
 
 - bloc et dernière tranche validée ;
 - HEAD/checkpoint Git ;
 - architecture/composants déjà établis nécessaires à la continuité ;
 - décisions actives pertinentes et décisions supersédées depuis le checkpoint précédent ;
+- références vérifiables des sources documentaires/décisionnelles pertinentes utilisées pour le produire (chemin et, lorsque disponible, commit/hash/version ou autre identifiant de fraîcheur) ;
 - fichiers structurants connus ;
 - tests/preuves validés pertinents ;
 - points ouverts ;
 - identifiant de session Claude si la reprise est validée.
 
-Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité. Avant réutilisation, l’orchestration vérifie sa relation avec le HEAD et le delta courant ; un checkpoint incohérent, incomplet ou devenu obsolète n’est jamais accepté silencieusement.
+Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité. Avant réutilisation, l’orchestration vérifie sa relation avec le HEAD et le delta courant **et** revalide la fraîcheur des sources documentaires/décisionnelles pertinentes référencées. Une décision supersédée, une source plus récente pertinente, un checkpoint incohérent, incomplet ou devenu obsolète invalide les éléments concernés ; ils sont recalculés depuis la source de vérité et ne sont jamais acceptés silencieusement.
 
 ### Delta de reprise
 
@@ -118,6 +121,7 @@ Lorsque le runner/orchestrateur dispose des capacités nécessaires, il contrôl
 - état de l’Issue/PR pertinent ;
 - branche autorisée ;
 - HEAD/baseline et relation avec le checkpoint ;
+- fraîcheur des sources documentaires/décisionnelles pertinentes référencées par le checkpoint ;
 - propreté ou état Git requis selon le mode ;
 - delta de commits/fichiers ;
 - intégrité des fichiers matérialisés ;
@@ -145,7 +149,9 @@ Le chemin nominal fournit un paquet structuré et compact, par exemple :
 - `OPEN_POINTS`
 - `CHECKPOINT`
 
-`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Il atteste au minimum, lorsque ces éléments sont applicables et vérifiables : dépôt, Issue/PR, branche, HEAD/baseline ou checkpoint, relation du delta, intégrité des entrées matérialisées et résultat du préflight. Il doit distinguer explicitement les éléments `VERIFIED`, `FAILED` et `NON_VÉRIFIABLE`. Il n’atteste jamais un fait que le producteur n’a pas contrôlé. Son absence, son invalidité ou une contradiction avec le paquet/delta déclenche `ORCHESTRATION_FAILURE` ou une revalidation par l’orchestration ; Claude ne transforme jamais cette anomalie en conformité implicite.
+`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Il atteste au minimum, lorsque ces éléments sont applicables et vérifiables : dépôt, Issue/PR, branche, HEAD/baseline ou checkpoint, relation du delta, intégrité des entrées matérialisées, fraîcheur des sources documentaires/décisionnelles pertinentes et résultat du préflight. Il doit distinguer explicitement les éléments `VERIFIED`, `FAILED` et `NON_VÉRIFIABLE`. Il n’atteste jamais un fait que le producteur n’a pas contrôlé. Son absence, son invalidité ou une contradiction avec le paquet/delta déclenche `ORCHESTRATION_FAILURE` ou une revalidation par l’orchestration ; Claude ne transforme jamais cette anomalie en conformité implicite.
+
+Avant toute entrée en `IMPLEMENTING`, les champs critiques d’autorisation — dépôt, branche, HEAD/baseline autorisé, relation du delta/checkpoint, mode et écrivain — doivent être `VERIFIED`. Un champ critique `FAILED` ou `NON_VÉRIFIABLE` interdit l’écriture et déclenche revalidation ou `ORCHESTRATION_FAILURE`. Les champs non critiques peuvent rester `NON_VÉRIFIABLE` uniquement si cette absence de preuve est explicitement tracée et n’affecte ni le périmètre, ni les critères d’acceptation, ni l’autorisation d’écriture.
 
 Éviter toute duplication d’une même source dans le prompt et dans un fichier à relire. Les historiques bruts ne sont consultés que si une contradiction, une lacune de traçabilité ou une revue précise l’exige, et restent soumis à la règle de structuration/segmentation des données brutes.
 
@@ -253,7 +259,7 @@ Lorsque disponibles, tracer notamment :
 - consommation/coût réellement observable ;
 - proportion du travail consacrée à l’orchestration plutôt qu’à la tâche.
 
-Aucun seuil fixe de tours n’est une règle de conformité. Un grand nombre de tours peut être légitime pour une implémentation complexe ; un faible nombre peut masquer une analyse insuffisante. Le diagnostic est qualitatif et fondé sur la progression utile.
+Aucun seuil fixe de tours n’est une règle de conformité. Un grand nombre de tours peut être légitime pour une implémentation complexe ; un faible nombre peut masquer une analyse insuffisante. Le diagnostic est qualitatif et fondé sur la progression utile. Une limite `max-turns` éventuellement exigée par le runner reste un coupe-circuit technique ; son atteinte est une anomalie `ORCHESTRATION_FAILURE`, jamais un motif suffisant pour relever automatiquement cette limite.
 
 ### Détection de stagnation
 
@@ -294,6 +300,10 @@ Claude modifie uniquement le périmètre approuvé et ses dépendances indispens
 Après `CHANGES_REQUESTED` ou `RETEST_REQUIRED`, conserver le contexte de tâche et transmettre uniquement la demande de correction et le delta depuis le dernier état. Aucun nettoyage/refactoring opportuniste hors périmètre.
 
 ## Rapport après implémentation
+
+Le rapport humain reste lisible dans GitHub, mais lorsque le transport le permet sa sortie machine est structurée. Les champs minimaux sont : `status`, `task`, `summary`, `files_modified`, `acceptance_criteria`, `tests_run`, `tests_not_run`, `plan_deviations`, `limitations`, `technical_decisions`, `clarifications`, `performance`, `commit`, `self_check`. `performance` contient, lorsque observables, `ai_duration`, `turns_or_calls`, `permission_denials`, `context_assessment`, `cost_or_consumption`, `inefficiencies`, `action`. Le workflow rend ensuite cette structure lisible ; l’orchestrateur ne doit pas dépendre du reparsing d’un bloc Markdown libre pour détecter stagnation ou échec.
+
+Format humain de référence :
 
 ```text
 TÂCHE
@@ -364,7 +374,9 @@ Le self-check Claude est une relecture directe de son travail, mais n’est pas 
 
 ## Vérification finale
 
-`FINAL_VERIFICATION` n’est pas une seconde reconstruction du contexte ni, par défaut, un nouvel appel Claude. Elle est réalisée par ChatGPT avec les contrôles GitHub déterministes disponibles après une revue d’implémentation conforme. Elle vérifie uniquement les preuves finales nécessaires : diff/commit final, critères d’acceptation, tests requis, branche et HEAD attendus, état Git final, contradictions ou points nécessaires encore ouverts et conformité des artefacts temporaires. Si une nouvelle analyse substantielle est nécessaire, revenir à l’état de revue approprié au lieu d’élargir silencieusement `FINAL_VERIFICATION`.
+`FINAL_VERIFICATION` n’est pas une seconde reconstruction du contexte ni, par défaut, un nouvel appel Claude. Elle est réalisée par ChatGPT avec les contrôles GitHub déterministes disponibles après une revue d’implémentation conforme. Elle vérifie uniquement les preuves finales nécessaires : diff/commit final, critères d’acceptation, tests requis, branche et HEAD attendus, état Git final, contradictions ou points nécessaires encore ouverts et conformité des artefacts temporaires.
+
+Si `FINAL_VERIFICATION` est conforme : `READY_TO_CLOSE`. Si elle révèle un écart d’implémentation ou de test : retour explicite à `IMPLEMENTATION_REVIEW` avec `CHANGES_REQUESTED` ou `RETEST_REQUIRED` selon la nature de l’écart. Si elle révèle une ambiguïté nécessaire : `CLARIFICATION_REQUIRED`. Si elle révèle un défaut Git/concurrence : `WORKTREE_LOCKED`. Si elle révèle un défaut technique d’orchestration : `ORCHESTRATION_FAILURE`. Une nouvelle analyse substantielle revient ainsi à l’état de revue approprié au lieu d’élargir silencieusement `FINAL_VERIFICATION`.
 
 ## Preuves Git
 
