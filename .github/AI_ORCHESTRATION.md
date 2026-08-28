@@ -32,7 +32,7 @@ Boucles :
 - `IMPLEMENTATION_REVIEW → RETEST_REQUIRED → IMPLEMENTING → IMPLEMENTATION_READY_FOR_REVIEW → IMPLEMENTATION_REVIEW`
 
 À tout moment : `CLARIFICATION_REQUIRED` si une décision nécessaire n’est pas déterminable par les sources.
-`WORKTREE_LOCKED` est utilisé lorsqu’un signal concret indique une écriture concurrente ou un verrou de worktree, lorsque le contexte Git observé est incompatible avec le contexte autorisé, ou lorsqu’un verrou d’écrivain déjà détenu empêche l’acquisition du worktree. Cet état interdit toute opération d’écriture jusqu’à vérification en lecture seule et reprise explicitement autorisée par `[ChatGPT] WORKTREE_RESUME_APPROVED`.
+`WORKTREE_LOCKED` est utilisé lorsqu’un signal concret indique une écriture concurrente, un verrou de worktree, ou — en mode `CLOUD` comme pour toute coordination au niveau GitHub — un push concurrent observé, une avancée distante inattendue ou une divergence de la branche autorisée, sans worktree local impliqué ; il l’est aussi lorsque le contexte Git observé est incompatible avec le contexte autorisé, ou lorsqu’un verrou d’écrivain déjà détenu empêche l’acquisition du worktree. Le terme « worktree » est conservé par continuité de nommage : l’état couvre également une concurrence ou une divergence purement distante. Cet état interdit toute opération d’écriture jusqu’à vérification en lecture seule et reprise explicitement autorisée par `[ChatGPT] WORKTREE_RESUME_APPROVED`.
 `ARBITRAGE` est utilisé lorsqu’une décision utilisateur est nécessaire en raison d’un changement de périmètre, d’un risque significatif, d’un coût additionnel significatif ou d’un blocage qui ne peut pas être résolu par les règles existantes. Claude Code s’arrête ; la reprise nécessite une décision utilisateur explicite, enregistrée dans l’Issue ou la PR avant reprise.
 `USER_VALIDATION` est utilisé uniquement lorsqu’un contrôle humain est réellement nécessaire, ou lorsqu’une boucle de revue (`PLAN_REVIEW ↔ PLAN_CHANGES_REQUESTED`, `IMPLEMENTATION_REVIEW ↔ CHANGES_REQUESTED`/`RETEST_REQUIRED`) ne progresse plus malgré des itérations successives. Aucune règle mécanique de nombre de boucles n’est imposée : c’est la stagnation réelle, pas un compteur, qui déclenche l’escalade.
 
@@ -91,7 +91,7 @@ Claude Code ne doit jamais, pour rendre le contexte conforme, décider spontané
 
 ### Mode d’exécution : local ou cloud
 
-Chaque tâche qui autorise des écritures doit identifier son mode d’exécution : `LOCAL` ou `CLOUD`. Le mode fait partie du contexte autorisé ; passer de l’un à l’autre exige une nouvelle vérification des préconditions et ne prolonge jamais implicitement un `PLAN_APPROVED` antérieur.
+Chaque tâche qui autorise des écritures doit identifier son mode d’exécution : `LOCAL` ou `CLOUD`. Le mode fait partie du contexte autorisé. Une bascule `LOCAL ↔ CLOUD` invalide immédiatement le contexte d’écriture précédent — dont tout `PLAN_APPROVED` et toute désignation d’écrivain antérieurs. La reprise exige un nouveau `[ChatGPT] PLAN_APPROVED`, ou une approbation `[ChatGPT]` de changement de mode explicitement nommée, désignant le nouveau `mode + écrivain`, suivi d’une revérification complète des préconditions du nouveau mode. Un `PLAN_APPROVED` n’est jamais prolongé implicitement d’un mode à l’autre.
 
 - `LOCAL` : Claude Code travaille dans un worktree présent sur la machine de l’utilisateur. Les règles de verrou d’écrivain local et de contrôle best-effort ci-dessous s’appliquent.
 - `CLOUD` : Claude Code travaille dans un environnement isolé distant connecté au dépôt GitHub. Cet environnement ne partage pas le worktree physique de la machine de l’utilisateur ; le verrou local du PC n’est donc ni créé ni interprété comme mécanisme de coordination avec la session cloud. La coordination porte alors sur GitHub : dépôt autorisé, branche/base/head autorisés, absence de push concurrent observé sur la branche de travail et respect des opérations Git permises par la plateforme et le plan.
@@ -102,13 +102,23 @@ L’accès cloud au dépôt privé doit être accordé par le mécanisme d’aut
 
 Une seule session ou un seul agent peut être **écrivain dans un même worktree physique local** à un instant donné. Les autres sessions locales peuvent travailler en lecture seule ou via GitHub, sans modifier fichiers, index, HEAD, références Git locales ou historique de ce worktree. Des environnements cloud isolés ne partagent pas ce verrou local ; leur concurrence éventuelle est traitée au niveau des branches et références GitHub.
 
+### Désignation de l’écrivain
+
+Avant toute opération d’écriture, l’écrivain autorisé est désigné explicitement et de façon traçable sur GitHub (Issue ou PR de la tâche). Aucun mode, aucune session ne s’attribue silencieusement la priorité d’écriture.
+
+- Le `[ChatGPT] PLAN_APPROVED` qui autorise une exécution désigne toujours explicitement le couple `mode + écrivain` — session `LOCAL` identifiée ou environnement `CLOUD` identifié — pour l’exécution qu’il autorise.
+- Les marqueurs `[ChatGPT] WRITER_ASSIGNED: <mode> <référence de session>` et `[ChatGPT] WRITER_RELEASED` sont réservés aux relais, aux changements d’écrivain et aux situations multi-session ; ils ne sont pas requis en plus d’un `PLAN_APPROVED` initial qui porte déjà cette désignation.
+- Une session sans désignation d’écrivain valable pour son contexte ne réalise aucune écriture : elle travaille en lecture seule, ou s’arrête et attend la désignation. Cette absence est une **barrière d’autorisation**, distincte de `WORKTREE_LOCKED` : ce dernier reste réservé à un conflit, un verrou, une divergence ou une concurrence effectivement observés, ou suffisamment suspectés selon les règles de preuve.
+- En mode `LOCAL`, la désignation s’accompagne du verrou d’écrivain local ci-dessous, qui en est la garde concrète. En mode `CLOUD`, et entre plusieurs sessions `CLOUD`, la désignation GitHub est la seule autorité ; elle est complétée par la comparaison best-effort du SHA distant de la branche autorisée avant et après écriture — filet, non preuve.
+- Un conflit ou une ambiguïté de désignation ne se résout jamais par auto-attribution : `ARBITRAGE` ou `USER_VALIDATION`.
+
 ### Verrou d’écrivain local — mode `LOCAL`
 
 Avant la première opération locale susceptible de modifier le worktree, l’index, `HEAD` ou les références Git locales, la session écrivain doit acquérir un verrou local non commité. Son emplacement est résolu par `git rev-parse --git-path ai-orchestration-writer.lock` afin de fonctionner aussi avec les worktrees liés ; le verrou est un répertoire créé atomiquement à ce chemin. S’il existe déjà ou si sa création échoue, ne rien supprimer ni écraser : publier `WORKTREE_LOCKED` et s’arrêter.
 
 Le verrou contient au minimum un fichier de métadonnées indiquant la tâche, la branche prévue, l’identifiant ou libellé de session disponible et l’horodatage de prise du verrou. Il ne constitue pas à lui seul une preuve qu’aucun autre programme n’écrit, mais il fournit le mécanisme de revendication/découverte exigé entre sessions qui respectent ce protocole.
 
-La session propriétaire libère son verrou uniquement après avoir terminé sa phase d’écriture, confirmé un état Git cohérent et atteint une barrière d’arrêt. Si une interruption brutale laisse un verrou résiduel, Claude Code ne le supprime pas spontanément : diagnostic en lecture seule, publication de `WORKTREE_LOCKED`, puis suppression uniquement après `[ChatGPT] WORKTREE_RESUME_APPROVED` autorisant explicitement le retrait du verrou résiduel et la reprise.
+La session propriétaire libère son verrou uniquement après avoir terminé sa phase d’écriture, confirmé un état Git cohérent et atteint une barrière d’arrêt. Une bascule du mode `LOCAL` vers le mode `CLOUD` impose la libération préalable du verrou d’écrivain local selon ces mêmes conditions. Si une interruption brutale laisse un verrou résiduel, Claude Code ne le supprime pas spontanément : diagnostic en lecture seule, publication de `WORKTREE_LOCKED`, puis suppression uniquement après `[ChatGPT] WORKTREE_RESUME_APPROVED` autorisant explicitement le retrait du verrou résiduel et la reprise.
 
 ### Contrôle best-effort de concurrence — mode `LOCAL`
 
@@ -130,7 +140,19 @@ Après une suspension `WORKTREE_LOCKED`, aucune hypothèse sur l’état précé
 
 ### Contrôle de concurrence — mode `CLOUD`
 
-Avant toute écriture cloud, vérifier le dépôt, la branche de travail, la base/head autorisées et l’état distant pertinent. Une session cloud ne doit pas écrire sur une branche pour laquelle une autre session écrivain est connue comme active, ni modifier une branche différente de celle autorisée par son contexte. Si un push concurrent, une avancée distante inattendue ou une divergence de branche est observé, arrêter sans rebase/reset/force-push implicite et publier `WORKTREE_LOCKED` par analogie de sécurité, avec les preuves GitHub disponibles.
+Avant toute écriture cloud, vérifier le dépôt, la branche de travail, la base/head autorisées et l’état distant pertinent. Une session cloud ne doit pas écrire sur une branche pour laquelle une autre session écrivain est connue comme active, ni modifier une branche différente de celle autorisée par son contexte. Si un push concurrent, une avancée distante inattendue ou une divergence de branche est observé, arrêter sans rebase/reset/force-push implicite et publier `WORKTREE_LOCKED` — au sens élargi défini au § Machine à états, qui couvre explicitement la concurrence et la divergence purement distantes — avec les preuves GitHub disponibles.
+
+### Automatisation GitHub ↔ cloud (préparatoire, non validée)
+
+Cette section prépare les règles ; elle ne déclare aucune capacité comme validée. L’automatisation complète d’un bloc `Txx` n’est pas considérée comme opérationnelle tant qu’elle n’a pas été testée de bout en bout.
+
+- Toute capacité cloud doit être vérifiée comme réellement disponible dans le contexte d’exécution avant d’être posée en exigence protocolaire.
+- Distinguer explicitement trois catégories :
+  1. garanti par le transport Git/GitHub : `clone`, `fetch`, `push`, `ls-remote`, comparaison de SHA ;
+  2. dépendant de l’API GitHub ou du CLI `gh` : métadonnées de PR, détection fine d’un push concurrent, publication de commentaires ;
+  3. dépendant d’une intégration Claude spécifique : déclenchement d’une session, identité de session, canal de retour.
+- Une capacité de catégorie 2 ou 3 non vérifiable dans le contexte est classée `NON VÉRIFIABLE` et reçoit un fallback best-effort explicite — au minimum : comparaison du SHA distant de la branche autorisée avant et après écriture, et publication des preuves sur l’Issue ou la PR par le canal effectivement disponible.
+- Ne jamais stocker ni transmettre un token, une clé API ou un secret dans un prompt ou dans le dépôt (voir § Contexte d’exécution autorisé).
 
 ## Preuves Git
 
@@ -186,6 +208,7 @@ Aucun | ...
 
 RESSOURCES IA
 Modèle : ...
+Décision de modèle : défaut | renforcé — justification : ...
 Contexte : OK | ÉLEVÉ | À COMPACTER | NON VÉRIFIABLE
 Quota : OK | BAS | CRITIQUE | NON VÉRIFIABLE
 Coût additionnel : ... | 0 | NON VÉRIFIABLE
@@ -239,6 +262,28 @@ Les ressources IA pilotent le moment et la méthode de travail, jamais le niveau
 
 Aucun contrôle obligatoire ne peut être supprimé pour économiser des crédits. Le suivi des ressources IA ne réduit jamais, à lui seul, le niveau de conformité exigé d’une tranche.
 
+### Sobriété et choix de modèle
+
+- Le modèle par défaut est choisi selon le niveau de complexité de la tâche — bas, moyen, élevé — apprécié par des critères qualitatifs : surface de code ou de documentation touchée, risque de régression, finesse d’analyse ou de raisonnement requise. Le protocole ne fige aucun identifiant de modèle : ceux-ci évoluent.
+- Le recours à un modèle plus coûteux n’est justifié que par un risque élevé, une complexité élevée ou un échec documenté du modèle par défaut sur la tâche. La justification est tracée dans le rapport de tranche.
+- Réutiliser le contexte ou la session existante lorsque cela réduit réellement des relectures sans dégrader la fiabilité ; ne pas repartir « à froid » sans raison.
+- Limiter les lectures globales de l’arbre, les recherches redondantes, les commandes et les tests sans valeur probante sur le périmètre.
+- Mutualiser les contrôles lorsque cela n’abaisse pas le niveau de preuve.
+- Aucun contrôle obligatoire n’est supprimé, allégé ou reporté pour réduire la consommation.
+
+### Consommation et coûts
+
+- Distinguer, uniquement lorsqu’elles sont réellement observables : la consommation incluse dans un abonnement ; la consommation d’API facturable ; les minutes de GitHub Actions ; les autres coûts facturables. Une catégorie non applicable ou non observable dans le contexte n’est pas estimée.
+- N’utiliser que des données mesurables ou fournies par une source fiable. Toute donnée de consommation ou de coût non réellement accessible est `NON VÉRIFIABLE`, sans estimation plausible inventée.
+- Les jauges de consommation exposées par l’environnement Claude Code — par exemple une jauge de session courte et une jauge hebdomadaire, avec pourcentage consommé et délai avant réinitialisation — constituent, lorsqu’elles sont effectivement visibles et accessibles, une source observable de quota et de consommation. Elles restent distinctes du coût monétaire et ne sont jamais converties en coût sans source tarifaire ou de facturation fiable et séparée. Leur visibilité dans une interface ne prouve pas un accès programmatique : à défaut d’accès démontré, elles restent une évidence rapportée par l’utilisateur. Les valeurs ponctuelles ainsi fournies ne sont jamais figées dans le protocole ; seules leur nature et leur méthode d’observation le sont.
+- Les signaux restent qualitatifs, sans seuil chiffré non fondé :
+  - `OK` : consommation nominale, poursuivre normalement ;
+  - `BAS` : marge en baisse signalée par une source fiable — regrouper les contrôles, éviter le travail non nécessaire ;
+  - `CRITIQUE` : blocage imminent ou signalé — terminer proprement l’état courant avant toute opération coûteuse, puis s’arrêter ;
+  - `NON VÉRIFIABLE` : donnée absente — l’indiquer comme telle, sans inventer.
+- `ARBITRAGE` est déclenché lorsqu’un coût additionnel significatif, une bascule vers un modèle sensiblement plus coûteux ou une consommation anormale nécessite une décision utilisateur.
+- La décision de modèle et l’état des ressources sont tracés dans le rapport de tranche via le bloc `RESSOURCES IA`, complété de la ligne `Décision de modèle`.
+
 ## Git et clôture
 
 Pour chaque tranche : une Issue porte le contrat de tâche ; les commits sont réalisés sur la branche active de la stratégie en vigueur (voir ci-dessous) ; une Pull Request porte plan, rapports, revues et corrections ; intégration seulement après `READY_TO_CLOSE`.
@@ -271,6 +316,6 @@ Les rapports temporaires ne doivent pas être commités sauf exigence explicite.
 
 `READY_TO_CLOSE` ne signifie pas automatiquement `CLOSED` lorsqu’un nettoyage est requis. Toute branche temporaire, PR de test ou artefact temporaire dont la suppression fait partie de la tâche doit suivre : nettoyage → rapport avec preuves → vérification ChatGPT → fermeture.
 
-Avant `CLOSED`, contrôler l’état Git final : branche attendue, synchronisation avec `origin`, working tree propre lorsque le mode en possède un, absence de résidu temporaire demandé au nettoyage et, lorsqu’une branche de test a été utilisée, absence d’intégration involontaire de ses commits/fichiers dans la branche de référence.
+Avant `CLOSED`, contrôler l’état Git final selon le mode d’exécution : en mode `LOCAL`, branche attendue, synchronisation avec `origin` et working tree propre ; en mode `CLOUD`, branche attendue et références distantes cohérentes avec le contexte autorisé ; dans les deux cas, absence de résidu temporaire demandé au nettoyage et, lorsqu’une branche de test a été utilisée, absence d’intégration involontaire de ses commits/fichiers dans la branche de référence.
 
-`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; critères d’acceptation démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; contre-vérification indépendante conforme ; validation utilisateur si requise ; aucun `À CLARIFIER` ouvert ; aucune contradiction connue résiduelle ; état Git propre, synchronisé avec `origin`, et traçable.
+`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; critères d’acceptation démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; contre-vérification indépendante conforme ; validation utilisateur si requise ; aucun `À CLARIFIER` ouvert ; aucune contradiction connue résiduelle ; état Git final conforme au mode d’exécution (§ Nettoyage et fermeture), synchronisé avec `origin`, et traçable.

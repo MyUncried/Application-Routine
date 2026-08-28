@@ -4,6 +4,8 @@
 - Issue liée :
 - Baseline :
 - Branche (de bloc ou dédiée, selon la stratégie en vigueur) :
+- Mode d’exécution : `LOCAL` | `CLOUD`
+- Écrivain désigné (réf. commentaire `[ChatGPT]`) :
 
 ## PLAN
 
@@ -35,6 +37,7 @@ Aucun | ...
 ### Ressources IA — Claude
 
 - Modèle :
+- Décision de modèle : `défaut | renforcé` — justification :
 - Contexte : `OK | ÉLEVÉ | À COMPACTER | NON VÉRIFIABLE`
 - Quota : `OK | BAS | CRITIQUE | NON VÉRIFIABLE`
 - Coût additionnel :
