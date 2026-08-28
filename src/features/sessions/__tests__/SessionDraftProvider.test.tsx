@@ -3,7 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import { useEffect } from "react";
 import { Text } from "react-native";
 
-import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
+import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import {
   useSessionDraft,
@@ -63,7 +63,7 @@ describe("SessionDraftProvider", () => {
         color: "#E5484D",
         initialCountdownSeconds: 20,
         finalPhaseSeconds: 15,
-        exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 30 },
       });
     });
     expect(captured.draft.name).toBe("Séance simple");

@@ -98,6 +98,63 @@ describe("strings", () => {
     });
   });
 
+  it("exposes the Composition exercise-row accessibility label (T01-S08)", () => {
+    expect(strings.screens.composition.exerciseRow.editAccessibilityLabel.length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095)", () => {
+    expect(strings.screens.composition.exerciseRow).toEqual({
+      editAccessibilityLabel: "Modifier l’exercice",
+      seriesSingular: "série",
+      seriesPlural: "séries",
+      repetitionSingular: "répétition",
+      repetitionPlural: "répétitions",
+      durationUnitMinutes: "min",
+      durationUnitSeconds: "s",
+      of: "de",
+      withPause: "avec",
+      pauseSuffix: "de pause par série",
+    });
+  });
+
+  it("exposes the Exercise screen texts (T01-S08)", () => {
+    expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
+    expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
+    expect(strings.screens.exercise.backAccessibilityLabel).toBe("Retour");
+    expect(strings.screens.exercise.name).toBe("Nom");
+    expect(strings.screens.exercise.executionMode).toEqual({
+      label: "Mode d’exécution",
+      duration: "Durée",
+      repetitions: "Répétition",
+    });
+    expect(strings.screens.exercise.wheelPicker).toEqual({
+      minutesAccessibilityLabel: "Minutes",
+      secondsAccessibilityLabel: "Secondes",
+    });
+    expect(strings.screens.exercise.validateAction).toBe("Valider");
+    expect(strings.screens.exercise.finishAction).toBe("Terminer");
+    expect(strings.screens.exercise.instruction.label).toBe("Consigne");
+    expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+  });
+
+  it("exposes a Durée row accessibility label distinct from the Durée/Répétition mode tab (T01-S08)", () => {
+    expect(strings.screens.exercise.duration.label).toBe("Durée");
+    expect(strings.screens.exercise.duration.accessibilityLabel).not.toBe(
+      strings.screens.exercise.executionMode.duration,
+    );
+  });
+
+  it("exposes the exact D-094 exercise exit-confirm modal texts", () => {
+    expect(strings.screens.exercise.exitConfirmModal).toEqual({
+      title: "Abandonner les modifications ?",
+      message: "Les modifications apportées à cette activité seront perdues.",
+      continueEditing: "Continuer la modification",
+      abandon: "Abandonner",
+    });
+  });
+
   it("exposes the not-found screen texts and accessibility labels", () => {
     expect(strings.screens.notFound.title.length).toBeGreaterThan(0);
     expect(strings.screens.notFound.backHome.length).toBeGreaterThan(0);

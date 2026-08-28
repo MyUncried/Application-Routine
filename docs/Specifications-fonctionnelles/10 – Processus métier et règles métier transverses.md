@@ -57,7 +57,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-033 | Une Activité est de type `Exercice` ou `Récupération`. |
 | RM-034 | Un Exercice est défini soit par une durée, soit par un nombre de Répétitions. |
-| RM-035 | Tout Exercice possède un nombre entier de Séries supérieur ou égal à 1 ; la valeur initiale est 1. |
+| RM-035 | Tout Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
 | RM-036 | Une Série correspond à l’exécution de la durée ou des Répétitions de l’Exercice, suivie de sa Pause après Série éventuelle. Elle n’est pas une entité métier autonome. |
 | RM-037 | Lorsqu’une Pause après Série est configurée, une Récupération technique est générée après chaque Série. Après la dernière Série, elle est omise si l’étape suivante est déjà une Récupération explicite. |
 | RM-038 | Une Récupération explicite est toujours chronométrée, reçoit initialement le nom `Récupération` et se termine automatiquement à zéro. |

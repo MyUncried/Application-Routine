@@ -16,9 +16,12 @@
 import type { CreateSessionInput, Session, SessionColor } from "./Session";
 import { DEFAULT_SESSION_COLOR } from "./Session";
 import {
+  DEFAULT_EXECUTION_MODE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
+  DEFAULT_PAUSE_SECONDS,
+  DEFAULT_SERIES_COUNT,
 } from "./defaults";
 import { fail, type ValidationResult, type ValidationViolation } from "./errors";
 import {
@@ -32,10 +35,26 @@ import {
   validateSessionName,
 } from "./validation";
 
+/**
+ * Mode d'exécution d'un Exercice (T01-S08, RM-034) : soit une durée, soit
+ * un nombre de répétitions — jamais les deux à la fois.
+ */
+export type SessionDraftExerciseExecutionMode = "DURATION" | "REPETITIONS";
+
 export type SessionDraftExercise = {
   readonly name: string;
+  readonly executionMode: SessionDraftExerciseExecutionMode;
+  /** Non nul uniquement en mode `DURATION` (RM-034). */
   readonly durationSeconds: number | null;
+  /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
+  readonly repetitionCount: number | null;
+  /** Toujours entier ≥ 1 (RM-035), borné à 99 en interface (D-092). */
+  readonly seriesCount: number;
+  /** Pause après Série, en secondes (RM-037). */
+  readonly pauseSeconds: number;
   readonly instruction: string | null;
+  /** Identifiants stables du référentiel `bodyZones.ts` (T01-S08, D-093) — sélection multiple, ordre indifférent. */
+  readonly bodyZoneIds: readonly string[];
 };
 
 export type SessionDraft = {
@@ -58,29 +77,43 @@ export function createEmptyDraft(): SessionDraft {
 }
 
 /**
- * Brouillon d'Exercice vide, destiné au futur parcours « Ajouter une
- * activité » : nom vide, durée initiale canonique (`DEFAULT_EXERCISE_DURATION_SECONDS`),
- * aucune consigne.
+ * Brouillon d'Exercice vide, destiné au parcours « Ajouter une activité »
+ * (T01-S08) : nom vide, mode Durée par défaut (`DEFAULT_EXECUTION_MODE`),
+ * durée initiale canonique (`DEFAULT_EXERCISE_DURATION_SECONDS`), une
+ * Série sans pause (`DEFAULT_SERIES_COUNT`/`DEFAULT_PAUSE_SECONDS`), aucune
+ * consigne, aucune zone corporelle sélectionnée.
  */
 export function createExerciseDraft(): SessionDraftExercise {
   return {
     name: "",
+    executionMode: DEFAULT_EXECUTION_MODE,
     durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
+    repetitionCount: null,
+    seriesCount: DEFAULT_SERIES_COUNT,
+    pauseSeconds: DEFAULT_PAUSE_SECONDS,
     instruction: null,
+    bodyZoneIds: [],
   };
 }
 
 /**
  * Convertit une `Session` persistée vers un `SessionDraft` modifiable —
  * l'inverse de `toCreateSessionInput`. Fonction pure, aucune dépendance
- * React ou SQLite. Copie sans perte les sept champs éditables (nom,
- * couleur, phases, nom/durée/consigne de l'Exercice) ; les champs
- * d'identité et d'audit (`id`, `ownerId`, `status`, `createdAt`,
- * `updatedAt`, identifiants et `repeatCount` de `cycle`/`tour`, et sur
- * l'Exercice `id`/`type`/`executionMode`/`structuralPosition`/`position`/
- * `repetitionCount`/`seriesCount`/`pauseSeconds`) ne sont volontairement
- * pas repris : `SessionDraft` ne les modélise pas, et `sessionId` est
- * transmis séparément lors de l'enregistrement d'une modification.
+ * React ou SQLite. Copie sans perte les champs éditables (nom, couleur,
+ * phases, nom/mode/durée-ou-répétitions/séries/pause/consigne de
+ * l'Exercice) ; les champs d'identité et d'audit (`id`, `ownerId`,
+ * `status`, `createdAt`, `updatedAt`, identifiants et `repeatCount` de
+ * `cycle`/`tour`, et sur l'Exercice `id`/`type`/`structuralPosition`/
+ * `position`) ne sont volontairement pas repris : `SessionDraft` ne les
+ * modélise pas, et `sessionId` est transmis séparément lors de
+ * l'enregistrement d'une modification.
+ *
+ * `bodyZoneIds` vaut toujours `[]` ici : `Session`/`DurationExercise`
+ * (`Session.ts`) ne modélisent pas encore les Zones corporelles — cette
+ * association n'est pas persistée avant une tranche ultérieure. Ce champ
+ * n'est donc jamais restauré à la réouverture pour l'instant (T01-S08
+ * n'appelle de toute façon jamais cette fonction : la persistance/réouverture
+ * réelle restent hors périmètre).
  */
 export function toSessionDraft(session: Session): SessionDraft {
   return {
@@ -90,20 +123,49 @@ export function toSessionDraft(session: Session): SessionDraft {
     finalPhaseSeconds: session.finalPhaseSeconds,
     exercise: {
       name: session.cycle.tour.exercise.name,
+      executionMode: session.cycle.tour.exercise.executionMode,
       durationSeconds: session.cycle.tour.exercise.durationSeconds,
+      repetitionCount: session.cycle.tour.exercise.repetitionCount,
+      seriesCount: session.cycle.tour.exercise.seriesCount,
+      pauseSeconds: session.cycle.tour.exercise.pauseSeconds,
       instruction: session.cycle.tour.exercise.instruction,
+      bodyZoneIds: [],
     },
   };
 }
 
-function exerciseEquals(
+function bodyZoneIdSetsEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const setA = new Set(a);
+  return b.every((id) => setA.has(id));
+}
+
+/**
+ * Compare deux brouillons d'Exercice champ à champ — exportée (T01-S08)
+ * pour être réutilisée directement par `ExerciseScreen` (comparaison de sa
+ * copie de travail locale à son instantané initial, indépendamment du
+ * `SessionDraft` partagé). Les zones corporelles sont comparées comme un
+ * ensemble : leur ordre n'est pas significatif.
+ */
+export function exerciseEquals(
   a: SessionDraftExercise | null,
   b: SessionDraftExercise | null,
 ): boolean {
   if (a === null || b === null) {
     return a === b;
   }
-  return a.name === b.name && a.durationSeconds === b.durationSeconds && a.instruction === b.instruction;
+  return (
+    a.name === b.name &&
+    a.executionMode === b.executionMode &&
+    a.durationSeconds === b.durationSeconds &&
+    a.repetitionCount === b.repetitionCount &&
+    a.seriesCount === b.seriesCount &&
+    a.pauseSeconds === b.pauseSeconds &&
+    a.instruction === b.instruction &&
+    bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds)
+  );
 }
 
 /**

@@ -26,7 +26,10 @@ export type ValidationField =
   | "session.finalPhaseSeconds"
   | "exercise.name"
   | "exercise.durationSeconds"
-  | "exercise.instruction";
+  | "exercise.instruction"
+  | "exercise.repetitionCount"
+  | "exercise.seriesCount"
+  | "exercise.pauseSeconds";
 
 export type ValidationDetails = {
   readonly min?: number;

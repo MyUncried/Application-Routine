@@ -17,12 +17,16 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * `headerShown: false` est répété explicitement ici : ne se propage pas
  * automatiquement depuis le `Stack` racine (`app/_layout.tsx`) vers un
  * navigateur imbriqué distinct.
+ *
+ * `exercise` ajoutée en T01-S08, sous le même `Stack` et le même Provider,
+ * sans restructuration — confirmant la prédiction du commentaire ci-dessus.
  */
 export default function CreationLayout() {
   return (
     <SessionDraftProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="composition" />
+        <Stack.Screen name="exercise" />
       </Stack>
     </SessionDraftProvider>
   );

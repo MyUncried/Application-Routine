@@ -570,6 +570,24 @@ Aucune Récupération explicite n’est ajoutée implicitement par l’applicati
 
 Si deux Exercices s’enchaînent sans pause après Série ni Activité de type Récupération, un avertissement discret et non bloquant est affiché.
 
+### Résumé de la ligne d’une Activité de type Exercice (D-095)
+
+La ligne d’une Activité de type Exercice dans la Composition affiche :
+
+- le nom de l’Exercice ;
+- un résumé compact de sa configuration essentielle (nombre de Séries, Durée ou Répétitions, Pause après Série).
+
+La Consigne et les Zones corporelles ne figurent jamais dans ce résumé.
+
+Format :
+
+- mode Durée : `N série(s) de X min Y s avec Z min Y s de pause par série` ;
+- mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série`.
+
+La clause de pause est entièrement omise lorsque la Pause après Série vaut `0 s`. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
+
+Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries de 12 répétitions avec 20 s de pause par série` ; `1 série de 45 s`.
+
 ### Consultation et modification d’une Activité
 
 Toucher une carte Activité ouvre directement son parcours de modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`.
@@ -659,7 +677,7 @@ En mode `Durée`, la section `Paramètres de l’activité` comporte des roulett
 
 En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Le Nombre de répétitions, la Pause et le Nombre de Séries sont sélectionnés par roulettes. La Pause et le Nombre de Séries restent disponibles.
 
-Le nombre de Séries est toujours supérieur ou égal à 1. Pour tout nouvel Exercice, sa valeur par défaut est `1`.
+Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
 Une Série correspond à l’Exécution de la durée ou du nombre de répétitions défini pour l’Exercice, suivie de sa pause éventuelle.
 
@@ -1243,6 +1261,39 @@ La Composition reste visible en arrière-plan, assombrie et non interactive.
 `Abandonner` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue des séances`.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
+
+### Modale – Abandonner les modifications d’une Activité (D-094)
+
+#### Objectif
+
+Éviter la perte accidentelle des modifications apportées à une Activité de type Exercice, dans l’écran `Création / modification d’une Activité — Exercice`.
+
+#### Ouverture
+
+La modale s’affiche depuis l’écran Exercice lorsque l’utilisateur tente de quitter (Retour, geste de glissement, bouton matériel Android) alors que des modifications non enregistrées existent sur l’Activité en cours d’édition — comparées à son état au moment de l’ouverture de l’écran, jamais au reste de la Composition.
+
+L’écran Exercice reste visible en arrière-plan, assombri et non interactif.
+
+#### Contenu
+
+**Titre**
+
+> Abandonner les modifications ?
+
+**Message**
+
+> Les modifications apportées à cette activité seront perdues.
+
+**Actions**
+
+- `Continuer la modification`
+- `Abandonner`
+
+#### Comportement
+
+`Continuer la modification` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
+
+`Abandonner` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté.
 
 ### Modale – Confirmer la suppression d’une Séance archivée
 

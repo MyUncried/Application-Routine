@@ -4,15 +4,20 @@ import { DEFAULT_SESSION_COLOR, type Session } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
   createExerciseDraft,
+  exerciseEquals,
   isSessionDraftDirty,
   toCreateSessionInput,
   toSessionDraft,
   type SessionDraft,
+  type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import {
+  DEFAULT_EXECUTION_MODE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
+  DEFAULT_PAUSE_SECONDS,
+  DEFAULT_SERIES_COUNT,
 } from "@/domain/sessions/defaults";
 
 describe("createEmptyDraft", () => {
@@ -28,17 +33,31 @@ describe("createEmptyDraft", () => {
 });
 
 describe("createExerciseDraft", () => {
-  it("initializes an empty name, the canonical default duration and no instruction", () => {
+  it("initializes an empty name, Duration mode, the canonical default duration, one Series without pause, no instruction, no body zone", () => {
     expect(createExerciseDraft()).toEqual({
       name: "",
+      executionMode: DEFAULT_EXECUTION_MODE,
       durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
+      repetitionCount: null,
+      seriesCount: DEFAULT_SERIES_COUNT,
+      pauseSeconds: DEFAULT_PAUSE_SECONDS,
       instruction: null,
+      bodyZoneIds: [],
     });
   });
 
   it("really uses DEFAULT_EXERCISE_DURATION_SECONDS (30 s), not a duplicated literal", () => {
     expect(createExerciseDraft().durationSeconds).toBe(30);
     expect(createExerciseDraft().durationSeconds).toBe(DEFAULT_EXERCISE_DURATION_SECONDS);
+  });
+
+  it("really uses DEFAULT_EXECUTION_MODE/DEFAULT_SERIES_COUNT/DEFAULT_PAUSE_SECONDS, not duplicated literals", () => {
+    expect(createExerciseDraft().executionMode).toBe("DURATION");
+    expect(createExerciseDraft().executionMode).toBe(DEFAULT_EXECUTION_MODE);
+    expect(createExerciseDraft().seriesCount).toBe(1);
+    expect(createExerciseDraft().seriesCount).toBe(DEFAULT_SERIES_COUNT);
+    expect(createExerciseDraft().pauseSeconds).toBe(0);
+    expect(createExerciseDraft().pauseSeconds).toBe(DEFAULT_PAUSE_SECONDS);
   });
 });
 
@@ -80,15 +99,29 @@ describe("toSessionDraft", () => {
     };
   }
 
-  it("copies the seven editable fields exactly, without any identity or audit field", () => {
+  it("copies the editable fields exactly, without any identity or audit field", () => {
     const session = aSession();
     expect(toSessionDraft(session)).toEqual({
       name: "Séance simple",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Gainage", durationSeconds: 30, instruction: "Respirer profondément" },
+      exercise: {
+        name: "Gainage",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+        seriesCount: 1,
+        pauseSeconds: 0,
+        instruction: "Respirer profondément",
+        bodyZoneIds: [],
+      },
     });
+  });
+
+  it("always maps bodyZoneIds to an empty array: Session/DurationExercise do not model body zones yet", () => {
+    const draft = toSessionDraft(aSession());
+    expect(draft.exercise?.bodyZoneIds).toEqual([]);
   });
 
   it("preserves a null instruction without turning it into an empty string", () => {
@@ -227,9 +260,51 @@ describe("isSessionDraftDirty", () => {
         color: "#E5484D",
         initialCountdownSeconds: 20,
         finalPhaseSeconds: 15,
-        exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+        exercise: { ...createExerciseDraft(), name: "Gainage" },
       }),
     ).toBe(true);
+  });
+});
+
+describe("exerciseEquals (exported for ExerciseScreen, T01-S08)", () => {
+  it("is true for two null exercises", () => {
+    expect(exerciseEquals(null, null)).toBe(true);
+  });
+
+  it("is false when only one side is null", () => {
+    expect(exerciseEquals(null, createExerciseDraft())).toBe(false);
+    expect(exerciseEquals(createExerciseDraft(), null)).toBe(false);
+  });
+
+  it("is true for two structurally identical, distinct objects", () => {
+    expect(exerciseEquals(createExerciseDraft(), { ...createExerciseDraft() })).toBe(true);
+  });
+
+  it("is false when any scalar field differs (name, mode, duration, repetitions, series, pause, instruction)", () => {
+    const base = createExerciseDraft();
+    expect(exerciseEquals(base, { ...base, name: "Gainage" })).toBe(false);
+    expect(
+      exerciseEquals(base, { ...base, executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: 12 }),
+    ).toBe(false);
+    expect(exerciseEquals(base, { ...base, seriesCount: 3 })).toBe(false);
+    expect(exerciseEquals(base, { ...base, pauseSeconds: 15 })).toBe(false);
+    expect(exerciseEquals(base, { ...base, instruction: "Respirer" })).toBe(false);
+  });
+
+  it("compares bodyZoneIds as a set: order never matters, content does", () => {
+    const a: SessionDraftExercise = { ...createExerciseDraft(), bodyZoneIds: ["NECK", "BACK"] };
+    const bSameOrder: SessionDraftExercise = { ...createExerciseDraft(), bodyZoneIds: ["NECK", "BACK"] };
+    const bReordered: SessionDraftExercise = { ...createExerciseDraft(), bodyZoneIds: ["BACK", "NECK"] };
+    const cDifferentContent: SessionDraftExercise = {
+      ...createExerciseDraft(),
+      bodyZoneIds: ["NECK", "ARMS"],
+    };
+    const dDifferentLength: SessionDraftExercise = { ...createExerciseDraft(), bodyZoneIds: ["NECK"] };
+
+    expect(exerciseEquals(a, bSameOrder)).toBe(true);
+    expect(exerciseEquals(a, bReordered)).toBe(true);
+    expect(exerciseEquals(a, cDifferentContent)).toBe(false);
+    expect(exerciseEquals(a, dDifferentLength)).toBe(false);
   });
 });
 
@@ -240,7 +315,7 @@ describe("toCreateSessionInput (structured result contract, full aggregation)", 
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+      exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 30 },
     };
   }
 
@@ -270,7 +345,7 @@ describe("toCreateSessionInput (structured result contract, full aggregation)", 
   it("fails when the exercise has no duration yet", () => {
     const draft: SessionDraft = {
       ...completeDraft(),
-      exercise: { name: "Gainage", durationSeconds: null, instruction: null },
+      exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: null },
     };
     expect(toCreateSessionInput(draft)).toEqual({
       ok: false,
@@ -293,7 +368,7 @@ describe("toCreateSessionInput (structured result contract, full aggregation)", 
   it("aggregates an invalid exercise name together with a missing duration, simultaneously", () => {
     const draft: SessionDraft = {
       ...completeDraft(),
-      exercise: { name: "A".repeat(81), durationSeconds: null, instruction: null },
+      exercise: { ...createExerciseDraft(), name: "A".repeat(81), durationSeconds: null },
     };
     expect(toCreateSessionInput(draft)).toEqual({
       ok: false,
@@ -310,7 +385,12 @@ describe("toCreateSessionInput (structured result contract, full aggregation)", 
       color: "#000000" as never,
       initialCountdownSeconds: -1,
       finalPhaseSeconds: -1,
-      exercise: { name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
+      exercise: {
+        ...createExerciseDraft(),
+        name: "",
+        durationSeconds: 0,
+        instruction: "A".repeat(1001),
+      },
     };
     const result = toCreateSessionInput(draft);
     expect(result.ok).toBe(false);

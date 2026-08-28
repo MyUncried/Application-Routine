@@ -10,11 +10,12 @@ import {
 } from "react-native";
 
 import {
-  WHEEL_MINUTES_MAX_INDEX,
   WHEEL_SECONDS_MAX_INDEX,
+  WHEEL_TOTAL_SECONDS_MAX,
   formatTwoDigits,
   fromTotalSeconds,
   indexToOffset,
+  minutesMaxIndexFor,
   offsetToIndex,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
@@ -22,8 +23,12 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Sélecteur partagé minutes/secondes de `Compte à rebours initial` et
- * `Fin de séance` (T01-S07, plan §5/§6). Bornes validées (V1) : minutes
- * 0–59, secondes 0–59, total 0–3599 s.
+ * `Fin de séance` (T01-S07, plan §5/§6), et de la Durée/Pause d'un Exercice
+ * (T01-S08). Bornes par défaut (V1, Composition) : minutes 0–59, secondes
+ * 0–59, total 0–3599 s. `maxTotalSeconds` permet à un appelant (Exercice)
+ * d'étendre la borne haute à 5999 s (99 min 59 s, `08` l.925) sans dupliquer
+ * ce composant — la colonne secondes reste toujours 0–59, seule la colonne
+ * minutes s'étend (`minutesMaxIndexFor`).
  *
  * Mécanisme de détection : `onScroll` (`scrollEventThrottle={16}`), pas
  * `onMomentumScrollEnd` — voir `wheelPickerMath.ts` et le rapport
@@ -34,7 +39,6 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  */
 
 const ITEM_HEIGHT = 40;
-const MINUTES_VALUES = Array.from({ length: WHEEL_MINUTES_MAX_INDEX + 1 }, (_, index) => index);
 const SECONDS_VALUES = Array.from({ length: WHEEL_SECONDS_MAX_INDEX + 1 }, (_, index) => index);
 
 export type DurationWheelPickerProps = {
@@ -42,6 +46,8 @@ export type DurationWheelPickerProps = {
   onChange: (totalSeconds: number) => void;
   minutesAccessibilityLabel: string;
   secondsAccessibilityLabel: string;
+  /** Borne haute de `totalSeconds`, en secondes. Par défaut `WHEEL_TOTAL_SECONDS_MAX` (3599, V1, Composition). */
+  maxTotalSeconds?: number;
 };
 
 export function DurationWheelPicker({
@@ -49,8 +55,11 @@ export function DurationWheelPicker({
   onChange,
   minutesAccessibilityLabel,
   secondsAccessibilityLabel,
+  maxTotalSeconds = WHEEL_TOTAL_SECONDS_MAX,
 }: DurationWheelPickerProps) {
-  const initial = fromTotalSeconds(totalSeconds);
+  const minutesMaxIndex = minutesMaxIndexFor(maxTotalSeconds);
+  const minutesValues = Array.from({ length: minutesMaxIndex + 1 }, (_, index) => index);
+  const initial = fromTotalSeconds(totalSeconds, maxTotalSeconds);
 
   // Un seul index de référence par colonne, indépendant de l'autre — la
   // synchronisation immédiate du brouillon (§5 du plan) exige de connaître
@@ -82,7 +91,7 @@ export function DurationWheelPicker({
     event: NativeSyntheticEvent<NativeScrollEvent>,
     column: "minutes" | "seconds",
   ) {
-    const max = column === "minutes" ? WHEEL_MINUTES_MAX_INDEX : WHEEL_SECONDS_MAX_INDEX;
+    const max = column === "minutes" ? minutesMaxIndex : WHEEL_SECONDS_MAX_INDEX;
     const ref = column === "minutes" ? minutesIndexRef : secondsIndexRef;
     const index = offsetToIndex(event.nativeEvent.contentOffset.y, ITEM_HEIGHT, max);
 
@@ -97,7 +106,7 @@ export function DurationWheelPicker({
     // interrompre la synchronisation du brouillon ci-dessous, qui reste
     // indépendante du résultat de l'haptique.
     Haptics.selectionAsync().catch(() => {});
-    onChange(toTotalSeconds(minutesIndexRef.current, secondsIndexRef.current));
+    onChange(toTotalSeconds(minutesIndexRef.current, secondsIndexRef.current, maxTotalSeconds));
   }
 
   function alignColumn(column: "minutes" | "seconds") {
@@ -110,8 +119,8 @@ export function DurationWheelPicker({
     <View style={styles.container} testID="duration-wheel-picker">
       <WheelColumn
         scrollRef={minutesScrollRef}
-        values={MINUTES_VALUES}
-        max={WHEEL_MINUTES_MAX_INDEX}
+        values={minutesValues}
+        max={minutesMaxIndex}
         now={initial.minutes}
         accessibilityLabel={minutesAccessibilityLabel}
         testID="duration-wheel-minutes"

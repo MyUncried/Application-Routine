@@ -92,6 +92,67 @@ export const fr = {
         continueCreating: "Continuer la création",
         abandon: "Abandonner",
       },
+      exerciseRow: {
+        editAccessibilityLabel: "Modifier l’exercice",
+        seriesSingular: "série",
+        seriesPlural: "séries",
+        repetitionSingular: "répétition",
+        repetitionPlural: "répétitions",
+        durationUnitMinutes: "min",
+        durationUnitSeconds: "s",
+        of: "de",
+        withPause: "avec",
+        pauseSuffix: "de pause par série",
+      },
+    },
+    exercise: {
+      titleAdd: "Ajouter une activité",
+      titleEdit: "Modifier une activité",
+      backAccessibilityLabel: "Retour",
+      name: "Nom",
+      executionMode: {
+        label: "Mode d’exécution",
+        duration: "Durée",
+        repetitions: "Répétition",
+      },
+      duration: {
+        label: "Durée",
+        // Distinct de `executionMode.duration` (même mot, deux contrôles
+        // différents : l'onglet de mode et la ligne roulette) — un même
+        // `accessibilityLabel` sur les deux rendrait l'un inatteignable par
+        // requête d'accessibilité univoque.
+        accessibilityLabel: "Durée de l’exercice",
+      },
+      repetitionCount: {
+        label: "Nombre de répétitions",
+        accessibilityLabel: "Nombre de répétitions",
+      },
+      pauseSeconds: {
+        label: "Pause après Série",
+      },
+      seriesCount: {
+        label: "Nombre de Séries",
+        accessibilityLabel: "Nombre de Séries",
+      },
+      wheelPicker: {
+        minutesAccessibilityLabel: "Minutes",
+        secondsAccessibilityLabel: "Secondes",
+      },
+      instruction: {
+        label: "Consigne",
+      },
+      bodyZones: {
+        label: "Zones corporelles",
+        accessibilityLabel: "Zones corporelles",
+      },
+      validateAction: "Valider",
+      finishAction: "Terminer",
+      exitConfirmModal: {
+        title: "Abandonner les modifications ?",
+        message: "Les modifications apportées à cette activité seront perdues.",
+        continueEditing: "Continuer la modification",
+        abandon: "Abandonner",
+      },
     },
     calendar: {
       title: "Calendrier",

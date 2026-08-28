@@ -20,9 +20,18 @@ import {
 const NAME_MIN_LENGTH = 1;
 /** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Composition, T01-S07) — jamais dupliquée en dur. */
 export const NAME_MAX_LENGTH = 80;
-const INSTRUCTION_MAX_LENGTH = 1000;
+/** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Exercice, T01-S08) — jamais dupliquée en dur, même convention que `NAME_MAX_LENGTH`. */
+export const INSTRUCTION_MAX_LENGTH = 1000;
 const EXERCISE_DURATION_MIN_SECONDS = 1;
 const EXERCISE_DURATION_MAX_SECONDS = 5999;
+/** Bornes 1–99 (T01-S08, D-092), par cohérence avec le Tour (D-058). */
+const REPETITION_COUNT_MIN = 1;
+const REPETITION_COUNT_MAX = 99;
+const SERIES_COUNT_MIN = 1;
+const SERIES_COUNT_MAX = 99;
+/** Mêmes bornes que la durée d'Exercice (0–99 min 59 s, `08` l.925). */
+const PAUSE_SECONDS_MIN = 0;
+const PAUSE_SECONDS_MAX = 5999;
 
 function codePointLength(value: string): number {
   return Array.from(value).length;
@@ -88,6 +97,55 @@ export function validateExerciseDurationSeconds(raw: number): ValidationResult<n
         field,
         details: { min: EXERCISE_DURATION_MIN_SECONDS, max: EXERCISE_DURATION_MAX_SECONDS },
       },
+    ]);
+  }
+  return ok(raw);
+}
+
+/** Nombre de répétitions d'un Exercice en mode Répétitions (T01-S08). Entier de 1 à 99 (D-092). */
+export function validateRepetitionCount(raw: number): ValidationResult<number> {
+  const field: ValidationField = "exercise.repetitionCount";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < REPETITION_COUNT_MIN || raw > REPETITION_COUNT_MAX) {
+    return fail([
+      {
+        code: "OUT_OF_RANGE",
+        field,
+        details: { min: REPETITION_COUNT_MIN, max: REPETITION_COUNT_MAX },
+      },
+    ]);
+  }
+  return ok(raw);
+}
+
+/** Nombre de Séries d'un Exercice (T01-S08). Entier de 1 à 99 (D-092). */
+export function validateSeriesCount(raw: number): ValidationResult<number> {
+  const field: ValidationField = "exercise.seriesCount";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < SERIES_COUNT_MIN || raw > SERIES_COUNT_MAX) {
+    return fail([
+      { code: "OUT_OF_RANGE", field, details: { min: SERIES_COUNT_MIN, max: SERIES_COUNT_MAX } },
+    ]);
+  }
+  return ok(raw);
+}
+
+/** Pause après Série d'un Exercice (T01-S08). Entier de 0 à 5999 secondes (`08` l.925). */
+export function validatePauseSeconds(raw: number): ValidationResult<number> {
+  const field: ValidationField = "exercise.pauseSeconds";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < PAUSE_SECONDS_MIN || raw > PAUSE_SECONDS_MAX) {
+    return fail([
+      { code: "OUT_OF_RANGE", field, details: { min: PAUSE_SECONDS_MIN, max: PAUSE_SECONDS_MAX } },
     ]);
   }
   return ok(raw);

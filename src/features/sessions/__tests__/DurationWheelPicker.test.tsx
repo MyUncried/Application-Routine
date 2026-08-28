@@ -216,6 +216,51 @@ describe("DurationWheelPicker", () => {
     await Promise.resolve().then(() => Promise.resolve());
   });
 
+  describe("maxTotalSeconds prop (T01-S08, Exercise Durée/Pause — 5999s bound)", () => {
+    it("extends the minutes column bound to 99 and the total to 5999 when maxTotalSeconds=5999", () => {
+      const onChange = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={onChange}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+          maxTotalSeconds={5999}
+        />,
+      );
+
+      expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue).toEqual({
+        min: 0,
+        max: 99,
+        now: 0,
+      });
+
+      const minutes = screen.getByTestId("duration-wheel-minutes");
+      const seconds = screen.getByTestId("duration-wheel-seconds");
+      scrollTo(minutes, ITEM_HEIGHT * 999);
+      scrollTo(seconds, ITEM_HEIGHT * 999);
+
+      expect(onChange).toHaveBeenLastCalledWith(5999);
+    });
+
+    it("still defaults to the 3599s bound (minutes max 59) when maxTotalSeconds is omitted", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue).toEqual({
+        min: 0,
+        max: 59,
+        now: 0,
+      });
+    });
+  });
+
   it("initializes both columns from the supplied totalSeconds", () => {
     render(
       <DurationWheelPicker
