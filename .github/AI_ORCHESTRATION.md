@@ -275,6 +275,7 @@ Aucun contrôle obligatoire ne peut être supprimé pour économiser des crédit
 
 - Distinguer, uniquement lorsqu’elles sont réellement observables : la consommation incluse dans un abonnement ; la consommation d’API facturable ; les minutes de GitHub Actions ; les autres coûts facturables. Une catégorie non applicable ou non observable dans le contexte n’est pas estimée.
 - N’utiliser que des données mesurables ou fournies par une source fiable. Toute donnée de consommation ou de coût non réellement accessible est `NON VÉRIFIABLE`, sans estimation plausible inventée.
+- Les jauges de consommation exposées par l’environnement Claude Code — par exemple une jauge de session courte et une jauge hebdomadaire, avec pourcentage consommé et délai avant réinitialisation — constituent, lorsqu’elles sont effectivement visibles et accessibles, une source observable de quota et de consommation. Elles restent distinctes du coût monétaire et ne sont jamais converties en coût sans source tarifaire ou de facturation fiable et séparée. Leur visibilité dans une interface ne prouve pas un accès programmatique : à défaut d’accès démontré, elles restent une évidence rapportée par l’utilisateur. Les valeurs ponctuelles ainsi fournies ne sont jamais figées dans le protocole ; seules leur nature et leur méthode d’observation le sont.
 - Les signaux restent qualitatifs, sans seuil chiffré non fondé :
   - `OK` : consommation nominale, poursuivre normalement ;
   - `BAS` : marge en baisse signalée par une source fiable — regrouper les contrôles, éviter le travail non nécessaire ;
