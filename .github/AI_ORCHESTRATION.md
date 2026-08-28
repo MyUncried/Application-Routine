@@ -4,6 +4,10 @@ Ce fichier est le contrat permanent d’orchestration pour les tranches `Txx-Sxx
 
 V1.3 conserve les barrières de conformité de V1.2 et remplace la reconstruction exhaustive du contexte à chaque run par une orchestration incrémentale : contexte de travail persistant lorsqu’il est réellement disponible, checkpoint compact de secours, delta vérifié et lectures ciblées.
 
+## Évolutions V1.2 → V1.3
+
+V1.3 conserve explicitement les barrières V1.2 : revue indépendante ChatGPT avant implémentation, `PLAN_APPROVED` obligatoire, désignation d’un écrivain, contrôle du contexte Git, interdiction des réalignements Git spontanés, arrêt sur ambiguïté nécessaire et traçabilité GitHub. Elle ajoute `ORCHESTRATION_FAILURE`, la continuité de session lorsqu’elle est réellement disponible, checkpoint + delta vérifié, lecture ciblée, sortie structurée et performance comme exigence d’orchestration. Ces optimisations ne diminuent aucun contrôle de conformité.
+
 ## Principes directeurs
 
 1. **Sources de vérité ≠ contexte de travail.** GitHub, documentation, Figma et registre des décisions restent les sources de vérité. Une session ou un checkpoint IA accélère le travail mais ne remplace jamais ces sources.
@@ -54,13 +58,17 @@ Boucles :
 
 `PLAN_READY_FOR_REVIEW`, `IMPLEMENTATION_READY_FOR_REVIEW`, `CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED`, `USER_VALIDATION` et `ARBITRAGE` sont des barrières d’arrêt. `ORCHESTRATION_FAILURE` arrête le run technique mais appelle un diagnostic/reprise d’orchestration, pas une décision produit. `PLAN_CHANGES_REQUESTED`, `CHANGES_REQUESTED` et `RETEST_REQUIRED` autorisent uniquement le travail explicitement demandé. Le silence ne vaut jamais approbation.
 
+Une stagnation dont la cause démontrée est technique, contextuelle, liée au transport, aux permissions ou aux outils relève de `ORCHESTRATION_FAILURE`. Une stagnation de fond dans une boucle de revue, malgré des sources, un contexte et des outils corrects, peut relever de `USER_VALIDATION`.
+
+Après résolution d’un `ARBITRAGE` ou d’un `USER_VALIDATION`, la décision ou validation humaine est enregistrée dans l’Issue/PR, le contexte autorisé et son delta sont revalidés, puis la reprise s’effectue depuis le dernier état stable compatible ; aucune autorisation d’écriture antérieure n’est supposée encore valide.
+
 ## Barrière avant implémentation
 
 Claude Code ne modifie aucun fichier métier d’une nouvelle tranche avant publication explicite par ChatGPT de `PLAN_APPROVED` désignant le contexte autorisé, le mode et l’écrivain.
 
 Un `PLAN_APPROVED` autorise uniquement l’exécution du plan approuvé. Toute divergence de branche/HEAD, bascule de mode, concurrence ou changement substantiel du périmètre invalide l’autorisation jusqu’à revalidation appropriée.
 
-Après revue du plan, seuls trois verdicts fonctionnels sont valides : `PLAN_APPROVED`, `PLAN_CHANGES_REQUESTED`, `CLARIFICATION_REQUIRED`. Un échec technique de production ou transport du plan est `ORCHESTRATION_FAILURE`.
+Les verdicts fonctionnels normaux de `PLAN_REVIEW` sont `PLAN_APPROVED`, `PLAN_CHANGES_REQUESTED` et `CLARIFICATION_REQUIRED`. Les états exceptionnels `WORKTREE_LOCKED`, `ARBITRAGE`, `USER_VALIDATION` et `ORCHESTRATION_FAILURE` restent applicables pendant la revue si leurs conditions sont effectivement observées.
 
 ## Continuité de contexte par bloc `Txx`
 
@@ -85,7 +93,7 @@ Après chaque tranche clôturée, ou à une barrière stable pertinente, l’orc
 - points ouverts ;
 - identifiant de session Claude si la reprise est validée.
 
-Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité.
+Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité. Avant réutilisation, l’orchestration vérifie sa relation avec le HEAD et le delta courant ; un checkpoint incohérent, incomplet ou devenu obsolète n’est jamais accepté silencieusement.
 
 ### Delta de reprise
 
@@ -100,7 +108,7 @@ Pour une nouvelle tranche ou une reprise, l’orchestration prépare autant que 
 - sources documentaires/Figma réellement concernées ;
 - points ouverts.
 
-Les données GitHub brutes peuvent être conservées comme preuves d’audit, mais elles ne sont pas injectées intégralement dans le contexte Claude lorsque le paquet vérifié contient déjà l’information nécessaire.
+Les données GitHub brutes peuvent être conservées comme preuves d’audit, mais elles ne sont pas injectées intégralement dans le contexte Claude lorsque le paquet vérifié contient déjà l’information nécessaire. Toute donnée brute exceptionnellement transmise à une IA doit être structurée et segmentée ou paginée selon sa nature ; un blob massif monoligne ou non délimité est interdit.
 
 ## Contrôles déterministes avant appel IA
 
@@ -113,7 +121,10 @@ Lorsque le runner/orchestrateur dispose des capacités nécessaires, il contrôl
 - propreté ou état Git requis selon le mode ;
 - delta de commits/fichiers ;
 - intégrité des fichiers matérialisés ;
-- disponibilité des entrées obligatoires.
+- disponibilité des entrées obligatoires ;
+- disponibilité effective des outils et permissions indispensables à la phase.
+
+Si un outil ou une permission indispensable manque, le run IA n’est pas lancé tant que le défaut peut être détecté au préflight ; l’échec est corrigé ou classé `ORCHESTRATION_FAILURE`. Une capacité non indispensable est retirée du chemin nominal plutôt que testée répétitivement par Claude.
 
 Si ces contrôles échouent, ne pas consommer une session Claude pour les refaire. Corriger ou classer l’échec au niveau orchestration/Git.
 
@@ -134,7 +145,9 @@ Le chemin nominal fournit un paquet structuré et compact, par exemple :
 - `OPEN_POINTS`
 - `CHECKPOINT`
 
-Éviter toute duplication d’une même source dans le prompt et dans un fichier à relire. Les historiques bruts ne sont consultés que si une contradiction, une lacune de traçabilité ou une revue précise l’exige.
+`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Il atteste au minimum, lorsque ces éléments sont applicables et vérifiables : dépôt, Issue/PR, branche, HEAD/baseline ou checkpoint, relation du delta, intégrité des entrées matérialisées et résultat du préflight. Il doit distinguer explicitement les éléments `VERIFIED`, `FAILED` et `NON_VÉRIFIABLE`. Il n’atteste jamais un fait que le producteur n’a pas contrôlé. Son absence, son invalidité ou une contradiction avec le paquet/delta déclenche `ORCHESTRATION_FAILURE` ou une revalidation par l’orchestration ; Claude ne transforme jamais cette anomalie en conformité implicite.
+
+Éviter toute duplication d’une même source dans le prompt et dans un fichier à relire. Les historiques bruts ne sont consultés que si une contradiction, une lacune de traçabilité ou une revue précise l’exige, et restent soumis à la règle de structuration/segmentation des données brutes.
 
 ## Stratégie de lecture Claude
 
@@ -274,7 +287,7 @@ Distinguer consommation d’abonnement, API facturable, GitHub Actions et autres
 
 ## Implémentation après `PLAN_APPROVED`
 
-L’implémentation reprend de préférence la même continuité de contexte que le plan et reçoit le plan approuvé + le delta de revue, sans reconstruire l’analyse générale du bloc.
+Lorsque la reprise de session est techniquement disponible, validée et compatible avec le contexte autorisé, l’implémentation réutilise la continuité du plan et reçoit le plan approuvé + le delta de revue. Si cette continuité n’est pas disponible ou fiable, elle repart du checkpoint compact + delta vérifié, sans reconstruire l’analyse générale du bloc.
 
 Claude modifie uniquement le périmètre approuvé et ses dépendances indispensables démontrées. Une dépendance nouvellement découverte qui modifie substantiellement le plan déclenche une reprise de revue appropriée.
 
@@ -349,6 +362,10 @@ Lorsque GitHub permet un contrôle direct, ChatGPT vérifie directement les fich
 
 Le self-check Claude est une relecture directe de son travail, mais n’est pas une indépendance d’agent. La revue ChatGPT est le contrôle par un système distinct.
 
+## Vérification finale
+
+`FINAL_VERIFICATION` n’est pas une seconde reconstruction du contexte ni, par défaut, un nouvel appel Claude. Elle est réalisée par ChatGPT avec les contrôles GitHub déterministes disponibles après une revue d’implémentation conforme. Elle vérifie uniquement les preuves finales nécessaires : diff/commit final, critères d’acceptation, tests requis, branche et HEAD attendus, état Git final, contradictions ou points nécessaires encore ouverts et conformité des artefacts temporaires. Si une nouvelle analyse substantielle est nécessaire, revenir à l’état de revue approprié au lieu d’élargir silencieusement `FINAL_VERIFICATION`.
+
 ## Preuves Git
 
 Adapter la preuve à l’état réel :
@@ -378,7 +395,7 @@ Cette stratégie doit être réévaluée explicitement au démarrage de T02.
 
 ## Nettoyage et clôture
 
-`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; AC démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; self-check Claude conforme ; validation utilisateur si requise ; aucun point nécessaire à clarifier ; aucune contradiction connue résiduelle ; état Git final conforme et traçable.
+`READY_TO_CLOSE` exige simultanément : plan approuvé ; implémentation conforme ; AC démontrés ; tests requis réussis ou impossibilités documentées ; revue ChatGPT conforme ; `FINAL_VERIFICATION` conforme ; self-check Claude conforme ; validation utilisateur si requise ; aucun point nécessaire à clarifier ; aucune contradiction connue résiduelle ; état Git final conforme et traçable.
 
 Avant `CLOSED`, supprimer uniquement les artefacts temporaires dont le nettoyage est prévu et vérifier qu’aucun résidu ou commit involontaire n’a été intégré.
 
