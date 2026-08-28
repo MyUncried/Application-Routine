@@ -1,3 +1,3 @@
 # Test orchestration implementation
 
-Version 1 — chaîne d’implémentation.
+Version 2 — chaîne d’implémentation corrigée.
