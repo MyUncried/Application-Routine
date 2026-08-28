@@ -1,0 +1,157 @@
+name: Claude Plan T01-S09 Source Provided [TEMPORAIRE]
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+jobs:
+  plan-t01-s09:
+    if: >
+      github.event.issue.number == 17 &&
+      contains(github.event.comment.body, '@claude-plan-t01-s09-source-provided')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 0
+      - name: Run Claude plan
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Dépôt MyUncried/Application-Routine, tranche T01-S09.
+            L'Issue privée #17 ne doit pas être relue par réseau : son corps intégral,
+            revalidé depuis GitHub par l'orchestrateur, est fourni ci-dessous entre
+            SOURCE_ISSUE_BEGIN et SOURCE_ISSUE_END. Les commentaires de protocole
+            confirment seulement : premier run rejeté par plafond de tours, relance
+            autorisée à 40 tours, puis CLARIFICATION_REQUIRED purement technique faute
+            d'accès réseau ; cette source fournie lève cette barrière.
+            
+            SOURCE_ISSUE_BEGIN
+            ## IDENTIFICATION
+            
+            - ID : `T01-S09`
+            - Titre : Catégories de la séance et enregistrement final
+            - Bloc : `T01`
+            - Tranche précédente requise : `T01-S08` clôturée
+            - Dépôt : `MyUncried/Application-Routine`
+            - Branche de bloc autorisée : `feat/creation-seance-catalogue`
+            - Baseline / HEAD attendu : `c3af9990c8a35013bbad372c2eca2ce16d66d138`
+            - Mode initial : `CLOUD`, lecture seule pour la phase de plan
+            - Protocole : `.github/AI_ORCHESTRATION.md` V1.2
+            
+            ## OBJECTIF
+            
+            Achever le parcours de création T01 : une Composition valide ouvre l’écran `Catégories de la séance`, l’utilisateur peut sélectionner zéro, une ou plusieurs Catégories et créer une Catégorie en ligne, puis `Enregistrer la séance` persiste réellement et atomiquement la Séance complète issue de T01-S08, ses Catégories et les données associées, réinitialise le brouillon et revient au Catalogue actualisé.
+            
+            ## ÉTAT RÉEL ET DÉPENDANCES À ANALYSER
+            
+            La planification doit partir du code réel à la baseline, notamment :
+            
+            - `SessionDraft` contient les champs T01-S08 : mode Durée/Répétitions, durée ou répétitions, Séries, pause, consigne et zones corporelles ;
+            - `toCreateSessionInput()` et le contrat persistable restent partiellement hérités du modèle antérieur ;
+            - `SqliteSessionRepository.assertT01S01Row()` impose encore Durée, une Série, aucune pause et aucune répétition ;
+            - la migration actuelle ne contient pas encore le modèle Catégorie/association Séance–Catégorie ni la persistance des zones corporelles ;
+            - `SessionService.createSession()` existe, mais doit être réévalué au regard du nouvel agrégat complet ;
+            - la Composition T01-S08 ne persiste encore rien.
+            
+            Aucune donnée saisie et validée en T01-S08 ne doit être silencieusement perdue lors de l’enregistrement final.
+            
+            ## PÉRIMÈTRE À PLANIFIER
+            
+            - activation de `Continuer` uniquement pour une Composition valide ;
+            - navigation Composition → Catégories ;
+            - écran Catégories conforme aux sources visuelles et fonctionnelles ;
+            - tags multisélectionnables ; zéro catégorie autorisée ;
+            - création intégrée `+ Créer une catégorie` avec `Nom de la catégorie`, `Annuler`, `Ajouter` ;
+            - contrats Domaine/Repository/Service nécessaires ;
+            - migration additive nécessaire, sans modification destructive de `migration001.ts` ;
+            - persistance complète de l’Exercice T01-S08, y compris zones corporelles si les sources confirment que leur perte serait incorrecte ;
+            - persistance des catégories et associations ;
+            - transaction/atomicité de l’enregistrement final ;
+            - états loading/error et protection contre un double enregistrement ;
+            - reset du brouillon uniquement après succès ;
+            - retour au Catalogue et rechargement observable de la Séance créée ;
+            - tests Domaine, SQLite, Service, UI et parcours pertinents ;
+            - documentation technique ou fonctionnelle uniquement lorsqu’une dépendance réelle l’exige.
+            
+            ## HORS PÉRIMÈTRE
+            
+            - réouverture et modification bout en bout d’une Séance existante, réservées à T01-S10 ;
+            - suppression ou renommage des Catégories, sauf si une source impose explicitement ces opérations dans cet écran ;
+            - filtres/recherche par Catégorie ;
+            - archivage, planification, exécution et suivi ;
+            - plusieurs Exercices dans la tranche T01 ;
+            - nouvelle règle fonctionnelle non documentée ;
+            - automatisation complète de la machine d’états Txx/Txx-Sxx.
+            
+            ## SOURCES DE VÉRITÉ
+            
+            - documentation `docs/Specifications-fonctionnelles/06` à `12` ;
+            - registre des décisions, notamment D-015, D-016, D-092, D-093 et D-094 ;
+            - Figma et captures `categories-seance.png` / `categories-nouvelle-inline.png` ;
+            - code réel de T01-S01 à T01-S08 ;
+            - protocole V1.2.
+            
+            ## AMBIGUÏTÉS
+            
+            Claude doit rechercher les réponses dans les sources avant de conclure. Toute décision nécessaire non déterminable doit être publiée sous `CLARIFICATION_REQUIRED`, notamment si les sources ne fixent pas :
+            
+            - contraintes du nom d’une Catégorie (normalisation, longueur, unicité, casse) ;
+            - comportement en cas de doublon ;
+            - ordre d’affichage ;
+            - traitement UX exact d’un échec de sauvegarde ;
+            - frontière exacte de persistance des zones corporelles.
+            
+            Ne rien inventer.
+            
+            ## CRITÈRES D’ACCEPTATION INITIAUX
+            
+            - AC-01 — une Composition invalide ne peut pas être poursuivie ni persistée ;
+            - AC-02 — une Composition valide ouvre l’écran Catégories ;
+            - AC-03 — zéro, une ou plusieurs Catégories peuvent être sélectionnées ;
+            - AC-04 — une Catégorie peut être créée via le flux intégré documenté ;
+            - AC-05 — l’enregistrement persiste sans perte tous les champs fonctionnels supportés par T01-S08 ;
+            - AC-06 — Séance, Exercice, associations de Catégories et zones corporelles sont cohérents et atomiques ;
+            - AC-07 — un échec ne réinitialise pas le brouillon et ne produit pas de création partielle ;
+            - AC-08 — un succès réinitialise le brouillon, revient au Catalogue et y rend la Séance visible ;
+            - AC-09 — aucun comportement T01-S10 ou ultérieur n’est anticipé ;
+            - AC-10 — tests et contrôles obligatoires passent, avec validations natives non réalisables explicitement différées.
+            
+            ## ÉTAT INITIAL
+            
+            `SPEC_PREPARED`
+            
+            Première action Claude uniquement : revalidation GitHub et analyse/plan en lecture seule. Publier soit `PLAN_READY_FOR_REVIEW`, soit une barrière exacte (`CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED`, `ARBITRAGE`). Aucun fichier, workflow, commit, branche ou PR de code métier ne doit être créé avant un `[ChatGPT] PLAN_APPROVED` explicite désignant le couple mode + écrivain.
+            SOURCE_ISSUE_END
+            
+            Lis localement AI_ORCHESTRATION.md V1.2, toutes les instructions applicables,
+            la documentation 06 à 12, le registre des décisions, les références visuelles
+            Catégories et le code réel à la baseline indiquée. Phase strictement en lecture
+            seule : aucune modification de fichier, branche, commit, Issue ou PR.
+            Revalide branche/baseline et produis le plan complet, concret et vérifiable.
+            Résous uniquement par les sources. Une décision nécessaire absente déclenche
+            CLARIFICATION_REQUIRED. Le JSON "message" contient le commentaire GitHub
+            complet préfixé "[Claude Code]" et finit exactement par "STATUT : PLAN_READY_FOR_REVIEW",
+            "STATUT : CLARIFICATION_REQUIRED", "STATUT : WORKTREE_LOCKED" ou "STATUT : ARBITRAGE".
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*)"
+            --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
+      - name: Publish structured plan comment
+        if: always()
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE="CLOUD_PLAN_SOURCE_FAILURE_RUN-${{ github.run_id }} — structured_output absent ou invalide. STATUT : ARBITRAGE"
+          fi
+          printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
