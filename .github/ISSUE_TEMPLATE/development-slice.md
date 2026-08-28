@@ -12,6 +12,7 @@ assignees: []
 - Titre :
 - Tranche précédente requise :
 - Baseline / commit de départ :
+- Mode d’exécution : `LOCAL` | `CLOUD`
 
 ## OBJECTIF
 
@@ -65,3 +66,5 @@ Ce qui ne doit pas être anticipé.
 `SPEC_PREPARED`
 
 Claude Code doit produire un plan avec le statut `PLAN_READY_FOR_REVIEW`, le publier comme commentaire sur cette Issue, puis attendre un verdict ChatGPT (`PLAN_APPROVED` | `PLAN_CHANGES_REQUESTED` | `CLARIFICATION_REQUIRED`) publié dans cette même Issue et préfixé `[ChatGPT]`, avant toute implémentation.
+
+Le `[ChatGPT] PLAN_APPROVED` désigne explicitement le couple `mode + écrivain` autorisé pour l’exécution (voir `.github/AI_ORCHESTRATION.md` § Désignation de l’écrivain).
