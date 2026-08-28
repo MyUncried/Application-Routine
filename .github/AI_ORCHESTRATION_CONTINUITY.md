@@ -1,6 +1,6 @@
 # KODJO — continuité et reprise du protocole V1.3
 
-Ce document est une extension normative de `.github/AI_ORCHESTRATION.md`. Il précise les règles de reprise événementielle et de continuité ChatGPT sans modifier les barrières, sources de vérité ni autorisations d’écriture définies par le protocole principal. En cas de contradiction, aucune règle de ce document ne peut réduire une barrière du protocole principal ; le point doit être classé `À CLARIFIER` avant modification du comportement.
+Ce document est une extension normative de `.github/AI_ORCHESTRATION.md`. Il précise les règles de reprise événementielle et de continuité ChatGPT sans modifier les barrières, sources de vérité ni autorisations d’écriture définies par le protocole principal. En cas de contradiction, aucune règle de ce document ne peut réduire une barrière du protocole principal ; le point doit être classé `CLARIFICATION_REQUIRED` avant modification du comportement.
 
 ## Reprise événementielle
 
@@ -30,6 +30,10 @@ Lorsqu’un état `ARBITRAGE`, `USER_VALIDATION` ou `CLARIFICATION_REQUIRED` att
 
 Une réponse utilisateur ne constitue jamais à elle seule une autorisation d’écriture pour Claude. Les exigences `PLAN_APPROVED`, contexte autorisé, mode, écrivain et champs critiques `VERIFIED` restent applicables.
 
+### Priorité `ARBITRAGE` / `USER_VALIDATION`
+
+Lorsqu’une situation pourrait relever des deux états, la cause de fond détermine le classement. Si la décision attendue porte sur le produit, le périmètre, une règle fonctionnelle ou UX, le classement est `ARBITRAGE`. Si aucune décision produit n’est nécessaire et que l’intervention humaine porte uniquement sur la qualité ou la procédure de revue, un contrôle perceptif, un test physique ou une stagnation de revue démontrée, le classement est `USER_VALIDATION`. Un défaut technique reste `ORCHESTRATION_FAILURE`.
+
 ### Reprise automatique cible et mode transitoire
 
 La cible est une reprise événementielle automatique : lorsqu’un événement GitHub satisfait une barrière et désigne ChatGPT comme `next_actor`, l’orchestration doit pouvoir réactiver ChatGPT puis poursuivre la machine à états jusqu’à la prochaine barrière humaine réelle.
@@ -57,7 +61,7 @@ Ce prompt est volontairement indépendant du bloc et de la tranche. À sa récep
 3. lire l’état de reprise, `waiting_for`, `next_actor` et `required_input` ;
 4. récupérer le dernier checkpoint et le delta depuis ce checkpoint ;
 5. intégrer les arbitrages, validations et verdicts nouveaux pertinents ;
-6. vérifier branche, HEAD et conditions d’autorisation applicables ;
+6. revalider activement branche, HEAD, mode, écrivain, fraîcheur documentaire/décisionnelle et toutes les conditions d’autorisation applicables ;
 7. reprendre lui-même la phase ChatGPT ou déclencher Claude lorsque la machine à états et les barrières l’autorisent ;
 8. poursuivre jusqu’à la prochaine barrière nécessitant réellement l’utilisateur ou jusqu’à clôture conforme.
 
@@ -79,7 +83,7 @@ Le checkpoint destiné à permettre une reprise par une nouvelle conversation Ch
 - plan approuvé ou référence vérifiable vers celui-ci ;
 - décisions actives pertinentes et arbitrages reçus depuis le checkpoint ;
 - points ouverts et barrières encore actives ;
-- mode et écrivain autorisés lorsque cette information est encore valide ;
+- mode et écrivain, qui doivent être revalidés activement avant toute réutilisation ;
 - session Claude réutilisable uniquement si sa reprise a été validée ;
 - références des preuves et sources nécessaires, sans recopier l’historique brut.
 
@@ -117,3 +121,17 @@ La reprise d’une session Claude est uniquement une optimisation de contexte. E
 `WORKTREE_LOCKED` suit les mêmes exigences de reprise que les autres barrières stables. Avant `WORKTREE_RESUME_APPROVED`, l’état de reprise doit identifier, lorsque applicable, `waiting_for`, `next_actor`, `resume_from`, `reason` et `required_input`. Après résolution de la cause du verrou, ChatGPT revalide le contexte autorisé, le checkpoint, le delta, la branche, le HEAD et les champs critiques ; aucune autorisation d’écriture antérieure n’est supposée encore valide.
 
 `WORKTREE_RESUME_APPROVED` ne peut être publié qu’après cette revalidation. Il autorise uniquement la reprise depuis le dernier état stable compatible et ne vaut jamais nouveau `PLAN_APPROVED` si celui-ci a été invalidé par un changement de contexte ou de périmètre.
+
+## Checkpoints : remplacement, non accumulation
+
+Chaque nouveau checkpoint d’un bloc remplace le checkpoint opérationnel précédent de ce bloc. Il n’est jamais construit par accumulation de l’historique des checkpoints. Les anciens checkpoints peuvent rester accessibles comme preuves GitHub d’audit, mais ils ne sont pas concaténés au contexte de travail courant. Le checkpoint actif reste compact et ne contient que l’état nécessaire à la reprise.
+
+`CLARIFICATION_REQUIRED` est une barrière stable génératrice de checkpoint au même titre que `ARBITRAGE`, `USER_VALIDATION`, `WORKTREE_LOCKED` et `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles.
+
+## Contre-vérification de `SOURCE_ATTESTATION`
+
+Avant de publier `PLAN_APPROVED`, ChatGPT effectue un contrôle indépendant ponctuel de cohérence entre `SOURCE_ATTESTATION` et l’état GitHub/sources de vérité réellement accessibles, au minimum sur les champs critiques pertinents. Ce contrôle est un sondage ciblé et ne doit pas devenir une seconde reconstruction exhaustive du contexte. Toute divergence significative invalide l’attestation concernée et déclenche revalidation ou `ORCHESTRATION_FAILURE` avant toute entrée en `IMPLEMENTING`.
+
+## Parité V1.2
+
+V1.3 affirme conserver les barrières V1.2 explicitement listées dans le protocole principal. Cette affirmation ne constitue pas une preuve d’une comparaison ligne à ligne exhaustive avec le texte V1.2. Tant qu’un audit différentiel dédié n’a pas été exécuté avec V1.2 comme source, la parité textuelle exhaustive V1.2 reste `NON VÉRIFIABLE` ; cela n’autorise ni suppression ni affaiblissement d’une barrière connue.
