@@ -1,0 +1,27 @@
+name: Claude Cloud OAuth Isolation Test (Issue #15 - Etape A)
+on:
+  push:
+    branches:
+      - chore/cloud-trigger-test-v1
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  oauth-isolation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: >
+            Réponds uniquement par un court texte confirmant que tu as été
+            déclenché automatiquement par GitHub Actions via authentification
+            OAuth Claude Code (Issue #15, Étape A). N'effectue aucune lecture
+            ni modification de fichier, n'utilise aucun outil.
+          claude_args: |
+            --max-turns 1
+            --allowedTools ""
