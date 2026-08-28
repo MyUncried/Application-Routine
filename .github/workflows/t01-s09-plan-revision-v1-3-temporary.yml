@@ -1,0 +1,85 @@
+name: Claude T01-S09 Plan Revision V1.3 [TEMPORAIRE]
+run-name: T01-S09 — révision du plan V1.3
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+jobs:
+  revise-plan:
+    if: >
+      github.event.issue.number == 17 &&
+      contains(github.event.comment.body, '@claude-t01-s09-plan-revision-v1-3')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 0
+      - name: Preflight and compact GitHub context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kodjo-context
+          test "$(git branch --show-current)" = "feat/creation-seance-catalogue"
+          HEAD_SHA=$(git rev-parse HEAD)
+          git status --porcelain > /tmp/kodjo-context/git-status.txt
+          test ! -s /tmp/kodjo-context/git-status.txt
+          gh api repos/${{ github.repository }}/issues/17 > /tmp/kodjo-context/issue.json
+          jq -e '.number == 17 and .state == "open"' /tmp/kodjo-context/issue.json >/dev/null
+          gh api --paginate repos/${{ github.repository }}/issues/17/comments \
+            | jq '[.[] | select(.id == 5457279488 or .id == 5458067685 or .id == 5458084991) | {id, user:.user.login, body}]' \
+            > /tmp/kodjo-context/review-delta.json
+          jq -e 'length == 3' /tmp/kodjo-context/review-delta.json >/dev/null
+          printf 'repository=%s\nissue=17\nbranch=%s\nhead=%s\nmode=CLOUD_READ_ONLY\nwriter=NONE\n' \
+            "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
+          sha256sum /tmp/kodjo-context/issue.json /tmp/kodjo-context/review-delta.json > /tmp/kodjo-context/SHA256SUMS
+      - name: Run Claude plan revision
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            KODJO — T01-S09 — révision du plan selon V1.3. Phase strictement en lecture seule.
+
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` :
+            - `SOURCE_ATTESTATION` : dépôt, Issue, branche, HEAD, mode et écrivain ;
+            - `issue.json` : Issue #17 courante ;
+            - `review-delta.json` : uniquement le plan précédent 5457279488, la revue ChatGPT 5458067685 et l'ordre de reprise 5458084991 ;
+            - `SHA256SUMS` : empreintes calculées par le transport.
+            Lis ces fichiers. Ne tente aucun accès réseau et ne refais pas les contrôles GitHub déterministes.
+
+            Lis `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md` V1.3, puis uniquement les sources documentaires, visuelles et de code réellement nécessaires pour répondre aux corrections de revue et produire un plan complet révisé T01-S09. Étends la lecture seulement sur dépendance ou contradiction concrète.
+
+            Exigences de la revue ChatGPT :
+            1. ne pas choisir silencieusement la sensibilité à la casse de l'unicité des catégories ; source d'abord, sinon CLARIFICATION_REQUIRED si nécessaire ;
+            2. ne pas imposer l'ordre de création des catégories personnalisées sans source ; s'il n'est pas contractuel, le laisser non contractuel ;
+            3. ne pas inventer le traitement visuel exact doublon/échec ; réutiliser un pattern seulement s'il est vérifié comme règle transverse applicable ; sinon clarification si nécessaire à AC-07 ;
+            4. ne pas auto-sélectionner une nouvelle catégorie sans source ; source d'abord, sinon clarification si nécessaire ;
+            5. exclure les badges Catégorie du Catalogue sauf exigence démontrée de la tranche ;
+            6. aucune valeur de CATEGORY_NAME_MAX_LENGTH ni décision D-097 sans mesure reproductible et traçable ; si impossible et nécessaire, clarification ;
+            7. produire le plan complet révisé ; si une décision nécessaire reste indéterminable, retourner uniquement les arbitrages réellement nécessaires.
+
+            Ne modifie aucun fichier, branche, commit, Issue ou PR. Aucun fichier métier ne doit être écrit. Ne lance pas de sous-agent.
+
+            Le champ JSON `message` doit contenir le commentaire complet, préfixé `[Claude Code] T01-S09 — PLAN RÉVISÉ V1.3`, et finir exactement par `STATUT : PLAN_READY_FOR_REVIEW` ou `STATUT : CLARIFICATION_REQUIRED` ou `STATUT : WORKTREE_LOCKED` ou `STATUT : ORCHESTRATION_FAILURE`.
+          claude_args: |
+            --max-turns 80
+            --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(jq:*),Bash(cat:*)"
+            --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
+      - name: Publish result
+        if: always()
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE="[Claude Code] T01-S09 — ORCHESTRATION_FAILURE run ${{ github.run_id }} : structured_output absent ou invalide. Aucune décision produit déduite. STATUT : ORCHESTRATION_FAILURE"
+          fi
+          printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
