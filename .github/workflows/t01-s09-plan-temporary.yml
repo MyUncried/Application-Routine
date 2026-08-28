@@ -1,0 +1,65 @@
+name: Claude Plan T01-S09 (Issue #17) [TEMPORAIRE]
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+jobs:
+  plan-t01-s09:
+    if: >
+      github.event.issue.number == 17 &&
+      contains(github.event.comment.body, '@claude-plan-t01-s09')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 0
+
+      - name: Run Claude plan (automation mode, read-only)
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Dépôt MyUncried/Application-Routine, Issue #17, tranche T01-S09.
+            Lis intégralement l'Issue #17, .github/AI_ORCHESTRATION.md V1.2,
+            les instructions applicables, la documentation 06 à 12, le registre
+            des décisions, les captures Figma pertinentes et le code réel à la
+            baseline c3af9990c8a35013bbad372c2eca2ce16d66d138.
+            Travaille strictement en lecture seule. Ne modifie aucun fichier,
+            aucune branche, aucun commit, aucune Issue et aucune PR.
+            Revalide d'abord la branche et la baseline. Produis ensuite un plan
+            d'implémentation complet, concret et vérifiable pour T01-S09.
+            Résous les questions par les sources ; n'invente aucune décision.
+            Si une décision nécessaire reste indéterminable, retourne une
+            barrière CLARIFICATION_REQUIRED au lieu d'un plan approuvable.
+            Le champ JSON "message" doit contenir le commentaire GitHub complet,
+            commençant par "[Claude Code]" et se terminant par l'un des statuts :
+            "STATUT : PLAN_READY_FOR_REVIEW" ou
+            "STATUT : CLARIFICATION_REQUIRED" ou
+            "STATUT : WORKTREE_LOCKED" ou "STATUT : ARBITRAGE".
+            N'inclus aucun secret ni sortie technique sensible.
+          claude_args: |
+            --max-turns 25
+            --allowedTools "Read,Grep,Glob,Bash(git status:*),Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git ls-tree:*),Bash(git rev-parse:*)"
+            --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
+
+      - name: Publish structured plan comment
+        if: always()
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
+          if [ -z "$MESSAGE" ]; then
+            MESSAGE="CLOUD_PLAN_FAILURE_RUN-${{ github.run_id }} — structured_output absent ou invalide. STATUT : ARBITRAGE"
+          fi
+          printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
