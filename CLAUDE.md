@@ -1,2 +1,3 @@
 @docs/AGENTS.md
 @.github/AI_ORCHESTRATION.md
+@.github/AI_ORCHESTRATION_CONTINUITY.md
