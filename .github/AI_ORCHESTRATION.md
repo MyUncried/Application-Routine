@@ -93,7 +93,7 @@ Une seule session ou un seul agent peut être **écrivain** dans un worktree à 
 
 ### Verrou d’écrivain local
 
-Avant la première opération locale susceptible de modifier le worktree, l’index, `HEAD` ou les références Git locales, la session écrivain doit acquérir un verrou local non commité sous `.git/ai-orchestration-writer.lock/`. La création du répertoire de verrou doit être atomique ; s’il existe déjà ou si sa création échoue, ne rien supprimer ni écraser : publier `WORKTREE_LOCKED` et s’arrêter.
+Avant la première opération locale susceptible de modifier le worktree, l’index, `HEAD` ou les références Git locales, la session écrivain doit acquérir un verrou local non commité. Son emplacement est résolu par `git rev-parse --git-path ai-orchestration-writer.lock` afin de fonctionner aussi avec les worktrees liés ; le verrou est un répertoire créé atomiquement à ce chemin. S’il existe déjà ou si sa création échoue, ne rien supprimer ni écraser : publier `WORKTREE_LOCKED` et s’arrêter.
 
 Le verrou contient au minimum un fichier de métadonnées indiquant la tâche, la branche prévue, l’identifiant ou libellé de session disponible et l’horodatage de prise du verrou. Il ne constitue pas à lui seul une preuve qu’aucun autre programme n’écrit, mais il fournit le mécanisme de revendication/découverte exigé entre sessions qui respectent ce protocole.
 
@@ -109,8 +109,8 @@ Avant d’acquérir le verrou puis immédiatement après son acquisition, contr�
 - relation avec `origin` selon le contexte autorisé ;
 - `git status --porcelain` stable sur deux lectures consécutives séparées par un court intervalle ;
 - `git worktree list` cohérent avec les worktrees attendus ;
-- absence de `.git/index.lock` ;
-- absence d’un autre `.git/ai-orchestration-writer.lock/` non détenu par la session courante ;
+- absence de verrou d’index au chemin résolu par `git rev-parse --git-path index.lock` ;
+- absence d’un verrou d’écrivain non détenu par la session courante au chemin résolu par `git rev-parse --git-path ai-orchestration-writer.lock` ;
 - absence de changement Git ou de fichier observé pendant cette fenêtre de diagnostic.
 
 Si un de ces signaux est contradictoire, change entre les deux lectures ou indique une activité concurrente : `WORKTREE_LOCKED` et arrêt. Si tous sont stables, le contrôle est considéré suffisant pour poursuivre **sans prétendre démontrer l’absence absolue de concurrence**.
