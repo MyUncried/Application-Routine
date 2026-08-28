@@ -1,0 +1,91 @@
+name: Patch AI Orchestration V1.3 [TEMPORAIRE]
+run-name: Correction ciblée du protocole d'orchestration IA — V1.3
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.issue.number == 17 && contains(github.event.comment.body, '@patch-ai-orchestration-v1-3')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply targeted normative corrections
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('.github/AI_ORCHESTRATION.md')
+          s = p.read_text(encoding='utf-8')
+
+          replacements = [
+            (
+              "ainsi qu’avant un arrêt `ARBITRAGE`, `USER_VALIDATION`, `WORKTREE_LOCKED` ou `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles.",
+              "ainsi qu’avant un arrêt `ARBITRAGE`, `USER_VALIDATION`, `CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED` ou `ORCHESTRATION_FAILURE` lorsque les informations nécessaires sont disponibles."
+            ),
+            (
+              "Le checkpoint n’est pas un nouvel historique narratif. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité.",
+              "Le checkpoint n’est pas un nouvel historique narratif. Chaque nouveau checkpoint remplace le checkpoint opérationnel précédent du bloc concerné ; il n’est pas cumulatif. Les anciens checkpoints peuvent rester disponibles comme preuves d’audit mais ne sont jamais concaténés au contexte courant. Il doit rester minimal, structuré et reconstructible depuis les sources de vérité."
+            ),
+            (
+              "Avant toute entrée en `IMPLEMENTING`, les champs critiques d’autorisation — dépôt, branche, HEAD/baseline autorisé, relation du delta/checkpoint, mode et écrivain — doivent être `VERIFIED`.",
+              "Avant toute entrée en `IMPLEMENTING`, les champs critiques d’autorisation — dépôt, branche, HEAD/baseline autorisé, relation du delta/checkpoint, fraîcheur des sources documentaires/décisionnelles pertinentes, mode et écrivain — doivent être `VERIFIED`."
+            ),
+            (
+              "Une stagnation dont la cause démontrée est technique, contextuelle, liée au transport, aux permissions ou aux outils relève de `ORCHESTRATION_FAILURE`. Une stagnation de fond dans une boucle de revue, malgré des sources, un contexte et des outils corrects, peut relever de `USER_VALIDATION`.",
+              "Une stagnation dont la cause démontrée est technique, contextuelle, liée au transport, aux permissions ou aux outils relève de `ORCHESTRATION_FAILURE`. Une stagnation de fond dans une boucle de revue, malgré des sources, un contexte et des outils corrects, peut relever de `USER_VALIDATION`. Si le contenu de la stagnation exige une décision produit, fonctionnelle, UX ou de périmètre, `ARBITRAGE` prévaut ; `USER_VALIDATION` est réservé aux contrôles humains ne nécessitant pas de décision produit."
+            ),
+            (
+              "`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles.",
+              "`SOURCE_ATTESTATION` est produit par GitHub / l’orchestration après les contrôles déterministes disponibles. Avant publication de `PLAN_APPROVED`, ChatGPT effectue un contrôle indépendant ponctuel de cohérence entre cette attestation et l’état GitHub / les sources de vérité réellement accessibles, au minimum sur les champs critiques pertinents. Ce sondage reste ciblé et ne devient jamais une seconde reconstruction exhaustive du contexte ; toute divergence significative déclenche revalidation ou `ORCHESTRATION_FAILURE` avant `IMPLEMENTING`."
+            ),
+          ]
+
+          for old, new in replacements:
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'Replacement anchor count={count}: {old[:100]}')
+              s = s.replace(old, new, 1)
+
+          marker = "V1.3 conserve les barrières de conformité de V1.2 et remplace"
+          if marker not in s:
+              raise SystemExit('Header anchor missing')
+          note = "\nLa parité textuelle exhaustive avec V1.2 reste `NON VÉRIFIABLE` tant qu’un audit différentiel dédié n’a pas comparé les deux textes ; cette limite de preuve n’autorise aucune suppression ni aucun affaiblissement d’une barrière connue.\n"
+          if note.strip() not in s:
+              pos = s.index("\n\n## Évolutions V1.2 → V1.3")
+              s = s[:pos] + note + s[pos:]
+
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+      - name: Verify targeted corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '`CLARIFICATION_REQUIRED`, `WORKTREE_LOCKED`' .github/AI_ORCHESTRATION.md
+          grep -Fq 'Chaque nouveau checkpoint remplace le checkpoint opérationnel précédent' .github/AI_ORCHESTRATION.md
+          grep -Fq 'fraîcheur des sources documentaires/décisionnelles pertinentes, mode et écrivain' .github/AI_ORCHESTRATION.md
+          grep -Fq 'ChatGPT effectue un contrôle indépendant ponctuel de cohérence' .github/AI_ORCHESTRATION.md
+          grep -Fq '`ARBITRAGE` prévaut' .github/AI_ORCHESTRATION.md
+          grep -Fq 'parité textuelle exhaustive avec V1.2 reste `NON VÉRIFIABLE`' .github/AI_ORCHESTRATION.md
+          git diff --check
+          git diff -- .github/AI_ORCHESTRATION.md
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/AI_ORCHESTRATION.md
+          git commit -m 'docs: close remaining V1.3 audit gaps'
+          git push origin HEAD:feat/creation-seance-catalogue
