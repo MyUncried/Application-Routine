@@ -1,5 +1,5 @@
 name: Claude T01-S09 Implementation V1.3 [TEMPORAIRE]
-run-name: T01-S09 — implementation V1.3
+run-name: T01-S09 — implementation V1.3 — Phase A
 
 on:
   issue_comment:
@@ -18,7 +18,7 @@ jobs:
   implement:
     if: >
       github.event.issue.number == 17 &&
-      contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3')
+      contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3-phase-a')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -57,17 +57,17 @@ jobs:
           jq -r '.body' /tmp/kodjo-context/source-attestation.json | grep -Fq '[ChatGPT] SOURCE_ATTESTATION' || fail "SOURCE_ATTESTATION marker missing"
           jq -r '.body' /tmp/kodjo-context/authorization-dry-run.json | grep -Fq 'decision=READY_FOR_AUTHORIZATION_REVIEW' || fail "authorization dry-run verdict missing"
           jq -r '.body' /tmp/kodjo-context/authorization-dry-run.json | grep -Fq 'implementation_authorized=false' || fail "dry-run safety marker missing"
-          jq -r '.body' /tmp/kodjo-context/implementation-authorization.json | grep -Fq '[ChatGPT] IMPLEMENTATION_AUTHORIZED — T01-S09' || fail "implementation authorization marker missing"
+          jq -r '.body' /tmp/kodjo-context/implementation-authorization.json | grep -Fq '[ChatGPT] IMPLEMENTATION_AUTHORIZED — T01-S09 — PHASE_A' || fail "phase A implementation authorization marker missing"
 
           jq -r '.body' /tmp/kodjo-context/checkpoint.json | sed -n '/```json/,/```/p' | sed '1d;$d' > /tmp/kodjo-context/checkpoint-state.json
-          jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .state == "IMPLEMENTING" and .implementation_authorized == true and .mode == "CLOUD_WRITE" and .writer == "CLAUDE_CODE" and .authorized_head == "34b3e53879d0ac20a3057da932df6b948d6030c9" and .plan_comment_id == 5460956149' /tmp/kodjo-context/checkpoint-state.json >/dev/null || fail "checkpoint authorization fields invalid"
+          jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .state == "IMPLEMENTING" and .implementation_authorized == true and .mode == "CLOUD_WRITE" and .writer == "CLAUDE_CODE" and .implementation_phase == "A" and .authorized_head == "34b3e53879d0ac20a3057da932df6b948d6030c9" and .plan_comment_id == 5460956149' /tmp/kodjo-context/checkpoint-state.json >/dev/null || fail "phase A checkpoint authorization fields invalid"
 
-          printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\nplan_comment_id=5460956149\n' \
+          printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\nimplementation_phase=A\nplan_comment_id=5460956149\n' \
             "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
           sha256sum /tmp/kodjo-context/*.json > /tmp/kodjo-context/SHA256SUMS
-          echo "PREFLIGHT_OK: repository, branch, HEAD, sources, mode, writer and plan traceability verified"
+          echo "PREFLIGHT_OK: phase A repository, branch, HEAD, sources, mode, writer and plan traceability verified"
 
-      - name: Run Claude implementation
+      - name: Run Claude implementation phase A
         id: claude
         continue-on-error: true
         uses: anthropics/claude-code-action@v1
@@ -75,19 +75,27 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
-            KODJO — T01-S09 — IMPLEMENTATION V1.3.
+            KODJO — T01-S09 — IMPLEMENTATION V1.3 — PHASE A UNIQUEMENT.
 
-            Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode autorisé est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
+            Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
 
-            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé (commentaire réel `5460956149`), l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, l'autorisation d'implémentation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
+            Lis le paquet vérifié dans `/tmp/kodjo-context`, notamment le plan final approuvé `5460956149`, son approbation, le SOURCE_ATTESTATION et le checkpoint actif. Lis uniquement les fichiers du dépôt nécessaires à cette phase. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déjà matérialisés.
 
-            Implémente strictement le plan approuvé T01-S09 et uniquement son périmètre. Les décisions les plus récentes de l'Issue supersèdent les formulations antérieures incompatibles. En particulier : catalogue initial = Renforcement, Cardio, Mobilité, Étirements, Équilibre, Coordination, Récupération, Respiration, Méditation, Autre ; unicité après normalisation des espaces sans distinction de casse ni accents/diacritiques ; affichage conservant casse et accents saisis ; aucun fuzzy matching/autocorrection/suggestion dans le MVP.
+            Le plan produit T01-S09 reste inchangé, mais cette exécution est volontairement bornée à la PHASE A : fondations Catégorie + migration/seed/repository + tests associés.
 
-            Exécute les tests pertinents existants et ajoute/ajuste uniquement les tests nécessaires au plan. Ne modifie pas les workflows d'orchestration, `AI_ORCHESTRATION.md`, `AI_ORCHESTRATION_CONTINUITY.md` ni `CLAUDE.md`. Ne crée pas de décision produit nouvelle. Si une ambiguïté réellement nécessaire apparaît, arrête-toi avec `CLARIFICATION_REQUIRED`. Si le worktree/contexte n'est plus conforme, `WORKTREE_LOCKED`. Si un défaut technique d'orchestration empêche le travail, `ORCHESTRATION_FAILURE`.
+            Périmètre Phase A autorisé :
+            - créer `src/domain/categories/Category.ts`, `errors.ts`, `validation.ts`, `defaults.ts`, `CategoryRepository.ts`, `index.ts` et les tests de validation nécessaires sous `src/domain/categories/__tests__/` ;
+            - créer `src/infrastructure/database/migrations/migration002.ts` ; ne jamais modifier `migration001.ts` ;
+            - créer `src/infrastructure/database/repositories/SqliteCategoryRepository.ts` et son test `src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts` ;
+            - modifier uniquement si nécessaire à cette fondation `src/infrastructure/database/constants.ts`, `migrateDatabase.ts`, `types/DatabaseRows.ts` et `src/infrastructure/database/__tests__/migrateDatabase.test.ts` ;
+            - implémenter le seed idempotent des 10 catégories validées et la clé d'unicité insensible à la casse et aux accents/diacritiques, tout en conservant la casse et les accents du nom visible ; aucun fuzzy matching/autocorrection/suggestion ;
+            - exécuter les tests ciblés de cette phase et les tests existants directement affectés.
 
-            Ne committe pas et ne pousse pas toi-même : le transport GitHub le fera après validation de ton résultat. Laisse les changements métier et tests dans le worktree.
+            INTERDIT dans cette phase : domaine/persistance Séance, services Catégorie, UI/navigation, Catalogue, documentation, workflows d'orchestration et `CLAUDE.md`. Si une dépendance hors de cette liste est réellement indispensable, n'élargis pas le périmètre : retourne `ORCHESTRATION_FAILURE` avec la dépendance constatée.
 
-            Le champ JSON `message` doit résumer précisément les fichiers modifiés, les tests exécutés et leur résultat, puis finir exactement par l'un de : `STATUT : IMPLEMENTATION_READY_FOR_REVIEW`, `STATUT : CLARIFICATION_REQUIRED`, `STATUT : WORKTREE_LOCKED`, `STATUT : ORCHESTRATION_FAILURE`.
+            Ne committe pas et ne pousse pas. Le transport GitHub le fera après validation mécanique du résultat.
+
+            Le champ JSON `message` doit résumer les fichiers modifiés et tests exécutés, puis finir exactement par l'un de : `STATUT : IMPLEMENTATION_CHECKPOINT_READY_FOR_REVIEW — PHASE_A`, `STATUT : CLARIFICATION_REQUIRED`, `STATUT : WORKTREE_LOCKED`, `STATUT : ORCHESTRATION_FAILURE`.
           claude_args: |
             --max-turns 120
             --add-dir /tmp/kodjo-context
@@ -123,7 +131,7 @@ jobs:
           git status --porcelain > /tmp/kodjo-diagnostics/git-status.txt
           git status --porcelain | sed 's/^...//' | sort -u > /tmp/kodjo-diagnostics/changed-files.txt
           git diff --stat > /tmp/kodjo-diagnostics/diff-stat.txt
-          printf 'run_id=%s\nclaude_outcome=%s\nhead=%s\n' \
+          printf 'run_id=%s\nphase=A\nclaude_outcome=%s\nhead=%s\n' \
             "${{ github.run_id }}" "$CLAUDE_OUTCOME" "$(git rev-parse HEAD)" > /tmp/kodjo-diagnostics/run-context.txt
 
           if [ "$CLAUDE_OUTCOME" != "success" ]; then
@@ -133,7 +141,7 @@ jobs:
             COST=$(jq -r '.total_cost_usd // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
             DENIALS=$(jq -r '.permission_denials_count // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
             {
-              printf '[Claude Code] T01-S09 — ORCHESTRATION_FAILURE run %s\n\n' "${{ github.run_id }}"
+              printf '[Claude Code] T01-S09 — PHASE A — ORCHESTRATION_FAILURE run %s\n\n' "${{ github.run_id }}"
               printf 'Diagnostic persistant capturé avant destruction du runner. Aucun push métier autorisé.\n\n'
               printf -- '- subtype=%s\n- num_turns=%s\n- duration_ms=%s\n- total_cost_usd=%s\n- permission_denials_count=%s\n' "$SUBTYPE" "$TURNS" "$DURATION" "$COST" "$DENIALS"
               printf -- '- changed_files_count=%s\n' "$(wc -l < /tmp/kodjo-diagnostics/changed-files.txt | tr -d ' ')"
@@ -145,12 +153,12 @@ jobs:
         if: always() && steps.claude.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: t01-s09-claude-diagnostics-${{ github.run_id }}
+          name: t01-s09-phase-a-claude-diagnostics-${{ github.run_id }}
           path: /tmp/kodjo-diagnostics/
           if-no-files-found: error
           retention-days: 7
 
-      - name: Validate result, commit and push authorized implementation
+      - name: Validate and persist phase A checkpoint
         if: steps.claude.outcome == 'success'
         id: publish
         env:
@@ -160,11 +168,11 @@ jobs:
           set -euo pipefail
           MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
           if [ -z "$MESSAGE" ]; then
-            gh issue comment 17 --repo "${{ github.repository }}" --body "[Claude Code] T01-S09 — ORCHESTRATION_FAILURE run ${{ github.run_id }} : structured_output absent ou invalide. Aucun push métier effectué. STATUT : ORCHESTRATION_FAILURE"
+            gh issue comment 17 --repo "${{ github.repository }}" --body "[Claude Code] T01-S09 — PHASE A — ORCHESTRATION_FAILURE run ${{ github.run_id }} : structured_output absent ou invalide. Aucun push métier effectué. STATUT : ORCHESTRATION_FAILURE"
             exit 1
           fi
 
-          if ! printf '%s' "$MESSAGE" | grep -q 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW$'; then
+          if ! printf '%s' "$MESSAGE" | grep -q 'STATUT : IMPLEMENTATION_CHECKPOINT_READY_FOR_REVIEW — PHASE_A$'; then
             printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
             exit 1
           fi
@@ -172,21 +180,26 @@ jobs:
           test "$(git rev-parse HEAD)" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
           test -n "$(git status --porcelain)"
           CHANGED=$(git status --porcelain | sed 's/^...//' | sort -u)
-          if printf '%s\n' "$CHANGED" | grep -Eq '^\.github/|^CLAUDE\.md$'; then
-            gh issue comment 17 --repo "${{ github.repository }}" --body "[Claude Code] T01-S09 — ORCHESTRATION_FAILURE : modification d'un fichier d'orchestration interdite pendant l'implémentation. Aucun push effectué. STATUT : ORCHESTRATION_FAILURE"
+          BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(src/domain/categories/|src/infrastructure/database/migrations/migration002\.ts$|src/infrastructure/database/repositories/SqliteCategoryRepository\.ts$|src/infrastructure/database/__tests__/SqliteCategoryRepository\.test\.ts$|src/infrastructure/database/__tests__/migrateDatabase\.test\.ts$|src/infrastructure/database/constants\.ts$|src/infrastructure/database/migrateDatabase\.ts$|src/infrastructure/database/types/DatabaseRows\.ts$)' || true)
+          if [ -n "$BAD" ]; then
+            {
+              printf '[Claude Code] T01-S09 — PHASE A — ORCHESTRATION_FAILURE : fichiers hors périmètre détectés. Aucun push effectué.\n\n'
+              printf '%s\n' "$BAD"
+              printf '\nSTATUT : ORCHESTRATION_FAILURE\n'
+            } | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
             exit 1
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "feat: implement T01-S09 session categories"
+          git commit -m "feat: implement T01-S09 phase A category foundation"
           NEW_HEAD=$(git rev-parse HEAD)
           git push origin HEAD:feat/creation-seance-catalogue
 
           {
             printf '%s\n\n' "$MESSAGE"
-            printf 'Transport GitHub : commit `%s` poussé sur `feat/creation-seance-catalogue`.\n' "$NEW_HEAD"
+            printf 'Transport GitHub : checkpoint technique Phase A commit `%s` poussé sur `feat/creation-seance-catalogue`. L’état protocolaire global reste IMPLEMENTING ; ceci ne vaut pas IMPLEMENTATION_READY_FOR_REVIEW final.\n' "$NEW_HEAD"
           } | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
 
           echo "new_head=$NEW_HEAD" >> "$GITHUB_OUTPUT"
@@ -194,5 +207,5 @@ jobs:
       - name: Fail job after preserved Claude failure
         if: steps.claude.outcome == 'failure'
         run: |
-          echo "Claude implementation failed; sanitized diagnostics were persisted."
+          echo "Claude phase A failed; sanitized diagnostics were persisted."
           exit 1
