@@ -1,0 +1,189 @@
+name: KODJO V1.3 Integrated T1-T9 Test
+
+run-name: KODJO T1-T9 — ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  id-token: write
+
+env:
+  TEST_ID: KODJO-V13-T1T9-20260829-01
+  TEST_PR: 19
+  TEST_BRANCH: orchestration/v1-3-integrated-t1-t9
+
+jobs:
+  claude-transition:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.number == 19 &&
+      github.event.comment.user.login == 'MyUncried' &&
+      contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01') &&
+      (contains(github.event.comment.body, '[KODJO_T1T9_START]') ||
+       contains(github.event.comment.body, '[KODJO_T1T9_REVIEW_CHANGES_REQUESTED]') ||
+       contains(github.event.comment.body, '[KODJO_T1T9_REVIEW_RETEST_REQUIRED]') ||
+       contains(github.event.comment.body, '[KODJO_T1T9_DECISION_MID]') ||
+       contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP3]'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify and validate causal event
+        id: classify
+        env:
+          SOURCE_BODY: ${{ github.event.comment.body }}
+          SOURCE_COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          case "$SOURCE_BODY" in
+            *"[KODJO_T1T9_START]"*)
+              stage="INITIAL"
+              transition="T1"
+              required_choice=""
+              ;;
+            *"[KODJO_T1T9_REVIEW_CHANGES_REQUESTED]"*)
+              stage="CORRECTION"
+              transition="T3"
+              required_choice=""
+              ;;
+            *"[KODJO_T1T9_REVIEW_RETEST_REQUIRED]"*)
+              stage="RETEST"
+              transition="T5"
+              required_choice=""
+              ;;
+            *"[KODJO_T1T9_DECISION_MID]"*)
+              stage="MID_RESUME"
+              transition="T6"
+              required_choice="A"
+              ;;
+            *"[KODJO_T1T9_DECISION_LOOP3]"*)
+              stage="FINAL"
+              transition="T9"
+              required_choice="A"
+              ;;
+            *)
+              exit 1
+              ;;
+          esac
+          if [ -n "$required_choice" ]; then
+            printf '%s' "$SOURCE_BODY" | grep -Fxq "choice=$required_choice"
+          fi
+          {
+            echo "stage=$stage"
+            echo "transition=$transition"
+            echo "source_comment_id=$SOURCE_COMMENT_ID"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TEST_BRANCH }}
+          fetch-depth: 0
+
+      - name: Verify isolated technical scope and source attestation
+        run: |
+          set -euo pipefail
+          test -f .github/orchestration/KODJO_V13_T1_T9_TEST.md
+          test -z "$(git status --porcelain)"
+          git diff --name-only origin/main...HEAD | grep -Fxq '.github/orchestration/KODJO_V13_T1_T9_TEST.md'
+          test "$(git diff --name-only origin/main...HEAD | wc -l)" -eq 1
+
+      - name: Call real Claude Cloud
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            KODJO V1.3 integrated orchestration test.
+            test_id=${{ env.TEST_ID }}
+            transition_id=${{ steps.classify.outputs.transition }}
+            stage=${{ steps.classify.outputs.stage }}
+            source_comment_id=${{ steps.classify.outputs.source_comment_id }}
+            Strictly read-only. Read only .github/orchestration/KODJO_V13_T1_T9_TEST.md.
+            Never edit, commit, push, or access business files.
+            Return one JSON object with fields:
+            status, test_id, transition_id, stage, source_comment_id,
+            manifest_sha256, manifest_summary, business_write,
+            implementation_authorized, permissions_denied, unnecessary_reconstruction.
+            For INITIAL only, set manifest_sha256 to "INTENTIONALLY_OMITTED_FOR_REVIEW_LOOP".
+            For every later stage, compute the actual SHA-256 of the manifest with an allowed read-only shell command.
+            business_write and implementation_authorized must be false.
+            End status with KODJO_T1T9_${{ steps.classify.outputs.stage }}_SUCCESS.
+          claude_args: |
+            --max-turns 8
+            --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
+            --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction"]}'
+
+      - name: Validate and publish Claude result deterministically
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          STAGE: ${{ steps.classify.outputs.stage }}
+          TRANSITION_ID: ${{ steps.classify.outputs.transition }}
+          SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$STRUCTURED_OUTPUT" | jq -e '
+            .test_id == env.TEST_ID and
+            .transition_id == env.TRANSITION_ID and
+            .stage == env.STAGE and
+            .source_comment_id == env.SOURCE_COMMENT_ID and
+            .business_write == false and
+            .implementation_authorized == false
+          ' >/dev/null
+          marker="[KODJO_T1T9_CLAUDE_RESULT]"
+          if [ "$STAGE" = "RETEST" ]; then marker="[KODJO_T1T9_WORK_ARBITRATION_REQUEST]"; fi
+          if [ "$STAGE" = "MID_RESUME" ]; then marker="[KODJO_T1T9_WORK_ARBITRATION_REQUEST]"; fi
+          if [ "$STAGE" = "FINAL" ]; then marker="[KODJO_T1T9_FINAL_RESULT]"; fi
+          body=$(jq -nr             --arg marker "$marker"             --arg test_id "$TEST_ID"             --arg transition_id "$TRANSITION_ID"             --arg stage "$STAGE"             --arg source_comment_id "$SOURCE_COMMENT_ID"             --argjson result "$STRUCTURED_OUTPUT"             '"\($marker) VERIFIED_SUCCESS\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=CLAUDE_CLOUD_REAL\ndestination_actor=CHATGPT_WORK\nbusiness_write=false\nimplementation_authorized=false\n\nstructured_output=\($result|tojson)"')
+          payload=$(jq -n --arg body "$body" '{body:$body}')
+          response=$(printf '%s' "$payload" | gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --method POST --input -)
+          published_id=$(printf '%s' "$response" | jq -er '.id')
+          published=$(gh api "repos/${{ github.repository }}/issues/comments/$published_id")
+          printf '%s' "$published" | jq -e --arg test_id "$TEST_ID" --arg source "$SOURCE_COMMENT_ID" '
+            (.id | type == "number") and
+            (.body | contains("test_id=" + $test_id)) and
+            (.body | contains("source_comment_id=" + $source)) and
+            (.body | contains("business_write=false"))
+          ' >/dev/null
+          echo "published_comment_id=$published_id"
+
+  advance-arbitration:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.number == 19 &&
+      github.event.comment.user.login == 'MyUncried' &&
+      contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01') &&
+      (contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP1]') ||
+       contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP2]'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate decision and publish next Work arbitration
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BODY: ${{ github.event.comment.body }}
+          SOURCE_COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice=A'
+          if printf '%s' "$SOURCE_BODY" | grep -Fq '[KODJO_T1T9_DECISION_LOOP1]'; then
+            next_stage="LOOP2"
+            transition_id="T8.2"
+          else
+            next_stage="LOOP3"
+            transition_id="T8.3"
+          fi
+          body=$(jq -nr             --arg test_id "$TEST_ID"             --arg transition_id "$transition_id"             --arg stage "$next_stage"             --arg source_comment_id "$SOURCE_COMMENT_ID"             '"[KODJO_T1T9_WORK_ARBITRATION_REQUEST]\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=GITHUB_ORCHESTRATION\ndestination_actor=CHATGPT_WORK\ncheckpoint=ARBITRAGE\nresume_from=\($source_comment_id)\nbusiness_write=false\nimplementation_authorized=false"')
+          payload=$(jq -n --arg body "$body" '{body:$body}')
+          response=$(printf '%s' "$payload" | gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --method POST --input -)
+          published_id=$(printf '%s' "$response" | jq -er '.id')
+          published=$(gh api "repos/${{ github.repository }}/issues/comments/$published_id")
+          printf '%s' "$published" | jq -e --arg test_id "$TEST_ID" --arg source "$SOURCE_COMMENT_ID" '
+            (.body | contains("test_id=" + $test_id)) and
+            (.body | contains("source_comment_id=" + $source)) and
+            (.body | contains("checkpoint=ARBITRAGE"))
+          ' >/dev/null
+          echo "published_comment_id=$published_id"
