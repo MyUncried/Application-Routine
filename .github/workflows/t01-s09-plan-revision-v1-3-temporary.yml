@@ -18,7 +18,7 @@ jobs:
         with:
           ref: feat/creation-seance-catalogue
           fetch-depth: 0
-      - name: Preflight and compact GitHub context
+      - name: Preflight and fresh compact GitHub context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -31,9 +31,9 @@ jobs:
           gh api repos/${{ github.repository }}/issues/17 > /tmp/kodjo-context/issue.json
           jq -e '.number == 17 and .state == "open"' /tmp/kodjo-context/issue.json >/dev/null
           gh api --paginate repos/${{ github.repository }}/issues/17/comments \
-            | jq '[.[] | select(.id == 5457279488 or .id == 5458067685 or .id == 5458207233 or .id == 5460790062) | {id, user:.user.login, body}]' \
+            | jq '[.[] | {id, user:.user.login, body}] | .[-12:]' \
             > /tmp/kodjo-context/review-delta.json
-          jq -e 'length == 4' /tmp/kodjo-context/review-delta.json >/dev/null
+          jq -e 'length > 0 and any(.[]; .id == 5460923036) and any(.[]; .id == 5460904461)' /tmp/kodjo-context/review-delta.json >/dev/null
           printf 'repository=%s\nissue=17\nbranch=%s\nhead=%s\nmode=CLOUD_READ_ONLY\nwriter=NONE\n' \
             "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
           sha256sum /tmp/kodjo-context/issue.json /tmp/kodjo-context/review-delta.json > /tmp/kodjo-context/SHA256SUMS
@@ -44,20 +44,13 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
-            KODJO — T01-S09 — reprise V1.3 après arbitrage. Phase strictement en lecture seule.
+            KODJO — T01-S09 — reprise V1.3. Phase strictement en lecture seule.
 
-            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` :
-            - `SOURCE_ATTESTATION` : dépôt, Issue, branche, HEAD, mode et écrivain ;
-            - `issue.json` : Issue #17 courante ;
-            - `review-delta.json` : plan initial 5457279488, revue ChatGPT 5458067685, plan révisé 5458207233 et arbitrage utilisateur 5460790062 ;
-            - `SHA256SUMS` : empreintes calculées par le transport.
-            Lis ces fichiers. Ne tente aucun accès réseau et ne refais pas les contrôles GitHub déterministes.
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` SOURCE_ATTESTATION, issue.json, SHA256SUMS et un review-delta.json FRAIS contenant les 12 derniers commentaires. Lis-les. Les décisions/revues les plus récentes supersèdent les formulations antérieures incompatibles. Ne tente aucun accès réseau et ne refais pas les contrôles GitHub déterministes.
 
-            Lis `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md` V1.3. Reprends le plan révisé en intégrant l'arbitrage utilisateur : unicité des noms de Catégorie insensible à la casse, casse saisie conservée pour l'affichage, aucune capitalisation automatique. Ne définis pas d'équivalence supplémentaire non arbitrée.
+            Lis `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md` V1.3. Corrige exclusivement le dernier point de revue ChatGPT 5460923036, en tenant compte des décisions 5460885591 et 5460904461 : pour l'unicité d'une Catégorie, la clé de comparaison ignore casse ET accents/diacritiques ; le nom visible conserve la saisie normalisée pour les espaces ; aucune correction orthographique, fuzzy matching ou suggestion n'est dans le MVP (report V2). `Étirements`, `Etirements`, `ÉTIREMENTS`, `etirements` doivent donc produire la même clé de comparaison.
 
-            Les autres corrections de la revue restent celles déjà résolues dans le plan révisé 5458207233 : ordre personnalisé non contractuel ; pas d'invention de rendu d'erreur ; auto-sélection sourcée ; badges Catalogue hors tranche ; aucune longueur maximale/D-097 inventée.
-
-            Produis un plan complet finalisé ou, seulement si une nouvelle barrière nécessaire et démontrée subsiste, la barrière exacte. Ne modifie aucun fichier, branche, commit, Issue ou PR. Aucun fichier métier ne doit être écrit. Ne lance pas de sous-agent.
+            Ne rouvre aucun point déjà résolu sans nouvelle source contradictoire. Produis le plan complet finalisé ou, seulement si une nouvelle barrière nécessaire et démontrée subsiste, la barrière exacte. Ne modifie aucun fichier métier, branche, commit, Issue ou PR. Ne lance pas de sous-agent.
 
             Le champ JSON `message` doit contenir le commentaire complet, préfixé `[Claude Code] T01-S09 — PLAN FINAL V1.3`, et finir exactement par `STATUT : PLAN_READY_FOR_REVIEW` ou `STATUT : CLARIFICATION_REQUIRED` ou `STATUT : WORKTREE_LOCKED` ou `STATUT : ORCHESTRATION_FAILURE`.
           claude_args: |
