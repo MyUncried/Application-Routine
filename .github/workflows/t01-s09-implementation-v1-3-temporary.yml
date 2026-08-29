@@ -1,0 +1,122 @@
+name: Claude T01-S09 Implementation V1.3 [TEMPORAIRE]
+run-name: T01-S09 — implementation V1.3
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: t01-s09-implementation
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: >
+      github.event.issue.number == 17 &&
+      contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/creation-seance-catalogue
+          fetch-depth: 0
+
+      - name: Preflight and materialize authorized context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kodjo-context
+          test "$(git branch --show-current)" = "feat/creation-seance-catalogue"
+          HEAD_SHA=$(git rev-parse HEAD)
+          test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
+          test -z "$(git status --porcelain)"
+
+          gh api repos/${{ github.repository }}/issues/17/comments/5460957292 > /tmp/kodjo-context/approved-plan.json
+          gh api repos/${{ github.repository }}/issues/17/comments/5460962004 > /tmp/kodjo-context/plan-approval.json
+          gh api repos/${{ github.repository }}/issues/17/comments/5461616289 > /tmp/kodjo-context/source-attestation.json
+          gh api repos/${{ github.repository }}/issues/17/comments/5460976204 > /tmp/kodjo-context/checkpoint.json
+          gh api repos/${{ github.repository }}/issues/17/comments/5461645608 > /tmp/kodjo-context/authorization-dry-run.json
+          gh api --paginate repos/${{ github.repository }}/issues/17/comments \
+            | jq '[.[] | {id, user:.user.login, body}] | .[-20:]' \
+            > /tmp/kodjo-context/recent-delta.json
+
+          jq -e '.body | contains("STATUT : PLAN_READY_FOR_REVIEW")' /tmp/kodjo-context/approved-plan.json >/dev/null
+          jq -e '.body | contains("PLAN_APPROVED")' /tmp/kodjo-context/plan-approval.json >/dev/null
+          jq -e '.body | contains("SOURCE_ATTESTATION")' /tmp/kodjo-context/source-attestation.json >/dev/null
+          jq -e '.body | contains("\"state\": \"IMPLEMENTING\"") and contains("\"implementation_authorized\": true") and contains("\"writer\": \"CLAUDE_CODE\"") and contains("\"mode\": \"CLOUD_WRITE\"")' /tmp/kodjo-context/checkpoint.json >/dev/null
+          jq -e '.body | contains("decision=READY_FOR_AUTHORIZATION_REVIEW") and contains("implementation_authorized=false")' /tmp/kodjo-context/authorization-dry-run.json >/dev/null
+
+          printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\n' \
+            "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
+          sha256sum /tmp/kodjo-context/*.json > /tmp/kodjo-context/SHA256SUMS
+
+      - name: Run Claude implementation
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            KODJO — T01-S09 — IMPLEMENTATION V1.3.
+
+            Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode autorisé est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
+
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` : le plan final approuvé (commentaire 5460957292), l'approbation ChatGPT (5460962004), le SOURCE_ATTESTATION (5461616289), le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation (5461645608), un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
+
+            Implémente strictement le plan approuvé T01-S09 et uniquement son périmètre. Les décisions les plus récentes de l'Issue supersèdent les formulations antérieures incompatibles. En particulier : catalogue initial = Renforcement, Cardio, Mobilité, Étirements, Équilibre, Coordination, Récupération, Respiration, Méditation, Autre ; unicité après normalisation des espaces sans distinction de casse ni accents/diacritiques ; affichage conservant casse et accents saisis ; aucun fuzzy matching/autocorrection/suggestion dans le MVP.
+
+            Exécute les tests pertinents existants et ajoute/ajuste uniquement les tests nécessaires au plan. Ne modifie pas les workflows d'orchestration, `AI_ORCHESTRATION.md`, `AI_ORCHESTRATION_CONTINUITY.md` ni `CLAUDE.md`. Ne crée pas de décision produit nouvelle. Si une ambiguïté réellement nécessaire apparaît, arrête-toi avec `CLARIFICATION_REQUIRED`. Si le worktree/contexte n'est plus conforme, `WORKTREE_LOCKED`. Si un défaut technique d'orchestration empêche le travail, `ORCHESTRATION_FAILURE`.
+
+            Ne committe pas et ne pousse pas toi-même : le transport GitHub le fera après validation de ton résultat. Laisse les changements métier et tests dans le worktree.
+
+            Le champ JSON `message` doit résumer précisément les fichiers modifiés, les tests exécutés et leur résultat, puis finir exactement par l'un de : `STATUT : IMPLEMENTATION_READY_FOR_REVIEW`, `STATUT : CLARIFICATION_REQUIRED`, `STATUT : WORKTREE_LOCKED`, `STATUT : ORCHESTRATION_FAILURE`.
+          claude_args: |
+            --max-turns 120
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(jq:*),Bash(cat:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(pnpm:*),Bash(yarn:*),Bash(bun:*),Bash(pytest:*),Bash(python:*),Bash(gradle:*),Bash(./gradlew:*)"
+            --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
+
+      - name: Validate result, commit and push authorized implementation
+        id: publish
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
+          if [ -z "$MESSAGE" ]; then
+            gh issue comment 17 --repo "${{ github.repository }}" --body "[Claude Code] T01-S09 — ORCHESTRATION_FAILURE run ${{ github.run_id }} : structured_output absent ou invalide. Aucun push métier effectué. STATUT : ORCHESTRATION_FAILURE"
+            exit 1
+          fi
+
+          if ! printf '%s' "$MESSAGE" | grep -q 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW$'; then
+            printf '%s\n' "$MESSAGE" | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
+            exit 1
+          fi
+
+          test "$(git rev-parse HEAD)" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
+          test -n "$(git status --porcelain)"
+          CHANGED=$(git status --porcelain | sed 's/^...//' | sort -u)
+          if printf '%s\n' "$CHANGED" | grep -Eq '^\.github/|^CLAUDE\.md$'; then
+            gh issue comment 17 --repo "${{ github.repository }}" --body "[Claude Code] T01-S09 — ORCHESTRATION_FAILURE : modification d'un fichier d'orchestration interdite pendant l'implémentation. Aucun push effectué. STATUT : ORCHESTRATION_FAILURE"
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: implement T01-S09 session categories"
+          NEW_HEAD=$(git rev-parse HEAD)
+          git push origin HEAD:feat/creation-seance-catalogue
+
+          {
+            printf '%s\n\n' "$MESSAGE"
+            printf 'Transport GitHub : commit `%s` poussé sur `feat/creation-seance-catalogue`.\n' "$NEW_HEAD"
+          } | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
+
+          echo "new_head=$NEW_HEAD" >> "$GITHUB_OUTPUT"
