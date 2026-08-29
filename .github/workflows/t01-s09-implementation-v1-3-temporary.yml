@@ -90,11 +90,12 @@ jobs:
             Le champ JSON `message` doit résumer précisément les fichiers modifiés, les tests exécutés et leur résultat, puis finir exactement par l'un de : `STATUT : IMPLEMENTATION_READY_FOR_REVIEW`, `STATUT : CLARIFICATION_REQUIRED`, `STATUT : WORKTREE_LOCKED`, `STATUT : ORCHESTRATION_FAILURE`.
           claude_args: |
             --max-turns 120
+            --add-dir /tmp/kodjo-context
             --allowedTools "Read,Grep,Glob,Edit,Write,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(jq:*),Bash(cat:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(pnpm:*),Bash(yarn:*),Bash(bun:*),Bash(pytest:*),Bash(python:*),Bash(gradle:*),Bash(./gradlew:*)"
             --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
 
       - name: Capture sanitized Claude diagnostics
-        if: always()
+        if: always() && steps.claude.outcome != 'skipped'
         env:
           CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,6 +113,7 @@ jobs:
               num_turns: .num_turns,
               total_cost_usd: .total_cost_usd,
               permission_denials_count: .permission_denials_count,
+              permission_denial_tools: (if ((.permission_denials // null) | type) == "array" then [(.permission_denials[] | (.tool_name // .tool // .name // "unknown"))] else [] end),
               model_usage: (.modelUsage // {} | keys)
             }' "$RESULT" > /tmp/kodjo-diagnostics/claude-summary.json
           else
@@ -119,7 +121,7 @@ jobs:
           fi
 
           git status --porcelain > /tmp/kodjo-diagnostics/git-status.txt
-          git diff --name-only > /tmp/kodjo-diagnostics/changed-files.txt
+          git status --porcelain | sed 's/^...//' | sort -u > /tmp/kodjo-diagnostics/changed-files.txt
           git diff --stat > /tmp/kodjo-diagnostics/diff-stat.txt
           printf 'run_id=%s\nclaude_outcome=%s\nhead=%s\n' \
             "${{ github.run_id }}" "$CLAUDE_OUTCOME" "$(git rev-parse HEAD)" > /tmp/kodjo-diagnostics/run-context.txt
@@ -140,7 +142,7 @@ jobs:
           fi
 
       - name: Upload sanitized failure diagnostics
-        if: always()
+        if: always() && steps.claude.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: t01-s09-claude-diagnostics-${{ github.run_id }}
@@ -190,7 +192,7 @@ jobs:
           echo "new_head=$NEW_HEAD" >> "$GITHUB_OUTPUT"
 
       - name: Fail job after preserved Claude failure
-        if: steps.claude.outcome != 'success'
+        if: steps.claude.outcome == 'failure'
         run: |
           echo "Claude implementation failed; sanitized diagnostics were persisted."
           exit 1
