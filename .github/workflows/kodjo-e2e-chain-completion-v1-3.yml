@@ -6,7 +6,7 @@ on:
     types: [kodjo-e2e-review-complete]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
