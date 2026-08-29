@@ -70,7 +70,16 @@ jobs:
               ;;
           esac
           if [ -n "$required_choice" ]; then
-            printf '%s' "$SOURCE_BODY" | grep -Fxq "choice=$required_choice"
+            if printf '%s' "$SOURCE_BODY" | grep -Fxq "choice=$required_choice"; then
+              :
+            elif printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice=C'; then
+              printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice_type=OTHER'
+              printf '%s' "$SOURCE_BODY" | grep -Fxq 'definition_status=SUFFICIENT'
+              printf '%s' "$SOURCE_BODY" | grep -Fxq 'decision_effect=CONTINUE'
+            else
+              echo "Decision must be A or a sufficiently defined C/OTHER with CONTINUE effect." >&2
+              exit 1
+            fi
           fi
           {
             echo "stage=$stage"
@@ -600,7 +609,16 @@ jobs:
           SOURCE_COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           set -euo pipefail
-          printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice=A'
+          if printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice=A'; then
+            :
+          elif printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice=C'; then
+            printf '%s' "$SOURCE_BODY" | grep -Fxq 'choice_type=OTHER'
+            printf '%s' "$SOURCE_BODY" | grep -Fxq 'definition_status=SUFFICIENT'
+            printf '%s' "$SOURCE_BODY" | grep -Fxq 'decision_effect=CONTINUE'
+          else
+            echo "Decision must be A or a sufficiently defined C/OTHER with CONTINUE effect." >&2
+            exit 1
+          fi
           if printf '%s' "$SOURCE_BODY" | grep -Fq '[KODJO_T1T9_DECISION_LOOP1]'; then
             next_stage="LOOP2"
             transition_id="T8.2"
