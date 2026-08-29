@@ -1,4 +1,4 @@
-name: KODJO Work transport review micro-test
+name: KODJO Work transport commit-update micro-test
 
 on:
   push:
@@ -7,27 +7,25 @@ on:
       - .github/workflows/kodjo-work-transport-review-test.yml
 
 permissions:
-  contents: read
-  pull-requests: write
+  contents: write
 
 jobs:
-  submit-review-event:
+  update-pr-head:
     runs-on: ubuntu-latest
     steps:
-      - name: Submit automation review on PR 19
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          TEST_ID: KODJO-V13-T1T9-20260829-01
+      - name: Check out PR 19 head
+        uses: actions/checkout@v4
+        with:
+          ref: orchestration/v1-3-integrated-t1-t9
+      - name: Commit isolated transport marker
         run: |
-          payload=$(jq -n \
-            --arg body "[KODJO_WORK_TRANSPORT_REVIEW_TEST] test_id=$TEST_ID event_test=PR_REVIEW_SUBMITTED" \
-            '{event:"COMMENT",body:$body}')
-          response=$(curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/$REPOSITORY/pulls/19/reviews" \
-            -d "$payload")
-          jq '{id, node_id, state, submitted_at, user: .user.login, commit_id, body}' <<<"$response"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf '%s\n' \
+            'test_id=KODJO-V13-T1T9-20260829-01' \
+            'event_test=PR_COMMIT_UPDATE_SYNCHRONIZE' \
+            'business_write=false' \
+            > .github/orchestration/KODJO_WORK_TRANSPORT_COMMIT_TEST.txt
+          git add .github/orchestration/KODJO_WORK_TRANSPORT_COMMIT_TEST.txt
+          git commit -m "test: emit PR commit update for Work transport"
+          git push origin HEAD:orchestration/v1-3-integrated-t1-t9
