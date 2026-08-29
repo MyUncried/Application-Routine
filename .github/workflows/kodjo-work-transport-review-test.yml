@@ -1,4 +1,4 @@
-name: KODJO Work transport commit-update micro-test
+name: KODJO Work transport ready-for-review micro-test
 
 on:
   push:
@@ -7,25 +7,30 @@ on:
       - .github/workflows/kodjo-work-transport-review-test.yml
 
 permissions:
-  contents: write
+  contents: read
+  pull-requests: write
 
 jobs:
-  update-pr-head:
+  mark-ready:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out PR 19 head
-        uses: actions/checkout@v4
-        with:
-          ref: orchestration/v1-3-integrated-t1-t9
-      - name: Commit isolated transport marker
+      - name: Mark PR 19 ready for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          printf '%s\n' \
-            'test_id=KODJO-V13-T1T9-20260829-01' \
-            'event_test=PR_COMMIT_UPDATE_SYNCHRONIZE' \
-            'business_write=false' \
-            > .github/orchestration/KODJO_WORK_TRANSPORT_COMMIT_TEST.txt
-          git add .github/orchestration/KODJO_WORK_TRANSPORT_COMMIT_TEST.txt
-          git commit -m "test: emit PR commit update for Work transport"
-          git push origin HEAD:orchestration/v1-3-integrated-t1-t9
+          pr_node_id=$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/pulls/19" | jq -r '.node_id')
+          payload=$(jq -n \
+            --arg query 'mutation($id:ID!){markPullRequestReadyForReview(input:{pullRequestId:$id}){pullRequest{id isDraft updatedAt}}}' \
+            --arg id "$pr_node_id" \
+            '{query:$query,variables:{id:$id}}')
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/graphql" \
+            -d "$payload" | jq .
