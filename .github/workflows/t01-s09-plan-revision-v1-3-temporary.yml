@@ -31,9 +31,9 @@ jobs:
           gh api repos/${{ github.repository }}/issues/17 > /tmp/kodjo-context/issue.json
           jq -e '.number == 17 and .state == "open"' /tmp/kodjo-context/issue.json >/dev/null
           gh api --paginate repos/${{ github.repository }}/issues/17/comments \
-            | jq '[.[] | select(.id == 5457279488 or .id == 5458067685 or .id == 5458084991) | {id, user:.user.login, body}]' \
+            | jq '[.[] | select(.id == 5457279488 or .id == 5458067685 or .id == 5458207233 or .id == 5460790062) | {id, user:.user.login, body}]' \
             > /tmp/kodjo-context/review-delta.json
-          jq -e 'length == 3' /tmp/kodjo-context/review-delta.json >/dev/null
+          jq -e 'length == 4' /tmp/kodjo-context/review-delta.json >/dev/null
           printf 'repository=%s\nissue=17\nbranch=%s\nhead=%s\nmode=CLOUD_READ_ONLY\nwriter=NONE\n' \
             "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
           sha256sum /tmp/kodjo-context/issue.json /tmp/kodjo-context/review-delta.json > /tmp/kodjo-context/SHA256SUMS
@@ -44,29 +44,22 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
-            KODJO — T01-S09 — révision du plan selon V1.3. Phase strictement en lecture seule.
+            KODJO — T01-S09 — reprise V1.3 après arbitrage. Phase strictement en lecture seule.
 
             Le transport GitHub a matérialisé dans `/tmp/kodjo-context` :
             - `SOURCE_ATTESTATION` : dépôt, Issue, branche, HEAD, mode et écrivain ;
             - `issue.json` : Issue #17 courante ;
-            - `review-delta.json` : uniquement le plan précédent 5457279488, la revue ChatGPT 5458067685 et l'ordre de reprise 5458084991 ;
+            - `review-delta.json` : plan initial 5457279488, revue ChatGPT 5458067685, plan révisé 5458207233 et arbitrage utilisateur 5460790062 ;
             - `SHA256SUMS` : empreintes calculées par le transport.
             Lis ces fichiers. Ne tente aucun accès réseau et ne refais pas les contrôles GitHub déterministes.
 
-            Lis `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md` V1.3, puis uniquement les sources documentaires, visuelles et de code réellement nécessaires pour répondre aux corrections de revue et produire un plan complet révisé T01-S09. Étends la lecture seulement sur dépendance ou contradiction concrète.
+            Lis `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md` V1.3. Reprends le plan révisé en intégrant l'arbitrage utilisateur : unicité des noms de Catégorie insensible à la casse, casse saisie conservée pour l'affichage, aucune capitalisation automatique. Ne définis pas d'équivalence supplémentaire non arbitrée.
 
-            Exigences de la revue ChatGPT :
-            1. ne pas choisir silencieusement la sensibilité à la casse de l'unicité des catégories ; source d'abord, sinon CLARIFICATION_REQUIRED si nécessaire ;
-            2. ne pas imposer l'ordre de création des catégories personnalisées sans source ; s'il n'est pas contractuel, le laisser non contractuel ;
-            3. ne pas inventer le traitement visuel exact doublon/échec ; réutiliser un pattern seulement s'il est vérifié comme règle transverse applicable ; sinon clarification si nécessaire à AC-07 ;
-            4. ne pas auto-sélectionner une nouvelle catégorie sans source ; source d'abord, sinon clarification si nécessaire ;
-            5. exclure les badges Catégorie du Catalogue sauf exigence démontrée de la tranche ;
-            6. aucune valeur de CATEGORY_NAME_MAX_LENGTH ni décision D-097 sans mesure reproductible et traçable ; si impossible et nécessaire, clarification ;
-            7. produire le plan complet révisé ; si une décision nécessaire reste indéterminable, retourner uniquement les arbitrages réellement nécessaires.
+            Les autres corrections de la revue restent celles déjà résolues dans le plan révisé 5458207233 : ordre personnalisé non contractuel ; pas d'invention de rendu d'erreur ; auto-sélection sourcée ; badges Catalogue hors tranche ; aucune longueur maximale/D-097 inventée.
 
-            Ne modifie aucun fichier, branche, commit, Issue ou PR. Aucun fichier métier ne doit être écrit. Ne lance pas de sous-agent.
+            Produis un plan complet finalisé ou, seulement si une nouvelle barrière nécessaire et démontrée subsiste, la barrière exacte. Ne modifie aucun fichier, branche, commit, Issue ou PR. Aucun fichier métier ne doit être écrit. Ne lance pas de sous-agent.
 
-            Le champ JSON `message` doit contenir le commentaire complet, préfixé `[Claude Code] T01-S09 — PLAN RÉVISÉ V1.3`, et finir exactement par `STATUT : PLAN_READY_FOR_REVIEW` ou `STATUT : CLARIFICATION_REQUIRED` ou `STATUT : WORKTREE_LOCKED` ou `STATUT : ORCHESTRATION_FAILURE`.
+            Le champ JSON `message` doit contenir le commentaire complet, préfixé `[Claude Code] T01-S09 — PLAN FINAL V1.3`, et finir exactement par `STATUT : PLAN_READY_FOR_REVIEW` ou `STATUT : CLARIFICATION_REQUIRED` ou `STATUT : WORKTREE_LOCKED` ou `STATUT : ORCHESTRATION_FAILURE`.
           claude_args: |
             --max-turns 80
             --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(jq:*),Bash(cat:*)"
