@@ -53,3 +53,16 @@ Réponse de référence à la question « Que se passe-t-il si je choisis B ? »
 ## Critères de succès T9
 
 T9 exige une chaîne causale reconstructible par test_id, transition_id et source_comment_id ; au moins deux boucles réelles Claude–GitHub–ChatGPT ; un arbitrage intermédiaire ; trois arbitrages T7/T8 avec traitement nominal, hors-options et question avant décision ; un appel Claude final réel ; chaque publication vérifiée par identifiant GitHub et champs critiques ; business_write=false partout ; apparition spontanée du verdict final dans le même fil Work.
+
+
+## Performance / continuité
+
+Pour chaque appel Claude réel, la preuve publiée distingue les métriques observées des valeurs `NON_VERIFIABLE` :
+
+- durée Claude, nombre de tours, coût réel et refus de permissions issus du fichier d’exécution de l’action ;
+- identifiant de session demandé et retourné ;
+- mode de continuité : `SESSION_RESUMED` uniquement si `--resume` a reçu l’identifiant précédent et si l’action retourne ce même identifiant ; `NEW_SESSION_CHECKPOINT_DELTA` lorsqu’aucune session antérieure n’est utilisée ; sinon `NON_VERIFIABLE` ;
+- taille en octets du manifeste et nature/taille du delta d’orchestration transmis ; le volume total du contexte système ou le total de tokens reste `NON_VERIFIABLE` s’il n’est pas exposé ;
+- sources déclarées comme relues, opérations Read/Bash observables dans le journal complet, répétitions de lecture et reconstruction d’historique.
+
+Le verdict T9 compare séparément les étapes `INITIAL`, `CORRECTION`, `RETEST` et `FINAL`. Une dégradation de performance n’invalide pas automatiquement la chaîne fonctionnelle ; elle reçoit un constat distinct et, si nécessaire, une correction d’orchestration sans seuil arbitraire.
