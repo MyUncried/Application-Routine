@@ -31,35 +31,41 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          fail() { echo "PREFLIGHT_FAILURE: $1" >&2; exit 1; }
           mkdir -p /tmp/kodjo-context
-          test "$(git branch --show-current)" = "feat/creation-seance-catalogue"
+          test "$(git branch --show-current)" = "feat/creation-seance-catalogue" || fail "branch mismatch"
           HEAD_SHA=$(git rev-parse HEAD)
-          test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
-          test -z "$(git status --porcelain)"
+          test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9" || fail "HEAD mismatch"
+          test -z "$(git status --porcelain)" || fail "dirty worktree"
 
           gh api --paginate repos/${{ github.repository }}/issues/17/comments | jq -s 'add' > /tmp/kodjo-context/all-comments.json
-          jq -e 'map(select(.id == 5460957292)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
-          jq -e 'map(select(.id == 5460962004)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
-          jq -e 'map(select(.id == 5461616289)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
-          jq -e 'map(select(.id == 5460976204)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
-          jq -e 'map(select(.id == 5461645608)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+          for ID in 5460957292 5460962004 5461616289 5460976204 5461645608 5461702840; do
+            COUNT=$(jq --argjson id "$ID" '[.[] | select(.id == $id)] | length' /tmp/kodjo-context/all-comments.json)
+            test "$COUNT" = "1" || fail "required comment $ID count=$COUNT"
+          done
 
           jq '.[] | select(.id == 5460957292)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/approved-plan.json
           jq '.[] | select(.id == 5460962004)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/plan-approval.json
           jq '.[] | select(.id == 5461616289)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/source-attestation.json
           jq '.[] | select(.id == 5460976204)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/checkpoint.json
           jq '.[] | select(.id == 5461645608)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/authorization-dry-run.json
+          jq '.[] | select(.id == 5461702840)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/implementation-authorization.json
           jq '[.[] | {id, user:.user.login, body}] | .[-20:]' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/recent-delta.json
 
-          jq -e '.body | contains("STATUT : PLAN_READY_FOR_REVIEW")' /tmp/kodjo-context/approved-plan.json >/dev/null
-          jq -e '.body | contains("PLAN_APPROVED")' /tmp/kodjo-context/plan-approval.json >/dev/null
-          jq -e '.body | contains("SOURCE_ATTESTATION")' /tmp/kodjo-context/source-attestation.json >/dev/null
-          jq -e '.body | contains("\"state\": \"IMPLEMENTING\"") and contains("\"implementation_authorized\": true") and contains("\"writer\": \"CLAUDE_CODE\"") and contains("\"mode\": \"CLOUD_WRITE\"")' /tmp/kodjo-context/checkpoint.json >/dev/null
-          jq -e '.body | contains("decision=READY_FOR_AUTHORIZATION_REVIEW") and contains("implementation_authorized=false")' /tmp/kodjo-context/authorization-dry-run.json >/dev/null
+          jq -r '.body' /tmp/kodjo-context/approved-plan.json | grep -Fq 'STATUT : PLAN_READY_FOR_REVIEW' || fail "approved plan marker missing"
+          jq -r '.body' /tmp/kodjo-context/plan-approval.json | grep -Fq '[ChatGPT] PLAN_APPROVED' || fail "plan approval marker missing"
+          jq -r '.body' /tmp/kodjo-context/source-attestation.json | grep -Fq '[ChatGPT] SOURCE_ATTESTATION' || fail "SOURCE_ATTESTATION marker missing"
+          jq -r '.body' /tmp/kodjo-context/authorization-dry-run.json | grep -Fq 'decision=READY_FOR_AUTHORIZATION_REVIEW' || fail "authorization dry-run verdict missing"
+          jq -r '.body' /tmp/kodjo-context/authorization-dry-run.json | grep -Fq 'implementation_authorized=false' || fail "dry-run safety marker missing"
+          jq -r '.body' /tmp/kodjo-context/implementation-authorization.json | grep -Fq '[ChatGPT] IMPLEMENTATION_AUTHORIZED — T01-S09' || fail "implementation authorization marker missing"
+
+          jq -r '.body' /tmp/kodjo-context/checkpoint.json | sed -n '/```json/,/```/p' | sed '1d;$d' > /tmp/kodjo-context/checkpoint-state.json
+          jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .state == "IMPLEMENTING" and .implementation_authorized == true and .mode == "CLOUD_WRITE" and .writer == "CLAUDE_CODE" and .authorized_head == "34b3e53879d0ac20a3057da932df6b948d6030c9"' /tmp/kodjo-context/checkpoint-state.json >/dev/null || fail "checkpoint authorization fields invalid"
 
           printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\n' \
             "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
           sha256sum /tmp/kodjo-context/*.json > /tmp/kodjo-context/SHA256SUMS
+          echo "PREFLIGHT_OK: repository, branch, HEAD, sources, mode and writer verified"
 
       - name: Run Claude implementation
         id: claude
@@ -72,7 +78,7 @@ jobs:
 
             Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode autorisé est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
 
-            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé, l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé, l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, l'autorisation d'implémentation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
 
             Implémente strictement le plan approuvé T01-S09 et uniquement son périmètre. Les décisions les plus récentes de l'Issue supersèdent les formulations antérieures incompatibles. En particulier : catalogue initial = Renforcement, Cardio, Mobilité, Étirements, Équilibre, Coordination, Récupération, Respiration, Méditation, Autre ; unicité après normalisation des espaces sans distinction de casse ni accents/diacritiques ; affichage conservant casse et accents saisis ; aucun fuzzy matching/autocorrection/suggestion dans le MVP.
 
