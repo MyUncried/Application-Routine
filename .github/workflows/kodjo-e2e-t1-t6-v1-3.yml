@@ -63,7 +63,7 @@ jobs:
       github.event.action == 'kodjo-e2e-t2-claude-stub'
     runs-on: ubuntu-latest
     steps:
-      - name: Execute fake Claude T2 and publish T3 result
+      - name: Execute fake Claude T2, publish T3, and dispatch T4
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE: ${{ github.event.client_payload.issue }}
@@ -84,7 +84,6 @@ jobs:
 
           cat > /tmp/t3.md <<EOF
           [KODJO_E2E_T3_CLAUDE_RESULT] VERIFIED_SUCCESS
-          [KODJO_E2E_AUTOMATION_TEST]
 
           \`schema=kodjo.e2e-t3-claude-result.v1\`
           \`source_comment_id=$SOURCE_COMMENT_ID\`
@@ -94,6 +93,12 @@ jobs:
           \`real_claude_called=false\`
           \`business_write=false\`
 
-          T2 exécuté par un job Claude factice. Ce résultat T3 est publié dans GitHub et constitue l'unique entrée du bridge T4 existant.
+          T2 exécuté par un job Claude factice. Ce résultat T3 est publié dans GitHub ; la transition T4 est ensuite déclenchée explicitement par repository_dispatch afin d'éviter la suppression des événements récursifs générés par GITHUB_TOKEN.
           EOF
-          gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/t3.md
+          T3_URL=$(gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/t3.md)
+          T3_COMMENT_ID=$(printf '%s' "$T3_URL" | sed -n 's/.*issuecomment-\([0-9]*\).*/\1/p')
+          test -n "$T3_COMMENT_ID" || fail "cannot extract T3 comment id"
+
+          jq -n --argjson issue 17 --arg source_comment_id "$T3_COMMENT_ID" --arg root_comment_id "$SOURCE_COMMENT_ID" --arg branch "$BRANCH" --arg head "$EXPECTED_HEAD" \
+            '{event_type:"kodjo-e2e-t4-openai-fullchain",client_payload:{issue:$issue,source_comment_id:$source_comment_id,root_comment_id:$root_comment_id,branch:$branch,head:$head,implementation_authorized:"false",real_claude_authorized:"false"}}' \
+            | gh api --method POST "repos/${{ github.repository }}/dispatches" --input -
