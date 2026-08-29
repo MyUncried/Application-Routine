@@ -542,11 +542,6 @@ jobs:
             (.body | contains("[KODJO_T1T9_WORK_ARBITRATION_REQUEST] VERIFIED_SUCCESS")) and
             (.body | contains("test_id=" + $test_id)) and
             (.body | contains("stage=RETEST")) and
-            (.body | contains("status":"KODJO_T1T9_RETEST_SUCCESS") | not)
-          ' >/dev/null 2>&1 || printf '%s' "$durable" | jq -e --arg test_id "$TEST_ID" '
-            (.body | contains("[KODJO_T1T9_WORK_ARBITRATION_REQUEST] VERIFIED_SUCCESS")) and
-            (.body | contains("test_id=" + $test_id)) and
-            (.body | contains("stage=RETEST")) and
             (.body | contains("KODJO_T1T9_RETEST_SUCCESS")) and
             (.body | contains("business_write=false")) and
             (.body | contains("implementation_authorized=false"))
