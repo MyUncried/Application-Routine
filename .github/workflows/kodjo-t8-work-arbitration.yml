@@ -18,7 +18,8 @@ jobs:
       github.event.issue.pull_request &&
       github.event.issue.number == 18 &&
       github.event.comment.user.login == 'MyUncried' &&
-      contains(github.event.comment.body, '[KODJO_T8_USER_ARBITRATION]') &&
+      (contains(github.event.comment.body, '[KODJO_T8_USER_ARBITRATION]') ||
+       contains(github.event.comment.body, '[KODJO_T8_TECHNICAL_RETRY]')) &&
       contains(github.event.comment.body, 'choice=A') &&
       contains(github.event.comment.body, 'source=CHATGPT_WORK_SAME_THREAD')
     runs-on: ubuntu-latest
@@ -30,7 +31,7 @@ jobs:
           SOURCE_BODY: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
-          test "$SOURCE_BODY" = "$(cat <<'EOF'
+          ORIGINAL_BODY="$(cat <<'EOF'
           [KODJO_T8_USER_ARBITRATION]
           choice=A
           source=CHATGPT_WORK_SAME_THREAD
@@ -41,17 +42,31 @@ jobs:
           real_claude_authorized=true
           EOF
           )"
+          RETRY_BODY="$(cat <<'EOF'
+          [KODJO_T8_TECHNICAL_RETRY]
+          source_comment_id=5463763289
+          choice=A
+          source=CHATGPT_WORK_SAME_THREAD
+          transport_test=T8
+          pr=18
+          implementation_authorized=false
+          business_write=false
+          real_claude_authorized=true
+          EOF
+          )"
+          test "$SOURCE_BODY" = "$ORIGINAL_BODY" || test "$SOURCE_BODY" = "$RETRY_BODY"
+          CAUSAL_COMMENT_ID=5463763289
           cat > /tmp/t8-accepted.md <<EOF
           [KODJO_T8_ARBITRATION_ACCEPTED] VERIFIED_SUCCESS
 
-          `schema=kodjo.t8-arbitration-accepted.v1`
-          `source_comment_id=$SOURCE_COMMENT_ID`
-          `source=CHATGPT_WORK_SAME_THREAD`
-          `choice=A`
-          `pr=18`
-          `implementation_authorized=false`
-          `business_write=false`
-          `real_claude_authorized=true`
+          \`schema=kodjo.t8-arbitration-accepted.v1`
+          \`source_comment_id=$CAUSAL_COMMENT_ID\`
+          \`source=CHATGPT_WORK_SAME_THREAD\`
+          \`choice=A\`
+          \`pr=18\`
+          \`implementation_authorized=false\`
+          \`business_write=false\`
+          \`real_claude_authorized=true\`
 
           La réponse utilisateur reçue dans le fil Work a été matérialisée dans GitHub et la chaîne T8 reprend automatiquement vers Claude Cloud réel.
           EOF
@@ -78,10 +93,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             KODJO T8 — REAL CLAUDE CLOUD TRANSPORT TEST.
-            This invocation is causally downstream of the user's exact choice A entered in the same ChatGPT Work thread and materialized as the source comment on PR #18.
+            GitHub Actions has already validated the upstream T8 transport input. Your role is limited to proving this downstream actor is the real Claude Cloud action.
             Strictly read-only. Do not edit, write, commit, push, or access the network.
             Read only `.github/orchestration/T7_T8_WORK_TRANSPORT.md`.
-            Return one structured JSON object whose `message` confirms that real Claude Cloud was reached automatically after choice A, that no business write or T01-S09 implementation is authorized, and ends exactly with `STATUT : KODJO_T8_REAL_CLAUDE_SUCCESS`.
+            Return one structured JSON object whose `message` reports your own observable execution: Claude Cloud was invoked, the transport manifest was read, and no business write or T01-S09 implementation was performed or authorized. End exactly with `STATUT : KODJO_T8_REAL_CLAUDE_SUCCESS`.
           claude_args: |
             --max-turns 10
             --allowedTools "Read"
@@ -91,7 +106,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
-          SOURCE_COMMENT_ID: ${{ github.event.comment.id }}
+          SOURCE_COMMENT_ID: 5463763289
         run: |
           set -euo pipefail
           MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
@@ -101,14 +116,14 @@ jobs:
           cat > /tmp/t8-result.md <<EOF
           [KODJO_T8_REAL_CLAUDE_RESULT] VERIFIED_SUCCESS
 
-          `schema=kodjo.t8-real-claude-result.v1`
-          `source_comment_id=$SOURCE_COMMENT_ID`
-          `source=CHATGPT_WORK_SAME_THREAD`
-          `choice=A`
-          `pr=18`
-          `implementation_authorized=false`
-          `real_claude_called=true`
-          `business_write=false`
+          \`schema=kodjo.t8-real-claude-result.v1`
+          \`source_comment_id=$CAUSAL_COMMENT_ID\`
+          \`source=CHATGPT_WORK_SAME_THREAD\`
+          \`choice=A\`
+          \`pr=18\`
+          \`implementation_authorized=false\`
+          \`real_claude_called=true\`
+          \`business_write=false\`
 
           $MESSAGE
           EOF
