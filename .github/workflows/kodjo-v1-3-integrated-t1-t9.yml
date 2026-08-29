@@ -84,9 +84,6 @@ jobs:
           STAGE: ${{ steps.classify.outputs.stage }}
           TRANSITION_ID: ${{ steps.classify.outputs.transition }}
           SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
-          PERFORMANCE_FILE: ${{ runner.temp }}/kodjo-performance.json
-          SESSION_ID: ${{ steps.performance.outputs.session_id }}
-          CONTINUITY_MODE: ${{ steps.performance.outputs.continuity_mode }}
         run: |
           set -euo pipefail
           existing_id=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -r --arg test_id "$TEST_ID" --arg transition "$TRANSITION_ID" --arg stage "$STAGE" --arg source "$SOURCE_COMMENT_ID" '
@@ -268,6 +265,9 @@ jobs:
           STAGE: ${{ steps.classify.outputs.stage }}
           TRANSITION_ID: ${{ steps.classify.outputs.transition }}
           SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
+          PERFORMANCE_FILE: ${{ runner.temp }}/kodjo-performance.json
+          SESSION_ID: ${{ steps.performance.outputs.session_id }}
+          CONTINUITY_MODE: ${{ steps.performance.outputs.continuity_mode }}
         run: |
           set -euo pipefail
           test -f "$PERFORMANCE_FILE"
