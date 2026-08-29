@@ -37,14 +37,19 @@ jobs:
           test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
           test -z "$(git status --porcelain)"
 
-          gh api repos/${{ github.repository }}/issues/comments/5460957292 > /tmp/kodjo-context/approved-plan.json
-          gh api repos/${{ github.repository }}/issues/comments/5460962004 > /tmp/kodjo-context/plan-approval.json
-          gh api repos/${{ github.repository }}/issues/comments/5461616289 > /tmp/kodjo-context/source-attestation.json
-          gh api repos/${{ github.repository }}/issues/comments/5460976204 > /tmp/kodjo-context/checkpoint.json
-          gh api repos/${{ github.repository }}/issues/comments/5461645608 > /tmp/kodjo-context/authorization-dry-run.json
-          gh api --paginate repos/${{ github.repository }}/issues/17/comments \
-            | jq '[.[] | {id, user:.user.login, body}] | .[-20:]' \
-            > /tmp/kodjo-context/recent-delta.json
+          gh api --paginate repos/${{ github.repository }}/issues/17/comments > /tmp/kodjo-context/all-comments.json
+          jq -e 'map(select(.id == 5460957292)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+          jq -e 'map(select(.id == 5460962004)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+          jq -e 'map(select(.id == 5461616289)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+          jq -e 'map(select(.id == 5460976204)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+          jq -e 'map(select(.id == 5461645608)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
+
+          jq '.[] | select(.id == 5460957292)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/approved-plan.json
+          jq '.[] | select(.id == 5460962004)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/plan-approval.json
+          jq '.[] | select(.id == 5461616289)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/source-attestation.json
+          jq '.[] | select(.id == 5460976204)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/checkpoint.json
+          jq '.[] | select(.id == 5461645608)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/authorization-dry-run.json
+          jq '[.[] | {id, user:.user.login, body}] | .[-20:]' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/recent-delta.json
 
           jq -e '.body | contains("STATUT : PLAN_READY_FOR_REVIEW")' /tmp/kodjo-context/approved-plan.json >/dev/null
           jq -e '.body | contains("PLAN_APPROVED")' /tmp/kodjo-context/plan-approval.json >/dev/null
@@ -67,7 +72,7 @@ jobs:
 
             Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode autorisé est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
 
-            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` : le plan final approuvé (commentaire 5460957292), l'approbation ChatGPT (5460962004), le SOURCE_ATTESTATION (5461616289), le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation (5461645608), un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé, l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
 
             Implémente strictement le plan approuvé T01-S09 et uniquement son périmètre. Les décisions les plus récentes de l'Issue supersèdent les formulations antérieures incompatibles. En particulier : catalogue initial = Renforcement, Cardio, Mobilité, Étirements, Équilibre, Coordination, Récupération, Respiration, Méditation, Autre ; unicité après normalisation des espaces sans distinction de casse ni accents/diacritiques ; affichage conservant casse et accents saisis ; aucun fuzzy matching/autocorrection/suggestion dans le MVP.
 
