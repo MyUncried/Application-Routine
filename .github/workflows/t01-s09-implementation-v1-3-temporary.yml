@@ -37,11 +37,11 @@ jobs:
           test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
           test -z "$(git status --porcelain)"
 
-          gh api repos/${{ github.repository }}/issues/17/comments/5460957292 > /tmp/kodjo-context/approved-plan.json
-          gh api repos/${{ github.repository }}/issues/17/comments/5460962004 > /tmp/kodjo-context/plan-approval.json
-          gh api repos/${{ github.repository }}/issues/17/comments/5461616289 > /tmp/kodjo-context/source-attestation.json
-          gh api repos/${{ github.repository }}/issues/17/comments/5460976204 > /tmp/kodjo-context/checkpoint.json
-          gh api repos/${{ github.repository }}/issues/17/comments/5461645608 > /tmp/kodjo-context/authorization-dry-run.json
+          gh api repos/${{ github.repository }}/issues/comments/5460957292 > /tmp/kodjo-context/approved-plan.json
+          gh api repos/${{ github.repository }}/issues/comments/5460962004 > /tmp/kodjo-context/plan-approval.json
+          gh api repos/${{ github.repository }}/issues/comments/5461616289 > /tmp/kodjo-context/source-attestation.json
+          gh api repos/${{ github.repository }}/issues/comments/5460976204 > /tmp/kodjo-context/checkpoint.json
+          gh api repos/${{ github.repository }}/issues/comments/5461645608 > /tmp/kodjo-context/authorization-dry-run.json
           gh api --paginate repos/${{ github.repository }}/issues/17/comments \
             | jq '[.[] | {id, user:.user.login, body}] | .[-20:]' \
             > /tmp/kodjo-context/recent-delta.json
