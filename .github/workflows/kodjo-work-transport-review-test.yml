@@ -1,0 +1,33 @@
+name: KODJO Work transport review micro-test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/kodjo-work-transport-review-test.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  submit-review-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit automation review on PR 19
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TEST_ID: KODJO-V13-T1T9-20260829-01
+        run: |
+          payload=$(jq -n \
+            --arg body "[KODJO_WORK_TRANSPORT_REVIEW_TEST] test_id=$TEST_ID event_test=PR_REVIEW_SUBMITTED" \
+            '{event:"COMMENT",body:$body}')
+          response=$(curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/pulls/19/reviews" \
+            -d "$payload")
+          jq '{id, node_id, state, submitted_at, user: .user.login, commit_id, body}' <<<"$response"
