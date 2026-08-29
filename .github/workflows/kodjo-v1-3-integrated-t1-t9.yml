@@ -138,7 +138,13 @@ jobs:
           if [ "$STAGE" = "RETEST" ]; then marker="[KODJO_T1T9_WORK_ARBITRATION_REQUEST]"; fi
           if [ "$STAGE" = "MID_RESUME" ]; then marker="[KODJO_T1T9_WORK_ARBITRATION_REQUEST]"; fi
           if [ "$STAGE" = "FINAL" ]; then marker="[KODJO_T1T9_FINAL_RESULT]"; fi
-          body=$(jq -nr             --arg marker "$marker"             --arg test_id "$TEST_ID"             --arg transition_id "$TRANSITION_ID"             --arg stage "$STAGE"             --arg source_comment_id "$SOURCE_COMMENT_ID"             --argjson result "$STRUCTURED_OUTPUT"             '"\($marker) VERIFIED_SUCCESS\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=CLAUDE_CLOUD_REAL\ndestination_actor=CHATGPT_WORK\nbusiness_write=false\nimplementation_authorized=false\n\nstructured_output=\($result|tojson)"')
+          state_after="RESULT_PUBLISHED"
+          checkpoint="NONE"
+          if [ "$marker" = "[KODJO_T1T9_WORK_ARBITRATION_REQUEST]" ]; then
+            state_after="ARBITRAGE"
+            checkpoint="ARBITRAGE"
+          fi
+          body=$(jq -nr --arg marker "$marker" --arg test_id "$TEST_ID" --arg transition_id "$TRANSITION_ID" --arg stage "$STAGE" --arg source_comment_id "$SOURCE_COMMENT_ID" --arg state_after "$state_after" --arg checkpoint "$checkpoint" --argjson result "$STRUCTURED_OUTPUT" '"\($marker) VERIFIED_SUCCESS\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=CLAUDE_CLOUD_REAL\ndestination_actor=CHATGPT_WORK\nstate_after=\($state_after)\ncheckpoint=\($checkpoint)\nresume_from=\($source_comment_id)\nbusiness_write=false\nimplementation_authorized=false\n\nstructured_output=\($result|tojson)"')
           payload=$(jq -n --arg body "$body" '{body:$body}')
           response=$(printf '%s' "$payload" | gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --method POST --input -)
           published_id=$(printf '%s' "$response" | jq -er '.id')
