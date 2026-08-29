@@ -7,7 +7,7 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
   id-token: write
@@ -16,6 +16,7 @@ env:
   TEST_ID: KODJO-V13-T1T9-20260829-01
   TEST_PR: 19
   TEST_BRANCH: orchestration/v1-3-integrated-t1-t9
+  SIGNAL_FILE: .github/orchestration/KODJO_WORK_TRANSPORT_COMMIT_TEST.txt
 
 jobs:
   claude-transition:
@@ -167,8 +168,11 @@ jobs:
           set -euo pipefail
           test -f .github/orchestration/KODJO_V13_T1_T9_TEST.md
           test -z "$(git status --porcelain)"
-          git diff --name-only origin/main...HEAD | grep -Fxq '.github/orchestration/KODJO_V13_T1_T9_TEST.md'
-          test "$(git diff --name-only origin/main...HEAD | wc -l)" -eq 1
+          changed=$(git diff --name-only origin/main...HEAD | sort)
+          allowed=$(printf '%s\n' \
+            '.github/orchestration/KODJO_V13_T1_T9_TEST.md' \
+            "$SIGNAL_FILE" | sort)
+          test "$changed" = "$allowed"
 
       - name: Call real Claude Cloud
         if: steps.idempotency.outputs.should_run == 'true'
@@ -258,6 +262,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Validate and publish Claude result deterministically
+        id: publish
         if: steps.idempotency.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -301,7 +306,132 @@ jobs:
             (.body | contains("source_comment_id=" + $source)) and
             (.body | contains("business_write=false"))
           ' >/dev/null
-          echo "published_comment_id=$published_id"
+          echo "published_comment_id=$published_id" >> "$GITHUB_OUTPUT"
+
+      - name: Emit one idempotent synchronize signal after verified publication
+        if: steps.idempotency.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DURABLE_COMMENT_ID: ${{ steps.publish.outputs.published_comment_id }}
+          TRANSITION_ID: ${{ steps.classify.outputs.transition }}
+          STAGE: ${{ steps.classify.outputs.stage }}
+        run: |
+          set -euo pipefail
+          signal_id="$TEST_ID:$TRANSITION_ID:$DURABLE_COMMENT_ID"
+          git fetch origin "$TEST_BRANCH"
+          git checkout -B "$TEST_BRANCH" "origin/$TEST_BRANCH"
+          if test -f "$SIGNAL_FILE" && grep -Fxq "signal_id=$signal_id" "$SIGNAL_FILE"; then
+            echo "Signal already exists; no duplicate synchronize."
+            exit 0
+          fi
+          durable=$(gh api "repos/${{ github.repository }}/issues/comments/$DURABLE_COMMENT_ID")
+          printf '%s' "$durable" | jq -e --arg test_id "$TEST_ID" '
+            (.id | type == "number") and
+            (.body | contains("test_id=" + $test_id)) and
+            (.body | contains("business_write=false")) and
+            (.body | contains("implementation_authorized=false"))
+          ' >/dev/null
+          requested_at=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          {
+            echo "test_id=$TEST_ID"
+            echo "transition_id=$TRANSITION_ID"
+            echo "state_checkpoint=RESULT_PUBLISHED:$STAGE"
+            echo "source_comment_id=$DURABLE_COMMENT_ID"
+            echo "signal_id=$signal_id"
+            echo "pull_request=$TEST_PR"
+            echo "event=pull_request:synchronize"
+            echo "event_actor=github-actions[bot]"
+            echo "signal_requested_at=$requested_at"
+            echo "event_timestamp=RESOLVE_FROM_SIGNAL_COMMIT"
+            echo "work_execution_timestamp=PENDING"
+            echo "business_write=false"
+            echo "implementation_authorized=false"
+          } > "$SIGNAL_FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SIGNAL_FILE"
+          git commit -m "test: signal Work for $TRANSITION_ID [$DURABLE_COMMENT_ID]"
+          git push origin "HEAD:$TEST_BRANCH"
+
+  resume-after-transport-fix:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.number == 19 &&
+      github.event.comment.user.login == 'MyUncried' &&
+      contains(github.event.comment.body, '[KODJO_T1T9_RESUME_AFTER_TRANSPORT_FIX]') &&
+      contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve and verify existing INITIAL durable result
+        id: durable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          durable=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -c --arg test_id "$TEST_ID" '
+            [.[] | select(
+              (.body | contains("[KODJO_T1T9_CLAUDE_RESULT] VERIFIED_SUCCESS")) and
+              (.body | contains("test_id=" + $test_id)) and
+              (.body | contains("stage=INITIAL")) and
+              (.body | contains("source_actor=CLAUDE_CLOUD_REAL")) and
+              (.body | contains("business_write=false")) and
+              (.body | contains("implementation_authorized=false"))
+            )] | last')
+          test "$durable" != "null"
+          durable_id=$(printf '%s' "$durable" | jq -er '.id')
+          test "$durable_id" = "5463979537"
+          body=$(printf '%s' "$durable" | jq -er '.body')
+          printf '%s' "$body" | grep -Fq 'structured_output={"status":"KODJO_T1T9_INITIAL_SUCCESS"'
+          printf '%s' "$body" | grep -Fq '"manifest_sha256":"INTENTIONALLY_OMITTED_FOR_REVIEW_LOOP"'
+          printf '%s' "$body" | grep -Fq '"total_cost_usd":"0.18031600000000003"'
+          echo "durable_comment_id=$durable_id" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TEST_BRANCH }}
+          fetch-depth: 0
+
+      - name: Emit resume synchronize without recalling Claude
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DURABLE_COMMENT_ID: ${{ steps.durable.outputs.durable_comment_id }}
+        run: |
+          set -euo pipefail
+          transition_id="T2_TO_T3_REVIEW"
+          signal_id="$TEST_ID:$transition_id:$DURABLE_COMMENT_ID"
+          if test -f "$SIGNAL_FILE" && grep -Fxq "signal_id=$signal_id" "$SIGNAL_FILE"; then
+            echo "Resume signal already exists; Claude INITIAL remains reused."
+            exit 0
+          fi
+          if gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -e --arg test_id "$TEST_ID" --arg source "$DURABLE_COMMENT_ID" '
+            any(.[]; (.body | contains("[KODJO_T1T9_REVIEW_CHANGES_REQUESTED]")) and
+                     (.body | contains("test_id=" + $test_id)) and
+                     (.body | contains("source_comment_id=" + $source)))' >/dev/null; then
+            echo "Durable INITIAL was already reviewed; no duplicate signal."
+            exit 0
+          fi
+          requested_at=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          {
+            echo "test_id=$TEST_ID"
+            echo "transition_id=$transition_id"
+            echo "state_checkpoint=INITIAL_RESULT_PUBLISHED"
+            echo "source_comment_id=$DURABLE_COMMENT_ID"
+            echo "signal_id=$signal_id"
+            echo "pull_request=$TEST_PR"
+            echo "event=pull_request:synchronize"
+            echo "event_actor=github-actions[bot]"
+            echo "signal_requested_at=$requested_at"
+            echo "event_timestamp=RESOLVE_FROM_SIGNAL_COMMIT"
+            echo "work_execution_timestamp=PENDING"
+            echo "business_write=false"
+            echo "implementation_authorized=false"
+            echo "claude_initial_recall=false"
+          } > "$SIGNAL_FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SIGNAL_FILE"
+          git commit -m "test: resume Work from INITIAL result [5463979537]"
+          git push origin "HEAD:$TEST_BRANCH"
 
   advance-arbitration:
     if: >-
