@@ -1,3 +1,14 @@
 test_id=KODJO-V13-T1T9-20260829-01
-event_test=PR_COMMIT_UPDATE_SYNCHRONIZE_RETRY
+transition_id=T2_TO_T3_REVIEW
+state_checkpoint=INITIAL_RESULT_PUBLISHED
+source_comment_id=5463979537
+signal_id=KODJO-V13-T1T9-20260829-01:T2_TO_T3_REVIEW:5463979537
+pull_request=19
+event=pull_request:synchronize
+event_actor=github-actions[bot]
+signal_requested_at=2026-08-29T18:57:11.004Z
+event_timestamp=RESOLVE_FROM_SIGNAL_COMMIT
+work_execution_timestamp=PENDING
 business_write=false
+implementation_authorized=false
+claude_initial_recall=false
