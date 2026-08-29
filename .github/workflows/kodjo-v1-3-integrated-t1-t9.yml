@@ -84,6 +84,9 @@ jobs:
           STAGE: ${{ steps.classify.outputs.stage }}
           TRANSITION_ID: ${{ steps.classify.outputs.transition }}
           SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
+          PERFORMANCE_FILE: ${{ runner.temp }}/kodjo-performance.json
+          SESSION_ID: ${{ steps.performance.outputs.session_id }}
+          CONTINUITY_MODE: ${{ steps.performance.outputs.continuity_mode }}
         run: |
           set -euo pipefail
           existing_id=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -r --arg test_id "$TEST_ID" --arg transition "$TRANSITION_ID" --arg stage "$STAGE" --arg source "$SOURCE_COMMENT_ID" '
@@ -99,6 +102,61 @@ jobs:
           else
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Resolve Claude continuity and delta
+        id: continuity
+        if: steps.idempotency.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAGE: ${{ steps.classify.outputs.stage }}
+        run: |
+          set -euo pipefail
+          case "$STAGE" in
+            INITIAL)
+              previous_stage=""
+              delta_nature="INITIAL_CHECKPOINT_AND_MANIFEST"
+              ;;
+            CORRECTION)
+              previous_stage="INITIAL"
+              delta_nature="CHANGES_REQUESTED:COMPUTE_ACTUAL_MANIFEST_SHA256"
+              ;;
+            RETEST)
+              previous_stage="CORRECTION"
+              delta_nature="RETEST_REQUIRED:REVALIDATE_SAME_MANIFEST"
+              ;;
+            MID_RESUME)
+              previous_stage="RETEST"
+              delta_nature="USER_DECISION_MID:A"
+              ;;
+            FINAL)
+              previous_stage="MID_RESUME"
+              delta_nature="USER_DECISION_LOOP3:A_AND_FINAL_VERIFICATION"
+              ;;
+          esac
+          previous_session_id=""
+          if [ -n "$previous_stage" ]; then
+            previous_session_id=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -r --arg test_id "$TEST_ID" --arg stage "$previous_stage" '
+              [.[] | select(
+                (.body | contains("test_id=" + $test_id)) and
+                (.body | contains("stage=" + $stage)) and
+                (.body | contains("session_id="))
+              )] | last | .body // ""' | sed -n 's/^session_id=//p' | head -n 1)
+          fi
+          if [ -n "$previous_session_id" ]; then
+            resume_arg="--resume $previous_session_id"
+            requested_mode="SESSION_RESUME_REQUESTED"
+          else
+            resume_arg=""
+            requested_mode="NEW_SESSION_CHECKPOINT_DELTA"
+          fi
+          delta_size_bytes=$(printf '%s' "$delta_nature" | wc -c | tr -d ' ')
+          {
+            echo "previous_session_id=$previous_session_id"
+            echo "resume_arg=$resume_arg"
+            echo "requested_mode=$requested_mode"
+            echo "delta_nature=$delta_nature"
+            echo "delta_size_bytes=$delta_size_bytes"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v6
         if: steps.idempotency.outputs.should_run == 'true'
@@ -122,26 +180,85 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: true
           prompt: |
             KODJO V1.3 integrated orchestration test.
             test_id=${{ env.TEST_ID }}
             transition_id=${{ steps.classify.outputs.transition }}
             stage=${{ steps.classify.outputs.stage }}
             source_comment_id=${{ steps.classify.outputs.source_comment_id }}
+            continuity_requested=${{ steps.continuity.outputs.requested_mode }}
+            previous_session_id=${{ steps.continuity.outputs.previous_session_id }}
+            delta_nature=${{ steps.continuity.outputs.delta_nature }}
+            delta_size_bytes=${{ steps.continuity.outputs.delta_size_bytes }}
             Strictly read-only. Read only .github/orchestration/KODJO_V13_T1_T9_TEST.md.
             Never edit, commit, push, or access business files.
             Return one JSON object with fields:
             status, test_id, transition_id, stage, source_comment_id,
             manifest_sha256, manifest_summary, business_write,
-            implementation_authorized, permissions_denied, unnecessary_reconstruction.
+            implementation_authorized, permissions_denied, unnecessary_reconstruction,
+            sources_read, read_operations_count, repeated_reads_detected,
+            history_reconstruction_detected, delta_nature.
             For INITIAL only, set manifest_sha256 to "INTENTIONALLY_OMITTED_FOR_REVIEW_LOOP".
             For every later stage, compute the actual SHA-256 of the manifest with an allowed read-only shell command.
             business_write and implementation_authorized must be false.
             End status with KODJO_T1T9_${{ steps.classify.outputs.stage }}_SUCCESS.
           claude_args: |
+            ${{ steps.continuity.outputs.resume_arg }}
             --max-turns 8
             --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
-            --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction"]}'
+            --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"},"sources_read":{"type":"array","items":{"type":"string"}},"read_operations_count":{"type":"integer"},"repeated_reads_detected":{"type":"boolean"},"history_reconstruction_detected":{"type":"boolean"},"delta_nature":{"type":"string"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction","sources_read","read_operations_count","repeated_reads_detected","history_reconstruction_detected","delta_nature"]}'
+
+      - name: Collect performance and continuity evidence
+        id: performance
+        if: steps.idempotency.outputs.should_run == 'true'
+        env:
+          EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+          RETURNED_SESSION_ID: ${{ steps.claude.outputs.session_id }}
+          PREVIOUS_SESSION_ID: ${{ steps.continuity.outputs.previous_session_id }}
+          REQUESTED_MODE: ${{ steps.continuity.outputs.requested_mode }}
+          DELTA_NATURE: ${{ steps.continuity.outputs.delta_nature }}
+          DELTA_SIZE_BYTES: ${{ steps.continuity.outputs.delta_size_bytes }}
+        run: |
+          set -euo pipefail
+          test -n "$EXECUTION_FILE"
+          test -f "$EXECUTION_FILE"
+          result=$(jq -sc '[.. | objects | select(.type? == "result")] | last // {}' "$EXECUTION_FILE")
+          duration_ms=$(printf '%s' "$result" | jq -r '.duration_ms // "NON_VERIFIABLE"')
+          num_turns=$(printf '%s' "$result" | jq -r '.num_turns // "NON_VERIFIABLE"')
+          total_cost_usd=$(printf '%s' "$result" | jq -r '.total_cost_usd // "NON_VERIFIABLE"')
+          permission_denials=$(printf '%s' "$result" | jq -r '.permission_denials_count // "NON_VERIFIABLE"')
+          read_operations=$(jq -sc '[.. | objects | select((.name? == "Read") or (.tool_name? == "Read"))] | length' "$EXECUTION_FILE")
+          bash_operations=$(jq -sc '[.. | objects | select((.name? == "Bash") or (.tool_name? == "Bash"))] | length' "$EXECUTION_FILE")
+          manifest_bytes=$(wc -c < .github/orchestration/KODJO_V13_T1_T9_TEST.md | tr -d ' ')
+          if [ "$REQUESTED_MODE" = "NEW_SESSION_CHECKPOINT_DELTA" ]; then
+            continuity_mode="NEW_SESSION_CHECKPOINT_DELTA"
+          elif [ -n "$PREVIOUS_SESSION_ID" ] && [ "$RETURNED_SESSION_ID" = "$PREVIOUS_SESSION_ID" ]; then
+            continuity_mode="SESSION_RESUMED"
+          else
+            continuity_mode="NON_VERIFIABLE"
+          fi
+          jq -n             --arg duration_ms "$duration_ms"             --arg num_turns "$num_turns"             --arg total_cost_usd "$total_cost_usd"             --arg permission_denials "$permission_denials"             --arg continuity_mode "$continuity_mode"             --arg requested_mode "$REQUESTED_MODE"             --arg previous_session_id "$PREVIOUS_SESSION_ID"             --arg returned_session_id "$RETURNED_SESSION_ID"             --arg manifest_bytes "$manifest_bytes"             --arg delta_nature "$DELTA_NATURE"             --arg delta_size_bytes "$DELTA_SIZE_BYTES"             --arg read_operations "$read_operations"             --arg bash_operations "$bash_operations"             '{
+              duration_ms:$duration_ms,
+              num_turns:$num_turns,
+              total_cost_usd:$total_cost_usd,
+              permission_denials_count:$permission_denials,
+              continuity_mode:$continuity_mode,
+              continuity_requested:$requested_mode,
+              previous_session_id:$previous_session_id,
+              returned_session_id:$returned_session_id,
+              total_context_tokens:"NON_VERIFIABLE",
+              orchestrator_manifest_bytes:$manifest_bytes,
+              delta_nature:$delta_nature,
+              delta_size_bytes:$delta_size_bytes,
+              observed_read_operations:$read_operations,
+              observed_bash_operations:$bash_operations,
+              full_execution_log_available:true
+            }' > "$RUNNER_TEMP/kodjo-performance.json"
+          {
+            echo "continuity_mode=$continuity_mode"
+            echo "session_id=$RETURNED_SESSION_ID"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Validate and publish Claude result deterministically
         if: steps.idempotency.outputs.should_run == 'true'
@@ -153,6 +270,8 @@ jobs:
           SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
         run: |
           set -euo pipefail
+          test -f "$PERFORMANCE_FILE"
+          PERFORMANCE=$(jq -c . "$PERFORMANCE_FILE")
           printf '%s' "$STRUCTURED_OUTPUT" | jq -e '
             .test_id == env.TEST_ID and
             .transition_id == env.TRANSITION_ID and
@@ -171,7 +290,7 @@ jobs:
             state_after="ARBITRAGE"
             checkpoint="ARBITRAGE"
           fi
-          body=$(jq -nr --arg marker "$marker" --arg test_id "$TEST_ID" --arg transition_id "$TRANSITION_ID" --arg stage "$STAGE" --arg source_comment_id "$SOURCE_COMMENT_ID" --arg state_after "$state_after" --arg checkpoint "$checkpoint" --argjson result "$STRUCTURED_OUTPUT" '"\($marker) VERIFIED_SUCCESS\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=CLAUDE_CLOUD_REAL\ndestination_actor=CHATGPT_WORK\nstate_after=\($state_after)\ncheckpoint=\($checkpoint)\nresume_from=\($source_comment_id)\nbusiness_write=false\nimplementation_authorized=false\n\nstructured_output=\($result|tojson)"')
+          body=$(jq -nr --arg marker "$marker" --arg test_id "$TEST_ID" --arg transition_id "$TRANSITION_ID" --arg stage "$STAGE" --arg source_comment_id "$SOURCE_COMMENT_ID" --arg state_after "$state_after" --arg checkpoint "$checkpoint" --arg session_id "$SESSION_ID" --arg continuity_mode "$CONTINUITY_MODE" --argjson performance "$PERFORMANCE" --argjson result "$STRUCTURED_OUTPUT" '"\($marker) VERIFIED_SUCCESS\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=CLAUDE_CLOUD_REAL\ndestination_actor=CHATGPT_WORK\nstate_after=\($state_after)\ncheckpoint=\($checkpoint)\nresume_from=\($source_comment_id)\nsession_id=\($session_id)\ncontinuity_mode=\($continuity_mode)\nbusiness_write=false\nimplementation_authorized=false\n\nperformance=\($performance|tojson)\nstructured_output=\($result|tojson)"')
           payload=$(jq -n --arg body "$body" '{body:$body}')
           response=$(printf '%s' "$payload" | gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --method POST --input -)
           published_id=$(printf '%s' "$response" | jq -er '.id')
