@@ -77,12 +77,37 @@ jobs:
             echo "source_comment_id=$SOURCE_COMMENT_ID"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Idempotency preflight
+        id: idempotency
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAGE: ${{ steps.classify.outputs.stage }}
+          TRANSITION_ID: ${{ steps.classify.outputs.transition }}
+          SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
+        run: |
+          set -euo pipefail
+          existing_id=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -r --arg test_id "$TEST_ID" --arg transition "$TRANSITION_ID" --arg stage "$STAGE" --arg source "$SOURCE_COMMENT_ID" '
+            .[] | select(
+              (.body | contains("test_id=" + $test_id)) and
+              (.body | contains("transition_id=" + $transition)) and
+              (.body | contains("stage=" + $stage)) and
+              (.body | contains("source_comment_id=" + $source))
+            ) | .id' | head -n 1)
+          if [ -n "$existing_id" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "existing_comment_id=$existing_id" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v6
+        if: steps.idempotency.outputs.should_run == 'true'
         with:
           ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Verify isolated technical scope and source attestation
+        if: steps.idempotency.outputs.should_run == 'true'
         run: |
           set -euo pipefail
           test -f .github/orchestration/KODJO_V13_T1_T9_TEST.md
@@ -91,6 +116,7 @@ jobs:
           test "$(git diff --name-only origin/main...HEAD | wc -l)" -eq 1
 
       - name: Call real Claude Cloud
+        if: steps.idempotency.outputs.should_run == 'true'
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
@@ -118,6 +144,7 @@ jobs:
             --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction"]}'
 
       - name: Validate and publish Claude result deterministically
+        if: steps.idempotency.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
@@ -181,6 +208,17 @@ jobs:
           else
             next_stage="LOOP3"
             transition_id="T8.3"
+          fi
+          existing_id=$(gh api "repos/${{ github.repository }}/issues/$TEST_PR/comments" --paginate | jq -r --arg test_id "$TEST_ID" --arg transition "$transition_id" --arg stage "$next_stage" --arg source "$SOURCE_COMMENT_ID" '
+            .[] | select(
+              (.body | contains("test_id=" + $test_id)) and
+              (.body | contains("transition_id=" + $transition)) and
+              (.body | contains("stage=" + $stage)) and
+              (.body | contains("source_comment_id=" + $source))
+            ) | .id' | head -n 1)
+          if [ -n "$existing_id" ]; then
+            echo "existing_comment_id=$existing_id"
+            exit 0
           fi
           body=$(jq -nr             --arg test_id "$TEST_ID"             --arg transition_id "$transition_id"             --arg stage "$next_stage"             --arg source_comment_id "$SOURCE_COMMENT_ID"             '"[KODJO_T1T9_WORK_ARBITRATION_REQUEST]\n\ntest_id=\($test_id)\ntransition_id=\($transition_id)\nstage=\($stage)\nsource_comment_id=\($source_comment_id)\nsource_actor=GITHUB_ORCHESTRATION\ndestination_actor=CHATGPT_WORK\ncheckpoint=ARBITRAGE\nresume_from=\($source_comment_id)\nbusiness_write=false\nimplementation_authorized=false"')
           payload=$(jq -n --arg body "$body" '{body:$body}')
