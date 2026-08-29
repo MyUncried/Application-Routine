@@ -59,7 +59,7 @@ jobs:
           cat > /tmp/t8-accepted.md <<EOF
           [KODJO_T8_ARBITRATION_ACCEPTED] VERIFIED_SUCCESS
 
-          \`schema=kodjo.t8-arbitration-accepted.v1`
+          \`schema=kodjo.t8-arbitration-accepted.v1\`
           \`source_comment_id=$CAUSAL_COMMENT_ID\`
           \`source=CHATGPT_WORK_SAME_THREAD\`
           \`choice=A\`
@@ -106,7 +106,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
-          SOURCE_COMMENT_ID: 5463763289
+          CAUSAL_COMMENT_ID: 5463763289
         run: |
           set -euo pipefail
           MESSAGE=$(printf '%s' "$STRUCTURED_OUTPUT" | jq -r '.message // empty')
@@ -116,7 +116,7 @@ jobs:
           cat > /tmp/t8-result.md <<EOF
           [KODJO_T8_REAL_CLAUDE_RESULT] VERIFIED_SUCCESS
 
-          \`schema=kodjo.t8-real-claude-result.v1`
+          \`schema=kodjo.t8-real-claude-result.v1\`
           \`source_comment_id=$CAUSAL_COMMENT_ID\`
           \`source=CHATGPT_WORK_SAME_THREAD\`
           \`choice=A\`
