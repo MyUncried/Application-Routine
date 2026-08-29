@@ -1,5 +1,5 @@
 name: KODJO E2E Chain Completion V1.3
-run-name: KODJO E2E — chain completion
+run-name: KODJO E2E — transition to fake Claude
 
 on:
   repository_dispatch:
@@ -13,7 +13,7 @@ jobs:
   complete-e2e-chain:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate dispatched review and complete controlled chain
+      - name: Validate orchestrator decision and dispatch fake Claude job
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE: ${{ github.event.client_payload.issue }}
@@ -21,22 +21,28 @@ jobs:
           CHECKPOINT_STATE: ${{ github.event.client_payload.checkpoint_state }}
           BRANCH: ${{ github.event.client_payload.branch }}
           EXPECTED_HEAD: ${{ github.event.client_payload.head }}
+          DECISION: ${{ github.event.client_payload.decision }}
           IMPLEMENTATION_AUTHORIZED: ${{ github.event.client_payload.implementation_authorized }}
+          REAL_CLAUDE_AUTHORIZED: ${{ github.event.client_payload.real_claude_authorized }}
           SOURCE_COMMENT_ID: ${{ github.event.client_payload.source_comment_id }}
         run: |
           set -euo pipefail
           fail() { echo "E2E_COMPLETION_FAILURE: $1" >&2; exit 1; }
 
           test "$ISSUE" = "17" || fail "issue mismatch"
+          test "$DECISION" = "CONTINUE_TO_CLAUDE_STUB" || fail "unexpected orchestrator decision"
           test "$IMPLEMENTATION_AUTHORIZED" = "false" || fail "implementation authorization must remain false"
+          test "$REAL_CLAUDE_AUTHORIZED" = "false" || fail "real Claude authorization must remain false"
           test -n "$RESULT_COMMENT_ID" || fail "missing result comment id"
           test -n "$SOURCE_COMMENT_ID" || fail "missing source comment id"
           test -n "$BRANCH" || fail "missing branch"
           test -n "$EXPECTED_HEAD" || fail "missing head"
 
           RESULT_BODY=$(gh api "repos/${{ github.repository }}/issues/comments/$RESULT_COMMENT_ID" --jq '.body')
-          printf '%s' "$RESULT_BODY" | grep -Fq '[KODJO_E2E_REVIEW_RESULT] VERIFIED_SUCCESS' || fail "review result marker missing"
-          printf '%s' "$RESULT_BODY" | grep -Fq 'implementation_authorized=false' || fail "review safety marker missing"
+          printf '%s' "$RESULT_BODY" | grep -Fq '[KODJO_E2E_ORCHESTRATOR_DECISION] VERIFIED_SUCCESS' || fail "orchestrator decision marker missing"
+          printf '%s' "$RESULT_BODY" | grep -Fq 'decision=CONTINUE_TO_CLAUDE_STUB' || fail "expected decision missing"
+          printf '%s' "$RESULT_BODY" | grep -Fq 'implementation_authorized=false' || fail "safety marker missing"
+          printf '%s' "$RESULT_BODY" | grep -Fq 'real_claude_authorized=false' || fail "real Claude safety marker missing"
 
           COMMENTS=$(gh api --paginate "repos/${{ github.repository }}/issues/17/comments")
           CHECKPOINT=$(printf '%s' "$COMMENTS" | jq -r '[.[] | select(.body | startswith("[KODJO_CHECKPOINT_ACTIVE]"))] | last | .body // empty')
@@ -51,19 +57,23 @@ jobs:
           CURRENT_HEAD=$(gh api "repos/${{ github.repository }}/branches/$BRANCH" --jq '.commit.sha')
           test "$CURRENT_HEAD" = "$EXPECTED_HEAD" || fail "feature branch HEAD changed"
 
-          cat > /tmp/final.md <<EOF
-          [KODJO_E2E_CHAIN_COMPLETE] VERIFIED_SUCCESS
+          jq -n --argjson issue 17 --arg result_comment_id "$RESULT_COMMENT_ID" --arg source_comment_id "$SOURCE_COMMENT_ID" --arg branch "$BRANCH" --arg head "$EXPECTED_HEAD" \
+            '{event_type:"kodjo-e2e-claude-stub",client_payload:{issue:$issue,result_comment_id:$result_comment_id,source_comment_id:$source_comment_id,branch:$branch,head:$head,decision:"CONTINUE_TO_CLAUDE_STUB",implementation_authorized:"false",real_claude_authorized:"false"}}' \
+            | gh api --method POST "repos/${{ github.repository }}/dispatches" --input -
 
-          \`schema=kodjo.e2e-chain-complete.v1\`
+          cat > /tmp/final.md <<EOF
+          [KODJO_E2E_T6_DISPATCHED] VERIFIED_SUCCESS
+
+          \`schema=kodjo.e2e-t6-dispatched.v1\`
           \`source_comment_id=$SOURCE_COMMENT_ID\`
-          \`review_result_comment_id=$RESULT_COMMENT_ID\`
-          \`checkpoint_state=$CHECKPOINT_STATE\`
+          \`orchestrator_decision_comment_id=$RESULT_COMMENT_ID\`
+          \`decision=CONTINUE_TO_CLAUDE_STUB\`
           \`branch=$BRANCH\`
           \`head=$EXPECTED_HEAD\`
           \`implementation_authorized=false\`
-          \`claude_triggered=false\`
+          \`real_claude_authorized=false\`
           \`business_write=false\`
 
-          Chaîne contrôlée terminée automatiquement après réception du repository_dispatch. Le checkpoint et le HEAD métier sont restés inchangés ; aucune autorisation d’implémentation et aucun appel Claude n’ont été produits par ce test.
+          La décision matérialisée par le rôle ChatGPT-orchestrateur a déclenché automatiquement le job Claude factice. Aucun appel Claude réel n'est autorisé par ce test.
           EOF
           gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/final.md
