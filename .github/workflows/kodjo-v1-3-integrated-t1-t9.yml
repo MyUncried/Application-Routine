@@ -177,6 +177,7 @@ jobs:
       - name: Call real Claude Cloud
         if: steps.idempotency.outputs.should_run == 'true'
         id: claude
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -210,14 +211,90 @@ jobs:
             --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
             --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"},"sources_read":{"type":"array","items":{"type":"string"}},"read_operations_count":{"type":"integer"},"repeated_reads_detected":{"type":"boolean"},"history_reconstruction_detected":{"type":"boolean"},"delta_nature":{"type":"string"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction","sources_read","read_operations_count","repeated_reads_detected","history_reconstruction_detected","delta_nature"]}'
 
+      - name: Retry Claude with checkpoint delta when session resume is unavailable
+        if: steps.claude.outcome == 'failure' && steps.continuity.outputs.requested_mode == 'SESSION_RESUME_REQUESTED'
+        id: claude_fallback
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: true
+          prompt: |
+            KODJO V1.3 integrated orchestration test.
+            test_id=${{ env.TEST_ID }}
+            transition_id=${{ steps.classify.outputs.transition }}
+            stage=${{ steps.classify.outputs.stage }}
+            source_comment_id=${{ steps.classify.outputs.source_comment_id }}
+            continuity_requested=NEW_SESSION_CHECKPOINT_DELTA_AFTER_RESUME_FAILURE
+            previous_session_id=${{ steps.continuity.outputs.previous_session_id }}
+            delta_nature=${{ steps.continuity.outputs.delta_nature }}
+            delta_size_bytes=${{ steps.continuity.outputs.delta_size_bytes }}
+            Strictly read-only. Read only .github/orchestration/KODJO_V13_T1_T9_TEST.md.
+            Never edit, commit, push, or access business files.
+            Return one JSON object with fields:
+            status, test_id, transition_id, stage, source_comment_id,
+            manifest_sha256, manifest_summary, business_write,
+            implementation_authorized, permissions_denied, unnecessary_reconstruction,
+            sources_read, read_operations_count, repeated_reads_detected,
+            history_reconstruction_detected, delta_nature.
+            For INITIAL only, set manifest_sha256 to "INTENTIONALLY_OMITTED_FOR_REVIEW_LOOP".
+            For every later stage, compute the actual SHA-256 of the manifest with an allowed read-only shell command.
+            business_write and implementation_authorized must be false.
+            End status with KODJO_T1T9_${{ steps.classify.outputs.stage }}_SUCCESS.
+          claude_args: |
+            --max-turns 8
+            --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
+            --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"},"sources_read":{"type":"array","items":{"type":"string"}},"read_operations_count":{"type":"integer"},"repeated_reads_detected":{"type":"boolean"},"history_reconstruction_detected":{"type":"boolean"},"delta_nature":{"type":"string"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction","sources_read","read_operations_count","repeated_reads_detected","history_reconstruction_detected","delta_nature"]}'
+
+      - name: Select valid Claude execution
+        id: selected_claude
+        if: steps.idempotency.outputs.should_run == 'true'
+        env:
+          PRIMARY_OUTCOME: ${{ steps.claude.outcome }}
+          FALLBACK_OUTCOME: ${{ steps.claude_fallback.outcome }}
+          PRIMARY_EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+          FALLBACK_EXECUTION_FILE: ${{ steps.claude_fallback.outputs.execution_file }}
+          PRIMARY_SESSION_ID: ${{ steps.claude.outputs.session_id }}
+          FALLBACK_SESSION_ID: ${{ steps.claude_fallback.outputs.session_id }}
+          PRIMARY_STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          FALLBACK_STRUCTURED_OUTPUT: ${{ steps.claude_fallback.outputs.structured_output }}
+          ORIGINAL_REQUESTED_MODE: ${{ steps.continuity.outputs.requested_mode }}
+        run: |
+          set -euo pipefail
+          if [ "$PRIMARY_OUTCOME" = "success" ]; then
+            execution_file="$PRIMARY_EXECUTION_FILE"
+            session_id="$PRIMARY_SESSION_ID"
+            structured_output="$PRIMARY_STRUCTURED_OUTPUT"
+            effective_mode="$ORIGINAL_REQUESTED_MODE"
+            resume_failure="false"
+          elif [ "$FALLBACK_OUTCOME" = "success" ]; then
+            execution_file="$FALLBACK_EXECUTION_FILE"
+            session_id="$FALLBACK_SESSION_ID"
+            structured_output="$FALLBACK_STRUCTURED_OUTPUT"
+            effective_mode="NEW_SESSION_CHECKPOINT_DELTA"
+            resume_failure="true"
+          else
+            echo "Neither requested resume nor checkpoint-delta fallback produced a valid Claude result." >&2
+            exit 1
+          fi
+          {
+            echo "execution_file=$execution_file"
+            echo "session_id=$session_id"
+            echo "effective_mode=$effective_mode"
+            echo "resume_failure=$resume_failure"
+            echo "structured_output<<KODJO_EOF"
+            echo "$structured_output"
+            echo "KODJO_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Collect performance and continuity evidence
         id: performance
         if: steps.idempotency.outputs.should_run == 'true'
         env:
-          EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
-          RETURNED_SESSION_ID: ${{ steps.claude.outputs.session_id }}
+          EXECUTION_FILE: ${{ steps.selected_claude.outputs.execution_file }}
+          RETURNED_SESSION_ID: ${{ steps.selected_claude.outputs.session_id }}
           PREVIOUS_SESSION_ID: ${{ steps.continuity.outputs.previous_session_id }}
-          REQUESTED_MODE: ${{ steps.continuity.outputs.requested_mode }}
+          REQUESTED_MODE: ${{ steps.selected_claude.outputs.effective_mode }}
           DELTA_NATURE: ${{ steps.continuity.outputs.delta_nature }}
           DELTA_SIZE_BYTES: ${{ steps.continuity.outputs.delta_size_bytes }}
         run: |
@@ -277,7 +354,7 @@ jobs:
         if: steps.idempotency.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          STRUCTURED_OUTPUT: ${{ steps.selected_claude.outputs.structured_output }}
           STAGE: ${{ steps.classify.outputs.stage }}
           TRANSITION_ID: ${{ steps.classify.outputs.transition }}
           SOURCE_COMMENT_ID: ${{ steps.classify.outputs.source_comment_id }}
