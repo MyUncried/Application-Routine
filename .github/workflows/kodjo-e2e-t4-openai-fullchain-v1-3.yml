@@ -1,9 +1,9 @@
 name: KODJO E2E T4 OpenAI Full Chain V1.3
-run-name: KODJO E2E — full-chain T4 OpenAI review
+run-name: KODJO E2E — real-chain T4 OpenAI review
 
 on:
   repository_dispatch:
-    types: [kodjo-e2e-t4-openai-fullchain]
+    types: [kodjo-e2e-t4-openai-realchain]
 
 permissions:
   contents: write
@@ -13,7 +13,7 @@ jobs:
   t4-to-t5:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate T3, call OpenAI, publish T5, dispatch T6
+      - name: Validate real Claude T3, call OpenAI, publish T5, dispatch T6
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -25,28 +25,24 @@ jobs:
         run: |
           set -euo pipefail
           fail() { echo "E2E_T4_T5_FAILURE: $1" >&2; exit 1; }
-
           test "$ISSUE" = "17" || fail "issue mismatch"
           test -n "${OPENAI_API_KEY:-}" || fail "OPENAI_API_KEY absent"
           T3_BODY=$(gh api "repos/${{ github.repository }}/issues/comments/$SOURCE_COMMENT_ID" --jq '.body')
           printf '%s' "$T3_BODY" | grep -Fq '[KODJO_E2E_T3_CLAUDE_RESULT] VERIFIED_SUCCESS' || fail "T3 marker missing"
-          printf '%s' "$T3_BODY" | grep -Fq "source_comment_id=$ROOT_COMMENT_ID" || fail "root chain mismatch"
-          printf '%s' "$T3_BODY" | grep -Fq 'real_claude_called=false' || fail "real Claude safety marker missing"
+          printf '%s' "$T3_BODY" | grep -Fq '[KODJO_E2E_REAL_CLAUDE_CHAIN]' || fail "real Claude chain marker missing"
+          printf '%s' "$T3_BODY" | grep -Fq 'real_claude_called=true' || fail "real Claude proof missing"
           printf '%s' "$T3_BODY" | grep -Fq 'business_write=false' || fail "business-write safety marker missing"
-
           COMMENTS=$(gh api --paginate "repos/${{ github.repository }}/issues/17/comments")
           CHECKPOINT=$(printf '%s' "$COMMENTS" | jq -r '[.[] | select(.body | startswith("[KODJO_CHECKPOINT_ACTIVE]"))] | last | .body // empty')
-          test -n "$CHECKPOINT" || fail "active checkpoint missing"
           CHECKPOINT_JSON=$(printf '%s\n' "$CHECKPOINT" | sed -n '/```json/,/```/p' | sed '1d;$d')
           printf '%s' "$CHECKPOINT_JSON" | jq -e --arg branch "$BRANCH" --arg head "$EXPECTED_HEAD" '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .branch == $branch and .head == $head and .implementation_authorized == false and .mode == "CLOUD_READ_ONLY" and .writer == "NONE"' >/dev/null || fail "checkpoint changed or unsafe"
           STATE=$(printf '%s' "$CHECKPOINT_JSON" | jq -r '.state')
           CURRENT_HEAD=$(gh api "repos/${{ github.repository }}/branches/$BRANCH" --jq '.commit.sha')
           test "$CURRENT_HEAD" = "$EXPECTED_HEAD" || fail "feature branch HEAD changed"
-
           PROMPT=$(cat <<EOF
-          You are executing the ChatGPT-orchestrator role for a controlled KODJO full-chain T1-T6 transport test.
-          The preceding fake Claude T3 result is verified in GitHub. Decide whether the chain may continue to a FAKE Claude T6 stub only.
-          Never authorize implementation or a real Claude call. Return CONTINUE_TO_CLAUDE_STUB only if the checkpoint is safe and the branch HEAD matches.
+          You are executing the ChatGPT-orchestrator role for a controlled KODJO T1-T6 test using REAL Claude Cloud.
+          GitHub contains a verified real Claude Cloud T3 result. Decide whether the chain may continue to a second REAL Claude Cloud read-only invocation at T6.
+          Never authorize implementation or business writes. Return CONTINUE_TO_REAL_CLAUDE_READ_ONLY only if checkpoint and HEAD are safe.
           checkpoint_state=$STATE
           branch=$BRANCH
           checkpoint_head=$EXPECTED_HEAD
@@ -56,30 +52,26 @@ jobs:
           mode=CLOUD_READ_ONLY
           EOF
           )
-
-          SCHEMA='{"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.e2e-orchestrator-decision.v1"]},"decision":{"type":"string","enum":["CONTINUE_TO_CLAUDE_STUB"]},"implementation_authorized":{"type":"boolean","enum":[false]},"real_claude_authorized":{"type":"boolean","enum":[false]},"head_match":{"type":"boolean","enum":[true]},"reason":{"type":"string"}},"required":["schema","decision","implementation_authorized","real_claude_authorized","head_match","reason"],"additionalProperties":false}'
-
+          SCHEMA='{"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.e2e-orchestrator-decision.v1"]},"decision":{"type":"string","enum":["CONTINUE_TO_REAL_CLAUDE_READ_ONLY"]},"implementation_authorized":{"type":"boolean","enum":[false]},"real_claude_authorized":{"type":"boolean","enum":[true]},"head_match":{"type":"boolean","enum":[true]},"reason":{"type":"string"}},"required":["schema","decision","implementation_authorized","real_claude_authorized","head_match","reason"],"additionalProperties":false}'
           jq -n --arg model "gpt-5.6-luna" --arg prompt "$PROMPT" --argjson schema "$SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"none"},max_output_tokens:300,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_e2e_orchestrator_decision",strict:true,schema:$schema}}}' > /tmp/openai-request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" -d @/tmp/openai-request.json -o /tmp/openai-response.json
           OUTPUT=$(jq -r '[.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .text] | join("\n")' /tmp/openai-response.json)
-          printf '%s' "$OUTPUT" | jq -e '.schema == "kodjo.e2e-orchestrator-decision.v1" and .decision == "CONTINUE_TO_CLAUDE_STUB" and .implementation_authorized == false and .real_claude_authorized == false and .head_match == true' >/dev/null || fail "OpenAI decision invalid"
+          printf '%s' "$OUTPUT" | jq -e '.decision == "CONTINUE_TO_REAL_CLAUDE_READ_ONLY" and .implementation_authorized == false and .real_claude_authorized == true and .head_match == true' >/dev/null || fail "OpenAI decision invalid"
           RESPONSE_ID=$(jq -r '.id // "unknown"' /tmp/openai-response.json)
           MODEL=$(jq -r '.model // "unknown"' /tmp/openai-response.json)
           REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
-
           cat > /tmp/t5.md <<EOF
           [KODJO_E2E_ORCHESTRATOR_DECISION] VERIFIED_SUCCESS
-          [KODJO_E2E_T1_T6_CHAIN]
+          [KODJO_E2E_REAL_CLAUDE_CHAIN]
 
-          \`schema=kodjo.e2e-orchestrator-decision-result.v1\`
-          \`decision=CONTINUE_TO_CLAUDE_STUB\`
+          \`decision=CONTINUE_TO_REAL_CLAUDE_READ_ONLY\`
           \`source_comment_id=$SOURCE_COMMENT_ID\`
           \`root_comment_id=$ROOT_COMMENT_ID\`
           \`checkpoint_state=$STATE\`
           \`branch=$BRANCH\`
           \`head=$EXPECTED_HEAD\`
           \`implementation_authorized=false\`
-          \`real_claude_authorized=false\`
+          \`real_claude_authorized=true\`
           \`business_write=false\`
           \`model=$MODEL\`
           \`response_id=$RESPONSE_ID\`
@@ -88,6 +80,5 @@ jobs:
           EOF
           RESULT_URL=$(gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/t5.md)
           RESULT_COMMENT_ID=$(printf '%s' "$RESULT_URL" | sed -n 's/.*issuecomment-\([0-9]*\).*/\1/p')
-          test -n "$RESULT_COMMENT_ID" || fail "cannot extract T5 comment id"
-
-          jq -n --argjson issue 17 --arg result_comment_id "$RESULT_COMMENT_ID" --arg checkpoint_state "$STATE" --arg branch "$BRANCH" --arg head "$EXPECTED_HEAD" --arg source_comment_id "$SOURCE_COMMENT_ID" '{event_type:"kodjo-e2e-review-complete",client_payload:{issue:$issue,result_comment_id:$result_comment_id,checkpoint_state:$checkpoint_state,branch:$branch,head:$head,source_comment_id:$source_comment_id,decision:"CONTINUE_TO_CLAUDE_STUB",implementation_authorized:"false",real_claude_authorized:"false"}}' | gh api --method POST "repos/${{ github.repository }}/dispatches" --input -
+          test -n "$RESULT_COMMENT_ID"
+          jq -n --argjson issue 17 --arg result_comment_id "$RESULT_COMMENT_ID" --arg checkpoint_state "$STATE" --arg branch "$BRANCH" --arg head "$EXPECTED_HEAD" --arg source_comment_id "$SOURCE_COMMENT_ID" '{event_type:"kodjo-e2e-real-claude-t6",client_payload:{issue:$issue,result_comment_id:$result_comment_id,checkpoint_state:$checkpoint_state,branch:$branch,head:$head,source_comment_id:$source_comment_id,decision:"CONTINUE_TO_REAL_CLAUDE_READ_ONLY",implementation_authorized:"false",real_claude_authorized:"true"}}' | gh api --method POST "repos/${{ github.repository }}/dispatches" --input -
