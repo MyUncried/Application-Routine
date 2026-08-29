@@ -39,12 +39,12 @@ jobs:
           test -z "$(git status --porcelain)" || fail "dirty worktree"
 
           gh api --paginate repos/${{ github.repository }}/issues/17/comments | jq -s 'add' > /tmp/kodjo-context/all-comments.json
-          for ID in 5460957292 5460962004 5461616289 5460976204 5461645608 5461702840; do
+          for ID in 5460956149 5460962004 5461616289 5460976204 5461645608 5461702840; do
             COUNT=$(jq --argjson id "$ID" '[.[] | select(.id == $id)] | length' /tmp/kodjo-context/all-comments.json)
             test "$COUNT" = "1" || fail "required comment $ID count=$COUNT"
           done
 
-          jq '.[] | select(.id == 5460957292)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/approved-plan.json
+          jq '.[] | select(.id == 5460956149)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/approved-plan.json
           jq '.[] | select(.id == 5460962004)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/plan-approval.json
           jq '.[] | select(.id == 5461616289)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/source-attestation.json
           jq '.[] | select(.id == 5460976204)' /tmp/kodjo-context/all-comments.json > /tmp/kodjo-context/checkpoint.json
@@ -60,12 +60,12 @@ jobs:
           jq -r '.body' /tmp/kodjo-context/implementation-authorization.json | grep -Fq '[ChatGPT] IMPLEMENTATION_AUTHORIZED — T01-S09' || fail "implementation authorization marker missing"
 
           jq -r '.body' /tmp/kodjo-context/checkpoint.json | sed -n '/```json/,/```/p' | sed '1d;$d' > /tmp/kodjo-context/checkpoint-state.json
-          jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .state == "IMPLEMENTING" and .implementation_authorized == true and .mode == "CLOUD_WRITE" and .writer == "CLAUDE_CODE" and .authorized_head == "34b3e53879d0ac20a3057da932df6b948d6030c9"' /tmp/kodjo-context/checkpoint-state.json >/dev/null || fail "checkpoint authorization fields invalid"
+          jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17 and .state == "IMPLEMENTING" and .implementation_authorized == true and .mode == "CLOUD_WRITE" and .writer == "CLAUDE_CODE" and .authorized_head == "34b3e53879d0ac20a3057da932df6b948d6030c9" and .plan_comment_id == 5460956149' /tmp/kodjo-context/checkpoint-state.json >/dev/null || fail "checkpoint authorization fields invalid"
 
-          printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\n' \
+          printf 'repository=%s\nissue=17\nbranch=%s\nauthorized_head=%s\nmode=CLOUD_WRITE\nwriter=CLAUDE_CODE\nplan_comment_id=5460956149\n' \
             "${{ github.repository }}" "$(git branch --show-current)" "$HEAD_SHA" > /tmp/kodjo-context/SOURCE_ATTESTATION
           sha256sum /tmp/kodjo-context/*.json > /tmp/kodjo-context/SHA256SUMS
-          echo "PREFLIGHT_OK: repository, branch, HEAD, sources, mode and writer verified"
+          echo "PREFLIGHT_OK: repository, branch, HEAD, sources, mode, writer and plan traceability verified"
 
       - name: Run Claude implementation
         id: claude
@@ -78,7 +78,7 @@ jobs:
 
             Tu es l'écrivain métier autorisé pour cette exécution uniquement. Le mode autorisé est CLOUD_WRITE sur `feat/creation-seance-catalogue`, à partir du HEAD exact `34b3e53879d0ac20a3057da932df6b948d6030c9`.
 
-            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé, l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, l'autorisation d'implémentation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
+            Le transport GitHub a matérialisé dans `/tmp/kodjo-context` le plan final approuvé (commentaire réel `5460956149`), l'approbation ChatGPT, le SOURCE_ATTESTATION, le checkpoint actif autorisant explicitement cette implémentation, le dry-run d'autorisation, l'autorisation d'implémentation, un delta récent et les sommes de contrôle. Lis ces sources ainsi que `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`. Ne tente aucun accès réseau et ne rejoue pas les contrôles GitHub déterministes déjà matérialisés.
 
             Implémente strictement le plan approuvé T01-S09 et uniquement son périmètre. Les décisions les plus récentes de l'Issue supersèdent les formulations antérieures incompatibles. En particulier : catalogue initial = Renforcement, Cardio, Mobilité, Étirements, Équilibre, Coordination, Récupération, Respiration, Méditation, Autre ; unicité après normalisation des espaces sans distinction de casse ni accents/diacritiques ; affichage conservant casse et accents saisis ; aucun fuzzy matching/autocorrection/suggestion dans le MVP.
 
