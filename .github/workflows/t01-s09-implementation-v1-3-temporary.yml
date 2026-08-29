@@ -69,6 +69,7 @@ jobs:
 
       - name: Run Claude implementation
         id: claude
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -92,7 +93,63 @@ jobs:
             --allowedTools "Read,Grep,Glob,Edit,Write,Bash(git:*),Bash(ls:*),Bash(find:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*),Bash(file:*),Bash(jq:*),Bash(cat:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(pnpm:*),Bash(yarn:*),Bash(bun:*),Bash(pytest:*),Bash(python:*),Bash(gradle:*),Bash(./gradlew:*)"
             --json-schema '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}'
 
+      - name: Capture sanitized Claude diagnostics
+        if: always()
+        env:
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kodjo-diagnostics
+          RESULT=/home/runner/work/_temp/claude-execution-output.json
+
+          if [ -f "$RESULT" ]; then
+            jq '{
+              type: .type,
+              subtype: .subtype,
+              is_error: .is_error,
+              duration_ms: .duration_ms,
+              num_turns: .num_turns,
+              total_cost_usd: .total_cost_usd,
+              permission_denials_count: .permission_denials_count,
+              model_usage: (.modelUsage // {} | keys)
+            }' "$RESULT" > /tmp/kodjo-diagnostics/claude-summary.json
+          else
+            printf '%s\n' '{"diagnostic":"claude-execution-output.json absent"}' > /tmp/kodjo-diagnostics/claude-summary.json
+          fi
+
+          git status --porcelain > /tmp/kodjo-diagnostics/git-status.txt
+          git diff --name-only > /tmp/kodjo-diagnostics/changed-files.txt
+          git diff --stat > /tmp/kodjo-diagnostics/diff-stat.txt
+          printf 'run_id=%s\nclaude_outcome=%s\nhead=%s\n' \
+            "${{ github.run_id }}" "$CLAUDE_OUTCOME" "$(git rev-parse HEAD)" > /tmp/kodjo-diagnostics/run-context.txt
+
+          if [ "$CLAUDE_OUTCOME" != "success" ]; then
+            SUBTYPE=$(jq -r '.subtype // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
+            TURNS=$(jq -r '.num_turns // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
+            DURATION=$(jq -r '.duration_ms // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
+            COST=$(jq -r '.total_cost_usd // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
+            DENIALS=$(jq -r '.permission_denials_count // "unknown"' /tmp/kodjo-diagnostics/claude-summary.json)
+            {
+              printf '[Claude Code] T01-S09 — ORCHESTRATION_FAILURE run %s\n\n' "${{ github.run_id }}"
+              printf 'Diagnostic persistant capturé avant destruction du runner. Aucun push métier autorisé.\n\n'
+              printf -- '- subtype=%s\n- num_turns=%s\n- duration_ms=%s\n- total_cost_usd=%s\n- permission_denials_count=%s\n' "$SUBTYPE" "$TURNS" "$DURATION" "$COST" "$DENIALS"
+              printf -- '- changed_files_count=%s\n' "$(wc -l < /tmp/kodjo-diagnostics/changed-files.txt | tr -d ' ')"
+              printf '\nSTATUT : ORCHESTRATION_FAILURE\n'
+            } | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
+          fi
+
+      - name: Upload sanitized failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: t01-s09-claude-diagnostics-${{ github.run_id }}
+          path: /tmp/kodjo-diagnostics/
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Validate result, commit and push authorized implementation
+        if: steps.claude.outcome == 'success'
         id: publish
         env:
           STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
@@ -131,3 +188,9 @@ jobs:
           } | gh issue comment 17 --repo "${{ github.repository }}" --body-file -
 
           echo "new_head=$NEW_HEAD" >> "$GITHUB_OUTPUT"
+
+      - name: Fail job after preserved Claude failure
+        if: steps.claude.outcome != 'success'
+        run: |
+          echo "Claude implementation failed; sanitized diagnostics were persisted."
+          exit 1
