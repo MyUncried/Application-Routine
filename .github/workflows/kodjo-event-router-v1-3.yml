@@ -1,0 +1,70 @@
+name: KODJO Event Router V1.3
+run-name: KODJO event router — Issue #${{ github.event.issue.number }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  route-event:
+    if: >
+      github.event.issue.number == 17 &&
+      (
+        contains(github.event.comment.body, '[KODJO_TEST_EVENT]') ||
+        (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : PLAN_READY_FOR_REVIEW')) ||
+        (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW')) ||
+        contains(github.event.comment.body, '[KODJO_USER_INPUT]')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build verified resume event
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+        run: |
+          set -euo pipefail
+
+          COMMENTS=$(gh api --paginate repos/${{ github.repository }}/issues/17/comments)
+          CHECKPOINT=$(printf '%s' "$COMMENTS" | jq -r '[.[] | select(.body | startswith("[KODJO_CHECKPOINT_ACTIVE]"))] | last | .body // empty')
+          test -n "$CHECKPOINT"
+
+          CHECKPOINT_JSON=$(printf '%s\n' "$CHECKPOINT" | sed -n '/```json/,/```/p' | sed '1d;$d')
+          printf '%s' "$CHECKPOINT_JSON" | jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17' >/dev/null
+
+          if printf '%s' "$COMMENT_BODY" | grep -q '\[KODJO_TEST_EVENT\]'; then
+            EVENT_TYPE="TEST_RESUME_EVENT"
+          elif printf '%s' "$COMMENT_BODY" | grep -q 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'; then
+            EVENT_TYPE="CLAUDE_IMPLEMENTATION_READY"
+          elif printf '%s' "$COMMENT_BODY" | grep -q 'STATUT : PLAN_READY_FOR_REVIEW'; then
+            EVENT_TYPE="CLAUDE_PLAN_READY"
+          else
+            EVENT_TYPE="USER_INPUT"
+          fi
+
+          BRANCH=$(printf '%s' "$CHECKPOINT_JSON" | jq -r '.branch')
+          HEAD=$(printf '%s' "$CHECKPOINT_JSON" | jq -r '.head')
+          STATE=$(printf '%s' "$CHECKPOINT_JSON" | jq -r '.state')
+          NEXT_ACTOR=$(printf '%s' "$CHECKPOINT_JSON" | jq -r '.next_actor')
+
+          cat > /tmp/event.md <<EOF
+          [KODJO_EVENT] CHATGPT_RESUME_REQUIRED
+
+          \`schema=kodjo.resume-event.v1\`
+          \`event_type=$EVENT_TYPE\`
+          \`source_comment_id=$COMMENT_ID\`
+          \`source_author=$COMMENT_AUTHOR\`
+          \`checkpoint_state=$STATE\`
+          \`next_actor=$NEXT_ACTOR\`
+          \`branch=$BRANCH\`
+          \`head=$HEAD\`
+
+          Événement GitHub détecté et checkpoint actif validé. Cet événement matérialise la reprise attendue pour ChatGPT. Il ne constitue aucune autorisation d'écriture.
+          EOF
+
+          gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/event.md
