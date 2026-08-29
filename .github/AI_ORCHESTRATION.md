@@ -215,6 +215,15 @@ Une ambiguïté est classée avant escalade :
 - **non nécessaire à la tranche** : reporter sans inventer de défaut ;
 - **extension optionnelle** : exclure du plan sauf décision explicite de périmètre.
 
+
+## Matérialisation et publication des sorties IA
+
+Toute sortie IA valide destinée à GitHub est matérialisée de manière déterministe et vérifiée après publication.
+
+La construction du payload doit éviter toute interprétation non intentionnelle par le shell et préserver exactement les champs structurés attendus. Une publication n’est considérée réussie qu’après obtention d’un identifiant de ressource GitHub et, lorsque pertinent, contrôle des champs critiques effectivement publiés.
+
+Si la sortie IA est déjà valide mais que seule sa matérialisation ou sa publication échoue, l’incident est classé `ORCHESTRATION_FAILURE`. L’orchestration retente uniquement l’étape de publication à partir de la sortie IA déjà validée. Elle ne rappelle l’IA que si cette sortie est absente, invalide ou devenue incompatible avec le contexte courant.
+
 ## Contexte d’exécution autorisé
 
 Toute écriture est bornée par : tâche active, état du protocole, branche, HEAD/baseline, mode `LOCAL` ou `CLOUD`, écrivain, périmètre approuvé et opérations Git autorisées.
