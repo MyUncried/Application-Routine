@@ -111,7 +111,9 @@ jobs:
           - The protocol state must remain PLAN_APPROVED unless a technical orchestration failure is detected.
           - Before IMPLEMENTING, critical fields must be revalidated: repository, branch, HEAD/checkpoint relation, checkpoint/delta relation, freshness of relevant sources, mode, and writer.
           - A prior implementation authorization does not exist: implementation_authorized is false.
-          - Recommend REVALIDATE_CRITICAL_FIELDS when the bridge/wake obstacle is resolved enough to continue but full implementation preconditions have not yet been revalidated.
+          - Recommend READY_FOR_AUTHORIZATION_REVIEW only when current branch HEAD matches the checkpoint and the active checkpoint explicitly marks every required critical field as VERIFIED (or VERIFIED_*), including relevant Git and Figma source freshness, while implementation_authorized remains false.
+          - Recommend REVALIDATE_CRITICAL_FIELDS when one or more required critical fields are absent, stale, non-verifiable, failed, or not explicitly verified.
+          - READY_FOR_AUTHORIZATION_REVIEW is only a recommendation to the independent ChatGPT authorization review. It is not PLAN_APPROVED replacement, not IMPLEMENTING, not an implementation authorization, and not permission to trigger Claude.
 
           Event type: $EVENT_TYPE
           Source comment id: $COMMENT_ID
@@ -123,7 +125,7 @@ jobs:
             )
             SCHEMA_NAME="kodjo_orchestrator_dry_run"
             SCHEMA=$(cat <<'EOF'
-          {"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.orchestrator-dry-run.v1"]},"protocol_state":{"type":"string","enum":["PLAN_APPROVED","ORCHESTRATION_FAILURE"]},"recommended_action":{"type":"string","enum":["REVALIDATE_CRITICAL_FIELDS","KEEP_HOLD","ORCHESTRATION_FAILURE"]},"implementation_authorized":{"type":"boolean","enum":[false]},"head_match":{"type":"boolean"},"critical_fields_to_revalidate":{"type":"array","items":{"type":"string"}},"reason":{"type":"string"}},"required":["schema","protocol_state","recommended_action","implementation_authorized","head_match","critical_fields_to_revalidate","reason"],"additionalProperties":false}
+          {"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.orchestrator-dry-run.v1"]},"protocol_state":{"type":"string","enum":["PLAN_APPROVED","ORCHESTRATION_FAILURE"]},"recommended_action":{"type":"string","enum":["READY_FOR_AUTHORIZATION_REVIEW","REVALIDATE_CRITICAL_FIELDS","KEEP_HOLD","ORCHESTRATION_FAILURE"]},"implementation_authorized":{"type":"boolean","enum":[false]},"head_match":{"type":"boolean"},"critical_fields_to_revalidate":{"type":"array","items":{"type":"string"}},"reason":{"type":"string"}},"required":["schema","protocol_state","recommended_action","implementation_authorized","head_match","critical_fields_to_revalidate","reason"],"additionalProperties":false}
           EOF
             )
           fi
@@ -156,7 +158,7 @@ jobs:
             DECISION="RESUME_ACCEPTED"
             REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
           else
-            printf '%s' "$OUTPUT" | jq -e '.schema == "kodjo.orchestrator-dry-run.v1" and .protocol_state == "PLAN_APPROVED" and .recommended_action == "REVALIDATE_CRITICAL_FIELDS" and .implementation_authorized == false' >/dev/null
+            printf '%s' "$OUTPUT" | jq -e '.schema == "kodjo.orchestrator-dry-run.v1" and .protocol_state == "PLAN_APPROVED" and .recommended_action == "READY_FOR_AUTHORIZATION_REVIEW" and .implementation_authorized == false and .head_match == true and (.critical_fields_to_revalidate | length) == 0' >/dev/null
             DECISION=$(printf '%s' "$OUTPUT" | jq -r '.recommended_action')
             REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
           fi
