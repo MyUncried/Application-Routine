@@ -207,7 +207,6 @@ jobs:
             End status with KODJO_T1T9_${{ steps.classify.outputs.stage }}_SUCCESS.
           claude_args: |
             ${{ steps.continuity.outputs.resume_arg }}
-            --max-turns 8
             --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
             --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"},"sources_read":{"type":"array","items":{"type":"string"}},"read_operations_count":{"type":"integer"},"repeated_reads_detected":{"type":"boolean"},"history_reconstruction_detected":{"type":"boolean"},"delta_nature":{"type":"string"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction","sources_read","read_operations_count","repeated_reads_detected","history_reconstruction_detected","delta_nature"]}'
 
@@ -242,7 +241,6 @@ jobs:
             business_write and implementation_authorized must be false.
             End status with KODJO_T1T9_${{ steps.classify.outputs.stage }}_SUCCESS.
           claude_args: |
-            --max-turns 8
             --allowedTools "Read,Bash(sha256sum .github/orchestration/KODJO_V13_T1_T9_TEST.md)"
             --json-schema '{"type":"object","properties":{"status":{"type":"string"},"test_id":{"type":"string"},"transition_id":{"type":"string"},"stage":{"type":"string"},"source_comment_id":{"type":"string"},"manifest_sha256":{"type":"string"},"manifest_summary":{"type":"string"},"business_write":{"type":"boolean"},"implementation_authorized":{"type":"boolean"},"permissions_denied":{"type":"integer"},"unnecessary_reconstruction":{"type":"boolean"},"sources_read":{"type":"array","items":{"type":"string"}},"read_operations_count":{"type":"integer"},"repeated_reads_detected":{"type":"boolean"},"history_reconstruction_detected":{"type":"boolean"},"delta_nature":{"type":"string"}},"required":["status","test_id","transition_id","stage","source_comment_id","manifest_sha256","manifest_summary","business_write","implementation_authorized","permissions_denied","unnecessary_reconstruction","sources_read","read_operations_count","repeated_reads_detected","history_reconstruction_detected","delta_nature"]}'
 
@@ -519,6 +517,75 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$SIGNAL_FILE"
           git commit -m "test: resume Work from INITIAL result [5463979537]"
+          git push origin "HEAD:$TEST_BRANCH"
+
+  signal-existing-retest:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.number == 19 &&
+      github.event.comment.user.login == 'MyUncried' &&
+      contains(github.event.comment.body, '[KODJO_T1T9_SIGNAL_EXISTING_RETEST]') &&
+      contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify existing RETEST result
+        id: durable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          durable_id=$(printf '%s' "$SOURCE_BODY" | sed -n 's/^durable_comment_id=//p' | head -n 1)
+          test -n "$durable_id"
+          durable=$(gh api "repos/${{ github.repository }}/issues/comments/$durable_id")
+          printf '%s' "$durable" | jq -e --arg test_id "$TEST_ID" '
+            (.body | contains("[KODJO_T1T9_WORK_ARBITRATION_REQUEST] VERIFIED_SUCCESS")) and
+            (.body | contains("test_id=" + $test_id)) and
+            (.body | contains("stage=RETEST")) and
+            (.body | contains("status":"KODJO_T1T9_RETEST_SUCCESS") | not)
+          ' >/dev/null 2>&1 || printf '%s' "$durable" | jq -e --arg test_id "$TEST_ID" '
+            (.body | contains("[KODJO_T1T9_WORK_ARBITRATION_REQUEST] VERIFIED_SUCCESS")) and
+            (.body | contains("test_id=" + $test_id)) and
+            (.body | contains("stage=RETEST")) and
+            (.body | contains("KODJO_T1T9_RETEST_SUCCESS")) and
+            (.body | contains("business_write=false")) and
+            (.body | contains("implementation_authorized=false"))
+          ' >/dev/null
+          echo "durable_comment_id=$durable_id" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TEST_BRANCH }}
+          fetch-depth: 0
+
+      - name: Emit synchronize for recovered RETEST publication
+        env:
+          DURABLE_COMMENT_ID: ${{ steps.durable.outputs.durable_comment_id }}
+        run: |
+          set -euo pipefail
+          transition_id="T5"
+          signal_id="$TEST_ID:$transition_id:$DURABLE_COMMENT_ID"
+          if test -f "$SIGNAL_FILE" && grep -Fxq "signal_id=$signal_id" "$SIGNAL_FILE"; then exit 0; fi
+          requested_at=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          {
+            echo "test_id=$TEST_ID"
+            echo "transition_id=$transition_id"
+            echo "state_checkpoint=ARBITRAGE:RETEST"
+            echo "source_comment_id=$DURABLE_COMMENT_ID"
+            echo "signal_id=$signal_id"
+            echo "pull_request=$TEST_PR"
+            echo "event=pull_request:synchronize"
+            echo "event_actor=github-actions[bot]"
+            echo "signal_requested_at=$requested_at"
+            echo "event_timestamp=RESOLVE_FROM_SIGNAL_COMMIT"
+            echo "work_execution_timestamp=PENDING"
+            echo "business_write=false"
+            echo "implementation_authorized=false"
+          } > "$SIGNAL_FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SIGNAL_FILE"
+          git commit -m "test: signal Work for recovered RETEST [$DURABLE_COMMENT_ID]"
           git push origin "HEAD:$TEST_BRANCH"
 
   advance-arbitration:
