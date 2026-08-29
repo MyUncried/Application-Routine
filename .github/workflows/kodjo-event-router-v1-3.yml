@@ -15,13 +15,14 @@ jobs:
       github.event.issue.number == 17 &&
       (
         contains(github.event.comment.body, '[KODJO_TEST_EVENT]') ||
+        contains(github.event.comment.body, '[KODJO_ORCHESTRATOR_DRY_RUN_TEST]') ||
         (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : PLAN_READY_FOR_REVIEW')) ||
         (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW')) ||
         contains(github.event.comment.body, '[KODJO_USER_INPUT]')
       )
     runs-on: ubuntu-latest
     steps:
-      - name: Build verified resume event and test OpenAI bridge
+      - name: Route event and run controlled OpenAI orchestration tests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -38,7 +39,9 @@ jobs:
           CHECKPOINT_JSON=$(printf '%s\n' "$CHECKPOINT" | sed -n '/```json/,/```/p' | sed '1d;$d')
           printf '%s' "$CHECKPOINT_JSON" | jq -e '.schema == "kodjo.checkpoint.v1" and .issue == 17' >/dev/null
 
-          if printf '%s' "$COMMENT_BODY" | grep -q '\[KODJO_TEST_EVENT\]'; then
+          if printf '%s' "$COMMENT_BODY" | grep -q '\[KODJO_ORCHESTRATOR_DRY_RUN_TEST\]'; then
+            EVENT_TYPE="ORCHESTRATOR_DRY_RUN_TEST"
+          elif printf '%s' "$COMMENT_BODY" | grep -q '\[KODJO_TEST_EVENT\]'; then
             EVENT_TYPE="TEST_RESUME_EVENT"
           elif printf '%s' "$COMMENT_BODY" | grep -q 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'; then
             EVENT_TYPE="CLAUDE_IMPLEMENTATION_READY"
@@ -65,13 +68,12 @@ jobs:
           \`branch=$BRANCH\`
           \`head=$HEAD\`
 
-          Événement GitHub détecté et checkpoint actif validé. Cet événement matérialise la reprise attendue pour ChatGPT. Il ne constitue aucune autorisation d'écriture.
+          Événement GitHub détecté et checkpoint actif validé. Cet événement matérialise la reprise attendue pour l’orchestrateur. Il ne constitue aucune autorisation d'écriture.
           EOF
-
           gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/event.md
 
-          # Phase 1 bridge test only. Real plan/implementation events do not call OpenAI yet.
-          if [ "$EVENT_TYPE" != "TEST_RESUME_EVENT" ]; then
+          # Real plan/implementation events remain passive until the controlled tests are accepted.
+          if [ "$EVENT_TYPE" != "TEST_RESUME_EVENT" ] && [ "$EVENT_TYPE" != "ORCHESTRATOR_DRY_RUN_TEST" ]; then
             exit 0
           fi
 
@@ -80,7 +82,11 @@ jobs:
             exit 1
           fi
 
-          PROMPT=$(cat <<EOF
+          CURRENT_BRANCH_HEAD=$(gh api "repos/${{ github.repository }}/branches/$BRANCH" --jq '.commit.sha')
+          if [ "$CURRENT_BRANCH_HEAD" = "$HEAD" ]; then HEAD_MATCH=true; else HEAD_MATCH=false; fi
+
+          if [ "$EVENT_TYPE" = "TEST_RESUME_EVENT" ]; then
+            PROMPT=$(cat <<EOF
           You are the KODJO orchestration bridge test. Validate the supplied active checkpoint and controlled GitHub resume event.
           This is NOT an implementation authorization. You must not authorize business-code writes.
           Return RESUME_ACCEPTED only if the checkpoint schema is kodjo.checkpoint.v1, issue is 17, current state is PLAN_APPROVED, and implementation_authorized is false.
@@ -90,38 +96,45 @@ jobs:
           Active checkpoint JSON:
           $CHECKPOINT_JSON
           EOF
-          )
+            )
+            SCHEMA_NAME="kodjo_bridge_test"
+            SCHEMA=$(cat <<'EOF'
+          {"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.openai-bridge-test.v1"]},"decision":{"type":"string","enum":["RESUME_ACCEPTED"]},"checkpoint_state":{"type":"string","enum":["PLAN_APPROVED"]},"implementation_authorized":{"type":"boolean"},"reason":{"type":"string"}},"required":["schema","decision","checkpoint_state","implementation_authorized","reason"],"additionalProperties":false}
+          EOF
+            )
+          else
+            PROMPT=$(cat <<EOF
+          You are a dry-run KODJO orchestration reviewer. Analyze the active checkpoint and verified GitHub fact below, then recommend the next orchestration action.
+
+          Safety constraints:
+          - This is a DRY RUN only. Do not authorize business-code writes and do not trigger Claude.
+          - The protocol state must remain PLAN_APPROVED unless a technical orchestration failure is detected.
+          - Before IMPLEMENTING, critical fields must be revalidated: repository, branch, HEAD/checkpoint relation, checkpoint/delta relation, freshness of relevant sources, mode, and writer.
+          - A prior implementation authorization does not exist: implementation_authorized is false.
+          - Recommend REVALIDATE_CRITICAL_FIELDS when the bridge/wake obstacle is resolved enough to continue but full implementation preconditions have not yet been revalidated.
+
+          Event type: $EVENT_TYPE
+          Source comment id: $COMMENT_ID
+          Current branch HEAD verified by GitHub: $CURRENT_BRANCH_HEAD
+          Does current branch HEAD match checkpoint HEAD: $HEAD_MATCH
+          Active checkpoint JSON:
+          $CHECKPOINT_JSON
+          EOF
+            )
+            SCHEMA_NAME="kodjo_orchestrator_dry_run"
+            SCHEMA=$(cat <<'EOF'
+          {"type":"object","properties":{"schema":{"type":"string","enum":["kodjo.orchestrator-dry-run.v1"]},"protocol_state":{"type":"string","enum":["PLAN_APPROVED","ORCHESTRATION_FAILURE"]},"recommended_action":{"type":"string","enum":["REVALIDATE_CRITICAL_FIELDS","KEEP_HOLD","ORCHESTRATION_FAILURE"]},"implementation_authorized":{"type":"boolean","enum":[false]},"head_match":{"type":"boolean"},"critical_fields_to_revalidate":{"type":"array","items":{"type":"string"}},"reason":{"type":"string"}},"required":["schema","protocol_state","recommended_action","implementation_authorized","head_match","critical_fields_to_revalidate","reason"],"additionalProperties":false}
+          EOF
+            )
+          fi
 
           jq -n \
             --arg model "gpt-5.6-luna" \
             --arg prompt "$PROMPT" \
-            '{
-              model: $model,
-              input: $prompt,
-              store: false,
-              reasoning: {effort: "none"},
-              max_output_tokens: 300,
-              text: {
-                verbosity: "low",
-                format: {
-                  type: "json_schema",
-                  name: "kodjo_bridge_test",
-                  strict: true,
-                  schema: {
-                    type: "object",
-                    properties: {
-                      schema: {type: "string", enum: ["kodjo.openai-bridge-test.v1"]},
-                      decision: {type: "string", enum: ["RESUME_ACCEPTED"]},
-                      checkpoint_state: {type: "string", enum: ["PLAN_APPROVED"]},
-                      implementation_authorized: {type: "boolean"},
-                      reason: {type: "string"}
-                    },
-                    required: ["schema", "decision", "checkpoint_state", "implementation_authorized", "reason"],
-                    additionalProperties: false
-                  }
-                }
-              }
-            }' > /tmp/openai-request.json
+            --arg schema_name "$SCHEMA_NAME" \
+            --argjson schema "$SCHEMA" \
+            '{model:$model,input:$prompt,store:false,reasoning:{effort:"none"},max_output_tokens:500,text:{verbosity:"low",format:{type:"json_schema",name:$schema_name,strict:true,schema:$schema}}}' \
+            > /tmp/openai-request.json
 
           if ! curl --fail-with-body -sS \
             https://api.openai.com/v1/responses \
@@ -136,35 +149,88 @@ jobs:
           fi
 
           OUTPUT=$(jq -r '[.output[]? | select(.type == "message") | .content[]? | select(.type == "output_text") | .text] | join("\n")' /tmp/openai-response.json)
-          printf '%s' "$OUTPUT" | jq -e \
-            '.schema == "kodjo.openai-bridge-test.v1" and
-             .decision == "RESUME_ACCEPTED" and
-             .checkpoint_state == "PLAN_APPROVED" and
-             .implementation_authorized == false' >/dev/null
+          printf '%s' "$OUTPUT" | jq -e . >/dev/null
+
+          if [ "$EVENT_TYPE" = "TEST_RESUME_EVENT" ]; then
+            printf '%s' "$OUTPUT" | jq -e '.schema == "kodjo.openai-bridge-test.v1" and .decision == "RESUME_ACCEPTED" and .checkpoint_state == "PLAN_APPROVED" and .implementation_authorized == false' >/dev/null
+            DECISION="RESUME_ACCEPTED"
+            REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
+          else
+            printf '%s' "$OUTPUT" | jq -e '.schema == "kodjo.orchestrator-dry-run.v1" and .protocol_state == "PLAN_APPROVED" and .recommended_action == "REVALIDATE_CRITICAL_FIELDS" and .implementation_authorized == false' >/dev/null
+            DECISION=$(printf '%s' "$OUTPUT" | jq -r '.recommended_action')
+            REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
+          fi
 
           RESPONSE_ID=$(jq -r '.id // "unknown"' /tmp/openai-response.json)
           MODEL=$(jq -r '.model // "unknown"' /tmp/openai-response.json)
           INPUT_TOKENS=$(jq -r '.usage.input_tokens // 0' /tmp/openai-response.json)
+          CACHED_TOKENS=$(jq -r '.usage.input_tokens_details.cached_tokens // 0' /tmp/openai-response.json)
           OUTPUT_TOKENS=$(jq -r '.usage.output_tokens // 0' /tmp/openai-response.json)
           TOTAL_TOKENS=$(jq -r '.usage.total_tokens // 0' /tmp/openai-response.json)
-          REASON=$(printf '%s' "$OUTPUT" | jq -r '.reason')
+          UNCACHED_TOKENS=$((INPUT_TOKENS - CACHED_TOKENS))
+          ESTIMATED_COST_USD=$(python3 - <<PY
+          uncached=$UNCACHED_TOKENS
+          cached=$CACHED_TOKENS
+          output=$OUTPUT_TOKENS
+          print(f"{uncached*0.20/1000000 + cached*0.02/1000000 + output*1.20/1000000:.10f}")
+          PY
+          )
 
           cat > /tmp/openai-result.md <<EOF
           [KODJO_OPENAI_TEST_RESULT] VERIFIED_SUCCESS
 
-          \`schema=kodjo.openai-bridge-test-result.v1\`
-          \`decision=RESUME_ACCEPTED\`
-          \`checkpoint_state=PLAN_APPROVED\`
+          \`schema=kodjo.openai-controlled-test-result.v1\`
+          \`event_type=$EVENT_TYPE\`
+          \`decision=$DECISION\`
+          \`protocol_state=$STATE\`
           \`implementation_authorized=false\`
           \`model=$MODEL\`
           \`response_id=$RESPONSE_ID\`
           \`input_tokens=$INPUT_TOKENS\`
+          \`cached_input_tokens=$CACHED_TOKENS\`
           \`output_tokens=$OUTPUT_TOKENS\`
           \`total_tokens=$TOTAL_TOKENS\`
+          \`estimated_cost_usd=$ESTIMATED_COST_USD\`
+          \`pricing_usd_per_1m=input:0.20,cached_input:0.02,output:1.20\`
 
           $REASON
 
-          Le pont GitHub → OpenAI API → GitHub est validé pour l'événement de test. Aucune écriture métier n'est autorisée par ce test.
+          Test contrôlé uniquement. Aucune écriture métier ni aucun déclenchement Claude n'est autorisé par ce résultat.
           EOF
+          RESULT_URL=$(gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/openai-result.md)
+          RESULT_COMMENT_ID=$(printf '%s' "$RESULT_URL" | sed -n 's/.*issuecomment-\([0-9]*\).*/\1/p')
 
-          gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/openai-result.md
+          # Update the single persistent API cost ledger in place.
+          COMMENTS_AFTER=$(gh api --paginate repos/${{ github.repository }}/issues/17/comments)
+          LEDGER_ID=$(printf '%s' "$COMMENTS_AFTER" | jq -r '[.[] | select(.body | startswith("[KODJO_API_COST_LEDGER_ACTIVE]"))] | last | .id // empty')
+          LEDGER_BODY=$(printf '%s' "$COMMENTS_AFTER" | jq -r --argjson id "$LEDGER_ID" '.[] | select(.id == $id) | .body')
+          LEDGER_JSON=$(printf '%s\n' "$LEDGER_BODY" | sed -n '/```json/,/```/p' | sed '1d;$d')
+          test -n "$LEDGER_JSON"
+
+          UPDATED_LEDGER=$(printf '%s' "$LEDGER_JSON" | jq \
+            --arg phase "$EVENT_TYPE" \
+            --arg response_id "$RESPONSE_ID" \
+            --arg model "$MODEL" \
+            --argjson input "$INPUT_TOKENS" \
+            --argjson cached "$CACHED_TOKENS" \
+            --argjson output "$OUTPUT_TOKENS" \
+            --argjson total "$TOTAL_TOKENS" \
+            --argjson cost "$ESTIMATED_COST_USD" \
+            --argjson result_comment_id "${RESULT_COMMENT_ID:-0}" \
+            '.calls += [{phase:$phase,response_id:$response_id,model:$model,input_tokens:$input,cached_input_tokens:$cached,output_tokens:$output,total_tokens:$total,estimated_cost_usd:$cost,cost_basis:"token usage returned by Responses API × published Luna rates",result_comment_id:$result_comment_id}] |
+             .totals.calls = (.calls|length) |
+             .totals.input_tokens = ([.calls[].input_tokens] | add) |
+             .totals.output_tokens = ([.calls[].output_tokens] | add) |
+             .totals.total_tokens = ([.calls[].total_tokens] | add) |
+             .totals.estimated_cost_usd = ([.calls[].estimated_cost_usd] | add)')
+
+          {
+            echo '[KODJO_API_COST_LEDGER_ACTIVE]'
+            echo
+            echo '```json'
+            printf '%s\n' "$UPDATED_LEDGER"
+            echo '```'
+            echo
+            echo 'Registre opérationnel consolidé des appels OpenAI de l’orchestration KODJO. Les coûts sont des estimations calculées à partir des tokens retournés par l’API et du tarif publié au moment de l’appel ; la facturation OpenAI reste la source comptable finale.'
+          } > /tmp/ledger.md
+          gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$LEDGER_ID" -f body="$(cat /tmp/ledger.md)" >/dev/null
