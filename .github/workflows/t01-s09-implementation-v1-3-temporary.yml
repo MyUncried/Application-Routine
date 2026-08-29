@@ -37,7 +37,7 @@ jobs:
           test "$HEAD_SHA" = "34b3e53879d0ac20a3057da932df6b948d6030c9"
           test -z "$(git status --porcelain)"
 
-          gh api --paginate repos/${{ github.repository }}/issues/17/comments > /tmp/kodjo-context/all-comments.json
+          gh api --paginate repos/${{ github.repository }}/issues/17/comments | jq -s 'add' > /tmp/kodjo-context/all-comments.json
           jq -e 'map(select(.id == 5460957292)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
           jq -e 'map(select(.id == 5460962004)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
           jq -e 'map(select(.id == 5461616289)) | length == 1' /tmp/kodjo-context/all-comments.json >/dev/null
