@@ -225,6 +225,7 @@ jobs:
           test -n "$EXECUTION_FILE"
           test -f "$EXECUTION_FILE"
           result=$(jq -sc '[.. | objects | select(.type? == "result")] | last // {}' "$EXECUTION_FILE")
+          claude_model=$(printf '%s' "$result" | jq -r '.model // "NON_VERIFIABLE"')
           duration_ms=$(printf '%s' "$result" | jq -r '.duration_ms // "NON_VERIFIABLE"')
           num_turns=$(printf '%s' "$result" | jq -r '.num_turns // "NON_VERIFIABLE"')
           total_cost_usd=$(printf '%s' "$result" | jq -r '.total_cost_usd // "NON_VERIFIABLE"')
@@ -239,11 +240,21 @@ jobs:
           else
             continuity_mode="NON_VERIFIABLE"
           fi
-          jq -n             --arg duration_ms "$duration_ms"             --arg num_turns "$num_turns"             --arg total_cost_usd "$total_cost_usd"             --arg permission_denials "$permission_denials"             --arg continuity_mode "$continuity_mode"             --arg requested_mode "$REQUESTED_MODE"             --arg previous_session_id "$PREVIOUS_SESSION_ID"             --arg returned_session_id "$RETURNED_SESSION_ID"             --arg manifest_bytes "$manifest_bytes"             --arg delta_nature "$DELTA_NATURE"             --arg delta_size_bytes "$DELTA_SIZE_BYTES"             --arg read_operations "$read_operations"             --arg bash_operations "$bash_operations"             '{
-              duration_ms:$duration_ms,
-              num_turns:$num_turns,
-              total_cost_usd:$total_cost_usd,
+          jq -n             --arg claude_model "$claude_model"             --arg duration_ms "$duration_ms"             --arg num_turns "$num_turns"             --arg total_cost_usd "$total_cost_usd"             --arg permission_denials "$permission_denials"             --arg continuity_mode "$continuity_mode"             --arg requested_mode "$REQUESTED_MODE"             --arg previous_session_id "$PREVIOUS_SESSION_ID"             --arg returned_session_id "$RETURNED_SESSION_ID"             --arg manifest_bytes "$manifest_bytes"             --arg delta_nature "$DELTA_NATURE"             --arg delta_size_bytes "$DELTA_SIZE_BYTES"             --arg read_operations "$read_operations"             --arg bash_operations "$bash_operations"             '{
+              claude_model:$claude_model,
+              claude_duration_ms:$duration_ms,
+              claude_num_turns:$num_turns,
+              claude_cost_usd:$total_cost_usd,
+              claude_metric_source:"claude-code-action execution result",
               permission_denials_count:$permission_denials,
+              openai_model:"NON_VERIFIABLE",
+              openai_api_calls:"NON_VERIFIABLE",
+              openai_input_tokens:"NON_VERIFIABLE",
+              openai_output_tokens:"NON_VERIFIABLE",
+              openai_cost_usd:"NON_VERIFIABLE",
+              other_api_cost_usd:"NON_VERIFIABLE",
+              measured_ai_cost_usd:$total_cost_usd,
+              unverified_cost_components:["openai_cost_usd","other_api_cost_usd"],
               continuity_mode:$continuity_mode,
               continuity_requested:$requested_mode,
               previous_session_id:$previous_session_id,
