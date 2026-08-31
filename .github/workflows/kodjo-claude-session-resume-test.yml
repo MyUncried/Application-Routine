@@ -1,0 +1,171 @@
+name: KODJO Claude Session Resume Micro-Test
+run-name: KODJO-CLAUDE-SESSION-RESUME-01 / ${{ inputs.stage }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Internal stage
+        required: true
+        type: choice
+        options: [BASE, RESUME]
+      base_marker:
+        description: BASE-only continuity marker; leave empty for RESUME
+        required: false
+        type: string
+        default: ""
+
+concurrency:
+  group: KODJO-CLAUDE-SESSION-RESUME-01
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: write
+  id-token: write
+
+env:
+  TEST_ID: KODJO-CLAUDE-SESSION-RESUME-01
+  TEST_REF: main
+  EVIDENCE_PR: "20"
+  WORKFLOW_FILE: kodjo-claude-session-resume-test.yml
+  EXPECTED_MARKER_SHA256: 27cb9c7dc5672a86772fae50aa58fb4adf019022c5c59e2bb7d2e9914dbf551d
+
+jobs:
+  base:
+    if: inputs.stage == 'BASE'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TEST_REF }}
+          fetch-depth: 1
+      - name: Resolve PR and acquire durable BASE claim
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_MARKER: ${{ inputs.base_marker }}
+        run: |
+          set -euo pipefail
+          test "$(printf '%s' "$BASE_MARKER" | sha256sum | cut -d' ' -f1)" = "$EXPECTED_MARKER_SHA256"
+          PR_NUMBER="$EVIDENCE_PR"
+          COMMENTS="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments?per_page=100")"
+          if printf '%s' "$COMMENTS" | jq -e --arg t "$TEST_ID" '.[] | select(.body | contains("[KODJO_CLAUDE_SESSION_RESUME_CLAIM]") and contains("test_id=" + $t) and contains("stage=BASE"))' >/dev/null; then
+            echo "BASE already claimed; no Claude call permitted." >&2
+            exit 1
+          fi
+          { echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo 'status=CLAIMED'; echo "run_id=$GITHUB_RUN_ID"; echo "marker_sha256=$EXPECTED_MARKER_SHA256"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+      - name: Run Claude BASE
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            MICRO-TEST TECHNIQUE KODJO — ÉTAPE BASE — STRICTEMENT EN LECTURE SEULE.
+            Lis uniquement `.github/orchestration/KODJO_CLAUDE_SESSION_RESUME_TEST.md`.
+            Mémorise dans le contexte de cette session le marqueur suivant : ${{ inputs.base_marker }}
+            Ne restitue pas le marqueur dans ta réponse. Ne lis rien d'autre. N'utilise aucun accès réseau. Ne modifie rien.
+            Retourne uniquement le résultat structuré demandé.
+          claude_args: |
+            --max-turns 3
+            --allowedTools "Read"
+            --json-schema '{"type":"object","properties":{"test_id":{"const":"KODJO-CLAUDE-SESSION-RESUME-01"},"stage":{"const":"BASE"},"manifest_read":{"const":true},"marker_memorized":{"const":true},"business_write":{"const":false},"implementation_authorized":{"const":false}},"required":["test_id","stage","manifest_read","marker_memorized","business_write","implementation_authorized"],"additionalProperties":false}'
+      - name: Persist BASE evidence
+        if: always() && steps.gate.outcome == 'success'
+        id: persist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+          EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+        run: |
+          set -euo pipefail
+          METRICS='{}'
+          if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then
+            METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"
+          fi
+          { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo "status=${CONCLUSION:-failure}"; echo "returned_session_id=${SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          if [ "${CONCLUSION:-failure}" = success ] && [ -n "$SESSION_ID" ]; then echo 'dispatch_resume=true' >> "$GITHUB_OUTPUT"; else echo 'dispatch_resume=false' >> "$GITHUB_OUTPUT"; fi
+      - name: Preserve BASE execution file
+        if: always() && steps.claude.outputs.execution_file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: KODJO-CLAUDE-SESSION-RESUME-01-BASE-execution
+          path: ${{ steps.claude.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Dispatch distinct RESUME run
+        if: steps.persist.outputs.dispatch_resume == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run "$WORKFLOW_FILE" --repo "$GITHUB_REPOSITORY" --ref "$TEST_REF" -f stage=RESUME
+
+  resume:
+    if: inputs.stage == 'RESUME'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TEST_REF }}
+          fetch-depth: 1
+      - name: Resolve BASE session and acquire durable RESUME claim
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORBIDDEN_RESUME_INPUT: ${{ inputs.base_marker }}
+        run: |
+          set -euo pipefail
+          test -z "$FORBIDDEN_RESUME_INPUT"
+          PR_NUMBER="$EVIDENCE_PR"
+          COMMENTS="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments?per_page=100")"
+          if printf '%s' "$COMMENTS" | jq -e --arg t "$TEST_ID" '.[] | select(.body | contains("[KODJO_CLAUDE_SESSION_RESUME_CLAIM]") and contains("test_id=" + $t) and contains("stage=RESUME"))' >/dev/null; then echo 'RESUME already claimed; no Claude call permitted.' >&2; exit 1; fi
+          BASE_BODY="$(printf '%s' "$COMMENTS" | jq -r --arg t "$TEST_ID" '[.[] | select(.body | contains("[KODJO_CLAUDE_SESSION_RESUME_PROOF]") and contains("test_id=" + $t) and contains("stage=BASE") and contains("status=success"))] | if length == 1 then .[0].body else empty end')"
+          test -n "$BASE_BODY"
+          SESSION_ID="$(printf '%s\n' "$BASE_BODY" | sed -n 's/^returned_session_id=//p' | head -n1)"
+          test -n "$SESSION_ID"; test "$SESSION_ID" != NONE
+          { echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo 'status=CLAIMED'; echo "requested_session_id=$SESSION_ID"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"; echo "session_id=$SESSION_ID" >> "$GITHUB_OUTPUT"
+      - name: Run Claude RESUME
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Restitue le marqueur de continuité qui t'a été donné dans l'étape précédente de cette session.
+            Ne lis aucun fichier. N'utilise aucun outil, aucun accès réseau et n'effectue aucune écriture.
+            Retourne uniquement le résultat structuré demandé.
+          claude_args: |
+            --resume ${{ steps.gate.outputs.session_id }}
+            --max-turns 3
+            --allowedTools ""
+            --json-schema '{"type":"object","properties":{"test_id":{"const":"KODJO-CLAUDE-SESSION-RESUME-01"},"stage":{"const":"RESUME"},"marker_returned":{"type":"string"},"business_write":{"const":false},"implementation_authorized":{"const":false}},"required":["test_id","stage","marker_returned","business_write","implementation_authorized"],"additionalProperties":false}'
+      - name: Persist RESUME evidence
+        if: always() && steps.gate.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          REQUESTED_SESSION_ID: ${{ steps.gate.outputs.session_id }}
+          RETURNED_SESSION_ID: ${{ steps.claude.outputs.session_id }}
+          EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+        run: |
+          set -euo pipefail
+          METRICS='{}'
+          if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"; fi
+          { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo "status=${CONCLUSION:-failure}"; echo "requested_session_id=$REQUESTED_SESSION_ID"; echo "returned_session_id=${RETURNED_SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'fallback=NONE'; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+      - name: Preserve RESUME execution file
+        if: always() && steps.claude.outputs.execution_file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: KODJO-CLAUDE-SESSION-RESUME-01-RESUME-execution
+          path: ${{ steps.claude.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 30
