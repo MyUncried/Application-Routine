@@ -92,6 +92,14 @@ jobs:
           fi
           { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo "status=${CONCLUSION:-failure}"; echo "returned_session_id=${SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
           if [ "${CONCLUSION:-failure}" = success ] && [ -n "$SESSION_ID" ]; then echo 'dispatch_resume=true' >> "$GITHUB_OUTPUT"; else echo 'dispatch_resume=false' >> "$GITHUB_OUTPUT"; fi
+      - name: Preserve BASE execution file
+        if: always() && steps.claude.outputs.execution_file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: KODJO-CLAUDE-SESSION-RESUME-01-BASE-execution
+          path: ${{ steps.claude.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 30
       - name: Dispatch distinct RESUME run
         if: steps.persist.outputs.dispatch_resume == 'true'
         env:
@@ -154,3 +162,11 @@ jobs:
           METRICS='{}'
           if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"; fi
           { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo "status=${CONCLUSION:-failure}"; echo "requested_session_id=$REQUESTED_SESSION_ID"; echo "returned_session_id=${RETURNED_SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'fallback=NONE'; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+      - name: Preserve RESUME execution file
+        if: always() && steps.claude.outputs.execution_file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: KODJO-CLAUDE-SESSION-RESUME-01-RESUME-execution
+          path: ${{ steps.claude.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 30
