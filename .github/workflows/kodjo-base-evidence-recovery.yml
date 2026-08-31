@@ -17,7 +17,7 @@ on:
         type: string
 
 permissions:
-  actions: read
+  actions: write
   contents: write
 
 env:
@@ -47,8 +47,10 @@ jobs:
           CLAIM_PATH="$STATE_ROOT/BASE.claim.json"
           RESULT_PATH="$STATE_ROOT/BASE.result.json"
           if gh api "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH?ref=$STATE_REF" >/dev/null 2>&1; then
-            echo 'BASE.result.json already exists; refusing to overwrite durable evidence.' >&2
-            exit 1
+            STORED="$(gh api "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+            printf '%s' "$STORED" | jq -e --arg run_id "$BASE_RUN_ID" --arg session_id "$ORIGINAL_SESSION_ID" '.stage=="BASE" and .status=="success" and .run_id==$run_id and .returned_session_id==$session_id and .recovery_without_claude==true' >/dev/null
+            echo 'Existing recovered BASE result validated; preserving it unchanged.'
+            exit 0
           fi
           CLAIM="$(gh api "repos/$GITHUB_REPOSITORY/contents/$CLAIM_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
           printf '%s' "$CLAIM" | jq -e --arg run_id "$BASE_RUN_ID" '.test_id=="KODJO-CLAUDE-SESSION-RESUME-01" and .stage=="BASE" and .status=="CLAIMED" and .run_id==$run_id' >/dev/null
