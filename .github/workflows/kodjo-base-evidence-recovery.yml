@@ -1,4 +1,5 @@
 name: KODJO BASE Evidence Recovery
+# Any push changing this file revalidates the immutable recovered result, then emits a workflow_run event for the distinct verifier.
 run-name: KODJO BASE #3 recovery / ${{ github.event_name == 'push' && 'WRITE' || inputs.stage }}
 
 on:
