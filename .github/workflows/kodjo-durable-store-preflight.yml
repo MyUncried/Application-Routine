@@ -1,0 +1,75 @@
+name: KODJO Durable Store Preflight
+run-name: KODJO durable store preflight / ${{ github.event_name == 'push' && 'WRITE' || inputs.stage }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/kodjo-durable-store-preflight.yml
+  workflow_dispatch:
+    inputs:
+      stage:
+        required: true
+        type: choice
+        options: [READ]
+      write_run_id:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  STATE_REF: test-state/claude-session-resume-01
+  STATE_ROOT: .github/orchestration/state/KODJO-CLAUDE-SESSION-RESUME-01
+  WORKFLOW_FILE: kodjo-durable-store-preflight.yml
+
+jobs:
+  write:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write and read back preflight state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          PATH_IN_REPO="$STATE_ROOT/PREFLIGHT.write.json"
+          if gh api "repos/$GITHUB_REPOSITORY/contents/$PATH_IN_REPO?ref=$STATE_REF" >/dev/null 2>&1; then
+            echo 'Preflight write state already exists.' >&2
+            exit 1
+          fi
+          DOCUMENT="$(jq -nc --arg run_id "$GITHUB_RUN_ID" --arg sha "$GITHUB_SHA" '{test_id:"KODJO-CLAUDE-SESSION-RESUME-01",stage:"PREFLIGHT_WRITE",status:"WRITTEN",write_run_id:$run_id,source_sha:$sha,claude_action_present:false}')"
+          ENCODED="$(printf '%s' "$DOCUMENT" | base64 -w0)"
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$PATH_IN_REPO" -f message="test-state: durable store preflight WRITE $GITHUB_RUN_ID" -f content="$ENCODED" -f branch="$STATE_REF" >/dev/null
+          STORED="$(gh api "repos/$GITHUB_REPOSITORY/contents/$PATH_IN_REPO?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+          printf '%s' "$STORED" | jq -e --arg run_id "$GITHUB_RUN_ID" '.stage=="PREFLIGHT_WRITE" and .status=="WRITTEN" and .write_run_id==$run_id and .claude_action_present==false' >/dev/null
+      - name: Dispatch distinct preflight READ run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run "$WORKFLOW_FILE" --repo "$GITHUB_REPOSITORY" --ref main -f stage=READ -f write_run_id="$GITHUB_RUN_ID"
+
+  read:
+    if: github.event_name == 'workflow_dispatch' && inputs.stage == 'READ'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read prior run state and persist read proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_WRITE_RUN_ID: ${{ inputs.write_run_id }}
+        run: |
+          set -euo pipefail
+          WRITE_PATH="$STATE_ROOT/PREFLIGHT.write.json"
+          WRITE_STATE="$(gh api "repos/$GITHUB_REPOSITORY/contents/$WRITE_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+          printf '%s' "$WRITE_STATE" | jq -e --arg run_id "$EXPECTED_WRITE_RUN_ID" '.stage=="PREFLIGHT_WRITE" and .status=="WRITTEN" and .write_run_id==$run_id and .claude_action_present==false' >/dev/null
+          PROOF_PATH="$STATE_ROOT/PREFLIGHT.read-proven.json"
+          if gh api "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH?ref=$STATE_REF" >/dev/null 2>&1; then
+            echo 'Preflight read proof already exists.' >&2
+            exit 1
+          fi
+          PROOF="$(jq -nc --arg write_run_id "$EXPECTED_WRITE_RUN_ID" --arg read_run_id "$GITHUB_RUN_ID" '{test_id:"KODJO-CLAUDE-SESSION-RESUME-01",stage:"PREFLIGHT_READ",status:"WRITE_READ_PROVEN",write_run_id:$write_run_id,read_run_id:$read_run_id,distinct_runs:($write_run_id!=$read_run_id),claude_action_present:false}')"
+          ENCODED="$(printf '%s' "$PROOF" | base64 -w0)"
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH" -f message="test-state: durable store preflight READ $GITHUB_RUN_ID" -f content="$ENCODED" -f branch="$STATE_REF" >/dev/null
+          STORED="$(gh api "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+          printf '%s' "$STORED" | jq -e --arg write_run_id "$EXPECTED_WRITE_RUN_ID" --arg read_run_id "$GITHUB_RUN_ID" '.status=="WRITE_READ_PROVEN" and .write_run_id==$write_run_id and .read_run_id==$read_run_id and .distinct_runs==true and .claude_action_present==false' >/dev/null
