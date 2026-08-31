@@ -1,0 +1,75 @@
+name: KODJO RESUME Forensic Recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/kodjo-resume-forensic-recovery.yml
+
+permissions:
+  actions: read
+  contents: write
+
+env:
+  TEST_ID: KODJO-CLAUDE-SESSION-RESUME-01
+  BASE_RUN_ID: "33384761722"
+  RESUME_RUN_ID: "33387674954"
+  RESUME_ARTIFACT_ID: "9756205916"
+  BASE_SESSION_ID: 1995230a-7b4a-4c7b-ba54-60b0762ad850
+  STATE_REF: test-state/claude-session-resume-01
+  STATE_ROOT: .github/orchestration/state/KODJO-CLAUDE-SESSION-RESUME-01
+
+concurrency:
+  group: KODJO-CLAUDE-SESSION-RESUME-01-FORENSIC
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recover and persist RESUME #5 forensic evidence without Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          CLAIM_PATH="$STATE_ROOT/RESUME.claim.json"
+          CLAIM="$(gh api "repos/$GITHUB_REPOSITORY/contents/$CLAIM_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+          printf '%s' "$CLAIM" | jq -e --arg run_id "$RESUME_RUN_ID" --arg session_id "$BASE_SESSION_ID" '.stage=="RESUME" and .status=="CLAIMED" and .run_id==$run_id and .requested_session_id==$session_id' >/dev/null
+
+          mkdir artifact
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$RESUME_ARTIFACT_ID/zip" > artifact.zip
+          unzip -q artifact.zip -d artifact
+          EXECUTION_FILE=artifact/claude-execution-output.json
+          jq -e 'type=="array" and length==1' "$EXECUTION_FILE" >/dev/null
+          RAW="$(jq -c . "$EXECUTION_FILE")"
+          EVENT="$(jq -ce '.[0]' "$EXECUTION_FILE")"
+          ERROR_TEXT="$(printf '%s' "$EVENT" | jq -r '.errors[0] // empty')"
+          test "$ERROR_TEXT" = "No conversation found with session ID: $BASE_SESSION_ID"
+          OBSERVED_IDS="$(jq -c '[.[].session_id? // empty] | unique' "$EXECUTION_FILE")"
+          printf '%s' "$OBSERVED_IDS" | jq -e --arg session_id "$BASE_SESSION_ID" 'length==1 and .[0]==$session_id' >/dev/null
+          printf '%s' "$EVENT" | jq -e '.type=="result" and .subtype=="error_during_execution" and .is_error==true and .num_turns==0 and .total_cost_usd==0 and .usage.input_tokens==0 and .usage.output_tokens==0 and (.structured_output? == null)' >/dev/null
+
+          RAW_DOC="$(jq -nc --arg test_id "$TEST_ID" --arg run_id "$RESUME_RUN_ID" --arg artifact_id "$RESUME_ARTIFACT_ID" --arg execution_file "artifact://$RESUME_ARTIFACT_ID/claude-execution-output.json" --argjson raw "$RAW" '{test_id:$test_id,stage:"RESUME",run_id:$run_id,artifact_id:$artifact_id,execution_file:$execution_file,raw_execution:$raw}')"
+          ERROR_DOC="$(jq -nc --arg test_id "$TEST_ID" --arg run_id "$RESUME_RUN_ID" --arg error "$ERROR_TEXT" --argjson event "$EVENT" '{test_id:$test_id,stage:"RESUME_ERROR",run_id:$run_id,error:$error,error_event:$event}')"
+          IDS_DOC="$(jq -nc --arg test_id "$TEST_ID" --arg requested "$BASE_SESSION_ID" --argjson observed "$OBSERVED_IDS" '{test_id:$test_id,stage:"RESUME_SESSION_IDS",requested_session_id:$requested,observed_session_ids:$observed,identity_interpretation:"REQUEST_REJECTED_NOT_SESSION_RESUMED"}')"
+          BEHAVIOR_DOC="$(jq -nc --arg test_id "$TEST_ID" '{test_id:$test_id,stage:"RESUME_BEHAVIOR",marker_restitution:"NON",marker_returned:null,marker_reinjected:false,structured_output_present:false,new_session_detected:"NON",fallback:"NONE",fork_session_used:false,num_turns:0}')"
+          RESULT_DOC="$(jq -nc --arg test_id "$TEST_ID" --arg base_run_id "$BASE_RUN_ID" --arg run_id "$RESUME_RUN_ID" --arg session_id "$BASE_SESSION_ID" --arg artifact_id "$RESUME_ARTIFACT_ID" --arg error "$ERROR_TEXT" --arg recovery_run_id "$GITHUB_RUN_ID" --argjson observed "$OBSERVED_IDS" '{test_id:$test_id,stage:"RESUME",status:"error",base_run_id:$base_run_id,run_id:$run_id,requested_session_id:$session_id,returned_session_id:$session_id,observed_session_ids:$observed,execution_file:("artifact://"+$artifact_id+"/claude-execution-output.json"),artifact:{id:$artifact_id,name:"KODJO-CLAUDE-SESSION-RESUME-01-RESUME-execution",preserved:true},resume_error:$error,structured_output:null,marker_returned:null,marker_restitution:"NON",new_session_detected:"NON",fallback:"NONE",fork_session_used:false,technical_identity_status:"NOT_RESUMED",continuity_verdict:"NON_DEMONTREE",metrics:{claude_model:null,duration_ms:0,num_turns:0,total_cost_usd:0,permission_denials_count:0,input_tokens:0,output_tokens:0},recovered_by_run_id:$recovery_run_id,recovery_without_claude:true,business_write:false,implementation_authorized:false,mode:"CLOUD_READ_ONLY",writer:"NONE"}')"
+          VERDICT_DOC="$(jq -nc --arg test_id "$TEST_ID" --arg base_run_id "$BASE_RUN_ID" --arg resume_run_id "$RESUME_RUN_ID" --arg session_id "$BASE_SESSION_ID" --arg recovery_run_id "$GITHUB_RUN_ID" --arg error "$ERROR_TEXT" '{test_id:$test_id,stage:"FINAL_VERDICT",base_run_id:$base_run_id,resume_run_id:$resume_run_id,base_returned_session_id:$session_id,resume_requested_session_id:$session_id,resume_observed_session_id:$session_id,marker_restitution:"NON",new_session_detected:"NON",continuity:"NON_DEMONTREE",reason:$error,fallback:"NONE",fork_session_used:false,claude_call_count:2,max_claude_calls:2,third_call_permitted:false,recovery_run_id:$recovery_run_id,recovery_without_claude:true}')"
+
+          put_once() {
+            path="$1"; document="$2"
+            if gh api "repos/$GITHUB_REPOSITORY/contents/$path?ref=$STATE_REF" >/dev/null 2>&1; then
+              echo "Refusing to overwrite $path" >&2
+              exit 1
+            fi
+            encoded="$(printf '%s' "$document" | base64 -w0)"
+            gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$path" -f message="test-state: persist RESUME #5 forensic evidence" -f content="$encoded" -f branch="$STATE_REF" >/dev/null
+            stored="$(gh api "repos/$GITHUB_REPOSITORY/contents/$path?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
+            test "$(printf '%s' "$stored" | jq -cS .)" = "$(printf '%s' "$document" | jq -cS .)"
+          }
+          put_once "$STATE_ROOT/RESUME.raw.json" "$RAW_DOC"
+          put_once "$STATE_ROOT/RESUME.error.json" "$ERROR_DOC"
+          put_once "$STATE_ROOT/RESUME.session-ids.json" "$IDS_DOC"
+          put_once "$STATE_ROOT/RESUME.behavior.json" "$BEHAVIOR_DOC"
+          put_once "$STATE_ROOT/RESUME.result.json" "$RESULT_DOC"
+          put_once "$STATE_ROOT/RESUME.verdict.json" "$VERDICT_DOC"
