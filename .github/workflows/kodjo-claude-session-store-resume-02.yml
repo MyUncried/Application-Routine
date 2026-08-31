@@ -1,0 +1,51 @@
+name: KODJO Claude SessionStore Resume 02
+run-name: KODJO-CLAUDE-SESSION-STORE-RESUME-02 / ${{ inputs.stage }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        required: true
+        type: choice
+        options: [PREFLIGHT, BASE, RESUME]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: KODJO-CLAUDE-SESSION-STORE-RESUME-02-${{ inputs.stage }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: kodjo-sessionstore-test
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: .github/orchestration/KODJO_CLAUDE_SESSION_STORE_RESUME_02/requirements.txt
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.KODJO_SESSION_STORE_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.KODJO_SESSION_STORE_AWS_REGION }}
+      - name: Install pinned SDK and adapter dependency
+        run: pip install --requirement .github/orchestration/KODJO_CLAUDE_SESSION_STORE_RESUME_02/requirements.txt
+      - name: Verify no forbidden prior stage
+        env:
+          STAGE: ${{ inputs.stage }}
+        run: |
+          set -euo pipefail
+          test "$STAGE" != BASE || test -n "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}"
+          test "$STAGE" != BASE || aws s3api head-object --bucket "${{ vars.KODJO_SESSION_STORE_S3_BUCKET }}" --key "KODJO-CLAUDE-SESSION-STORE-RESUME-02/control/PREFLIGHT.result.json" >/dev/null
+          test "$STAGE" != RESUME || aws s3api head-object --bucket "${{ vars.KODJO_SESSION_STORE_S3_BUCKET }}" --key "KODJO-CLAUDE-SESSION-STORE-RESUME-02/control/BASE.result.json" >/dev/null
+      - name: Run selected stage
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          KODJO_SESSION_STORE_BUCKET: ${{ vars.KODJO_SESSION_STORE_S3_BUCKET }}
+          KODJO_SESSION_STORE_PREFIX: KODJO-CLAUDE-SESSION-STORE-RESUME-02
+        run: python .github/orchestration/KODJO_CLAUDE_SESSION_STORE_RESUME_02/session_store_test.py "$(echo '${{ inputs.stage }}' | tr '[:upper:]' '[:lower:]')"
+
