@@ -91,8 +91,14 @@ jobs:
           if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then
             METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"
           fi
+          STRUCTURED_OUTPUT_JSON="${STRUCTURED_OUTPUT:-}"
+          if ! printf '%s' "$STRUCTURED_OUTPUT_JSON" | jq -e 'type == "object"' >/dev/null; then
+            echo 'Claude structured_output is not a valid JSON object; evidence will not be persisted.' >&2
+            exit 1
+          fi
+          printf '%s' "$METRICS" | jq -e 'type == "object"' >/dev/null
           RESULT_PATH="$STATE_ROOT/BASE.result.json"
-          RESULT="$(jq -nc --arg test_id "$TEST_ID" --arg status "${CONCLUSION:-failure}" --arg session_id "${SESSION_ID:-NONE}" --arg execution_file "${EXECUTION_FILE:-NONE}" --arg run_id "$GITHUB_RUN_ID" --argjson structured_output "${STRUCTURED_OUTPUT:-{}}" --argjson metrics "$METRICS" '{test_id:$test_id,stage:"BASE",status:$status,returned_session_id:$session_id,execution_file:$execution_file,run_id:$run_id,business_write:false,implementation_authorized:false,mode:"CLOUD_READ_ONLY",writer:"NONE",structured_output:$structured_output,metrics:$metrics}')"
+          RESULT="$(jq -nc --arg test_id "$TEST_ID" --arg status "${CONCLUSION:-failure}" --arg session_id "${SESSION_ID:-NONE}" --arg execution_file "${EXECUTION_FILE:-NONE}" --arg run_id "$GITHUB_RUN_ID" --argjson structured_output "$STRUCTURED_OUTPUT_JSON" --argjson metrics "$METRICS" '{test_id:$test_id,stage:"BASE",status:$status,returned_session_id:$session_id,execution_file:$execution_file,run_id:$run_id,business_write:false,implementation_authorized:false,mode:"CLOUD_READ_ONLY",writer:"NONE",structured_output:$structured_output,metrics:$metrics}')"
           ENCODED="$(printf '%s' "$RESULT" | base64 -w0)"
           gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH" -f message="test-state: persist BASE result $GITHUB_RUN_ID" -f content="$ENCODED" -f branch="$STATE_REF" >/dev/null
           STORED="$(gh api "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
@@ -169,8 +175,14 @@ jobs:
           set -euo pipefail
           METRICS='{}'
           if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"; fi
+          STRUCTURED_OUTPUT_JSON="${STRUCTURED_OUTPUT:-}"
+          if ! printf '%s' "$STRUCTURED_OUTPUT_JSON" | jq -e 'type == "object"' >/dev/null; then
+            echo 'Claude structured_output is not a valid JSON object; evidence will not be persisted.' >&2
+            exit 1
+          fi
+          printf '%s' "$METRICS" | jq -e 'type == "object"' >/dev/null
           RESULT_PATH="$STATE_ROOT/RESUME.result.json"
-          RESULT="$(jq -nc --arg test_id "$TEST_ID" --arg status "${CONCLUSION:-failure}" --arg requested_session_id "$REQUESTED_SESSION_ID" --arg returned_session_id "${RETURNED_SESSION_ID:-NONE}" --arg execution_file "${EXECUTION_FILE:-NONE}" --arg run_id "$GITHUB_RUN_ID" --argjson structured_output "${STRUCTURED_OUTPUT:-{}}" --argjson metrics "$METRICS" '{test_id:$test_id,stage:"RESUME",status:$status,requested_session_id:$requested_session_id,returned_session_id:$returned_session_id,execution_file:$execution_file,run_id:$run_id,fallback:"NONE",business_write:false,implementation_authorized:false,mode:"CLOUD_READ_ONLY",writer:"NONE",structured_output:$structured_output,metrics:$metrics}')"
+          RESULT="$(jq -nc --arg test_id "$TEST_ID" --arg status "${CONCLUSION:-failure}" --arg requested_session_id "$REQUESTED_SESSION_ID" --arg returned_session_id "${RETURNED_SESSION_ID:-NONE}" --arg execution_file "${EXECUTION_FILE:-NONE}" --arg run_id "$GITHUB_RUN_ID" --argjson structured_output "$STRUCTURED_OUTPUT_JSON" --argjson metrics "$METRICS" '{test_id:$test_id,stage:"RESUME",status:$status,requested_session_id:$requested_session_id,returned_session_id:$returned_session_id,execution_file:$execution_file,run_id:$run_id,fallback:"NONE",business_write:false,implementation_authorized:false,mode:"CLOUD_READ_ONLY",writer:"NONE",structured_output:$structured_output,metrics:$metrics}')"
           ENCODED="$(printf '%s' "$RESULT" | base64 -w0)"
           gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH" -f message="test-state: persist RESUME result $GITHUB_RUN_ID" -f content="$ENCODED" -f branch="$STATE_REF" >/dev/null
           STORED="$(gh api "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH?ref=$STATE_REF" --jq .content | tr -d '\n' | base64 -d)"
