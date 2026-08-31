@@ -56,7 +56,8 @@ jobs:
             echo "BASE already claimed; no Claude call permitted." >&2
             exit 1
           fi
-          { echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo 'status=CLAIMED'; echo "run_id=$GITHUB_RUN_ID"; echo "marker_sha256=$EXPECTED_MARKER_SHA256"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          BODY="$({ echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo 'status=CLAIMED'; echo "run_id=$GITHUB_RUN_ID"; echo "marker_sha256=$EXPECTED_MARKER_SHA256"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; })"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
       - name: Run Claude BASE
         id: claude
@@ -90,7 +91,8 @@ jobs:
           if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then
             METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"
           fi
-          { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo "status=${CONCLUSION:-failure}"; echo "returned_session_id=${SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          BODY="$({ echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=BASE'; echo "status=${CONCLUSION:-failure}"; echo "returned_session_id=${SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; })"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
           if [ "${CONCLUSION:-failure}" = success ] && [ -n "$SESSION_ID" ]; then echo 'dispatch_resume=true' >> "$GITHUB_OUTPUT"; else echo 'dispatch_resume=false' >> "$GITHUB_OUTPUT"; fi
       - name: Preserve BASE execution file
         if: always() && steps.claude.outputs.execution_file != ''
@@ -129,7 +131,8 @@ jobs:
           test -n "$BASE_BODY"
           SESSION_ID="$(printf '%s\n' "$BASE_BODY" | sed -n 's/^returned_session_id=//p' | head -n1)"
           test -n "$SESSION_ID"; test "$SESSION_ID" != NONE
-          { echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo 'status=CLAIMED'; echo "requested_session_id=$SESSION_ID"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          BODY="$({ echo '[KODJO_CLAUDE_SESSION_RESUME_CLAIM]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo 'status=CLAIMED'; echo "requested_session_id=$SESSION_ID"; echo "run_id=$GITHUB_RUN_ID"; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; })"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"; echo "session_id=$SESSION_ID" >> "$GITHUB_OUTPUT"
       - name: Run Claude RESUME
         id: claude
@@ -160,7 +163,8 @@ jobs:
           set -euo pipefail
           METRICS='{}'
           if [ -n "$EXECUTION_FILE" ] && [ -f "$EXECUTION_FILE" ]; then METRICS="$(jq -c '{execution_session_id:(.session_id//null),claude_model:(.model//null),duration_ms:(.duration_ms//null),num_turns:(.num_turns//null),total_cost_usd:(.total_cost_usd//null),permission_denials_count:(if (.permission_denials|type)=="array" then (.permission_denials|length) else null end)}' "$EXECUTION_FILE" 2>/dev/null || printf '{}')"; fi
-          { echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo "status=${CONCLUSION:-failure}"; echo "requested_session_id=$REQUESTED_SESSION_ID"; echo "returned_session_id=${RETURNED_SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'fallback=NONE'; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; } | gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file -
+          BODY="$({ echo '[KODJO_CLAUDE_SESSION_RESUME_PROOF]'; echo "test_id=$TEST_ID"; echo 'stage=RESUME'; echo "status=${CONCLUSION:-failure}"; echo "requested_session_id=$REQUESTED_SESSION_ID"; echo "returned_session_id=${RETURNED_SESSION_ID:-NONE}"; echo "execution_file=${EXECUTION_FILE:-NONE}"; echo "run_id=$GITHUB_RUN_ID"; echo 'fallback=NONE'; echo 'business_write=false'; echo 'implementation_authorized=false'; echo 'mode=CLOUD_READ_ONLY'; echo 'writer=NONE'; echo "structured_output=${STRUCTURED_OUTPUT:-{}}"; echo "metrics=$METRICS"; })"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
       - name: Preserve RESUME execution file
         if: always() && steps.claude.outputs.execution_file != ''
         uses: actions/upload-artifact@v4
