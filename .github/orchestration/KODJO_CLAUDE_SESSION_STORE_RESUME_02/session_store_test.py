@@ -67,10 +67,6 @@ class S3SessionStore:
         self.load_count += 1
         return entries
 
-    async def list_subkeys(self, key: dict[str, Any]) -> list[str]:
-        return []
-
-
 def s3_client():
     return boto3.client("s3")
 
