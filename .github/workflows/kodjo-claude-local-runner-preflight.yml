@@ -51,7 +51,7 @@ jobs:
           if (-not [System.IO.Path]::IsPathRooted($env:TEST_ROOT)) { throw 'TEST_ROOT must be absolute.' }
           if (-not [System.IO.Path]::IsPathRooted($env:CLAUDE_CONFIG_DIR)) { throw 'CLAUDE_CONFIG_DIR must be absolute.' }
           if ($env:TEST_ROOT.StartsWith($env:GITHUB_WORKSPACE, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'TEST_ROOT must not be inside GITHUB_WORKSPACE.' }
-          $claude = Get-Command claude -ErrorAction Stop
+          $claude = Get-Command claude.cmd -ErrorAction Stop
           $versionText = (& $claude.Source --version 2>&1 | Out-String).Trim()
           $match = [regex]::Match($versionText, '(\d+\.\d+\.\d+)')
           if (-not $match.Success) { throw "Cannot parse Claude Code version: $versionText" }
