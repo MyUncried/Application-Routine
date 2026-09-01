@@ -1,0 +1,143 @@
+name: KODJO Claude Local Runner Preflight
+run-name: KODJO local preflight / ${{ inputs.stage }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: WRITE first, then READ in a distinct run
+        required: true
+        type: choice
+        options: [WRITE, READ]
+      write_run_id:
+        description: Required only for READ
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kodjo-claude-local-session-resume-01
+  cancel-in-progress: false
+
+env:
+  TEST_ID: KODJO-CLAUDE-LOCAL-SESSION-RESUME-01
+  STATE_REF: test-state/claude-local-session-resume-01
+  STATE_ROOT: .github/orchestration/state/KODJO-CLAUDE-LOCAL-SESSION-RESUME-01
+  MIN_CLAUDE_VERSION: 2.1.248
+  CLAUDE_CODE_PROJECT_DIR_NAME: kodjo-local-session-resume-01
+
+jobs:
+  preflight:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      TEST_ROOT: ${{ vars.KODJO_LOCAL_TEST_ROOT }}
+      CLAUDE_CONFIG_DIR: ${{ vars.KODJO_LOCAL_CLAUDE_CONFIG_DIR }}
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Validate configuration without invoking a model
+        id: validate
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:EXPECTED_RUNNER_NAME)) { throw 'KODJO_LOCAL_RUNNER_NAME is missing.' }
+          if ([string]::IsNullOrWhiteSpace($env:TEST_ROOT)) { throw 'KODJO_LOCAL_TEST_ROOT is missing.' }
+          if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CONFIG_DIR)) { throw 'KODJO_LOCAL_CLAUDE_CONFIG_DIR is missing.' }
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner.' }
+          if (-not [System.IO.Path]::IsPathRooted($env:TEST_ROOT)) { throw 'TEST_ROOT must be absolute.' }
+          if (-not [System.IO.Path]::IsPathRooted($env:CLAUDE_CONFIG_DIR)) { throw 'CLAUDE_CONFIG_DIR must be absolute.' }
+          if ($env:TEST_ROOT.StartsWith($env:GITHUB_WORKSPACE, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'TEST_ROOT must not be inside GITHUB_WORKSPACE.' }
+          $claude = Get-Command claude.cmd -ErrorAction Stop
+          $versionText = (& $claude.Source --version 2>&1 | Out-String).Trim()
+          $match = [regex]::Match($versionText, '(\d+\.\d+\.\d+)')
+          if (-not $match.Success) { throw "Cannot parse Claude Code version: $versionText" }
+          $version = [version]$match.Groups[1].Value
+          if ($version -lt [version]$env:MIN_CLAUDE_VERSION) { throw "Claude Code $version is below $env:MIN_CLAUDE_VERSION." }
+          $help = (& $claude.Source --help 2>&1 | Out-String)
+          if ($help -notmatch '--resume') { throw 'Claude Code --resume was not found.' }
+          $authText = (& $claude.Source auth status 2>&1 | Out-String)
+          if ($LASTEXITCODE -ne 0) { throw 'Claude Code is not authenticated for the runner system user.' }
+          New-Item -ItemType Directory -Force -Path $env:TEST_ROOT, $env:CLAUDE_CONFIG_DIR | Out-Null
+          $workspace = Join-Path $env:TEST_ROOT 'workspace'
+          $state = Join-Path $env:TEST_ROOT 'state'
+          New-Item -ItemType Directory -Force -Path $workspace, $state | Out-Null
+          "claude_version=$version" >> $env:GITHUB_OUTPUT
+          "workspace=$workspace" >> $env:GITHUB_OUTPUT
+          "state=$state" >> $env:GITHUB_OUTPUT
+
+      - name: WRITE local sentinel and durable proof
+        if: inputs.stage == 'WRITE'
+        env:
+          CLAUDE_VERSION: ${{ steps.validate.outputs.claude_version }}
+          FIXED_WORKSPACE: ${{ steps.validate.outputs.workspace }}
+          LOCAL_STATE: ${{ steps.validate.outputs.state }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sentinelPath = Join-Path $env:LOCAL_STATE 'PREFLIGHT.sentinel.json'
+          if (Test-Path $sentinelPath) { throw 'Sentinel already exists; do not overwrite prior proof.' }
+          $identity = "$env:COMPUTERNAME|$env:USERNAME|${{ runner.name }}|$env:FIXED_WORKSPACE|$env:CLAUDE_CONFIG_DIR"
+          $identityHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity))).ToLowerInvariant()
+          $doc = [ordered]@{
+            test_id=$env:TEST_ID; stage='PREFLIGHT_WRITE'; status='WRITTEN'; write_run_id="$env:GITHUB_RUN_ID"
+            runner_name='${{ runner.name }}'; machine=$env:COMPUTERNAME; system_user=$env:USERNAME
+            fixed_workspace=$env:FIXED_WORKSPACE; claude_config_dir=$env:CLAUDE_CONFIG_DIR
+            claude_project_dir_name=$env:CLAUDE_CODE_PROJECT_DIR_NAME; claude_version=$env:CLAUDE_VERSION
+            identity_sha256=$identityHash; sentinel_id=[guid]::NewGuid().ToString(); claude_calls=0
+            business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'
+          }
+          $json = $doc | ConvertTo-Json -Compress
+          [IO.File]::WriteAllText($sentinelPath, $json, [Text.UTF8Encoding]::new($false))
+          $stored = Get-Content -Raw $sentinelPath | ConvertFrom-Json
+          if ($stored.write_run_id -ne "$env:GITHUB_RUN_ID" -or $stored.claude_calls -ne 0) { throw 'Local sentinel readback failed.' }
+          $path = "$env:STATE_ROOT/PREFLIGHT.write.json"
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+          try { Invoke-RestMethod -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -Uri "$uri?ref=$env:STATE_REF" | Out-Null; throw 'PREFLIGHT.write.json already exists.' } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          $body = @{message="test-state: local preflight WRITE $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($json)); branch=$env:STATE_REF} | ConvertTo-Json
+          Invoke-RestMethod -Method Put -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -ContentType 'application/json' -Body $body -Uri $uri | Out-Null
+          $remote = Invoke-RestMethod -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -Uri "$uri?ref=$env:STATE_REF"
+          $roundtrip = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($roundtrip.identity_sha256 -ne $identityHash -or $roundtrip.write_run_id -ne "$env:GITHUB_RUN_ID") { throw 'Durable WRITE readback failed.' }
+
+      - name: READ prior sentinel and publish inter-run proof
+        if: inputs.stage == 'READ'
+        env:
+          EXPECTED_WRITE_RUN_ID: ${{ inputs.write_run_id }}
+          CLAUDE_VERSION: ${{ steps.validate.outputs.claude_version }}
+          FIXED_WORKSPACE: ${{ steps.validate.outputs.workspace }}
+          LOCAL_STATE: ${{ steps.validate.outputs.state }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:EXPECTED_WRITE_RUN_ID)) { throw 'write_run_id is required for READ.' }
+          if ($env:EXPECTED_WRITE_RUN_ID -eq "$env:GITHUB_RUN_ID") { throw 'WRITE and READ must be distinct runs.' }
+          $sentinelPath = Join-Path $env:LOCAL_STATE 'PREFLIGHT.sentinel.json'
+          if (-not (Test-Path $sentinelPath)) { throw 'Local sentinel not found.' }
+          $sentinel = Get-Content -Raw $sentinelPath | ConvertFrom-Json
+          $identity = "$env:COMPUTERNAME|$env:USERNAME|${{ runner.name }}|$env:FIXED_WORKSPACE|$env:CLAUDE_CONFIG_DIR"
+          $identityHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity))).ToLowerInvariant()
+          if ($sentinel.write_run_id -ne $env:EXPECTED_WRITE_RUN_ID -or $sentinel.identity_sha256 -ne $identityHash) { throw 'Inter-run local identity mismatch.' }
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          $writeUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/PREFLIGHT.write.json?ref=$env:STATE_REF"
+          $writeRemote = Invoke-RestMethod -Headers $headers -Uri $writeUri
+          $writeProof = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($writeRemote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($writeProof.write_run_id -ne $env:EXPECTED_WRITE_RUN_ID -or $writeProof.identity_sha256 -ne $identityHash) { throw 'Durable WRITE proof mismatch.' }
+          $proof = [ordered]@{
+            test_id=$env:TEST_ID; stage='PREFLIGHT_READ'; status='LOCAL_PERSISTENCE_PROVEN'
+            write_run_id=$env:EXPECTED_WRITE_RUN_ID; read_run_id="$env:GITHUB_RUN_ID"; distinct_runs=$true
+            runner_name='${{ runner.name }}'; machine=$env:COMPUTERNAME; system_user=$env:USERNAME
+            fixed_workspace=$env:FIXED_WORKSPACE; claude_config_dir=$env:CLAUDE_CONFIG_DIR
+            claude_project_dir_name=$env:CLAUDE_CODE_PROJECT_DIR_NAME; claude_version=$env:CLAUDE_VERSION
+            identity_sha256=$identityHash; sentinel_id=$sentinel.sentinel_id; claude_calls=0
+            business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'
+          } | ConvertTo-Json -Compress
+          $path = "$env:STATE_ROOT/PREFLIGHT.read.json"
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+          try { Invoke-RestMethod -Headers $headers -Uri "$uri?ref=$env:STATE_REF" | Out-Null; throw 'PREFLIGHT.read.json already exists.' } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          $body = @{message="test-state: local preflight READ $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($proof)); branch=$env:STATE_REF} | ConvertTo-Json
+          Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri | Out-Null
+          $remote = Invoke-RestMethod -Headers $headers -Uri "$uri?ref=$env:STATE_REF"
+          $roundtrip = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
+          if (-not $roundtrip.distinct_runs -or $roundtrip.claude_calls -ne 0 -or $roundtrip.identity_sha256 -ne $identityHash) { throw 'Durable READ readback failed.' }
