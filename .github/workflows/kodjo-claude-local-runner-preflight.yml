@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: WRITE first, then READ in a distinct run
+        description: WRITE first, then READ in a distinct run; DIAG_PROFILE is read-only
         required: true
         type: choice
-        options: [WRITE, READ]
+        options: [WRITE, READ, DIAG_PROFILE]
       write_run_id:
         description: Required only for READ
         required: false
@@ -68,6 +68,21 @@ jobs:
           "claude_version=$version" >> $env:GITHUB_OUTPUT
           "workspace=$workspace" >> $env:GITHUB_OUTPUT
           "state=$state" >> $env:GITHUB_OUTPUT
+
+      - name: DIAG runner user profile without invoking a model
+        if: inputs.stage == 'DIAG_PROFILE'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [PSCustomObject]@{
+            RunnerName  = '${{ runner.name }}'
+            ComputerName = $env:COMPUTERNAME
+            Username    = $env:USERNAME
+            UserDomain  = $env:USERDOMAIN
+            UserProfile = $env:USERPROFILE
+            HomeDrive   = $env:HOMEDRIVE
+            HomePath    = $env:HOMEPATH
+            ClaudeConfigDir = $env:CLAUDE_CONFIG_DIR
+          } | Format-List
 
       - name: WRITE local sentinel and durable proof
         if: inputs.stage == 'WRITE'
