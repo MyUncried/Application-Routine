@@ -38,7 +38,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - name: Validate configuration without invoking a model
         id: validate
