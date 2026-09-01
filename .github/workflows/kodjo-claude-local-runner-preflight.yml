@@ -77,8 +77,22 @@ jobs:
           LOCAL_STATE: ${{ steps.validate.outputs.state }}
         run: |
           $ErrorActionPreference = 'Stop'
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          $path = "$env:STATE_ROOT/PREFLIGHT.write.json"
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
+          $durableExists = $false
+          try {
+            Invoke-RestMethod -Headers $headers -Uri "${uri}?ref=$env:STATE_REF" | Out-Null
+            $durableExists = $true
+          } catch {
+            if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
+          }
+          if ($durableExists) { throw 'PREFLIGHT.write.json already exists.' }
           $sentinelPath = Join-Path $env:LOCAL_STATE 'PREFLIGHT.sentinel.json'
-          if (Test-Path $sentinelPath) { throw 'Sentinel already exists; do not overwrite prior proof.' }
+          if (Test-Path $sentinelPath) {
+            Remove-Item -Force $sentinelPath
+            Write-Host 'Recovered orphaned local sentinel: no durable WRITE proof exists.'
+          }
           $identity = "$env:COMPUTERNAME|$env:USERNAME|${{ runner.name }}|$env:FIXED_WORKSPACE|$env:CLAUDE_CONFIG_DIR"
           $sha256 = [Security.Cryptography.SHA256]::Create()
           try { $identityHashBytes = $sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($identity)) } finally { $sha256.Dispose() }
@@ -95,12 +109,9 @@ jobs:
           [IO.File]::WriteAllText($sentinelPath, $json, [Text.UTF8Encoding]::new($false))
           $stored = Get-Content -Raw $sentinelPath | ConvertFrom-Json
           if ($stored.write_run_id -ne "$env:GITHUB_RUN_ID" -or $stored.claude_calls -ne 0) { throw 'Local sentinel readback failed.' }
-          $path = "$env:STATE_ROOT/PREFLIGHT.write.json"
-          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$path"
-          try { Invoke-RestMethod -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -Uri "${uri}?ref=$env:STATE_REF" | Out-Null; throw 'PREFLIGHT.write.json already exists.' } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
           $body = @{message="test-state: local preflight WRITE $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($json)); branch=$env:STATE_REF} | ConvertTo-Json
-          Invoke-RestMethod -Method Put -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -ContentType 'application/json' -Body $body -Uri $uri | Out-Null
-          $remote = Invoke-RestMethod -Headers @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'} -Uri "${uri}?ref=$env:STATE_REF"
+          Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri | Out-Null
+          $remote = Invoke-RestMethod -Headers $headers -Uri "${uri}?ref=$env:STATE_REF"
           $roundtrip = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
           if ($roundtrip.identity_sha256 -ne $identityHash -or $roundtrip.write_run_id -ne "$env:GITHUB_RUN_ID") { throw 'Durable WRITE readback failed.' }
 
