@@ -57,6 +57,14 @@ jobs:
             }
           }
 
+          $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+          $accessExpiresAt = if ($null -ne $oauth -and $null -ne $oauth.expiresAt) { [int64]$oauth.expiresAt } else { $null }
+          $refreshExpiresAt = if ($null -ne $oauth -and $null -ne $oauth.refreshTokenExpiresAt) { [int64]$oauth.refreshTokenExpiresAt } else { $null }
+          $accessExpiryUtc = if ($accessExpiresAt) { [DateTimeOffset]::FromUnixTimeMilliseconds($accessExpiresAt).UtcDateTime.ToString('o') } else { $null }
+          $refreshExpiryUtc = if ($refreshExpiresAt) { [DateTimeOffset]::FromUnixTimeMilliseconds($refreshExpiresAt).UtcDateTime.ToString('o') } else { $null }
+          $accessRemainingMinutes = if ($accessExpiresAt) { [math]::Round(($accessExpiresAt - $nowMs) / 60000.0, 2) } else { $null }
+          $refreshRemainingHours = if ($refreshExpiresAt) { [math]::Round(($refreshExpiresAt - $nowMs) / 3600000.0, 2) } else { $null }
+
           $envNames = Get-ChildItem Env: |
             Where-Object { $_.Name -match '^(CLAUDE|ANTHROPIC)' } |
             Select-Object -ExpandProperty Name
@@ -99,6 +107,17 @@ jobs:
 
           Write-Host '=== OAUTH STRUCTURE (NO VALUES) ==='
           $oauthFields | Format-Table -AutoSize
+
+          Write-Host '=== OAUTH EXPIRY (NO TOKEN VALUES) ==='
+          [PSCustomObject]@{
+            NowUtc = [DateTimeOffset]::UtcNow.UtcDateTime.ToString('o')
+            AccessExpiryUtc = $accessExpiryUtc
+            AccessExpired = if ($accessExpiresAt) { $accessExpiresAt -le $nowMs } else { $null }
+            AccessRemainingMinutes = $accessRemainingMinutes
+            RefreshExpiryUtc = $refreshExpiryUtc
+            RefreshExpired = if ($refreshExpiresAt) { $refreshExpiresAt -le $nowMs } else { $null }
+            RefreshRemainingHours = $refreshRemainingHours
+          } | Format-List
 
           Write-Host '=== CLAUDE / ANTHROPIC ENVIRONMENT VARIABLE NAMES ONLY ==='
           if ($envNames) { $envNames | Sort-Object } else { Write-Host '<none>' }
