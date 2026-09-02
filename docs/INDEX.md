@@ -50,6 +50,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10    | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et les règles de calcul identifiées par un ID.                                                           | Baseline MVP                                   |
 | 11    | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md)                                                                              | Décrit les opérations et services fonctionnels nécessaires au développement.                                                          | Baseline MVP                                   |
 | 12    | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md)                                                                      | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les validations techniques à réaliser.  | Baseline MVP avec spikes techniques identifiés |
+| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | Baseline progressive par tranche — T01 complète |
 
 
 ## 4. Images et maquettes
@@ -58,7 +59,7 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 [`docs/Specifications-fonctionnelles/Images`](./Specifications-fonctionnelles/Images/)
 
-Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08.
+Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. Le chapitre 13 référence chaque frame Figma par son ID et précise les critères permettant de comparer l’implémentation à cette référence visuelle.
 
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
 
@@ -82,11 +83,14 @@ Pour préparer le développement fonctionnel :
 5. 08 – Conception fonctionnelle détaillée ;
 6. 09 – Modèle de données fonctionnel ;
 7. 10 – Processus métier et règles métier transverses.
+8. 13 – Contrats d’écran applicables à la tranche développée.
 
 Pour préparer l’implémentation technique :
-1. 11 – API fonctionnelles ;
-2. 12 – Architecture technique ;
-3. `README.md` et les fichiers de configuration du projet.
+1. 06 – Écrans et navigation ;
+2. 13 – Contrats d’écran applicables à la tranche développée ;
+3. 11 – API fonctionnelles ;
+4. 12 – Architecture technique ;
+5. `README.md` et les fichiers de configuration du projet.
 
 ## 6. Ordre de référence en cas de contradiction
 
@@ -95,8 +99,9 @@ En cas de contradiction, appliquer l’ordre suivant :
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
 4. écrans et navigation ;
-5. versions du produit et vision générale ;
-6. documents de travail, historiques et revues externes.
+5. contrats d’écran ;
+6. versions du produit et vision générale ;
+7. documents de travail, historiques et revues externes.
 
 `PRODUCT.md` est une synthèse du périmètre et ne prévaut pas sur les spécifications détaillées.
 
@@ -108,6 +113,7 @@ Toute évolution fonctionnelle doit identifier son impact sur :
 - le registre des décisions ;
 - Figma ;
 - les écrans et la navigation ;
+- les contrats d’écran concernés ;
 - la conception fonctionnelle détaillée ;
 - le modèle de données ;
 - les règles métier et les règles de calcul ;
@@ -129,7 +135,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - progression hybride des Activités chronométrées et des Exercices en Répétition ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 12 constituent désormais la **baseline documentaire du MVP** pour le développement.
+Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète progressivement cette baseline par des contrats d’écran opérationnels, rédigés et validés selon les tranches verticales de la roadmap. Les quinze frames dont la construction principale est affectée à T01 possèdent un contrat complet. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
 
 Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
 
