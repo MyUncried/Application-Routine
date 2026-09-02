@@ -141,10 +141,12 @@ Le cycle d’exécution local peut être représenté par :
 
 Boucles et barrières :
 
-- `LOCAL_CLAUDE_RUNNING → ARBITRATION_REQUIRED → CHATGPT/USER → LOCAL_CLAUDE_RESUME` ;
-- `LOCAL_CLAUDE_RUNNING → TECHNICAL_FAILURE → AUTO_RECOVERY → LOCAL_CLAUDE_RESUME` lorsque la reprise est sûre ;
+- `LOCAL_CLAUDE_RUNNING → ARBITRAGE → CHATGPT/USER → LOCAL_CLAUDE_RESUME` ;
+- `LOCAL_CLAUDE_RUNNING → ORCHESTRATION_FAILURE → AUTO_RECOVERY → LOCAL_CLAUDE_RESUME` lorsque la reprise est sûre ;
 - `VERIFY → FAIL → LOCAL_CLAUDE_RESUME → VERIFY` ;
 - toute divergence substantielle de périmètre ou invalidation de l’autorisation revient à la barrière appropriée avant écriture.
+
+`ARBITRAGE` et `ORCHESTRATION_FAILURE` conservent exactement leur sens normatif V1.3. `LOCAL_CLAUDE_RUNNING`, `LOCAL_CLAUDE_RESUME`, `VERIFY`, `PASS`, `COMMIT/PUSH`, `CHATGPT_WORK_CONTROL` et `DONE` sont une vue opérationnelle locale du chemin nominal ; ils ne remplacent ni ne renomment les états normatifs V1.3 lorsqu’un état V1.3 s’applique.
 
 Cette vue simplifiée ne supprime pas les barrières V1.3 de plan, autorisation, contexte Git, source de vérité, revue indépendante ou sécurité. Elle réduit les appels et transitions artificiellement séparés lorsqu’une même session Claude locale peut poursuivre le travail.
 
