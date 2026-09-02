@@ -35,18 +35,44 @@ La création rapide constitue le parcours principal. L’ajout d’une consigne,
 
 ## Contrat d’affichage commun aux écrans du MVP
 
-Les captures Figma définissent l’apparence de référence à une largeur de `402` points logiques. Elles ne doivent pas être reproduites avec des coordonnées absolues. Les valeurs partagées sont centralisées dans les design tokens décrits au chapitre 12 ; les règles ci-dessous définissent le comportement fonctionnel attendu lorsque la taille disponible change.
+Les captures Figma définissent l’apparence de référence à une largeur de `402` points logiques. Elles ne doivent pas être reproduites avec des coordonnées absolues. Les valeurs partagées, les Screen Shells et les composants réutilisables sont centralisés dans le Design System décrit au chapitre 12 ; les règles ci-dessous définissent le comportement fonctionnel attendu lorsque la taille disponible change.
+
+La spécification d’un écran suit la composition canonique suivante :
+
+1. **Screen Shell** : structure les zones fixes et les slots disponibles ;
+2. **composants et contrôles du Design System** : portent les règles visuelles et interactives communes ;
+3. **règles spécifiques de l’écran** : définissent son contenu, ses états et son comportement fonctionnel.
+
+Une règle déjà portée par le Screen Shell ou un composant commun n’est pas redéfinie localement. Une valeur ou un état propre au métier reste documenté dans l’écran ou la spécification fonctionnelle concernée, et non dans le composant générique.
+
+### Contrats d’écran et conformité de l’implémentation
+
+Chaque frame de production est complétée par un contrat d’écran dans le chapitre `13 – Contrats d’écran`. Le contrat constitue la checklist exécutable de développement et de recette de la frame concernée. Il identifie notamment :
+
+- la frame Figma de référence et, lorsqu’elle est imposée, la ressource graphique exacte à utiliser ;
+- les éléments obligatoires, leurs libellés exacts et leurs conditions de visibilité ;
+- la source de chaque donnée affichée afin d’interdire les valeurs de démonstration codées en dur ;
+- les contrôles, leurs zones tactiles, leurs états et leur résultat attendu ;
+- les règles de layout propres à la frame, exprimées en relations adaptatives plutôt qu’en copie générale de coordonnées absolues ;
+- les critères de conformité fonctionnelle, visuelle, technique et d’accessibilité ;
+- les cas de recette qui doivent échouer lorsqu’un élément obligatoire manque, lorsqu’un contrôle ne produit pas son effet ou lorsque l’écran ne respecte pas sa structure.
+
+Figma demeure la référence visuelle de la surface standard `402 × 874`. Le présent chapitre définit les comportements, la navigation et les règles adaptatives communes ; le chapitre 13 rend ces exigences vérifiables frame par frame. Les textes, noms, dates, durées et catégories visibles dans Figma sont des données de démonstration, sauf lorsqu’un contrat les déclare explicitement comme libellés statiques obligatoires.
+
+Pour être déclaré conforme, un écran doit satisfaire simultanément son contrat, les règles communes du présent chapitre, les règles fonctionnelles et métier applicables, et les composants du Design System. Une simple ressemblance partielle avec la capture Figma ne suffit pas. À l’inverse, un choix d’implémentation peut différer des coordonnées absolues de la capture s’il respecte les relations de layout, les composants et le rendu attendu sur les largeurs de référence.
+
+L’absence ou la substitution d’un logo, d’une icône, d’un texte ou d’un contrôle déclaré obligatoire est une non-conformité bloquante. Il en va de même pour une valeur métier codée en dur, une zone tactile inactive, une mauvaise destination de navigation, un chevauchement ou un contenu masqué par une zone fixe.
 
 ### Unités et largeur utile
 
 - Les dimensions de l’interface sont exprimées en points logiques React Native (`dp` côté Android, points côté iOS), jamais en pixels physiques.
-- La largeur minimale cible du MVP est `360` points. Les largeurs de contrôle sont `360`, `390`, `402` et `430–440` points.
+- La largeur minimale cible du MVP est `360` points. Les trois modes de référence Figma sont `Compact 360`, `Standard 402` et `Grand téléphone 440`. Les largeurs intermédiaires, notamment `390` et `430`, restent couvertes par la matrice de contrôle d’implémentation du chapitre 12 sans constituer des modes Figma supplémentaires.
 - Jusqu’à `389` points, l’écran est considéré comme **compact** : la marge horizontale standard peut passer de `24` à `16` points.
 - À partir de `390` points, la marge horizontale standard est de `24` points.
 - Au-delà de `440` points, le contenu principal est centré avec une largeur maximale de `440` points ; l’interface spécifique tablette reste hors MVP.
 - Les cartes, champs et boutons principaux occupent la largeur utile disponible. La largeur Figma de `354` points correspond à `402 − 2 × 24` et ne doit pas être codée en dur.
 
-### Structure verticale standard
+### Structure verticale standard et Screen Shells
 
 Un écran standard est composé de trois zones indépendantes :
 
@@ -56,9 +82,24 @@ Un écran standard est composé de trois zones indépendantes :
 
 Le contenu central ne doit jamais passer sous la navigation ou l’action finale. Son espacement inférieur comprend la hauteur réelle de l’élément fixe, l’inset système et au moins `16` points de respiration.
 
+À la référence Figma `402 × 874`, ces zones sont matérialisées par les Screen Shells suivants :
+
+| Shell | Variante | Zones de référence |
+| --- | --- | --- |
+| `Shell / Screen` | `Context=On, Bottom=Navigation` | Header `0–92` ; Context `92–207` ; Body `207–797` ; Bottom Navigation `797–874` |
+| `Shell / Screen` | `Context=Off, Bottom=Navigation` | Header `0–92` ; Body `92–797` ; Bottom Navigation `797–874` |
+| `Shell / Screen` | `Context=On, Bottom=Action` | Header `0–92` ; Context `92–207` ; Body `207–790` ; Bottom Action `790–874` |
+| `Shell / Screen` | `Context=Off, Bottom=Action` | Header `0–92` ; Body `92–790` ; Bottom Action `790–874` |
+| `Shell / Execution` | `Mode=Run` | Header `0–92` ; Content `92–782` ; Footer `782–874` |
+| `Shell / Execution` | `Mode=Summary` | Header `0–92` ; Content `92–874` |
+
+Le `Shell / Modal Fullscreen`, utilisé par le parcours de planification, possède un gabarit interne `378 × 822` : Header `0–60`, Content `60–752`, Bottom Action `752–822`. Ces coordonnées décrivent la composition de référence dans Figma ; l’implémentation adapte les insets et la hauteur disponible au système sans déformer ni redimensionner proportionnellement le gabarit.
+
+Tous les écrans et états représentés dans la page Figma `Prototype MVP` utilisent l’un de ces Shells. Le Splash constitue l’unique exception explicite.
+
 ### En-têtes
 
-- L’en-tête standard possède une hauteur de contenu de `48` points, ajoutée à l’inset supérieur fourni par le système.
+- Dans le gabarit Figma de référence, la région d’en-tête fixe mesure `92` points. Elle contient une zone utile de `48` points et la place réservée à la zone système de référence. À l’exécution, cette seconde partie est remplacée par l’inset supérieur réel ; la hauteur système n’est jamais codée en dur.
 - Le titre d’écran utilise le token `type.screenTitle`, reste aligné sur la grille horizontale et peut occuper deux lignes sur un écran compact.
 - Lorsqu’un bouton Retour est présent, sa cible tactile reste distincte du titre et mesure au minimum `48 × 48` points logiques sur toutes les plateformes du MVP.
 - Une action placée à droite de l’en-tête conserve la même cible tactile minimale.
@@ -90,7 +131,7 @@ Le contenu central ne doit jamais passer sous la navigation ou l’action finale
 
 ### Navigation basse
 
-- La barre visuelle de référence mesure `66` points de haut ; elle est positionnée au-dessus de l’inset inférieur réel.
+- La région de navigation du Screen Shell mesure `77` points dans le gabarit `402 × 874`. Elle contient la barre principale visuelle de `66` points et la place réservée à l’inset inférieur de référence. À l’exécution, la navigation est positionnée avec l’inset inférieur réel, qui n’est jamais codé en dur.
 - Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
 - La recherche conserve un bouton circulaire distinct. La barre principale absorbe la variation de largeur tandis que la recherche conserve sa cible tactile.
 - Les quatre destinations principales occupent quatre emplacements répartis régulièrement entre les marges internes de la barre principale. Leur distribution est recalculée à partir de la largeur réelle de cette barre ; elle n’inclut pas la zone réservée à la recherche.
@@ -148,7 +189,7 @@ Ces règles communes prévalent sur les coordonnées des captures. Une exception
 
 ![[images/splash-kodjo.png|260]]
 
-Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances — État vide` avec une transition `DISSOLVE` de 0,3 seconde.
+Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances` avec une transition `DISSOLVE` de 0,3 seconde. Le Catalogue présente l’état vide lorsqu’aucune Séance correspondant à la vue `Toutes` n’existe ; sinon, il présente la liste par défaut alimentée par les données locales.
 
 ### Navigation principale
 
@@ -159,7 +200,7 @@ La navigation principale donne accès à quatre onglets :
 - `Suivi` ;
 - `Profil`.
 
-Après le splash, le `Catalogue des séances` constitue l’écran d’accueil par défaut. Le splash affiche `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`, puis ouvre automatiquement le Catalogue après 2,5 s avec une transition de fondu de 0,3 s.
+Après le splash, le `Catalogue des séances` constitue l’écran d’accueil par défaut. Le splash affiche `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`, puis ouvre automatiquement le Catalogue après 2,5 s avec une transition de fondu de 0,3 s. L’état affiché est déterminé par les données locales et ne peut pas être imposé par une liste ou un état vide codé en dur.
 
 L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
