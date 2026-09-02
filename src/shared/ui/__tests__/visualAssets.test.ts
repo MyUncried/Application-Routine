@@ -54,6 +54,36 @@ describe("canonical T01 visual assets", () => {
     expect(width).toBeGreaterThanOrEqual(branding.minimumPixelsAt3x);
   });
 
+  it("keeps native and application splash branding aligned", () => {
+    const appConfig = JSON.parse(
+      readFileSync(path.join(repositoryRoot, "app.json"), "utf8"),
+    ) as {
+      expo: {
+        plugins: Array<string | [string, Record<string, unknown>]>;
+      };
+    };
+    const splashPlugin = appConfig.expo.plugins.find(
+      (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+    );
+    expect(splashPlugin).toEqual([
+      "expo-splash-screen",
+      expect.objectContaining({
+        backgroundColor: "#0001F1",
+        image: "./assets/branding/logo_icon_only_transparent_1024.png",
+        imageWidth: 200,
+      }),
+    ]);
+
+    const splashSource = readFileSync(
+      path.join(repositoryRoot, "src/shared/ui/KodjoSplash.tsx"),
+      "utf8",
+    );
+    expect(splashSource).toContain("logo_icon_only_transparent_1024.png");
+    expect(splashSource).toContain("KODJO");
+    expect(splashSource).toContain("Keep On. Do Just One.");
+    expect(splashSource).toContain("Votre assistant du quotidien");
+  });
+
   it("contains no legacy typography glyphs in the corrected T01 components", () => {
     const files = [
       "src/features/sessions/CatalogueScreen.tsx",
