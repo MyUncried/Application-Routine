@@ -1,0 +1,233 @@
+name: KODJO Claude Local Session Resume 03
+run-name: KODJO local session resume 03 / ${{ inputs.stage }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        required: true
+        type: choice
+        options: [BASE, RESUME]
+      authorization:
+        description: Exact stage authorization
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kodjo-claude-local-session-resume-03
+  cancel-in-progress: false
+
+env:
+  TEST_ID: KODJO-CLAUDE-LOCAL-SESSION-RESUME-03
+  STATE_REF: test-state/claude-local-session-resume-03
+  STATE_ROOT: .github/orchestration/state/KODJO-CLAUDE-LOCAL-SESSION-RESUME-03
+  CLAUDE_CODE_PROJECT_DIR_NAME: kodjo-local-session-resume-03
+
+jobs:
+  execute:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      TEST_ROOT: ${{ vars.KODJO_LOCAL_TEST_ROOT }}
+      CLAUDE_CONFIG_DIR: ${{ vars.KODJO_LOCAL_CLAUDE_CONFIG_DIR }}
+      TEST_ARMED: ${{ vars.KODJO_LOCAL_SESSION_TEST_ARMED }}
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: powershell
+        working-directory: ${{ vars.KODJO_LOCAL_TEST_ROOT }}\workspace
+    steps:
+      - name: Verify durable preflight, fresh OAuth and exact local identity
+        id: gate
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:TEST_ARMED -ne 'true') { throw 'Test is not armed.' }
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner.' }
+          $expectedAuthorization = if ('${{ inputs.stage }}' -eq 'BASE') { 'LAUNCH KODJO LOCAL SESSION RESUME 03 BASE' } else { 'LAUNCH KODJO LOCAL SESSION RESUME 03 RESUME' }
+          if ('${{ inputs.authorization }}' -ne $expectedAuthorization) { throw 'Invalid authorization string.' }
+          $claude = Get-Command claude.cmd -ErrorAction Stop
+
+          $credPath = Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'
+          if (-not (Test-Path $credPath)) { throw '.credentials.json missing.' }
+          $cred = Get-Content $credPath -Raw | ConvertFrom-Json
+          $expiresAt = [int64]$cred.claudeAiOauth.expiresAt
+          if ($expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) { throw 'Claude access token is expired; refusing model call.' }
+
+          $workspace = Join-Path $env:TEST_ROOT 'workspace'
+          $state = Join-Path $env:TEST_ROOT 'state'
+          New-Item -ItemType Directory -Force -Path $state | Out-Null
+          $identity = "$env:COMPUTERNAME|$env:USERNAME|${{ runner.name }}|$workspace|$env:CLAUDE_CONFIG_DIR"
+          $sha256 = [Security.Cryptography.SHA256]::Create()
+          try { $identityHashBytes = $sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($identity)) } finally { $sha256.Dispose() }
+          $identityHash = ([BitConverter]::ToString($identityHashBytes) -replace '-', '').ToLowerInvariant()
+
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/state/KODJO-CLAUDE-LOCAL-SESSION-RESUME-01/PREFLIGHT.read.json?ref=test-state/claude-local-session-resume-01"
+          $remote = Invoke-RestMethod -Headers $headers -Uri $uri
+          $proof = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($proof.status -ne 'LOCAL_PERSISTENCE_PROVEN' -or $proof.identity_sha256 -ne $identityHash -or $proof.claude_calls -ne 0) { throw 'Preflight proof is absent or incompatible.' }
+
+          "identity_hash=$identityHash" >> $env:GITHUB_OUTPUT
+          "local_state=$state" >> $env:GITHUB_OUTPUT
+          "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
+
+      - name: Acquire BASE claim and run Claude Local BASE — call 1/2
+        if: inputs.stage == 'BASE'
+        id: base
+        env:
+          IDENTITY_HASH: ${{ steps.gate.outputs.identity_hash }}
+          CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          foreach ($forbidden in @('BASE.claim.json','BASE.result.json','RESUME.claim.json','RESUME.result.json','VERDICT.json','ABORTED.json')) {
+            $check = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/${forbidden}?ref=$env:STATE_REF"
+            try { Invoke-RestMethod -Headers $headers -Uri $check | Out-Null; throw "$forbidden already exists; no BASE call permitted." } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          }
+
+          $markerBytes = New-Object byte[] 32
+          $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+          try { $rng.GetBytes($markerBytes) } finally { $rng.Dispose() }
+          $marker = 'KODJO-LOCAL-' + (([BitConverter]::ToString($markerBytes) -replace '-', '').ToLowerInvariant())
+          $sha256 = [Security.Cryptography.SHA256]::Create()
+          try { $markerHashBytes = $sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($marker)) } finally { $sha256.Dispose() }
+          $markerHash = ([BitConverter]::ToString($markerHashBytes) -replace '-', '').ToLowerInvariant()
+
+          $claim = [ordered]@{test_id=$env:TEST_ID; stage='BASE'; status='CLAIMED'; call_ordinal=1; run_id="$env:GITHUB_RUN_ID"; identity_sha256=$env:IDENTITY_HASH; marker_sha256=$markerHash; claude_calls_claimed=1; business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'} | ConvertTo-Json -Compress
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/BASE.claim.json"
+          $body = @{message="test-state: claim local BASE 03 $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($claim)); branch=$env:STATE_REF} | ConvertTo-Json
+          $put = Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri
+          if ([string]::IsNullOrWhiteSpace($put.commit.sha)) { throw 'BASE claim PUT returned no commit SHA.' }
+          $remote = Invoke-RestMethod -Headers $headers -Uri "${uri}?ref=$($put.commit.sha)"
+          $roundtrip = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($roundtrip.run_id -ne "$env:GITHUB_RUN_ID" -or $roundtrip.call_ordinal -ne 1) { throw 'BASE claim readback by commit SHA failed.' }
+
+          $prompt = "Micro-test technique en lecture seule. Mémorise dans cette session le marqueur suivant sans le répéter dans ta réponse : $marker. Confirme seulement que tu l'as mémorisé. N'utilise aucun outil."
+          $raw = (& $env:CLAUDE_PATH -p --output-format json $prompt 2>&1 | Out-String)
+          $exit = $LASTEXITCODE
+          $marker = $null
+          $prompt = $null
+          if ($exit -ne 0) { throw "Claude BASE failed with exit code $exit." }
+          $parsed = $raw | ConvertFrom-Json
+          if ([string]::IsNullOrWhiteSpace($parsed.session_id)) { throw 'Claude BASE returned no session_id.' }
+          if ([string]::IsNullOrWhiteSpace([string]$parsed.result)) { throw 'Claude BASE returned an empty result.' }
+
+          "session_id=$($parsed.session_id)" >> $env:GITHUB_OUTPUT
+          "marker_hash=$markerHash" >> $env:GITHUB_OUTPUT
+          "duration_ms=$($parsed.duration_ms)" >> $env:GITHUB_OUTPUT
+          "num_turns=$($parsed.num_turns)" >> $env:GITHUB_OUTPUT
+          "total_cost_usd=$($parsed.total_cost_usd)" >> $env:GITHUB_OUTPUT
+
+      - name: Persist sanitized BASE evidence
+        if: inputs.stage == 'BASE' && steps.base.outcome == 'success'
+        env:
+          SESSION_ID: ${{ steps.base.outputs.session_id }}
+          MARKER_HASH: ${{ steps.base.outputs.marker_hash }}
+          DURATION_MS: ${{ steps.base.outputs.duration_ms }}
+          NUM_TURNS: ${{ steps.base.outputs.num_turns }}
+          TOTAL_COST_USD: ${{ steps.base.outputs.total_cost_usd }}
+          IDENTITY_HASH: ${{ steps.gate.outputs.identity_hash }}
+          LOCAL_STATE: ${{ steps.gate.outputs.local_state }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $result = [ordered]@{test_id=$env:TEST_ID; stage='BASE'; status='SUCCESS'; call_ordinal=1; run_id="$env:GITHUB_RUN_ID"; returned_session_id=$env:SESSION_ID; marker_sha256=$env:MARKER_HASH; identity_sha256=$env:IDENTITY_HASH; duration_ms=$env:DURATION_MS; num_turns=$env:NUM_TURNS; total_cost_usd=$env:TOTAL_COST_USD; raw_output_persisted=$false; claude_calls_consumed=1; business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'} | ConvertTo-Json -Compress
+          [IO.File]::WriteAllText((Join-Path $env:LOCAL_STATE 'BASE03.recovery.json'), $result, (New-Object Text.UTF8Encoding($false)))
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/BASE.result.json"
+          $body = @{message="test-state: persist local BASE 03 result $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($result)); branch=$env:STATE_REF} | ConvertTo-Json
+          $put = Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri
+          if ([string]::IsNullOrWhiteSpace($put.commit.sha)) { throw 'BASE result PUT returned no commit SHA.' }
+
+      - name: Resolve BASE and acquire durable RESUME claim
+        if: inputs.stage == 'RESUME'
+        id: resume_claim
+        env:
+          IDENTITY_HASH: ${{ steps.gate.outputs.identity_hash }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          foreach ($required in @('BASE.claim.json','BASE.result.json')) {
+            Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/${required}?ref=$env:STATE_REF" | Out-Null
+          }
+          foreach ($forbidden in @('RESUME.claim.json','RESUME.result.json','VERDICT.json','ABORTED.json')) {
+            $check = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/${forbidden}?ref=$env:STATE_REF"
+            try { Invoke-RestMethod -Headers $headers -Uri $check | Out-Null; throw "$forbidden already exists; no RESUME call permitted." } catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw } }
+          }
+          $baseRemote = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/BASE.result.json?ref=$env:STATE_REF"
+          $base = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($baseRemote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($base.status -ne 'SUCCESS' -or $base.identity_sha256 -ne $env:IDENTITY_HASH -or [string]::IsNullOrWhiteSpace($base.returned_session_id)) { throw 'BASE result is incompatible.' }
+          $transcript = Get-ChildItem -Path $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.returned_session_id).jsonl" -ErrorAction SilentlyContinue
+          if (@($transcript).Count -ne 1) { throw 'Exactly one native BASE transcript was not found locally.' }
+
+          $claim = [ordered]@{test_id=$env:TEST_ID; stage='RESUME'; status='CLAIMED'; call_ordinal=2; run_id="$env:GITHUB_RUN_ID"; base_run_id=$base.run_id; requested_session_id=$base.returned_session_id; identity_sha256=$env:IDENTITY_HASH; marker_sha256=$base.marker_sha256; transcript_present_before=$true; transcript_size_before=$transcript.Length; fork_session=$false; fallback='NONE'; claude_calls_claimed=2; business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'} | ConvertTo-Json -Compress
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/RESUME.claim.json"
+          $body = @{message="test-state: claim local RESUME 03 $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($claim)); branch=$env:STATE_REF} | ConvertTo-Json
+          $put = Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri
+          if ([string]::IsNullOrWhiteSpace($put.commit.sha)) { throw 'RESUME claim PUT returned no commit SHA.' }
+          $remote = Invoke-RestMethod -Headers $headers -Uri "${uri}?ref=$($put.commit.sha)"
+          $roundtrip = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($remote.content -replace '\s',''))) | ConvertFrom-Json
+          if ($roundtrip.requested_session_id -ne $base.returned_session_id -or $roundtrip.call_ordinal -ne 2) { throw 'RESUME claim readback by commit SHA failed.' }
+
+          "session_id=$($base.returned_session_id)" >> $env:GITHUB_OUTPUT
+          "marker_hash=$($base.marker_sha256)" >> $env:GITHUB_OUTPUT
+
+      - name: Run Claude Local RESUME — call 2/2
+        if: inputs.stage == 'RESUME' && steps.resume_claim.outcome == 'success'
+        id: resume
+        env:
+          REQUESTED_SESSION_ID: ${{ steps.resume_claim.outputs.session_id }}
+          CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
+          EXPECTED_MARKER_HASH: ${{ steps.resume_claim.outputs.marker_hash }}
+          LOCAL_STATE: ${{ steps.gate.outputs.local_state }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $prompt = 'Restitue uniquement le marqueur de continuité qui t’a été donné dans l’étape précédente de cette session. N’utilise aucun outil.'
+          $raw = (& $env:CLAUDE_PATH -p --resume $env:REQUESTED_SESSION_ID --output-format json $prompt 2>&1 | Out-String)
+          $exit = $LASTEXITCODE
+          [IO.File]::WriteAllText((Join-Path $env:LOCAL_STATE 'RESUME03.raw.recovery.txt'), $raw, (New-Object Text.UTF8Encoding($false)))
+          if ($exit -ne 0) { throw "Claude RESUME failed with exit code $exit; raw recovery retained locally." }
+          $parsed = $raw | ConvertFrom-Json
+          $returned = ([string]$parsed.result).Trim()
+          $sha256 = [Security.Cryptography.SHA256]::Create()
+          try { $returnedHashBytes = $sha256.ComputeHash([Text.Encoding]::UTF8.GetBytes($returned)) } finally { $sha256.Dispose() }
+          $returnedHash = ([BitConverter]::ToString($returnedHashBytes) -replace '-', '').ToLowerInvariant()
+
+          "session_id=$($parsed.session_id)" >> $env:GITHUB_OUTPUT
+          "marker_hash=$returnedHash" >> $env:GITHUB_OUTPUT
+          "marker_match=$($returnedHash -eq $env:EXPECTED_MARKER_HASH)" >> $env:GITHUB_OUTPUT
+          "session_match=$($parsed.session_id -eq $env:REQUESTED_SESSION_ID)" >> $env:GITHUB_OUTPUT
+          "duration_ms=$($parsed.duration_ms)" >> $env:GITHUB_OUTPUT
+          "num_turns=$($parsed.num_turns)" >> $env:GITHUB_OUTPUT
+          "total_cost_usd=$($parsed.total_cost_usd)" >> $env:GITHUB_OUTPUT
+
+      - name: Persist sanitized RESUME evidence and verdict
+        if: inputs.stage == 'RESUME' && steps.resume.outcome == 'success'
+        env:
+          REQUESTED_SESSION_ID: ${{ steps.resume_claim.outputs.session_id }}
+          RETURNED_SESSION_ID: ${{ steps.resume.outputs.session_id }}
+          EXPECTED_MARKER_HASH: ${{ steps.resume_claim.outputs.marker_hash }}
+          RETURNED_MARKER_HASH: ${{ steps.resume.outputs.marker_hash }}
+          MARKER_MATCH: ${{ steps.resume.outputs.marker_match }}
+          SESSION_MATCH: ${{ steps.resume.outputs.session_match }}
+          DURATION_MS: ${{ steps.resume.outputs.duration_ms }}
+          NUM_TURNS: ${{ steps.resume.outputs.num_turns }}
+          TOTAL_COST_USD: ${{ steps.resume.outputs.total_cost_usd }}
+          IDENTITY_HASH: ${{ steps.gate.outputs.identity_hash }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $demonstrated = ($env:MARKER_MATCH -eq 'True' -and $env:SESSION_MATCH -eq 'True')
+          $status = if ($demonstrated) { 'DEMONSTRATED' } else { 'NOT_DEMONSTRATED' }
+          $result = [ordered]@{test_id=$env:TEST_ID; stage='RESUME'; status='SUCCESS'; call_ordinal=2; run_id="$env:GITHUB_RUN_ID"; requested_session_id=$env:REQUESTED_SESSION_ID; returned_session_id=$env:RETURNED_SESSION_ID; session_id_match=($env:SESSION_MATCH -eq 'True'); expected_marker_sha256=$env:EXPECTED_MARKER_HASH; returned_marker_sha256=$env:RETURNED_MARKER_HASH; marker_match=($env:MARKER_MATCH -eq 'True'); identity_sha256=$env:IDENTITY_HASH; fork_session=$false; fallback='NONE'; duration_ms=$env:DURATION_MS; num_turns=$env:NUM_TURNS; total_cost_usd=$env:TOTAL_COST_USD; raw_output_persisted_to_github=$false; claude_calls_consumed=2; business_write=$false; implementation_authorized=$false; mode='LOCAL_READ_ONLY'; writer='NONE'} | ConvertTo-Json -Compress
+          $verdict = [ordered]@{test_id=$env:TEST_ID; verdict=$status; distinct_workflow_runs=$true; explicit_resume=$true; same_session_id=($env:SESSION_MATCH -eq 'True'); marker_restitution=($env:MARKER_MATCH -eq 'True'); fallback='NONE'; fork_session=$false; claude_calls_consumed=2} | ConvertTo-Json -Compress
+          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
+          foreach ($item in @(@('RESUME.result.json',$result),@('VERDICT.json',$verdict))) {
+            $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/contents/$env:STATE_ROOT/$($item[0])"
+            $body = @{message="test-state: persist local RESUME 03 evidence $env:GITHUB_RUN_ID"; content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($item[1])); branch=$env:STATE_REF} | ConvertTo-Json
+            $put = Invoke-RestMethod -Method Put -Headers $headers -ContentType 'application/json' -Body $body -Uri $uri
+            if ([string]::IsNullOrWhiteSpace($put.commit.sha)) { throw "Evidence PUT returned no commit SHA for $($item[0])." }
+          }
+          Write-Host "KODJO_LOCAL_SESSION_RESUME_03_VERDICT=$status"
+          if (-not $demonstrated) { throw 'Claude Local session continuity was not demonstrated.' }
