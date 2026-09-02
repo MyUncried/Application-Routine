@@ -1,14 +1,17 @@
 import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
 import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
+import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
+import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn("Impossible de conserver le splash natif affiché.", error);
@@ -48,9 +51,13 @@ export default function RootLayout() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
+    Inter_700Bold,
   });
   const [databaseReady, setDatabaseReady] = useState(false);
   const [rootError, setRootError] = useState<Error | null>(null);
+  const [minimumSplashElapsed, setMinimumSplashElapsed] = useState(false);
+  const [showAppSplash, setShowAppSplash] = useState(true);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
 
   // Références stables : un unique setState par callback, sans dépendance
   // recréée à chaque rendu. setDatabaseReady(true) est intrinsèquement
@@ -64,7 +71,18 @@ export default function RootLayout() {
   const databaseSettled = databaseReady || rootError !== null;
 
   useEffect(() => {
-    if (!fontsSettled || !databaseSettled) {
+    const timer = setTimeout(() => setMinimumSplashElapsed(true), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSplashLayout = useCallback(() => {
+    void SplashScreen.hideAsync().catch((error: unknown) => {
+      console.warn("Impossible de masquer le splash natif.", error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!minimumSplashElapsed || !fontsSettled || !databaseSettled) {
       return;
     }
 
@@ -72,21 +90,41 @@ export default function RootLayout() {
       console.error("Impossible de charger les polices Inter.", fontError);
     }
 
-    void SplashScreen.hideAsync().catch((error: unknown) => {
-      console.warn("Impossible de masquer le splash natif.", error);
+    const animation = Animated.timing(splashOpacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
     });
-  }, [fontsSettled, databaseSettled, fontError]);
+    animation.start(({ finished }) => {
+      if (finished) {
+        setShowAppSplash(false);
+      }
+    });
+
+    return () => animation.stop();
+  }, [minimumSplashElapsed, fontsSettled, databaseSettled, fontError, splashOpacity]);
 
   return (
     <RootErrorBoundary fallback={<RootErrorFallback />} onError={handleRootError}>
       <SessionServiceProvider onReady={handleDatabaseReady}>
-        {fontsSettled && databaseReady ? (
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(creation)" />
-          </Stack>
-        ) : null}
+        <View style={styles.root}>
+          {fontsSettled && databaseReady ? (
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(creation)" />
+            </Stack>
+          ) : null}
+          {showAppSplash ? (
+            <KodjoSplash style={{ opacity: splashOpacity }} onLayout={handleSplashLayout} />
+          ) : null}
+        </View>
       </SessionServiceProvider>
     </RootErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
