@@ -115,7 +115,7 @@ export default function RootLayout() {
             </Stack>
           ) : null}
           {showAppSplash ? (
-            <KodjoSplash style={{ opacity: splashOpacity }} onLayout={handleSplashLayout} />
+            <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}
         </View>
       </SessionServiceProvider>
