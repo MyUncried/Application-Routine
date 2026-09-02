@@ -59,7 +59,7 @@ describe("canonical T01 visual assets", () => {
       readFileSync(path.join(repositoryRoot, "app.json"), "utf8"),
     ) as {
       expo: {
-        plugins: Array<string | [string, Record<string, unknown>]>;
+        plugins: (string | [string, Record<string, unknown>])[];
       };
     };
     const splashPlugin = appConfig.expo.plugins.find(

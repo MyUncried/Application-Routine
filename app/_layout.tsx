@@ -5,13 +5,13 @@ import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
+import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
-import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn("Impossible de conserver le splash natif affiché.", error);
@@ -57,7 +57,7 @@ export default function RootLayout() {
   const [rootError, setRootError] = useState<Error | null>(null);
   const [minimumSplashElapsed, setMinimumSplashElapsed] = useState(false);
   const [showAppSplash, setShowAppSplash] = useState(true);
-  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const [splashOpacity] = useState(() => new Animated.Value(1));
 
   // Références stables : un unique setState par callback, sans dépendance
   // recréée à chaque rendu. setDatabaseReady(true) est intrinsèquement
