@@ -1,15 +1,15 @@
 import { Image } from "expo-image";
-import { Animated, type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 export type KodjoSplashProps = {
-  style?: StyleProp<ViewStyle>;
+  opacity: Animated.Value;
   onLayout: () => void;
 };
 
 /** Splash applicatif correspondant à la frame Figma 1992:469 (402 × 874). */
-export function KodjoSplash({ style, onLayout }: KodjoSplashProps) {
+export function KodjoSplash({ opacity, onLayout }: KodjoSplashProps) {
   return (
-    <Animated.View style={[styles.container, style]} onLayout={onLayout} testID="kodjo-splash">
+    <Animated.View style={[styles.container, { opacity }]} onLayout={onLayout} testID="kodjo-splash">
       <View style={styles.identityBlock}>
         <Image
           source={require("../../../assets/branding/logo_icon_only_transparent_1024.png")}
