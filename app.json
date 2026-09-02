@@ -8,7 +8,11 @@
     "scheme": "routine",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.ankusha.kodjo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,8 +33,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0001F1",
-          "image": "./assets/branding/sigil_white_1024.png",
-          "imageWidth": 76
+          "image": "./assets/branding/logo_icon_only_transparent_1024.png",
+          "imageWidth": 200
         }
       ],
       "expo-sqlite"

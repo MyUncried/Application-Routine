@@ -275,7 +275,7 @@ Les principaux écrans du MVP sont :
 - Synthèse de Séance ;
 - Suivi — Séances.
 
-Les maquettes Figma validées définissent la présentation de référence. Les règles fonctionnelles détaillées sont décrites dans `docs/Specifications-fonctionnelles`.
+Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et les contrats d’écran concernés. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
 ## 9. Contraintes techniques initiales
 
@@ -333,3 +333,5 @@ Toute évolution fonctionnelle doit préciser son impact sur :
 - API ou services ;
 - architecture technique ;
 - version du produit.
+
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.

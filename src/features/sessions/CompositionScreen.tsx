@@ -16,6 +16,7 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "color" | "countdown" | "finalPhase";
@@ -132,7 +133,8 @@ export function CompositionScreen() {
           accessibilityLabel={composition.addActivity}
           style={styles.addActivityAction}
         >
-          <Text style={styles.addActivityLabel}>+ {composition.addActivity}</Text>
+          <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
+          <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
         </Pressable>
       ) : (
         <Pressable
@@ -239,6 +241,9 @@ const styles = StyleSheet.create({
   },
   addActivityAction: {
     alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[6],
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[8],
     borderRadius: 20,

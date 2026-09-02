@@ -694,7 +694,7 @@ La stack retenue est **Jest + `jest-expo`** pour les tests unitaires, **React Na
 
 ## 12.26 Mise en page adaptative et bornes sûres
 
-Le gabarit Figma de référence mesure `402 × 874` pixels de maquette, interprétés comme des points logiques pour l’implémentation. Il ne constitue pas une taille fixe. Les composants utilisent la largeur disponible et sont contrôlés au minimum autour de `360`, `390`, `402` et `430–440` points logiques, sur iOS et Android en portrait.
+Le gabarit Figma de référence mesure `402 × 874` pixels de maquette, interprétés comme des points logiques pour l’implémentation. Il ne constitue pas une taille fixe. Les trois modes Figma de référence sont `Compact 360`, `Standard 402` et `Grand téléphone 440`. L’implémentation reste contrôlée à des largeurs intermédiaires, notamment `390` et `430`, sur iOS et Android en portrait.
 
 Les règles techniques suivantes rendent cette adaptation opératoire :
 
@@ -725,9 +725,99 @@ Ces exigences font l’objet de tests visuels et d’interaction sur les largeur
 
 La largeur minimale officiellement supportée par le MVP est `360`. Une largeur inférieure peut rester fonctionnelle, mais ne constitue pas un critère de recette avant décision explicite d’élargir la cible.
 
+### Architecture canonique de spécification UI
+
+La construction et la vérification d’un écran suivent obligatoirement la chaîne suivante :
+
+`Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`
+
+- Le **Screen Shell** définit la structure générale, les zones fixes et les slots disponibles.
+- Le **composant ou contrôle du Design System** définit les propriétés communes réutilisables : géométrie, style, états génériques, cible tactile et comportement d’interaction commun.
+- La **règle spécifique et le contrat d’écran** définissent le contenu, les valeurs, les états métier, les conditions d’affichage, la navigation et les résultats observables propres à l’écran.
+
+Une valeur contextuelle, un libellé métier ou une condition fonctionnelle ne devient pas une propriété générique du composant. Inversement, une règle commune portée par un Shell ou un composant n’est pas recopiée dans chaque contrat d’écran. Toute exception locale est explicitement identifiée et reliée à une évidence Figma ou à une décision fonctionnelle validée.
+
+### Screen Shells
+
+Les dimensions ci-dessous décrivent le gabarit Figma de référence. Les insets système réels remplacent les réserves de Safe Area lors de l’implémentation ; ils ne sont jamais déduits d’une coordonnée fixe du gabarit.
+
+#### `Shell / Screen` — `402 × 874`
+
+| Variante Figma | Header | Context | Body | Zone basse |
+| --- | ---: | ---: | ---: | ---: |
+| `Context=On, Bottom=Navigation` | `0–92` | `92–207` | `207–797` | Navigation `797–874` |
+| `Context=Off, Bottom=Navigation` | `0–92` | — | `92–797` | Navigation `797–874` |
+| `Context=On, Bottom=Action` | `0–92` | `92–207` | `207–790` | Action `790–874` |
+| `Context=Off, Bottom=Action` | `0–92` | — | `92–790` | Action `790–874` |
+
+#### `Shell / Modal Fullscreen` — `378 × 822`
+
+| Zone | Bornes Figma | Dimension |
+| --- | ---: | ---: |
+| Header | `0–60` | `60` |
+| Content | `60–752` | `692` |
+| Bottom Action | `752–822` | `70` |
+
+Le Bottom Action contient un bouton `354 × 48` placé à `x=12`, avec un espace inférieur de référence de `22`. La réaction du prototype et le libellé du bouton restent propres à chaque instance.
+
+#### `Shell / Execution` — `402 × 874`
+
+| Variante Figma | Header | Content | Footer |
+| --- | ---: | ---: | ---: |
+| `Mode=Run` | `0–92` | `92–782` | `782–874` |
+| `Mode=Summary` | `0–92` | `92–874` | — |
+
+La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle du 1er septembre 2026 établit que `73` utilisent au moins un Screen Shell ; le Splash `1992:469` est l’unique exception. Les neuf états de planification concernés utilisent également `Shell / Modal Fullscreen` à l’intérieur de leur écran de contexte.
+
+### Composants et contrôles réutilisables
+
+Les composants ci-dessous constituent le catalogue structurel actuellement vérifié dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+
+| Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
+| --- | --- | --- |
+| Navigation | `Navigation / Bottom — Source exact` | destination active : Sessions, Calendar, History, Profile ou Search |
+| En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
+| Retour | `Action / Back` | cible `48 × 48`, cercle `32 × 32`, chevron source Figma `24 × 24` |
+| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
+| Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
+| Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
+| Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
+| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed/Expanded` |
+| Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
+| Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
+| Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
+| Pickers | `Picker / Popover — Source exact` | `Type=Duration/Numeric menu/Date` |
+| Confirmation | `Overlay / Confirmation Sheet` | états visuels génériques ; texte et actions propres au contexte |
+| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` |
+| Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
+| Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
+| Composition | `Composition / Activity Row` | contenu d’instance ; position avant/dans/après Tour hors état du composant |
+| Composition | `Composition / Tour Section — Source exact` | section Tour et répétition contextuelle |
+| Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
+| Activité | `Activity / Parameter Row — Source exact` | `Mode=Duration/Repetitions/Recovery` |
+| Répétition | `Controls / Repetition Pull-down — Source exact` | contrôle générique ; bornes et valeur dans le contrat d’écran |
+| Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
+
+Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+
+### Règles de réutilisation et de contrôle
+
+1. Réutiliser une instance du composant existant lorsqu’il couvre le besoin ; ne pas recréer localement une copie visuelle.
+2. Utiliser les propriétés de variante uniquement pour des états génériques et réutilisables.
+3. Conserver les libellés, valeurs, bornes, règles de validation et destinations dans le contrat d’écran lorsqu’ils dépendent du contexte.
+4. Ne pas détacher une instance pour contourner une propriété manquante sans identifier d’abord si le besoin relève du composant ou d’une exception locale.
+5. Toute modification d’un composant partagé impose un contrôle de ses instances et des contrats qui le référencent.
+6. Toute différence locale doit être qualifiée : contenu d’instance, état métier, exception visuelle validée ou non-conformité.
+7. Les réactions du prototype restent locales lorsqu’elles dépendent du parcours ; le composant générique ne porte pas une destination métier arbitraire.
+8. L’absence de liaison d’une propriété à une variable Figma ne permet pas d’inventer une nouvelle valeur : le token canonique et l’intention du composant restent la référence.
+
 ### Design tokens canoniques
 
-Le Figma contient désormais les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`, ainsi que les Text Styles `KODJO` correspondant à la hiérarchie typographique ci-dessous. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente les modes `Compact 360`, `Standard 402` et `Grand téléphone 440` pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail. Le `Prototype MVP` n’est pas encore intégralement relié à toutes les variables, mais la couleur des sélections actives, les niveaux typographiques, les espacements, les rayons, les cibles tactiles et les icônes audités y ont été corrigés. Les autres valeurs historiques répétées dans ses frames sont normalisées vers les tokens ci-dessous lors du développement. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 1er septembre 2026, elles contiennent respectivement `58`, `60` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+
+Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+
+Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La table de correspondance doit rester bijective ; deux tokens de code ne peuvent pas représenter silencieusement une même variable Figma.
 
 #### Couleurs
 
@@ -758,6 +848,8 @@ L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de t
 #### Typographie
 
 La famille du MVP est `Inter`. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
+
+Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Screen title`, `Modal title`, `Section title`, `Body`, `Label`, `Button`, `Supporting` et `Navigation label`. Ils ne couvrent pas encore à eux seuls toute la gamme fonctionnelle ci-dessous et ne sont pas appliqués aux 2 614 nœuds texte de `Prototype MVP`. La gamme suivante constitue donc le contrat typographique canonique d’implémentation et de rationalisation ; elle ne doit pas être présentée comme une liaison Figma déjà exhaustive.
 
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
@@ -867,8 +959,11 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
 | Minimum natif Android | `48 × 48 dp` |
 | En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
-| Action finale | Bouton de `48` dans un conteneur intégrant marges, espacement supérieur et inset inférieur |
-| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée au-dessus de l’inset inférieur |
+| Région d’en-tête du gabarit | `92` ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
+| Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
+| Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
+| Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
+| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
@@ -1040,7 +1135,7 @@ Principes :
 
 ## 12.31 Architecture UI, accessibilité et responsive
 
-Le MVP utilise un seul layout de référence, issu des écrans Figma validés.
+Le MVP utilise un seul système UI de référence, issu des écrans Figma validés et décliné par les Screen Shells documentés au §12.26. Les Shells sont des variantes structurelles de ce système commun, et non des Design Systems concurrents.
 
 L’architecture UI sépare :
 - la logique fonctionnelle ;

@@ -7,6 +7,7 @@ import {
   formatTourCount,
 } from "@/features/sessions/formatSessionSummary";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 export type SessionCardProps = {
@@ -54,7 +55,7 @@ export function SessionCard({ session }: SessionCardProps) {
           accessibilityLabel={strings.screens.sessions.card.expandAccessibilityLabel}
           style={styles.chevronButton}
         >
-          <Text style={styles.chevronIcon}>⌄</Text>
+          <KodjoIcon name="control-chevron-down" opacity={0.45} testID="session-card-chevron" />
         </Pressable>
         <Pressable
           disabled
@@ -63,7 +64,7 @@ export function SessionCard({ session }: SessionCardProps) {
           accessibilityLabel={strings.screens.sessions.card.startAccessibilityLabel}
           style={styles.startButton}
         >
-          <Text style={styles.startIcon}>▶</Text>
+          <KodjoIcon name="action-start" opacity={0.55} testID="session-card-start" />
         </Pressable>
       </View>
     </View>
@@ -113,20 +114,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: fixedRadii[8],
   },
-  chevronIcon: {
-    ...type.body,
-    color: colors.disabled,
-  },
   startButton: {
     minWidth: minTouchTarget,
     minHeight: minTouchTarget,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: minTouchTarget / 2,
-    backgroundColor: colors.disabled,
-  },
-  startIcon: {
-    ...type.body,
-    color: colors.background,
   },
 });

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "scope": "T01",
+  "figmaFileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "figmaPage": "Design system — Fondations",
+  "rules": {
+    "svg": "Canonical vector master exported with Figma SVG_STRING",
+    "raster": "PNG runtime variants generated from the SVG master at 1x, 2x and 3x",
+    "substitution": "Typography characters and approximate icons are forbidden",
+    "systemStatusBar": "Rendered by iOS or Android; not bundled as application assets"
+  },
+  "assets": [
+    {"key":"action.add","file":"action-add","figmaNodeId":"2884:4442","width":24,"height":24,"usage":["Catalogue","Composition"]},
+    {"key":"action.start","file":"action-start","figmaNodeId":"2884:4450","width":28,"height":28,"usage":["Catalogue"]},
+    {"key":"control.back","file":"control-back","figmaNodeId":"2884:4426","width":24,"height":24,"usage":["Création de séance","Création d’activité"]},
+    {"key":"control.chevronDown","file":"control-chevron-down","figmaNodeId":"2884:4419","width":24,"height":24,"usage":["Catalogue","Sélecteurs"]},
+    {"key":"control.chevronUp","file":"control-chevron-up","figmaNodeId":"2884:4417","width":24,"height":24,"usage":["Sélecteurs"]},
+    {"key":"navigation.sessions.active","file":"navigation-sessions","figmaNodeId":"2537:95","width":30,"height":20,"usage":["Navigation T01"]},
+    {"key":"navigation.sessions.inactive","file":"navigation-sessions-inactive","figmaNodeId":"2537:127","width":30,"height":20,"usage":["Navigation T01"]},
+    {"key":"navigation.calendar.inactive","file":"navigation-calendar","figmaNodeId":"2537:103","width":26,"height":26,"usage":["Navigation T01"]},
+    {"key":"navigation.calendar.active","file":"navigation-calendar-active","figmaNodeId":"2537:135","width":26,"height":26,"usage":["Navigation T01"]},
+    {"key":"navigation.history.inactive","file":"navigation-history","figmaNodeId":"2537:109","width":26,"height":21,"usage":["Navigation T01"]},
+    {"key":"navigation.history.active","file":"navigation-history-active","figmaNodeId":"2537:173","width":26,"height":21,"usage":["Navigation T01"]},
+    {"key":"navigation.profile.inactive","file":"navigation-profile","figmaNodeId":"2537:114","width":26,"height":29,"usage":["Navigation T01"]},
+    {"key":"navigation.profile.active","file":"navigation-profile-active","figmaNodeId":"2537:209","width":26,"height":29,"usage":["Navigation T01"]},
+    {"key":"navigation.search","file":"navigation-search","figmaNodeId":"2537:92","width":26,"height":26,"usage":["Navigation T01"]},
+    {"key":"composition.initialCountdown","file":"composition-initial-countdown","figmaNodeId":"2537:1461","width":24,"height":24,"usage":["Composition"]},
+    {"key":"composition.mainContent","file":"composition-main-content","figmaNodeId":"2537:1427","width":18,"height":18,"usage":["Composition"]},
+    {"key":"composition.endSession","file":"composition-end-session","figmaNodeId":"2537:1471","width":24,"height":24,"usage":["Composition"]},
+    {"key":"composition.reorder","file":"composition-reorder","figmaNodeId":"2537:1456","width":16,"height":16,"usage":["Composition"]},
+    {"key":"state.selected","file":"state-selected","figmaNodeId":"2537:1509","width":24,"height":24,"usage":["Sélecteur de couleur"]}
+  ],
+  "branding": {
+    "splashLogo": {
+      "file": "assets/branding/logo_icon_only_transparent_1024.png",
+      "sourcePixels": 1024,
+      "referenceDisplayPoints": 200,
+      "minimumPixelsAt3x": 600,
+      "status": "PASS"
+    }
+  }
+}

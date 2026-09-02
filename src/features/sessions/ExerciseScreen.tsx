@@ -32,6 +32,7 @@ import {
   WHEEL_PAUSE_SECONDS_MAX,
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "duration" | "repetitionCount" | "pauseSeconds" | "seriesCount";
@@ -183,7 +184,7 @@ export function ExerciseScreen() {
           hitSlop={spacing[8]}
           style={styles.backButton}
         >
-          <Text style={styles.backIcon}>‹</Text>
+          <KodjoIcon name="control-back" testID="exercise-back-icon" />
         </Pressable>
         <Text style={styles.title}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
       </View>
