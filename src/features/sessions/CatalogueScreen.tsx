@@ -6,6 +6,7 @@ import type { SessionSummary } from "@/domain/sessions/Session";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -106,7 +107,8 @@ function CreateAction({ onPress }: { onPress: () => void }) {
       accessibilityLabel={strings.screens.sessions.createAction}
       style={styles.createAction}
     >
-      <Text style={styles.createActionLabel}>+ {strings.screens.sessions.createAction}</Text>
+      <KodjoIcon name="action-add" testID="catalogue-create-icon" />
+      <Text style={styles.createActionLabel}>{strings.screens.sessions.createAction}</Text>
     </Pressable>
   );
 }
@@ -196,6 +198,9 @@ const styles = StyleSheet.create({
   },
   createAction: {
     alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[6],
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[8],
     borderRadius: 20,
