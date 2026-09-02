@@ -37,7 +37,7 @@ jobs:
           if ($expiresAt -le $nowMs) { throw 'Access token is expired; refusing model call.' }
 
           $prompt = 'Authentication smoke test only. Do not use tools. Reply with exactly AUTH_SMOKE_OK and nothing else.'
-          $output = (& $claude.Source -p $prompt --tools '' 2>&1 | Out-String).Trim()
+          $output = (& $claude.Source -p $prompt --allowedTools '' 2>&1 | Out-String).Trim()
           $exitCode = $LASTEXITCODE
 
           Write-Host "ClaudeExitCode=$exitCode"
