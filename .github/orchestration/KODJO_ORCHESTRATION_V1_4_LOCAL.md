@@ -252,3 +252,64 @@ Avant de reprendre T01-S09 ou une autre tranche métier avec V1.4 LOCAL :
 6. seulement ensuite reprendre la machine métier au dernier état stable démontré.
 
 Aucune réussite du micro-test de session n’autorise à elle seule une écriture métier.
+
+## 14. Livraison des rapports
+
+Cette section est normative et permanente. Elle s’applique à toute mission d’orchestration confiée à Claude sous V1.4 LOCAL.
+
+### 14.1 Double livraison obligatoire
+
+À la fin de chaque audit, revue, correction ou tranche de développement, Claude doit :
+
+1. afficher le rapport final complet dans la conversation ;
+2. enregistrer exactement le même contenu, sans résumé ni information retranchée, dans un fichier Markdown encodé en UTF-8.
+
+Le contenu affiché à l’écran et le contenu du fichier Markdown doivent être identiques.
+
+### 14.2 Répertoire et nommage canoniques
+
+- Répertoire canonique unique : `.github/orchestration/reports/`
+- Convention de nommage : `<PERIMETRE>_<TYPE>_YYYYMMDD.md`
+
+Si le répertoire `.github/orchestration/reports/` n’existe pas, il est créé uniquement au moment de l’enregistrement du rapport concerné.
+
+Aucun autre fichier de compte rendu ne doit être créé, sous quelque forme ou quelque emplacement que ce soit.
+
+### 14.3 Contenu minimal du rapport
+
+Le rapport doit au minimum indiquer :
+
+- l’identifiant et l’objectif de la mission ;
+- la branche Git ;
+- le commit HEAD de référence ;
+- les documents consultés ;
+- les fichiers examinés ou modifiés ;
+- les commandes et tests exécutés ;
+- leurs résultats ;
+- les constats, écarts, risques et limites ;
+- le verdict ;
+- les prochaines actions proposées.
+
+### 14.4 Mission en lecture seule
+
+Lorsqu’une mission est explicitement déclarée « en lecture seule », la création du seul fichier de rapport dans `.github/orchestration/reports/` constitue une exception d’écriture autorisée.
+
+Cette exception n’autorise aucune modification du code, de la configuration, des tests ou de la documentation produit.
+
+### 14.5 Commit et poussée
+
+Aucun rapport ne doit être commité ou poussé sans autorisation explicite.
+
+### 14.6 Clôture de mission
+
+En fin de mission, Claude doit afficher :
+
+- le chemin du rapport ;
+- le résultat de `git status --short` ;
+- le commit HEAD courant.
+
+Si la création du fichier échoue, Claude doit le signaler explicitement et conserver le rapport complet à l’écran.
+
+### 14.7 Valeur du rapport
+
+Un rapport ne constitue pas à lui seul une validation : son verdict reste soumis à la revue indépendante et aux barrières prévues par le protocole.
