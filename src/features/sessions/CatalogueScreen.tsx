@@ -19,6 +19,20 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
  * affiché dans les quatre états ; seul le corps central varie. Confirmé par
  * `catalogue-vide.png`, qui montre ce cadre conservé même à vide (voir le
  * plan d'implémentation).
+ *
+ * Correction LAY-01 (Phase 1, `2026-09-03_P0-plan-correction-layout-controls.md`,
+ * `[ChatGPT] PLAN_APPROVED — PHASE 1 ONLY — CATALOGUE VIDE`) : l'écran est
+ * désormais recomposé selon `Shell / Screen — Context=On, Bottom=Navigation`
+ * (doc12 §12.26) — Header fixe (titre) → séparateur → bande Context (bleu
+ * très pâle, `colors.selectionSurface`, seul token pâle déjà existant dans
+ * ce code) contenant le sélecteur de filtres et `+ Créer` → corps. La
+ * hauteur du Header utilise `dimensions.header.contentHeight` (déjà défini,
+ * jamais utilisé jusqu'ici) plutôt qu'une valeur locale improvisée ; les
+ * insets système réels remplacent la réserve `0–92` du gabarit Figma, comme
+ * l'exige doc12 §12.26 (« les insets système réels remplacent les réserves
+ * de Safe Area lors de l'implémentation »). Aucune logique de données
+ * modifiée — uniquement la structure visuelle et le regroupement des
+ * éléments déjà existants.
  */
 export function CatalogueScreen() {
   const router = useRouter();
@@ -35,13 +49,25 @@ export function CatalogueScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing[16] }]}>
-      <Text style={styles.title} accessibilityRole="header">
-        {strings.screens.sessions.title}
-      </Text>
+    <View style={styles.container}>
+      <View
+        testID="catalogue-header"
+        style={[
+          styles.header,
+          { paddingTop: insets.top, height: insets.top + dimensions.header.contentHeight },
+        ]}
+      >
+        <Text style={styles.title} accessibilityRole="header">
+          {strings.screens.sessions.title}
+        </Text>
+      </View>
 
-      <FilterSelector />
-      <CreateAction onPress={() => router.push("/composition")} />
+      <View testID="catalogue-header-separator" style={styles.headerSeparator} />
+
+      <View testID="catalogue-context-band" style={styles.contextBand}>
+        <FilterSelector />
+        <CreateAction onPress={() => router.push("/composition")} />
+      </View>
 
       <View style={styles.body}>
         {state.status === "loading" ? <LoadingBody /> : null}
@@ -184,12 +210,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  header: {
+    justifyContent: "center",
     paddingHorizontal: spacing[24],
-    gap: spacing[16],
   },
   title: {
     ...type.screenTitle,
     color: colors.textPrimary,
+  },
+  headerSeparator: {
+    height: 1,
+    backgroundColor: colors.divider,
+  },
+  contextBand: {
+    backgroundColor: colors.selectionSurface,
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[16],
+    gap: spacing[16],
   },
   filterRow: {
     flexDirection: "row",
@@ -233,13 +271,14 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+    paddingHorizontal: spacing[24],
+    paddingTop: spacing[16],
   },
   centeredBody: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: spacing[16],
-    paddingHorizontal: spacing[24],
   },
   emptyMessage: {
     ...type.body,

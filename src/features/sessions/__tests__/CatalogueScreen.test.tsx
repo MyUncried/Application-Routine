@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
@@ -8,6 +8,7 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import type { SessionService } from "@/features/sessions/SessionService";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 /**
  * Seul `expo-router` est mocké (frontière de navigation). Le hook réel
@@ -120,6 +121,36 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+  });
+
+  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the filters and Créer (LAY-01, Phase 1)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const header = screen.getByTestId("catalogue-header");
+    expect(within(header).getByText(strings.screens.sessions.title)).toBeTruthy();
+
+    // Séparateur : présent, distinct du fond général (container est
+    // `colors.background`, blanc — le séparateur ne doit jamais l'être).
+    const separator = screen.getByTestId("catalogue-header-separator");
+    expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
+
+    // Bande Context : fond distinct du fond général, contient le sélecteur
+    // de filtres ET l'action Créer (pas seulement l'un des deux).
+    const contextBand = screen.getByTestId("catalogue-context-band");
+    expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
+    expect(within(contextBand).getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
+    expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+
+    // Le titre du Header n'est jamais dupliqué dans la bande Context.
+    expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
   it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {
