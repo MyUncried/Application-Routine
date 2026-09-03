@@ -1,27 +1,34 @@
 # KODJO — Orchestration V1.4 — LOCAL
 
-Statut : **protocole candidat consolidé après preuve de continuité Claude Local**.
+Statut : **protocole candidat consolidé — option 3 : Claude Code local avec réveil manuel minimal**.
 
-Ce document consolide le chemin nominal local à partir des barrières V1.3 qui restent applicables et des preuves techniques obtenues le 2 septembre 2026. Il ne modifie aucune règle métier de KODJO et n’autorise aucune reprise de T01-S09 à lui seul.
+Ce document consolide le chemin nominal local à partir des barrières V1.3, des preuves techniques obtenues le 2 septembre 2026 et de la décision d’exploitation du 3 septembre 2026. Il ne modifie aucune règle métier de KODJO.
 
 ## 1. Décision d’architecture
 
-Le chemin nominal est exclusivement :
+Le chemin nominal est :
 
-`ChatGPT / Work → GitHub → GitHub Actions → runner Windows self-hosted → Claude Code local → GitHub → ChatGPT / Work`
+`ChatGPT / Work → GitHub → utilisateur (réveil minimal) → Claude Code local → GitHub → ChatGPT / Work`
 
 Claude Code local est l’unique écrivain de code dans le chemin nominal.
+
+Le réveil de Claude Code local est **manuel et minimal**. L’utilisateur ne recopie ni mission, ni plan, ni contexte : GitHub porte le checkpoint durable nécessaire à la reprise.
+
+Instruction canonique de reprise :
+
+`Reprends le protocole KODJO depuis le dernier checkpoint GitHub.`
 
 Sont exclus du chemin nominal :
 
 - Claude Cloud comme exécuteur ;
 - fallback Cloud ↔ Local ;
+- déclenchement automatique de Claude Code par GitHub Actions/self-hosted runner ;
 - SessionStore externe ;
 - AWS / S3 / Redis / PostgreSQL pour la continuité Claude ;
 - Managed Agents ;
-- reconstruction du contexte Claude comme substitut nominal à une session locale réutilisable.
+- reconstruction manuelle de la mission par l’utilisateur.
 
-Si le PC ou le runner local est indisponible, l’orchestration attend ou échoue techniquement. Elle ne bascule jamais silencieusement vers Claude Cloud.
+Le runner Windows self-hosted déjà installé et les micro-tests associés restent des preuves techniques historiques et peuvent rester présents. Ils ne constituent plus le moteur nominal du développement et ne doivent pas déclencher automatiquement Claude sans nouvelle décision explicite.
 
 ## 2. Preuve technique acquise
 
@@ -42,75 +49,45 @@ Résultats vérifiés :
 - RESUME exécuté explicitement avec `--resume` et l’identifiant de session BASE ;
 - identifiant de session retourné identique ;
 - restitution correcte d’un marqueur aléatoire mémorisé en BASE ;
-- seul le SHA-256 du marqueur a été persisté dans GitHub ;
 - aucune réinjection du marqueur dans le prompt RESUME ;
-- aucun `--fork-session` ;
+- aucun fork ;
 - aucun fallback ;
 - verdict final : `DEMONSTRATED` ;
 - compteur définitif : 2/2 appels Claude.
 
-Cette preuve démontre la continuité Claude Code locale dans la configuration testée. Elle ne transforme pas une session Claude en source de vérité : GitHub, la documentation, Figma et le registre des décisions conservent leurs rôles V1.3.
+Cette preuve établit une capacité locale. L’option 3 n’exige pas que GitHub Actions l’utilise comme mécanisme de réveil automatique.
 
-## 3. Configuration locale de référence démontrée
+## 3. Configuration locale de référence
 
-Runner :
+Claude Code local reste l’exécuteur de développement. La configuration démontrée comprend Claude Code `2.1.257` sous le compte Windows `hadjo` et une authentification `claude.ai` / `firstParty` / abonnement `pro`.
 
-- machine : `RMAN` ;
-- runner : `KODJO-LOCAL-RUNNER` ;
-- GitHub Actions runner : `2.336.0` ;
-- labels : `self-hosted`, `Windows`, `X64`, `kodjo-claude-local` ;
-- installation : `C:\actions-runner` ;
-- service Windows : `actions.runner.MyUncried-Application-Routine.KODJO-LOCAL-RUNNER` ;
-- compte du service : `.\hadjo` ;
-- profil : `C:\Users\hadjo`.
+Le runner `KODJO-LOCAL-RUNNER` (GitHub Actions runner `2.336.0`, labels `self-hosted`, `Windows`, `X64`, `kodjo-claude-local`) est conservé comme infrastructure technique déjà validée, mais il est **hors chemin nominal de réveil Claude** sous l’option 3.
 
-Claude Code :
-
-- version démontrée : `2.1.257` ;
-- exécutable : `C:\Users\hadjo\AppData\Roaming\npm\claude.cmd` ;
-- authentification : `claude.ai`, `firstParty`, abonnement `pro` ;
-- `CLAUDE_CONFIG_DIR=C:\kodjo-local-test\claude-config` pour les micro-tests ;
-- shell GitHub Actions validé : Windows PowerShell 5.1 (`powershell`) ;
-- invocation Windows : `claude.cmd`.
-
-Variables de dépôt utilisées pour la configuration locale :
-
-- `KODJO_LOCAL_RUNNER_NAME=KODJO-LOCAL-RUNNER` ;
-- `KODJO_LOCAL_TEST_ROOT=C:\kodjo-local-test` ;
-- `KODJO_LOCAL_CLAUDE_CONFIG_DIR=C:\kodjo-local-test\claude-config`.
-
-La variable d’armement des micro-tests n’est pas une exigence fonctionnelle du protocole nominal ; elle appartient aux barrières de lancement des tests techniques.
+Aucune nouvelle licence, API Anthropic ou automatisation du runner n’est requise par l’option 3.
 
 ## 4. Authentification locale
 
-Le préflight doit contrôler l’authentification avant tout appel modèle lorsqu’il peut le faire sans appel modèle.
+Claude Code doit être authentifié dans l’environnement local utilisé par l’utilisateur. Une perte d’authentification relève de `ORCHESTRATION_FAILURE`, jamais d’un arbitrage produit.
 
-L’expérience du micro-test a établi qu’un `claude.cmd auth status` positif ne suffit pas à prouver qu’un appel modèle réussira : un access token expiré a coexisté avec `loggedIn=true`. Le chemin local doit donc refuser l’appel lorsque l’expiration du credential local est détectable et dépassée.
+Les contrôles détaillés d’expiration OAuth démontrés avec le runner restent une référence diagnostique ; ils ne créent pas une obligation d’exécuter Claude via GitHub Actions.
 
-Une réauthentification explicite de la configuration isolée a ensuite produit un access token valide dans le contexte du service runner, puis un appel Claude réel depuis ce runner a réussi.
+## 5. Continuité de reprise nominale
 
-L’authentification est une précondition technique. Son échec relève de `ORCHESTRATION_FAILURE`, jamais d’un arbitrage produit.
+GitHub est le mécanisme durable de reprise entre acteurs.
 
-## 5. Continuité de session nominale
+Lorsque Claude doit reprendre, l’utilisateur saisit uniquement :
 
-Pour un bloc de travail compatible avec la continuité locale, l’orchestration conserve l’identifiant de session Claude retourné par le premier appel valide et le réutilise lors des appels suivants avec :
+`Reprends le protocole KODJO depuis le dernier checkpoint GitHub.`
 
-`claude.cmd -p --resume <session_id> ...`
+Claude doit alors, avant toute écriture :
 
-La continuité exige au minimum :
+1. lire le dernier checkpoint durable applicable ;
+2. vérifier branche, HEAD, mode, écrivain, périmètre et autorisation ;
+3. lire uniquement les sources fraîches et deltas nécessaires ;
+4. reprendre au dernier état stable autorisé ;
+5. refuser l’écriture si le checkpoint ne permet pas de déterminer la reprise sans ambiguïté.
 
-- même machine locale ;
-- même identité Windows du runner ;
-- même `CLAUDE_CONFIG_DIR` ;
-- même contexte de projet attendu ;
-- transcript natif correspondant présent ;
-- identifiant de session demandé explicitement ;
-- absence de `--fork-session` ;
-- absence de fallback Cloud.
-
-`CLAUDE_CODE_PROJECT_DIR_NAME` peut être fixé par l’orchestration lorsqu’un nom stable est nécessaire pour garantir la localisation déterministe des transcripts entre runs.
-
-Une session reprise accélère la continuité cognitive de Claude mais ne dispense jamais de vérifier les préconditions Git, la fraîcheur des sources, le mode, l’écrivain, le périmètre et les autorisations applicables.
+La session native Claude locale peut être réutilisée lorsqu’elle est disponible, mais elle n’est pas la source de vérité et sa reprise automatique n’est pas une exigence de l’option 3.
 
 ## 6. État durable et reprise
 
@@ -123,70 +100,70 @@ Une transition importante doit pouvoir être reconstruite sans dépendre de la m
 - branche et HEAD ;
 - mode et écrivain ;
 - autorisation d’écriture ;
-- session Claude locale réutilisable lorsqu’elle a été établie ;
 - dernier état stable ;
 - décision ou arbitrage actif ;
 - résultat de test/revue ;
-- acteur ou événement attendu pour la suite.
+- acteur attendu pour la suite ;
+- lorsque pertinent, identifiant de session Claude locale disponible.
 
-Les preuves de transport, claims et résultats sont publiés avant d’être utilisés comme base d’une transition suivante lorsque cette publication fait partie de la sécurité de la transition.
-
-Un défaut de publication après un résultat IA valide ne justifie pas automatiquement un nouvel appel IA. L’orchestration récupère et republie le résultat existant lorsqu’une récupération forensique fiable est possible.
+Avant toute demande de réveil manuel de Claude, le checkpoint doit déjà contenir les informations nécessaires à la reprise. L’utilisateur n’est jamais utilisé comme transport manuel du contexte.
 
 ## 7. Machine à états locale simplifiée
 
-Le cycle d’exécution local peut être représenté par :
+Le cycle nominal peut être représenté par :
 
-`READY → LOCAL_CLAUDE_RUNNING → VERIFY → PASS → COMMIT/PUSH → CHATGPT_WORK_CONTROL → DONE`
+`READY → MANUAL_CLAUDE_WAKE → LOCAL_CLAUDE_RUNNING → VERIFY → PASS → COMMIT/PUSH → CHATGPT_WORK_CONTROL → DONE`
 
 Boucles et barrières :
 
-- `LOCAL_CLAUDE_RUNNING → ARBITRAGE → CHATGPT/USER → LOCAL_CLAUDE_RESUME` ;
-- `LOCAL_CLAUDE_RUNNING → ORCHESTRATION_FAILURE → AUTO_RECOVERY → LOCAL_CLAUDE_RESUME` lorsque la reprise est sûre ;
-- `VERIFY → FAIL → LOCAL_CLAUDE_RESUME → VERIFY` ;
+- `LOCAL_CLAUDE_RUNNING → ARBITRAGE → CHATGPT/USER → checkpoint → MANUAL_CLAUDE_WAKE` ;
+- `LOCAL_CLAUDE_RUNNING → ORCHESTRATION_FAILURE → AUTO_RECOVERY` lorsque la reprise est sûre, sinon checkpoint → `MANUAL_CLAUDE_WAKE` ;
+- `VERIFY → FAIL → checkpoint → MANUAL_CLAUDE_WAKE → VERIFY` ;
 - toute divergence substantielle de périmètre ou invalidation de l’autorisation revient à la barrière appropriée avant écriture.
 
-`ARBITRAGE` et `ORCHESTRATION_FAILURE` conservent exactement leur sens normatif V1.3. `LOCAL_CLAUDE_RUNNING`, `LOCAL_CLAUDE_RESUME`, `VERIFY`, `PASS`, `COMMIT/PUSH`, `CHATGPT_WORK_CONTROL` et `DONE` sont une vue opérationnelle locale du chemin nominal ; ils ne remplacent ni ne renomment les états normatifs V1.3 lorsqu’un état V1.3 s’applique.
-
-Cette vue simplifiée ne supprime pas les barrières V1.3 de plan, autorisation, contexte Git, source de vérité, revue indépendante ou sécurité. Elle réduit les appels et transitions artificiellement séparés lorsqu’une même session Claude locale peut poursuivre le travail.
+`MANUAL_CLAUDE_WAKE` est un transport humain minimal, pas un état métier ni une décision. `ARBITRAGE` et `ORCHESTRATION_FAILURE` conservent leur sens normatif V1.3.
 
 ## 8. Rôles
 
 ### ChatGPT / Work
 
 - prépare et contrôle le périmètre ;
-- vérifie les sources de vérité et les décisions applicables ;
-- contrôle indépendamment le plan avant implémentation ;
-- arbitre la reprise après une barrière ;
-- réalise la contre-vérification indépendante du développement et des tests ;
+- vérifie les sources de vérité et décisions applicables ;
+- contrôle indépendamment le plan ;
+- publie/contrôle le checkpoint de reprise ;
+- arbitre après une barrière ;
+- réalise la contre-vérification indépendante ;
 - autorise la clôture selon les preuves.
 
 ### GitHub / GitHub Actions
 
 - porte l’état durable et la traçabilité ;
-- vérifie les préconditions déterministes ;
-- déclenche le runner local ;
-- conserve les identifiants de session, checkpoints, résultats et décisions nécessaires sans publier de secrets ;
-- transporte les signaux de reprise ;
-- distingue défaut d’orchestration, défaut IA et défaut métier.
+- vérifie les préconditions déterministes automatisables ;
+- transporte les signaux vers Work lorsqu’un transport a été démontré/configuré ;
+- conserve checkpoints, résultats et décisions sans publier de secrets ;
+- ne déclenche pas Claude Code local dans le chemin nominal option 3.
 
 ### Claude Code local
 
+- démarre/reprend après l’instruction canonique de l’utilisateur ;
+- reconstruit sa mission depuis GitHub ;
 - analyse les sources et le delta ciblés ;
-- propose/révise le plan ;
 - écrit uniquement lorsqu’il est autorisé ;
-- implémente, teste, corrige et self-check dans la même session lorsque la continuité est compatible ;
+- implémente, teste, corrige et self-check ;
+- publie le résultat/checkpoint requis ;
 - ne décide pas à la place de l’utilisateur d’un arbitrage produit/UX/périmètre.
 
 ### Utilisateur
 
-Intervention nominalement réservée à :
+Interventions nominales :
 
-1. décision métier/fonctionnelle réellement non déterminable par les sources ;
-2. décision produit, périmètre ou UX réellement non arbitrée ;
-3. barrière de sécurité pour une action difficilement réversible ou à impact externe significatif.
+1. réveil minimal de Claude Code local avec l’instruction canonique ;
+2. décision métier/fonctionnelle réellement non déterminable par les sources ;
+3. décision produit, périmètre ou UX réellement non arbitrée ;
+4. barrière de sécurité pour une action difficilement réversible ou à impact externe significatif ;
+5. validations physiques nécessaires, notamment sur iPhone.
 
-Les erreurs techniques, problèmes de transport, échecs de compilation/test, choix d’implémentation réversibles et reprises techniques ne sont pas transformés artificiellement en demandes utilisateur.
+L’utilisateur ne recopie jamais le plan, la mission, les erreurs techniques ou le contexte GitHub.
 
 ## 9. Barrières V1.3 conservées
 
@@ -198,60 +175,53 @@ V1.4 LOCAL conserve notamment :
 - `PLAN_APPROVED` avant écriture d’une nouvelle tranche ;
 - contexte Git/branche/HEAD contrôlé ;
 - écrivain unique ;
-- fraîcheur documentaire/décisionnelle comme précondition critique lorsqu’elle est pertinente ;
+- fraîcheur documentaire/décisionnelle ;
 - arbitrage durable A/B/C + `OTHER` ;
 - une question pendant un arbitrage n’est pas une décision ;
-- reprise après arbitrage via ChatGPT avant nouvelle écriture ;
 - `ORCHESTRATION_FAILURE` séparé des décisions produit ;
 - récupération de publication sans rappel IA lorsqu’un résultat valide existe ;
 - revue indépendante ChatGPT ;
 - preuve avant verdict de conformité ;
-- mesure des performances et coûts observables sans assimiler un coût non vérifiable à zéro ;
+- métriques observables sans assimiler un coût non vérifiable à zéro ;
 - réveil Work uniquement par un transport réellement démontré/configuré.
 
-## 10. Ce qui change par rapport au chemin nominal V1.3
+## 10. Ce qui change par rapport à V1.3 et au premier candidat V1.4
 
 1. Claude Cloud n’est plus un exécuteur nominal.
-2. La continuité Claude locale est une capacité **démontrée**, et non une hypothèse.
-3. La session native locale devient le mécanisme nominal de continuité Claude lorsque ses préconditions sont satisfaites.
-4. Checkpoint + delta restent des mécanismes de traçabilité/reconstruction et de reprise de l’orchestrateur, mais ne servent plus de substitut nominal à la mémoire Claude tant que la session locale valide est disponible.
-5. Les multiples appels Claude artificiellement séparés (`INITIAL`, `CORRECTION`, `RETEST`, `MID_RESUME`, `FINAL`) peuvent être regroupés dans une même session locale persistante lorsque les barrières et autorisations restent valides.
-6. Aucun fallback Cloud n’est autorisé.
+2. Claude Code local reste l’unique écrivain de développement.
+3. Le réveil de Claude local est volontairement manuel et minimal.
+4. Le self-hosted runner n’est pas utilisé comme moteur nominal de réveil Claude.
+5. GitHub reste la mémoire durable permettant une reprise sans recopier la mission.
+6. La continuité native locale démontrée reste une capacité disponible, pas une dépendance obligatoire du protocole.
+7. Aucun fallback Cloud n’est autorisé.
+8. Les coordinations, checkpoints et revues restent automatisés autant que possible hors réveil Claude local.
 
 ## 11. Transport GitHub → Work
 
-La preuve V1.3 du transport suivant reste acquise dans la configuration testée :
+La preuve V1.3 suivante reste acquise dans la configuration testée :
 
 `GitHub Actions → pull_request:synchronize → tâche Work configurée pour les commit updates → message spontané dans le même fil Work`.
 
-Le signal technique doit rester séparé de l’état durable et ne touche pas au code métier. Les commentaires GitHub seuls ne sont pas supposés réveiller Work lorsqu’ils n’ont pas été démontrés comme déclencheurs.
+Ce transport peut automatiser la sollicitation de ChatGPT/Work. Il ne doit pas être confondu avec le réveil de Claude local, qui reste manuel sous l’option 3.
 
 ## 12. Métriques
 
-Pour chaque phase Claude observable, conserver lorsque disponible :
+Pour chaque phase Claude observable, conserver lorsque disponible : durée, tours, coût Claude déclaré, session éventuelle, mode de reprise, résultat/verdict et appels consommés.
 
-- durée ;
-- nombre de tours ;
-- coût Claude déclaré ;
-- identifiant de session ;
-- mode de reprise ;
-- résultat/verdict ;
-- appels Claude consommés.
+Les coûts Claude et OpenAI/Work sont distingués. Une métrique non accessible est `NON_VÉRIFIABLE`, jamais zéro par défaut.
 
-Les coûts Claude et les éventuels coûts OpenAI/Work sont distingués. Une métrique OpenAI/Work non accessible est `NON_VÉRIFIABLE`, jamais zéro par défaut.
+## 13. Conditions avant une écriture métier
 
-## 13. Conditions avant reprise d’une tranche métier
+Avant toute écriture métier avec V1.4 LOCAL option 3 :
 
-Avant de reprendre T01-S09 ou une autre tranche métier avec V1.4 LOCAL :
+1. vérifier les barrières V1.3 conservées ;
+2. vérifier l’état Git réel et le dernier checkpoint ;
+3. vérifier la fraîcheur des sources documentaires/Figma/décisions ;
+4. établir explicitement mode, écrivain, périmètre et `authorized_head` ;
+5. publier un checkpoint de reprise complet ;
+6. seulement ensuite demander à l’utilisateur le réveil minimal de Claude local.
 
-1. vérifier que le présent protocole et ses dépendances d’orchestration ne contredisent pas les barrières V1.3 conservées ;
-2. matérialiser le workflow local nominal ou l’adaptation minimale des workflows nécessaires ;
-3. vérifier l’état Git réel de la tranche et son dernier checkpoint autorisé ;
-4. vérifier la fraîcheur des sources documentaires/Figma/décisions concernées ;
-5. établir explicitement le mode et l’écrivain ;
-6. seulement ensuite reprendre la machine métier au dernier état stable démontré.
-
-Aucune réussite du micro-test de session n’autorise à elle seule une écriture métier.
+L’instruction manuelle de réveil ne vaut jamais autorisation d’écriture à elle seule.
 
 ## 14. Livraison des rapports
 
@@ -271,30 +241,15 @@ Le contenu affiché à l’écran et le contenu du fichier Markdown doivent êtr
 - Répertoire canonique unique : `.github/orchestration/reports/`
 - Convention de nommage : `<PERIMETRE>_<TYPE>_YYYYMMDD.md`
 
-Si le répertoire `.github/orchestration/reports/` n’existe pas, il est créé uniquement au moment de l’enregistrement du rapport concerné.
-
-Aucun autre fichier de compte rendu ne doit être créé, sous quelque forme ou quelque emplacement que ce soit.
+Si le répertoire n’existe pas, il est créé uniquement au moment de l’enregistrement du rapport concerné. Aucun autre fichier de compte rendu ne doit être créé.
 
 ### 14.3 Contenu minimal du rapport
 
-Le rapport doit au minimum indiquer :
-
-- l’identifiant et l’objectif de la mission ;
-- la branche Git ;
-- le commit HEAD de référence ;
-- les documents consultés ;
-- les fichiers examinés ou modifiés ;
-- les commandes et tests exécutés ;
-- leurs résultats ;
-- les constats, écarts, risques et limites ;
-- le verdict ;
-- les prochaines actions proposées.
+Le rapport doit au minimum indiquer : identifiant/objectif, branche, HEAD, documents consultés, fichiers examinés/modifiés, commandes/tests et résultats, constats/écarts/risques/limites, verdict et prochaines actions.
 
 ### 14.4 Mission en lecture seule
 
-Lorsqu’une mission est explicitement déclarée « en lecture seule », la création du seul fichier de rapport dans `.github/orchestration/reports/` constitue une exception d’écriture autorisée.
-
-Cette exception n’autorise aucune modification du code, de la configuration, des tests ou de la documentation produit.
+Lorsqu’une mission est explicitement déclarée « en lecture seule », la création du seul fichier de rapport dans `.github/orchestration/reports/` constitue une exception d’écriture autorisée. Cette exception n’autorise aucune modification du code, de la configuration, des tests ou de la documentation produit.
 
 ### 14.5 Commit et poussée
 
@@ -302,13 +257,7 @@ Aucun rapport ne doit être commité ou poussé sans autorisation explicite.
 
 ### 14.6 Clôture de mission
 
-En fin de mission, Claude doit afficher :
-
-- le chemin du rapport ;
-- le résultat de `git status --short` ;
-- le commit HEAD courant.
-
-Si la création du fichier échoue, Claude doit le signaler explicitement et conserver le rapport complet à l’écran.
+En fin de mission, Claude doit afficher le chemin du rapport, le résultat de `git status --short` et le commit HEAD courant. Si la création du fichier échoue, Claude doit le signaler explicitement et conserver le rapport complet à l’écran.
 
 ### 14.7 Valeur du rapport
 
