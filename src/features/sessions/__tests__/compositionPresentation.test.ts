@@ -236,8 +236,8 @@ describe("formatDurationRowValue", () => {
     expect(formatDurationRowValue(10)).toBe("00 min 10 s");
   });
 
-  it("formats 3599 seconds (upper bound) as '59 min 55 s' — 59s is not on the CE-T01-07/14 step of 5, rounded down to the last valid step", () => {
-    expect(formatDurationRowValue(3599)).toBe("59 min 55 s");
+  it("formats 3599 seconds (upper bound) as '59 min 59 s' — R4-05, pas de 1, aucun arrondi", () => {
+    expect(formatDurationRowValue(3599)).toBe("59 min 59 s");
   });
 
   it("pads both minutes and seconds to two digits", () => {
@@ -245,12 +245,12 @@ describe("formatDurationRowValue", () => {
   });
 
   describe("maxTotalSeconds parameter (T01-S08, Exercise Durée/Pause — 5999s bound)", () => {
-    it("still clamps to 59 min 55 s by default when maxTotalSeconds is omitted (pas de 5, CE-T01-07/14)", () => {
-      expect(formatDurationRowValue(5999)).toBe("59 min 55 s");
+    it("still clamps to 59 min 59 s by default when maxTotalSeconds is omitted (R4-05, pas de 1)", () => {
+      expect(formatDurationRowValue(5999)).toBe("59 min 59 s");
     });
 
-    it("formats 5999 seconds as '99 min 55 s' when given the Exercise bound (pas de 5, CE-T01-07/14)", () => {
-      expect(formatDurationRowValue(5999, 5999)).toBe("99 min 55 s");
+    it("formats 5999 seconds as '99 min 59 s' when given the Exercise bound (R4-05, pas de 1)", () => {
+      expect(formatDurationRowValue(5999, 5999)).toBe("99 min 59 s");
     });
   });
 });

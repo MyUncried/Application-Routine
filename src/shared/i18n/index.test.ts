@@ -81,6 +81,8 @@ describe("strings", () => {
     expect(strings.screens.composition.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
       secondsAccessibilityLabel: "Secondes",
+      cancelAccessibilityLabel: "Annuler",
+      validateAccessibilityLabel: "Valider",
     });
     expect(strings.screens.composition.addActivity).toBe("Ajouter une activité");
     expect(strings.screens.composition.continueAction).toBe("Continuer");
@@ -133,6 +135,8 @@ describe("strings", () => {
     expect(strings.screens.exercise.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
       secondsAccessibilityLabel: "Secondes",
+      cancelAccessibilityLabel: "Annuler",
+      validateAccessibilityLabel: "Valider",
     });
     expect(strings.screens.exercise.validateAction).toBe("Valider");
     expect(strings.screens.exercise.finishAction).toBe("Terminer");

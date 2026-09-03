@@ -280,10 +280,16 @@ export function ExerciseScreen() {
                   <PopoverAnchor>
                     <DurationWheelPicker
                       totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
-                      onChange={(totalSeconds) => patchLocal({ durationSeconds: totalSeconds })}
+                      onValidate={(totalSeconds) => {
+                        patchLocal({ durationSeconds: totalSeconds });
+                        closeOverlay();
+                      }}
+                      onCancel={closeOverlay}
                       maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
                       minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
                       secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                      cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                      validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
                     />
                   </PopoverAnchor>
                 ) : null}
@@ -323,10 +329,16 @@ export function ExerciseScreen() {
                 <PopoverAnchor>
                   <DurationWheelPicker
                     totalSeconds={local.pauseSeconds}
-                    onChange={(totalSeconds) => patchLocal({ pauseSeconds: totalSeconds })}
+                    onValidate={(totalSeconds) => {
+                      patchLocal({ pauseSeconds: totalSeconds });
+                      closeOverlay();
+                    }}
+                    onCancel={closeOverlay}
                     maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
                     minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
                     secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                    cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                    validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
                   />
                 </PopoverAnchor>
               ) : null}

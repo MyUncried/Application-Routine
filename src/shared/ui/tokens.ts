@@ -23,6 +23,17 @@ export const colors = {
   warning: "#FF8D28",
   danger: "#D92D20",
   dangerSurface: "#FFF1F0",
+  // R4 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS
+  // REVIEWED`, 2026-09-03 ; `12 – Architecture technique.md`, tokens
+  // `color.wheelAction*`) : actions Annuler/Valider de la roulette
+  // compacte. Alias sémantiques explicites — `wheelActionCancelBackground`
+  // = `surface`, `wheelActionValidateBackground` = `primary`,
+  // `wheelActionCancelIcon` = `textPrimary` — jamais réutilisés en dur via
+  // le nom du token primitif, pour exprimer l'intention au point d'usage.
+  wheelActionCancelBackground: "#F5F7FA",
+  wheelActionValidateBackground: "#0508E5",
+  wheelActionCancelIcon: "#141414",
+  wheelActionValidateIcon: "#FFFFFF",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -37,12 +48,20 @@ export const type = {
   modalTitle: { ...semiBold, fontSize: 18, lineHeight: 22 },
   sectionTitle: { ...semiBold, fontSize: 16, lineHeight: 20 },
   cardTitle: { ...semiBold, fontSize: 16, lineHeight: 20 },
-  compactCardTitle: { ...semiBold, fontSize: 13, lineHeight: 18 },
+  // R4-03 (`KODJO / Card / Title`) : `14/18` Semi Bold — jusqu'ici déclaré
+  // à `13/18`, jamais réellement consommé (aucun appelant avant cette
+  // mission). Complété au lieu de dupliquer un nouveau token, conformément
+  // au garde-fou DSF (« interdire un duplicat local aux mêmes
+  // dimensions »).
+  compactCardTitle: { ...semiBold, fontSize: 14, lineHeight: 18 },
   body: { ...regular, fontSize: 14, lineHeight: 20 },
   label: { ...medium, fontSize: 14, lineHeight: 18 },
   button: { ...semiBold, fontSize: 14, lineHeight: 18 },
   supporting: { ...regular, fontSize: 12, lineHeight: 16 },
-  caption: { ...regular, fontSize: 11, lineHeight: 16 },
+  // R4-03 (`KODJO / Card / Supporting`) : `11/14` — jusqu'ici déclaré à
+  // `11/16`, jamais consommé ailleurs. Même remarque que `compactCardTitle`
+  // ci-dessus.
+  caption: { ...regular, fontSize: 11, lineHeight: 14 },
   navLabel: { ...regular, fontSize: 11, lineHeight: 16 },
 } as const;
 
@@ -91,6 +110,29 @@ export const dimensions = {
   activeDestination: { visualHeight: 56, radius: 28 },
   globalSearch: { visualDiameter: 58, radius: 29 },
   standardCard: { radius: 12 },
+  // R4-02 (`Action / Back`, `2624:3105`) : cible tactile inchangée
+  // (`minTouchTarget`), cercle visuel et chevron réduits — auparavant un
+  // cercle unique confondu avec la cible tactile elle-même.
+  backAction: { visualCircle: 28, chevron: 14 },
+  // R4-07/R4-09 (`Picker / Popover — Source exact`, variante
+  // `Type=Duration`) : géométrie canonique de la roulette compacte —
+  // D-098 (`07 – Registre des décisions`, « Validée post-Figma ») pour la
+  // hauteur ; `12 – Architecture technique.md` pour les cibles d'action.
+  // La zone roue (`wheelContentMinHeight`) est un plancher (`minHeight`),
+  // pas une hauteur figée — voir `DurationWheelPicker.tsx` pour la
+  // justification (ne pas reproduire le défaut D-04 corrigé au cycle
+  // précédent).
+  wheelPicker: {
+    toolbarHeight: 40,
+    wheelContentMinHeight: 150,
+    actionVisualCircle: 28,
+    actionTouchTarget: 48,
+  },
+  // R4-12 (`Composition / Tour Section`, `3067:270`) : le conteneur Tour
+  // est plus large que la carte qu'il héberge (rôle de conteneur, pas une
+  // carte elle-même) — inversion explicite de `T-01` (cycle précédent, qui
+  // avait unifié la largeur de Tour avec celle des cartes limites).
+  compositionTourSection: { containerWidth: 374, cardWidth: 354, inset: 10, closedHeight: 54 },
 } as const;
 
 export const minTouchTarget = 48;

@@ -175,10 +175,15 @@ export function CompositionScreen() {
             <PopoverAnchor>
               <DurationWheelPicker
                 totalSeconds={draft.initialCountdownSeconds}
-                onChange={(totalSeconds) => updateDraft({ initialCountdownSeconds: totalSeconds })}
-                onRequestClose={() => toggleOverlay("countdown")}
+                onValidate={(totalSeconds) => {
+                  updateDraft({ initialCountdownSeconds: totalSeconds });
+                  closeOverlay();
+                }}
+                onCancel={closeOverlay}
                 minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
                 secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
               />
             </PopoverAnchor>
           ) : null}
@@ -223,10 +228,15 @@ export function CompositionScreen() {
             <PopoverAnchor>
               <DurationWheelPicker
                 totalSeconds={draft.finalPhaseSeconds}
-                onChange={(totalSeconds) => updateDraft({ finalPhaseSeconds: totalSeconds })}
-                onRequestClose={() => toggleOverlay("finalPhase")}
+                onValidate={(totalSeconds) => {
+                  updateDraft({ finalPhaseSeconds: totalSeconds });
+                  closeOverlay();
+                }}
+                onCancel={closeOverlay}
                 minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
                 secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
               />
             </PopoverAnchor>
           ) : null}
@@ -410,56 +420,65 @@ function BoundaryActivityRow({
 }
 
 /**
- * Carte `Tour` — corrections cumulatives :
+ * `Composition / Tour Section` — corrections cumulatives :
  *
- * - **CMP-04** (cycle précédent) : contrôle désormais présenté dans un
- *   conteneur dédié (`tourCardControl`) avec une affordance de disclosure
- *   (chevron), au lieu d'un simple `Text` nu — la carte Tour n'est toujours
- *   pas interactive en T01 (`accessibilityState.disabled`), ce chevron est
- *   donc une affordance purement visuelle, jamais fonctionnelle avant
- *   qu'un état d'ouverture réel n'existe.
- * - **T-01** (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
- *   CORRECTION`, 2026-09-03) : géométrie (padding/bordure/rayon) désormais
- *   partagée avec `BoundaryActivityRow` via `limitCardBase` — auparavant
- *   une largeur divergente était possible faute de règle de boîte commune
- *   explicite ; seul le fond (`colors.selectionSurface`, teinte propre à
- *   Tour) reste spécifique.
- * - **T-02** : slot gauche toujours vide — **icône Tour canonique toujours
- *   absente**. Recherche exhaustive reconduite ce cycle
- *   (`assets/icons/manifest.json`, 19 entrées) : aucune entrée `tour.*` ni
- *   glyphe sémantiquement proche. Le MCP `figma` de cet environnement est
- *   non authentifié — impossible d'obtenir/vérifier un asset réel depuis ce
- *   run. Réutiliser `composition-reorder` ici (comme desormais fait pour le
- *   slot gauche de `BoundaryActivityRow`, C-02) représenterait faussement
- *   « Tour » avec un pictogramme de déplacement — DÉLIBÉRÉMENT non fait,
- *   ce serait une correction pire que le blocage documenté. Escaladé de
- *   nouveau, explicitement, pas reconduit silencieusement.
- * - **T-03** : libellé désormais `strings.screens.composition.tour.label`
- *   = `"Nombre de tours"` (auparavant `"Tour"` seul, changé à la source).
- * - **T-04** : contrôle carré violet (`colors.selection`) avec chevron
- *   blanc (`KodjoIcon`'s nouveau prop `tintColor`, voir `KodjoIcon.tsx`) —
- *   auparavant un contrôle blanc arrondi avec un chevron par défaut.
- * - **T-05** : contenu `1` seul — le signe `×` retiré (`FIXED_TOUR_REPEAT_
- *   COUNT` affiché nu, plus de préfixe).
+ * - **CMP-04** (cycle `REWORK02`) : contrôle présenté dans un conteneur
+ *   dédié (`tourCardControl`) avec une affordance de disclosure (chevron)
+ *   — la carte Tour n'est toujours pas interactive en T01
+ *   (`accessibilityState.disabled`), ce chevron reste donc purement visuel.
+ * - **T-01** (cycle `REWORK03`) : géométrie de la carte interne
+ *   (padding/bordure/rayon) partagée avec `BoundaryActivityRow` via
+ *   `limitCardBase` — seul le fond (`colors.selectionSurface`) reste
+ *   spécifique.
+ * - **T-02/R4-11** (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
+ *   COMPLEMENTS REVIEWED`, 2026-09-03) : **icône Tour canonique intégrée**
+ *   — `icon-tour.svg` (`3066:4685`, `20×20`), octets exacts téléchargés
+ *   depuis l'asset MCP fourni par l'autorisation, jamais redessinée ni
+ *   substituée. Ferme le blocage reconduit depuis `REWORK02`.
+ * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
+ *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
+ *   `rowLabel`/`tourCardLabel`).
+ * - **T-04/R4-10** : contrôle carré `28×28` (réduit depuis `36×36`) violet
+ *   (`colors.selection` = `#5F60EE`, alias `color.wheelAction*` non
+ *   applicable ici — couleur propre au contrôle Tour, `12 – Architecture
+ *   technique.md`) avec chevron blanc (`KodjoIcon`'s `tintColor`).
+ * - **T-05** : contenu `1` seul — le signe `×` retiré.
+ * - **R4-12** : le conteneur Tour (`tourSectionContainer`, `374`) est
+ *   désormais plus large que la carte interne qu'il héberge (`354`,
+ *   inset `10`/côté) — INVERSE explicitement `T-01` (qui avait unifié la
+ *   largeur de Tour avec celle des cartes limites) : `T-01` unifiait la
+ *   GÉOMÉTRIE DE BOÎTE (padding/bordure/rayon, toujours vrai) ; R4-12
+ *   distingue désormais la LARGEUR EXTÉRIEURE du conteneur (rôle de
+ *   conteneur, pas une carte elle-même) de celle, inchangée, de la carte
+ *   interne. `marginHorizontal: -inset` fait « déborder » le conteneur de
+ *   `10pt` de chaque côté au-delà du padding de `body` (`24`), portant sa
+ *   largeur extérieure réelle à `374` sur le canevas de référence
+ *   (`402pt`) sans aucune constante de largeur codée en dur — dérivée par
+ *   construction, comme pour la marge basse de la navigation (`N-03`).
  */
 function TourCard({ label }: { label: string }) {
   return (
-    <View
-      style={[styles.limitCardBase, styles.tourCard]}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: true }}
-      testID="composition-tour-card"
-    >
-      <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot" />
-      <Text style={styles.tourCardLabel}>{label}</Text>
-      <View style={styles.tourCardControl} testID="composition-tour-control">
-        <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
-        <KodjoIcon
-          name="control-chevron-down"
-          testID="composition-tour-control-chevron"
-          tintColor={colors.background}
-        />
+    <View style={styles.tourSectionContainer} testID="composition-tour-section">
+      <View
+        style={[styles.limitCardBase, styles.tourCard]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: true }}
+        testID="composition-tour-card"
+      >
+        <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
+          <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
+        </View>
+        <Text style={styles.tourCardLabel}>{label}</Text>
+        <View style={styles.tourCardControl} testID="composition-tour-control">
+          <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
+          <KodjoIcon
+            name="control-chevron-down"
+            testID="composition-tour-control-chevron"
+            tintColor={colors.background}
+            size={12}
+          />
+        </View>
       </View>
     </View>
   );
@@ -551,11 +570,12 @@ const styles = StyleSheet.create({
   boundaryRow: {
     backgroundColor: colors.background,
   },
-  // C-02 : centré, afin que le pictogramme (`composition-reorder`, 16×16)
-  // soit visuellement centré dans le même espace que les autres slots.
+  // R4-04 (slot structure `28×28`, icône `20×20`) : agrandi depuis `24×24`
+  // — le pictogramme (`composition-reorder`, désormais affiché `20×20`,
+  // voir `KodjoIcon.tsx`) reste centré dans ce slot.
   boundaryRowHandleSlot: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -563,8 +583,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing[2],
   },
+  // R4-03 (`KODJO / Card / Supporting`, `11/14`) : auparavant
+  // `type.supporting` (`12/16`), non conforme au style DSF partagé.
   boundaryRowSecondaryLine: {
-    ...type.supporting,
+    ...type.caption,
     color: colors.textSecondary,
   },
   boundaryRowIconSlot: {
@@ -573,18 +595,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // R4-12 : conteneur Tour, plus large que la carte interne qu'il héberge
+  // — voir `TourCard` ci-dessus pour la justification complète du calcul.
+  tourSectionContainer: {
+    marginHorizontal: -dimensions.compositionTourSection.inset,
+    paddingHorizontal: dimensions.compositionTourSection.inset,
+  },
   // Carte `Tour`, voir `TourCard` ci-dessus pour la justification complète
-  // (géométrie partagée `limitCardBase`/T-01, slot d'icône vide — asset
-  // canonique absent/T-02, contrôle carré violet/T-04, contenu `1` seul/T-05).
+  // (géométrie partagée `limitCardBase`/T-01, icône canonique/T-02/R4-11,
+  // contrôle carré violet/T-04/R4-10, contenu `1` seul/T-05).
   tourCard: {
     backgroundColor: colors.selectionSurface,
+    minHeight: dimensions.compositionTourSection.closedHeight,
   },
+  // R4-04 : même slot que `boundaryRowHandleSlot` (`28×28`) — icône Tour
+  // désormais réellement affichée dedans (R4-11), plus un espace vide.
   tourCardIconSlot: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  // R4-03 : même style de titre que les cartes limites (voir `rowLabel`).
   tourCardLabel: {
-    ...type.body,
+    ...type.compactCardTitle,
     flex: 1,
     color: colors.textPrimary,
   },
@@ -593,22 +627,31 @@ const styles = StyleSheet.create({
   // confortablement le chevron (`24×24`, taille DS exacte, non redimensionné)
   // et le chiffre `1` côte à côte ; non confirmée contre un rendu réel
   // (`NON_VERIFIABLE_DEVICE`, voir le rapport de mission).
+  // R4-10 : contrôle carré `28×28` (réduit depuis `36×36`, valeur propre
+  // au contrôle Tour — coïncide numériquement avec
+  // `dimensions.wheelPicker.actionVisualCircle` sans lien sémantique,
+  // volontairement non partagée). Le chevron interne est explicitement
+  // redimensionné (`KodjoIcon`'s prop `size`, voir `KodjoIcon.tsx`) pour
+  // tenir aux côtés du chiffre dans ce carré plus compact, sans agrandir
+  // la boîte elle-même.
   tourCardControl: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: spacing[2],
-    width: 36,
-    height: 36,
+    width: 28,
+    height: 28,
     backgroundColor: colors.selection,
     borderRadius: 8,
   },
   tourCardControlValue: {
-    ...type.body,
+    ...type.label,
     color: colors.background,
   },
+  // R4-03 (`KODJO / Card / Title`, `14/18` Semi Bold) : auparavant
+  // `type.body` (`14/20` Regular), non conforme au style DSF partagé.
   rowLabel: {
-    ...type.body,
+    ...type.compactCardTitle,
     color: colors.textPrimary,
   },
   // LAY-03 : hauteur/rayon issus du composant DS

@@ -11,21 +11,31 @@
  * ci-dessous, inchangées pour tout appelant existant qui ne fournit pas
  * `maxTotalSeconds`.
  *
- * **Pas des secondes — résolution de l'ARBITRAGE 1** (contre-recette
- * iPhone, `[ChatGPT] PHASE02 REWORK01 ADDENDUM — NATIVE APPLE WHEEL
- * TARGET`, 2026-09-03) : les cycles précédents avaient conservé un pas de
- * `1` seconde en le classant à tort comme une contradiction non résolue
- * entre le Registre des décisions (D-089, qui borne `0–3599 s` sans jamais
- * mentionner de pas) et `13 – Contrats d'écran.md` (CE-T01-07 : « Les
- * secondes avancent par pas de `5` », repris à l'identique par CE-T01-14
- * pour l'Exercice — « selon le même contrat que CE-T01-07 »). Relecture
- * exacte : D-089 est **silencieux** sur le pas, il ne le **contredit**
- * pas — l'ordre de préséance `INDEX.md` §6 (Registre > … > Contrats
- * d'écran) ne s'applique qu'en cas de contradiction réelle, pas à un
- * détail que seul le document de rang inférieur précise. `CE-T01-07`
- * qualifie en outre explicitement « bornes et pas conformes aux règles
- * métier » de test bloquant. Le pas de `5` s est donc implémenté ici,
- * fermant l'arbitrage plutôt que de le reconduire une quatrième fois.
+ * **Pas des secondes — R4-05, nouvelle décision post-Figma** (`[ChatGPT]
+ * REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`,
+ * 2026-09-03) : le pas de `5` s (résolution de l'ARBITRAGE 1, cycle
+ * `PHASE02 REWORK01 ADDENDUM`, ci-dessous conservée pour mémoire) est
+ * **remplacé** par un pas de `1` s (`00, 01, …, 59`), conformément à la
+ * mission de design dédiée (rapport `2026-09-03_design-complements-
+ * composition-wheel.md`, §8 « Comportement contractuel du picker »,
+ * commit `ed84285`) et au registre R4 (`R4-05`). `CE-T01-07`/`CE-T01-14`
+ * (`13 – Contrats d'écran.md`, « pas de `5` ») n'ont pas encore été mis à
+ * jour par cette mission de design — silence de fraîcheur documenté dans
+ * le rapport de mission, pas une contradiction ignorée : R4-05 est un
+ * registre d'implémentation explicitement autorisé, plus récent que ce
+ * contrat resté inchangé.
+ *
+ * Ancienne justification (pas de `5`, cycle précédent, conservée pour
+ * traçabilité) : les cycles avant `PHASE02 REWORK01 ADDENDUM` avaient
+ * conservé un pas de `1` seconde en le classant à tort comme une
+ * contradiction non résolue entre le Registre des décisions (D-089, qui
+ * borne `0–3599 s` sans jamais mentionner de pas) et `13 – Contrats
+ * d'écran.md` (CE-T01-07 : « Les secondes avancent par pas de `5` »).
+ * Relecture exacte à l'époque : D-089 était silencieux sur le pas, pas
+ * contradictoire — l'ordre de préséance `INDEX.md` §6 ne s'applique qu'en
+ * cas de contradiction réelle. Cette analyse reste correcte pour D-089 ;
+ * elle est aujourd'hui supersédée par la nouvelle décision R4-05
+ * elle-même, qui s'applique indépendamment de CE-T01-07.
  *
  * Bornes Durée/Pause d'Exercice (T01-S08, `08` l.925) : 0 à 5999 secondes
  * (0 min 00 s à 99 min 59 s) — `WHEEL_EXERCISE_DURATION_SECONDS_MAX`/
@@ -35,9 +45,9 @@
  */
 
 export const WHEEL_MINUTES_MAX_INDEX = 59;
-/** Pas des secondes — `5`, CE-T01-07/CE-T01-14, voir la note ci-dessus (résolution de l'ARBITRAGE 1). */
-export const WHEEL_SECONDS_STEP = 5;
-/** Nombre de valeurs de secondes visibles (`0, 5, …, 55` — `60 / WHEEL_SECONDS_STEP`). */
+/** Pas des secondes — `1` (R4-05, `00…59`), voir la note ci-dessus. */
+export const WHEEL_SECONDS_STEP = 1;
+/** Nombre de valeurs de secondes visibles (`0, 1, …, 59` — `60 / WHEEL_SECONDS_STEP`). */
 export const WHEEL_SECONDS_ITEM_COUNT = 60 / WHEEL_SECONDS_STEP;
 /** Index maximal de la colonne secondes (`WHEEL_SECONDS_ITEM_COUNT - 1`, soit `11`). */
 export const WHEEL_SECONDS_MAX_INDEX = WHEEL_SECONDS_ITEM_COUNT - 1;
@@ -123,7 +133,7 @@ export function fromTotalSeconds(
   return { minutes: Math.floor(bounded / 60), seconds: steppedSeconds };
 }
 
-/** Valeur en secondes (`0, 5, …, 55`) affichée par l'index de la colonne secondes. */
+/** Valeur en secondes (`0, 1, …, 59`) affichée par l'index de la colonne secondes. */
 export function secondsIndexToValue(index: number): number {
   return clampIndex(index, WHEEL_SECONDS_MAX_INDEX) * WHEEL_SECONDS_STEP;
 }

@@ -31,14 +31,22 @@ export type FixedHeaderProps = {
 };
 
 /**
- * `Header / Fixed`. Le bouton Retour (`CMP-01`) est désormais présenté dans
- * un cercle de fond pâle (`colors.selectionSurface`, même token que les
- * bandes Context) — auparavant un chevron nu sans conteneur. Cible tactile
- * = boîte visuelle elle-même (`minTouchTarget`, `48`), aucun `hitSlop`
- * nécessaire.
+ * `Header / Fixed`. Le bouton Retour (`CMP-01`) est présenté dans un cercle
+ * de fond pâle (`colors.selectionSurface`, même token que les bandes
+ * Context) — auparavant un chevron nu sans conteneur.
+ *
+ * Correction **R4-02** (`Action / Back`, `2624:3105`, `[ChatGPT] REWORK04
+ * IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03) :
+ * la cible tactile (`minTouchTarget`, `48×48`) reste inchangée, mais n'est
+ * plus la boîte visuelle elle-même — le cercle visible est désormais
+ * `dimensions.backAction.visualCircle` (`28×28`, centré dans la cible via
+ * `hitSlop`, même patron que `addActivityAction`/`CreateAction` déjà
+ * établi dans ce projet) et le chevron `dimensions.backAction.chevron`
+ * (`14×14`, `KodjoIcon`'s taille d'affichage propre).
  */
 export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
+  const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
 
   return (
     <View
@@ -53,6 +61,7 @@ export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHead
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel={backAccessibilityLabel}
+          hitSlop={backHitSlop}
           style={styles.backCircle}
           testID="screen-header-back"
         >
@@ -102,10 +111,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingHorizontal: spacing[24],
   },
+  // R4-02 : cercle visuel `28×28` — la cible tactile `48×48` est obtenue
+  // via `hitSlop` (voir `FixedHeader`), jamais en agrandissant ce cercle.
   backCircle: {
-    width: minTouchTarget,
-    height: minTouchTarget,
-    borderRadius: minTouchTarget / 2,
+    width: dimensions.backAction.visualCircle,
+    height: dimensions.backAction.visualCircle,
+    borderRadius: dimensions.backAction.visualCircle / 2,
     backgroundColor: colors.selectionSurface,
     alignItems: "center",
     justifyContent: "center",

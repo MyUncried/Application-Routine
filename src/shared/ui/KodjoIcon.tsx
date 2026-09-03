@@ -20,12 +20,21 @@ const sources = {
   "composition-end-session": require("../../../assets/icons/composition-end-session.svg"),
   "composition-reorder": require("../../../assets/icons/composition-reorder.svg"),
   "state-selected": require("../../../assets/icons/state-selected.svg"),
+  "icon-tour": require("../../../assets/icons/icon-tour.svg"),
 } as const;
 
 const sizes = {
   "action-add": [24, 24],
   "action-start": [28, 28],
-  "control-back": [24, 24],
+  // R4-02 (`Action / Back`, `2624:3105`) : affichage réduit de `24×24` à
+  // `14×14` — la cible tactile (`minTouchTarget`, inchangée) est portée
+  // par le `hitSlop`/conteneur de l'appelant, jamais par cette taille
+  // d'affichage. Effet de bord accepté : `ExerciseScreen.tsx` (hors
+  // périmètre de cette revue, non modifié) consomme la même icône
+  // partagée et hérite donc de la même taille d'affichage — aucun fichier
+  // de cet écran n'est modifié, seul le rendu de l'icône change, effet
+  // inhérent à la correction d'un token DSF réellement partagé.
+  "control-back": [14, 14],
   "control-chevron-down": [24, 24],
   "control-chevron-up": [24, 24],
   "navigation-sessions-active": [30, 20],
@@ -40,8 +49,20 @@ const sizes = {
   "composition-initial-countdown": [24, 24],
   "composition-main-content": [18, 18],
   "composition-end-session": [24, 24],
-  "composition-reorder": [16, 16],
+  // R4-04 (slot structure `28×28`, icône `20×20`) : affichage porté de
+  // `16×16` à `20×20` — même master vectoriel (`composition-reorder.svg`,
+  // `2537:1456`), un agrandissement d'affichage d'un SVG existant n'altère
+  // pas son tracé. Aucun export dédié à `Icon / Structure / Movable`
+  // (`3066:4676`, mentionné par la mission de design) n'a été fourni avec
+  // une URL téléchargeable dans cette autorisation — lacune déclarée, pas
+  // un remplacement d'asset silencieux (voir le rapport de mission).
+  "composition-reorder": [20, 20],
   "state-selected": [24, 24],
+  // R4-11 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
+  // COMPLEMENTS REVIEWED`, 2026-09-03) : export canonique `icon-tour.svg`
+  // (composant Figma `3066:4685`, octets exacts téléchargés depuis
+  // l'asset MCP fourni par l'autorisation, jamais redessiné).
+  "icon-tour": [20, 20],
 } as const;
 
 export type KodjoIconName = keyof typeof sources;
@@ -62,6 +83,21 @@ export type KodjoIconProps = {
    * glyphes monochromes connus (chevrons, flèches).
    */
   tintColor?: string;
+  /**
+   * Taille d'affichage explicite, en points (carrée) — remplace la taille
+   * par défaut de `name` pour CETTE instance uniquement, sans jamais
+   * modifier la taille par défaut des autres appelants du même nom.
+   * Correction T-04/R4-10 (contrôle Tour, `[ChatGPT] REWORK04
+   * IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03) :
+   * premier appelant, le chevron du contrôle Tour (`28×28`), trop petit
+   * pour la taille par défaut de `control-chevron-down` (`24×24`,
+   * partagée avec `SessionCard`/`ExerciseScreen`, non modifiable
+   * globalement sans les affecter). Optionnel, `undefined` par défaut —
+   * n'affecte aucun appel existant qui ne le fournit pas. Un
+   * redimensionnement d'affichage d'un SVG vectoriel n'altère pas son
+   * tracé (contrairement à un remplacement d'asset).
+   */
+  size?: number;
   testID?: string;
 };
 
@@ -72,8 +108,10 @@ export type KodjoIconProps = {
  * dimensions logiques restent celles des nœuds de référence ; le SVG assure
  * un rendu indépendant de la densité de pixels, sans glyphe de substitution.
  */
-export function KodjoIcon({ name, opacity = 1, tintColor, testID }: KodjoIconProps) {
-  const [width, height] = sizes[name];
+export function KodjoIcon({ name, opacity = 1, tintColor, size, testID }: KodjoIconProps) {
+  const [defaultWidth, defaultHeight] = sizes[name];
+  const width = size ?? defaultWidth;
+  const height = size ?? defaultHeight;
 
   return (
     <Image

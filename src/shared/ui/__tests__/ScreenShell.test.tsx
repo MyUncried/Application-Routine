@@ -36,7 +36,7 @@ describe("FixedHeader", () => {
     expect(screen.queryByTestId("screen-header-back")).toBeNull();
   });
 
-  it("renders a Retour circle (pale-fill container, ≥48 touch target) when onBack is supplied, calling it on press", () => {
+  it("renders a Retour circle (pale-fill, 28×28 visual, R4-02) with a 48×48 touch target via hitSlop, calling it on press", () => {
     const onBack = jest.fn();
     renderWithSafeArea(
       <FixedHeader title="Composition" onBack={onBack} backAccessibilityLabel="Retour" />,
@@ -44,8 +44,12 @@ describe("FixedHeader", () => {
 
     const back = screen.getByTestId("screen-header-back");
     const flattened = StyleSheet.flatten(back.props.style);
-    expect(flattened.width).toBe(minTouchTarget);
-    expect(flattened.height).toBe(minTouchTarget);
+    // R4-02 : cercle visuel réduit à `28×28` — la cible tactile `48×48`
+    // reste inchangée, portée par `hitSlop`, jamais par la boîte visuelle
+    // elle-même.
+    expect(flattened.width).toBe(28);
+    expect(flattened.height).toBe(28);
+    expect(flattened.width + back.props.hitSlop * 2).toBe(minTouchTarget);
     expect(flattened.backgroundColor).toBe(colors.selectionSurface);
     expect(back.props.accessibilityLabel).toBe("Retour");
 

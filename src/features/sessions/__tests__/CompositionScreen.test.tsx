@@ -339,7 +339,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByText("0 activité · 0 min")).toBeTruthy();
   });
 
-  it("selects a real value in the countdown picker, committed to the row exactly once when the picker closes (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
+  it("selects a real value in the countdown picker, committed to the row exactly once on Validate (R4-09) (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
@@ -347,8 +347,9 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
     expect(screen.getByText("00 min 10 s")).toBeTruthy();
 
-    // Fermer le sélecteur en pressant de nouveau la ligne -> validation unique.
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    // R4-08/R4-09 : seule l'action Valider ferme ET commit — un nouvel
+    // appui sur la ligne elle-même ne fait plus office de validation.
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
 
     // La valeur choisie est désormais affichée sur la ligne, exactement
@@ -356,13 +357,25 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByText("02 min 10 s")).toBeTruthy();
   });
 
-  it("draft/committed independence: re-opening the countdown picker after closing it restores exactly the last committed value, centered — never the previous draft nor a stale value", () => {
+  it("Annuler (R4-09) closes without committing — the row keeps the previously validated value, never the draft", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
+
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(screen.getByText("00 min 10 s")).toBeTruthy();
+    expect(screen.queryByText("02 min 10 s")).toBeNull();
+  });
+
+  it("draft/committed independence: re-opening the countdown picker after Valider restores exactly the last committed value, centered — never the previous draft nor a stale value", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
-    fireEvent.press(screen.getByLabelText(composition.countdown.label)); // ferme -> commit unique (01 min 10 s)
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (01 min 10 s)
     expect(screen.getByText("01 min 10 s")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
@@ -589,11 +602,12 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).getByText("1")).toBeTruthy();
     expect(within(tourCard).queryByText("×1")).toBeNull();
 
-    // T-04 : contrôle carré violet (`colors.selection`), chevron blanc.
+    // T-04/R4-10 : contrôle carré `28×28` violet (`colors.selection`), chevron blanc.
     const control = screen.getByTestId("composition-tour-control");
     const controlStyle = StyleSheet.flatten(control.props.style);
     expect(controlStyle.backgroundColor).toBe(colors.selection);
-    expect(controlStyle.width).toBe(controlStyle.height);
+    expect(controlStyle.width).toBe(28);
+    expect(controlStyle.height).toBe(28);
     const chevron = within(control).getByTestId("composition-tour-control-chevron");
     expect(chevron.props.style.tintColor).toBe(colors.background);
 
@@ -666,6 +680,71 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
     expect(StyleSheet.flatten(bottomAction.props.style).marginTop).toBeUndefined();
+  });
+});
+
+describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03)", () => {
+  it("R4-01 — Nom de la séance uses color/text-primary (#141414), never the secondary grey", () => {
+    renderScreen();
+
+    const nameField = screen.getByLabelText(composition.name);
+    expect(StyleSheet.flatten(nameField.props.style).color).toBe(colors.textPrimary);
+  });
+
+  it("R4-03 — Boundary Activity and Tour card titles use the KODJO / Card / Title style (14/18 Semi Bold, #141414)", () => {
+    renderScreen();
+
+    const countdownLabel = within(screen.getByLabelText(composition.countdown.label)).getByText(
+      composition.countdown.label,
+    );
+    const flattened = StyleSheet.flatten(countdownLabel.props.style);
+    expect(flattened.fontSize).toBe(14);
+    expect(flattened.lineHeight).toBe(18);
+    expect(flattened.fontWeight).toBe("600");
+    expect(flattened.color).toBe(colors.textPrimary);
+
+    const tourLabel = within(screen.getByTestId("composition-tour-card")).getByText(
+      composition.tour.label,
+    );
+    expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(14);
+  });
+
+  it("R4-03 — the Boundary Activity secondary duration line uses the KODJO / Card / Supporting style (11/14)", () => {
+    renderScreen();
+
+    const secondaryLine = within(screen.getByLabelText(composition.countdown.label)).getByText(
+      "00 min 10 s",
+    );
+    const flattened = StyleSheet.flatten(secondaryLine.props.style);
+    expect(flattened.fontSize).toBe(11);
+    expect(flattened.lineHeight).toBe(14);
+  });
+
+  it("R4-04 — the structure/move slot is 28×28 (up from 24×24)", () => {
+    renderScreen();
+
+    const handleSlot = within(screen.getByLabelText(composition.countdown.label)).getByTestId(
+      "composition-boundary-handle-slot",
+    );
+    const flattened = StyleSheet.flatten(handleSlot.props.style);
+    expect(flattened.width).toBe(28);
+    expect(flattened.height).toBe(28);
+  });
+
+  it("R4-11 — the canonical Tour icon is now rendered in the Tour card's icon slot (asset gap closed)", () => {
+    renderScreen();
+
+    const iconSlot = screen.getByTestId("composition-tour-icon-slot");
+    expect(within(iconSlot).getByTestId("composition-tour-icon")).toBeTruthy();
+  });
+
+  it("R4-12 — the Tour Section container is wider than its inner card (breaks out of body's own padding by the canonical inset on each side)", () => {
+    renderScreen();
+
+    const container = screen.getByTestId("composition-tour-section");
+    const flattened = StyleSheet.flatten(container.props.style);
+    expect(flattened.marginHorizontal).toBe(-10);
+    expect(flattened.paddingHorizontal).toBe(10);
   });
 });
 

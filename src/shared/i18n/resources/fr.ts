@@ -88,6 +88,10 @@ export const fr = {
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
         secondsAccessibilityLabel: "Secondes",
+        // R4-09 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
+        // COMPLEMENTS REVIEWED`, 2026-09-03) : toolbar Annuler/Valider.
+        cancelAccessibilityLabel: "Annuler",
+        validateAccessibilityLabel: "Valider",
       },
       addActivity: "Ajouter une activité",
       continueAction: "Continuer",
@@ -157,6 +161,11 @@ export const fr = {
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
         secondsAccessibilityLabel: "Secondes",
+        // R4-09 : même contrat toolbar Annuler/Valider que Composition —
+        // câblage mécanique nécessaire au nouveau contrat de props partagé
+        // de `DurationWheelPicker`, hors périmètre visuel de cette revue.
+        cancelAccessibilityLabel: "Annuler",
+        validateAccessibilityLabel: "Valider",
       },
       instruction: {
         label: "Consigne",
