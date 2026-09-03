@@ -131,4 +131,18 @@ describe("NumberWheelPicker", () => {
 
     expect(screen.getByTestId("repetition-wheel-picker")).toBeTruthy();
   });
+
+  it("renders a central selection band and edge fade overlays, non-interactive (CE-T01-07, AUD-05 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+    render(<NumberWheelPicker value={1} onChange={jest.fn()} accessibilityLabel="Répétitions" />);
+
+    const overlay = screen.getByTestId("wheel-selection-overlay");
+    expect(overlay.props.pointerEvents).toBe("none");
+    expect(screen.getByTestId("wheel-selection-band")).toBeTruthy();
+  });
+
+  it("is wrapped in a visual card matching the Design System popover (background/radius), not rendered bare (AUD-05)", () => {
+    render(<NumberWheelPicker value={1} onChange={jest.fn()} accessibilityLabel="Répétitions" />);
+
+    expect(screen.getByTestId("number-wheel-picker-container")).toBeTruthy();
+  });
 });

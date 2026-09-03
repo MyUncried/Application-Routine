@@ -282,4 +282,25 @@ describe("DurationWheelPicker", () => {
       now: 15,
     });
   });
+
+  describe("hiérarchie visuelle (CE-T01-07, AUD-05 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+    it("renders a central selection band and edge fade overlays, non-interactive, for both columns", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      const overlays = screen.getAllByTestId("wheel-selection-overlay");
+      expect(overlays).toHaveLength(2); // une par colonne (minutes, secondes)
+      for (const overlay of overlays) {
+        expect(overlay.props.pointerEvents).toBe("none");
+      }
+
+      expect(screen.getAllByTestId("wheel-selection-band")).toHaveLength(2);
+    });
+  });
 });

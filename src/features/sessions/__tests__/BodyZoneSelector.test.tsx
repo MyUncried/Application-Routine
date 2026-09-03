@@ -111,4 +111,20 @@ describe("BodyZoneSelector", () => {
     expect(container.props.accessibilityRole).not.toBe("radiogroup");
     expect(container.props.accessibilityRole).toBeUndefined();
   });
+
+  it("carries a hitSlop on every tag reaching the 48×48 minimum touch target without enlarging the visual pill (AUD-04, T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+    render(
+      <BodyZoneSelector
+        zones={ZONES}
+        selectedIds={[]}
+        onToggle={jest.fn()}
+        accessibilityLabel="Zones corporelles"
+      />,
+    );
+
+    for (const zone of ZONES) {
+      const tag = screen.getByLabelText(zone.name);
+      expect(tag.props.hitSlop).toBeGreaterThan(0);
+    }
+  });
 });

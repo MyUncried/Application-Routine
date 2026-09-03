@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -89,6 +90,7 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
  */
 export function ExerciseScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { draft, updateDraft } = useSessionDraft();
 
   const [initialSnapshot] = useState<SessionDraftExercise>(
@@ -175,8 +177,20 @@ export function ExerciseScreen() {
   const t = strings.screens.exercise;
 
   return (
-    <Pressable style={styles.container} onPress={closeOverlay} accessible={false}>
-      <View style={styles.header}>
+    <Pressable
+      style={[styles.container, { paddingTop: insets.top + spacing[16] }]}
+      onPress={closeOverlay}
+      accessible={false}
+    >
+      {/*
+       * UI-ACT-002 (cycle de correction après contre-recette iPhone,
+       * 2026-09-03) : l'en-tête fixe affiche le vrai nom de la Séance (celui
+       * saisi sur Composition), jamais « Ajouter une activité » — ce dernier
+       * reste le titre du CORPS défilant (ci-dessous), distinct. Repli sur le
+       * placeholder « Nom de la séance » tant qu'aucun nom n'a encore été
+       * saisi (Composition n'impose aucun nom avant d'ajouter une Activité).
+       */}
+      <View style={styles.header} testID="exercise-header">
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
@@ -186,8 +200,11 @@ export function ExerciseScreen() {
         >
           <KodjoIcon name="control-back" testID="exercise-back-icon" />
         </Pressable>
-        <Text style={styles.title}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
+        <Text style={styles.title}>
+          {draft.name.length > 0 ? draft.name : strings.screens.composition.name}
+        </Text>
       </View>
+      <View style={styles.headerSeparator} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -195,6 +212,25 @@ export function ExerciseScreen() {
       >
         {step === 1 ? (
           <>
+            <Text style={styles.bodyTitle}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
+
+            {/*
+             * Segment `Exercice / Récupération` (CE-T01-13, élément
+             * structurel obligatoire même hors périmètre fonctionnel) :
+             * Récupération n'a ni écran ni parcours dans T01 (tout T01,
+             * confirmé) — visible mais désactivé, ne peut jamais ouvrir un
+             * écran partiel. `Exercice` reste verrouillé sélectionné.
+             */}
+            <View
+              style={styles.segmentedControl}
+              accessibilityRole="tablist"
+              accessibilityLabel={t.type.label}
+            >
+              <SegmentButton label={t.type.exercise} selected onPress={() => {}} />
+              <SegmentButton label={t.type.recovery} selected={false} disabled onPress={() => {}} />
+            </View>
+
+            <Text style={styles.fieldLabel}>{t.name}</Text>
             <TextInput
               value={local.name}
               onChangeText={(text) => patchLocal({ name: text })}
@@ -223,8 +259,13 @@ export function ExerciseScreen() {
               />
             </View>
 
+            <Text style={styles.sectionLabel}>{t.parametersTitle}</Text>
+
             {local.executionMode === "DURATION" ? (
-              <>
+              <AnchoredRow
+                testID="exercise-anchored-row-duration"
+                elevated={openOverlay === "duration"}
+              >
                 <Row
                   label={t.duration.label}
                   accessibilityLabel={t.duration.accessibilityLabel}
@@ -232,64 +273,83 @@ export function ExerciseScreen() {
                     local.durationSeconds ?? 0,
                     WHEEL_EXERCISE_DURATION_SECONDS_MAX,
                   )}
+                  isOpen={openOverlay === "duration"}
                   onPress={() => toggleOverlay("duration")}
                 />
                 {openOverlay === "duration" ? (
-                  <DurationWheelPicker
-                    totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
-                    onChange={(totalSeconds) => patchLocal({ durationSeconds: totalSeconds })}
-                    maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
-                    minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                    secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-                  />
+                  <PopoverAnchor>
+                    <DurationWheelPicker
+                      totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
+                      onChange={(totalSeconds) => patchLocal({ durationSeconds: totalSeconds })}
+                      maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
+                      minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+                      secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                    />
+                  </PopoverAnchor>
                 ) : null}
-              </>
+              </AnchoredRow>
             ) : (
-              <>
+              <AnchoredRow
+                testID="exercise-anchored-row-repetitionCount"
+                elevated={openOverlay === "repetitionCount"}
+              >
                 <Row
                   label={t.repetitionCount.label}
+                  isOpen={openOverlay === "repetitionCount"}
                   value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
                   onPress={() => toggleOverlay("repetitionCount")}
                 />
                 {openOverlay === "repetitionCount" ? (
-                  <NumberWheelPicker
-                    value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
-                    onChange={(value) => patchLocal({ repetitionCount: value })}
-                    accessibilityLabel={t.repetitionCount.accessibilityLabel}
-                    testID="exercise-repetition-count-wheel"
-                  />
+                  <PopoverAnchor>
+                    <NumberWheelPicker
+                      value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
+                      onChange={(value) => patchLocal({ repetitionCount: value })}
+                      accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
+                      testID="exercise-repetition-count-wheel"
+                    />
+                  </PopoverAnchor>
                 ) : null}
-              </>
+              </AnchoredRow>
             )}
 
-            <Row
-              label={t.pauseSeconds.label}
-              value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
-              onPress={() => toggleOverlay("pauseSeconds")}
-            />
-            {openOverlay === "pauseSeconds" ? (
-              <DurationWheelPicker
-                totalSeconds={local.pauseSeconds}
-                onChange={(totalSeconds) => patchLocal({ pauseSeconds: totalSeconds })}
-                maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
-                minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+            <AnchoredRow testID="exercise-anchored-row-pauseSeconds" elevated={openOverlay === "pauseSeconds"}>
+              <Row
+                label={t.pauseSeconds.label}
+                isOpen={openOverlay === "pauseSeconds"}
+                value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
+                onPress={() => toggleOverlay("pauseSeconds")}
               />
-            ) : null}
+              {openOverlay === "pauseSeconds" ? (
+                <PopoverAnchor>
+                  <DurationWheelPicker
+                    totalSeconds={local.pauseSeconds}
+                    onChange={(totalSeconds) => patchLocal({ pauseSeconds: totalSeconds })}
+                    maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
+                    minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+                    secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                  />
+                </PopoverAnchor>
+              ) : null}
+            </AnchoredRow>
 
-            <Row
-              label={t.seriesCount.label}
-              value={String(local.seriesCount)}
-              onPress={() => toggleOverlay("seriesCount")}
-            />
-            {openOverlay === "seriesCount" ? (
-              <NumberWheelPicker
-                value={local.seriesCount}
-                onChange={(value) => patchLocal({ seriesCount: value })}
-                accessibilityLabel={t.seriesCount.accessibilityLabel}
-                testID="exercise-series-count-wheel"
+            <AnchoredRow testID="exercise-anchored-row-seriesCount" elevated={openOverlay === "seriesCount"}>
+              <Row
+                label={t.seriesCount.label}
+                isOpen={openOverlay === "seriesCount"}
+                value={String(local.seriesCount)}
+                onPress={() => toggleOverlay("seriesCount")}
               />
-            ) : null}
+              {openOverlay === "seriesCount" ? (
+                <PopoverAnchor>
+                  <NumberWheelPicker
+                    value={local.seriesCount}
+                    onChange={(value) => patchLocal({ seriesCount: value })}
+                    accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
+                    testID="exercise-series-count-wheel"
+                  />
+                </PopoverAnchor>
+              ) : null}
+            </AnchoredRow>
           </>
         ) : (
           <>
@@ -322,7 +382,11 @@ export function ExerciseScreen() {
           accessibilityRole="button"
           accessibilityState={{ disabled: !step1Valid }}
           accessibilityLabel={t.validateAction}
-          style={[styles.primaryAction, !step1Valid ? styles.primaryActionDisabled : null]}
+          style={[
+            styles.primaryAction,
+            { marginBottom: insets.bottom + spacing[16] },
+            !step1Valid ? styles.primaryActionDisabled : null,
+          ]}
         >
           <Text style={styles.primaryActionLabel}>{t.validateAction}</Text>
         </Pressable>
@@ -333,7 +397,11 @@ export function ExerciseScreen() {
           accessibilityRole="button"
           accessibilityState={{ disabled: !step1Valid }}
           accessibilityLabel={t.finishAction}
-          style={[styles.primaryAction, !step1Valid ? styles.primaryActionDisabled : null]}
+          style={[
+            styles.primaryAction,
+            { marginBottom: insets.bottom + spacing[16] },
+            !step1Valid ? styles.primaryActionDisabled : null,
+          ]}
         >
           <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
         </Pressable>
@@ -346,14 +414,52 @@ export function ExerciseScreen() {
   );
 }
 
+/**
+ * Ancre de positionnement d'un sélecteur intégré (correction CE-T01-07/14,
+ * AUD-05) — même patron que `CompositionScreen.tsx` (`AnchoredRow`), non
+ * partagé entre les deux écrans pour rester local à chacun (aucun état ni
+ * dépendance commune au-delà du positionnement).
+ *
+ * `elevated` (cycle de correction après contre-recette iPhone, 2026-09-03,
+ * UI-CTRL-002) : élève cette ligne au-dessus de ses frères (Row/section
+ * suivante) tant que son propre popover est ouvert — même cause racine et
+ * même correction que `CompositionScreen.tsx`, voir sa note pour le détail
+ * géométrique démontré (UI-CTRL-001).
+ */
+function AnchoredRow({
+  children,
+  elevated,
+  testID,
+}: {
+  children: React.ReactNode;
+  elevated: boolean;
+  testID: string;
+}) {
+  return (
+    <View testID={testID} style={[styles.anchoredRow, elevated ? styles.elevated : null]}>
+      {children}
+    </View>
+  );
+}
+
+function PopoverAnchor({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={styles.popoverAnchor} testID="exercise-popover-anchor">
+      {children}
+    </View>
+  );
+}
+
 function Row({
   label,
   value,
+  isOpen,
   onPress,
   accessibilityLabel,
 }: {
   label: string;
   value: string;
+  isOpen: boolean;
   onPress: () => void;
   /** Distinct du libellé visuel uniquement lorsque celui-ci entre en collision avec un autre contrôle (ex. `Durée`, partagé avec l'onglet de mode). */
   accessibilityLabel?: string;
@@ -363,10 +469,17 @@ function Row({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ expanded: isOpen }}
       style={styles.row}
     >
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+      <View style={styles.rowTrailing}>
+        <Text style={styles.rowValue}>{value}</Text>
+        <KodjoIcon
+          name={isOpen ? "control-chevron-up" : "control-chevron-down"}
+          testID={`exercise-row-chevron-${isOpen ? "up" : "down"}`}
+        />
+      </View>
     </Pressable>
   );
 }
@@ -374,21 +487,34 @@ function Row({
 function SegmentButton({
   label,
   selected,
+  disabled,
   onPress,
 }: {
   label: string;
   selected: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="tab"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled: Boolean(disabled) }}
       accessibilityLabel={label}
-      style={[styles.segment, selected ? styles.segmentSelected : null]}
+      style={[
+        styles.segment,
+        selected ? styles.segmentSelected : null,
+        disabled ? styles.segmentDisabled : null,
+      ]}
     >
-      <Text style={[styles.segmentLabel, selected ? styles.segmentLabelSelected : null]}>
+      <Text
+        style={[
+          styles.segmentLabel,
+          selected ? styles.segmentLabelSelected : null,
+          disabled ? styles.segmentLabelDisabled : null,
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -399,7 +525,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingTop: spacing[24],
     paddingHorizontal: spacing[24],
     gap: spacing[16],
   },
@@ -415,13 +540,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginLeft: -spacing[12],
   },
-  backIcon: {
-    ...type.activityTitle,
-    color: colors.textPrimary,
-  },
   title: {
     ...type.screenTitle,
     color: colors.textPrimary,
+  },
+  // UI-ACT-002 : ligne de séparation sous l'en-tête fixe (Header/corps),
+  // même patron que `CompositionScreen.tsx` n'en avait pas encore besoin —
+  // ici explicitement requise par le contrat d'écran (Header → séparateur →
+  // corps défilant).
+  headerSeparator: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  bodyTitle: {
+    ...type.screenTitle,
+    color: colors.textPrimary,
+  },
+  fieldLabel: {
+    ...type.supporting,
+    color: colors.textSecondary,
   },
   scrollContent: {
     gap: spacing[16],
@@ -473,6 +610,36 @@ const styles = StyleSheet.create({
   segmentLabelSelected: {
     color: colors.textPrimary,
   },
+  segmentDisabled: {
+    opacity: 0.5,
+  },
+  segmentLabelDisabled: {
+    color: colors.disabled,
+  },
+  anchoredRow: {
+    // Sert uniquement de contexte de positionnement pour son sélecteur
+    // (voir `AnchoredRow` ci-dessus) ; aucune propriété de layout propre.
+  },
+  // Voir `CompositionScreen.tsx` (même nom, même rôle, même correction
+  // UI-CTRL-002) : élève une ligne au-dessus de ses frères tant que son
+  // sélecteur est ouvert, sans quoi le popover reste partiellement ou
+  // totalement recouvert par la ligne/section suivante.
+  elevated: {
+    zIndex: 1,
+  },
+  popoverAnchor: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: spacing[4],
+    zIndex: 20,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -481,6 +648,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[16],
     backgroundColor: colors.surface,
     borderRadius: 12,
+  },
+  rowTrailing: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[4],
   },
   rowLabel: {
     ...type.body,

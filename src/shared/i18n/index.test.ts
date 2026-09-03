@@ -3,12 +3,13 @@ import { describe, expect, it } from "@jest/globals";
 import { strings } from "@/shared/i18n";
 
 describe("strings", () => {
-  it("exposes the four main tab labels in French", () => {
+  it("exposes the four main tab labels in French, plus the distinct Recherche label (AUD-02)", () => {
     expect(strings.nav).toEqual({
       sessions: "Mes séances",
       calendar: "Calendrier",
       history: "Suivi",
       profile: "Profil",
+      search: "Recherche",
     });
   });
 
@@ -137,6 +138,32 @@ describe("strings", () => {
     expect(strings.screens.exercise.finishAction).toBe("Terminer");
     expect(strings.screens.exercise.instruction.label).toBe("Consigne");
     expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+  });
+
+  it("exposes the Exercise Type segment (Exercice/Récupération) and the Paramètres section title (CE-T01-13, AUD-08)", () => {
+    expect(strings.screens.exercise.type).toEqual({
+      label: "Type d’activité",
+      exercise: "Exercice",
+      recovery: "Récupération",
+    });
+    expect(strings.screens.exercise.parametersTitle).toBe("Paramètres de l’activité");
+  });
+
+  it("exposes distinct wheel accessibility labels for Répétitions/Séries, never colliding with their row label (AUD-05)", () => {
+    expect(strings.screens.exercise.repetitionCount.wheelAccessibilityLabel).not.toBe(
+      strings.screens.exercise.repetitionCount.label,
+    );
+    expect(strings.screens.exercise.seriesCount.wheelAccessibilityLabel).not.toBe(
+      strings.screens.exercise.seriesCount.label,
+    );
+  });
+
+  it("exposes the distinct navigation Recherche accessibility label (AUD-02)", () => {
+    expect(strings.nav.search).toBe("Recherche");
+  });
+
+  it("exposes the Composition Retour accessibility label (AUD-03)", () => {
+    expect(strings.screens.composition.backAccessibilityLabel).toBe("Retour");
   });
 
   it("exposes a Durée row accessibility label distinct from the Durée/Répétition mode tab (T01-S08)", () => {

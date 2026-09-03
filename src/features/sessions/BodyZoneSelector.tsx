@@ -1,7 +1,17 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { BodyZone } from "@/features/reference-data/bodyZones";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Marge tactile invisible portant chaque pastille (hauteur visuelle ≈ 36,
+ * `type.body` + paddings) à la cible minimale `48 × 48` sans en agrandir la
+ * taille visuelle (doc12 §Dimensions structurantes, doc13 §3.3 ; CE-T01-11
+ * prévoit explicitement ce patron : « hauteur visuelle 30, cible tactile
+ * minimale 48 »). Correction — audit `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`.
+ */
+const TAG_VISUAL_HEIGHT = spacing[8] * 2 + type.body.lineHeight;
+const TAG_HIT_SLOP = Math.max(0, Math.ceil((minTouchTarget - TAG_VISUAL_HEIGHT) / 2));
 
 export type BodyZoneSelectorProps = {
   /** Référentiel à afficher — jamais codé en dur ici (D-093) : fourni par l'appelant (`bodyZones.ts`). */
@@ -44,6 +54,7 @@ export function BodyZoneSelector({
             accessibilityRole="checkbox"
             accessibilityState={{ checked: isSelected }}
             accessibilityLabel={zone.name}
+            hitSlop={TAG_HIT_SLOP}
             style={[styles.tag, isSelected ? styles.tagSelected : null]}
           >
             <Text style={[styles.tagLabel, isSelected ? styles.tagLabelSelected : null]}>

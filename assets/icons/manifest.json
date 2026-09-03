@@ -5,7 +5,7 @@
   "figmaPage": "Design system — Fondations",
   "rules": {
     "svg": "Canonical vector master exported with Figma SVG_STRING",
-    "raster": "PNG runtime variants generated from the SVG master at 1x, 2x and 3x",
+    "raster": "Rendered directly at runtime from the SVG master via expo-image (KodjoIcon.tsx), density-independent — no separate 1x/2x/3x PNG pipeline exists or is required",
     "substitution": "Typography characters and approximate icons are forbidden",
     "systemStatusBar": "Rendered by iOS or Android; not bundled as application assets"
   },

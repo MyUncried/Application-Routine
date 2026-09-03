@@ -1,11 +1,13 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { strings } from "@/shared/i18n";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
  * Seul `expo-router` est mocké (frontière de navigation). Le hook réel
@@ -70,9 +72,11 @@ function makeFakeService() {
 
 function renderScreen(service: SessionService) {
   return render(
-    <SessionServiceContext.Provider value={service}>
-      <CatalogueScreen />
-    </SessionServiceContext.Provider>,
+    <TestSafeAreaProvider>
+      <SessionServiceContext.Provider value={service}>
+        <CatalogueScreen />
+      </SessionServiceContext.Provider>
+    </TestSafeAreaProvider>,
   );
 }
 
@@ -164,6 +168,28 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/composition");
+  });
+
+  it("Créer has the exact CE-T01-02 visual frame (90×32, compact-secondary radius), and a real ≥48×48 touch target via hitSlop, not visual enlargement (UI-CAT-001)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
+    const flattened = StyleSheet.flatten(createAction.props.style);
+    expect(flattened.width).toBe(90);
+    expect(flattened.height).toBe(32);
+    expect(flattened.borderRadius).toBe(16);
+
+    const hitSlop = createAction.props.hitSlop;
+    expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(48);
+    expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
   it("pressing Toutes (already selected) changes nothing: no re-render effect, no reload, no navigation", async () => {

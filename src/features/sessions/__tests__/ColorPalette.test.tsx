@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { SESSION_COLORS } from "@/domain/sessions/Session";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import { strings } from "@/shared/i18n";
+import { minTouchTarget } from "@/shared/ui/tokens";
 
 describe("ColorPalette", () => {
   it("shows only the compact swatch when closed, never the grid", () => {
@@ -70,5 +72,47 @@ describe("ColorPalette", () => {
     );
 
     expect(onChange).toHaveBeenCalledWith(SESSION_COLORS[5]);
+  });
+
+  describe("corrections de conformité (T01_S01_S08_CONFORMITY_AUDIT_20260902.md — AUD-04/AUD-05)", () => {
+    it("shows the state-selected icon only on the currently selected swatch, never on the others", () => {
+      render(
+        <ColorPalette value={SESSION_COLORS[2]} onChange={jest.fn()} isOpen={true} onToggle={jest.fn()} />,
+      );
+
+      expect(screen.getByTestId("color-palette-selected-icon")).toBeTruthy();
+      expect(screen.getAllByTestId("color-palette-selected-icon")).toHaveLength(1);
+    });
+
+    it("carries a hitSlop on the compact swatch and every grid swatch reaching the 48×48 minimum touch target", () => {
+      render(
+        <ColorPalette value={SESSION_COLORS[0]} onChange={jest.fn()} isOpen={true} onToggle={jest.fn()} />,
+      );
+
+      const compactSwatch = screen.getByLabelText(strings.screens.composition.colorPicker.label);
+      expect(compactSwatch.props.hitSlop).toBeGreaterThan(0);
+
+      const flattenedCompact = StyleSheet.flatten(compactSwatch.props.style);
+      const compactEffectiveSize = flattenedCompact.width + 2 * compactSwatch.props.hitSlop;
+      expect(compactEffectiveSize).toBeGreaterThanOrEqual(minTouchTarget);
+
+      const gridSwatch = screen.getByLabelText(
+        `${strings.screens.composition.colorPicker.swatchAccessibilityLabel} ${SESSION_COLORS[5]}`,
+      );
+      expect(gridSwatch.props.hitSlop).toBeGreaterThan(0);
+      const flattenedGrid = StyleSheet.flatten(gridSwatch.props.style);
+      const gridEffectiveSize = flattenedGrid.width + 2 * gridSwatch.props.hitSlop;
+      expect(gridEffectiveSize).toBeGreaterThanOrEqual(minTouchTarget);
+    });
+
+    it("anchors the popover as a superposed overlay (position: absolute), never pushing the layout below (CE-T01-06)", () => {
+      render(
+        <ColorPalette value={SESSION_COLORS[0]} onChange={jest.fn()} isOpen={true} onToggle={jest.fn()} />,
+      );
+
+      const popover = screen.getByTestId("color-palette-popover");
+      const flattened = StyleSheet.flatten(popover.props.style);
+      expect(flattened.position).toBe("absolute");
+    });
   });
 });

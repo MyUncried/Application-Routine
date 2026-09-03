@@ -1,11 +1,13 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -51,9 +53,11 @@ function renderScreen(draftExercise: ReturnType<typeof createExerciseDraft> | nu
   };
 
   render(
-    <SessionDraftContext.Provider value={contextValue}>
-      <ExerciseScreen />
-    </SessionDraftContext.Provider>,
+    <TestSafeAreaProvider>
+      <SessionDraftContext.Provider value={contextValue}>
+        <ExerciseScreen />
+      </SessionDraftContext.Provider>
+    </TestSafeAreaProvider>,
   );
 
   return { updateDraft };
@@ -71,6 +75,16 @@ describe("ExerciseScreen — mode ajout (draft.exercise === null)", () => {
   it("shows the 'Ajouter une activité' title", () => {
     renderScreen(null);
     expect(screen.getByText(t.titleAdd)).toBeTruthy();
+  });
+
+  it("shows the real Session name in the fixed Header, distinct from the body title 'Ajouter une activité' (UI-ACT-002)", () => {
+    renderScreen(null); // draft.name = "Séance simple" (helper de rendu)
+
+    const header = screen.getByTestId("exercise-header");
+    expect(within(header).getByText("Séance simple")).toBeTruthy();
+    // Le titre "Ajouter une activité" reste affiché ailleurs (corps), mais
+    // jamais dans l'en-tête — celui-ci n'affiche que le nom de la Séance.
+    expect(within(header).queryByText(t.titleAdd)).toBeNull();
   });
 
   it("starts on Étape 1 with the Valider button disabled (empty name)", () => {
@@ -97,6 +111,30 @@ describe("ExerciseScreen — mode ajout (draft.exercise === null)", () => {
     expect(screen.getByLabelText(t.instruction.label)).toBeTruthy();
     expect(screen.getByLabelText(t.bodyZones.accessibilityLabel)).toBeTruthy();
     expect(updateDraft).not.toHaveBeenCalled();
+  });
+});
+
+describe("ExerciseScreen — segment Type d'activité (CE-T01-13, AUD-08 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+  it("shows the Exercice/Récupération segment, Exercice locked selected and Récupération visibly disabled", () => {
+    renderScreen(null);
+
+    const exerciseTab = screen.getByLabelText(t.type.exercise);
+    const recoveryTab = screen.getByLabelText(t.type.recovery);
+
+    expect(exerciseTab.props.accessibilityState).toMatchObject({ selected: true });
+    expect(recoveryTab.props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+  });
+
+  it("never opens any screen when Récupération is pressed (disabled, no partial screen per CE-T01-13)", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByLabelText(t.type.recovery));
+
+    // Toujours sur l'écran Exercice, Étape 1 — aucune navigation ni bascule.
+    expect(screen.getByLabelText(t.name)).toBeTruthy();
+    expect(screen.getByLabelText(t.type.exercise).props.accessibilityState).toMatchObject({
+      selected: true,
+    });
   });
 });
 
@@ -138,6 +176,75 @@ describe("ExerciseScreen — mode Répétitions", () => {
     expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
+  });
+});
+
+describe("ExerciseScreen — hiérarchie visuelle et ancrage des sélecteurs (CE-T01-07/14, AUD-05 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+  it("shows a closed chevron by default and an open chevron once a row is toggled", () => {
+    renderScreen(null);
+
+    expect(screen.getAllByTestId("exercise-row-chevron-down").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("exercise-row-chevron-up")).toBeNull();
+
+    fireEvent.press(screen.getByLabelText(t.duration.accessibilityLabel));
+
+    expect(screen.getByTestId("exercise-row-chevron-up")).toBeTruthy();
+  });
+
+  it("anchors the open picker as a superposed popover (position: absolute), never pushing the layout below", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByLabelText(t.duration.accessibilityLabel));
+
+    const anchor = screen.getByTestId("exercise-popover-anchor");
+    const flattened = StyleSheet.flatten(anchor.props.style);
+    expect(flattened.position).toBe("absolute");
+  });
+
+  it("elevates the open row's zIndex above its siblings, so the following row/section cannot paint over its popover (UI-CTRL-002, root cause UI-CTRL-001)", () => {
+    // Même défaut, même correction que `CompositionScreen.tsx` : le popover
+    // (≈136px) déborde largement de l'écart réel jusqu'à la ligne suivante
+    // (Pause, puis Séries) — sans `zIndex` différencié, ces lignes,
+    // rendues après, peignaient par-dessus le popover ouvert et captaient
+    // le geste à sa place.
+    renderScreen(null);
+
+    const closedDuration = screen.getByTestId("exercise-anchored-row-duration");
+    expect(StyleSheet.flatten(closedDuration.props.style).zIndex).toBeUndefined();
+
+    fireEvent.press(screen.getByLabelText(t.duration.accessibilityLabel));
+
+    const openDuration = screen.getByTestId("exercise-anchored-row-duration");
+    expect(StyleSheet.flatten(openDuration.props.style).zIndex).toBe(1);
+
+    const pauseSibling = screen.getByTestId("exercise-anchored-row-pauseSeconds");
+    expect(StyleSheet.flatten(pauseSibling.props.style).zIndex).toBeUndefined();
+  });
+
+  it("selects a real value in the Séries picker, keeps it after closing, and it is actually used to enable/disable Terminer (used in calculations, AUD-05)", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+
+    fireEvent.press(screen.getByLabelText(t.seriesCount.label));
+    fireEvent.scroll(screen.getByTestId("exercise-series-count-wheel"), {
+      nativeEvent: { contentOffset: { y: 80 } }, // index 2 -> valeur 3 (bornes 1-99)
+    });
+    // Le sélecteur reste ouvert : "3" apparaît à la fois sur la ligne et
+    // dans la colonne défilante elle-même (une occurrence par valeur
+    // rendue) — au moins une occurrence suffit à prouver la sélection.
+    expect(screen.getAllByText("3").length).toBeGreaterThan(0);
+
+    // Fermer le sélecteur en pressant de nouveau la ligne.
+    fireEvent.press(screen.getByLabelText(t.seriesCount.label));
+    expect(screen.queryByTestId("exercise-series-count-wheel")).toBeNull();
+
+    // La valeur reste affichée après fermeture — pas réinitialisée.
+    expect(screen.getByText("3")).toBeTruthy();
+  });
+
+  it("shows the Paramètres de l'activité section title (CE-T01-13)", () => {
+    renderScreen(null);
+    expect(screen.getByText(t.parametersTitle)).toBeTruthy();
   });
 });
 

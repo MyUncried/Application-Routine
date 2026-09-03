@@ -10,18 +10,24 @@ import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import { strings } from "@/shared/i18n";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
 
-/** `useRouter` mocké (T01-S08) — `+ Ajouter une activité`/la ligne Exercice naviguent désormais vers `/exercise`. */
+/**
+ * `useRouter` mocké (T01-S08) — `+ Ajouter une activité`/la ligne Exercice
+ * naviguent vers `/exercise` ; `back` (correction CE-T01-04, AUD-03) couvre
+ * désormais l'action Retour de l'en-tête.
+ */
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
-    useRouter: () => ({ push: mockPush }),
+    useRouter: () => ({ push: mockPush, back: mockBack }),
   };
 });
 
@@ -44,9 +50,11 @@ function defaultExitGuardResult() {
 
 function renderScreen() {
   return render(
-    <SessionDraftProvider>
-      <CompositionScreen />
-    </SessionDraftProvider>,
+    <TestSafeAreaProvider>
+      <SessionDraftProvider>
+        <CompositionScreen />
+      </SessionDraftProvider>
+    </TestSafeAreaProvider>,
   );
 }
 
@@ -64,9 +72,11 @@ function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> 
     resetDraft: jest.fn(),
   };
   return render(
-    <SessionDraftContext.Provider value={contextValue}>
-      <CompositionScreen />
-    </SessionDraftContext.Provider>,
+    <TestSafeAreaProvider>
+      <SessionDraftContext.Provider value={contextValue}>
+        <CompositionScreen />
+      </SessionDraftContext.Provider>
+    </TestSafeAreaProvider>,
   );
 }
 
@@ -76,6 +86,7 @@ beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
   mockPush.mockReset();
+  mockBack.mockReset();
 });
 
 describe("CompositionScreen — état initial", () => {
@@ -92,6 +103,79 @@ describe("CompositionScreen — état initial", () => {
 
     const continueAction = screen.getByLabelText(composition.continueAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("exposes a visible, accessible Retour action calling router.back() (CE-T01-04, AUD-03 correction)", () => {
+    renderScreen();
+
+    const back = screen.getByLabelText(composition.backAccessibilityLabel);
+    expect(back).toBeTruthy();
+
+    fireEvent.press(back);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the composition icons for Compte à rebours initial and Fin de séance rows (CE-T01-09 icons, previously unused)", () => {
+    renderScreen();
+
+    expect(screen.getByTestId("composition-row-icon-composition-initial-countdown")).toBeTruthy();
+    expect(screen.getByTestId("composition-row-icon-composition-end-session")).toBeTruthy();
+  });
+
+  it("shows a closed chevron on rows by default, and an open chevron once toggled (CE-T01-07, AUD-05 hierarchy)", () => {
+    renderScreen();
+
+    // Deux lignes repliables (Compte à rebours, Fin de séance), toutes deux
+    // fermées par défaut.
+    expect(screen.getAllByTestId("composition-row-chevron-down")).toHaveLength(2);
+    expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    expect(screen.getByTestId("composition-row-chevron-up")).toBeTruthy();
+    expect(screen.getAllByTestId("composition-row-chevron-down")).toHaveLength(1);
+  });
+
+  it("anchors the open picker as a superposed popover (position: absolute), never pushing the layout below (CE-T01-06/07, AUD-05)", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    const anchor = screen.getByTestId("composition-popover-anchor");
+    const flattened = StyleSheet.flatten(anchor.props.style);
+    expect(flattened.position).toBe("absolute");
+  });
+
+  it("elevates the open row's zIndex above its siblings, so the following row cannot paint over its popover (UI-CTRL-002, root cause UI-CTRL-001)", () => {
+    // Preuve du défaut réel constaté sur iPhone (« ouvre mais ne peut pas
+    // sélectionner ») : le popover (≈136px) déborde largement de l'écart
+    // jusqu'à la ligne suivante (≈20px). Sans `zIndex` différencié entre
+    // lignes frères, React Native peint la ligne suivante — montée après —
+    // par-dessus le popover ouvert, qui capte alors le geste à sa place.
+    renderScreen();
+
+    // Fermé : aucune ligne n'a besoin d'être élevée au-dessus de ses frères.
+    const closedCountdown = screen.getByTestId("composition-anchored-row-countdown");
+    expect(StyleSheet.flatten(closedCountdown.props.style).zIndex).toBeUndefined();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    const openCountdown = screen.getByTestId("composition-anchored-row-countdown");
+    expect(StyleSheet.flatten(openCountdown.props.style).zIndex).toBe(1);
+
+    // Le sélecteur voisin (Fin de séance), lui, reste au niveau par défaut :
+    // seule la ligne réellement ouverte doit être élevée.
+    const finalPhase = screen.getByTestId("composition-anchored-row-finalPhase");
+    expect(StyleSheet.flatten(finalPhase.props.style).zIndex).toBeUndefined();
+  });
+
+  it("elevates the header (name + colour swatch) above the rows below it while the colour popover is open (same UI-CTRL-002 correction)", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
+
+    const header = screen.getByTestId("composition-header");
+    expect(StyleSheet.flatten(header.props.style).zIndex).toBe(1);
   });
 
   it("enables '+ Ajouter une activité' while no Exercise exists yet, and navigates to /exercise on press (T01-S08)", () => {
@@ -224,6 +308,23 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByText("0 activité · 0 min")).toBeTruthy();
   });
 
+  it("selects a real value in the countdown picker and keeps it after the picker is closed (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    fireEvent.scroll(screen.getByTestId("duration-wheel-minutes"), {
+      nativeEvent: { contentOffset: { y: 80 } }, // index 2 -> 2 min
+    });
+    expect(screen.getByText("02 min 10 s")).toBeTruthy();
+
+    // Fermer le sélecteur en pressant de nouveau la ligne.
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+
+    // La valeur reste affichée sur la ligne après fermeture — pas réinitialisée.
+    expect(screen.getByText("02 min 10 s")).toBeTruthy();
+  });
+
   it("selecting a color actually applies it to the draft (compact swatch background) and closes the palette", () => {
     renderScreen();
 
@@ -262,6 +363,13 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(screen.getByText("Gainage")).toBeTruthy();
   });
 
+  it("shows the composition-main-content and composition-reorder icons on the Exercise row (CE-T01-09 icons, previously unused)", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    expect(screen.getByTestId("composition-exercise-icon")).toBeTruthy();
+    expect(screen.getByTestId("composition-reorder-icon")).toBeTruthy();
+  });
+
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
     renderScreenWithDraft({
       ...createExerciseDraft(),
@@ -289,6 +397,90 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(screen.queryByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeNull();
   });
 });
+
+describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de correction après contre-recette iPhone 2026-09-03)", () => {
+  it("initial order (no Activity yet): + Ajouter une activité ABOVE Compte à rebours initial, then Tour, then Fin de séance (UI-COMP-002)", () => {
+    renderScreenWithDraft(null);
+
+    const order = testIdOrder(screen.toJSON(), [
+      "composition-add-activity-icon",
+      "composition-row-icon-composition-initial-countdown",
+      "composition-row-icon-composition-end-session",
+    ]);
+
+    expect(order).toEqual([
+      "composition-add-activity-icon",
+      "composition-row-icon-composition-initial-countdown",
+      "composition-row-icon-composition-end-session",
+    ]);
+    // Tour n'a pas de testID propre : sa position entre les deux est prouvée
+    // par labels de texte, dans le même ordre visuel.
+    const labelOrder = textOrder(screen.toJSON(), [
+      composition.countdown.label,
+      composition.tour.label,
+      composition.finalPhase.label,
+    ]);
+    expect(labelOrder).toEqual([composition.countdown.label, composition.tour.label, composition.finalPhase.label]);
+  });
+
+  it("order once an Activity exists: Compte à rebours initial, then the created Activity, then Tour, then Fin de séance (UI-COMP-003) — never after Tour", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    const order = testIdOrder(screen.toJSON(), [
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-icon",
+      "composition-row-icon-composition-end-session",
+    ]);
+    expect(order).toEqual([
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-icon",
+      "composition-row-icon-composition-end-session",
+    ]);
+
+    const labelOrder = textOrder(screen.toJSON(), [
+      composition.countdown.label,
+      composition.tour.label,
+      composition.finalPhase.label,
+    ]);
+    expect(labelOrder).toEqual([composition.countdown.label, composition.tour.label, composition.finalPhase.label]);
+  });
+});
+
+/** Ordre de première apparition (parcours préfixe) des `testID` demandés dans l'arbre rendu. */
+function testIdOrder(tree: ReturnType<typeof screen.toJSON>, ids: string[]): string[] {
+  const found: string[] = [];
+  walk(tree, (node) => {
+    if (node?.props?.testID && ids.includes(node.props.testID)) {
+      found.push(node.props.testID as string);
+    }
+  });
+  return found;
+}
+
+/** Même principe pour des libellés de texte (nœuds `Text` dont le seul enfant est la chaîne recherchée). */
+function textOrder(tree: ReturnType<typeof screen.toJSON>, labels: string[]): string[] {
+  const found: string[] = [];
+  walk(tree, (node) => {
+    if (typeof node?.children?.[0] === "string" && labels.includes(node.children[0])) {
+      found.push(node.children[0]);
+    }
+  });
+  return found;
+}
+
+function walk(node: any, visit: (node: any) => void): void {
+  if (!node) {
+    return;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((child) => walk(child, visit));
+    return;
+  }
+  visit(node);
+  if (node.children) {
+    walk(node.children, visit);
+  }
+}
 
 describe("CompositionScreen — modale d'abandon", () => {
   it("renders AbandonCreationModal exactly when isPendingExit is true, wired to cancelExit/confirmExit", () => {

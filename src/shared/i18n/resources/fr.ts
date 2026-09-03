@@ -21,6 +21,7 @@ export const fr = {
     calendar: "Calendrier",
     history: "Suivi",
     profile: "Profil",
+    search: "Recherche",
   },
   screens: {
     notFound: {
@@ -62,6 +63,7 @@ export const fr = {
     },
     composition: {
       title: "Composition d’une séance",
+      backAccessibilityLabel: "Retour",
       name: "Nom de la séance",
       colorPicker: {
         label: "Couleur",
@@ -109,12 +111,18 @@ export const fr = {
       titleAdd: "Ajouter une activité",
       titleEdit: "Modifier une activité",
       backAccessibilityLabel: "Retour",
+      type: {
+        label: "Type d’activité",
+        exercise: "Exercice",
+        recovery: "Récupération",
+      },
       name: "Nom",
       executionMode: {
         label: "Mode d’exécution",
         duration: "Durée",
         repetitions: "Répétition",
       },
+      parametersTitle: "Paramètres de l’activité",
       duration: {
         label: "Durée",
         // Distinct de `executionMode.duration` (même mot, deux contrôles
@@ -126,6 +134,11 @@ export const fr = {
       repetitionCount: {
         label: "Nombre de répétitions",
         accessibilityLabel: "Nombre de répétitions",
+        // Distincte de `accessibilityLabel` (ligne) : `NumberWheelPicker`
+        // reçoit un unique `accessibilityLabel`, qui entrait en collision
+        // avec celui de la ligne une fois le sélecteur ouvert (audit
+        // `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`, AUD-05).
+        wheelAccessibilityLabel: "Roulette nombre de répétitions",
       },
       pauseSeconds: {
         label: "Pause après Série",
@@ -133,6 +146,7 @@ export const fr = {
       seriesCount: {
         label: "Nombre de Séries",
         accessibilityLabel: "Nombre de Séries",
+        wheelAccessibilityLabel: "Roulette nombre de Séries",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",

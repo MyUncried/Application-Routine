@@ -16,7 +16,8 @@ import {
   indexToOffset,
   offsetToIndex,
 } from "@/features/sessions/wheelPickerMath";
-import { colors, type } from "@/shared/ui/tokens";
+import { WheelSelectionOverlay } from "@/features/sessions/WheelSelectionOverlay";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Roulette à colonne unique pour Répétitions/Séries d'un Exercice
@@ -25,6 +26,13 @@ import { colors, type } from "@/shared/ui/tokens";
  * (`onScroll`, pas `onMomentumScrollEnd`, une seule condition de garde
  * avant tout traitement) — voir ce composant pour la justification
  * complète, non répétée ici.
+ *
+ * Enveloppée depuis la correction de conformité
+ * (`T01_S01_S08_CONFORMITY_AUDIT_20260902.md`) dans un cadre visuel
+ * identique à `DurationWheelPicker` (fond, rayon) — jusqu'ici rendue nue,
+ * incohérente avec le composant `Picker / Popover` du Design System — et
+ * porte désormais `WheelSelectionOverlay` (ligne centrale sélectionnée +
+ * estompage des valeurs voisines, CE-T01-07).
  */
 
 const ITEM_HEIGHT = 40;
@@ -85,31 +93,45 @@ export function NumberWheelPicker({
   }
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      testID={testID}
-      style={styles.column}
-      showsVerticalScrollIndicator={false}
-      snapToInterval={ITEM_HEIGHT}
-      decelerationRate="fast"
-      scrollEventThrottle={16}
-      onScroll={handleScroll}
-      onMomentumScrollEnd={align}
-      onScrollEndDrag={align}
-      accessibilityRole="adjustable"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityValue={{ min: WHEEL_NUMBER_MIN, max: WHEEL_NUMBER_MAX, now: value }}
-    >
-      {VALUES.map((item) => (
-        <View key={item} style={styles.item}>
-          <Text style={styles.itemLabel}>{item}</Text>
-        </View>
-      ))}
-    </ScrollView>
+    <View style={styles.container} testID="number-wheel-picker-container">
+      <View style={styles.wheelArea}>
+        <ScrollView
+          ref={scrollRef}
+          testID={testID}
+          style={styles.column}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={ITEM_HEIGHT}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={handleScroll}
+          onMomentumScrollEnd={align}
+          onScrollEndDrag={align}
+          accessibilityRole="adjustable"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityValue={{ min: WHEEL_NUMBER_MIN, max: WHEEL_NUMBER_MAX, now: value }}
+        >
+          {VALUES.map((item) => (
+            <View key={item} style={styles.item}>
+              <Text style={styles.itemLabel}>{item}</Text>
+            </View>
+          ))}
+        </ScrollView>
+        <WheelSelectionOverlay itemHeight={ITEM_HEIGHT} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingVertical: spacing[8],
+    alignItems: "center",
+  },
+  wheelArea: {
+    height: ITEM_HEIGHT * 3,
+  },
   column: {
     height: ITEM_HEIGHT * 3,
   },

@@ -19,6 +19,7 @@ import {
   offsetToIndex,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
+import { WheelSelectionOverlay } from "@/features/sessions/WheelSelectionOverlay";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -169,27 +170,30 @@ function WheelColumn({
   onScrollEndDrag,
 }: WheelColumnProps) {
   return (
-    <ScrollView
-      ref={scrollRef}
-      testID={testID}
-      style={styles.column}
-      showsVerticalScrollIndicator={false}
-      snapToInterval={ITEM_HEIGHT}
-      decelerationRate="fast"
-      scrollEventThrottle={16}
-      onScroll={onScroll}
-      onMomentumScrollEnd={onMomentumScrollEnd}
-      onScrollEndDrag={onScrollEndDrag}
-      accessibilityRole="adjustable"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityValue={{ min: 0, max, now }}
-    >
-      {values.map((value) => (
-        <View key={value} style={styles.item}>
-          <Text style={styles.itemLabel}>{formatTwoDigits(value)}</Text>
-        </View>
-      ))}
-    </ScrollView>
+    <View style={styles.wheelArea}>
+      <ScrollView
+        ref={scrollRef}
+        testID={testID}
+        style={styles.column}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_HEIGHT}
+        decelerationRate="fast"
+        scrollEventThrottle={16}
+        onScroll={onScroll}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        onScrollEndDrag={onScrollEndDrag}
+        accessibilityRole="adjustable"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityValue={{ min: 0, max, now }}
+      >
+        {values.map((value) => (
+          <View key={value} style={styles.item}>
+            <Text style={styles.itemLabel}>{formatTwoDigits(value)}</Text>
+          </View>
+        ))}
+      </ScrollView>
+      <WheelSelectionOverlay itemHeight={ITEM_HEIGHT} />
+    </View>
   );
 }
 
@@ -202,6 +206,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: spacing[8],
     gap: spacing[4],
+  },
+  wheelArea: {
+    height: ITEM_HEIGHT * 3,
   },
   column: {
     height: ITEM_HEIGHT * 3,

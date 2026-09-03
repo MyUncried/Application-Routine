@@ -1,13 +1,14 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Écran du Catalogue des séances (T01-S06). Seul point d'appel à
@@ -21,6 +22,7 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  */
 export function CatalogueScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { state, reload, cancelPending } = useSessionCatalogue();
 
   useFocusEffect(
@@ -33,7 +35,7 @@ export function CatalogueScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing[16] }]}>
       <Text style={styles.title} accessibilityRole="header">
         {strings.screens.sessions.title}
       </Text>
@@ -98,13 +100,29 @@ function FilterSelector() {
  * `+ Créer`. Activé depuis T01-S07 : navigue vers `Composition d'une
  * séance` (`app/(creation)/composition.tsx`), qui n'existait pas avant
  * cette sous-étape (RM-014).
+ *
+ * Correction UI-CAT-001 (cycle de correction après contre-recette iPhone,
+ * 2026-09-03, CE-T01-02) : cadre visuel exact `90 × 32`, rayon du token
+ * `dimensions.compactSecondaryButton` (16, pas la valeur improvisée
+ * précédente 20) — la cible tactile réelle (`minTouchTarget`, 48×48) est
+ * obtenue via `hitSlop`, jamais en agrandissant la boîte visuelle
+ * elle-même (doc12 §Dimensions structurantes, doc13 §3.3).
  */
 function CreateAction({ onPress }: { onPress: () => void }) {
+  const horizontalHitSlop = (minTouchTarget - CREATE_ACTION_WIDTH) / 2;
+  const verticalHitSlop = (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2;
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={strings.screens.sessions.createAction}
+      hitSlop={{
+        top: verticalHitSlop,
+        bottom: verticalHitSlop,
+        left: horizontalHitSlop,
+        right: horizontalHitSlop,
+      }}
       style={styles.createAction}
     >
       <KodjoIcon name="action-add" testID="catalogue-create-icon" />
@@ -112,6 +130,8 @@ function CreateAction({ onPress }: { onPress: () => void }) {
     </Pressable>
   );
 }
+
+const CREATE_ACTION_WIDTH = 90;
 
 function LoadingBody() {
   return (
@@ -164,7 +184,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingTop: spacing[24],
     paddingHorizontal: spacing[24],
     gap: spacing[16],
   },
@@ -200,10 +219,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: spacing[6],
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[8],
-    borderRadius: 20,
+    width: CREATE_ACTION_WIDTH,
+    height: dimensions.compactSecondaryButton.visualHeight,
+    borderRadius: dimensions.compactSecondaryButton.radius,
     borderWidth: 1,
     borderColor: colors.primary,
   },

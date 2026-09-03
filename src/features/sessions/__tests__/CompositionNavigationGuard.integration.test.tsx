@@ -1,4 +1,5 @@
 import { act, fireEvent, renderRouter, screen, testRouter } from "expo-router/testing-library";
+import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Pressable, Text, View } from "react-native";
@@ -38,6 +39,7 @@ function CreationLayoutStub() {
 }
 
 function CompositionRouteStub() {
+  const router = useRouter();
   const { draft, updateDraft, resetDraft } = useSessionDraft();
   const shouldBlock = isSessionDraftDirty(draft);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlock, resetDraft);
@@ -46,6 +48,17 @@ function CompositionRouteStub() {
     <View>
       <Text>composition-screen</Text>
       <Text testID="draft-name">{draft.name}</Text>
+      {/* Action Retour visible (correction CE-T01-04, AUD-03) — appelle
+          `router.back()` sans traitement spécial, exactement comme dans
+          `CompositionScreen.tsx` : la navigation arrière normale déclenchée
+          reste interceptée par `usePreventRemove` comme n'importe quelle
+          autre sortie (geste système, bouton matériel). */}
+      <Pressable
+        accessibilityLabel={strings.screens.composition.backAccessibilityLabel}
+        onPress={() => router.back()}
+      >
+        <Text>{strings.screens.composition.backAccessibilityLabel}</Text>
+      </Pressable>
       <Pressable
         accessibilityLabel="modifier-le-brouillon"
         onPress={() => updateDraft({ name: "Séance modifiée" })}
@@ -192,6 +205,47 @@ describe("Garde de sortie de Composition — vrai navigateur, mécanisme de pré
 
     expect(router.getPathname()).toBe("/");
     expect(screen.queryByText("Abandonner la création ?")).toBeNull();
+  });
+});
+
+describe("Action Retour visible (correction CE-T01-04, AUD-03 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
+  it("l'action Retour est visible et accessible", () => {
+    renderCreationRouter();
+
+    testRouter.push("/composition");
+
+    expect(
+      screen.getByLabelText(strings.screens.composition.backAccessibilityLabel),
+    ).toBeTruthy();
+  });
+
+  it("retour propre sans modification : appui sur Retour revient directement à l'accueil, sans modale", () => {
+    const router = renderCreationRouter();
+
+    testRouter.push("/composition");
+    act(() => {
+      pressLabel(strings.screens.composition.backAccessibilityLabel);
+    });
+
+    expect(router.getPathname()).toBe("/");
+    expect(screen.queryByText("Abandonner la création ?")).toBeNull();
+  });
+
+  it("appui sur Retour après modification ouvre la modale d'abandon, sans perdre le brouillon", () => {
+    const router = renderCreationRouter();
+
+    testRouter.push("/composition");
+    act(() => {
+      fireModifyDraft();
+    });
+
+    act(() => {
+      pressLabel(strings.screens.composition.backAccessibilityLabel);
+    });
+
+    expect(router.getPathname()).toBe("/composition");
+    expect(screen.getAllByText("Abandonner la création ?")).toHaveLength(1);
+    expect(screen.getByTestId("draft-name").props.children).toBe("Séance modifiée");
   });
 });
 
