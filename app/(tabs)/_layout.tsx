@@ -7,6 +7,7 @@ import {
   NAVIGATION_ICON_SLOT,
   NAVIGATION_ITEM_VERTICAL_PADDING,
   NAVIGATION_LABEL_GAP,
+  navigationBarBottomResidual,
 } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
@@ -55,12 +56,21 @@ import { strings } from "@/shared/i18n";
  * contenu réel (`NAVIGATION_ICON_SLOT` + libellé + espacements DS,
  * `NAVIGATION_CONTENT_HEIGHT`, partagées depuis
  * `@/shared/ui/navigationLayout` — valeur exacte par construction
- * puisque c'est la même valeur qui détermine le padding de chaque item),
- * positionnée à `bottom: insets.bottom` — aucune marge flottante
- * supplémentaire, la Safe Area n'est appliquée qu'une seule fois ici.
- * `CatalogueScreen.tsx` importe `NAVIGATION_CONTENT_HEIGHT` pour réserver
+ * puisque c'est la même valeur qui détermine le padding de chaque item).
+ * `CatalogueScreen.tsx` importe `navigationBarTotalHeight` pour réserver
  * exactement cet espace dans son propre calcul de centrage (CAT-R04) —
  * une seule source de vérité, pas deux estimations indépendantes.
+ *
+ * Correction `D` (contre-recette iPhone, correction consolidée,
+ * 2026-09-03, addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) :
+ * la rangée est désormais ancrée à `bottom: 0` (le bord physique de
+ * l'écran), la Safe Area étant consommée À L'INTÉRIEUR via `paddingBottom:
+ * navigationBarBottomResidual(insets.bottom)` — auparavant `bottom:
+ * insets.bottom` translatait la barre ENTIÈRE de la Safe Area complète en
+ * plus de sa propre hauteur, ce qui ne correspond pas à la géométrie de
+ * référence transmise par cette revue (résiduel bas `11pt`, pas `34pt`).
+ * Voir `@/shared/ui/navigationLayout` pour la dérivation complète de cette
+ * formule et sa réserve de preuve (`NON_VERIFIABLE_DEVICE`).
  */
 export default function TabsLayout() {
   return (
@@ -122,7 +132,10 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.navigationRow, { bottom: insets.bottom }]} testID="navigation-row">
+    <View
+      style={[styles.navigationRow, { paddingBottom: navigationBarBottomResidual(insets.bottom) }]}
+      testID="navigation-row"
+    >
       <View style={styles.tabsGroup} testID="navigation-tabs-group">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -190,6 +203,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing[16],
     right: spacing[16],
+    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing[12],

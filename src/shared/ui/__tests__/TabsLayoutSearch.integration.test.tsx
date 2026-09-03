@@ -2,7 +2,11 @@ import { fireEvent, renderRouter, screen } from "expo-router/testing-library";
 import { describe, expect, it } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
-import { NAVIGATION_ICON_SLOT } from "@/shared/ui/navigationLayout";
+import {
+  NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL,
+  NAVIGATION_ICON_SLOT,
+  navigationBarBottomResidual,
+} from "@/shared/ui/navigationLayout";
 import { icon, minTouchTarget } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
@@ -142,5 +146,33 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
 
     fireEvent.press(screen.getByTestId("navigation-tab-profile"));
     expect(screen.getByText("profile-screen")).toBeTruthy();
+  });
+});
+
+/**
+ * Correction `D` (contre-recette iPhone, correction consolidée, `[ChatGPT]
+ * DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`, 2026-09-03,
+ * addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) : la barre
+ * est ancrée à `bottom: 0` (bord physique de l'écran), la Safe Area étant
+ * consommée à l'intérieur via `paddingBottom`, jamais en translatant la
+ * barre entière — voir `@/shared/ui/navigationLayout` pour la dérivation
+ * complète de `navigationBarBottomResidual`.
+ */
+describe("Navigation basse — position verticale (correction D, 2026-09-03)", () => {
+  it("anchors the row to the physical screen edge (bottom: 0), consuming the Safe Area as an internal paddingBottom instead of translating the whole bar", () => {
+    renderTabsLayout();
+
+    const row = screen.getByTestId("navigation-row");
+    const rowStyle = StyleSheet.flatten(row.props.style);
+    expect(rowStyle.bottom).toBe(0);
+
+    // Environnement de test : `insets.bottom` par défaut vaut `0` (aucun
+    // `TestSafeAreaProvider` monté par ce test, contrairement à
+    // `CatalogueScreen.test.tsx`/`CompositionScreen.test.tsx`) — le
+    // résiduel retombe donc sur son plancher explicite
+    // (`NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL`, `11`), jamais `0` ni la valeur
+    // brute de `insets.bottom`.
+    expect(rowStyle.paddingBottom).toBe(navigationBarBottomResidual(0));
+    expect(rowStyle.paddingBottom).toBe(NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL);
   });
 });

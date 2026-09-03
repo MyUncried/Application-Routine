@@ -8,7 +8,7 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import type { SessionService } from "@/features/sessions/SessionService";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { NAVIGATION_CONTENT_HEIGHT } from "@/shared/ui/navigationLayout";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -124,7 +124,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
   });
 
-  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the filters and Créer (LAY-01, Phase 1)", async () => {
+  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the filters and Créer (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -135,17 +135,17 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const header = screen.getByTestId("catalogue-header");
+    const header = screen.getByTestId("screen-header");
     expect(within(header).getByText(strings.screens.sessions.title)).toBeTruthy();
 
     // Séparateur : présent, distinct du fond général (container est
     // `colors.background`, blanc — le séparateur ne doit jamais l'être).
-    const separator = screen.getByTestId("catalogue-header-separator");
+    const separator = screen.getByTestId("screen-header-separator");
     expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
 
     // Bande Context : fond distinct du fond général, contient le sélecteur
     // de filtres ET l'action Créer (pas seulement l'un des deux).
-    const contextBand = screen.getByTestId("catalogue-context-band");
+    const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
     expect(within(contextBand).getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
     expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
@@ -234,8 +234,13 @@ describe("CatalogueScreen — cadre commun", () => {
     // et n'est donc jamais comptée dans la hauteur `flex` normale de ce
     // corps — sans cette réserve, `centeredBody` centrerait son contenu sur
     // toute la hauteur restante de l'écran, y compris la zone visuellement
-    // recouverte par la barre flottante.
-    expect(flattened.paddingBottom).toBeGreaterThanOrEqual(NAVIGATION_CONTENT_HEIGHT);
+    // recouverte par la barre flottante. Correction `D` (2026-09-03) :
+    // même formule exacte que `_layout.tsx` (`navigationBarTotalHeight`,
+    // résiduel + contenu) — plus `insets.bottom` compté en entier en plus
+    // (défaut précédent, sur-réservation). `TestSafeAreaProvider` fixe
+    // `insets.bottom` à `34` (appareil de référence avec indicateur
+    // d'accueil).
+    expect(flattened.paddingBottom).toBe(navigationBarTotalHeight(34));
   });
 
   it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {

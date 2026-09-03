@@ -152,18 +152,21 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("composition-row-icon-composition-end-session")).toBeTruthy();
   });
 
-  it("shows a closed chevron on rows by default, and an open chevron once toggled (CE-T01-07, AUD-05 hierarchy)", () => {
+  it("shows no chevron on rows by default (absent from the closed-state reference, CMP-03/05), and an open chevron once toggled", () => {
     renderScreen();
 
     // Deux lignes repliables (Compte à rebours, Fin de séance), toutes deux
-    // fermées par défaut.
-    expect(screen.getAllByTestId("composition-row-chevron-down")).toHaveLength(2);
+    // fermées par défaut — aucun chevron n'est rendu tant qu'elles restent
+    // fermées (correction consolidée, CMP-03/CMP-05, 2026-09-03 : supprime
+    // le chevron `LAY-05` précédent, absent de la référence en état fermé).
+    expect(screen.queryByTestId("composition-row-chevron-down")).toBeNull();
     expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
+    // Seule la ligne ouverte porte le chevron, comme unique indice visuel
+    // restant de l'état développé.
     expect(screen.getByTestId("composition-row-chevron-up")).toBeTruthy();
-    expect(screen.getAllByTestId("composition-row-chevron-down")).toHaveLength(1);
   });
 
   it("anchors the open picker as a superposed popover (position: absolute), never pushing the layout below (CE-T01-06/07, AUD-05)", () => {
@@ -204,7 +207,7 @@ describe("CompositionScreen — état initial", () => {
 
     fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
 
-    const contextBand = screen.getByTestId("composition-context-band");
+    const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
   });
 
@@ -318,33 +321,51 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     }
   });
 
-  it("a native minutes selection updates the row's displayed value immediately (draft sync), without touching the empty summary", () => {
+  it("draft vs committed value (D-06): a native minutes selection does NOT update the row's displayed value while the picker stays open", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    // Seconds unchanged (default countdown is 10 s, already on the
-    // CE-T01-07/14 step of 5 — no rounding involved here).
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
 
-    expect(screen.getByText("01 min 10 s")).toBeTruthy();
+    // La ligne reste sur la valeur validée précédente (défaut 10 s) tant
+    // que le sélecteur n'est pas refermé — jamais mise à jour en cours de
+    // défilement (addendum `WHEEL DRAFT VS COMMITTED VALUE`, D-06).
+    expect(screen.getByText("00 min 10 s")).toBeTruthy();
+    expect(screen.queryByText("01 min 10 s")).toBeNull();
     // The exercise is still null in T01-S07: the summary stays the exact
     // local empty label regardless of countdown/final-phase changes (§9.1).
     expect(screen.getByText("0 activité · 0 min")).toBeTruthy();
   });
 
-  it("selects a real value in the countdown picker and keeps it after the picker is closed (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
+  it("selects a real value in the countdown picker, committed to the row exactly once when the picker closes (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-    expect(screen.getByText("02 min 10 s")).toBeTruthy();
+    // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
+    expect(screen.getByText("00 min 10 s")).toBeTruthy();
 
-    // Fermer le sélecteur en pressant de nouveau la ligne.
+    // Fermer le sélecteur en pressant de nouveau la ligne -> validation unique.
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
 
-    // La valeur reste affichée sur la ligne après fermeture — pas réinitialisée.
+    // La valeur choisie est désormais affichée sur la ligne, exactement
+    // celle sélectionnée — jamais une valeur obsolète/décalée.
     expect(screen.getByText("02 min 10 s")).toBeTruthy();
+  });
+
+  it("draft/committed independence: re-opening the countdown picker after closing it restores exactly the last committed value, centered — never the previous draft nor a stale value", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
+    fireEvent.press(screen.getByLabelText(composition.countdown.label)); // ferme -> commit unique (01 min 10 s)
+    expect(screen.getByText("01 min 10 s")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
+    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
   });
 
   it("selecting a color actually applies it to the draft (compact swatch background) and closes the palette", () => {
@@ -504,12 +525,16 @@ function walk(node: any, visit: (node: any) => void): void {
   }
 }
 
-describe("CompositionScreen — Phase 2 Shell (LAY-02/03/04/05, contre-recette iPhone 2026-09-03)", () => {
-  it("LAY-02 — Header shows the static title, never replaced by the typed name; separator and Context band are distinct from the general background", () => {
+describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06, correction consolidée 2026-09-03)", () => {
+  it("CMP-01 — Header (Shell Foundation partagé) shows the static title with a Retour circle, never replaced by the typed name; separator and Context band are distinct from the general background", () => {
     renderScreen();
 
-    const header = screen.getByTestId("composition-header");
+    const header = screen.getByTestId("screen-header");
     expect(within(header).getByText(composition.title)).toBeTruthy();
+    // Retour désormais dans un cercle de fond pâle (CMP-01) — même Shell
+    // Foundation que le reste de l'application, plus une implémentation
+    // locale de `CompositionScreen`.
+    expect(screen.getByTestId("screen-header-back")).toBeTruthy();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
 
@@ -517,10 +542,10 @@ describe("CompositionScreen — Phase 2 Shell (LAY-02/03/04/05, contre-recette i
     expect(within(header).getByText(composition.title)).toBeTruthy();
     expect(within(header).queryByText("Séance du soir")).toBeNull();
 
-    const separator = screen.getByTestId("composition-header-separator");
+    const separator = screen.getByTestId("screen-header-separator");
     expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
 
-    const contextBand = screen.getByTestId("composition-context-band");
+    const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
     // La bande Context contient bien le nom, la couleur ET Ajouter.
     expect(within(contextBand).getByLabelText(composition.name)).toBeTruthy();
@@ -528,11 +553,21 @@ describe("CompositionScreen — Phase 2 Shell (LAY-02/03/04/05, contre-recette i
     expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
   });
 
-  it("LAY-03 — Ajouter une activité has the compact DS button geometry (height 32, radius 16), a white background distinct from the Context band, and a real ≥48 touch target via hitSlop", () => {
+  it("CMP-02 — Name field and colour selector share a single white rounded field, distinct from the loose Context band background", () => {
+    renderScreen();
+
+    const field = screen.getByTestId("composition-name-color-field");
+    expect(StyleSheet.flatten(field.props.style).backgroundColor).toBe(colors.background);
+    expect(within(field).getByLabelText(composition.name)).toBeTruthy();
+    expect(within(field).getByLabelText(composition.colorPicker.label)).toBeTruthy();
+  });
+
+  it("CMP-02 — Ajouter une activité is centered (compact DS button geometry, height 32/radius 16, white background distinct from the Context band, real ≥48 touch target via hitSlop)", () => {
     renderScreen();
 
     const addActivity = screen.getByLabelText(composition.addActivity);
     const flattened = StyleSheet.flatten(addActivity.props.style);
+    expect(flattened.alignSelf).toBe("center");
     expect(flattened.height).toBe(dimensions.compactSecondaryButton.visualHeight);
     expect(flattened.borderRadius).toBe(dimensions.compactSecondaryButton.radius);
     expect(flattened.borderColor).toBe(colors.primary);
@@ -542,28 +577,72 @@ describe("CompositionScreen — Phase 2 Shell (LAY-02/03/04/05, contre-recette i
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("LAY-04 — the Tour card is a distinct DS component (background different from the general background), showing the Tour label and ×1 in separate slots, never the Activity icon", () => {
+  it("CMP-04 — the Tour card is a distinct DS component (background different from the general background), showing the Tour label and a white ×1 control with a disclosure chevron, never the Activity icon", () => {
     renderScreen();
 
     const tourCard = screen.getByTestId("composition-tour-card");
     expect(StyleSheet.flatten(tourCard.props.style).backgroundColor).not.toBe(colors.background);
     expect(within(tourCard).getByText(composition.tour.label)).toBeTruthy();
     expect(within(tourCard).getByText("×1")).toBeTruthy();
+
+    const control = screen.getByTestId("composition-tour-control");
+    expect(StyleSheet.flatten(control.props.style).backgroundColor).toBe(colors.background);
+    expect(within(control).getByTestId("composition-tour-control-chevron")).toBeTruthy();
+
     // Jamais l'icône d'une Activité réutilisée comme icône Tour.
     expect(within(tourCard).queryByTestId("composition-exercise-icon")).toBeNull();
   });
 
-  it("LAY-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place the role icon, the title, and the value+chevron in three independent slots", () => {
+  it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
     renderScreen();
 
     const countdownRow = screen.getByLabelText(composition.countdown.label);
-    // Icône de rôle et libellé ne partagent plus le même slot regroupé —
-    // chacun est désormais indépendamment localisable dans la ligne.
+    expect(within(countdownRow).getByTestId("composition-boundary-handle-slot")).toBeTruthy();
+    expect(within(countdownRow).getByText(composition.countdown.label)).toBeTruthy();
+    // Ligne secondaire : la valeur de durée déjà formatée, sous le libellé.
+    expect(within(countdownRow).getByText("00 min 10 s")).toBeTruthy();
     expect(
       within(countdownRow).getByTestId("composition-row-icon-composition-initial-countdown"),
     ).toBeTruthy();
-    expect(within(countdownRow).getByText(composition.countdown.label)).toBeTruthy();
-    expect(within(countdownRow).getByTestId("composition-row-chevron-down")).toBeTruthy();
+    // Aucun chevron à l'état fermé (absent de la référence, CMP-03/05).
+    expect(within(countdownRow).queryByTestId("composition-row-chevron-down")).toBeNull();
+  });
+
+  it("CMP-06 — the summary and Continuer are grouped in a single Bottom Action zone, summary immediately above Continuer", () => {
+    renderScreen();
+
+    const bottomAction = screen.getByTestId("composition-bottom-action");
+    expect(within(bottomAction).getByText("0 activité · 0 min")).toBeTruthy();
+    expect(within(bottomAction).getByLabelText(composition.continueAction)).toBeTruthy();
+  });
+});
+
+describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdrop dédié, correction D-03)", () => {
+  it("renders no dismissing backdrop while no selector is open (non-interactive root, correction of the previous full-screen root Pressable)", () => {
+    renderScreen();
+    expect(screen.queryByTestId("composition-backdrop")).toBeNull();
+  });
+
+  it("renders a dedicated backdrop while a selector is open, and pressing it closes the selector", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("composition-backdrop")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("composition-backdrop"));
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(screen.queryByTestId("composition-backdrop")).toBeNull();
+  });
+
+  it("pressing the backdrop while the colour palette is open closes it too (same single-overlay mechanism)", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
+    expect(screen.getByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("composition-backdrop"));
+    expect(screen.queryByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeNull();
   });
 });
 

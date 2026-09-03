@@ -1,7 +1,7 @@
 import { Host, HStack, Picker as SwiftUIPicker, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { accessibilityLabel as accessibilityLabelModifier, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import * as Haptics from "expo-haptics";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -36,33 +36,42 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * `0, 5, …, 55` (pas de `5`, CE-T01-07/14 — voir `wheelPickerMath.ts`),
  * total 0–3599 s. `maxTotalSeconds` permet à un appelant (Exercice)
  * d'étendre la borne haute à 5999 s (99 min 59 s, `08` l.925) sans dupliquer
- * ce composant — la colonne secondes garde toujours le même pas, seule la
- * colonne minutes s'étend (`minutesMaxIndexFor`).
+ * ce composant.
  *
- * Correction `PHASE02 REWORK01 ADDENDUM — NATIVE APPLE WHEEL TARGET`
- * (contre-recette iPhone, 2026-09-03) : sur iOS, ce composant délègue
- * désormais à la roulette native SwiftUI (`@expo/ui/swift-ui`,
- * `pickerStyle('wheel')`) plutôt qu'à la réimplémentation maison
- * (`ScrollView` + calcul manuel de décalage) — perspective cylindrique,
- * fondu, mise à l'échelle progressive, inertie et sémantique
- * d'accessibilité natifs, jamais recréés manuellement. La réimplémentation
- * maison reste le seul chemin sur Android/web (`@expo/ui/swift-ui` est
- * iOS/tvOS uniquement) — `Platform.select` ci-dessous, aucune duplication
- * de la logique de bornes/pas, partagée via `wheelPickerMath.ts` dans les
- * deux chemins.
+ * Sur iOS, ce composant délègue à la roulette native SwiftUI
+ * (`@expo/ui/swift-ui`, `pickerStyle('wheel')`) ; la réimplémentation
+ * maison (`ScrollView` + calcul manuel) reste le seul chemin sur
+ * Android/web (`@expo/ui/swift-ui` est iOS/tvOS uniquement).
  *
- * `@expo/ui` est une dépendance déjà installée (`package.json`,
- * `~57.0.13`) et confirmée incluse dans Expo Go par la documentation
- * officielle (`docs.expo.dev/versions/latest/sdk/ui/swift-ui`, section
- * « Included in Expo Go ») — aucune nouvelle dépendance, aucun build de
- * développement personnalisé requis a priori. Non vérifié sur device réel
- * dans cette mission (voir le rapport).
+ * **Brouillon local / valeur validée** (correction consolidée, `[ChatGPT]
+ * DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`, 2026-09-03, D-03/
+ * D-06 + addendum `WHEEL DRAFT VS COMMITTED VALUE`) : les DEUX chemins
+ * (natif et maison) séparent désormais explicitement un état de défilement
+ * local (`draftMinutes`/`draftSeconds`, jamais réécrit par un re-rendu
+ * externe une fois monté) de la valeur métier validée. `onChange` n'est
+ * appelé qu'une seule fois, au démontage du composant (fermeture du
+ * sélecteur, que ce soit par nouvel appui sur la ligne ou par le backdrop
+ * dédié) — jamais à chaque cran de défilement. C'est la cause racine
+ * démontrée de D-03 (fermeture prématurée : l'ancienne version réécrivait
+ * `selection` depuis un prop externe recalculé à chaque `onChange`, en
+ * cours de geste) et de D-06 (aucune distinction brouillon/validé).
  */
 
 const ITEM_HEIGHT = 40;
 const SECONDS_VALUES = Array.from({ length: WHEEL_SECONDS_ITEM_COUNT }, (_, index) =>
   secondsIndexToValue(index),
 );
+
+/**
+ * Hauteur approximative d'une ligne de roulette native SwiftUI
+ * (`pickerStyle('wheel')`) — valeur documentée par convention iOS/UIKit
+ * (`UIPickerView`), **non mesurée sur ce projet faute d'accès device**.
+ * Utilisée uniquement pour positionner la bande de sélection superposée
+ * (D-02/roulette native) au centre vertical réel du `Host`, mesuré via
+ * `onLayoutContent` — jamais pour contraindre la hauteur du `Host`
+ * lui-même (voir D-04 : la contrainte `ITEM_HEIGHT * 3` a été supprimée).
+ */
+const NATIVE_SELECTION_BAND_HEIGHT = 34;
 
 export type DurationWheelPickerProps = {
   totalSeconds: number;
@@ -83,10 +92,24 @@ export function DurationWheelPicker(props: DurationWheelPickerProps) {
 /**
  * Roulette native SwiftUI (iOS uniquement) — `Host` + `HStack` +
  * `Picker` × 2 (`pickerStyle('wheel')`), chaque colonne portant ses propres
- * options via `<Text modifiers={[tag(valeur)]}>`. La sélection (`tag`) est
- * la valeur elle-même (minutes ou secondes), jamais un index intermédiaire
- * — l'API native gère elle-même le geste, le magnétisme, le rendu et
- * l'accessibilité ; aucune de ces couches n'est recréée ici.
+ * options via `<SwiftUIText modifiers={[tag(valeur)]}>`.
+ *
+ * Correction D-05 : les séparateurs d'unité (`min`/`s`) sont désormais des
+ * `SwiftUIText` (`@expo/ui/swift-ui`), jamais des `Text` React Native — un
+ * `HStack` natif ne compose que des vues SwiftUI ; mélanger les deux
+ * moteurs de rendu comme frères d'un même conteneur natif n'est pas un
+ * patron supporté.
+ *
+ * Correction D-04 : plus aucune hauteur fixe (`ITEM_HEIGHT * 3`) sur le
+ * `Host` — `matchContents` laisse SwiftUI dimensionner la roulette
+ * nativement (comportement réel non mesurable sans device), la hauteur
+ * réelle rendue est captée via `onLayoutContent` uniquement pour
+ * positionner la bande de sélection superposée (D-02).
+ *
+ * Correction D-02 : surface opaque blanche, arrondie, bordée et ombrée
+ * (`nativeSurface`) enveloppant le `Host` — masque totalement le contenu
+ * sous-jacent, contrairement à la version précédente qui n'avait aucun
+ * fond propre à aucun niveau.
  */
 function NativeAppleDurationWheelPicker({
   totalSeconds,
@@ -97,91 +120,118 @@ function NativeAppleDurationWheelPicker({
 }: DurationWheelPickerProps) {
   const minutesMaxIndex = minutesMaxIndexFor(maxTotalSeconds);
   const minutesValues = Array.from({ length: minutesMaxIndex + 1 }, (_, index) => index);
-  const initial = fromTotalSeconds(totalSeconds, maxTotalSeconds);
-
-  // Même patron que la version maison : deux références indépendantes,
-  // synchronisées ensemble à chaque changement effectif (§5 du plan) — ici
-  // des valeurs directes (minutes/secondes), pas des index de défilement,
-  // la roulette native n'exposant que la valeur sélectionnée (`tag`).
-  const minutesRef = useRef(initial.minutes);
-  const secondsRef = useRef(initial.seconds);
+  // `useState(() => ...)` : initialisé UNE SEULE FOIS au montage — jamais
+  // recalculé depuis `totalSeconds` à un rendu ultérieur (brouillon local,
+  // voir la note de tête).
+  const [initial] = useState(() => fromTotalSeconds(totalSeconds, maxTotalSeconds));
+  const [draftMinutes, setDraftMinutes] = useState(initial.minutes);
+  const [draftSeconds, setDraftSeconds] = useState(initial.seconds);
+  const draftRef = useRef({ minutes: initial.minutes, seconds: initial.seconds });
+  const [hostHeight, setHostHeight] = useState<number | null>(null);
 
   function handleMinutesChange(value: number) {
-    if (value === minutesRef.current) {
+    if (value === draftRef.current.minutes) {
       return;
     }
-    minutesRef.current = value;
-    // `.catch()` explicite : voir la version maison ci-dessous pour la
-    // justification complète, identique ici.
+    draftRef.current.minutes = value;
+    setDraftMinutes(value);
     Haptics.selectionAsync().catch(() => {});
-    onChange(toTotalSeconds(minutesRef.current, secondsRef.current, maxTotalSeconds));
   }
 
   function handleSecondsChange(value: number) {
-    if (value === secondsRef.current) {
+    if (value === draftRef.current.seconds) {
       return;
     }
-    secondsRef.current = value;
+    draftRef.current.seconds = value;
+    setDraftSeconds(value);
     Haptics.selectionAsync().catch(() => {});
-    onChange(toTotalSeconds(minutesRef.current, secondsRef.current, maxTotalSeconds));
   }
 
+  useEffect(() => {
+    // Ce composant est monté/démonté à chaque ouverture/fermeture de la
+    // superposition — le nettoyage à la fermeture est donc l'unique point
+    // de validation (D-03/D-06) : la dernière valeur de défilement retenue
+    // devient la valeur métier, une seule fois, jamais pendant le geste.
+    return () => {
+      // `draftRef` n'est pas une ref de nœud DOM — c'est intentionnellement
+      // sa valeur AU MOMENT du nettoyage (donc la plus récente) qui doit
+      // être lue ici, exactement le comportement que ce commentaire du
+      // linter signale par défaut pour une ref de nœud.
+      /* eslint-disable react-hooks/exhaustive-deps */
+      onChange(
+        toTotalSeconds(draftRef.current.minutes, draftRef.current.seconds, maxTotalSeconds),
+      );
+      /* eslint-enable react-hooks/exhaustive-deps */
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <Host style={styles.nativeHost} testID="duration-wheel-picker">
-      <HStack spacing={spacing[4]} alignment="center">
-        <SwiftUIPicker
-          selection={initial.minutes}
-          onSelectionChange={handleMinutesChange}
-          modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(minutesAccessibilityLabel)]}
-          testID="duration-wheel-minutes"
-        >
-          {minutesValues.map((value) => (
-            <SwiftUIText key={value} modifiers={[tag(value)]}>
-              {formatTwoDigits(value)}
-            </SwiftUIText>
-          ))}
-        </SwiftUIPicker>
-        <Text style={styles.separator}>min</Text>
-        <SwiftUIPicker
-          selection={initial.seconds}
-          onSelectionChange={handleSecondsChange}
-          modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(secondsAccessibilityLabel)]}
-          testID="duration-wheel-seconds"
-        >
-          {SECONDS_VALUES.map((value) => (
-            <SwiftUIText key={value} modifiers={[tag(value)]}>
-              {formatTwoDigits(value)}
-            </SwiftUIText>
-          ))}
-        </SwiftUIPicker>
-        <Text style={styles.separator}>s</Text>
-      </HStack>
-    </Host>
+    <View style={styles.nativeSurface} testID="duration-wheel-picker">
+      {hostHeight !== null ? (
+        <View
+          testID="duration-wheel-native-selection-band"
+          pointerEvents="none"
+          style={[
+            styles.nativeSelectionBand,
+            {
+              top: (hostHeight - NATIVE_SELECTION_BAND_HEIGHT) / 2,
+              height: NATIVE_SELECTION_BAND_HEIGHT,
+            },
+          ]}
+        />
+      ) : null}
+      <Host
+        style={styles.nativeHost}
+        matchContents
+        onLayoutContent={(event) => setHostHeight(event.nativeEvent.height)}
+      >
+        <HStack spacing={spacing[8]} alignment="center">
+          <SwiftUIPicker
+            selection={draftMinutes}
+            onSelectionChange={handleMinutesChange}
+            modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(minutesAccessibilityLabel)]}
+            testID="duration-wheel-minutes"
+          >
+            {minutesValues.map((value) => (
+              <SwiftUIText key={value} modifiers={[tag(value)]}>
+                {formatTwoDigits(value)}
+              </SwiftUIText>
+            ))}
+          </SwiftUIPicker>
+          <SwiftUIText modifiers={[]}>min</SwiftUIText>
+          <SwiftUIPicker
+            selection={draftSeconds}
+            onSelectionChange={handleSecondsChange}
+            modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(secondsAccessibilityLabel)]}
+            testID="duration-wheel-seconds"
+          >
+            {SECONDS_VALUES.map((value) => (
+              <SwiftUIText key={value} modifiers={[tag(value)]}>
+                {formatTwoDigits(value)}
+              </SwiftUIText>
+            ))}
+          </SwiftUIPicker>
+          <SwiftUIText modifiers={[]}>s</SwiftUIText>
+        </HStack>
+      </Host>
+    </View>
   );
 }
 
 /**
  * Mécanisme de détection (chemin maison, Android/web uniquement) :
  * `onScroll` (`scrollEventThrottle={16}`), pas `onMomentumScrollEnd` — voir
- * `wheelPickerMath.ts` et le rapport d'implémentation pour la justification
- * complète. `onMomentumScrollEnd`/`onScrollEndDrag` ne servent ici qu'à une
- * correction d'alignement final (`scrollTo` vers la position exacte de
- * l'index déjà retenu) — jamais comme déclencheur de valeur ou d'haptique.
+ * `wheelPickerMath.ts` pour la justification complète. `onMomentumScrollEnd`/
+ * `onScrollEndDrag` ne servent qu'à une correction d'alignement final.
  *
- * Correction `CTRL-01` (contre-recette iPhone, cause racine démontrée par
- * `2026-09-03_P0-diagnostic-controles-interactifs.md`, point 1) : chaque
- * valeur visible est aussi sélectionnable par appui direct (`Pressable` par
- * item), pas seulement par glissement. `applyColumnIndex` centralise la
- * logique déjà validée pour le glissement (garde d'index inchangé, haptique
- * unique, `onChange`) — réutilisée à l'identique par le geste ET par le
- * toucher direct, jamais dupliquée. Un appui rejoue ensuite `alignColumn`
- * pour recentrer visuellement la roulette sur la valeur choisie.
+ * Correction `CTRL-01` : chaque valeur visible est aussi sélectionnable par
+ * appui direct (`Pressable` par item), pas seulement par glissement.
  *
- * Colonne secondes en pas de `5` (CE-T01-07/14) : les index de défilement
- * (`0..WHEEL_SECONDS_MAX_INDEX`) et les valeurs affichées/retenues
- * (`0, 5, …, 55`) divergent désormais — `secondsIndexToValue`/
- * `secondsValueToIndex` (`wheelPickerMath.ts`) font la conversion aux deux
- * points de contact (calcul du total, alignement visuel).
+ * Brouillon local / valeur validée (voir la note de tête) : même patron
+ * que le chemin natif — `applyColumnIndex` ne met à jour que l'état local
+ * (`draftMinutesRef`/`draftSecondsIndexRef` + re-rendu pour l'affichage),
+ * `onChange` n'est appelé qu'au démontage.
  */
 function LegacyDurationWheelPicker({
   totalSeconds,
@@ -192,26 +242,14 @@ function LegacyDurationWheelPicker({
 }: DurationWheelPickerProps) {
   const minutesMaxIndex = minutesMaxIndexFor(maxTotalSeconds);
   const minutesValues = Array.from({ length: minutesMaxIndex + 1 }, (_, index) => index);
-  const initial = fromTotalSeconds(totalSeconds, maxTotalSeconds);
+  const [initial] = useState(() => fromTotalSeconds(totalSeconds, maxTotalSeconds));
 
-  // Un seul index de référence par colonne, indépendant de l'autre — la
-  // synchronisation immédiate du brouillon (§5 du plan) exige de connaître
-  // l'index courant des DEUX colonnes au moment où l'une d'elles change.
-  // Pour les secondes, il s'agit de l'INDEX de défilement (0..11), jamais
-  // de la valeur affichée directement (0, 5, …, 55) — voir la conversion
-  // dans `applyColumnIndex`/`alignColumn` ci-dessous.
   const minutesIndexRef = useRef(initial.minutes);
   const secondsIndexRef = useRef(secondsValueToIndex(initial.seconds));
   const minutesScrollRef = useRef<ScrollView>(null);
   const secondsScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    // Ce composant est monté/démonté à chaque ouverture/fermeture de la
-    // superposition (§5) : cet effet s'exécute donc une fois par ouverture,
-    // toujours resynchronisé sur la valeur réelle du brouillon à cet
-    // instant — jamais sur une frappe locale ultérieure (`totalSeconds`
-    // volontairement absent des dépendances : les deux `ref` restent la
-    // source de vérité locale une fois montées).
     minutesScrollRef.current?.scrollTo({
       y: indexToOffset(initial.minutes, ITEM_HEIGHT),
       animated: false,
@@ -223,6 +261,24 @@ function LegacyDurationWheelPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    // Validation unique à la fermeture (D-03/D-06) — voir la note de tête.
+    return () => {
+      // Même remarque que la version native : lire ici la valeur la plus
+      // récente des refs est le comportement intentionnel, pas une fuite.
+      /* eslint-disable react-hooks/exhaustive-deps */
+      onChange(
+        toTotalSeconds(
+          minutesIndexRef.current,
+          secondsIndexToValue(secondsIndexRef.current),
+          maxTotalSeconds,
+        ),
+      );
+      /* eslint-enable react-hooks/exhaustive-deps */
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function applyColumnIndex(index: number, column: "minutes" | "seconds") {
     const ref = column === "minutes" ? minutesIndexRef : secondsIndexRef;
 
@@ -230,18 +286,8 @@ function LegacyDurationWheelPicker({
       return;
     }
     ref.current = index;
-    // `.catch()` explicite : un rejet (device sans moteur haptique, OS le
-    // refusant) ne doit jamais devenir un rejet de promesse non géré, ni
-    // interrompre la synchronisation du brouillon ci-dessous, qui reste
-    // indépendante du résultat de l'haptique.
     Haptics.selectionAsync().catch(() => {});
-    onChange(
-      toTotalSeconds(
-        minutesIndexRef.current,
-        secondsIndexToValue(secondsIndexRef.current),
-        maxTotalSeconds,
-      ),
-    );
+    // Plus d'appel à `onChange` ici — voir la note de tête (brouillon local).
   }
 
   function handleColumnScroll(
@@ -259,7 +305,6 @@ function LegacyDurationWheelPicker({
     scrollRef.current?.scrollTo({ y: indexToOffset(ref.current, ITEM_HEIGHT), animated: true });
   }
 
-  /** Toucher direct d'une valeur visible (`CTRL-01`) : sélectionne puis recentre visuellement, comme la correction finale déjà appliquée après un glissement. */
   function handleItemPress(index: number, column: "minutes" | "seconds") {
     applyColumnIndex(index, column);
     alignColumn(column);
@@ -299,9 +344,7 @@ function LegacyDurationWheelPicker({
 
 type WheelColumnProps = {
   scrollRef: React.RefObject<ScrollView | null>;
-  /** Valeurs affichées, dans l'ordre des index de défilement — peuvent différer des index eux-mêmes (colonne secondes, pas de `5`). */
   values: readonly number[];
-  /** Borne haute exposée à l'accessibilité — la valeur réelle maximale (`59` pour les secondes), pas l'index maximal de défilement. */
   max: number;
   now: number;
   accessibilityLabel: string;
@@ -309,7 +352,6 @@ type WheelColumnProps = {
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   onMomentumScrollEnd: () => void;
   onScrollEndDrag: () => void;
-  /** Toucher direct d'une valeur visible (`CTRL-01`) — reçoit l'INDEX de défilement (position dans `values`), jamais la valeur affichée elle-même. */
   onItemPress: (index: number) => void;
 };
 
@@ -341,6 +383,16 @@ function WheelColumn({
         accessibilityRole="adjustable"
         accessibilityLabel={accessibilityLabel}
         accessibilityValue={{ min: 0, max, now }}
+        onAccessibilityAction={(event) => {
+          const currentIndex =
+            testID === "duration-wheel-seconds" ? secondsValueToIndex(now) : now;
+          if (event.nativeEvent.actionName === "increment") {
+            onItemPress(Math.min(currentIndex + 1, values.length - 1));
+          } else if (event.nativeEvent.actionName === "decrement") {
+            onItemPress(Math.max(currentIndex - 1, 0));
+          }
+        }}
+        accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
       >
         {values.map((value, index) => (
           <Pressable
@@ -365,19 +417,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
-    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
     paddingVertical: spacing[8],
     gap: spacing[4],
-  },
-  // Largeur explicite requise par la roulette native : « segmented and
-  // wheel pickers stretch to the width they are given, so they collapse
-  // under matchContents » (docs.expo.dev, référence Picker/@expo/ui/swift-ui)
-  // — valeur par défaut raisonnée, non confirmée contre un rendu device réel
-  // (voir le rapport de mission).
-  nativeHost: {
-    width: 260,
-    height: ITEM_HEIGHT * 3,
   },
   wheelArea: {
     height: ITEM_HEIGHT * 3,
@@ -397,5 +447,37 @@ const styles = StyleSheet.create({
   separator: {
     ...type.body,
     color: colors.textSecondary,
+  },
+  // D-02 : surface opaque blanche, arrondie, bordée, ombrée — masque
+  // totalement le contenu sous-jacent (le `Host` lui-même n'a et ne doit
+  // avoir aucun fond propre, c'est cette surface qui le porte).
+  nativeSurface: {
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[8],
+  },
+  // D-04 : pas de hauteur fixe — `matchContents` (prop `Host`) dimensionne
+  // au contenu natif réel.
+  nativeHost: {
+    width: 260,
+  },
+  // D-02 (bande de sélection native) : une seule bande, positionnée par
+  // rapport à `nativeSurface` (parent immédiat commun avec le `Host`),
+  // traverse donc visuellement les deux colonnes ET les unités — jamais
+  // des capsules séparées par colonne.
+  nativeSelectionBand: {
+    position: "absolute",
+    left: spacing[4],
+    right: spacing[4],
+    backgroundColor: colors.selectionSurface,
+    borderRadius: 8,
   },
 });

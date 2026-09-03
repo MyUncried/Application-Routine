@@ -7,8 +7,9 @@ import type { SessionSummary } from "@/domain/sessions/Session";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
+import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { NAVIGATION_CONTENT_HEIGHT } from "@/shared/ui/navigationLayout";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -50,25 +51,14 @@ export function CatalogueScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <View
-        testID="catalogue-header"
-        style={[
-          styles.header,
-          { paddingTop: insets.top, height: insets.top + dimensions.header.contentHeight },
-        ]}
-      >
-        <Text style={styles.title} accessibilityRole="header">
-          {strings.screens.sessions.title}
-        </Text>
-      </View>
+    <ScreenShell>
+      <FixedHeader title={strings.screens.sessions.title} />
+      <HeaderSeparator />
 
-      <View testID="catalogue-header-separator" style={styles.headerSeparator} />
-
-      <View testID="catalogue-context-band" style={styles.contextBand}>
+      <ContextBand>
         <FilterSelector />
         <CreateAction onPress={() => router.push("/composition")} />
-      </View>
+      </ContextBand>
 
       {/*
        * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
@@ -79,13 +69,17 @@ export function CatalogueScreen() {
        * TOUTE la hauteur restante de l'écran, y compris la zone
        * visuellement recouverte par la barre flottante, décalant le cadre
        * de l'état vide trop bas. `paddingBottom` réserve exactement
-       * l'espace réel de la navigation (`NAVIGATION_CONTENT_HEIGHT` +
-       * l'inset de sécurité, même source que `app/(tabs)/_layout.tsx`) —
-       * le centrage de `centeredBody` s'effectue désormais uniquement
-       * entre le bas de la bande Context et le haut réel de la barre.
+       * l'espace réel de la navigation (`navigationBarTotalHeight`, même
+       * source — et désormais même formule de résiduel bas — que
+       * `app/(tabs)/_layout.tsx`, correction `D`, 2026-09-03 : la barre
+       * n'est plus translatée de la totalité de `insets.bottom`, cette
+       * réserve ne doit donc plus non plus compter `insets.bottom` en
+       * entier sous peine de sur-réserver l'espace deux fois) — le
+       * centrage de `centeredBody` s'effectue désormais uniquement entre le
+       * bas de la bande Context et le haut réel de la barre.
        */}
       <View
-        style={[styles.body, { paddingBottom: insets.bottom + NAVIGATION_CONTENT_HEIGHT }]}
+        style={[styles.body, { paddingBottom: navigationBarTotalHeight(insets.bottom) }]}
         testID="catalogue-body"
       >
         {state.status === "loading" ? <LoadingBody /> : null}
@@ -93,7 +87,7 @@ export function CatalogueScreen() {
         {state.status === "error" ? <ErrorBody onRetry={reload} /> : null}
         {state.status === "ready" ? <ReadyBody sessions={state.sessions} /> : null}
       </View>
-    </View>
+    </ScreenShell>
   );
 }
 
@@ -235,28 +229,11 @@ function ReadyBody({ sessions }: { sessions: readonly SessionSummary[] }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    justifyContent: "center",
-    paddingHorizontal: spacing[24],
-  },
-  title: {
-    ...type.screenTitle,
-    color: colors.textPrimary,
-  },
-  headerSeparator: {
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  contextBand: {
-    backgroundColor: colors.selectionSurface,
-    paddingHorizontal: spacing[24],
-    paddingVertical: spacing[16],
-    gap: spacing[16],
-  },
+  // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
+  // désormais portés par le Shell Foundation partagé (`CMP-01`,
+  // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente
+  // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
+  // FOUNDATION CORRECTION`).
   // Correction CAT-R01 (contre-recette iPhone, `[ChatGPT]
   // DEVICE_REVIEW_FAIL`, 2026-09-03) : le conteneur général du contrôle
   // segmenté doit rester blanc — `colors.surface` (gris très pâle) était

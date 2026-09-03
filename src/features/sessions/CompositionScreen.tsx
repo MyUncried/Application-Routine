@@ -17,6 +17,7 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
+import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -25,7 +26,9 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
 /**
  * Écran `Composition d'une séance` (T01-S07, docs §06 Écran 3 ; corrections
  * de conformité — audit `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`,
- * instruction Codex de correction autonome).
+ * instruction Codex de correction autonome ; consolidation Foundation —
+ * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
+ * 2026-09-03).
  *
  * Le brouillon vient de `SessionDraftProvider` (monté par
  * `app/(creation)/_layout.tsx`, au-dessus de cet écran) — cette route ne
@@ -33,10 +36,19 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * avant T01-S09.
  *
  * Un seul sélecteur intégré ouvert à la fois (couleur, Compte à rebours,
- * Fin de séance) — état `openOverlay` unique (plan §5). Toucher en dehors
- * d'un contrôle interactif ferme le sélecteur ouvert : l'écran entier est
- * enveloppé dans un `Pressable` qui ne reçoit le toucher que si aucun
- * contrôle imbriqué (ligne, roulette, palette) ne l'a déjà capté.
+ * Fin de séance) — état `openOverlay` unique (plan §5).
+ *
+ * **CMP-01/Racine non interactive + backdrop dédié** (correction
+ * consolidée) : l'écran entier n'est plus un `Pressable` racine (défaut
+ * D-03 identifié — un `Pressable` plein écran intercepte le geste avant
+ * même qu'il n'atteigne un contrôle imbriqué, y compris parfois le
+ * contrôle qu'on cherche justement à ouvrir). La racine (`ScreenShell`) est
+ * désormais un simple conteneur ; un `Pressable` `backdrop` dédié n'est
+ * rendu QUE lorsqu'un sélecteur est ouvert, en dernier frère de premier
+ * niveau — sans `zIndex` propre (donc peint au-dessus des frères par
+ * défaut, du seul fait de son ordre), il reste sous la ligne/bande
+ * effectivement `elevated` (`zIndex: 1`) : les contrôles ouverts restent
+ * tactiles, tout le reste ferme le sélecteur au toucher.
  *
  * `+ Ajouter une activité` (T01-S08) navigue vers l'écran Exercice
  * (`/exercise`) ; celui-ci lit lui-même `draft.exercise` pour déterminer
@@ -46,9 +58,12 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * est masqué dès qu'un Exercice existe : une ligne récapitulative le
  * remplace, pressable pour rouvrir l'écran en modification.
  *
- * Chaque roulette intégrée (Compte à rebours, Fin de séance) est désormais
- * ancrée en superposition (`position: "absolute"`, correction CE-T01-06/07)
- * plutôt que rendue en flux : elle ne repousse plus les éléments suivants.
+ * Chaque roulette intégrée (Compte à rebours, Fin de séance) est ancrée en
+ * superposition (`position: "absolute"`, correction CE-T01-06/07) plutôt
+ * que rendue en flux : elle ne repousse plus les éléments suivants. La
+ * validation de la valeur choisie n'a lieu qu'à la fermeture du sélecteur
+ * (démontage de `DurationWheelPicker`, voir ce fichier) — jamais à chaque
+ * cran de défilement (D-06).
  *
  * `Retour` (correction CE-T01-04, AUD-03) : action visible identique au
  * patron déjà validé sur `ExerciseScreen.tsx` — navigation arrière normale,
@@ -76,55 +91,23 @@ export function CompositionScreen() {
 
   const composition = strings.screens.composition;
 
-  // LAY-03 : seule la hauteur visuelle est contrainte par le composant DS
-  // (`dimensions.compactSecondaryButton.visualHeight`, pas une largeur
-  // fixe — ce bouton porte un libellé plus long que celui du Catalogue).
-  // La cible tactile verticale est donc calculée depuis cette hauteur ;
-  // horizontalement, la largeur réelle (icône + libellé) dépasse déjà
-  // largement `minTouchTarget`, un `hitSlop` fixe modeste suffit comme
-  // marge de confort sans dépendre d'une largeur non mesurable à l'avance.
-  const addActivityVerticalHitSlop =
-    (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2;
-
   return (
-    <Pressable
-      style={styles.container}
-      onPress={closeOverlay}
-      accessible={false}
-    >
-      {/*
-       * LAY-02 (contre-recette iPhone, Phase 2 Composition, 2026-09-03) :
-       * Header fixe avec Retour ET le titre statique exact — jamais
-       * remplacé par le nom saisi (`composition.title`, déjà présent dans
-       * `fr.ts` mais jamais rendu avant cette correction). Séparateur
-       * horizontal immédiatement sous le Header. Nom/couleur/Ajouter sont
-       * désormais regroupés dans la bande Context ci-dessous, plus dans le
-       * Header lui-même (défaut précédent : aucun titre d'écran distinct
-       * du champ Nom n'existait).
-       */}
-      <View
-        testID="composition-header"
-        style={[styles.header, { paddingTop: insets.top }]}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={composition.backAccessibilityLabel}
-          hitSlop={spacing[8]}
-          style={styles.backButton}
-        >
-          <KodjoIcon name="control-back" testID="composition-back-icon" />
-        </Pressable>
-        <Text style={styles.title}>{composition.title}</Text>
-      </View>
+    <ScreenShell>
+      <FixedHeader
+        title={composition.title}
+        onBack={() => router.back()}
+        backAccessibilityLabel={composition.backAccessibilityLabel}
+      />
+      <HeaderSeparator />
 
-      <View testID="composition-header-separator" style={styles.headerSeparator} />
-
-      <View
-        testID="composition-context-band"
-        style={[styles.contextBand, openOverlay === "color" ? styles.elevated : null]}
-      >
-        <View style={styles.nameRow}>
+      <ContextBand elevated={openOverlay === "color"}>
+        {/*
+         * CMP-02 : le champ Nom et le sélecteur de couleur partagent
+         * désormais UN SEUL champ blanc arrondi (`nameColorField`) posé sur
+         * la bande Context — auparavant deux éléments distincts directement
+         * sur le fond bleu pâle de la bande.
+         */}
+        <View style={styles.nameColorField} testID="composition-name-color-field">
           <TextInput
             value={draft.name}
             onChangeText={(text) => updateDraft({ name: text })}
@@ -147,12 +130,12 @@ export function CompositionScreen() {
         </View>
 
         {/*
-         * LAY-03 : boîte visuelle compacte issue du composant DS
-         * (`dimensions.compactSecondaryButton`, même token que le bouton
-         * Créer du Catalogue, `UI-CAT-001`/`CAT-R02`) — fond blanc,
-         * bordure/icône/texte primaires, cible tactile `≥48` via `hitSlop`
-         * indépendante de la boîte visuelle, jamais un agrandissement du
-         * cadre lui-même. Masqué dès qu'un Exercice existe (modèle T01,
+         * CMP-02 : `+ Ajouter une activité` centré (auparavant
+         * `alignSelf: "flex-start"`). Boîte visuelle compacte issue du
+         * composant DS (`dimensions.compactSecondaryButton`, même token que
+         * le bouton Créer du Catalogue) — fond blanc, bordure/icône/texte
+         * primaires, cible tactile `≥48` via `hitSlop` indépendante de la
+         * boîte visuelle. Masqué dès qu'un Exercice existe (modèle T01,
          * `draft.exercise` unique, jamais un tableau) : la ligne de résumé
          * de l'Exercice le remplace alors ailleurs dans la structure (voir
          * plus bas, UI-COMP-003), jamais à cette position.
@@ -164,8 +147,8 @@ export function CompositionScreen() {
             accessibilityState={{ disabled: false }}
             accessibilityLabel={composition.addActivity}
             hitSlop={{
-              top: addActivityVerticalHitSlop,
-              bottom: addActivityVerticalHitSlop,
+              top: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
+              bottom: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
               left: spacing[8],
               right: spacing[8],
             }}
@@ -175,7 +158,7 @@ export function CompositionScreen() {
             <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
           </Pressable>
         ) : null}
-      </View>
+      </ContextBand>
 
       <View style={styles.body}>
         <AnchoredRow testID="composition-anchored-row-countdown" elevated={openOverlay === "countdown"}>
@@ -200,9 +183,7 @@ export function CompositionScreen() {
 
         {/*
          * UI-COMP-003 : une fois créée, l'Activité s'insère ICI — entre Compte
-         * à rebours initial et Tour, jamais après Tour par défaut (défaut
-         * précédent : cette ligne remplaçait le bouton d'ajout, donc après
-         * Tour et Fin de séance).
+         * à rebours initial et Tour, jamais après Tour par défaut.
          */}
         {draft.exercise !== null ? (
           <Pressable
@@ -249,41 +230,58 @@ export function CompositionScreen() {
       </View>
 
       {/*
-       * LAY-04 (9) : synthèse indépendante de la carte Tour, placée dans la
-       * zone basse près de l'action finale — jamais à l'intérieur de la
-       * carte Tour elle-même (déjà le cas structurellement : `TourCard`
-       * ci-dessus ne contient jamais ce texte).
+       * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
+       * synthèse et `Continuer` regroupés dans UNE seule zone d'action basse
+       * (`bottomAction`) — auparavant `summary` était un `Text` isolé entre
+       * le corps et le bouton, avec `marginTop: "auto"` posé sur le bouton
+       * seul (le texte pouvait donc se retrouver loin de l'action qu'il
+       * qualifie selon le contenu au-dessus). C'est désormais le groupe
+       * entier qui est poussé en bas (`marginTop: "auto"` sur
+       * `bottomAction`), la synthèse restant immédiatement au-dessus de
+       * `Continuer`.
        */}
-      <Text style={styles.summary}>
-        {formatCompositionSummary({
-          exercise: draft.exercise,
-          initialCountdownSeconds: draft.initialCountdownSeconds,
-          finalPhaseSeconds: draft.finalPhaseSeconds,
-        })}
-      </Text>
-
-      {/*
-       * `Continuer` (CE-T01-04) — ARBITRAGE REQUIS, voir rapport d'audit :
-       * le contrat exige une activation conditionnelle (Nom + Exercice
-       * valide) et un libellé dynamique `Enregistrer`/`Continuer`, mais la
-       * destination réelle (`Catégories de la séance`, CE-T01-11) n'existe
-       * pas avant T01-S09. Activer ce bouton sans action réelle
-       * contredirait doc13 §3.3 (« aucun contrôle actif sans action
-       * réelle »). Comportement conservé tel quel dans l'attente d'un
-       * arbitrage explicite — non tranché silencieusement.
-       */}
-      <Pressable
-        disabled
-        accessibilityRole="button"
-        accessibilityState={{ disabled: true }}
-        accessibilityLabel={composition.continueAction}
-        style={[styles.continueAction, { marginBottom: insets.bottom + spacing[16] }]}
+      <View
+        testID="composition-bottom-action"
+        style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
-        <Text style={styles.continueLabel}>{composition.continueAction}</Text>
-      </Pressable>
+        <Text style={styles.summary}>
+          {formatCompositionSummary({
+            exercise: draft.exercise,
+            initialCountdownSeconds: draft.initialCountdownSeconds,
+            finalPhaseSeconds: draft.finalPhaseSeconds,
+          })}
+        </Text>
+
+        {/*
+         * `Continuer` (CE-T01-04) — ARBITRAGE REQUIS, voir rapport d'audit :
+         * le contrat exige une activation conditionnelle (Nom + Exercice
+         * valide) et un libellé dynamique `Enregistrer`/`Continuer`, mais la
+         * destination réelle (`Catégories de la séance`, CE-T01-11) n'existe
+         * pas avant T01-S09. Comportement conservé tel quel dans l'attente
+         * d'un arbitrage explicite — non tranché silencieusement.
+         */}
+        <Pressable
+          disabled
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          accessibilityLabel={composition.continueAction}
+          style={styles.continueAction}
+        >
+          <Text style={styles.continueLabel}>{composition.continueAction}</Text>
+        </Pressable>
+      </View>
+
+      {openOverlay !== null ? (
+        <Pressable
+          onPress={closeOverlay}
+          accessible={false}
+          testID="composition-backdrop"
+          style={styles.backdrop}
+        />
+      ) : null}
 
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
-    </Pressable>
+    </ScreenShell>
   );
 }
 
@@ -297,17 +295,12 @@ export function CompositionScreen() {
  * suivant au lieu de le repousser.
  *
  * Correction UI-CTRL-002 (cycle de correction après contre-recette iPhone,
- * 2026-09-03) : cette superposition seule ne suffisait pas. Le popover
- * ouvert (≈136px) déborde largement de l'écart réel jusqu'à la ligne
- * suivante (`gap: spacing[16]` + hauteur de ligne, ≈20px) ; sans
- * différenciation de `zIndex` entre `AnchoredRow` frères, React Native peint
- * la ligne suivante (montée après, donc au-dessus par défaut) par-dessus le
- * popover ouvert — un `zIndex` posé uniquement sur le popover ne fait pas
- * remonter tout le sous-arbre `AnchoredRow` au-dessus d'un frère de même
- * niveau. `elevated` élève désormais l'`AnchoredRow` elle-même (et non plus
- * seulement son popover interne) au-dessus de ses frères tant que son
- * sélecteur est ouvert — cause racine démontrée du défaut tactile réel
- * (UI-CTRL-001).
+ * 2026-09-03) : cette superposition seule ne suffisait pas. `elevated`
+ * élève l'`AnchoredRow` elle-même (et non plus seulement son popover
+ * interne) au-dessus de ses frères tant que son sélecteur est ouvert — même
+ * mécanisme que le `backdrop` dédié (voir `CompositionScreen` ci-dessus) :
+ * un `zIndex` supérieur à celui des frères par défaut (0) suffit à rester
+ * peint au-dessus du `backdrop`.
  */
 function AnchoredRow({
   children,
@@ -336,19 +329,28 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
 
 /**
  * `Boundary Activity` (Compte à rebours initial / Fin de séance) —
- * correction LAY-05 (contre-recette iPhone, Phase 2 Composition,
- * 2026-09-03) : trois slots indépendants (gauche icône de rôle / centre
- * libellé / droite valeur + chevron), au lieu des deux groupes précédents
- * (icône+libellé regroupés à gauche). Aucune poignée de structure dans le
- * slot gauche : le catalogue de composants (doc12 §12.26,
- * `Composition / Boundary Activity — Source exact`, seule variante
- * documentée `Type=Initial countdown/End session`) ne mentionne aucune
- * capacité de réorganisation pour ce composant — à la différence de
- * `Composition / Activity Row`, dont doc12 note explicitement la position
- * « avant/dans/après Tour » comme hors état du composant. Le slot gauche
- * porte donc l'icône de rôle elle-même, jamais une poignée inventée sans
- * évidence documentaire. Le chevron ne partage plus son slot avec l'icône
- * de rôle : les deux ne peuvent plus se déplacer mutuellement.
+ * correction CMP-03/CMP-05 (contre-recette iPhone, correction consolidée,
+ * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
+ * 2026-09-03) : nouvel ordre de slots, explicitement demandé par cette
+ * revue et qui **remplace** la disposition `LAY-05` précédente (gauche
+ * icône / centre libellé / droite valeur+chevron) — pas une ambiguïté
+ * résolue localement, une instruction directe et autorisée.
+ *
+ * Slots : gauche = poignée/structure (`handleSlot`, un espace réservé
+ * structurel — aucune icône dédiée « poignée » n'existe dans
+ * `assets/icons/manifest.json` pour ce composant, distinct de
+ * `composition.reorder` réservée à `Composition / Activity Row` ; réutiliser
+ * cette dernière ici violerait la règle « jamais d'icône partagée entre
+ * composants distincts » déjà appliquée dans ce fichier) ; centre = libellé
+ * puis, sur une seconde ligne, la valeur de durée déjà formatée
+ * (`formatDurationRowValue`, format `MM min SS s` — inchangé, c'est la
+ * valeur réellement engagée par la roulette, voir D-06) ; droite = icône de
+ * rôle (déplacée depuis le slot gauche).
+ *
+ * Chevron : supprimé à l'état fermé (absent de la référence signalée par
+ * cette revue). Conservé uniquement à l'état ouvert, comme seul indice
+ * visuel restant de l'état « développé » (`accessibilityState.expanded`
+ * porte déjà cette information pour l'accessibilité).
  */
 function BoundaryActivityRow({
   icon,
@@ -371,38 +373,46 @@ function BoundaryActivityRow({
       accessibilityState={{ expanded: isOpen }}
       style={styles.boundaryRow}
     >
+      <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot" />
+      <View style={styles.boundaryRowTitleSlot}>
+        <Text style={styles.rowLabel} numberOfLines={1}>
+          {label}
+        </Text>
+        <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
+          {value}
+        </Text>
+      </View>
       <View style={styles.boundaryRowIconSlot}>
         <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
       </View>
-      <Text style={styles.boundaryRowTitleSlot} numberOfLines={1}>
-        {label}
-      </Text>
-      <View style={styles.boundaryRowValueSlot}>
-        <Text style={styles.rowValue}>{value}</Text>
-        <KodjoIcon
-          name={isOpen ? "control-chevron-up" : "control-chevron-down"}
-          testID={`composition-row-chevron-${isOpen ? "up" : "down"}`}
-        />
-      </View>
+      {isOpen ? (
+        <KodjoIcon name="control-chevron-up" testID="composition-row-chevron-up" />
+      ) : null}
     </Pressable>
   );
 }
 
 /**
- * Carte `Tour` — correction LAY-04 (contre-recette iPhone, Phase 2
- * Composition, 2026-09-03) : composant DS dédié, fond distinct
- * (`colors.selectionSurface`, seul token « bleu/lavande très pâle » déjà
- * présent dans ce code — valeur par défaut non confirmée contre la frame
- * Figma exacte, voir le rapport de mission), libellé `Tour` et contrôle
- * `×1` placés dans des slots distincts, jamais partagés avec une icône
- * d'Activité (`composition-main-content`, réservée à la ligne Exercice).
+ * Carte `Tour` — correction CMP-04 (contre-recette iPhone, correction
+ * consolidée, 2026-09-03) : contrôle `×1` désormais présenté dans un
+ * conteneur blanc dédié (`tourCardControl`) avec une affordance de
+ * disclosure (chevron), au lieu d'un simple `Text` nu — la carte Tour
+ * n'est toujours pas interactive en T01 (`accessibilityState.disabled`),
+ * ce chevron est donc une affordance purement visuelle, jamais fonctionnelle
+ * avant qu'un état d'ouverture réel n'existe.
  *
- * **Icône Tour canonique absente** : aucun asset `tour.*` n'existe dans
- * `assets/icons/manifest.json` ni dans `assets/icons/` (vérifié par
- * recherche exhaustive) — le slot gauche reste donc vide plutôt que de
- * réutiliser l'icône d'une Activité ou d'inventer un glyphe de
- * substitution, interdit par les règles du manifeste. Point bloqué,
- * documenté dans le rapport de mission — pas un défaut silencieux.
+ * **Icône Tour canonique toujours absente** — cette revue indique
+ * explicitement que « Asset missing » n'est plus un état final accepté.
+ * Recherche exhaustive reconduite ce cycle (`assets/icons/manifest.json`,
+ * 19 entrées) : aucune entrée `tour.*` ni glyphe sémantiquement proche
+ * (répétition/cycle/boucle) n'existe. Le MCP `figma` de cet environnement
+ * est non authentifié (aucun flux OAuth possible en session non
+ * interactive) — impossible d'obtenir ou de vérifier un asset réel depuis
+ * ce run. Le slot gauche reste donc vide (jamais un glyphe inventé ou
+ * réutilisé depuis un autre composant), et ce point est explicitement
+ * escaladé dans le rapport de mission comme blocage nécessitant soit une
+ * autorisation `figma` MCP, soit un dépôt d'asset explicite côté design —
+ * pas un défaut silencieusement reconduit.
  */
 function TourCard({ label }: { label: string }) {
   return (
@@ -415,53 +425,33 @@ function TourCard({ label }: { label: string }) {
     >
       <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot" />
       <Text style={styles.tourCardLabel}>{label}</Text>
-      <Text style={styles.tourCardValue}>×{FIXED_TOUR_REPEAT_COUNT}</Text>
+      <View style={styles.tourCardControl} testID="composition-tour-control">
+        <Text style={styles.tourCardControlValue}>×{FIXED_TOUR_REPEAT_COUNT}</Text>
+        <KodjoIcon
+          name="control-chevron-down"
+          testID="composition-tour-control-chevron"
+          opacity={0.5}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  // LAY-02 : Header fixe — Retour + titre statique, safe area appliquée une
-  // seule fois ici (`paddingTop: insets.top`, inline).
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[12],
+  body: {
     paddingHorizontal: spacing[24],
-    paddingBottom: spacing[16],
-  },
-  backButton: {
-    minWidth: minTouchTarget,
-    minHeight: minTouchTarget,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -spacing[12],
-  },
-  title: {
-    ...type.screenTitle,
-    flex: 1,
-    color: colors.textPrimary,
-  },
-  headerSeparator: {
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  // LAY-02 : bande Context bleu très pâle (`colors.selectionSurface`) —
-  // nom, couleur et Ajouter une activité.
-  contextBand: {
-    backgroundColor: colors.selectionSurface,
-    paddingHorizontal: spacing[24],
-    paddingVertical: spacing[16],
+    paddingTop: spacing[16],
     gap: spacing[16],
   },
-  nameRow: {
+  // CMP-02 : champ blanc unique regroupant Nom et Sélecteur de couleur.
+  nameColorField: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing[12],
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[4],
   },
   nameInput: {
     ...type.screenTitle,
@@ -469,20 +459,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     paddingVertical: spacing[8],
   },
-  body: {
-    paddingHorizontal: spacing[24],
-    paddingTop: spacing[16],
-    gap: spacing[16],
-  },
   anchoredRow: {
     // Sert uniquement de contexte de positionnement pour son sélecteur
     // (voir `AnchoredRow` ci-dessus) ; aucune propriété de layout propre.
   },
-  // Élève une ligne (et son popover) au-dessus de ses frères tant que son
-  // sélecteur est ouvert (correction UI-CTRL-002, cause racine UI-CTRL-001) —
-  // `zIndex` seul suffit : React Native réordonne le tracé des frères d'un
-  // même parent d'après cette valeur, aucune `elevation` supplémentaire
-  // n'est nécessaire sur un `View` sans fond propre.
+  // Élève une ligne/bande (et son popover) au-dessus de ses frères tant que
+  // son sélecteur est ouvert (correction UI-CTRL-002) et au-dessus du
+  // `backdrop` dédié (même mécanisme, voir la note de tête).
   elevated: {
     zIndex: 1,
   },
@@ -499,8 +482,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 12,
   },
-  // LAY-05 — `Boundary Activity` : trois slots indépendants, voir
-  // `BoundaryActivityRow` ci-dessus pour la justification complète.
+  // Backdrop dédié (CMP-01/D-03) : couvre tout l'écran, rendu uniquement
+  // pendant qu'un sélecteur est ouvert, sans `zIndex` propre — reste donc
+  // peint sous la ligne/bande `elevated` (`zIndex: 1`) par cette seule
+  // valeur par défaut (0), tout en restant au-dessus des autres frères de
+  // premier niveau du seul fait de son ordre de rendu (dernier frère).
+  backdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  // CMP-03/CMP-05 — `Boundary Activity` : voir `BoundaryActivityRow`
+  // ci-dessus pour la justification complète du nouvel ordre de slots.
   boundaryRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -510,24 +505,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: spacing[8],
   },
+  boundaryRowHandleSlot: {
+    width: 24,
+    height: 24,
+  },
+  boundaryRowTitleSlot: {
+    flex: 1,
+    gap: spacing[2],
+  },
+  boundaryRowSecondaryLine: {
+    ...type.supporting,
+    color: colors.textSecondary,
+  },
   boundaryRowIconSlot: {
     width: 24,
     height: 24,
     alignItems: "center",
     justifyContent: "center",
   },
-  boundaryRowTitleSlot: {
-    ...type.body,
-    flex: 1,
-    color: colors.textPrimary,
-  },
-  boundaryRowValueSlot: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[4],
-  },
-  // LAY-04 — carte `Tour`, voir `TourCard` ci-dessus pour la justification
-  // complète (fond, slot d'icône vide — asset canonique absent).
+  // CMP-04 — carte `Tour`, voir `TourCard` ci-dessus pour la justification
+  // complète (fond, slot d'icône vide — asset canonique absent, contrôle
+  // `×1` avec affordance de disclosure).
   tourCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -546,26 +544,30 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textPrimary,
   },
-  tourCardValue: {
+  tourCardControl: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[4],
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingHorizontal: spacing[8],
+    paddingVertical: spacing[4],
+  },
+  tourCardControlValue: {
     ...type.body,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
   rowLabel: {
     ...type.body,
     color: colors.textPrimary,
   },
-  rowValue: {
-    ...type.body,
-    color: colors.textSecondary,
-  },
   // LAY-03 : hauteur/rayon issus du composant DS
   // (`dimensions.compactSecondaryButton`, même token que le bouton Créer
   // du Catalogue) ; fond blanc explicite (la bande Context est teintée) ;
-  // bordure/icône/texte primaires ; largeur libre (libellé plus long que
-  // celui du Catalogue, aucune largeur fixe imposée par le contrat de
-  // cette phase).
+  // bordure/icône/texte primaires ; largeur libre. CMP-02 : centré
+  // (`alignSelf: "center"`, auparavant `flex-start`).
   addActivityAction: {
-    alignSelf: "flex-start",
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -600,16 +602,19 @@ const styles = StyleSheet.create({
     ...type.supporting,
     color: colors.textSecondary,
   },
+  // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer` —
+  // voir la note de tête du corps de l'écran pour la justification.
+  bottomAction: {
+    marginTop: "auto",
+    marginHorizontal: spacing[24],
+    gap: spacing[12],
+  },
   summary: {
     ...type.body,
     color: colors.textSecondary,
     textAlign: "center",
-    marginTop: spacing[16],
-    paddingHorizontal: spacing[24],
   },
   continueAction: {
-    marginTop: "auto",
-    marginHorizontal: spacing[24],
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: spacing[12],
