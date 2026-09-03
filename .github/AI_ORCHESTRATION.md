@@ -422,6 +422,26 @@ Cette stratégie doit être réévaluée explicitement au démarrage de T02.
 
 Avant `CLOSED`, supprimer uniquement les artefacts temporaires dont le nettoyage est prévu et vérifier qu’aucun résidu ou commit involontaire n’a été intégré.
 
+### `DELIVERY_REPORT_GATE`
+
+Consolidation normative (2026-09-03) de l’exigence de livraison documentaire définie dans `CLAUDE.md` (« Livraison documentaire obligatoire de chaque mission ») — applicable ici à toute mission conduite sous ce protocole, quel que soit son type (diagnostic, audit, développement, correction, revue, test, investigation).
+
+`DELIVERY_REPORT_GATE` échoue si l’un des éléments suivants manque :
+
+- fichier Markdown présent dans le répertoire prévu (`.github/orchestration/reports/`) ;
+- fichier suivi par Git ;
+- commit contenant le rapport ;
+- chemin communiqué ;
+- hash communiqué ;
+- état Git communiqué ;
+- résultats des tests consignés (ou mention explicite qu’aucun test n’était applicable).
+
+Une mission dont `DELIVERY_REPORT_GATE` échoue doit être déclarée **LIVRAISON INCOMPLÈTE**, jamais **TERMINÉE**. `READY_TO_CLOSE`/`CLOSED` exigent donc, en plus des conditions énumérées ci-dessus, un `DELIVERY_REPORT_GATE` conforme.
+
+Cette obligation ne peut être suspendue que par une instruction explicite contenant exactement `EXCEPTION EXPRESSE — AUCUN RAPPORT DE MISSION` (voir `CLAUDE.md`). Aucune instruction ponctuelle interdisant les modifications, les commits ou les livraisons (« ne modifier aucun fichier », « diagnostic seul », « ne créer aucun commit », « analyse uniquement ») ne suspend implicitement cette obligation — elle s’interprète comme une interdiction limitée aux fichiers applicatifs, jamais au rapport documentaire lui-même.
+
+*Portée de cette consolidation* : ce protocole est la V1.3, la seule effectivement active et présente sur la branche de bloc `feat/creation-seance-catalogue` à la date de cette consolidation (confirmé par audit `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`, section « traçabilité du protocole »). La V1.4 existe uniquement comme PR #33 (`docs: consolidate KODJO orchestration V1.4 LOCAL`, branche `orchestration/v1-4-local`), **non fusionnée et absente de l’arbre de travail courant** — `DELIVERY_REPORT_GATE` n’a donc pas pu y être inscrit directement sans une opération de branche non sollicitée par cette mission (changement de branche/checkout hors périmètre d’une mission documentaire ponctuelle, et proscrit spontanément par ce protocole lui-même, section « Contexte d’exécution autorisé »). Cette même consolidation reste à reporter dans `KODJO_ORCHESTRATION_V1_4_LOCAL.md` avant ou lors de la fusion de la PR #33.
+
 ## Audit du protocole et évolution
 
 Toute évolution du protocole doit être auditée sur quatre axes :
