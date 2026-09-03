@@ -840,6 +840,10 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.warning` | `#FF8D28` | Ressenti intermédiaire et avertissement non destructif |
 | `color.danger` | `#D92D20` | Action destructive et état négatif |
 | `color.dangerSurface` | `#FFF1F0` | Fond destructif léger |
+| `color.wheelActionCancelBackground` | `#F5F7FA` | Cercle d’annulation d’une roulette ; alias de `color.surface` |
+| `color.wheelActionValidateBackground` | `#0508E5` | Cercle de validation d’une roulette ; alias de `color.primary` |
+| `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
+| `color.wheelActionValidateIcon` | `#FFFFFF` | Coche de validation sur fond primaire |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -967,6 +971,10 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
+| Roulette compacte | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptative au conteneur (`330` en Activité, environ `310` en Planification) |
+| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; Annuler à gauche et Valider à droite dans la barre supérieure |
+
+Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/validate-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/validate-icon`. Ils décrivent le composant représentatif `Picker / Popover — Source exact`, variante `Type=Duration`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
 ### Règles de dimensionnement des composants
 

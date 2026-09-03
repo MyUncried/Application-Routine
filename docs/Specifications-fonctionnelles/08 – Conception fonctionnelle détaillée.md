@@ -883,6 +883,8 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 
 Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
 
+Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur validée et leur propre brouillon. L’ouverture copie la dernière valeur validée dans le brouillon ; le défilement ne modifie ni la carte ni le résumé. Annuler abandonne le brouillon. Valider enregistre exactement les minutes et secondes centrées et actualise alors seulement la carte. Les secondes couvrent `00` à `59` avec un pas de `1`.
+
 Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Continuer la création` conserve les données ; `Abandonner` les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
 ## Catégories de la séance
@@ -926,6 +928,8 @@ Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Contin
 | Nombre de Séries          | Roulette          | Étape 1, Exercice uniquement       | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Paramètre propre à l'Activité ; une Série n'est pas une entité autonome |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
+
+Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une Récupération utilisent le composant compact canonique : `190` points de haut, barre supérieure Annuler/Valider de `40` points, roulette native de `150` points et largeur de `330` points. Le brouillon reste local jusqu’à Valider ; Annuler restaure la valeur précédemment enregistrée. Cette évolution ne s’applique pas implicitement aux roulettes `Nombre de répétitions` et `Nombre de Séries`, qui demeurent à contrôler séparément.
 | Consigne                  | Texte multiligne  | Étape 2                            | Non         | Vide                           | 1000 caractères max                            | Activité | Saisie         | Écran Informations complémentaires |
 | Zones corporelles         | Tags              | Étape 2, Exercice uniquement       | Non         | Aucune                         | Plusieurs zones autorisées                     | Activité | Sélection      | Référentiel prédéfini ; écran Informations complémentaires |
 | Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom + durée/répétitions obligatoires           | Statique | Enregistrer    |                                                                                                                                                                                                                                        |
@@ -1056,6 +1060,8 @@ Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Contin
 - La modification de la couleur de la Séance est immédiatement reflétée par toutes les Routines existantes qui lui sont associées, celles-ci héritant de la couleur de la Séance.
 
 ## Planifier une séance
+
+Les sélecteurs ouverts `Heure` et `Rappel personnalisé` utilisent la roulette compacte canonique de `190` points (`40` d’actions + `150` de contenu natif), adaptée à la largeur disponible d’environ `310` points. Annuler, à gauche, abandonne le brouillon ; Valider, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `28 × 28`, chacun placé dans une cible tactile de `48 × 48`.
 
 ### Règles liées à la couleur
 

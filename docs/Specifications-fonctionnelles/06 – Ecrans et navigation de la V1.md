@@ -155,6 +155,10 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
 - Une roulette ou un pop-up compact est ancré au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, il est repositionné au-dessus ou transformé en présentation basse défilante.
+- La roulette compacte de durée ou d’heure mesure `190` points de haut : barre d’actions supérieure de `40` points et zone de roulette native de `150` points. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
+- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
+- La roulette conserve une seule zone de sélection visible : le cadre gris natif. Aucun cadre bleu ne se superpose à cette zone. Les unités `min`, `s` ou `h` sont en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée.
+- Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Valider enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après validation. Une réouverture restitue la dernière valeur validée.
 
 ### Modales et bottom sheets
 
@@ -545,8 +549,8 @@ L’état révélant les actions d’une Activité est illustré par :
 | Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial et action principale désactivée |
 | Nom renseigné | ![[images/composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` |
 | Palette de couleurs ouverte | ![[images/composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé |
-| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage intégré minutes/secondes |
-| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage intégré avec valeur de référence `5 s` |
+| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Valider circulaires |
+| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Valider circulaires |
 | Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Sélection compacte du nombre de répétitions du Tour |
 ### Objectif
 
@@ -665,8 +669,8 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 | État | Capture | Règle matérialisée |
 | --- | --- | --- |
 | Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions |
-| Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette minutes/secondes et grisage des autres contrôles |
-| Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série |
+| Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite |
+| Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série avec validation explicite |
 | Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Sélecteur compact du nombre de Séries |
 | Répétitions ouvertes | ![[images/creation-activite-repetitions-ouvert.png\|220]] | Sélecteur compact de la cible de répétitions |
 | Informations complémentaires | ![[images/creation-activite-informations.png\|220]] | Deuxième étape facultative : Consigne et Zones corporelles |
@@ -887,8 +891,8 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 | État | Capture | Règle matérialisée |
 | --- | --- | --- |
 | Date ouverte | ![[images/planifier-date-ouverte.png\|220]] | Sélecteur de date compact |
-| Heure ouverte | ![[images/planifier-heure-ouverte.png\|220]] | Roulette heures/minutes |
-| Rappel personnalisé ouvert | ![[images/planifier-rappel-ouvert.png\|220]] | Réglage du délai de rappel |
+| Heure ouverte | ![[images/planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite |
+| Rappel personnalisé ouvert | ![[images/planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite |
 | Rappel personnalisé sélectionné | ![[images/planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement |
 | Nombre de semaines ouvert | ![[images/planifier-semaines-ouvert.png\|220]] | Fréquence hebdomadaire compacte |
 | Aucune répétition | ![[images/planifier-sans-repetition.png\|220]] | Variante de planification unique |
@@ -1470,7 +1474,7 @@ La modale ne peut être fermée que par l’une des deux actions prévues.
 
 Ces réglages ne sont plus des modales dans le MVP.
 
-Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Dans le Profil, toucher la préférence correspondante ouvre un sélecteur intégré présentant visuellement `0 s`, `5 s`, `10 s` et `15 s` ; la sélection s’applique immédiatement et revient à la vue Profil.
+Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Ces deux valeurs possèdent des brouillons et des valeurs validées indépendants. Dans le Profil, toucher la préférence correspondante ouvre un sélecteur intégré présentant visuellement `0 s`, `5 s`, `10 s` et `15 s` ; ce sélecteur historique du Profil n’est pas remplacé par la nouvelle roulette compacte dans la présente décision.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
