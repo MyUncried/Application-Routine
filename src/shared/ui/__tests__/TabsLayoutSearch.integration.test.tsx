@@ -1,16 +1,32 @@
-import { renderRouter, screen } from "expo-router/testing-library";
+import { fireEvent, renderRouter, screen } from "expo-router/testing-library";
 import { describe, expect, it } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
-import { dimensions, spacing } from "@/shared/ui/tokens";
+import { NAVIGATION_ICON_SLOT } from "@/shared/ui/navigationLayout";
+import { icon, minTouchTarget } from "@/shared/ui/tokens";
+import { strings } from "@/shared/i18n";
 
 /**
  * Test d'intégration avec un vrai navigateur (`expo-router/testing-library`)
  * pour la navigation basse à quatre onglets + l'action Recherche distincte
  * (correction de conformité, `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`,
  * AUD-02). `app/(tabs)/_layout.tsx` doit être exercé tel quel (pas une
- * reproduction locale) : c'est le fichier de route réel, dont dépend le
- * rendu effectif de l'action Recherche au-dessus de la barre à onglets.
+ * reproduction locale) : c'est le fichier de route réel.
+ *
+ * Correction SHELL-R02 (contre-recette iPhone, `[ChatGPT]
+ * DEVICE_REVIEW_FAIL — REWORK 02`, 2026-09-03) : la barre est désormais un
+ * rendu `tabBar` entièrement personnalisé (`BottomTabBar`) — les quatre
+ * destinations et Recherche sont des **frères dans une seule rangée flex**
+ * (`navigation-row` → `navigation-tabs-group` (`flex:1`) + Recherche
+ * (largeur fixe), tous deux enfants directs du même `View` avec
+ * `alignItems:"center"`). Ce test vérifie la structure — la garantie de
+ * non-chevauchement et d'axe vertical commun découle de flexbox lui-même
+ * (propriété valable à n'importe quelle largeur d'écran, pas seulement à
+ * une largeur mesurée), pas d'une formule arithmétique à revalider par
+ * largeur : voir le rapport de mission pour la justification complète de
+ * pourquoi un test paramétré par largeur logique (`360`/`402`/`440`)
+ * n'apporterait aucune preuve supplémentaire ici, contrairement à
+ * l'ancienne implémentation à positionnement absolu indépendant.
  */
 function IndexRoute() {
   return <Text>index-screen</Text>;
@@ -51,29 +67,80 @@ describe("Navigation basse — action Recherche distincte (AUD-02)", () => {
     // produit aucune navigation.
     expect(screen.getByText("index-screen")).toBeTruthy();
   });
+});
 
-  it("keeps the search bubble at globalSearch's exact diameter, vertically centred within the mainNavigation bar height — never positioned independently of it (SHELL-R01, contre-recette iPhone 2026-09-03)", () => {
+describe("Navigation basse — rangée unique, quatre destinations + Recherche (SHELL-R02, contre-recette iPhone 2026-09-03)", () => {
+  it("lays the four-destinations group and the search bubble out in a single shared row, sharing one vertical axis by construction (SHELL-R02-C/D)", () => {
     renderTabsLayout();
 
+    const row = screen.getByTestId("navigation-row");
+    const rowStyle = StyleSheet.flatten(row.props.style);
+    expect(rowStyle.flexDirection).toBe("row");
+    // Un seul axe vertical commun : `alignItems:"center"` sur le parent
+    // partagé, jamais une position verticale calculée séparément pour
+    // chaque élément (cause du défaut précédent, SHELL-R01 échoué).
+    expect(rowStyle.alignItems).toBe("center");
+
+    const tabsGroup = screen.getByTestId("navigation-tabs-group");
     const search = screen.getByTestId("navigation-search-action");
-    const flattened = StyleSheet.flatten(search.props.style);
+    expect(tabsGroup).toBeTruthy();
+    expect(search).toBeTruthy();
 
-    expect(flattened.width).toBe(dimensions.globalSearch.visualDiameter);
-    expect(flattened.height).toBe(dimensions.globalSearch.visualDiameter);
+    // Le groupe des quatre destinations est `flex: 1` : sa largeur est
+    // dérivée de ce qui reste après Recherche (largeur fixe) + l'écart,
+    // quelle que soit la largeur réelle de l'écran — jamais une soustraction
+    // de pixels calculée à la main (cause exacte de l'échec précédent,
+    // voir le rapport de mission, § cause technique).
+    expect(StyleSheet.flatten(tabsGroup.props.style).flex).toBe(1);
+    // Recherche garde une largeur fixe, jamais positionnée en absolu
+    // indépendamment de cette même rangée.
+    const searchStyle = StyleSheet.flatten(search.props.style);
+    expect(searchStyle.position).not.toBe("absolute");
+  });
 
-    // `insets.bottom` vaut 0 dans cet environnement de test (aucun module
-    // natif de mesure de Safe Area) — la formule elle-même (un seul point
-    // d'application de l'inset, centrage sur la hauteur réelle du token
-    // `mainNavigation`) est ce que ce test prouve, pas une valeur absolue
-    // dépendant d'un device réel.
-    const expectedBottom =
-      spacing[8] + (dimensions.mainNavigation.visualHeight - dimensions.globalSearch.visualDiameter) / 2;
-    expect(flattened.bottom).toBe(expectedBottom);
-    // Jamais un chevauchement de la ligne supérieure de la barre : le
-    // centrage garantit une marge positive des deux côtés (la bulle ne
-    // peut pas dépasser la hauteur de la barre puisqu'elle y est inscrite).
-    expect(dimensions.globalSearch.visualDiameter).toBeLessThanOrEqual(
-      dimensions.mainNavigation.visualHeight,
-    );
+  it("renders all four destinations simultaneously, never masked or replaced by Recherche (SHELL-R02-B)", () => {
+    renderTabsLayout();
+
+    expect(screen.getByTestId("navigation-tab-index")).toBeTruthy();
+    expect(screen.getByTestId("navigation-tab-calendar")).toBeTruthy();
+    expect(screen.getByTestId("navigation-tab-history")).toBeTruthy();
+    expect(screen.getByTestId("navigation-tab-profile")).toBeTruthy();
+    expect(screen.getByLabelText(strings.nav.sessions)).toBeTruthy();
+    expect(screen.getByLabelText(strings.nav.calendar)).toBeTruthy();
+    expect(screen.getByLabelText(strings.nav.history)).toBeTruthy();
+    expect(screen.getByLabelText(strings.nav.profile)).toBeTruthy();
+    expect(screen.getByTestId("navigation-search-action")).toBeTruthy();
+  });
+
+  it("gives all four destinations the exact same icon slot (SHELL-R02-A) and a touch target of at least 48×48 without enlarging the icon itself", () => {
+    renderTabsLayout();
+
+    for (const name of ["index", "calendar", "history", "profile"]) {
+      const tab = screen.getByTestId(`navigation-tab-${name}`);
+      const flattened = StyleSheet.flatten(tab.props.style);
+      // Cible tactile : hauteur minimale du `Pressable` lui-même — pas un
+      // agrandissement du SVG (le slot d'icône reste `NAVIGATION_ICON_SLOT`,
+      // vérifié séparément ci-dessous).
+      expect(flattened.minHeight).toBe(minTouchTarget);
+
+      const iconSlot = screen.getByTestId(`navigation-tab-icon-slot-${name}`);
+      const iconSlotStyle = StyleSheet.flatten(iconSlot.props.style);
+      expect(iconSlotStyle.width).toBe(NAVIGATION_ICON_SLOT);
+      expect(iconSlotStyle.height).toBe(NAVIGATION_ICON_SLOT);
+    }
+
+    // Slot d'icône ~25 % plus petit que l'ancien token `icon.navigation`
+    // (`32`), jamais réellement consommé par ces icônes.
+    expect(NAVIGATION_ICON_SLOT).toBeLessThan(icon.navigation);
+  });
+
+  it("navigates to the pressed destination via the custom tab bar, content of the four screens unchanged", () => {
+    renderTabsLayout();
+
+    fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
+    expect(screen.getByText("calendar-screen")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("navigation-tab-profile"));
+    expect(screen.getByText("profile-screen")).toBeTruthy();
   });
 });

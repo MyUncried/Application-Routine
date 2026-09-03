@@ -8,6 +8,7 @@ import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { NAVIGATION_CONTENT_HEIGHT } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -69,7 +70,24 @@ export function CatalogueScreen() {
         <CreateAction onPress={() => router.push("/composition")} />
       </View>
 
-      <View style={styles.body}>
+      {/*
+       * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
+       * DEVICE_REVIEW_FAIL — REWORK 02`, 2026-09-03) : la navigation basse
+       * est positionnée en absolu (`app/(tabs)/_layout.tsx`), donc jamais
+       * comptée dans la hauteur `flex` normale de ce corps — sans réserve
+       * explicite, `centeredBody` (plus bas) centrait son contenu sur
+       * TOUTE la hauteur restante de l'écran, y compris la zone
+       * visuellement recouverte par la barre flottante, décalant le cadre
+       * de l'état vide trop bas. `paddingBottom` réserve exactement
+       * l'espace réel de la navigation (`NAVIGATION_CONTENT_HEIGHT` +
+       * l'inset de sécurité, même source que `app/(tabs)/_layout.tsx`) —
+       * le centrage de `centeredBody` s'effectue désormais uniquement
+       * entre le bas de la bande Context et le haut réel de la barre.
+       */}
+      <View
+        style={[styles.body, { paddingBottom: insets.bottom + NAVIGATION_CONTENT_HEIGHT }]}
+        testID="catalogue-body"
+      >
         {state.status === "loading" ? <LoadingBody /> : null}
         {state.status === "empty" ? <EmptyBody /> : null}
         {state.status === "error" ? <ErrorBody onRetry={reload} /> : null}

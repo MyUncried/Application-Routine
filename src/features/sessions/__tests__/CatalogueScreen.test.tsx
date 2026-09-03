@@ -8,6 +8,7 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import type { SessionService } from "@/features/sessions/SessionService";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { NAVIGATION_CONTENT_HEIGHT } from "@/shared/ui/navigationLayout";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -214,6 +215,27 @@ describe("CatalogueScreen — cadre commun", () => {
 
     // Le texte est un enfant du cadre, pas un frère isolé dans le corps.
     expect(within(frame).getByText(strings.screens.sessions.empty.message)).toBeTruthy();
+  });
+
+  it("reserves the real navigation footprint at the bottom of the body, so the empty-state frame centers only between the Context band and the Bottom Shell (CAT-R04, contre-recette iPhone 2026-09-03)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const body = screen.getByTestId("catalogue-body");
+    const flattened = StyleSheet.flatten(body.props.style);
+    // La navigation basse est positionnée en absolu (`app/(tabs)/_layout.tsx`)
+    // et n'est donc jamais comptée dans la hauteur `flex` normale de ce
+    // corps — sans cette réserve, `centeredBody` centrerait son contenu sur
+    // toute la hauteur restante de l'écran, y compris la zone visuellement
+    // recouverte par la barre flottante.
+    expect(flattened.paddingBottom).toBeGreaterThanOrEqual(NAVIGATION_CONTENT_HEIGHT);
   });
 
   it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {

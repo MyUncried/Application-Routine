@@ -1,9 +1,14 @@
-import { Tabs } from "expo-router/js-tabs";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, spacing } from "@/shared/ui/tokens";
+import {
+  NAVIGATION_ICON_SLOT,
+  NAVIGATION_ITEM_VERTICAL_PADDING,
+  NAVIGATION_LABEL_GAP,
+} from "@/shared/ui/navigationLayout";
+import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -21,54 +26,48 @@ import { strings } from "@/shared/i18n";
  * AUD-02) : `12 – Architecture technique.md` §Design tokens décrit la
  * navigation basse comme « composée d'une barre principale flexible et
  * d'une recherche de diamètre fixe 58 » — un élément **distinct** de la
- * barre à quatre onglets, jamais rendu jusqu'ici. `dimensions.globalSearch`
- * porte ce diamètre canonique ; l'action reste désactivée dans la
- * livraison partielle T01 (CE-T01-02/03 : « présente mais désactivée »,
- * aucune tranche ne livre encore la recherche globale) — visible, mais
- * sans navigation ni faux résultat produit.
+ * barre à quatre onglets. L'action reste désactivée dans la livraison
+ * partielle T01 (CE-T01-02/03 : « présente mais désactivée »).
  *
- * Correction SHELL-R01 (contre-recette iPhone, `[ChatGPT]
- * DEVICE_REVIEW_FAIL`, 2026-09-03) : `dimensions.mainNavigation`
- * (hauteur 66, rayon 33) et `dimensions.globalSearch` étaient définis
- * dans les tokens mais `mainNavigation` n'était jusqu'ici jamais
- * appliqué — la barre s'étendait donc sur toute la largeur de l'écran
- * (espacement horizontal excessif) et le bouton Recherche, positionné
- * indépendamment de la hauteur réelle de la barre, chevauchait sa ligne
- * supérieure. `tabBarStyle` contraint désormais la barre (marges
- * gauche/droite, hauteur et rayon issus du token) ; le bouton Recherche
- * est recalculé pour rester centré verticalement dans cette même bande,
- * jamais positionné indépendamment d'elle.
+ * Correction SHELL-R02 (contre-recette iPhone, `[ChatGPT]
+ * DEVICE_REVIEW_FAIL — REWORK 02`, 2026-09-03) : la tentative précédente
+ * (`tabBarStyle` avec marges + bouton Recherche positionné indépendamment
+ * en absolu) a échoué au rendu réel — `tabBarStyle` du rendu par défaut
+ * d'`expo-router/js-tabs` ne garantit pas la largeur/hauteur externes
+ * demandées, et deux éléments positionnés en absolu indépendamment ne
+ * peuvent pas se garantir mutuellement une même rangée sans chevauchement.
+ * Remplacé par un **rendu de barre entièrement personnalisé** (`tabBar`,
+ * point d'extension standard de `@react-navigation/bottom-tabs`, dont
+ * `createBottomTabNavigator` d'`expo-router/js-tabs` est un fork direct —
+ * confirmé par lecture de `node_modules/expo-router/build/layouts/
+ * TabsClient.js`) : les quatre destinations et le cercle Recherche sont
+ * désormais des **frères dans une seule rangée flex** (`flexDirection:
+ * "row"`), le groupe des quatre destinations en `flex: 1` et Recherche à
+ * largeur fixe — la largeur du groupe de quatre est donc *dérivée* de la
+ * largeur réellement disponible moins Recherche et l'écart, à n'importe
+ * quelle largeur d'écran, jamais un calcul de pixels dupliqué à la main.
+ * Le même parent `alignItems: "center"` garantit un axe vertical commun
+ * (SHELL-R02-D) sans assertion arithmétique séparée à maintenir.
+ *
+ * Hauteur et position basses (SHELL-R02-E) : plus aucune hauteur fixe
+ * empruntée à `dimensions.mainNavigation.visualHeight` (`66`, jamais
+ * vérifiée contre le rendu réel) — la rangée se dimensionne à son
+ * contenu réel (`NAVIGATION_ICON_SLOT` + libellé + espacements DS,
+ * `NAVIGATION_CONTENT_HEIGHT`, partagées depuis
+ * `@/shared/ui/navigationLayout` — valeur exacte par construction
+ * puisque c'est la même valeur qui détermine le padding de chaque item),
+ * positionnée à `bottom: insets.bottom` — aucune marge flottante
+ * supplémentaire, la Safe Area n'est appliquée qu'une seule fois ici.
+ * `CatalogueScreen.tsx` importe `NAVIGATION_CONTENT_HEIGHT` pour réserver
+ * exactement cet espace dans son propre calcul de centrage (CAT-R04) —
+ * une seule source de vérité, pas deux estimations indépendantes.
  */
 export default function TabsLayout() {
-  const insets = useSafeAreaInsets();
-  const navigationBarBottom = insets.bottom + spacing[8];
-  const searchBottom =
-    navigationBarBottom +
-    (dimensions.mainNavigation.visualHeight - dimensions.globalSearch.visualDiameter) / 2;
-
   return (
     <View style={styles.root}>
       <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.textSecondary,
-          tabBarStyle: {
-            position: "absolute",
-            left: spacing[16],
-            right: spacing[16] + dimensions.globalSearch.visualDiameter + spacing[12],
-            bottom: navigationBarBottom,
-            height: dimensions.mainNavigation.visualHeight,
-            borderRadius: dimensions.mainNavigation.radius,
-            backgroundColor: colors.background,
-            borderTopWidth: 0,
-            elevation: 8,
-            shadowColor: "#000000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.12,
-            shadowRadius: 12,
-          },
-        }}
+        tabBar={(props) => <BottomTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
       >
         <Tabs.Screen
           name="index"
@@ -115,6 +114,59 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
+    </View>
+  );
+}
+
+function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.navigationRow, { bottom: insets.bottom }]} testID="navigation-row">
+      <View style={styles.tabsGroup} testID="navigation-tabs-group">
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const label = typeof options.title === "string" ? options.title : route.name;
+
+          function onPress() {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          }
+
+          return (
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isFocused }}
+              accessibilityLabel={label}
+              testID={`navigation-tab-${route.name}`}
+              style={styles.tabItem}
+            >
+              <View style={styles.tabIconSlot} testID={`navigation-tab-icon-slot-${route.name}`}>
+                {options.tabBarIcon?.({
+                  focused: isFocused,
+                  color: isFocused ? colors.primary : colors.textSecondary,
+                  size: NAVIGATION_ICON_SLOT,
+                })}
+              </View>
+              <Text
+                style={[styles.tabLabel, isFocused ? styles.tabLabelActive : null]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <Pressable
         disabled
@@ -122,7 +174,7 @@ export default function TabsLayout() {
         accessibilityState={{ disabled: true }}
         accessibilityLabel={strings.nav.search}
         testID="navigation-search-action"
-        style={[styles.search, { bottom: searchBottom }]}
+        style={styles.search}
       >
         <KodjoIcon name="navigation-search" testID="navigation-search-icon" opacity={0.4} />
       </Pressable>
@@ -134,9 +186,50 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  search: {
+  navigationRow: {
     position: "absolute",
+    left: spacing[16],
     right: spacing[16],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[12],
+  },
+  tabsGroup: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: dimensions.mainNavigation.radius,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: minTouchTarget,
+    paddingVertical: NAVIGATION_ITEM_VERTICAL_PADDING,
+    gap: NAVIGATION_LABEL_GAP,
+  },
+  tabIconSlot: {
+    width: NAVIGATION_ICON_SLOT,
+    height: NAVIGATION_ICON_SLOT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabLabel: {
+    ...type.navLabel,
+    color: colors.textSecondary,
+  },
+  tabLabelActive: {
+    color: colors.primary,
+  },
+  search: {
     width: dimensions.globalSearch.visualDiameter,
     height: dimensions.globalSearch.visualDiameter,
     borderRadius: dimensions.globalSearch.radius,
