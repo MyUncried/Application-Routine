@@ -1,151 +1,108 @@
 # KODJO — V1.4 LOCAL — adaptation minimale des workflows
 
-Statut : **conception technique vérifiée sur l’état Git actuel ; aucun workflow métier V1.4 activé par ce document**.
+Statut : **option 3 retenue — automatisation de l’orchestration hors réveil Claude local**.
 
-## 1. Sources inspectées
+## 1. Décision d’exploitation
 
-- workflow T01-S09 d’implémentation V1.3 actuellement présent sur `main` : `.github/workflows/t01-s09-implementation-v1-3-temporary.yml` ;
-- workflow T01-S09 de révision du plan V1.3 : `.github/workflows/t01-s09-plan-revision-v1-3-temporary.yml` ;
-- workflow ayant démontré la continuité locale : `.github/workflows/kodjo-claude-local-session-resume-03.yml` ;
-- event router V1.3 : `.github/workflows/kodjo-event-router-v1-3.yml` ;
-- branche métier : `feat/creation-seance-catalogue` ;
-- Issue active : `#17`.
+Claude Code local reste l’unique écrivain de développement.
 
-## 2. Écarts factuels à corriger avant toute reprise métier
+Le réveil de Claude Code local n’est pas déclenché par GitHub Actions dans le chemin nominal. Lorsque Claude doit reprendre, l’utilisateur saisit uniquement :
 
-### Exécuteur
+`Reprends le protocole KODJO depuis le dernier checkpoint GitHub.`
 
-Le workflow T01-S09 V1.3 utilise `runs-on: ubuntu-latest` et `anthropics/claude-code-action@v1`. Ce chemin est incompatible avec la décision V1.4 LOCAL.
+Le contexte, la mission, le plan, le HEAD, les décisions et l’autorisation doivent déjà être présents dans GitHub. L’utilisateur ne les recopie pas.
 
-Le chemin V1.4 doit utiliser exclusivement :
+Le runner Windows self-hosted et les workflows de micro-test restent des preuves historiques. Ils ne sont pas supprimés, mais ne sont pas promus comme moteur de développement automatique.
 
-`runs-on: [self-hosted, Windows, X64, kodjo-claude-local]`
+## 2. Ancien chemin Cloud
 
-puis `claude.cmd` sous l’identité/configuration locale validée.
+Les workflows V1.3 utilisant `ubuntu-latest`, `anthropics/claude-code-action@v1`, `CLOUD_WRITE` ou un HEAD historique ne doivent pas être réarmés pour le développement nominal.
 
-### Mode
+Claude Cloud, le fallback Cloud et une nouvelle étude de Managed Agents/SessionStore sont hors périmètre sauf nouvelle décision explicite.
 
-Le checkpoint historique d’implémentation contrôlé par le workflow V1.3 exige `mode == "CLOUD_WRITE"` et matérialise `mode=CLOUD_WRITE` dans le SOURCE_ATTESTATION. Cette autorisation ne peut pas être réutilisée pour V1.4.
+## 3. Ce qui reste automatisable
 
-Avant une nouvelle écriture métier, un checkpoint/une autorisation fraîche doit porter le mode local retenu, par exemple `LOCAL_WRITE`, et l’écrivain `CLAUDE_CODE_LOCAL` ou la valeur canonique décidée par le protocole. La valeur canonique doit être unique dans les contrôles et l’état durable.
+GitHub/GitHub Actions peut continuer à automatiser sans lancer Claude :
 
-### HEAD
+1. publication et validation des checkpoints ;
+2. contrôle déterministe de branche/HEAD/périmètre ;
+3. anti-doublon et verrouillage des transitions ;
+4. conservation des décisions et résultats ;
+5. détection des états `*_READY_FOR_REVIEW` ;
+6. signal vers ChatGPT/Work via un transport réellement démontré/configuré ;
+7. accusés de réception et reprise de publication ;
+8. métriques et traçabilité ne nécessitant pas d’appel Claude.
 
-Le workflow V1.3 d’implémentation est verrouillé sur `34b3e53879d0ac20a3057da932df6b948d6030c9`.
+Le transport historique démontré `pull_request:synchronize → Work` reste réutilisable sous ses conditions démontrées.
 
-Le HEAD réel observé de `feat/creation-seance-catalogue` le 02/09/2026 est `640f2c91d0a219e88ca010d8feb9e6c181fa4db1`.
+## 4. Checkpoint obligatoire avant réveil Claude
 
-Il est donc interdit de simplement remplacer l’exécuteur Cloud par l’exécuteur local dans le workflow existant. Le delta entre le dernier checkpoint métier autorisé et le HEAD actuel doit être revalidé avant de produire un nouveau `authorized_head`.
+Avant de demander à l’utilisateur de réveiller Claude, GitHub doit permettre de déterminer sans ambiguïté :
 
-### Issue #17
+- mission/tranche ;
+- état courant et dernier état stable ;
+- branche ;
+- HEAD et `authorized_head` ;
+- mode local canonique ;
+- écrivain Claude local ;
+- autorisation d’écriture ou lecture seule ;
+- périmètre de fichiers/actions ;
+- plan approuvé lorsqu’il est requis ;
+- décisions/arbitrages applicables ;
+- sources fraîches à consulter ;
+- résultat/revue à traiter ;
+- prochaine action attendue de Claude.
 
-Le corps initial de l’Issue #17 mentionne encore :
+Si ces informations ne sont pas reconstructibles, le réveil Claude est bloqué par `ORCHESTRATION_FAILURE`.
 
-- baseline `c3af9990c8a35013bbad372c2eca2ce16d66d138` ;
-- mode initial `CLOUD` ;
-- protocole V1.2.
+## 5. Reprise Claude
 
-Ces valeurs sont historiques. Elles ne constituent pas une autorisation V1.4 LOCAL. Avant reprise, l’état actif/checkpoint doit superséder explicitement les anciennes métadonnées d’orchestration sans réécrire les règles fonctionnelles de l’Issue.
+Après l’instruction canonique, Claude doit d’abord lire le checkpoint GitHub et vérifier les préconditions. L’instruction utilisateur n’est pas une autorisation d’écriture.
 
-## 3. Adaptation minimale retenue
+Une session native Claude existante peut être reprise si elle est disponible et cohérente avec le checkpoint. Sinon Claude reconstruit le contexte minimal depuis GitHub. Aucune mission complète n’est recopiée manuellement par l’utilisateur.
 
-Le workflow métier local ne doit pas être une réécriture de la machine métier. Il réutilise les barrières déterministes existantes et remplace uniquement le transport/exécuteur Claude.
+## 6. Retour Claude → GitHub
 
-### Préflight commun avant appel Claude
+À la fin d’une mission, Claude publie le rapport/checkpoint exigé par le protocole. Le résultat doit permettre à ChatGPT/Work de reprendre indépendamment de la mémoire de la conversation Claude.
 
-Vérifier, sans appel modèle :
+Les règles de double livraison des rapports définies dans `KODJO_ORCHESTRATION_V1_4_LOCAL.md` restent applicables.
 
-1. runner exact `KODJO-LOCAL-RUNNER` ;
-2. branche métier attendue ;
-3. HEAD égal au `authorized_head` fraîchement validé ;
-4. worktree propre avant écriture ;
-5. `CLAUDE_CONFIG_DIR` absolu et attendu ;
-6. `claude.cmd` disponible ;
-7. credential local présent ;
-8. access token non expiré lorsque l’expiration est lisible ;
-9. mode local et écrivain local explicitement autorisés ;
-10. plan/checkpoint/source attestation/fraîcheur documentaire exigés par V1.3 présents et vérifiés ;
-11. session Claude : soit aucune session pour le premier appel du bloc, soit session ID durable + transcript natif unique pour une reprise.
+## 7. Revue ChatGPT / Work
 
-Tout échec de cette liste est `ORCHESTRATION_FAILURE` et bloque l’appel Claude.
+Lorsqu’un résultat est prêt pour revue :
 
-### Premier appel d’un bloc
+1. l’état durable passe dans l’état canonique correspondant ;
+2. le signal Work démontré peut être émis automatiquement ;
+3. ChatGPT/Work effectue la revue indépendante ;
+4. si la revue autorise une reprise Claude, un nouveau checkpoint complet est publié ;
+5. l’utilisateur reçoit uniquement la demande de réveil minimal de Claude.
 
-Utiliser le CLI local validé et récupérer le JSON incluant `session_id`, durée, tours et coût Claude déclaré :
+L’utilisateur ne sert pas de relais de contenu entre ChatGPT et Claude.
 
-`claude.cmd -p --output-format json <prompt>`
+## 8. Incident technique
 
-L’identifiant de session retourné est persisté dans l’état durable avec le bloc, la tranche, le HEAD et le mode auxquels il appartient.
+Les erreurs de transport, publication, compilation/test ou choix d’implémentation réversibles ne sont pas transformées en arbitrages utilisateur.
 
-### Appels suivants du même bloc
+Quand une correction exige Claude local, le checkpoint décrit le défaut et la reprise attendue, puis l’utilisateur effectue le même réveil minimal. Il n’a pas à recopier l’erreur.
 
-Si les préconditions de continuité restent valides :
+## 9. Sécurité
 
-`claude.cmd -p --resume <session_id> --output-format json <prompt_delta>`
+Le chemin option 3 réduit l’exposition du PC : aucun workflow nominal n’exécute automatiquement Claude Code local.
 
-Avant reprise, vérifier le transcript natif local correspondant. `--fork-session` et tout fallback Cloud sont interdits.
+Le self-hosted runner existant doit être considéré comme infrastructure technique séparée. Son maintien en service n’autorise aucun workflow à lancer Claude dans le cadre du protocole nominal.
 
-Le prompt de reprise contient uniquement le delta utile, les nouvelles décisions/erreurs/revues et les références fraîches nécessaires ; il ne reconstruit pas l’historique complet déjà présent dans la session.
+Toute réactivation future d’un réveil automatique Claude constitue un changement d’architecture et nécessite une décision explicite.
 
-### Écriture et commit
+## 10. Mise en œuvre pour le développement actuel
 
-Claude local modifie le worktree autorisé mais ne pousse pas directement.
+Avant la prochaine correction métier :
 
-Après retour Claude :
+1. établir le checkpoint GitHub du périmètre à corriger ;
+2. contrôler documentation/Figma/contrats d’écrans et HEAD ;
+3. publier le plan/autorisation nécessaires ;
+4. automatiser le signal vers Work lorsque pertinent ;
+5. demander à l’utilisateur uniquement le réveil canonique de Claude ;
+6. Claude travaille localement et retourne son résultat dans GitHub ;
+7. ChatGPT/Work reprend la revue.
 
-1. valider le statut structuré ;
-2. vérifier mécaniquement les fichiers modifiés contre le périmètre autorisé ;
-3. exécuter/valider les tests requis ;
-4. refuser tout fichier hors périmètre ;
-5. seulement après validation, GitHub Actions effectue le commit/push sous l’identité technique prévue ;
-6. publier le checkpoint/résultat durable ;
-7. déclencher le contrôle indépendant ChatGPT/Work.
-
-Cette séparation conserve la règle V1.3 : Claude est l’écrivain du contenu métier, GitHub Actions est le transport mécanique du commit/push après validation.
-
-## 4. Continuité et récupération
-
-Une erreur de publication après un appel Claude réussi ne doit pas provoquer un nouvel appel modèle si le résultat peut être récupéré localement de manière fiable.
-
-Le workflow doit donc conserver localement, avant publication GitHub, une récupération minimale/sanitisée suffisante pour republier :
-
-- session ID ;
-- résultat structuré ;
-- métriques ;
-- HEAD de départ ;
-- statut du worktree/diff nécessaire à la reprise technique.
-
-Aucun secret OAuth ni contenu sensible non nécessaire ne doit être publié dans GitHub.
-
-Si l’appel Claude lui-même échoue après avoir été effectivement lancé, l’appel est compté. La décision de reprendre la même session dépend de l’état du transcript et de la nature de l’échec ; aucun fallback Cloud n’est permis.
-
-## 5. Event router / Work
-
-Le transport V1.3 démontré `pull_request:synchronize → Work` reste réutilisable.
-
-Le routeur historique contient aussi des chemins de test OpenAI API. Ils ne sont pas nécessaires à l’exécution Claude Local et ne doivent pas être confondus avec le chemin nominal V1.4. Leur conservation historique ne constitue pas une exigence d’appel OpenAI pour chaque transition V1.4.
-
-Le chemin nominal V1.4 reste : état GitHub durable → signal démontré vers Work → contrôle ChatGPT/Work → autorisation/transition durable → runner local Claude lorsque nécessaire.
-
-## 6. Stratégie de migration minimale pour T01-S09
-
-Ne pas modifier maintenant le workflow V1.3 temporaire en place : il constitue une preuve historique et contient des autorisations Cloud/HEAD obsolètes.
-
-Créer, après revalidation du checkpoint T01-S09, un nouveau workflow V1.4 LOCAL dédié à la reprise de la tranche. Il doit reprendre les contrôles de périmètre et de publication du workflow V1.3, mais :
-
-- utiliser le runner local Windows ;
-- utiliser PowerShell compatible avec le runner démontré ;
-- utiliser `claude.cmd` ;
-- utiliser le nouveau `authorized_head` validé ;
-- utiliser le mode local canonique ;
-- créer/persister la session au premier appel puis `--resume` pour les corrections/retests du même bloc ;
-- ne contenir aucun secret Claude Cloud ;
-- ne contenir aucun fallback Cloud.
-
-## 7. Barrière avant matérialisation du workflow métier
-
-La prochaine étape n’est pas encore un appel Claude.
-
-Il faut d’abord reconstruire et revalider l’état T01-S09 à partir de GitHub : dernier checkpoint métier stable, plan approuvé, décisions postérieures, delta Git jusqu’au HEAD `640f2c91d0a219e88ca010d8feb9e6c181fa4db1`, et fraîcheur des sources applicables.
-
-Ce contrôle déterminera le nouvel `authorized_head`, le mode local canonique et le point exact de reprise. Ce n’est qu’ensuite que le workflow V1.4 LOCAL T01-S09 pourra être matérialisé sans inventer ni réutiliser une autorisation Cloud périmée.
+Aucun workflow de lancement automatique Claude n’est requis pour rendre V1.4 option 3 opérationnelle.
