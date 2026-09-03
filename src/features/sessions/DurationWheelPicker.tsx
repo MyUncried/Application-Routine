@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -37,6 +38,18 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * `onScrollEndDrag` ne servent ici qu'à une correction d'alignement final
  * (`scrollTo` vers la position exacte de l'index déjà retenu) — jamais comme
  * déclencheur de valeur ou d'haptique.
+ *
+ * Correction `CTRL-01` (contre-recette iPhone, cause racine démontrée par
+ * `2026-09-03_P0-diagnostic-controles-interactifs.md`, point 1 ; autorisée
+ * pour Composition par `[ChatGPT] PHASE01_DEVICE_ACCEPTED_WITH_RESIDUAL —
+ * OPEN PHASE02 COMPOSITION`) : chaque valeur visible est désormais aussi
+ * sélectionnable par appui direct (`Pressable` par item), pas seulement par
+ * glissement. `applyColumnIndex` centralise la logique déjà validée pour le
+ * glissement (garde d'index inchangé, haptique unique, `onChange`) —
+ * réutilisée à l'identique par le geste ET par le toucher direct, jamais
+ * dupliquée. Un appui rejoue ensuite `alignColumn` pour recentrer
+ * visuellement la roulette sur la valeur choisie, exactement comme la
+ * correction finale déjà appliquée après un glissement.
  */
 
 const ITEM_HEIGHT = 40;
@@ -88,16 +101,15 @@ export function DurationWheelPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleColumnScroll(
-    event: NativeSyntheticEvent<NativeScrollEvent>,
-    column: "minutes" | "seconds",
-  ) {
-    const max = column === "minutes" ? minutesMaxIndex : WHEEL_SECONDS_MAX_INDEX;
+  /**
+   * Logique partagée glissement/toucher direct (`CTRL-01`) : garde
+   * d'index inchangé en premier (§6.3), puis haptique unique et
+   * synchronisation du brouillon. Ni le geste ni le toucher n'appliquent
+   * cette logique deux fois pour un même changement effectif.
+   */
+  function applyColumnIndex(index: number, column: "minutes" | "seconds") {
     const ref = column === "minutes" ? minutesIndexRef : secondsIndexRef;
-    const index = offsetToIndex(event.nativeEvent.contentOffset.y, ITEM_HEIGHT, max);
 
-    // Condition vérifiée en premier, avant tout autre traitement (§6.3) :
-    // aucun appel haptique ni `onChange` si l'index est inchangé.
     if (index === ref.current) {
       return;
     }
@@ -110,10 +122,25 @@ export function DurationWheelPicker({
     onChange(toTotalSeconds(minutesIndexRef.current, secondsIndexRef.current, maxTotalSeconds));
   }
 
+  function handleColumnScroll(
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+    column: "minutes" | "seconds",
+  ) {
+    const max = column === "minutes" ? minutesMaxIndex : WHEEL_SECONDS_MAX_INDEX;
+    const index = offsetToIndex(event.nativeEvent.contentOffset.y, ITEM_HEIGHT, max);
+    applyColumnIndex(index, column);
+  }
+
   function alignColumn(column: "minutes" | "seconds") {
     const ref = column === "minutes" ? minutesIndexRef : secondsIndexRef;
     const scrollRef = column === "minutes" ? minutesScrollRef : secondsScrollRef;
     scrollRef.current?.scrollTo({ y: indexToOffset(ref.current, ITEM_HEIGHT), animated: true });
+  }
+
+  /** Toucher direct d'une valeur visible (`CTRL-01`) : sélectionne puis recentre visuellement, comme la correction finale déjà appliquée après un glissement. */
+  function handleItemPress(index: number, column: "minutes" | "seconds") {
+    applyColumnIndex(index, column);
+    alignColumn(column);
   }
 
   return (
@@ -128,6 +155,7 @@ export function DurationWheelPicker({
         onScroll={(event) => handleColumnScroll(event, "minutes")}
         onMomentumScrollEnd={() => alignColumn("minutes")}
         onScrollEndDrag={() => alignColumn("minutes")}
+        onItemPress={(index) => handleItemPress(index, "minutes")}
       />
       <Text style={styles.separator}>min</Text>
       <WheelColumn
@@ -140,6 +168,7 @@ export function DurationWheelPicker({
         onScroll={(event) => handleColumnScroll(event, "seconds")}
         onMomentumScrollEnd={() => alignColumn("seconds")}
         onScrollEndDrag={() => alignColumn("seconds")}
+        onItemPress={(index) => handleItemPress(index, "seconds")}
       />
       <Text style={styles.separator}>s</Text>
     </View>
@@ -156,6 +185,8 @@ type WheelColumnProps = {
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   onMomentumScrollEnd: () => void;
   onScrollEndDrag: () => void;
+  /** Toucher direct d'une valeur visible (`CTRL-01`) — `index` égale la valeur elle-même dans ce composant (tableaux `minutesValues`/`SECONDS_VALUES` alignés sur leur propre index). */
+  onItemPress: (index: number) => void;
 };
 
 function WheelColumn({
@@ -168,6 +199,7 @@ function WheelColumn({
   onScroll,
   onMomentumScrollEnd,
   onScrollEndDrag,
+  onItemPress,
 }: WheelColumnProps) {
   return (
     <View style={styles.wheelArea}>
@@ -187,9 +219,16 @@ function WheelColumn({
         accessibilityValue={{ min: 0, max, now }}
       >
         {values.map((value) => (
-          <View key={value} style={styles.item}>
+          <Pressable
+            key={value}
+            style={styles.item}
+            onPress={() => onItemPress(value)}
+            accessibilityRole="button"
+            accessibilityLabel={formatTwoDigits(value)}
+            testID={`${testID}-item-${value}`}
+          >
             <Text style={styles.itemLabel}>{formatTwoDigits(value)}</Text>
-          </View>
+          </Pressable>
         ))}
       </ScrollView>
       <WheelSelectionOverlay itemHeight={ITEM_HEIGHT} />

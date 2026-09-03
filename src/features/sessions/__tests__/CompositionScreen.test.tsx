@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Keyboard, StyleSheet } from "react-native";
 
@@ -9,6 +9,7 @@ import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
+import { colors, dimensions } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -169,13 +170,13 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(finalPhase.props.style).zIndex).toBeUndefined();
   });
 
-  it("elevates the header (name + colour swatch) above the rows below it while the colour popover is open (same UI-CTRL-002 correction)", () => {
+  it("elevates the Context band (name + colour swatch) above the rows below it while the colour popover is open (same UI-CTRL-002 correction; LAY-02 renamed this zone from 'header' to 'context band')", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
 
-    const header = screen.getByTestId("composition-header");
-    expect(StyleSheet.flatten(header.props.style).zIndex).toBe(1);
+    const contextBand = screen.getByTestId("composition-context-band");
+    expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
   });
 
   it("enables '+ Ajouter une activité' while no Exercise exists yet, and navigates to /exercise on press (T01-S08)", () => {
@@ -481,6 +482,69 @@ function walk(node: any, visit: (node: any) => void): void {
     walk(node.children, visit);
   }
 }
+
+describe("CompositionScreen — Phase 2 Shell (LAY-02/03/04/05, contre-recette iPhone 2026-09-03)", () => {
+  it("LAY-02 — Header shows the static title, never replaced by the typed name; separator and Context band are distinct from the general background", () => {
+    renderScreen();
+
+    const header = screen.getByTestId("composition-header");
+    expect(within(header).getByText(composition.title)).toBeTruthy();
+
+    fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
+
+    // Le titre reste inchangé après saisie — jamais remplacé par le nom.
+    expect(within(header).getByText(composition.title)).toBeTruthy();
+    expect(within(header).queryByText("Séance du soir")).toBeNull();
+
+    const separator = screen.getByTestId("composition-header-separator");
+    expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
+
+    const contextBand = screen.getByTestId("composition-context-band");
+    expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
+    // La bande Context contient bien le nom, la couleur ET Ajouter.
+    expect(within(contextBand).getByLabelText(composition.name)).toBeTruthy();
+    expect(within(contextBand).getByLabelText(composition.colorPicker.label)).toBeTruthy();
+    expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
+  });
+
+  it("LAY-03 — Ajouter une activité has the compact DS button geometry (height 32, radius 16), a white background distinct from the Context band, and a real ≥48 touch target via hitSlop", () => {
+    renderScreen();
+
+    const addActivity = screen.getByLabelText(composition.addActivity);
+    const flattened = StyleSheet.flatten(addActivity.props.style);
+    expect(flattened.height).toBe(dimensions.compactSecondaryButton.visualHeight);
+    expect(flattened.borderRadius).toBe(dimensions.compactSecondaryButton.radius);
+    expect(flattened.borderColor).toBe(colors.primary);
+    expect(flattened.backgroundColor).toBe(colors.background);
+
+    const hitSlop = addActivity.props.hitSlop;
+    expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
+  });
+
+  it("LAY-04 — the Tour card is a distinct DS component (background different from the general background), showing the Tour label and ×1 in separate slots, never the Activity icon", () => {
+    renderScreen();
+
+    const tourCard = screen.getByTestId("composition-tour-card");
+    expect(StyleSheet.flatten(tourCard.props.style).backgroundColor).not.toBe(colors.background);
+    expect(within(tourCard).getByText(composition.tour.label)).toBeTruthy();
+    expect(within(tourCard).getByText("×1")).toBeTruthy();
+    // Jamais l'icône d'une Activité réutilisée comme icône Tour.
+    expect(within(tourCard).queryByTestId("composition-exercise-icon")).toBeNull();
+  });
+
+  it("LAY-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place the role icon, the title, and the value+chevron in three independent slots", () => {
+    renderScreen();
+
+    const countdownRow = screen.getByLabelText(composition.countdown.label);
+    // Icône de rôle et libellé ne partagent plus le même slot regroupé —
+    // chacun est désormais indépendamment localisable dans la ligne.
+    expect(
+      within(countdownRow).getByTestId("composition-row-icon-composition-initial-countdown"),
+    ).toBeTruthy();
+    expect(within(countdownRow).getByText(composition.countdown.label)).toBeTruthy();
+    expect(within(countdownRow).getByTestId("composition-row-chevron-down")).toBeTruthy();
+  });
+});
 
 describe("CompositionScreen — modale d'abandon", () => {
   it("renders AbandonCreationModal exactly when isPendingExit is true, wired to cancelExit/confirmExit", () => {

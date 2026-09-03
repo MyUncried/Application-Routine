@@ -303,4 +303,77 @@ describe("DurationWheelPicker", () => {
       expect(screen.getAllByTestId("wheel-selection-band")).toHaveLength(2);
     });
   });
+
+  describe("CTRL-01 — sélection par appui direct (contre-recette iPhone, Phase 2 Composition, 2026-09-03)", () => {
+    it("selects a value by pressing it directly — not only by scrolling — with exactly one haptic and the correct onChange total", () => {
+      const onChange = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={onChange}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      // Valeur "5" de la colonne minutes, jamais atteinte par un geste ici —
+      // seul un appui direct peut produire ce changement.
+      fireEvent.press(screen.getByTestId("duration-wheel-minutes-item-5"));
+
+      expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(5 * 60);
+    });
+
+    it("does nothing when the pressed value is already the current one — no haptic, no onChange", () => {
+      const onChange = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={onChange}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId("duration-wheel-minutes-item-0"));
+
+      expect(Haptics.selectionAsync).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("keeps pressed selections independent between the minutes and seconds columns", () => {
+      const onChange = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={onChange}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId("duration-wheel-minutes-item-2"));
+      fireEvent.press(screen.getByTestId("duration-wheel-seconds-item-30"));
+
+      expect(onChange).toHaveBeenLastCalledWith(2 * 60 + 30);
+    });
+
+    it("still lets a subsequent scroll gesture change the value after a press — the two mechanisms coexist", () => {
+      const onChange = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={onChange}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId("duration-wheel-minutes-item-5"));
+      scrollTo(screen.getByTestId("duration-wheel-minutes"), 3 * ITEM_HEIGHT);
+
+      expect(onChange).toHaveBeenLastCalledWith(3 * 60);
+    });
+  });
 });

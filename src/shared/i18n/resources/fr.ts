@@ -17,7 +17,10 @@ export const fr = {
     },
   },
   nav: {
-    sessions: "Mes séances",
+    // RES-NAV-LABEL-01 (contre-recette iPhone, addendum Phase 2,
+    // 2026-09-03) : "Mes séances" → "Séances" — source i18n canonique,
+    // pas un texte local injecté dans le composant de navigation.
+    sessions: "Séances",
     calendar: "Calendrier",
     history: "Suivi",
     profile: "Profil",

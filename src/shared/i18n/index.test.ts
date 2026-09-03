@@ -3,9 +3,9 @@ import { describe, expect, it } from "@jest/globals";
 import { strings } from "@/shared/i18n";
 
 describe("strings", () => {
-  it("exposes the four main tab labels in French, plus the distinct Recherche label (AUD-02)", () => {
+  it("exposes the four main tab labels in French, plus the distinct Recherche label (AUD-02); sessions is 'Séances' (RES-NAV-LABEL-01)", () => {
     expect(strings.nav).toEqual({
-      sessions: "Mes séances",
+      sessions: "Séances",
       calendar: "Calendrier",
       history: "Suivi",
       profile: "Profil",
