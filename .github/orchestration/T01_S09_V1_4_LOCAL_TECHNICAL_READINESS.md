@@ -1,10 +1,10 @@
 # T01-S09 — préparation technique V1.4 LOCAL
 
-Date : 2026-09-02
+Date : 2026-09-03
 
-Statut : **PRÊT TECHNIQUEMENT — BARrière documentaire/fonctionnelle maintenue avant reprise métier**.
+Statut : **PRÊT TECHNIQUEMENT — REPRISE T01-S09 VOLONTAIREMENT DIFFÉRÉE**.
 
-Ce document fige uniquement les contrôles techniques indépendants de la rédaction des contrats d’écrans. Il n’autorise aucun appel Claude ni aucune écriture métier.
+Ce document fige les contrôles techniques déjà réalisés. Il n’autorise aucun appel Claude ni aucune écriture T01-S09.
 
 ## 1. Branche et état métier de référence
 
@@ -14,122 +14,86 @@ Baseline initiale de l’Issue #17 : `c3af9990c8a35013bbad372c2eca2ce16d66d138`.
 
 Dernier HEAD auquel le plan T01-S09 a été approuvé et l’autorisation d’implémentation V1.3 a été construite : `34b3e53879d0ac20a3057da932df6b948d6030c9`.
 
-Le fil de l’Issue #17 établit qu’entre `c3af999...` et `34b3e538...`, les changements étaient limités à l’orchestration V1.2→V1.3 et `CLAUDE.md`; aucun fichier métier T01-S09 n’avait été modifié.
+HEAD observé lors de la préparation : `640f2c91d0a219e88ca010d8feb9e6c181fa4db1`. Les contrôles réalisés n’ont pas montré de reprise du code métier T01-S09 après l’échec d’orchestration ; le commit terminal de clôture T1→T9 déclare explicitement que T01-S09 n’a pas été repris pendant ce test.
 
-HEAD actuel observé de `feat/creation-seance-catalogue` : `640f2c91d0a219e88ca010d8feb9e6c181fa4db1` (`docs: record T1-T9 closure evidence`).
-
-Comparaison GitHub `34b3e538... → 640f2c91...` : la branche a avancé par des commits d’orchestration/tests/traçabilité V1.3 ; les comparaisons contrôlées ne montrent pas de reprise du code métier T01-S09. Le commit terminal `640f2c91...` ajoute la preuve de clôture T1→T9 et déclare explicitement que T01-S09 n’a pas été repris pendant ce test.
-
-Conséquence : le dernier état métier stable reste celui analysé pour le plan T01-S09 approuvé ; le HEAD Git actuel a toutefois changé et **doit être revalidé comme nouveau `authorized_head` au moment de la reprise**, après intégration/contrôle des nouvelles sources documentaires.
+Le HEAD devra être revalidé au moment où T01-S09 sera effectivement repris.
 
 ## 2. Dernier état protocolaire T01-S09
 
-Plan final : commentaire Issue #17 `5460956149`.
+Plan final historique : commentaire Issue #17 `5460956149`.
 
-Plan approuvé : commentaire `5460962004`.
+Plan approuvé historique : commentaire `5460962004`.
 
 L’implémentation monolithique autorisée ensuite a échoué techniquement (`error_max_turns`). L’autorisation d’écriture a été explicitement invalidée.
 
-Dernier checkpoint actif retrouvé dans l’Issue #17 :
+Dernier checkpoint actif retrouvé : `state=ORCHESTRATION_FAILURE`, `last_stable_state=PLAN_APPROVED`, `implementation_authorized=false`, `writer=NONE`.
 
-- `state=ORCHESTRATION_FAILURE` ;
-- `last_stable_state=PLAN_APPROVED` ;
-- `implementation_authorized=false` ;
-- `mode=CLOUD_READ_ONLY` ;
-- `writer=NONE` ;
-- ancien `head=34b3e53879d0ac20a3057da932df6b948d6030c9` ;
-- reprise prévue historiquement en Phase A/B/C après nouvelle revalidation.
-
-Les anciennes preuves `PLAN_APPROVED`, `SOURCE_ATTESTATION`, dry-run et autorisation Cloud sont **historiques seulement**. Aucune ne vaut autorisation V1.4 LOCAL.
+Les anciennes preuves et autorisations Cloud sont historiques seulement. Aucune ne vaut autorisation V1.4 LOCAL.
 
 ## 3. Décomposition technique conservable
 
-Après l’échec monolithique, la reprise avait été décomposée sans changement de périmètre produit :
+La reprise avait été décomposée en :
 
 - Phase A : fondations Catégorie + migration/seed/repository et tests ciblés ;
 - Phase B : persistance/généralisation Séance + services Catégorie et tests ;
 - Phase C : UI/navigation/enregistrement final + Catalogue + documentation + tests d’intégration/finalisation.
 
-Cette décomposition reste techniquement pertinente comme borne de sécurité. Elle n’est pas une nouvelle décision fonctionnelle et devra être réévaluée uniquement si les nouveaux contrats d’écrans changent réellement les dépendances de la tranche.
+Cette décomposition reste une référence historique de sécurité. Elle devra être réévaluée au moment de T01-S09 au regard de l’état alors validé du produit et de la documentation.
 
-## 4. Ancien workflow : non réutilisable tel quel
+## 4. Ancien workflow Cloud
 
-L’ancien workflow temporaire T01-S09 est V1.3 Cloud :
+L’ancien workflow temporaire T01-S09 V1.3 (`ubuntu-latest`, `anthropics/claude-code-action@v1`, `CLOUD_WRITE`, HEAD historique) ne doit pas être relancé ni réarmé.
 
-- `runs-on: ubuntu-latest` ;
-- `anthropics/claude-code-action@v1` ;
-- mode `CLOUD_WRITE` ;
-- autorisation liée au HEAD historique `34b3e538...` ;
-- logique de contexte conçue pour Claude Cloud et `/tmp/kodjo-context`.
+Sous V1.4 option 3, **aucun workflow de lancement automatique de Claude local n’est requis**. Claude Code reste local et son réveil est manuel minimal.
 
-Il ne doit pas être relancé ni simplement réarmé.
+Instruction canonique :
 
-V1.4 doit utiliser un workflow local distinct ou une réécriture explicite de ce workflow avec :
+`Reprends le protocole KODJO depuis le dernier checkpoint GitHub.`
 
-- runner `[self-hosted, Windows, X64, kodjo-claude-local]` ;
-- `powershell` ;
-- `claude.cmd` ;
-- authentification locale préflightée ;
-- `CLAUDE_CONFIG_DIR` stable ;
-- `CLAUDE_CODE_PROJECT_DIR_NAME` stable par bloc/tranche/session ;
-- premier appel créant une session, appels suivants via `--resume <session_id>` ;
-- aucun fallback Cloud ;
-- garde-fous de chemins avant commit/push ;
-- publication durable du checkpoint/session/resultat ;
-- récupération de publication sans nouvel appel IA si le résultat local valide est récupérable.
+## 5. Infrastructure locale déjà démontrée
 
-## 5. Configuration locale déjà démontrée
-
-La configuration runner/Claude Local et la continuité inter-runs sont figées dans :
+La configuration runner/Claude Local et la continuité inter-runs restent figées comme preuves techniques dans :
 
 - `.github/orchestration/KODJO_CLAUDE_LOCAL_SESSION_RESUME_03_EVIDENCE.md` ;
 - `.github/orchestration/KODJO_ORCHESTRATION_V1_4_LOCAL.md` ;
 - `.github/orchestration/KODJO_V1_4_LOCAL_WORKFLOW_ADAPTATION.md`.
 
-Aucun nouveau micro-test de continuité n’est requis avant T01-S09 sauf changement substantiel de machine, compte Windows, `CLAUDE_CONFIG_DIR`, version/comportement Claude Code ou mécanisme de session.
+Le self-hosted runner n’est toutefois plus le moteur nominal de réveil Claude. Aucun nouveau micro-test de continuité n’est requis pour l’option 3.
 
 ## 6. Transport retour vers Work
 
-La preuve historique V1.3 `pull_request:synchronize → Work` reste une preuve de transport distincte de Claude Cloud. Elle a été démontrée avec un commit technique isolé publié par `github-actions[bot]`, sans PAT utilisateur.
+La preuve historique V1.3 `pull_request:synchronize → Work` reste une preuve de transport indépendante de l’exécuteur Claude. Elle peut être réutilisée sous ses conditions démontrées pour automatiser la sollicitation de ChatGPT/Work.
 
-V1.4 peut conserver ce transport lorsqu’un réveil Work est nécessaire. Il ne doit pas utiliser un simple commentaire bot comme substitut, ce transport n’ayant pas été démontré dans la configuration historique.
+Elle ne réveille pas Claude local sous l’option 3.
 
-## 7. Éléments désormais obsolètes / à ne pas réactiver
+## 7. Éléments obsolètes / à ne pas réactiver
 
-- mode `CLOUD_WRITE` pour T01-S09 ;
+- mode `CLOUD_WRITE` ;
 - `anthropics/claude-code-action@v1` comme exécuteur nominal ;
 - ancienne autorisation d’implémentation `5461702840` ;
-- ancien HEAD autorisé `34b3e538...` comme autorisation actuelle ;
-- attente historique `USER_COST_APPROVAL_PHASE_A` liée au run Claude Cloud ;
+- ancien HEAD `34b3e538...` comme autorisation actuelle ;
 - ancien déclencheur Phase A Cloud ;
 - fallback Cloud ;
-- reconstruction exhaustive du contexte comme mécanisme nominal de continuité Claude.
+- lancement automatique de Claude local via self-hosted runner dans le chemin nominal option 3.
 
-Ils restent des preuves historiques et ne doivent pas être effacés rétroactivement.
+Ils restent des preuves historiques et ne sont pas effacés rétroactivement.
 
-## 8. Barrière volontaire restante
+## 8. Nouvelle priorité produit
 
-Les contrats d’écrans ne sont pas encore rédigés. Le Design System Foundation a été mis à jour, mais la fraîcheur et la complétude des sources UX/fonctionnelles nécessaires à T01-S09 ne peuvent donc pas encore être déclarées `VERIFIED` pour une reprise métier.
+Les contrats d’écrans et la documentation ont été mis à jour.
 
-Avant tout premier appel Claude T01-S09 V1.4 LOCAL, il restera uniquement à :
+La décision de séquencement est désormais : **ne pas commencer T01-S09 avant d’avoir corrigé et validé le produit existant jusqu’à S08**.
 
-1. disposer des contrats d’écrans concernés ;
-2. contrôler leur cohérence avec le Design System Foundation, Figma courant et les décisions applicables ;
-3. contrôler le delta documentaire/fonctionnel depuis le plan `5460956149` et déterminer si ce plan reste applicable ou doit être révisé ;
-4. revalider le HEAD Git réel de `feat/creation-seance-catalogue` et publier le nouvel `authorized_head` ;
-5. publier une nouvelle autorisation explicite `LOCAL_WRITE` / writer `CLAUDE_LOCAL` bornée à la phase autorisée ;
-6. seulement alors lancer Claude Local.
+Conséquence : T01-S09 reste en attente volontaire même si sa préparation technique historique est disponible. Le prochain usage effectif de V1.4 doit porter sur la remise en conformité du produit S01→S08, pas sur T01-S09.
 
-## 9. Verdict de préparation technique
+Au moment futur de reprendre T01-S09, il faudra recontrôler les sources fraîches, le delta depuis le plan historique et le HEAD réel ; aucune ancienne autorisation ne sera réactivée automatiquement.
 
-- état Git/historique T01-S09 : **CONFORME pour préparation**, sous réserve de revalidation finale du HEAD au lancement ;
-- dernier état stable : **PLAN_APPROVED identifié** ;
-- ancienne autorisation d’écriture : **invalidée, conforme** ;
-- ancien workflow Cloud : **NON CONFORME à V1.4, identifié comme obsolète** ;
-- architecture/runner/auth/session locale : **DÉMONTRÉS dans la configuration testée** ;
-- stratégie de migration workflow : **PRÊTE** ;
-- transport GitHub → Work : **preuve historique disponible et réutilisable sous ses conditions démontrées** ;
-- fraîcheur documentaire/UX finale : **EN ATTENTE des contrats d’écrans** ;
-- reprise métier T01-S09 maintenant : **NON AUTORISÉE**.
+## 9. Verdict
 
-Conclusion : **les contrôles et la préparation purement techniques sont terminés.** Après finalisation des contrats d’écrans, la reprise pourra commencer directement par la barrière de fraîcheur documentaire + revalidation du HEAD + nouvelle autorisation V1.4 LOCAL, sans refaire l’audit technique historique.
+- préparation technique historique T01-S09 : **CONSERVÉE** ;
+- ancien workflow Cloud : **OBSOLETE / NE PAS RÉACTIVER** ;
+- Claude Code local : **EXÉCUTEUR RETENU** ;
+- réveil Claude : **MANUEL MINIMAL — OPTION 3** ;
+- transport GitHub → Work : **preuve historique disponible sous ses conditions démontrées** ;
+- reprise T01-S09 maintenant : **NON AUTORISÉE PAR DÉCISION DE SÉQUENCEMENT** ;
+- prochaine cible : **remise en conformité S01→S08**.
