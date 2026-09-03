@@ -153,6 +153,69 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
+  it("keeps the segmented control's own container white, distinct from the pale Context band behind it (CAT-R01, contre-recette iPhone 2026-09-03)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const filterRow = screen.getByTestId("catalogue-filter-row");
+    expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.background);
+
+    // Le segment sélectionné reste bleu/violet DS avec texte blanc — non
+    // touché par cette correction, revérifié pour éviter une régression.
+    const selected = screen.getByLabelText(strings.screens.sessions.filters.all);
+    expect(StyleSheet.flatten(selected.props.style).backgroundColor).toBe(colors.selection);
+  });
+
+  it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
+    const flattened = StyleSheet.flatten(createAction.props.style);
+    expect(flattened.backgroundColor).toBe(colors.background);
+    expect(flattened.borderColor).toBe(colors.primary);
+    // Géométrie déjà couverte par ailleurs (UI-CAT-001) — revérifiée ici
+    // pour prouver qu'elle n'a pas régressé avec ce changement de fond.
+    expect(flattened.width).toBe(90);
+    expect(flattened.height).toBe(32);
+    expect(flattened.borderRadius).toBe(16);
+  });
+
+  it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const frame = screen.getByTestId("catalogue-empty-frame");
+    const flattened = StyleSheet.flatten(frame.props.style);
+    expect(flattened.backgroundColor).not.toBe(colors.background);
+    expect(flattened.borderWidth).toBeGreaterThan(0);
+    expect(flattened.borderRadius).toBeGreaterThan(0);
+
+    // Le texte est un enfant du cadre, pas un frère isolé dans le corps.
+    expect(within(frame).getByText(strings.screens.sessions.empty.message)).toBeTruthy();
+  });
+
   it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);

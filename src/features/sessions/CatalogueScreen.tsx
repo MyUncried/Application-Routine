@@ -89,7 +89,7 @@ export function CatalogueScreen() {
  */
 function FilterSelector() {
   return (
-    <View style={styles.filterRow} accessibilityRole="tablist">
+    <View style={styles.filterRow} accessibilityRole="tablist" testID="catalogue-filter-row">
       <Pressable
         accessibilityRole="tab"
         accessibilityState={{ selected: true }}
@@ -171,10 +171,20 @@ function LoadingBody() {
   );
 }
 
+/**
+ * Correction CAT-R03 (contre-recette iPhone, `[ChatGPT]
+ * DEVICE_REVIEW_FAIL`, 2026-09-03) : le texte de l'état vide était posé
+ * seul dans le corps, sans cadre — désormais présenté dans un cadre
+ * dédié (surface, bordure, rayon issus des tokens DS), centré
+ * horizontalement et verticalement à l'intérieur de ce cadre, lui-même
+ * centré dans le corps.
+ */
 function EmptyBody() {
   return (
     <View style={styles.centeredBody}>
-      <Text style={styles.emptyMessage}>{strings.screens.sessions.empty.message}</Text>
+      <View style={styles.emptyStateFrame} testID="catalogue-empty-frame">
+        <Text style={styles.emptyMessage}>{strings.screens.sessions.empty.message}</Text>
+      </View>
     </View>
   );
 }
@@ -229,9 +239,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[16],
     gap: spacing[16],
   },
+  // Correction CAT-R01 (contre-recette iPhone, `[ChatGPT]
+  // DEVICE_REVIEW_FAIL`, 2026-09-03) : le conteneur général du contrôle
+  // segmenté doit rester blanc — `colors.surface` (gris très pâle) était
+  // visuellement proche de la bande Context et ne s'en distinguait pas.
+  // Le segment sélectionné (`filterOptionSelected`) et son texte restent
+  // inchangés (déjà conformes : fond `colors.selection`, texte blanc).
   filterRow: {
     flexDirection: "row",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderRadius: 24,
     padding: spacing[4],
     gap: spacing[4],
@@ -253,6 +269,12 @@ const styles = StyleSheet.create({
   filterLabelSelected: {
     color: colors.background,
   },
+  // Correction CAT-R02 (contre-recette iPhone, `[ChatGPT]
+  // DEVICE_REVIEW_FAIL`, 2026-09-03) : aucun fond propre n'était déclaré
+  // — la teinte pâle de la bande Context transparaissait à l'intérieur
+  // du bouton. `backgroundColor: colors.background` (blanc) ajouté ;
+  // bordure/icône/libellé bleus déjà conformes, géométrie `90×32`/rayon
+  // `16`/cible tactile `48` (`UI-CAT-001`) inchangée.
   createAction: {
     alignSelf: "center",
     flexDirection: "row",
@@ -264,6 +286,7 @@ const styles = StyleSheet.create({
     borderRadius: dimensions.compactSecondaryButton.radius,
     borderWidth: 1,
     borderColor: colors.primary,
+    backgroundColor: colors.background,
   },
   createActionLabel: {
     ...type.button,
@@ -279,6 +302,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing[16],
+  },
+  // Cadre de l'état vide (CAT-R03) : surface/bordure/rayon issus des
+  // tokens DS déjà utilisés ailleurs (`colors.surface`, `colors.border`,
+  // `dimensions.standardCard.radius`) — le texte est centré à
+  // l'intérieur de ce cadre, pas seulement dans l'écran.
+  emptyStateFrame: {
+    width: "100%",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: dimensions.standardCard.radius,
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[32],
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyMessage: {
     ...type.body,

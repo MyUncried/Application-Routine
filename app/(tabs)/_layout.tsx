@@ -26,9 +26,25 @@ import { strings } from "@/shared/i18n";
  * livraison partielle T01 (CE-T01-02/03 : « présente mais désactivée »,
  * aucune tranche ne livre encore la recherche globale) — visible, mais
  * sans navigation ni faux résultat produit.
+ *
+ * Correction SHELL-R01 (contre-recette iPhone, `[ChatGPT]
+ * DEVICE_REVIEW_FAIL`, 2026-09-03) : `dimensions.mainNavigation`
+ * (hauteur 66, rayon 33) et `dimensions.globalSearch` étaient définis
+ * dans les tokens mais `mainNavigation` n'était jusqu'ici jamais
+ * appliqué — la barre s'étendait donc sur toute la largeur de l'écran
+ * (espacement horizontal excessif) et le bouton Recherche, positionné
+ * indépendamment de la hauteur réelle de la barre, chevauchait sa ligne
+ * supérieure. `tabBarStyle` contraint désormais la barre (marges
+ * gauche/droite, hauteur et rayon issus du token) ; le bouton Recherche
+ * est recalculé pour rester centré verticalement dans cette même bande,
+ * jamais positionné indépendamment d'elle.
  */
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const navigationBarBottom = insets.bottom + spacing[8];
+  const searchBottom =
+    navigationBarBottom +
+    (dimensions.mainNavigation.visualHeight - dimensions.globalSearch.visualDiameter) / 2;
 
   return (
     <View style={styles.root}>
@@ -37,6 +53,21 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
+          tabBarStyle: {
+            position: "absolute",
+            left: spacing[16],
+            right: spacing[16] + dimensions.globalSearch.visualDiameter + spacing[12],
+            bottom: navigationBarBottom,
+            height: dimensions.mainNavigation.visualHeight,
+            borderRadius: dimensions.mainNavigation.radius,
+            backgroundColor: colors.background,
+            borderTopWidth: 0,
+            elevation: 8,
+            shadowColor: "#000000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 12,
+          },
         }}
       >
         <Tabs.Screen
@@ -91,7 +122,7 @@ export default function TabsLayout() {
         accessibilityState={{ disabled: true }}
         accessibilityLabel={strings.nav.search}
         testID="navigation-search-action"
-        style={[styles.search, { bottom: insets.bottom + spacing[16] }]}
+        style={[styles.search, { bottom: searchBottom }]}
       >
         <KodjoIcon name="navigation-search" testID="navigation-search-icon" opacity={0.4} />
       </Pressable>
