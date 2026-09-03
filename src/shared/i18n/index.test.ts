@@ -77,7 +77,7 @@ describe("strings", () => {
     });
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
-    expect(strings.screens.composition.tour.label).toBe("Tour");
+    expect(strings.screens.composition.tour.label).toBe("Nombre de tours");
     expect(strings.screens.composition.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
       secondsAccessibilityLabel: "Secondes",

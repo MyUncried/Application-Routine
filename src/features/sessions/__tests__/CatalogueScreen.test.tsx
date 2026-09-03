@@ -234,13 +234,11 @@ describe("CatalogueScreen — cadre commun", () => {
     // et n'est donc jamais comptée dans la hauteur `flex` normale de ce
     // corps — sans cette réserve, `centeredBody` centrerait son contenu sur
     // toute la hauteur restante de l'écran, y compris la zone visuellement
-    // recouverte par la barre flottante. Correction `D` (2026-09-03) :
-    // même formule exacte que `_layout.tsx` (`navigationBarTotalHeight`,
-    // résiduel + contenu) — plus `insets.bottom` compté en entier en plus
-    // (défaut précédent, sur-réservation). `TestSafeAreaProvider` fixe
-    // `insets.bottom` à `34` (appareil de référence avec indicateur
-    // d'accueil).
-    expect(flattened.paddingBottom).toBe(navigationBarTotalHeight(34));
+    // recouverte par la barre flottante. Correction `D`/`N-03` (2026-09-03) :
+    // même formule exacte que `_layout.tsx` (`navigationBarTotalHeight()`,
+    // résiduel + contenu — résiduel désormais une constante indépendante de
+    // `insets.bottom`, voir `@/shared/ui/navigationLayout`).
+    expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
   });
 
   it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {

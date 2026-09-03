@@ -18,7 +18,13 @@ import { spacing, type } from "@/shared/ui/tokens";
  * de ligne du libellé + espacement vertical DS), donc exacte par
  * construction plutôt qu'une estimation séparée.
  */
-export const NAVIGATION_ICON_SLOT = 24;
+// N-01 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03
+// CUMULATIVE CORRECTION`, 2026-09-03) : réduit légèrement et uniformément
+// depuis `24` — les quatre icônes de navigation restaient jugées trop
+// grandes au rendu réel. `tabItem.minHeight` (`app/(tabs)/_layout.tsx`)
+// reste `minTouchTarget` (`48`), indépendant de ce slot : la cible tactile
+// n'est jamais réduite par ce changement.
+export const NAVIGATION_ICON_SLOT = 20;
 export const NAVIGATION_LABEL_GAP = spacing[4];
 export const NAVIGATION_ITEM_VERTICAL_PADDING = spacing[8];
 
@@ -29,47 +35,45 @@ export const NAVIGATION_CONTENT_HEIGHT =
   NAVIGATION_ITEM_VERTICAL_PADDING * 2;
 
 /**
- * Position verticale basse — correction `D` (contre-recette iPhone,
- * correction consolidée, `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02
- * CONSOLIDATED REWORK02`, 2026-09-03, addendum `FOUNDATION BOTTOM
- * NAVIGATION VERTICAL POSITION`).
+ * Marge horizontale de la rangée de navigation (gauche/droite) et écart
+ * entre le groupe des quatre destinations et Recherche.
  *
- * Défaut précédent : la barre était translatée de la totalité de
- * `insets.bottom` (`navigationRow: { bottom: insets.bottom }`) — la Safe
- * Area était donc appliquée comme une marge flottante en plus de la barre
- * elle-même, au lieu d'être partiellement absorbée à l'intérieur de la
- * zone basse. Sur la géométrie de référence transmise par cette revue
- * (canevas `402×874`) : zone de navigation `y=797–874` (`77pt`), pilule
- * `h=66` `y=797–863`, résiduel bas `11pt` — c'est-à-dire que le bord bas de
- * la pilule se situe `23pt` **à l'intérieur** de la limite de Safe Area
- * (pour un appareil de référence à `insets.bottom=34`, limite à
- * `874-34=840` ; pilule à `863` ; écart `23`), et non collée à cette
- * limite.
- *
- * `NAVIGATION_BAR_SAFE_AREA_OVERLAP` (`23`) est donc dérivé de cet unique
- * point de référence (`insets.bottom=34`) — non confirmé indépendamment
- * contre un second appareil/inset à ce stade (`NON_VERIFIABLE_DEVICE`,
- * voir le rapport de mission). `NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL` (`11`)
- * sert de plancher explicite pour tout appareil dont `insets.bottom` est
- * inférieur à `23` (aucun indicateur d'accueil, ou Safe Area nulle) — la
- * barre garde alors un espace minimal avec le bord physique de l'écran
- * plutôt qu'un résiduel négatif.
+ * N-02 (même revue que N-01) : `NAVIGATION_ROW_GAP` élargi depuis
+ * `spacing[12]` — resserre légèrement la largeur du cadre des quatre
+ * destinations (`tabsGroup`, `flex: 1`, dérive donc sa largeur de l'espace
+ * réellement disponible moins Recherche et cet écart) sans toucher aux
+ * marges extérieures ni à Recherche elle-même, et sans risque de
+ * chevauchement (propriété flexbox, valable à toute largeur d'écran — voir
+ * `TabsLayoutSearch.integration.test.tsx`).
  */
-export const NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL = 11;
-export const NAVIGATION_BAR_SAFE_AREA_OVERLAP = 23;
+export const NAVIGATION_ROW_HORIZONTAL_MARGIN = spacing[16];
+export const NAVIGATION_ROW_GAP = spacing[16];
 
-/** Résiduel entre le bord bas de la barre et le bord physique de l'écran, pour un `insets.bottom` donné. */
-export function navigationBarBottomResidual(insetsBottom: number): number {
-  return Math.max(insetsBottom - NAVIGATION_BAR_SAFE_AREA_OVERLAP, NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL);
-}
+/**
+ * Résiduel bas — correction `N-03` (même revue). **Remplace** la formule
+ * précédente (`navigationBarBottomResidual`, fonction de `insets.bottom`,
+ * dérivée d'un unique point de référence canevas `402×874` et jugée trop
+ * basse au rendu réel — « cadre désormais trop bas », remonter).
+ *
+ * Nouveau critère, mesuré sur la capture de référence de cette revue : la
+ * marge entre le bord bas de la barre et le bord bas de l'écran doit être
+ * visuellement égale à la marge horizontale entre son coin inférieur
+ * gauche et le coin inférieur gauche de l'écran — donc **exactement**
+ * `NAVIGATION_ROW_HORIZONTAL_MARGIN`, par construction (même constante),
+ * plutôt qu'une fonction de `insets.bottom` (explicitement écartée par
+ * cette revue : « ne pas l'obtenir par une constante arbitraire liée à un
+ * seul appareil »). Non confirmé indépendamment contre un second appareil
+ * (`NON_VERIFIABLE_DEVICE`, voir le rapport de mission) — mais désormais
+ * une relation mesurée plutôt qu'un point de référence unique isolé.
+ */
+export const NAVIGATION_BAR_BOTTOM_RESIDUAL = NAVIGATION_ROW_HORIZONTAL_MARGIN;
 
 /**
  * Hauteur totale réellement occupée par la barre depuis le bord bas
  * physique de l'écran (résiduel + contenu) — source unique de vérité
  * réutilisée par tout écran consommateur pour réserver exactement cet
- * espace (`CatalogueScreen.tsx`, CAT-R04), sans appliquer une seconde fois
- * `insets.bottom` en plus (défaut précédent).
+ * espace (`CatalogueScreen.tsx`, CAT-R04).
  */
-export function navigationBarTotalHeight(insetsBottom: number): number {
-  return navigationBarBottomResidual(insetsBottom) + NAVIGATION_CONTENT_HEIGHT;
+export function navigationBarTotalHeight(): number {
+  return NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_CONTENT_HEIGHT;
 }

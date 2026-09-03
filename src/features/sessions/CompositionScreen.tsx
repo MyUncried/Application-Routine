@@ -28,7 +28,9 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * de conformité — audit `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`,
  * instruction Codex de correction autonome ; consolidation Foundation —
  * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
- * 2026-09-03).
+ * 2026-09-03 ; correction cumulative post contre-recette iPhone —
+ * `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE CORRECTION`,
+ * 2026-09-03, identifiants `C-01/C-02/T-01…T-05/A-01`).
  *
  * Le brouillon vient de `SessionDraftProvider` (monté par
  * `app/(creation)/_layout.tsx`, au-dessus de cet écran) — cette route ne
@@ -160,7 +162,7 @@ export function CompositionScreen() {
         ) : null}
       </ContextBand>
 
-      <View style={styles.body}>
+      <View style={styles.body} testID="composition-body">
         <AnchoredRow testID="composition-anchored-row-countdown" elevated={openOverlay === "countdown"}>
           <BoundaryActivityRow
             icon="composition-initial-countdown"
@@ -174,6 +176,7 @@ export function CompositionScreen() {
               <DurationWheelPicker
                 totalSeconds={draft.initialCountdownSeconds}
                 onChange={(totalSeconds) => updateDraft({ initialCountdownSeconds: totalSeconds })}
+                onRequestClose={() => toggleOverlay("countdown")}
                 minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
                 secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
               />
@@ -221,6 +224,7 @@ export function CompositionScreen() {
               <DurationWheelPicker
                 totalSeconds={draft.finalPhaseSeconds}
                 onChange={(totalSeconds) => updateDraft({ finalPhaseSeconds: totalSeconds })}
+                onRequestClose={() => toggleOverlay("finalPhase")}
                 minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
                 secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
               />
@@ -336,21 +340,29 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
  * icône / centre libellé / droite valeur+chevron) — pas une ambiguïté
  * résolue localement, une instruction directe et autorisée.
  *
- * Slots : gauche = poignée/structure (`handleSlot`, un espace réservé
- * structurel — aucune icône dédiée « poignée » n'existe dans
- * `assets/icons/manifest.json` pour ce composant, distinct de
- * `composition.reorder` réservée à `Composition / Activity Row` ; réutiliser
- * cette dernière ici violerait la règle « jamais d'icône partagée entre
- * composants distincts » déjà appliquée dans ce fichier) ; centre = libellé
- * puis, sur une seconde ligne, la valeur de durée déjà formatée
+ * Slots : gauche = poignée/structure (`handleSlot`) ; centre = libellé puis,
+ * sur une seconde ligne, la valeur de durée déjà formatée
  * (`formatDurationRowValue`, format `MM min SS s` — inchangé, c'est la
  * valeur réellement engagée par la roulette, voir D-06) ; droite = icône de
  * rôle (déplacée depuis le slot gauche).
  *
+ * **C-01/C-02** (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
+ * REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : fond désormais blanc avec
+ * un liseré gris visible (`limitCardBase`, partagé avec `TourCard` — voir
+ * T-01) — auparavant `colors.surface` (gris), jugé non conforme au rendu
+ * réel. Le slot gauche porte désormais un pictogramme
+ * (`structureIcon`, prop dédiée, défaut `composition-reorder` — même
+ * pictogramme « déplacement/structure » que `Composition / Activity Row`,
+ * réutilisation désormais explicitement demandée par cette revue, qui
+ * abroge la restriction posée au cycle précédent) ; la prop permet son
+ * remplacement ultérieur par un pictogramme « carte fixe/non déplaçable »
+ * sans toucher au layout (CMP-03/05 initial, cycle précédent, avait laissé
+ * ce slot vide faute d'instruction explicite de réutilisation).
+ *
  * Chevron : supprimé à l'état fermé (absent de la référence signalée par
- * cette revue). Conservé uniquement à l'état ouvert, comme seul indice
- * visuel restant de l'état « développé » (`accessibilityState.expanded`
- * porte déjà cette information pour l'accessibilité).
+ * le cycle précédent). Conservé uniquement à l'état ouvert, comme seul
+ * indice visuel restant de l'état « développé » (`accessibilityState.
+ * expanded` porte déjà cette information pour l'accessibilité).
  */
 function BoundaryActivityRow({
   icon,
@@ -358,12 +370,15 @@ function BoundaryActivityRow({
   value,
   isOpen,
   onPress,
+  structureIcon = "composition-reorder",
 }: {
   icon: KodjoIconName;
   label: string;
   value: string;
   isOpen: boolean;
   onPress: () => void;
+  /** C-02 : pictogramme du slot gauche — remplaçable sans changer le layout (ex. futur pictogramme « carte fixe »). */
+  structureIcon?: KodjoIconName;
 }) {
   return (
     <Pressable
@@ -371,9 +386,11 @@ function BoundaryActivityRow({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ expanded: isOpen }}
-      style={styles.boundaryRow}
+      style={[styles.limitCardBase, styles.boundaryRow]}
     >
-      <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot" />
+      <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
+        <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" opacity={0.5} />
+      </View>
       <View style={styles.boundaryRowTitleSlot}>
         <Text style={styles.rowLabel} numberOfLines={1}>
           {label}
@@ -393,31 +410,42 @@ function BoundaryActivityRow({
 }
 
 /**
- * Carte `Tour` — correction CMP-04 (contre-recette iPhone, correction
- * consolidée, 2026-09-03) : contrôle `×1` désormais présenté dans un
- * conteneur blanc dédié (`tourCardControl`) avec une affordance de
- * disclosure (chevron), au lieu d'un simple `Text` nu — la carte Tour
- * n'est toujours pas interactive en T01 (`accessibilityState.disabled`),
- * ce chevron est donc une affordance purement visuelle, jamais fonctionnelle
- * avant qu'un état d'ouverture réel n'existe.
+ * Carte `Tour` — corrections cumulatives :
  *
- * **Icône Tour canonique toujours absente** — cette revue indique
- * explicitement que « Asset missing » n'est plus un état final accepté.
- * Recherche exhaustive reconduite ce cycle (`assets/icons/manifest.json`,
- * 19 entrées) : aucune entrée `tour.*` ni glyphe sémantiquement proche
- * (répétition/cycle/boucle) n'existe. Le MCP `figma` de cet environnement
- * est non authentifié (aucun flux OAuth possible en session non
- * interactive) — impossible d'obtenir ou de vérifier un asset réel depuis
- * ce run. Le slot gauche reste donc vide (jamais un glyphe inventé ou
- * réutilisé depuis un autre composant), et ce point est explicitement
- * escaladé dans le rapport de mission comme blocage nécessitant soit une
- * autorisation `figma` MCP, soit un dépôt d'asset explicite côté design —
- * pas un défaut silencieusement reconduit.
+ * - **CMP-04** (cycle précédent) : contrôle désormais présenté dans un
+ *   conteneur dédié (`tourCardControl`) avec une affordance de disclosure
+ *   (chevron), au lieu d'un simple `Text` nu — la carte Tour n'est toujours
+ *   pas interactive en T01 (`accessibilityState.disabled`), ce chevron est
+ *   donc une affordance purement visuelle, jamais fonctionnelle avant
+ *   qu'un état d'ouverture réel n'existe.
+ * - **T-01** (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
+ *   CORRECTION`, 2026-09-03) : géométrie (padding/bordure/rayon) désormais
+ *   partagée avec `BoundaryActivityRow` via `limitCardBase` — auparavant
+ *   une largeur divergente était possible faute de règle de boîte commune
+ *   explicite ; seul le fond (`colors.selectionSurface`, teinte propre à
+ *   Tour) reste spécifique.
+ * - **T-02** : slot gauche toujours vide — **icône Tour canonique toujours
+ *   absente**. Recherche exhaustive reconduite ce cycle
+ *   (`assets/icons/manifest.json`, 19 entrées) : aucune entrée `tour.*` ni
+ *   glyphe sémantiquement proche. Le MCP `figma` de cet environnement est
+ *   non authentifié — impossible d'obtenir/vérifier un asset réel depuis ce
+ *   run. Réutiliser `composition-reorder` ici (comme desormais fait pour le
+ *   slot gauche de `BoundaryActivityRow`, C-02) représenterait faussement
+ *   « Tour » avec un pictogramme de déplacement — DÉLIBÉRÉMENT non fait,
+ *   ce serait une correction pire que le blocage documenté. Escaladé de
+ *   nouveau, explicitement, pas reconduit silencieusement.
+ * - **T-03** : libellé désormais `strings.screens.composition.tour.label`
+ *   = `"Nombre de tours"` (auparavant `"Tour"` seul, changé à la source).
+ * - **T-04** : contrôle carré violet (`colors.selection`) avec chevron
+ *   blanc (`KodjoIcon`'s nouveau prop `tintColor`, voir `KodjoIcon.tsx`) —
+ *   auparavant un contrôle blanc arrondi avec un chevron par défaut.
+ * - **T-05** : contenu `1` seul — le signe `×` retiré (`FIXED_TOUR_REPEAT_
+ *   COUNT` affiché nu, plus de préfixe).
  */
 function TourCard({ label }: { label: string }) {
   return (
     <View
-      style={styles.tourCard}
+      style={[styles.limitCardBase, styles.tourCard]}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: true }}
@@ -426,11 +454,11 @@ function TourCard({ label }: { label: string }) {
       <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot" />
       <Text style={styles.tourCardLabel}>{label}</Text>
       <View style={styles.tourCardControl} testID="composition-tour-control">
-        <Text style={styles.tourCardControlValue}>×{FIXED_TOUR_REPEAT_COUNT}</Text>
+        <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
         <KodjoIcon
           name="control-chevron-down"
           testID="composition-tour-control-chevron"
-          opacity={0.5}
+          tintColor={colors.background}
         />
       </View>
     </View>
@@ -438,7 +466,16 @@ function TourCard({ label }: { label: string }) {
 }
 
 const styles = StyleSheet.create({
+  // A-01 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03
+  // CUMULATIVE CORRECTION`, 2026-09-03) : `flex: 1` — le corps occupe
+  // désormais tout l'espace vertical restant entre la bande Context et
+  // `bottomAction` (ses lignes restent alignées en haut, comportement par
+  // défaut d'un conteneur flex sans `justifyContent`), poussant
+  // mécaniquement `bottomAction` au bas de la zone utile. Remplace la
+  // dépendance précédente au seul `marginTop: "auto"` de `bottomAction`
+  // (jugée insuffisante au rendu réel — bloc « trop haut »).
   body: {
+    flex: 1,
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
     gap: spacing[16],
@@ -494,20 +531,33 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  // CMP-03/CMP-05 — `Boundary Activity` : voir `BoundaryActivityRow`
-  // ci-dessus pour la justification complète du nouvel ordre de slots.
-  boundaryRow: {
+  // T-01 : géométrie commune aux cartes `Boundary Activity` et `Tour` —
+  // seul le fond diverge (voir `boundaryRow`/`tourCard` ci-dessous),
+  // garantissant des bords gauche/droit strictement alignés par
+  // construction (même padding/bordure/rayon), plutôt que deux définitions
+  // séparées pouvant diverger.
+  limitCardBase: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[16],
-    backgroundColor: colors.surface,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
     gap: spacing[8],
   },
+  // C-01 — `Boundary Activity` : fond blanc avec liseré gris visible
+  // (`limitCardBase.borderColor`), auparavant `colors.surface` (gris).
+  boundaryRow: {
+    backgroundColor: colors.background,
+  },
+  // C-02 : centré, afin que le pictogramme (`composition-reorder`, 16×16)
+  // soit visuellement centré dans le même espace que les autres slots.
   boundaryRowHandleSlot: {
     width: 24,
     height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   boundaryRowTitleSlot: {
     flex: 1,
@@ -523,17 +573,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // CMP-04 — carte `Tour`, voir `TourCard` ci-dessus pour la justification
-  // complète (fond, slot d'icône vide — asset canonique absent, contrôle
-  // `×1` avec affordance de disclosure).
+  // Carte `Tour`, voir `TourCard` ci-dessus pour la justification complète
+  // (géométrie partagée `limitCardBase`/T-01, slot d'icône vide — asset
+  // canonique absent/T-02, contrôle carré violet/T-04, contenu `1` seul/T-05).
   tourCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
     backgroundColor: colors.selectionSurface,
-    borderRadius: 12,
-    gap: spacing[8],
   },
   tourCardIconSlot: {
     width: 24,
@@ -544,18 +588,24 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textPrimary,
   },
+  // T-04 : contrôle carré violet avec chevron blanc — auparavant un
+  // contrôle blanc arrondi. Dimension fixe (`36`) choisie pour contenir
+  // confortablement le chevron (`24×24`, taille DS exacte, non redimensionné)
+  // et le chiffre `1` côte à côte ; non confirmée contre un rendu réel
+  // (`NON_VERIFIABLE_DEVICE`, voir le rapport de mission).
   tourCardControl: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[4],
-    backgroundColor: colors.background,
+    justifyContent: "center",
+    gap: spacing[2],
+    width: 36,
+    height: 36,
+    backgroundColor: colors.selection,
     borderRadius: 8,
-    paddingHorizontal: spacing[8],
-    paddingVertical: spacing[4],
   },
   tourCardControlValue: {
     ...type.body,
-    color: colors.textPrimary,
+    color: colors.background,
   },
   rowLabel: {
     ...type.body,
@@ -602,10 +652,16 @@ const styles = StyleSheet.create({
     ...type.supporting,
     color: colors.textSecondary,
   },
-  // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer` —
-  // voir la note de tête du corps de l'écran pour la justification.
+  // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer`.
+  // A-01 : plus de `marginTop: "auto"` ici — `body` (`flex: 1`, ci-dessus)
+  // absorbe désormais tout l'espace disponible, `bottomAction` suit
+  // naturellement juste après. `Continuer` reste centré sur l'axe
+  // horizontal de l'écran (`marginHorizontal` symétrique) ; Composition
+  // n'affiche aucun cadre de navigation principal (écran de création hors
+  // `(tabs)`), le critère « centré sur l'axe du cadre de navigation » de
+  // cette revue ne s'applique donc pas ici (condition explicitement posée
+  // par la revue elle-même, « lorsqu'il est présent »).
   bottomAction: {
-    marginTop: "auto",
     marginHorizontal: spacing[24],
     gap: spacing[12],
   },

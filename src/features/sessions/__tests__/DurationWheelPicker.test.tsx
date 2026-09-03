@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 
@@ -701,5 +701,170 @@ describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPick
     // réel, jamais réinitialisée à 0.
     expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
     expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
+  });
+
+  /**
+   * Correction `W-01/W-02/W-03/W-04/W-05` (`[ChatGPT] DEVICE NO-GO —
+   * PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03).
+   */
+  describe("géométrie de la roulette (W-01/W-02/W-03/W-04/W-05, contre-recette iPhone, correction REWORK03)", () => {
+    it("W-01 — gives the minutes column an explicit, finite frame width — never an unbounded/flex column able to absorb the whole available space", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      const modifiers = screen.getByTestId("duration-wheel-minutes").props.modifiers as {
+        $type: string;
+        width?: number;
+      }[];
+      const frameModifier = modifiers.find((modifier) => modifier.$type === "frame");
+      expect(frameModifier).toBeTruthy();
+      expect(typeof frameModifier?.width).toBe("number");
+      expect(Number.isFinite(frameModifier?.width)).toBe(true);
+      expect(frameModifier?.width).toBeGreaterThan(0);
+      // Aucun modificateur `flex`/`layoutPriority` n'est appliqué à la
+      // colonne — seule une largeur bornée explicite.
+      expect(modifiers.some((modifier) => modifier.$type === "layoutPriority")).toBe(false);
+    });
+
+    it("W-01/W-03 — gives the seconds column the exact same bounded frame width as the minutes column (symmetric, neither can absorb the other's space)", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      function frameWidth(testID: string) {
+        const modifiers = screen.getByTestId(testID).props.modifiers as {
+          $type: string;
+          width?: number;
+        }[];
+        return modifiers.find((modifier) => modifier.$type === "frame")?.width;
+      }
+
+      expect(frameWidth("duration-wheel-minutes")).toBe(frameWidth("duration-wheel-seconds"));
+    });
+
+    it("W-02/W-03 — the 'min' and 's' unit separators are bounded SwiftUI text elements (finite frame width), inside the same native Host as the wheel columns", () => {
+      const { UNSAFE_getAllByProps } = render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      const minutesUnit = UNSAFE_getAllByProps({ text: "min" })[0];
+      const secondsUnit = UNSAFE_getAllByProps({ text: "s" })[0];
+      for (const unit of [minutesUnit, secondsUnit]) {
+        const modifiers = unit.props.modifiers as { $type: string; width?: number }[];
+        const frameModifier = modifiers.find((modifier) => modifier.$type === "frame");
+        expect(frameModifier).toBeTruthy();
+        expect(Number.isFinite(frameModifier?.width)).toBe(true);
+        expect(frameModifier?.width).toBeGreaterThan(0);
+      }
+    });
+
+    it("W-01/W-02/W-03 — the Host's own width is at least the sum of both bounded columns and both unit widths (no element can render outside the visible surface)", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      const host = screen.getByTestId("duration-wheel-picker").children[0] as ReturnType<
+        typeof screen.getByTestId
+      >;
+      const minutesWidth = (
+        screen.getByTestId("duration-wheel-minutes").props.modifiers as {
+          $type: string;
+          width?: number;
+        }[]
+      ).find((modifier) => modifier.$type === "frame")?.width as number;
+      const secondsWidth = (
+        screen.getByTestId("duration-wheel-seconds").props.modifiers as {
+          $type: string;
+          width?: number;
+        }[]
+      ).find((modifier) => modifier.$type === "frame")?.width as number;
+
+      const hostWidth = StyleSheet.flatten(host.props.style).width as number;
+      expect(hostWidth).toBeGreaterThanOrEqual(minutesWidth + secondsWidth);
+    });
+
+    it("W-04 — never renders the previous cycle's blue selection band (removed — only the native SwiftUI selection frame remains)", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      expect(screen.queryByTestId("duration-wheel-native-selection-band")).toBeNull();
+    });
+
+    it("W-05 — with onRequestClose provided, renders a dedicated close tap target once the Host has laid out, calling onRequestClose on press without touching the draft values", () => {
+      const onChange = jest.fn();
+      const onRequestClose = jest.fn();
+      render(
+        <DurationWheelPicker
+          totalSeconds={70}
+          onChange={onChange}
+          onRequestClose={onRequestClose}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      // Aucune cible de fermeture tant que le `Host` n'a pas signalé sa
+      // hauteur réelle (`onLayoutContent`, jamais déclenché automatiquement
+      // en environnement Jest — voir la note de tête du fichier).
+      expect(screen.queryByTestId("duration-wheel-native-close-tap")).toBeNull();
+
+      const host = screen.getByTestId("duration-wheel-picker").children[0] as ReturnType<
+        typeof screen.getByTestId
+      >;
+      fireEvent(host, "layoutContent", { nativeEvent: { height: 120 } });
+
+      const closeTap = screen.getByTestId("duration-wheel-native-close-tap");
+      fireEvent.press(closeTap);
+
+      expect(onRequestClose).toHaveBeenCalledTimes(1);
+      // Le brouillon n'a jamais changé (aucune sélection native déclenchée) —
+      // le tap de fermeture ne déplace ni n'incrémente la sélection.
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("W-05 — omitting onRequestClose renders no close tap target at all (ExerciseScreen.tsx, not yet wired, keeps its previous behaviour)", () => {
+      render(
+        <DurationWheelPicker
+          totalSeconds={0}
+          onChange={jest.fn()}
+          minutesAccessibilityLabel="Minutes"
+          secondsAccessibilityLabel="Secondes"
+        />,
+      );
+
+      const host = screen.getByTestId("duration-wheel-picker").children[0] as ReturnType<
+        typeof screen.getByTestId
+      >;
+      fireEvent(host, "layoutContent", { nativeEvent: { height: 120 } });
+
+      expect(screen.queryByTestId("duration-wheel-native-close-tap")).toBeNull();
+    });
   });
 });

@@ -80,7 +80,10 @@ export const fr = {
         label: "Fin de séance",
       },
       tour: {
-        label: "Tour",
+        // T-03 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
+        // REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : libellé exact
+        // remplacé, auparavant "Tour" seul.
+        label: "Nombre de tours",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",

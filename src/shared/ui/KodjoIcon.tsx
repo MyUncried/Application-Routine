@@ -49,6 +49,19 @@ export type KodjoIconName = keyof typeof sources;
 export type KodjoIconProps = {
   name: KodjoIconName;
   opacity?: number;
+  /**
+   * Recolore l'icône (`Image.tintColor`, `expo-image`) — correction T-04
+   * (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03
+   * CUMULATIVE CORRECTION`, 2026-09-03) : premier appelant, le chevron
+   * blanc du contrôle Tour sur fond violet. Optionnel, `undefined` par
+   * défaut — n'affecte aucun des appels existants (rendu SVG source
+   * inchangé). Rendu réel non vérifiable sans device
+   * (`NON_VERIFIABLE_DEVICE`, voir le rapport de mission) : `tintColor`
+   * recolore fiablement une image à canal alpha uniforme, mais son effet
+   * exact sur un SVG multicolore n'est pas garanti — n'utiliser que sur des
+   * glyphes monochromes connus (chevrons, flèches).
+   */
+  tintColor?: string;
   testID?: string;
 };
 
@@ -59,13 +72,13 @@ export type KodjoIconProps = {
  * dimensions logiques restent celles des nœuds de référence ; le SVG assure
  * un rendu indépendant de la densité de pixels, sans glyphe de substitution.
  */
-export function KodjoIcon({ name, opacity = 1, testID }: KodjoIconProps) {
+export function KodjoIcon({ name, opacity = 1, tintColor, testID }: KodjoIconProps) {
   const [width, height] = sizes[name];
 
   return (
     <Image
       source={sources[name]}
-      style={{ width, height, opacity }}
+      style={{ width, height, opacity, tintColor }}
       contentFit="contain"
       accessible={false}
       testID={testID}

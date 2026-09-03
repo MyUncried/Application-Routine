@@ -1,5 +1,10 @@
 import { Host, HStack, Picker as SwiftUIPicker, Text as SwiftUIText } from "@expo/ui/swift-ui";
-import { accessibilityLabel as accessibilityLabelModifier, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
+import {
+  accessibilityLabel as accessibilityLabelModifier,
+  frame,
+  pickerStyle,
+  tag,
+} from "@expo/ui/swift-ui/modifiers";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -9,6 +14,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
@@ -66,12 +72,30 @@ const SECONDS_VALUES = Array.from({ length: WHEEL_SECONDS_ITEM_COUNT }, (_, inde
  * Hauteur approximative d'une ligne de roulette native SwiftUI
  * (`pickerStyle('wheel')`) — valeur documentée par convention iOS/UIKit
  * (`UIPickerView`), **non mesurée sur ce projet faute d'accès device**.
- * Utilisée uniquement pour positionner la bande de sélection superposée
- * (D-02/roulette native) au centre vertical réel du `Host`, mesuré via
- * `onLayoutContent` — jamais pour contraindre la hauteur du `Host`
- * lui-même (voir D-04 : la contrainte `ITEM_HEIGHT * 3` a été supprimée).
+ * Utilisée uniquement pour positionner la cible tactile de fermeture (W-05,
+ * voir `NativeAppleDurationWheelPicker`) au centre vertical réel du `Host`,
+ * mesuré via `onLayoutContent` — jamais pour contraindre la hauteur du
+ * `Host` lui-même (D-04, contrainte `ITEM_HEIGHT * 3` supprimée).
  */
-const NATIVE_SELECTION_BAND_HEIGHT = 34;
+const NATIVE_CLOSE_TAP_HEIGHT = 34;
+
+/**
+ * Largeurs bornées de la roulette native (correction `W-01/W-02/W-03`,
+ * `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE CORRECTION`,
+ * 2026-09-03) : la largeur réellement disponible est mesurée depuis
+ * `useWindowDimensions()` (moins le padding horizontal de la ligne hôte,
+ * `CompositionScreen`'s `body`, et celui de `nativeSurface` lui-même) AVANT
+ * de dimensionner le `Host`/`HStack` — jamais l'inverse. Chaque colonne
+ * numérique et chaque unité (`min`/`s`) reçoit ensuite une largeur
+ * explicite (`frame({width})`, `@expo/ui/swift-ui/modifiers`), dont la
+ * somme + les écarts du `HStack` égale exactement la largeur du `Host` :
+ * aucun élément ne peut donc grandir au détriment d'un autre (défaut
+ * racine constaté : la colonne minutes, sans largeur propre, absorbait tout
+ * l'espace, poussant `min`/secondes/`s` hors du cadre visible).
+ */
+const NATIVE_WHEEL_UNIT_TEXT_WIDTH = 28;
+const NATIVE_WHEEL_MIN_COLUMN_WIDTH = 60;
+const NATIVE_WHEEL_ROW_HORIZONTAL_PADDING = spacing[24];
 
 export type DurationWheelPickerProps = {
   totalSeconds: number;
@@ -80,6 +104,16 @@ export type DurationWheelPickerProps = {
   secondsAccessibilityLabel: string;
   /** Borne haute de `totalSeconds`, en secondes. Par défaut `WHEEL_TOTAL_SECONDS_MAX` (3599, V1, Composition). */
   maxTotalSeconds?: number;
+  /**
+   * Ferme le sélecteur — correction `W-05` (`[ChatGPT] DEVICE NO-GO —
+   * PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : un appui sur le
+   * cadre de sélection natif (roulette iOS uniquement) ferme le sélecteur
+   * et valide exactement les valeurs actuellement centrées, sans déplacer
+   * ni incrémenter la sélection. Optionnel — omis, aucune cible tactile
+   * supplémentaire n'est rendue (comportement inchangé pour tout appelant
+   * qui ne le fournit pas encore, ex. `ExerciseScreen.tsx`).
+   */
+  onRequestClose?: () => void;
 };
 
 export function DurationWheelPicker(props: DurationWheelPickerProps) {
@@ -94,7 +128,7 @@ export function DurationWheelPicker(props: DurationWheelPickerProps) {
  * `Picker` × 2 (`pickerStyle('wheel')`), chaque colonne portant ses propres
  * options via `<SwiftUIText modifiers={[tag(valeur)]}>`.
  *
- * Correction D-05 : les séparateurs d'unité (`min`/`s`) sont désormais des
+ * Correction D-05 : les séparateurs d'unité (`min`/`s`) sont des
  * `SwiftUIText` (`@expo/ui/swift-ui`), jamais des `Text` React Native — un
  * `HStack` natif ne compose que des vues SwiftUI ; mélanger les deux
  * moteurs de rendu comme frères d'un même conteneur natif n'est pas un
@@ -104,12 +138,30 @@ export function DurationWheelPicker(props: DurationWheelPickerProps) {
  * `Host` — `matchContents` laisse SwiftUI dimensionner la roulette
  * nativement (comportement réel non mesurable sans device), la hauteur
  * réelle rendue est captée via `onLayoutContent` uniquement pour
- * positionner la bande de sélection superposée (D-02).
+ * positionner la cible tactile de fermeture (W-05).
  *
  * Correction D-02 : surface opaque blanche, arrondie, bordée et ombrée
  * (`nativeSurface`) enveloppant le `Host` — masque totalement le contenu
- * sous-jacent, contrairement à la version précédente qui n'avait aucun
- * fond propre à aucun niveau.
+ * sous-jacent.
+ *
+ * Correction W-01/W-02/W-03 : largeurs bornées mesurées, voir la constante
+ * `NATIVE_WHEEL_*` en tête de fichier.
+ *
+ * Correction W-04 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO —
+ * PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : la bande de
+ * sélection bleue superposée (`nativeSelectionBand`, cycle précédent) est
+ * supprimée — le rendu réel montrait deux cadres concurrents (bleu
+ * applicatif + gris natif). Seul le cadre de sélection natif SwiftUI
+ * (`pickerStyle('wheel')`, dessiné par le système, non un `View` de ce
+ * fichier) subsiste désormais.
+ *
+ * Correction W-05 : `onRequestClose`, lorsque fourni, est câblé à une cible
+ * tactile invisible (`nativeCloseTapArea`, transparente — pas un second
+ * cadre visible, W-04) positionnée sur la même bande centrale que
+ * l'ancienne bande de sélection. Un appui ferme le sélecteur sans toucher
+ * `draftMinutes`/`draftSeconds` : c'est une cible tactile strictement
+ * séparée des `Picker` SwiftUI, jamais un geste transmis à leur mécanisme
+ * de défilement/sélection propre.
  */
 function NativeAppleDurationWheelPicker({
   totalSeconds,
@@ -117,6 +169,7 @@ function NativeAppleDurationWheelPicker({
   minutesAccessibilityLabel,
   secondsAccessibilityLabel,
   maxTotalSeconds = WHEEL_TOTAL_SECONDS_MAX,
+  onRequestClose,
 }: DurationWheelPickerProps) {
   const minutesMaxIndex = minutesMaxIndexFor(maxTotalSeconds);
   const minutesValues = Array.from({ length: minutesMaxIndex + 1 }, (_, index) => index);
@@ -128,6 +181,20 @@ function NativeAppleDurationWheelPicker({
   const [draftSeconds, setDraftSeconds] = useState(initial.seconds);
   const draftRef = useRef({ minutes: initial.minutes, seconds: initial.seconds });
   const [hostHeight, setHostHeight] = useState<number | null>(null);
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Largeur réellement disponible dans le popover (mesurée depuis la
+  // fenêtre, moins le padding horizontal de la ligne hôte et celui de
+  // `nativeSurface`) — voir la constante en tête de fichier.
+  const availableRowWidth = windowWidth - NATIVE_WHEEL_ROW_HORIZONTAL_PADDING * 2;
+  const surfacePaddingWidth = spacing[12] * 2; // `styles.nativeSurface.paddingHorizontal`, les deux côtés.
+  const hstackGapsWidth = spacing[8] * 3; // 4 éléments (colonne, unité, colonne, unité) -> 3 écarts.
+  const contentWidth = availableRowWidth - surfacePaddingWidth;
+  const pickerColumnWidth = Math.max(
+    (contentWidth - hstackGapsWidth - NATIVE_WHEEL_UNIT_TEXT_WIDTH * 2) / 2,
+    NATIVE_WHEEL_MIN_COLUMN_WIDTH,
+  );
+  const hostWidth = pickerColumnWidth * 2 + NATIVE_WHEEL_UNIT_TEXT_WIDTH * 2 + hstackGapsWidth;
 
   function handleMinutesChange(value: number) {
     if (value === draftRef.current.minutes) {
@@ -168,21 +235,8 @@ function NativeAppleDurationWheelPicker({
 
   return (
     <View style={styles.nativeSurface} testID="duration-wheel-picker">
-      {hostHeight !== null ? (
-        <View
-          testID="duration-wheel-native-selection-band"
-          pointerEvents="none"
-          style={[
-            styles.nativeSelectionBand,
-            {
-              top: (hostHeight - NATIVE_SELECTION_BAND_HEIGHT) / 2,
-              height: NATIVE_SELECTION_BAND_HEIGHT,
-            },
-          ]}
-        />
-      ) : null}
       <Host
-        style={styles.nativeHost}
+        style={[styles.nativeHost, { width: hostWidth }]}
         matchContents
         onLayoutContent={(event) => setHostHeight(event.nativeEvent.height)}
       >
@@ -190,7 +244,11 @@ function NativeAppleDurationWheelPicker({
           <SwiftUIPicker
             selection={draftMinutes}
             onSelectionChange={handleMinutesChange}
-            modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(minutesAccessibilityLabel)]}
+            modifiers={[
+              pickerStyle("wheel"),
+              frame({ width: pickerColumnWidth }),
+              accessibilityLabelModifier(minutesAccessibilityLabel),
+            ]}
             testID="duration-wheel-minutes"
           >
             {minutesValues.map((value) => (
@@ -199,11 +257,15 @@ function NativeAppleDurationWheelPicker({
               </SwiftUIText>
             ))}
           </SwiftUIPicker>
-          <SwiftUIText modifiers={[]}>min</SwiftUIText>
+          <SwiftUIText modifiers={[frame({ width: NATIVE_WHEEL_UNIT_TEXT_WIDTH })]}>min</SwiftUIText>
           <SwiftUIPicker
             selection={draftSeconds}
             onSelectionChange={handleSecondsChange}
-            modifiers={[pickerStyle("wheel"), accessibilityLabelModifier(secondsAccessibilityLabel)]}
+            modifiers={[
+              pickerStyle("wheel"),
+              frame({ width: pickerColumnWidth }),
+              accessibilityLabelModifier(secondsAccessibilityLabel),
+            ]}
             testID="duration-wheel-seconds"
           >
             {SECONDS_VALUES.map((value) => (
@@ -212,9 +274,23 @@ function NativeAppleDurationWheelPicker({
               </SwiftUIText>
             ))}
           </SwiftUIPicker>
-          <SwiftUIText modifiers={[]}>s</SwiftUIText>
+          <SwiftUIText modifiers={[frame({ width: NATIVE_WHEEL_UNIT_TEXT_WIDTH })]}>s</SwiftUIText>
         </HStack>
       </Host>
+      {onRequestClose && hostHeight !== null ? (
+        <Pressable
+          testID="duration-wheel-native-close-tap"
+          accessible={false}
+          onPress={onRequestClose}
+          style={[
+            styles.nativeCloseTapArea,
+            {
+              top: (hostHeight - NATIVE_CLOSE_TAP_HEIGHT) / 2,
+              height: NATIVE_CLOSE_TAP_HEIGHT,
+            },
+          ]}
+        />
+      ) : null}
     </View>
   );
 }
@@ -465,19 +541,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[8],
   },
   // D-04 : pas de hauteur fixe — `matchContents` (prop `Host`) dimensionne
-  // au contenu natif réel.
-  nativeHost: {
-    width: 260,
-  },
-  // D-02 (bande de sélection native) : une seule bande, positionnée par
+  // au contenu natif réel. W-01/02/03 : la largeur est calculée
+  // dynamiquement (`hostWidth`) et appliquée inline — voir
+  // `NativeAppleDurationWheelPicker`.
+  nativeHost: {},
+  // W-05 : cible tactile de fermeture, transparente (W-04 — aucun second
+  // cadre visible, seul le cadre natif SwiftUI subsiste), positionnée par
   // rapport à `nativeSurface` (parent immédiat commun avec le `Host`),
-  // traverse donc visuellement les deux colonnes ET les unités — jamais
-  // des capsules séparées par colonne.
-  nativeSelectionBand: {
+  // traverse donc les deux colonnes ET les unités.
+  nativeCloseTapArea: {
     position: "absolute",
     left: spacing[4],
     right: spacing[4],
-    backgroundColor: colors.selectionSurface,
-    borderRadius: 8,
+    backgroundColor: "transparent",
   },
 });

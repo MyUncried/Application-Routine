@@ -3,9 +3,9 @@ import { describe, expect, it } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
 import {
-  NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL,
+  NAVIGATION_BAR_BOTTOM_RESIDUAL,
   NAVIGATION_ICON_SLOT,
-  navigationBarBottomResidual,
+  NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
 import { icon, minTouchTarget } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
@@ -153,26 +153,26 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
  * Correction `D` (contre-recette iPhone, correction consolidée, `[ChatGPT]
  * DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`, 2026-09-03,
  * addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) : la barre
- * est ancrée à `bottom: 0` (bord physique de l'écran), la Safe Area étant
- * consommée à l'intérieur via `paddingBottom`, jamais en translatant la
- * barre entière — voir `@/shared/ui/navigationLayout` pour la dérivation
- * complète de `navigationBarBottomResidual`.
+ * est ancrée à `bottom: 0` (bord physique de l'écran).
+ *
+ * Correction `N-03` (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
+ * CORRECTION`, 2026-09-03) : le résiduel bas (`paddingBottom`) est
+ * désormais égal, par construction, à la marge horizontale
+ * (`NAVIGATION_ROW_HORIZONTAL_MARGIN` = `left`/`right`) — remplace la
+ * formule précédente, fonction de `insets.bottom`, jugée trop basse au
+ * rendu réel. Voir `@/shared/ui/navigationLayout` pour la dérivation
+ * complète.
  */
-describe("Navigation basse — position verticale (correction D, 2026-09-03)", () => {
-  it("anchors the row to the physical screen edge (bottom: 0), consuming the Safe Area as an internal paddingBottom instead of translating the whole bar", () => {
+describe("Navigation basse — position verticale (correction D/N-03, 2026-09-03)", () => {
+  it("anchors the row to the physical screen edge (bottom: 0), with a bottom residual exactly equal to its own horizontal margin (N-03)", () => {
     renderTabsLayout();
 
     const row = screen.getByTestId("navigation-row");
     const rowStyle = StyleSheet.flatten(row.props.style);
     expect(rowStyle.bottom).toBe(0);
-
-    // Environnement de test : `insets.bottom` par défaut vaut `0` (aucun
-    // `TestSafeAreaProvider` monté par ce test, contrairement à
-    // `CatalogueScreen.test.tsx`/`CompositionScreen.test.tsx`) — le
-    // résiduel retombe donc sur son plancher explicite
-    // (`NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL`, `11`), jamais `0` ni la valeur
-    // brute de `insets.bottom`.
-    expect(rowStyle.paddingBottom).toBe(navigationBarBottomResidual(0));
-    expect(rowStyle.paddingBottom).toBe(NAVIGATION_BAR_MIN_BOTTOM_RESIDUAL);
+    expect(rowStyle.left).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
+    expect(rowStyle.right).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
+    expect(rowStyle.paddingBottom).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL);
+    expect(rowStyle.paddingBottom).toBe(rowStyle.left);
   });
 });

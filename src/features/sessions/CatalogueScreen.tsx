@@ -1,7 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { SessionCard } from "@/features/sessions/SessionCard";
@@ -38,7 +37,6 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
  */
 export function CatalogueScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { state, reload, cancelPending } = useSessionCatalogue();
 
   useFocusEffect(
@@ -69,17 +67,14 @@ export function CatalogueScreen() {
        * TOUTE la hauteur restante de l'écran, y compris la zone
        * visuellement recouverte par la barre flottante, décalant le cadre
        * de l'état vide trop bas. `paddingBottom` réserve exactement
-       * l'espace réel de la navigation (`navigationBarTotalHeight`, même
+       * l'espace réel de la navigation (`navigationBarTotalHeight()`, même
        * source — et désormais même formule de résiduel bas — que
-       * `app/(tabs)/_layout.tsx`, correction `D`, 2026-09-03 : la barre
-       * n'est plus translatée de la totalité de `insets.bottom`, cette
-       * réserve ne doit donc plus non plus compter `insets.bottom` en
-       * entier sous peine de sur-réserver l'espace deux fois) — le
+       * `app/(tabs)/_layout.tsx`, correction `D`/`N-03`, 2026-09-03) — le
        * centrage de `centeredBody` s'effectue désormais uniquement entre le
        * bas de la bande Context et le haut réel de la barre.
        */}
       <View
-        style={[styles.body, { paddingBottom: navigationBarTotalHeight(insets.bottom) }]}
+        style={[styles.body, { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
         {state.status === "loading" ? <LoadingBody /> : null}

@@ -129,7 +129,9 @@ describe("CompositionScreen — état initial", () => {
 
     const tour = screen.getByLabelText(composition.tour.label);
     expect(tour.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByText("×1")).toBeTruthy();
+    // T-05 : contenu `1` seul, plus de préfixe `×`.
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.queryByText("×1")).toBeNull();
 
     const continueAction = screen.getByLabelText(composition.continueAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
@@ -577,17 +579,23 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("CMP-04 — the Tour card is a distinct DS component (background different from the general background), showing the Tour label and a white ×1 control with a disclosure chevron, never the Activity icon", () => {
+  it("CMP-04/T-03/T-04/T-05 — the Tour card is a distinct DS component (background different from the general background), showing the 'Nombre de tours' label and a square violet control (content '1', no '×', white chevron), never the Activity icon", () => {
     renderScreen();
 
     const tourCard = screen.getByTestId("composition-tour-card");
     expect(StyleSheet.flatten(tourCard.props.style).backgroundColor).not.toBe(colors.background);
     expect(within(tourCard).getByText(composition.tour.label)).toBeTruthy();
-    expect(within(tourCard).getByText("×1")).toBeTruthy();
+    // T-05 : contenu `1` seul, plus de préfixe `×`.
+    expect(within(tourCard).getByText("1")).toBeTruthy();
+    expect(within(tourCard).queryByText("×1")).toBeNull();
 
+    // T-04 : contrôle carré violet (`colors.selection`), chevron blanc.
     const control = screen.getByTestId("composition-tour-control");
-    expect(StyleSheet.flatten(control.props.style).backgroundColor).toBe(colors.background);
-    expect(within(control).getByTestId("composition-tour-control-chevron")).toBeTruthy();
+    const controlStyle = StyleSheet.flatten(control.props.style);
+    expect(controlStyle.backgroundColor).toBe(colors.selection);
+    expect(controlStyle.width).toBe(controlStyle.height);
+    const chevron = within(control).getByTestId("composition-tour-control-chevron");
+    expect(chevron.props.style.tintColor).toBe(colors.background);
 
     // Jamais l'icône d'une Activité réutilisée comme icône Tour.
     expect(within(tourCard).queryByTestId("composition-exercise-icon")).toBeNull();
@@ -614,6 +622,50 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const bottomAction = screen.getByTestId("composition-bottom-action");
     expect(within(bottomAction).getByText("0 activité · 0 min")).toBeTruthy();
     expect(within(bottomAction).getByLabelText(composition.continueAction)).toBeTruthy();
+  });
+
+  it("C-01 — Boundary Activity rows have a white background with a visible grey border (auparavant colors.surface, jugé non conforme au rendu réel)", () => {
+    renderScreen();
+
+    const countdownRow = screen.getByLabelText(composition.countdown.label);
+    const flattened = StyleSheet.flatten(countdownRow.props.style);
+    expect(flattened.backgroundColor).toBe(colors.background);
+    expect(flattened.borderWidth).toBeGreaterThan(0);
+    expect(flattened.borderColor).toBe(colors.border);
+  });
+
+  it("C-02 — the left handle slot carries a structure/move pictogram, swappable via a dedicated prop without touching the layout", () => {
+    renderScreen();
+
+    const countdownRow = screen.getByLabelText(composition.countdown.label);
+    const handleSlot = within(countdownRow).getByTestId("composition-boundary-handle-slot");
+    expect(within(handleSlot).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
+  });
+
+  it("T-01 — the Tour card shares the exact same box geometry (padding/border/radius) as the Boundary Activity rows, so their left/right edges align", () => {
+    renderScreen();
+
+    const countdownRow = screen.getByLabelText(composition.countdown.label);
+    const tourCard = screen.getByTestId("composition-tour-card");
+    const countdownStyle = StyleSheet.flatten(countdownRow.props.style);
+    const tourStyle = StyleSheet.flatten(tourCard.props.style);
+
+    expect(tourStyle.paddingHorizontal).toBe(countdownStyle.paddingHorizontal);
+    expect(tourStyle.paddingVertical).toBe(countdownStyle.paddingVertical);
+    expect(tourStyle.borderWidth).toBe(countdownStyle.borderWidth);
+    expect(tourStyle.borderRadius).toBe(countdownStyle.borderRadius);
+    // Seul le fond diverge (teinte propre à Tour) — géométrie identique.
+    expect(tourStyle.backgroundColor).not.toBe(countdownStyle.backgroundColor);
+  });
+
+  it("A-01 — the body region is flex:1, guaranteeing the Bottom Action zone is pushed to the very bottom of the available space rather than floating above it, and no marginTop:auto remains on bottomAction itself", () => {
+    renderScreen();
+
+    const body = screen.getByTestId("composition-body");
+    expect(StyleSheet.flatten(body.props.style).flex).toBe(1);
+
+    const bottomAction = screen.getByTestId("composition-bottom-action");
+    expect(StyleSheet.flatten(bottomAction.props.style).marginTop).toBeUndefined();
   });
 });
 

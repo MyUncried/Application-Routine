@@ -1,15 +1,16 @@
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
+  NAVIGATION_BAR_BOTTOM_RESIDUAL,
   NAVIGATION_ICON_SLOT,
   NAVIGATION_ITEM_VERTICAL_PADDING,
   NAVIGATION_LABEL_GAP,
-  navigationBarBottomResidual,
+  NAVIGATION_ROW_GAP,
+  NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, minTouchTarget, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -63,14 +64,22 @@ import { strings } from "@/shared/i18n";
  *
  * Correction `D` (contre-recette iPhone, correction consolidée,
  * 2026-09-03, addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) :
- * la rangée est désormais ancrée à `bottom: 0` (le bord physique de
- * l'écran), la Safe Area étant consommée À L'INTÉRIEUR via `paddingBottom:
- * navigationBarBottomResidual(insets.bottom)` — auparavant `bottom:
- * insets.bottom` translatait la barre ENTIÈRE de la Safe Area complète en
- * plus de sa propre hauteur, ce qui ne correspond pas à la géométrie de
- * référence transmise par cette revue (résiduel bas `11pt`, pas `34pt`).
- * Voir `@/shared/ui/navigationLayout` pour la dérivation complète de cette
- * formule et sa réserve de preuve (`NON_VERIFIABLE_DEVICE`).
+ * la rangée est ancrée à `bottom: 0` (le bord physique de l'écran) —
+ * auparavant `bottom: insets.bottom` translatait la barre ENTIÈRE de la
+ * Safe Area complète en plus de sa propre hauteur.
+ *
+ * Correction `N-01/N-02/N-03` (contre-recette iPhone, `[ChatGPT] DEVICE
+ * NO-GO — PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : icônes
+ * réduites (`NAVIGATION_ICON_SLOT`, `24→20`, cible tactile inchangée,
+ * `tabItem.minHeight` reste `minTouchTarget`) ; écart `tabsGroup`↔Recherche
+ * élargi (`NAVIGATION_ROW_GAP`, `spacing[12]→spacing[16]`), resserrant
+ * légèrement `tabsGroup` (`flex: 1`) sans toucher aux marges extérieures ;
+ * résiduel bas (`paddingBottom`) remplacé par
+ * `NAVIGATION_BAR_BOTTOM_RESIDUAL`, désormais **égal par construction** à
+ * la marge horizontale (`NAVIGATION_ROW_HORIZONTAL_MARGIN`) — remplace la
+ * formule précédente, fonction de `insets.bottom`, jugée trop basse au
+ * rendu réel. Voir `@/shared/ui/navigationLayout` pour la dérivation
+ * complète et sa réserve de preuve (`NON_VERIFIABLE_DEVICE`).
  */
 export default function TabsLayout() {
   return (
@@ -129,13 +138,8 @@ export default function TabsLayout() {
 }
 
 function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View
-      style={[styles.navigationRow, { paddingBottom: navigationBarBottomResidual(insets.bottom) }]}
-      testID="navigation-row"
-    >
+    <View style={styles.navigationRow} testID="navigation-row">
       <View style={styles.tabsGroup} testID="navigation-tabs-group">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -201,12 +205,13 @@ const styles = StyleSheet.create({
   },
   navigationRow: {
     position: "absolute",
-    left: spacing[16],
-    right: spacing[16],
+    left: NAVIGATION_ROW_HORIZONTAL_MARGIN,
+    right: NAVIGATION_ROW_HORIZONTAL_MARGIN,
     bottom: 0,
+    paddingBottom: NAVIGATION_BAR_BOTTOM_RESIDUAL,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[12],
+    gap: NAVIGATION_ROW_GAP,
   },
   tabsGroup: {
     flex: 1,
