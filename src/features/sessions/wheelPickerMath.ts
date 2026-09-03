@@ -7,18 +7,40 @@
  *
  * Bornes validées (arbitrage V1, T01-S07-plan-composition-seance.md §5) :
  * minutes 0–59, secondes 0–59, total 0 à 3599 secondes (0 min 00 s à
- * 59 min 59 s), incrément 1 s — bornes par défaut de `toTotalSeconds`/
- * `fromTotalSeconds` ci-dessous, inchangées pour tout appelant existant qui
- * ne fournit pas `maxTotalSeconds`.
+ * 59 min 59 s) — bornes par défaut de `toTotalSeconds`/`fromTotalSeconds`
+ * ci-dessous, inchangées pour tout appelant existant qui ne fournit pas
+ * `maxTotalSeconds`.
+ *
+ * **Pas des secondes — résolution de l'ARBITRAGE 1** (contre-recette
+ * iPhone, `[ChatGPT] PHASE02 REWORK01 ADDENDUM — NATIVE APPLE WHEEL
+ * TARGET`, 2026-09-03) : les cycles précédents avaient conservé un pas de
+ * `1` seconde en le classant à tort comme une contradiction non résolue
+ * entre le Registre des décisions (D-089, qui borne `0–3599 s` sans jamais
+ * mentionner de pas) et `13 – Contrats d'écran.md` (CE-T01-07 : « Les
+ * secondes avancent par pas de `5` », repris à l'identique par CE-T01-14
+ * pour l'Exercice — « selon le même contrat que CE-T01-07 »). Relecture
+ * exacte : D-089 est **silencieux** sur le pas, il ne le **contredit**
+ * pas — l'ordre de préséance `INDEX.md` §6 (Registre > … > Contrats
+ * d'écran) ne s'applique qu'en cas de contradiction réelle, pas à un
+ * détail que seul le document de rang inférieur précise. `CE-T01-07`
+ * qualifie en outre explicitement « bornes et pas conformes aux règles
+ * métier » de test bloquant. Le pas de `5` s est donc implémenté ici,
+ * fermant l'arbitrage plutôt que de le reconduire une quatrième fois.
  *
  * Bornes Durée/Pause d'Exercice (T01-S08, `08` l.925) : 0 à 5999 secondes
  * (0 min 00 s à 99 min 59 s) — `WHEEL_EXERCISE_DURATION_SECONDS_MAX`/
  * `WHEEL_PAUSE_SECONDS_MAX` ci-dessous, à passer explicitement en
- * `maxTotalSeconds`.
+ * `maxTotalSeconds`. Même pas de secondes (`WHEEL_SECONDS_STEP`), CE-T01-14
+ * renvoyant explicitement au contrat CE-T01-07.
  */
 
 export const WHEEL_MINUTES_MAX_INDEX = 59;
-export const WHEEL_SECONDS_MAX_INDEX = 59;
+/** Pas des secondes — `5`, CE-T01-07/CE-T01-14, voir la note ci-dessus (résolution de l'ARBITRAGE 1). */
+export const WHEEL_SECONDS_STEP = 5;
+/** Nombre de valeurs de secondes visibles (`0, 5, …, 55` — `60 / WHEEL_SECONDS_STEP`). */
+export const WHEEL_SECONDS_ITEM_COUNT = 60 / WHEEL_SECONDS_STEP;
+/** Index maximal de la colonne secondes (`WHEEL_SECONDS_ITEM_COUNT - 1`, soit `11`). */
+export const WHEEL_SECONDS_MAX_INDEX = WHEEL_SECONDS_ITEM_COUNT - 1;
 export const WHEEL_TOTAL_SECONDS_MAX = 3599;
 
 /** Borne haute de la Durée d'un Exercice, en secondes (T01-S08, `08` l.925) — 99 min 59 s. */
@@ -81,15 +103,34 @@ export function toTotalSeconds(
 
 /**
  * Inverse de `toTotalSeconds` : décompose une durée totale bornée en
- * minutes/secondes, secondes toujours bornées à `[0, 59]`, minutes bornées
- * par `maxTotalSeconds` (mêmes valeurs par défaut que `toTotalSeconds`).
+ * minutes/secondes. Les secondes sont systématiquement ramenées au
+ * multiple de `WHEEL_SECONDS_STEP` le plus proche (CE-T01-07/14) — y
+ * compris pour une valeur d'entrée qui ne le serait pas déjà (défense en
+ * profondeur ; toute valeur produite par `toTotalSeconds` ci-dessus est
+ * déjà un multiple de `WHEEL_SECONDS_STEP`). Minutes bornées par
+ * `maxTotalSeconds` (mêmes valeurs par défaut que `toTotalSeconds`).
  */
 export function fromTotalSeconds(
   totalSeconds: number,
   maxTotalSeconds: number = WHEEL_TOTAL_SECONDS_MAX,
 ): { minutes: number; seconds: number } {
   const bounded = clampTotalSeconds(totalSeconds, maxTotalSeconds);
-  return { minutes: Math.floor(bounded / 60), seconds: bounded % 60 };
+  const rawSeconds = bounded % 60;
+  const steppedSeconds = clampIndex(
+    Math.round(rawSeconds / WHEEL_SECONDS_STEP),
+    WHEEL_SECONDS_MAX_INDEX,
+  ) * WHEEL_SECONDS_STEP;
+  return { minutes: Math.floor(bounded / 60), seconds: steppedSeconds };
+}
+
+/** Valeur en secondes (`0, 5, …, 55`) affichée par l'index de la colonne secondes. */
+export function secondsIndexToValue(index: number): number {
+  return clampIndex(index, WHEEL_SECONDS_MAX_INDEX) * WHEEL_SECONDS_STEP;
+}
+
+/** Index de colonne secondes (`[0, WHEEL_SECONDS_MAX_INDEX]`) le plus proche d'une valeur en secondes. */
+export function secondsValueToIndex(seconds: number): number {
+  return clampIndex(Math.round(seconds / WHEEL_SECONDS_STEP), WHEEL_SECONDS_MAX_INDEX);
 }
 
 function clampTotalSeconds(totalSeconds: number, maxTotalSeconds: number): number {

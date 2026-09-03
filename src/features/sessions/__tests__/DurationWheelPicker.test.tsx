@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { Platform } from "react-native";
 
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 
@@ -22,7 +23,27 @@ beforeEach(() => {
   Haptics.selectionAsync.mockClear();
 });
 
-describe("DurationWheelPicker", () => {
+/**
+ * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
+ * `"ios"` — hérité par `DurationWheelPicker` (`PHASE02 REWORK01 ADDENDUM —
+ * NATIVE APPLE WHEEL TARGET`, 2026-09-03), qui délègue alors à la roulette
+ * native SwiftUI, jamais à la réimplémentation maison ci-dessous testée.
+ * Tout ce bloc `describe` porte sur le chemin Android/web (`LegacyDuration
+ * WheelPicker`, réel, toujours livré pour ces plateformes) — forcé
+ * explicitement, restauré après chaque test pour ne jamais fuir vers les
+ * tests de la roulette native plus bas dans ce fichier.
+ */
+describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker, ScrollView + toucher direct)", () => {
+  let originalPlatformOS: typeof Platform.OS;
+
+  beforeEach(() => {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = "android";
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
   it("renders both columns with accessibilityRole=adjustable and the correct accessibilityValue bounds", () => {
     render(
       <DurationWheelPicker
@@ -39,7 +60,8 @@ describe("DurationWheelPicker", () => {
     expect(minutes.props.accessibilityRole).toBe("adjustable");
     expect(minutes.props.accessibilityValue).toEqual({ min: 0, max: 59, now: 0 });
     expect(seconds.props.accessibilityRole).toBe("adjustable");
-    expect(seconds.props.accessibilityValue).toEqual({ min: 0, max: 59, now: 0 });
+    // Pas de 5 (CE-T01-07/14) : la dernière valeur atteignable est 55, pas 59.
+    expect(seconds.props.accessibilityValue).toEqual({ min: 0, max: 55, now: 0 });
   });
 
   it("calls neither onChange nor the haptic when two consecutive onScroll events report the same index", () => {
@@ -92,14 +114,17 @@ describe("DurationWheelPicker", () => {
     );
     const seconds = screen.getByTestId("duration-wheel-seconds");
 
-    scrollTo(seconds, ITEM_HEIGHT * 1);
-    scrollTo(seconds, ITEM_HEIGHT * 2);
-    scrollTo(seconds, ITEM_HEIGHT * 3);
+    // Le décalage de défilement reste indexé (0..11, pas de 5) — la
+    // colonne secondes convertit chaque index en valeur (`index × 5`)
+    // avant `onChange`.
+    scrollTo(seconds, ITEM_HEIGHT * 1); // index 1 -> 5 s
+    scrollTo(seconds, ITEM_HEIGHT * 2); // index 2 -> 10 s
+    scrollTo(seconds, ITEM_HEIGHT * 3); // index 3 -> 15 s
 
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(3);
-    expect(onChange).toHaveBeenNthCalledWith(1, 1);
-    expect(onChange).toHaveBeenNthCalledWith(2, 2);
-    expect(onChange).toHaveBeenNthCalledWith(3, 3);
+    expect(onChange).toHaveBeenNthCalledWith(1, 5);
+    expect(onChange).toHaveBeenNthCalledWith(2, 10);
+    expect(onChange).toHaveBeenNthCalledWith(3, 15);
   });
 
   it("does not call onChange/haptic again if onMomentumScrollEnd fires after onScroll already settled on that index", () => {
@@ -141,7 +166,7 @@ describe("DurationWheelPicker", () => {
     const seconds = screen.getByTestId("duration-wheel-seconds");
 
     scrollTo(minutes, ITEM_HEIGHT * 1); // 1 min
-    scrollTo(seconds, ITEM_HEIGHT * 15); // + 15 s
+    scrollTo(seconds, ITEM_HEIGHT * 3); // index 3 -> + 15 s
 
     expect(onChange).toHaveBeenLastCalledWith(75);
   });
@@ -163,7 +188,7 @@ describe("DurationWheelPicker", () => {
     expect(onChange).toHaveBeenCalledWith(0);
   });
 
-  it("clamps the upper bound: an overscrolled excessive offset never reports an index above 59, total capped at 3599", () => {
+  it("clamps the upper bound: an overscrolled excessive offset never reports a seconds index above the last step, total capped at 59 min 55 s (3595)", () => {
     const onChange = jest.fn();
     render(
       <DurationWheelPicker
@@ -179,7 +204,9 @@ describe("DurationWheelPicker", () => {
     scrollTo(minutes, ITEM_HEIGHT * 999);
     scrollTo(seconds, ITEM_HEIGHT * 999);
 
-    expect(onChange).toHaveBeenLastCalledWith(3599);
+    // 59 min (index 59) + 55 s (index clampé à 11, pas de 5) = 3595, pas 3599
+    // — 59 s n'est plus une valeur atteignable par la roulette.
+    expect(onChange).toHaveBeenLastCalledWith(3595);
   });
 
   it("never calls the haptic on mount alone, before any scroll event fires", () => {
@@ -240,7 +267,8 @@ describe("DurationWheelPicker", () => {
       scrollTo(minutes, ITEM_HEIGHT * 999);
       scrollTo(seconds, ITEM_HEIGHT * 999);
 
-      expect(onChange).toHaveBeenLastCalledWith(5999);
+      // 99 min + 55 s (pas de 5, index clampé à 11) = 5995, pas 5999.
+      expect(onChange).toHaveBeenLastCalledWith(5995);
     });
 
     it("still defaults to the 3599s bound (minutes max 59) when maxTotalSeconds is omitted", () => {
@@ -278,7 +306,7 @@ describe("DurationWheelPicker", () => {
     });
     expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue).toEqual({
       min: 0,
-      max: 59,
+      max: 55,
       now: 15,
     });
   });
@@ -375,5 +403,158 @@ describe("DurationWheelPicker", () => {
 
       expect(onChange).toHaveBeenLastCalledWith(3 * 60);
     });
+  });
+});
+
+/**
+ * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
+ * `"ios"` — aucun forçage nécessaire ici (posé explicitement quand même,
+ * par robustesse face à l'ordre d'exécution des tests). Ces tests portent
+ * sur `NativeAppleDurationWheelPicker` (`PHASE02 REWORK01 ADDENDUM —
+ * NATIVE APPLE WHEEL TARGET`, 2026-09-03) : la roulette native SwiftUI
+ * (`@expo/ui/swift-ui`) elle-même (perspective, fondu, inertie, magnétisme
+ * natifs) n'est PAS exercée par Jest — seule la couche JS de ce composant
+ * (props transmises à `Picker`, propagation d'état, garde de valeur
+ * inchangée, calcul du total, haptique) l'est. Aucune de ces preuves ne
+ * remplace la capture/vidéo iPhone exigée avant clôture (voir le rapport
+ * de mission).
+ */
+describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPicker, @expo/ui/swift-ui)", () => {
+  let originalPlatformOS: typeof Platform.OS;
+
+  beforeEach(() => {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = "ios";
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  function fireNativeSelectionChange(
+    element: ReturnType<typeof screen.getByTestId>,
+    selection: number,
+  ) {
+    fireEvent(element, "selectionChange", { nativeEvent: { selection } });
+  }
+
+  it("renders the native Host/Picker structure without crashing, minutes and seconds columns both present", () => {
+    render(
+      <DurationWheelPicker
+        totalSeconds={0}
+        onChange={jest.fn()}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-seconds")).toBeTruthy();
+  });
+
+  it("propagates a native minutes selection change to onChange, with exactly one haptic call", () => {
+    const onChange = jest.fn();
+    render(
+      <DurationWheelPicker
+        totalSeconds={0}
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5);
+
+    expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(5 * 60);
+  });
+
+  it("does nothing when the native picker reports the value already selected — no haptic, no onChange", () => {
+    const onChange = jest.fn();
+    render(
+      <DurationWheelPicker
+        totalSeconds={0}
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 0);
+
+    expect(Haptics.selectionAsync).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps native selections independent between the minutes and seconds columns, combining into the correct total", () => {
+    const onChange = jest.fn();
+    render(
+      <DurationWheelPicker
+        totalSeconds={0}
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    // La roulette native transmet la valeur elle-même comme `tag`, jamais
+    // un index intermédiaire — le pas de 5 est appliqué en amont, par la
+    // seule présence des `<Text modifiers={[tag(valeur)]}>` générés depuis
+    // `SECONDS_VALUES` (0, 5, …, 55) : aucune valeur hors pas ne peut être
+    // proposée par la roulette elle-même.
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 30);
+
+    expect(onChange).toHaveBeenLastCalledWith(2 * 60 + 30);
+  });
+
+  it("only ever reports seconds values on the CE-T01-07/14 step (0, 5, …, 55) — an out-of-step native selection is impossible by construction", () => {
+    const onChange = jest.fn();
+    render(
+      <DurationWheelPicker
+        totalSeconds={0}
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    // La roulette native ne propose que les `<Text modifiers={[tag(v)]}>`
+    // effectivement rendues (0, 5, …, 55, `SECONDS_VALUES`) — un appel de
+    // `onSelectionChange` hors de cet ensemble ne peut provenir que d'un
+    // scénario impossible en pratique (aucun item natif ne porte ce tag),
+    // mais la garde de sortie (`toTotalSeconds`) reste défensive si jamais.
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 55);
+    expect(onChange).toHaveBeenLastCalledWith(55);
+  });
+
+  it("restores the initial value on re-mount (close/reopen), matching the legacy path's own guarantee", () => {
+    const onChange = jest.fn();
+    const { unmount } = render(
+      <DurationWheelPicker
+        totalSeconds={135} // 2 min 15 s
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+    unmount();
+
+    render(
+      <DurationWheelPicker
+        totalSeconds={135}
+        onChange={onChange}
+        minutesAccessibilityLabel="Minutes"
+        secondsAccessibilityLabel="Secondes"
+      />,
+    );
+
+    // La roulette est démontée/remontée à chaque ouverture (même patron
+    // que la version maison) — la valeur initiale reste celle du brouillon
+    // réel, jamais réinitialisée à 0.
+    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(2);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(15);
   });
 });

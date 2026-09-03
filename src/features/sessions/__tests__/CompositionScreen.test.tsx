@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Keyboard, StyleSheet } from "react-native";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { Keyboard, Platform, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -82,6 +82,35 @@ function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> 
 }
 
 const composition = strings.screens.composition;
+
+/**
+ * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
+ * déjà `"ios"` — forcé ici explicitement, par robustesse, plutôt que de
+ * dépendre implicitement de ce défaut. `DurationWheelPicker` (`PHASE02
+ * REWORK01 ADDENDUM — NATIVE APPLE WHEEL TARGET`, 2026-09-03) délègue donc
+ * à la roulette native SwiftUI — les interactions de test ci-dessous
+ * utilisent `fireNativeSelectionChange` (événement `selectionChange`,
+ * convention du composant natif), jamais `fireEvent.scroll` (mécanisme du
+ * seul chemin Android/web, testé séparément dans
+ * `DurationWheelPicker.test.tsx`).
+ */
+let originalPlatformOS: typeof Platform.OS;
+
+beforeAll(() => {
+  originalPlatformOS = Platform.OS;
+  Platform.OS = "ios";
+});
+
+afterAll(() => {
+  Platform.OS = originalPlatformOS;
+});
+
+function fireNativeSelectionChange(
+  element: ReturnType<typeof screen.getByTestId>,
+  selection: number,
+) {
+  fireEvent(element, "selectionChange", { nativeEvent: { selection } });
+}
 
 beforeEach(() => {
   mockExitGuard.mockReset();
@@ -247,12 +276,8 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    // Still exactly one picker mounted, now driven by the final phase value (05 s → seconds index 5).
-    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue).toEqual({
-      min: 0,
-      max: 59,
-      now: 5,
-    });
+    // Still exactly one picker mounted, now driven by the final phase value (05 s).
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
   });
 
   it("opening the color palette closes an already-open duration picker", () => {
@@ -293,15 +318,13 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     }
   });
 
-  it("scrolling the countdown wheel updates the row's displayed value immediately (draft sync), without touching the empty summary", () => {
+  it("a native minutes selection updates the row's displayed value immediately (draft sync), without touching the empty summary", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    fireEvent.scroll(screen.getByTestId("duration-wheel-minutes"), {
-      // Minutes index → 1; seconds unchanged (default countdown is 10 s,
-      // so the seconds column initializes at index 10, not 0).
-      nativeEvent: { contentOffset: { y: 40 } },
-    });
+    // Seconds unchanged (default countdown is 10 s, already on the
+    // CE-T01-07/14 step of 5 — no rounding involved here).
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
 
     expect(screen.getByText("01 min 10 s")).toBeTruthy();
     // The exercise is still null in T01-S07: the summary stays the exact
@@ -313,9 +336,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireEvent.scroll(screen.getByTestId("duration-wheel-minutes"), {
-      nativeEvent: { contentOffset: { y: 80 } }, // index 2 -> 2 min
-    });
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
     expect(screen.getByText("02 min 10 s")).toBeTruthy();
 
     // Fermer le sélecteur en pressant de nouveau la ligne.

@@ -5,6 +5,9 @@ import {
   WHEEL_NUMBER_MAX,
   WHEEL_NUMBER_MIN,
   WHEEL_PAUSE_SECONDS_MAX,
+  WHEEL_SECONDS_ITEM_COUNT,
+  WHEEL_SECONDS_MAX_INDEX,
+  WHEEL_SECONDS_STEP,
   WHEEL_TOTAL_SECONDS_MAX,
   clampIndex,
   formatTwoDigits,
@@ -12,6 +15,8 @@ import {
   indexToOffset,
   minutesMaxIndexFor,
   offsetToIndex,
+  secondsIndexToValue,
+  secondsValueToIndex,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
 
@@ -81,31 +86,73 @@ describe("toTotalSeconds", () => {
   });
 });
 
-describe("fromTotalSeconds", () => {
+describe("fromTotalSeconds — secondes ramenées au pas de 5 (CE-T01-07/14, résolution de l'ARBITRAGE 1)", () => {
   it("decomposes 0 seconds into 0 min 00 s", () => {
     expect(fromTotalSeconds(0)).toEqual({ minutes: 0, seconds: 0 });
   });
 
-  it("decomposes 3599 seconds into 59 min 59 s (upper bound)", () => {
-    expect(fromTotalSeconds(3599)).toEqual({ minutes: 59, seconds: 59 });
+  it("decomposes 3599 seconds into 59 min 55 s — 59 s is not a multiple of 5, rounded down to the last valid step (upper bound)", () => {
+    expect(fromTotalSeconds(3599)).toEqual({ minutes: 59, seconds: 55 });
   });
 
-  it("decomposes an arbitrary in-range value", () => {
+  it("decomposes an arbitrary in-range value already a multiple of the step unchanged", () => {
     expect(fromTotalSeconds(75)).toEqual({ minutes: 1, seconds: 15 });
+  });
+
+  it("rounds an arbitrary value that is NOT a multiple of the step to the nearest one", () => {
+    expect(fromTotalSeconds(77)).toEqual({ minutes: 1, seconds: 15 }); // 17s -> nearest step is 15
+    expect(fromTotalSeconds(78)).toEqual({ minutes: 1, seconds: 20 }); // 18s -> nearest step is 20
   });
 
   it("clamps a negative input to 0 min 00 s (lower bound)", () => {
     expect(fromTotalSeconds(-10)).toEqual({ minutes: 0, seconds: 0 });
   });
 
-  it("clamps an excessive input to 59 min 59 s (upper bound)", () => {
-    expect(fromTotalSeconds(999999)).toEqual({ minutes: 59, seconds: 59 });
+  it("clamps an excessive input to 59 min 55 s (upper bound, last valid step)", () => {
+    expect(fromTotalSeconds(999999)).toEqual({ minutes: 59, seconds: 55 });
   });
 
-  it("round-trips with toTotalSeconds for every bound", () => {
+  it("round-trips with toTotalSeconds for every bound already aligned to the step", () => {
     expect(toTotalSeconds(0, 0)).toBe(0);
     expect(fromTotalSeconds(toTotalSeconds(0, 0))).toEqual({ minutes: 0, seconds: 0 });
-    expect(fromTotalSeconds(toTotalSeconds(59, 59))).toEqual({ minutes: 59, seconds: 59 });
+    expect(fromTotalSeconds(toTotalSeconds(59, 55))).toEqual({ minutes: 59, seconds: 55 });
+  });
+});
+
+describe("WHEEL_SECONDS_STEP / secondsIndexToValue / secondsValueToIndex (CE-T01-07/14, résolution de l'ARBITRAGE 1)", () => {
+  it("the step is exactly 5, per CE-T01-07 ('Les secondes avancent par pas de 5'), CE-T01-14 referring to the same contract", () => {
+    expect(WHEEL_SECONDS_STEP).toBe(5);
+  });
+
+  it("exposes exactly 12 visible second values (0, 5, …, 55) and a max index of 11", () => {
+    expect(WHEEL_SECONDS_ITEM_COUNT).toBe(12);
+    expect(WHEEL_SECONDS_MAX_INDEX).toBe(11);
+  });
+
+  it("secondsIndexToValue maps every index to the correct stepped value", () => {
+    expect(secondsIndexToValue(0)).toBe(0);
+    expect(secondsIndexToValue(1)).toBe(5);
+    expect(secondsIndexToValue(11)).toBe(55);
+  });
+
+  it("secondsIndexToValue clamps an out-of-range index rather than producing an invalid value", () => {
+    expect(secondsIndexToValue(-1)).toBe(0);
+    expect(secondsIndexToValue(999)).toBe(55);
+  });
+
+  it("secondsValueToIndex is the exact inverse for values already on the step", () => {
+    expect(secondsValueToIndex(0)).toBe(0);
+    expect(secondsValueToIndex(5)).toBe(1);
+    expect(secondsValueToIndex(55)).toBe(11);
+  });
+
+  it("secondsValueToIndex rounds a value between two steps to the nearest one", () => {
+    expect(secondsValueToIndex(17)).toBe(3); // nearest to 15 (index 3)
+    expect(secondsValueToIndex(18)).toBe(4); // nearest to 20 (index 4)
+  });
+
+  it("secondsValueToIndex clamps a value beyond the last step (e.g. 59) to the max index", () => {
+    expect(secondsValueToIndex(59)).toBe(WHEEL_SECONDS_MAX_INDEX);
   });
 });
 
@@ -124,10 +171,10 @@ describe("formatTwoDigits", () => {
 describe("toTotalSeconds/fromTotalSeconds with an explicit maxTotalSeconds (T01-S08, Exercise Durée/Pause)", () => {
   it("still defaults to WHEEL_TOTAL_SECONDS_MAX (3599) when maxTotalSeconds is omitted", () => {
     expect(toTotalSeconds(99, 99)).toBe(WHEEL_TOTAL_SECONDS_MAX);
-    expect(fromTotalSeconds(999999)).toEqual({ minutes: 59, seconds: 59 });
+    expect(fromTotalSeconds(999999)).toEqual({ minutes: 59, seconds: 55 });
   });
 
-  it("converts 99 min 59 s to 5999 seconds (Exercise Durée/Pause upper bound)", () => {
+  it("converts 99 min 59 s to 5999 seconds (Exercise Durée/Pause upper bound) — toTotalSeconds itself performs no step rounding, only fromTotalSeconds does", () => {
     expect(toTotalSeconds(99, 59, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toBe(
       WHEEL_EXERCISE_DURATION_SECONDS_MAX,
     );
@@ -140,17 +187,17 @@ describe("toTotalSeconds/fromTotalSeconds with an explicit maxTotalSeconds (T01-
     );
   });
 
-  it("decomposes 5999 seconds into 99 min 59 s when given the Exercise bound", () => {
+  it("decomposes 5999 seconds into 99 min 55 s when given the Exercise bound (59s rounds down to the last valid step)", () => {
     expect(fromTotalSeconds(5999, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toEqual({
       minutes: 99,
-      seconds: 59,
+      seconds: 55,
     });
   });
 
-  it("clamps an excessive input to the supplied bound, not the default 59 min 59 s", () => {
+  it("clamps an excessive input to the supplied bound, not the default 59 min 55 s", () => {
     expect(fromTotalSeconds(999999, WHEEL_EXERCISE_DURATION_SECONDS_MAX)).toEqual({
       minutes: 99,
-      seconds: 59,
+      seconds: 55,
     });
   });
 });
