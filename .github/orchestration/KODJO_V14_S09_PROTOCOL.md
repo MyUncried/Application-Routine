@@ -2,7 +2,11 @@
 
 ## Décision d'architecture
 
-T01-S09 utilise exclusivement Claude Code local via le runner auto-hébergé `KODJO-LOCAL-RUNNER` et la configuration Claude isolée validée par E2E-02. Aucun Claude Cloud et aucun fallback.
+T01-S09 utilise exclusivement Claude Code local via le runner auto-hébergé `KODJO-LOCAL-RUNNER`. Aucun Claude Cloud et aucun fallback.
+
+La continuité Claude est une exigence du protocole : la session historique S01-S08 certifiée par transcript, `99404ae0-19e3-4004-8dde-cd670588afb5`, est reprise pour le PLAN S09 et reste la même session pour les révisions du plan, l'implémentation et les corrections. La chaîne précédente créée dans la session `24f12227-7e4f-4fd1-8f4b-6b142fdc9346` est supersédée et ne peut produire aucun gate utilisateur.
+
+La mémoire de cette session historique aide Claude à comprendre le code et les décisions techniques accumulées, mais ne constitue jamais une source de vérité. À chaque étape, Claude doit relire le HEAD courant et les sources Git/documentaires applicables.
 
 Le protocole distingue deux phases métier et deux gates humains obligatoires.
 
@@ -22,9 +26,11 @@ Aucune implémentation métier ne peut commencer avant `APPROUVER PLAN S09`.
 
 ## Phase développement
 
-Après approbation du plan, Claude Code local développe S09 en mode non interactif `acceptEdits`.
+Après approbation du plan, Claude Code local développe S09 en mode non interactif `acceptEdits`, en reprenant exactement la même session `99404ae0-19e3-4004-8dde-cd670588afb5` que celle utilisée pour le plan.
 
-ChatGPT/OpenAI effectue les revues intermédiaires. Les écarts suivants ne créent pas de gate utilisateur :
+ChatGPT/OpenAI effectue les revues intermédiaires contre les sources applicables : spécifications fonctionnelles, registre des décisions, contrats d'écran, Design System Foundation, modèle de données, architecture/API lorsque pertinents, code réel et Figma pour le rendu/les états UI concernés.
+
+Les écarts suivants ne créent pas de gate utilisateur :
 - tests, lint, typage, erreurs de build ;
 - écart de code par rapport au plan approuvé lorsque la correction ne modifie pas la décision produit ;
 - micro-écart technique ou refactor local nécessaire à la conformité ;
@@ -52,7 +58,7 @@ Instruction utilisateur attendue :
 - `VALIDER VISUEL S09` ; ou
 - `CORRIGER VISUEL S09 : <liste des écarts observés>`.
 
-Un retour `CORRIGER VISUEL S09` relance Claude local sur la même tranche, puis ChatGPT/OpenAI recontrôle automatiquement avant de redemander la revue visuelle. Les micro-écarts détectés par la revue interne ne sont pas renvoyés à l'utilisateur.
+Un retour `CORRIGER VISUEL S09` relance Claude local dans la même session historique, puis ChatGPT/OpenAI recontrôle automatiquement avant de redemander la revue visuelle. Les micro-écarts détectés par la revue interne ne sont pas renvoyés à l'utilisateur.
 
 ## Clôture
 
@@ -63,11 +69,14 @@ Un retour `CORRIGER VISUEL S09` relance Claude local sur la même tranche, puis 
 - runner, repository, branche et HEAD contrôlés ;
 - worktree propre avant tranche ;
 - OAuth Claude local contrôlé avant appel ;
-- `--permission-mode acceptEdits` ;
+- `--permission-mode acceptEdits` pour les étapes d'écriture ;
 - `git status --porcelain --untracked-files=all` ;
 - checkpoints consommables une seule fois ;
 - écriture PowerShell 5.1-safe des propriétés de checkpoint ;
 - session native Claude persistée et reprise explicitement ;
+- session historique S01-S08 certifiée disponible avant tout appel S09 ;
+- contrôle que tout retour Claude conserve exactement le même `session_id` ;
+- relecture obligatoire des sources actuelles malgré la mémoire de session ;
 - aucun Claude Cloud ; aucun fallback ;
 - commit/push uniquement après contrôles mécaniques ;
 - rapports obligatoires et traçabilité des décisions.
