@@ -58,7 +58,6 @@ jobs:
           if(-not(Test-Path $credPath)){throw 'Credentials missing.'}
           $cred=Get-Content $credPath -Raw|ConvertFrom-Json
           if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired.'}
-
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28'}
           $commentsUri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
           $comments=@(Invoke-RestMethod -Method Get -Uri $commentsUri -Headers $headers)
@@ -67,9 +66,7 @@ jobs:
           $pgBody=[string]$planGate[0].body
           $pm=[regex]::Match($pgBody,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$pm.Success){throw 'Plan comment id missing.'}; $planCommentId=$pm.Groups[1].Value
           $ph=[regex]::Match($pgBody,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$ph.Success){throw 'Plan source head missing.'}; $planHead=$ph.Groups[1].Value
-
           $isInitial=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] PLAN_APPROVED')
-          $isRevision=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] IMPLEMENTATION_REVISION')
           $isVisual=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] VISUAL_CORRECTION')
           if($isInitial){
             if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'PLAN_APPROVED must be user-authored.'}
@@ -83,12 +80,12 @@ jobs:
             if($isVisual -and $env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'VISUAL_CORRECTION must be user-authored.'}
             $mode=if($isVisual){'VISUAL'}else{'REVISION'}
           }
-
           $planUri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$planCommentId"
           $planComment=Invoke-RestMethod -Method Get -Uri $planUri -Headers $headers
           $planBody=[string]$planComment.body
           if($planBody -notmatch '\[KODJO_S09_PLAN_OUTPUT\]' -or $planBody -notmatch 'STATUT : PLAN_READY_FOR_REVIEW'){throw 'Referenced plan output invalid.'}
-          $planPath=Join-Path $env:RUNNER_TEMP 'approved-plan.txt'; [IO.File]::WriteAllText($planPath,$planBody,(New-Object Text.UTF8Encoding($false)))
+          $planPath=Join-Path $env:RUNNER_TEMP 'approved-plan.txt'
+          [IO.File]::WriteAllText($planPath,$planBody,(New-Object Text.UTF8Encoding($false)))
           "head=$head" >> $env:GITHUB_OUTPUT
           "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
           "attempt=$attempt" >> $env:GITHUB_OUTPUT
@@ -110,24 +107,21 @@ jobs:
           $ErrorActionPreference='Stop'
           $plan=Get-Content $env:PLAN_PATH -Raw
           if($env:MODE -eq 'INITIAL'){
-            $prompt=@"
-KODJO T01-S09 V1.4 — IMPLÉMENTATION DU PLAN APPROUVÉ.
-
-Baseline autorisée: $env:TARGET_BRANCH @ $env:SOURCE_HEAD.
-Plan approuvé:
-$plan
-
-Implémente T01-S09 conformément au plan et aux sources Git actuelles. Relis les documents 06 à 13, PRODUCT/INDEX, les deux captures catégories et le code T01-S01 à S08 avant d'écrire. Les règles documentaires priment sur les suppositions.
-
-Tu peux modifier uniquement le code produit et les tests nécessaires sous app/ et src/. Ne modifie aucun workflow, fichier .github, CLAUDE.md, documentation ou migration001.ts. Toute migration doit être additive. Préserve les comportements S01-S08 non concernés. Exécute les tests ciblés puis les contrôles raisonnables nécessaires. Ne committe pas et ne pousse pas: le workflow le fera après contrôles.
-
-Les micro-écarts techniques doivent être résolus directement. Retourne une barrière seulement si une vraie décision produit/UX n'est pas déterminable dans les sources.
-"@
+            $lines=@(
+              'KODJO T01-S09 V1.4 — IMPLÉMENTATION DU PLAN APPROUVÉ.',
+              "Baseline autorisée: $env:TARGET_BRANCH @ $env:SOURCE_HEAD.",
+              'Plan approuvé:',
+              $plan,
+              'Implémente T01-S09 conformément au plan et aux sources Git actuelles. Relis PRODUCT/INDEX, les documents 06 à 13, les captures catégories et le code T01-S01 à S08 avant d’écrire. Les règles documentaires priment sur les suppositions.',
+              'Modifie uniquement le code produit et les tests nécessaires sous app/ et src/. Ne modifie aucun workflow, fichier .github, CLAUDE.md, documentation ou migration001.ts. Toute migration doit être additive. Préserve les comportements S01-S08 non concernés.',
+              'Exécute les tests ciblés et contrôles raisonnables. Ne committe pas et ne pousse pas. Résous les micro-écarts techniques directement. Signale uniquement une vraie décision produit/UX indéterminable.'
+            )
+            $prompt=$lines -join [Environment]::NewLine
             $raw=(& $env:CLAUDE_PATH -p --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
           } else {
             $marker=if($env:MODE -eq 'VISUAL'){'VISUAL_FEEDBACK:'}else{'REVIEW_FEEDBACK:'}
             $idx=$env:TRIGGER_BODY.IndexOf($marker); if($idx -lt 0){throw 'Correction feedback missing.'}; $feedback=$env:TRIGGER_BODY.Substring($idx+$marker.Length).Trim()
-            $prompt="KODJO T01-S09 V1.4 — CORRECTION $env:MODE tentative $env:ATTEMPT. Reprends exactement la session d'implémentation. Corrige uniquement les écarts décrits ci-dessous, revalide contre le plan approuvé et les sources Git actuelles, exécute les tests pertinents. Ne committe pas et ne pousse pas. Si une vraie décision produit est indéterminable, signale-la au lieu d'inventer. Feedback: $feedback"
+            $prompt="KODJO T01-S09 V1.4 — CORRECTION $env:MODE tentative $env:ATTEMPT. Reprends exactement la session d'implémentation. Corrige uniquement les écarts décrits, revalide contre le plan approuvé et les sources Git actuelles, exécute les tests pertinents. Ne committe pas et ne pousse pas. Si une vraie décision produit est indéterminable, signale-la. Feedback: $feedback"
             $raw=(& $env:CLAUDE_PATH -p --resume $env:SESSION --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
           }
           if($LASTEXITCODE -ne 0){throw 'Claude implementation invocation failed.'}
@@ -135,7 +129,8 @@ Les micro-écarts techniques doivent être résolus directement. Retourne une ba
           if([string]::IsNullOrWhiteSpace($p.session_id)){throw 'No implementation session_id.'}
           if($env:MODE -ne 'INITIAL' -and $p.session_id -ne $env:SESSION){throw 'Implementation session mismatch.'}
           if([string]::IsNullOrWhiteSpace([string]$p.result)){throw 'No implementation result.'}
-          $summaryPath=Join-Path $env:RUNNER_TEMP 's09-implementation-result.txt'; [IO.File]::WriteAllText($summaryPath,[string]$p.result,(New-Object Text.UTF8Encoding($false)))
+          $summaryPath=Join-Path $env:RUNNER_TEMP 's09-implementation-result.txt'
+          [IO.File]::WriteAllText($summaryPath,[string]$p.result,(New-Object Text.UTF8Encoding($false)))
           "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
           "summary_path=$summaryPath" >> $env:GITHUB_OUTPUT
 
