@@ -706,8 +706,10 @@ L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en créat
 
 Sous l’en-tête, un bandeau contextuel bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
-- `Séance · {nom de la séance}`, en `KODJO / Body` Regular ;
+- `Séance · {nom de la séance}`, en Inter Regular `14/17` ;
 - le champ du nom de l’Activité, de fond transparent et entouré d’un liseré blanc intérieur de `1` point ; sa valeur utilise `KODJO / Modal title` (`18/22`, Semi Bold).
+
+Le bandeau applique explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la fin de la zone bleue. Cet espace est une propriété du shell : il ne dépend ni de la hauteur de ligne du contexte ni d’une coordonnée absolue. Il constitue aussi la valeur canonique à employer sous les actions contextuelles `+ Créer` et `+ Ajouter une activité`.
 
 Le contexte est placé à `12` points du haut du bandeau. L’espacement vertical entre le contexte et le champ est `spacing/24`. Le reste du formulaire affiche ensuite, dans cet ordre :
 

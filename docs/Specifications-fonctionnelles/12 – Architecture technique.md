@@ -979,7 +979,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
 | Champ Nom de la séance | `354 × 42`, fond transparent, liseré blanc intérieur `1`; token `color.sessionNameBorder` |
-| Bandeau contextuel Activité | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte à `spacing/12`, espacement contexte/champ `spacing/24` |
+| Bandeau contextuel Activité | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
 | Champ Nom de l’Activité | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en `KODJO / Modal title` (`18/22`, Semi Bold) |
 | Synthèse de l’Activité | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
 | Conteneur Tour | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |

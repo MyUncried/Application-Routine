@@ -573,7 +573,7 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 | Type initial | `Exercice` |
 | Mode initial T01 | `Durée` |
 
-L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Regular puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte `KODJO / Modal title` (`18/22`, Semi Bold).
+L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Inter Regular `14/17` puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte `KODJO / Modal title` (`18/22`, Semi Bold). Le shell porte explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la limite du bandeau ; cette marge ne doit jamais être obtenue indirectement par l’interligne.
 
 Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétition` ; titre `Paramètres de l’activité` ; contrôles `Durée`, `Pause`, `Séries` ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
 
