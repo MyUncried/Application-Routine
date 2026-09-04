@@ -771,34 +771,55 @@ La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle d
 
 ### Composants et contrôles réutilisables
 
-Les composants ci-dessous constituent le catalogue structurel actuellement vérifié dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+La table suivante constitue l’unique registre canonique de traçabilité des contrôles UI KODJO. Un tiret dans « Frame source » signifie que le composant est une primitive structurelle du DSF et ne dérive pas d’un écran métier. « Primitive RN » désigne `View`, `Text`, `Pressable`, `TextInput`, `ScrollView` ou `Modal` selon le composant ; aucune image de substitution n’est alors attendue.
 
-| Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
-| --- | --- | --- |
-| Navigation | `Navigation / Bottom — Source exact` | destination active : Sessions, Calendar, History, Profile ou Search |
-| En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
-| Retour | `Action / Back` | cible `48 × 48`, cercle `32 × 32`, chevron source Figma `24 × 24` |
-| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
-| Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
-| Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
-| Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
-| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed/Expanded` |
-| Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
-| Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
-| Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
-| Pickers | `Picker / Popover — Source exact` | `Type=Duration/Numeric menu/Date` |
-| Confirmation | `Overlay / Confirmation Sheet` | états visuels génériques ; texte et actions propres au contexte |
-| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` |
-| Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
-| Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
-| Composition | `Composition / Activity Row` | contenu d’instance ; position avant/dans/après Tour hors état du composant |
-| Composition | `Composition / Tour Section — Source exact` | section Tour et répétition contextuelle |
-| Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
-| Activité | `Activity / Parameter Row — Source exact` | `Mode=Duration/Repetitions/Recovery` |
-| Répétition | `Controls / Repetition Pull-down — Source exact` | contrôle générique ; bornes et valeur dans le contrat d’écran |
-| Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
+| Contrôle canonique | Node DSF | Variante | Frame source | Actif ou primitive native | Chemin dépôt | Composant code | Dimensions/tokens | Statut |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Navigation / Bottom | `2537:214` | `Active=Sessions/Calendar/History/Profile/Search` | `1992:9910`, `1992:5101`, `1992:8843`, `1992:375` | SVG KODJO | `assets/icons/navigation-*.svg` | `app/(tabs)/_layout.tsx`, `KodjoIcon` | région 402×77 ; barre 66 ; `icon.navigation` | CONFORME |
+| Shell / Screen | `2718:69` | `Context=On/Off,Bottom=Navigation/Action` | — | Primitive RN | — | `ScreenShell` dans `src/shared/ui/ScreenShell.tsx` | 402×874 de référence ; responsive | CONFORME |
+| Shell / Modal Fullscreen | `2700:75` | unique | frames Planification `1992:6838` et suivantes | Primitive RN / Modal OS | — | À créer lors de la tranche Planification | 378×822 ; header 60 ; action 70 | PARTIELLEMENT CONFORME |
+| Shell / Execution | `2700:94` | `Mode=Run/Summary` | `1992:8150` et Synthèse | Primitive RN | — | À créer lors de la tranche Exécution | 402×874 | PARTIELLEMENT CONFORME |
+| Header / Fixed | `2581:2740` | `Mode=Standard/Execution,Back=On/Off` | Composition et Exécution du Prototype | Primitive RN + Action / Back | `assets/icons/control-back.svg` | `FixedHeader` dans `src/shared/ui/ScreenShell.tsx` | hauteur 92 ; Retour 48/28/24 | NON CONFORME — le code affiche encore le chevron à 14×14 |
+| Action / Back | `2624:3105` | unique | instances `2624:3109`, `2624:3113`, `2624:3117` | SVG KODJO | `assets/icons/control-back.svg` | `FixedHeader` + `KodjoIcon name="control-back"` | cible 48×48 ; cercle 28×28 ; icône 24×24 ; `color.selectionSurface`, `color.textPrimary` | NON CONFORME — source canonique corrigée, consommation code 14×14 |
+| Modal / Header | `2591:3699` | unique | modales Planification | Primitive RN + Action / Back | `assets/icons/control-back.svg` | À créer lors de la tranche Planification | 378×60 ; Retour 48/28/24 | PARTIELLEMENT CONFORME |
+| Modal / Bottom Action | `2665:115` | libellé d’instance | `2090:86`, instance `2668:3293` | Primitive RN | — | À créer lors de la tranche Planification | 378×70 ; bouton 354×48 | PARTIELLEMENT CONFORME |
+| Button / Primary | `2537:1046` | `State=Active/Disabled` | `1992:811`, `2028:11201` | Primitive RN | — | usages locaux Composition/Exercice ; composant partagé à consolider | 354×48 ; rayon 24 ; `type.button` | PARTIELLEMENT CONFORME |
+| Controls / Switch | `2537:833` | `State=On/Off` | `1992:400`, `1992:410` | Switch natif OS quand compatible, sinon primitive RN accessible | — | À créer lors de la tranche Profil | 46×28 ; cible 48×48 | PARTIELLEMENT CONFORME |
+| Controls / Disclosure | `2537:1039` | `State=Collapsed/Expanded` | `1992:5165`, `1992:6453` | SVG KODJO chevrons | `assets/icons/control-chevron-down.svg`, `control-chevron-up.svg` | `KodjoIcon` ; usages dans `SessionCard.tsx` | cible 48×48 ; icône 24×24 | CONFORME |
+| Chevron | `2928:4320` | Haut/Bas/Droite/Gauche | — | SVG KODJO pour Haut/Bas ; Droite/Gauche à exporter avant usage | `assets/icons/control-chevron-up.svg`, `control-chevron-down.svg` | `KodjoIcon` | boîte 24×24 | PARTIELLEMENT CONFORME |
+| Controls / Segmented | `2586:2759` | Items 2/3 ; Selected 1/2/3 | `1992:8869` et écrans Activité | Primitive RN | — | implémentation locale dans `ExerciseScreen.tsx` | 354×42 ; segments `flex:1` ; rayon 10 | PARTIELLEMENT CONFORME |
+| Forms / Text Field | `2537:1075` | Single line/Multiline | `1992:9157`, `1992:9310` | `TextInput` natif React Native | — | `ExerciseScreen.tsx` | 354×46 / 354×92 ; rayon 8 | CONFORME |
+| Forms / Select Field | `2537:1095` | Full/Compact/Compact narrow | `1992:9172`, `1992:9186` | Primitive RN + chevron SVG | `assets/icons/control-chevron-down.svg` | `ExerciseScreen.tsx` | hauteur 42 ; rayon 10 | CONFORME |
+| Picker / Duration | `2537:1110` dans `2537:1174` | `Type=Duration` | `2028:11375`, `2028:11457`, `1992:9430` | Picker wheel natif OS obligatoire lorsqu’il existe | — | `DurationWheelPicker.tsx` | largeur hôte 330 ; hauteur de référence 190 = barre 40 + contenu natif min.150 ; secondes 00–59, pas 1 | PARTIELLEMENT CONFORME — fallback non natif conservé |
+| Picker / Time | `2884:4415` dans `2537:1174` | `Type=Time` | `1992:7006` | Picker heure natif OS | — | À créer lors de la tranche Planification | largeur env.310 ; même barre d’actions | PARTIELLEMENT CONFORME |
+| Picker / Numeric menu | `2537:1122` dans `2537:1174` | `Type=Numeric menu` | `1992:9698` | Primitive RN accessible | — | `NumberWheelPicker.tsx` pour la roulette 1–99 ; menu contextuel à confirmer par contrat | 96×160 dans le DSF | PARTIELLEMENT CONFORME |
+| Picker / Date | `2537:1173` dans `2537:1174` | `Type=Date` | `1992:6770` | Date picker natif OS lorsque pertinent | — | À créer lors de la tranche Planification | env.310×310 ; rayon 16 | PARTIELLEMENT CONFORME |
+| Wheel / Cancel | `3089:73`, icône `3089:81` | action gauche | Picker Duration/Time | SVG KODJO | `assets/icons/wheel-action-cancel.svg` | `PickerToolbar` dans `DurationWheelPicker.tsx` | cible 48 ; cercle 28 ; icône 24 ; tokens `component.wheel.*`, `color.wheelActionCancel*` | NON CONFORME — code actuel utilise le caractère ✕ |
+| Wheel / Validate | `3089:76`, icône `3089:83` | action droite | Picker Duration/Time | SVG KODJO | `assets/icons/wheel-action-validate.svg` | `PickerToolbar` dans `DurationWheelPicker.tsx` | cible 48 ; cercle 28 ; icône 24 ; tokens `component.wheel.*`, `color.wheelActionValidate*` | NON CONFORME — code actuel utilise le caractère ✓ |
+| Overlay / Confirmation Sheet | `2590:2961` | tons Primary/Danger ; 2/3 actions | écrans de confirmation du Prototype | `Modal` natif + primitives RN | — | `AbandonCreationModal.tsx`, `ExerciseExitConfirmModal.tsx` | largeur 402 ; hauteur selon variante | PARTIELLEMENT CONFORME |
+| Catalogue / Session Card | `2537:1400` | `State=Collapsed/Expanded` | `1992:9910` et états Catalogue | Primitive RN + SVG KODJO | `assets/icons/action-start.svg`, `control-chevron-*.svg` | `SessionCard.tsx` | largeur utile 354 ; hauteur 108/244 | CONFORME |
+| Calendar / Scheduled Session Card | `2537:1297` | `State=Collapsed/Expanded` | `1992:5159`, `1992:6447` | Primitive RN + SVG KODJO | manifeste `assets/icons/manifest.json` | À créer lors de la tranche Calendrier | 354×92 / 354×226 | PARTIELLEMENT CONFORME |
+| Tracking / Execution Card | `2537:1350` | `State=Collapsed/Expanded` | `1992:8885`, `1992:9031` | Primitive RN + SVG KODJO | manifeste `assets/icons/manifest.json` | À créer lors de la tranche Suivi | 354×82 / 354×294 | PARTIELLEMENT CONFORME |
+| Composition / Activity Row | `2588:2679` | contenu d’instance | `2028:11700` | Primitive RN + Icon / Structure | `assets/icons/composition-reorder.svg` ou `composition-fixed.svg` | rangée locale dans `CompositionScreen.tsx` | 354×52 ; slot 28 ; icône 20 | PARTIELLEMENT CONFORME |
+| Composition / Tour Section | `3067:270` | `State=Collapsed/Expanded` | `2028:11700`, `2028:11580` | Primitive RN + Icon / Tour | `assets/icons/icon-tour.svg` | `TourCard` dans `CompositionScreen.tsx` | 374×54/175 ; carte 354 ; contrôle 66×34 | PARTIELLEMENT CONFORME — le code ne porte pas encore toute la variante déployée |
+| Composition / Boundary Activity | `2537:1475` | Initial countdown/End session | `2028:11724`, `2028:11780` | SVG KODJO | `assets/icons/composition-initial-countdown.svg`, `composition-end-session.svg`, structure | `BoundaryActivityRow` dans `CompositionScreen.tsx` | 354×52 ; slot 28 ; icône structure 20 | CONFORME |
+| Activity / Parameter Row | `2537:1567` | Duration/Repetitions/Recovery | `1992:9169`, `1992:9249`, `1992:9394` | Primitives RN + pickers | — | `ExerciseScreen.tsx` | 338×66 | PARTIELLEMENT CONFORME |
+| Controls / Repetition Pull-down | `2745:2` | valeur contextuelle | `3067:270` | Primitive RN + chevron SVG | `assets/icons/control-chevron-down.svg` | contrôle Tour dans `CompositionScreen.tsx` | 66×34 ; carré 28 ; marges 3 | CONFORME |
+| Search / Global Active | `2537:1494` | actif | `1992:10215` | `TextInput` natif + SVG recherche | `assets/icons/navigation-search.svg` | route Recherche à créer | 300×50 | PARTIELLEMENT CONFORME |
+| Overlay / Color Popover | `2537:1511` | couleur sélectionnée | `2028:11988` | Primitive RN + SVG sélection | `assets/icons/state-selected.svg` | `ColorPalette.tsx` | 174×132 ; 12 couleurs | CONFORME |
+| Session / Name Field | `2537:1480` | unique | `2028:11715` | `TextInput` natif | — | `CompositionScreen.tsx` | 354×42 | CONFORME |
+| Action / Add Activity | `2537:1484` | unique | `2028:11720` | SVG KODJO | `assets/icons/action-add.svg` | `CompositionScreen.tsx` | 174×32 dans cible ≥48 | CONFORME |
+| Planning / Reminder Group | `2665:114` | 15 min/Personnalisé/Valeur personnalisée | écrans Planification `1992:6838` et suivants | Primitive RN | — | À créer lors de la tranche Planification | 354×42 | PARTIELLEMENT CONFORME |
+| Planning / Reminder Option | `2627:23` | Default/Selected | écrans Planification | Primitive RN | — | À créer lors de la tranche Planification | hauteur 34 ; padding 6 | PARTIELLEMENT CONFORME |
+| Icon / Structure / Movable | `3066:4676` | movable | cartes Composition | SVG KODJO | `assets/icons/composition-reorder.svg` | `KodjoIcon name="composition-reorder"` | dessin 20×20 ; slot 28×28 ; opacité 50 % ; `color.iconNeutral` | CONFORME |
+| Icon / Structure / Fixed | `3066:4680` | fixed | cartes structurelles non déplaçables | SVG KODJO | `assets/icons/composition-fixed.svg` | `KodjoIcon name="composition-fixed"` attendu | dessin 20×20 ; slot 28×28 ; opacité 50 % ; `color.iconNeutral` | PARTIELLEMENT CONFORME — actif ajouté, mapping code futur |
+| Icon / Tour | `3066:4685` | unique | `3067:270` | SVG KODJO | `assets/icons/icon-tour.svg` | `KodjoIcon name="icon-tour"` | 20×20 ; trait 1,8 ; `color.iconNeutral` | CONFORME |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+
+#### Seconde passe indépendante de vérifiabilité
+
+La seconde passe contrôle séparément les quatre maillons `Node DSF → variante/frame → actif ou primitive → chemin/composant code`. Un contrôle ne reçoit le statut `CONFORME` que si aucun de ces maillons pertinent n’est ambigu. Les écarts de l’implémentation existante restent volontairement signalés `NON CONFORME` ou `PARTIELLEMENT CONFORME` : cette mission ne les corrige pas dans le code. Aucun contrôle du registre ci-dessus ne demeure `NON VÉRIFIABLE` ou `À CLARIFIER` après ajout des trois actifs manquants et correction des références DSF.
 
 ### Règles de réutilisation et de contrôle
 
@@ -883,7 +904,8 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | Token | Taille visuelle | Usage |
 | --- | ---: | --- |
 | `icon.control` | `14 × 14` | Chevrons et indicateurs de sélecteurs compacts |
-| `icon.compact` | `16 × 16` | Réorganisation, coches et commandes compactes |
+| `icon.compact` | `16 × 16` | Coches et commandes compactes hors structure de carte |
+| `component.card.structureIcon` | `20 × 20` | Icône structurelle Movable/Fixed dans un slot `28 × 28`, opacité `50 %` |
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
@@ -971,10 +993,10 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
-| Roulette compacte | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptative au conteneur (`330` en Activité, environ `310` en Planification) |
-| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; Annuler à gauche et Valider à droite dans la barre supérieure |
+| Roulette compacte | Hauteur de référence `190` = barre d’actions `40` + contenu natif d’au moins `150` ; largeur adaptative au conteneur (`330` en Activité, environ `310` en Planification). La primitive native OS conserve son comportement et sa hauteur intrinsèque si elle exige davantage. |
+| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; icône vectorielle `24 × 24` ; Annuler à gauche et Valider à droite dans la barre supérieure |
 
-Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/validate-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/validate-icon`. Ils décrivent le composant représentatif `Picker / Popover — Source exact`, variante `Type=Duration`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
+Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/validate-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/validate-icon` et `component/wheel/action-icon`. Ils décrivent le composant représentatif `Picker / Popover — Source exact`, variante `Type=Duration`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
 ### Règles de dimensionnement des composants
 
