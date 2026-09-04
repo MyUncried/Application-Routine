@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   formatCompositionSummary,
   formatDurationRowValue,
@@ -9,10 +9,10 @@ import {
 } from "@/features/sessions/compositionPresentation";
 
 describe("formatCompositionSummary", () => {
-  it("displays the exact local empty-state label when there is no exercise yet", () => {
+  it("displays the exact local empty-state label when there is no Activity yet", () => {
     expect(
       formatCompositionSummary({
-        exercise: null,
+        exercises: [],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       }),
@@ -22,7 +22,7 @@ describe("formatCompositionSummary", () => {
   it("ignores initial/final phase seconds entirely while the draft is empty (not part of the formula)", () => {
     expect(
       formatCompositionSummary({
-        exercise: null,
+        exercises: [],
         initialCountdownSeconds: 999,
         finalPhaseSeconds: 999,
       }),
@@ -32,7 +32,7 @@ describe("formatCompositionSummary", () => {
   it("formats 10s + 45s + 5s = 60s as '1 activité · 1 min'", () => {
     expect(
       formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 },
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       }),
@@ -42,7 +42,7 @@ describe("formatCompositionSummary", () => {
   it("formats 10s + 60s + 5s = 75s as '1 activité · 2 min' (Math.ceil, never underestimating)", () => {
     expect(
       formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 60 },
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 60 }],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       }),
@@ -52,7 +52,7 @@ describe("formatCompositionSummary", () => {
   it("treats a null exercise duration as 0 seconds in the formula", () => {
     expect(
       formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: null },
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: null }],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       }),
@@ -60,9 +60,9 @@ describe("formatCompositionSummary", () => {
   });
 
   describe("mode Répétitions (T01-S08, arbitrage B — RM-072/D-070/D-008)", () => {
-    function repetitionExercise(repetitionCount: number) {
+    function repetitionExercise(repetitionCount: number): SessionDraftExercise {
       return {
-        ...createExerciseDraft(),
+        ...createExerciseDraft("ex-1"),
         name: "Fentes",
         executionMode: "REPETITIONS" as const,
         durationSeconds: null,
@@ -73,7 +73,7 @@ describe("formatCompositionSummary", () => {
     it("prefixes the duration with '≥' and ignores the exercise's own duration entirely", () => {
       expect(
         formatCompositionSummary({
-          exercise: repetitionExercise(12),
+          exercises: [repetitionExercise(12)],
           initialCountdownSeconds: 10,
           finalPhaseSeconds: 5,
         }),
@@ -83,7 +83,7 @@ describe("formatCompositionSummary", () => {
     it("still applies Math.ceil to the Compte à rebours/Fin de séance sum alone", () => {
       expect(
         formatCompositionSummary({
-          exercise: repetitionExercise(20),
+          exercises: [repetitionExercise(20)],
           initialCountdownSeconds: 40,
           finalPhaseSeconds: 25,
         }),
@@ -92,12 +92,12 @@ describe("formatCompositionSummary", () => {
 
     it("never underestimates: a repetition count change alone never changes the displayed minimum", () => {
       const first = formatCompositionSummary({
-        exercise: repetitionExercise(5),
+        exercises: [repetitionExercise(5)],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
       const second = formatCompositionSummary({
-        exercise: repetitionExercise(50),
+        exercises: [repetitionExercise(50)],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
@@ -107,7 +107,7 @@ describe("formatCompositionSummary", () => {
 
     it("never shows the '≥' prefix in Duration mode", () => {
       const result = formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 },
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
@@ -119,13 +119,15 @@ describe("formatCompositionSummary", () => {
     it("mode Durée : multiplie durationSeconds ET pauseSeconds par seriesCount (90s, 3 Séries, pause 15s -> 330s -> 6 min)", () => {
       expect(
         formatCompositionSummary({
-          exercise: {
-            ...createExerciseDraft(),
-            name: "Gainage",
-            durationSeconds: 90,
-            seriesCount: 3,
-            pauseSeconds: 15,
-          },
+          exercises: [
+            {
+              ...createExerciseDraft("ex-1"),
+              name: "Gainage",
+              durationSeconds: 90,
+              seriesCount: 3,
+              pauseSeconds: 15,
+            },
+          ],
           initialCountdownSeconds: 10,
           finalPhaseSeconds: 5,
         }),
@@ -135,15 +137,17 @@ describe("formatCompositionSummary", () => {
     it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 75s min -> ≥ 2 min)", () => {
       expect(
         formatCompositionSummary({
-          exercise: {
-            ...createExerciseDraft(),
-            name: "Fentes",
-            executionMode: "REPETITIONS",
-            durationSeconds: null,
-            repetitionCount: 12,
-            seriesCount: 3,
-            pauseSeconds: 20,
-          },
+          exercises: [
+            {
+              ...createExerciseDraft("ex-1"),
+              name: "Fentes",
+              executionMode: "REPETITIONS",
+              durationSeconds: null,
+              repetitionCount: 12,
+              seriesCount: 3,
+              pauseSeconds: 20,
+            },
+          ],
           initialCountdownSeconds: 10,
           finalPhaseSeconds: 5,
         }),
@@ -153,13 +157,15 @@ describe("formatCompositionSummary", () => {
     it("Pause nulle : n'ajoute rien à la durée estimée, quel que soit seriesCount", () => {
       expect(
         formatCompositionSummary({
-          exercise: {
-            ...createExerciseDraft(),
-            name: "Gainage",
-            durationSeconds: 45,
-            seriesCount: 4,
-            pauseSeconds: 0,
-          },
+          exercises: [
+            {
+              ...createExerciseDraft("ex-1"),
+              name: "Gainage",
+              durationSeconds: 45,
+              seriesCount: 4,
+              pauseSeconds: 0,
+            },
+          ],
           initialCountdownSeconds: 10,
           finalPhaseSeconds: 5,
         }),
@@ -169,13 +175,15 @@ describe("formatCompositionSummary", () => {
     it("une seule Série : non-régression, formule équivalente à l'ancienne (seriesCount=1)", () => {
       expect(
         formatCompositionSummary({
-          exercise: {
-            ...createExerciseDraft(),
-            name: "Gainage",
-            durationSeconds: 45,
-            seriesCount: 1,
-            pauseSeconds: 0,
-          },
+          exercises: [
+            {
+              ...createExerciseDraft("ex-1"),
+              name: "Gainage",
+              durationSeconds: 45,
+              seriesCount: 1,
+              pauseSeconds: 0,
+            },
+          ],
           initialCountdownSeconds: 10,
           finalPhaseSeconds: 5,
         }),
@@ -184,12 +192,16 @@ describe("formatCompositionSummary", () => {
 
     it("fait varier seriesCount seul : le résultat change en conséquence", () => {
       const oneSeries = formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
+        exercises: [
+          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
+        ],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
       const threeSeries = formatCompositionSummary({
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
+        exercises: [
+          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
+        ],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
@@ -200,30 +212,88 @@ describe("formatCompositionSummary", () => {
 
     it("fait varier pauseSeconds seul : le résultat change en conséquence", () => {
       const noPause = formatCompositionSummary({
-        exercise: {
-          ...createExerciseDraft(),
-          name: "Gainage",
-          durationSeconds: 45,
-          seriesCount: 2,
-          pauseSeconds: 0,
-        },
+        exercises: [
+          {
+            ...createExerciseDraft("ex-1"),
+            name: "Gainage",
+            durationSeconds: 45,
+            seriesCount: 2,
+            pauseSeconds: 0,
+          },
+        ],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
       const withPause = formatCompositionSummary({
-        exercise: {
-          ...createExerciseDraft(),
-          name: "Gainage",
-          durationSeconds: 45,
-          seriesCount: 2,
-          pauseSeconds: 30,
-        },
+        exercises: [
+          {
+            ...createExerciseDraft("ex-1"),
+            name: "Gainage",
+            durationSeconds: 45,
+            seriesCount: 2,
+            pauseSeconds: 30,
+          },
+        ],
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
       });
       expect(noPause).toBe("1 activité · 2 min"); // 10 + 90 + 0 + 5 = 105s -> ceil = 2 min
       expect(withPause).toBe("1 activité · 3 min"); // 10 + 90 + 60 + 5 = 165s -> ceil = 3 min
       expect(noPause).not.toBe(withPause);
+    });
+  });
+
+  /**
+   * Complétion REWORK12 (« Plusieurs activités et bouton persistant ») :
+   * `formatCompositionSummary` accepte désormais une collection, jamais un
+   * unique Exercice nullable — chaque Activité contribue sa propre durée,
+   * sommée.
+   */
+  describe("plusieurs Activités (complétion REWORK12)", () => {
+    it("counts every Activity in the collection (never hardcoded to 1)", () => {
+      const result = formatCompositionSummary({
+        exercises: [
+          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+          { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+        ],
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      expect(result).toBe("2 activités · 2 min"); // 10 + 45 + 30 + 5 = 90s -> ceil(90/60) = 2 min
+    });
+
+    it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once Math.ceil at the very end", () => {
+      const result = formatCompositionSummary({
+        exercises: [
+          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 90 },
+          {
+            ...createExerciseDraft("ex-2"),
+            name: "Fentes",
+            executionMode: "REPETITIONS",
+            durationSeconds: null,
+            repetitionCount: 12,
+            pauseSeconds: 20,
+          },
+        ],
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      // 10 + 90 + (0 + 20) + 5 = 125s -> ceil(125/60) = 3 min ; au moins une
+      // Activité en mode Répétitions -> préfixe '≥' même si l'autre est en
+      // mode Durée.
+      expect(result).toBe("2 activités · ≥ 3 min");
+    });
+
+    it("never prefixes with '≥' when every Activity is in Durée mode, even with several Activities", () => {
+      const result = formatCompositionSummary({
+        exercises: [
+          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+          { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
+        ],
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+      });
+      expect(result).not.toContain("≥");
     });
   });
 });
@@ -404,47 +474,83 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
   });
 });
 
-describe("formatExerciseRecap (REWORK09, mission directe utilisateur, 2026-09-04, point 8 — cadre récapitulatif de CE-T01-13)", () => {
-  it("matches the exact Figma example, mode Durée (nœud 1992:9166)", () => {
+/**
+ * REWORK09 (mission directe utilisateur, 2026-09-04, point 8 — cadre
+ * récapitulatif de CE-T01-13), **reformulé par la complétion REWORK12**
+ * (`[ChatGPT] Applique impérativement le protocole KODJO actif...`,
+ * 2026-09-04, D-105) après mise à jour Figma/documentaire : plus de préfixe
+ * `Exercice · Mode X ·`, le nom de l'Activité est désormais intégré au
+ * texte, et la clause `entre les séries` ne s'ajoute que pour plusieurs
+ * Séries — vérifié directement sur les nœuds Figma actuels
+ * (`3261:4157`/`3261:4166`).
+ */
+describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
+  it("matches the exact Figma example, mode Durée, plusieurs Séries (nœud 3261:4157)", () => {
     const result = formatExerciseRecap({
+      name: "squat sautés",
       executionMode: "DURATION",
       durationSeconds: 90,
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 15,
     });
-    expect(result).toBe(
-      "Exercice · Mode Durée · 3 séries de 1 min 30 s, avec 15 s de pause entre les séries.",
-    );
+    expect(result).toBe("3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les séries.");
   });
 
-  it("matches the exact Figma example, mode Répétition (nœud 1992:9246)", () => {
+  it("matches the exact Figma example, mode Répétition, plusieurs Séries (nœud 3261:4166)", () => {
     const result = formatExerciseRecap({
+      name: "squat sautés",
       executionMode: "REPETITIONS",
       durationSeconds: null,
       repetitionCount: 12,
       seriesCount: 3,
       pauseSeconds: 15,
     });
-    expect(result).toBe(
-      "Exercice · Mode Répétition · 3 séries de 12 répétitions, avec 15 s de pause entre les séries.",
-    );
+    expect(result).toBe("3 séries de 12 squat sautés, avec 15 s de pause entre les séries.");
   });
 
-  it("omits the pause clause entirely when pauseSeconds is 0, never 'avec 0 s de pause entre les séries'", () => {
+  it("mode Durée, une seule Série : never appends 'entre les séries' (documented rule, not illustrated on Figma — both examples use 3 séries)", () => {
     const result = formatExerciseRecap({
+      name: "squat sautés",
+      executionMode: "DURATION",
+      durationSeconds: 150,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 15,
+    });
+    expect(result).toBe("1 série de squat sautés de 2 min 30 s, avec 15 s de pause.");
+    expect(result).not.toContain("entre les séries");
+  });
+
+  it("mode Répétitions, une seule Série : never appends 'entre les séries' either", () => {
+    const result = formatExerciseRecap({
+      name: "squat sautés",
+      executionMode: "REPETITIONS",
+      durationSeconds: null,
+      repetitionCount: 12,
+      seriesCount: 1,
+      pauseSeconds: 15,
+    });
+    expect(result).toBe("1 série de 12 squat sautés, avec 15 s de pause.");
+    expect(result).not.toContain("entre les séries");
+  });
+
+  it("omits the pause clause entirely when pauseSeconds is 0, never 'avec 0 s de pause'", () => {
+    const result = formatExerciseRecap({
+      name: "Gainage",
       executionMode: "DURATION",
       durationSeconds: 30,
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
     });
-    expect(result).toBe("Exercice · Mode Durée · 1 série de 30 s.");
+    expect(result).toBe("1 série de Gainage de 30 s.");
     expect(result.toLowerCase()).not.toContain("pause");
   });
 
-  it("uses the exact singular for a single série (T01: seriesCount always 1), never '1 séries'", () => {
+  it("uses the exact singular for a single série, never '1 séries'", () => {
     const result = formatExerciseRecap({
+      name: "Gainage",
       executionMode: "DURATION",
       durationSeconds: 45,
       repetitionCount: null,
@@ -455,8 +561,35 @@ describe("formatExerciseRecap (REWORK09, mission directe utilisateur, 2026-09-04
     expect(result).not.toContain("1 séries");
   });
 
-  it("uses a pause suffix ('de pause entre les séries') distinct from formatExerciseRowSummary's own ('de pause par série') — two different Figma screens, never conflated", () => {
+  it("never prefixes with 'Exercice · Mode X ·' any more — modePrefix removed", () => {
+    const result = formatExerciseRecap({
+      name: "Gainage",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(result).not.toContain("Exercice");
+    expect(result).not.toContain("Mode");
+  });
+
+  it("integrates the Activity's own name, never a static Figma placeholder like 'squat sautés' when a different name is given", () => {
+    const result = formatExerciseRecap({
+      name: "Fentes avant",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(result).toContain("Fentes avant");
+    expect(result).not.toContain("squat sautés");
+  });
+
+  it("uses a pause label ('de pause') distinct from formatExerciseRowSummary's own suffix ('de pause par série') — two different Figma screens, never conflated", () => {
     const recap = formatExerciseRecap({
+      name: "Gainage",
       executionMode: "DURATION",
       durationSeconds: 30,
       repetitionCount: null,
@@ -470,24 +603,14 @@ describe("formatExerciseRecap (REWORK09, mission directe utilisateur, 2026-09-04
       seriesCount: 1,
       pauseSeconds: 15,
     });
-    expect(recap).toContain("de pause entre les séries");
+    expect(recap).toContain("de pause");
     expect(rowSummary).toContain("de pause par série");
     expect(recap).not.toContain("de pause par série");
   });
 
-  it("always prefixes with the literal 'Exercice' type label (Récupération not delivered in T01), reusing strings.screens.exercise.type.exercise rather than a local literal", () => {
-    const result = formatExerciseRecap({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(result.startsWith("Exercice · Mode Durée")).toBe(true);
-  });
-
   it("recomputes fully from the given facts — never a static Figma placeholder value", () => {
     const first = formatExerciseRecap({
+      name: "Gainage",
       executionMode: "DURATION",
       durationSeconds: 30,
       repetitionCount: null,
@@ -495,6 +618,7 @@ describe("formatExerciseRecap (REWORK09, mission directe utilisateur, 2026-09-04
       pauseSeconds: 0,
     });
     const second = formatExerciseRecap({
+      name: "Gainage",
       executionMode: "DURATION",
       durationSeconds: 120,
       repetitionCount: null,

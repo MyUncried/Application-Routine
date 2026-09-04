@@ -59,12 +59,6 @@ export const colors = {
   // `color/session-name-border` (`VariableID:3163:4015`), jamais une
   // couleur locale en dur.
   sessionNameBorder: "#FFFFFF",
-  // REWORK09 (mission directe utilisateur, 2026-09-04, point 3 « Champ
-  // Nom de l'activité ») : `Forms / Text Field — Source exact` (`2537:1075`)
-  // documente un liseré `#c7c9d1`, distinct de `color.border` (`#E0E3E8`,
-  // utilisé ailleurs pour les cartes limites/Tour) — un token dédié évite
-  // de réutiliser à tort un token DSF portant une intention différente.
-  exerciseFieldBorder: "#C7C9D1",
   // REWORK09, point 6/7 « Rangée compacte des paramètres » — `Activity /
   // Parameter Row — Source exact` : fond du cadre compact englobant
   // (`#f6f6ff`), liseré des contrôles `Forms / Select Field` (`#dbdbe5`),
@@ -89,6 +83,15 @@ export const colors = {
   dialogNeutralActionText: "#292E38",
   dialogDestructiveActionBackground: "#E62B1E",
   dialogDestructiveActionBorder: "#DB2E2E",
+  // REWORK12-bis (`[ChatGPT] Applique impérativement le protocole KODJO
+  // actif...`, 2026-09-04, complétion REWORK12 après mise à jour Figma/
+  // documentaire) : fond de la « Zone bleue — Contexte séance et nom de
+  // l'activité » (`3261:4151`, vérifié directement) — `#F7F7FF`, distinct
+  // d'un demi-point de `exerciseParameterCardBackground` (`#F6F6FF`) mais
+  // conservé comme token propre : rôle sémantique différent (bandeau de
+  // contexte plein écran vs cadre compact de paramètres), jamais réutilisé
+  // à tort l'un pour l'autre.
+  exerciseContextBandBackground: "#F7F7FF",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -148,6 +151,13 @@ export const type = {
   // ci-dessus sur le nœud Figma (`font-['Inter:Medium']` vs `Inter:Semi_
   // Bold`), pas une incohérence à corriger silencieusement.
   dialogDestructiveActionLabel: { ...medium, fontSize: 16, lineHeight: 20 },
+  // REWORK12-bis : `Contexte — Nom de la séance` (`3261:4152`, bandeau
+  // Activité), vérifié directement `Inter Regular`, `14/17` — hauteur de
+  // ligne `17` documentée explicitement par Figma (`leading-[17px]`),
+  // distincte de `body` (`14/20`) et de `dialogMessage` (`14/21`), donc un
+  // token propre plutôt qu'une réutilisation approximative (même principe
+  // que `dialogMessage` en son temps).
+  contextLine: { ...regular, fontSize: 14, lineHeight: 17 },
 } as const;
 
 export const spacing = {
@@ -311,6 +321,19 @@ export const dimensions = {
     actionHeight: 48,
     actionRadius: 24,
     actionGap: 12,
+  },
+  // REWORK12-bis — « Zone bleue — Contexte séance et nom de l'activité »
+  // (`3261:4151`), vérifié directement : `402 × 115` (hauteur non figée en
+  // dur — dérivée par construction de `paddingTop + ligne de contexte +
+  // gap + hauteur du champ + paddingBottom`, `12 + 17 + 24 + 46 + 16 = 115`,
+  // exactement la valeur illustrée par Figma sans jamais la coder en dur —
+  // même principe que `exerciseSummaryCard`/`decisionDialog` ci-dessus).
+  // `paddingHorizontal` réutilise `spacing/24`, déjà la valeur canonique
+  // partagée par tous les corps d'écran de ce projet.
+  exerciseContextBand: {
+    paddingTop: 12,
+    paddingBottom: 16,
+    gap: 24,
   },
 } as const;
 

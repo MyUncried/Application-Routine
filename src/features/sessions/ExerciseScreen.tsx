@@ -1,4 +1,5 @@
-import { useRouter } from "expo-router";
+import * as Crypto from "expo-crypto";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -59,29 +60,53 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
  * `Récupération` (et son propre écran) reste hors périmètre de tout T01.
  *
  * **REWORK09 — reconstruction depuis le Shell/composants DS** (mission
- * directe utilisateur, 2026-09-04, `G-01` à `G-08`) : cet écran utilise
- * désormais le Shell partagé (`ScreenShell`/`FixedHeader`/`HeaderSeparator`,
- * déjà validé par `CompositionScreen.tsx`) au lieu d'un en-tête local
- * dupliqué, et une structure de formulaire entièrement reconstruite pour
- * suivre l'ordre canonique vérifié directement sur les nœuds Figma actuels
- * (`1992:9132`/`1992:9212`/`1992:9430`, page `Prototype MVP`) : `Nom de
- * l'activité` → `Type d'activité` (segment `Exercice/Récupération`) →
- * `Mode d'exécution` (segment `Durée/Répétition`) → `Paramètres de
- * l'activité` (rangée compacte `Durée ou Répétitions`/`Pause`/`Séries` +
- * récapitulatif calculé). L'ancien grand titre local (`titleAdd`/
- * `titleEdit`) est supprimé — l'en-tête fixe affiche désormais le nom réel
- * de la Séance, seul titre de cet écran (même patron que
- * `CompositionScreen.tsx`).
+ * directe utilisateur, 2026-09-04, `G-01` à `G-08`) : cet écran utilise le
+ * Shell partagé (`ScreenShell`/`FixedHeader`/`HeaderSeparator`, déjà validé
+ * par `CompositionScreen.tsx`) au lieu d'un en-tête local dupliqué.
+ *
+ * **Complétion REWORK12** (`[ChatGPT] Applique impérativement le protocole
+ * KODJO actif...`, 2026-09-04, D-105 ; référence Figma vérifiée directement
+ * `1992:9132`/`1992:9212`/`1992:9292`, frames à jour) : le titre local
+ * (`titleAdd`/`titleEdit`), retiré par REWORK09, est **réintroduit** avec
+ * un sens différent — un titre FONCTIONNEL (`Ajouter une activité`/
+ * `Modifier une activité` à l'étape 1, `Informations complémentaires` à
+ * l'étape 2), jamais plus le nom de la Séance (déplacé dans la nouvelle
+ * zone bleue contextuelle, `ActivityContextBand` ci-dessous, visible
+ * uniquement à l'étape 1). Ordre du formulaire de l'étape 1 : zone bleue
+ * (contexte de Séance + champ Nom) → `Type d'activité` (segment `Exercice/
+ * Récupération`) → `Mode d'exécution` (segment `Durée/Répétition`) →
+ * `Paramètres de l'activité` (rangée compacte) → récapitulatif calculé,
+ * ancré en bas du contenu défilant (frère du groupe Paramètres, jamais son
+ * enfant — vérifié directement sur `3261:4156`/`3261:4157`).
+ *
+ * **Plusieurs Activités et bouton persistant** (complétion REWORK12,
+ * explicitement autorisée : « La transformation du brouillon actuel,
+ * limité à un champ `exercise` unique, vers une collection ordonnée
+ * d'activités est explicitement autorisée dans ce lot ») : `SessionDraft
+ * .exercises` est désormais une collection ordonnée
+ * (`SessionDraft.ts`). Cet écran est ouvert soit pour AJOUTER une nouvelle
+ * Activité (aucun paramètre de route, `exerciseId` absent — un `id` frais
+ * est généré ici via `Crypto.randomUUID()`, la génération d'identifiants
+ * réels restant hors de `SessionDraft.ts`, fonction pure), soit pour
+ * MODIFIER une Activité existante ciblée par son identifiant
+ * (`useLocalSearchParams<{ exerciseId?: string }>()`, transmis par
+ * `CompositionScreen.tsx` via `router.push({ pathname: "/exercise",
+ * params: { exerciseId } })`). Le déplacement réel d'une Activité au sein
+ * de la collection reste hors périmètre de S08 (poignée indicative
+ * uniquement, COMP-01) et appartient à S09.
  *
  * Copie de travail locale isolée du `SessionDraft` partagé (revue
  * indépendante ChatGPT, plan T01-S08) : toutes les modifications des deux
  * étapes ne touchent que `local` (état de ce composant), jamais
  * `updateDraft` directement — `Valider` ne fait que changer d'étape ;
- * `Terminer` est l'unique point d'écriture partagée
- * (`updateDraft({ exercise: local })`), exactement une fois. Un abandon
- * (modale D-094) ne réinitialise donc jamais le `SessionDraft` partagé :
- * `draft.exercise` reste inchangé (ajout abandonné → reste `null` ;
- * modification abandonnée → ancienne valeur inchangée). Reprendre
+ * `Terminer` est l'unique point d'écriture partagée, exactement une fois :
+ * remplace l'élément de `draft.exercises` partageant le même `id` que
+ * `local` s'il existe déjà (modification), sinon l'ajoute en fin de
+ * collection (ajout) — jamais un remplacement complet de la collection. Un
+ * abandon (modale D-094) ne réinitialise donc jamais le `SessionDraft`
+ * partagé : `draft.exercises` reste inchangé (ajout abandonné → l'Activité
+ * en cours de création n'y figure jamais ; modification abandonnée →
+ * l'ancienne valeur de cet élément reste inchangée). Reprendre
  * `useCompositionExitGuard(isSessionDraftDirty(draft), resetDraft)` tel quel
  * ici serait incorrect (bloquerait sur un `SessionDraft` déjà modifié avant
  * toute frappe, et effacerait toute la Composition à l'abandon) — la garde
@@ -104,24 +129,37 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
  * jamais l'inverse — démontré par
  * `ExerciseNavigationGuard.integration.test.tsx` (vrai navigateur).
  *
- * **Roulette de durée — verrou de non-régression (REWORK09)** : aucune
+ * **Roulettes — verrou de non-régression (REWORK09/REWORK12)** : aucune
  * ligne de `DurationWheelPicker.tsx` n'est modifiée par cette mission — sa
  * primitive native, son contrat `onValidate`/`onCancel` (brouillon local
  * jusqu'à validation) et son comportement documenté restent strictement
- * intacts. Seul son ANCRAGE change : un unique `PopoverAnchor`, commun aux
- * quatre sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
- * `pauseSeconds`/`seriesCount`), plutôt qu'un `AnchoredRow` par ligne
- * verticale séparée (ancienne structure, incompatible avec la rangée
- * horizontale unique désormais requise) — position, style et interaction
- * du composant lui-même inchangés.
+ * intacts. `NumberWheelPicker.tsx` (primitive native également, corrigée
+ * par la mission précédente REWORK12) n'est pas non plus modifié ici. Seul
+ * l'ANCRAGE est partagé : un unique `PopoverAnchor`, commun aux quatre
+ * sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
+ * `pauseSeconds`/`seriesCount`) — position, style et interaction des
+ * composants eux-mêmes inchangés.
  */
 export function ExerciseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { draft, updateDraft } = useSessionDraft();
+  const params = useLocalSearchParams<{ exerciseId?: string }>();
+
+  // `existingExercise` : l'Activité réellement ciblée par `exerciseId`, si
+  // ce paramètre est présent ET correspond effectivement à un élément de
+  // `draft.exercises` — sinon `null`, traité comme une création (jamais un
+  // écran d'erreur silencieux : un identifiant obsolète ou absent retombe
+  // proprement sur le parcours d'ajout).
+  const requestedExerciseId = params.exerciseId;
+  const existingExercise =
+    typeof requestedExerciseId === "string"
+      ? (draft.exercises.find((exercise) => exercise.id === requestedExerciseId) ?? null)
+      : null;
+  const isEditingExisting = existingExercise !== null;
 
   const [initialSnapshot] = useState<SessionDraftExercise>(
-    () => draft.exercise ?? createExerciseDraft(),
+    () => existingExercise ?? createExerciseDraft(Crypto.randomUUID()),
   );
   const [local, setLocal] = useState<SessionDraftExercise>(initialSnapshot);
   const [step, setStep] = useState<1 | 2>(1);
@@ -134,8 +172,9 @@ export function ExerciseScreen() {
     shouldBlockExit,
     // La copie de travail locale n'est jamais partagée avant `Terminer` :
     // un abandon n'a donc rien à réinitialiser dans le `SessionDraft`
-    // partagé (`draft.exercise` reste tel quel) — ce composant est de toute
-    // façon démonté juste après le rejeu de la navigation interceptée.
+    // partagé (`draft.exercises` reste tel quel) — ce composant est de
+    // toute façon démonté juste après le rejeu de la navigation
+    // interceptée.
     () => {},
   );
 
@@ -195,7 +234,15 @@ export function ExerciseScreen() {
       return;
     }
     finishingRef.current = true;
-    updateDraft({ exercise: local });
+    // Complétion REWORK12 : remplace l'élément existant par `id` (parcours
+    // modification) ou ajoute `local` en fin de collection (parcours
+    // ajout) — jamais un remplacement complet de `draft.exercises`, pour
+    // ne jamais perdre les autres Activités déjà présentes.
+    const alreadyPresent = draft.exercises.some((exercise) => exercise.id === local.id);
+    const nextExercises = alreadyPresent
+      ? draft.exercises.map((exercise) => (exercise.id === local.id ? local : exercise))
+      : [...draft.exercises, local];
+    updateDraft({ exercises: nextExercises });
     setIsFinishing(true);
   }
 
@@ -211,14 +258,48 @@ export function ExerciseScreen() {
   // désormais un unique `PopoverAnchor` commun.
   const bodyElevated = openOverlay !== null;
 
+  const headerTitle = step === 1 ? (isEditingExisting ? t.titleEdit : t.titleAdd) : t.titleInformation;
+
   return (
     <ScreenShell>
       <FixedHeader
-        title={draft.name.length > 0 ? draft.name : strings.screens.composition.name}
+        title={headerTitle}
         onBack={() => router.back()}
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
       <HeaderSeparator />
+
+      {/*
+       * Zone bleue contextuelle (complétion REWORK12, D-105) — vérifiée
+       * directement sur `3261:4151`/`3261:4160` : accolée sans espace au
+       * séparateur de l'en-tête, fixe (frère du `ScrollView`, jamais son
+       * descendant — même patron shell que `CompositionScreen.tsx`),
+       * visible uniquement à l'étape 1 (absente de `1992:9292`, étape 2).
+       * Contient `Séance · {nom}` puis, à `spacing/24`, le champ Nom de
+       * l'Activité (fond transparent, liseré blanc — réutilise
+       * `colors.sessionNameBorder`, même token que `Nom de la séance` dans
+       * Composition — et la géométrie déjà établie de `dimensions
+       * .exerciseTextField`, `46/8/14`, inchangée depuis REWORK09 : seuls
+       * le conteneur/les couleurs/la typographie de la VALEUR changent).
+       */}
+      {step === 1 ? (
+        <View style={styles.contextBand} testID="exercise-context-band">
+          <Text style={styles.contextLine} numberOfLines={1}>
+            {t.context.prefix} · {draft.name}
+          </Text>
+          <TextInput
+            value={local.name}
+            onChangeText={(text) => patchLocal({ name: text })}
+            onFocus={closeOverlay}
+            placeholder={t.name}
+            placeholderTextColor={colors.textSecondary}
+            accessibilityLabel={t.name}
+            maxLength={NAME_MAX_LENGTH}
+            style={styles.nameInput}
+            testID="exercise-name-input"
+          />
+        </View>
+      ) : null}
 
       <ScrollView
         style={[styles.body, bodyElevated ? styles.elevated : null]}
@@ -228,22 +309,6 @@ export function ExerciseScreen() {
       >
         {step === 1 ? (
           <>
-            {/* Nom de l'activité — `Forms / Text Field — Source exact` (`2537:1075`). */}
-            <View>
-              <Text style={styles.fieldTitle}>{t.name}</Text>
-              <TextInput
-                value={local.name}
-                onChangeText={(text) => patchLocal({ name: text })}
-                onFocus={closeOverlay}
-                placeholder={t.name}
-                placeholderTextColor={colors.textSecondary}
-                accessibilityLabel={t.name}
-                maxLength={NAME_MAX_LENGTH}
-                style={styles.nameInput}
-                testID="exercise-name-input"
-              />
-            </View>
-
             {/*
              * Type d'activité (CE-T01-13, élément structurel obligatoire
              * même hors périmètre fonctionnel) : Récupération n'a ni écran
@@ -402,16 +467,30 @@ export function ExerciseScreen() {
                   </PopoverAnchor>
                 ) : null}
               </View>
+            </View>
 
-              {/*
-               * Cadre récapitulatif (point 8, REWORK09) : largeur utile
-               * complète, contenu calculé (`formatExerciseRecap`, jamais
-               * une valeur Figma statique), croît verticalement avec le
-               * texte (aucune hauteur figée).
-               */}
-              <View style={styles.summaryCard} testID="exercise-summary-card">
-                <Text style={styles.summaryText}>{formatExerciseRecap(local)}</Text>
-              </View>
+            {/*
+             * Espace flexible (complétion REWORK12, vérifié directement sur
+             * `3261:4156`/`3261:4165`) : pousse le récapitulatif au bas du
+             * contenu défilant lorsque celui-ci tient dans la hauteur
+             * visible (`bodyContent.flexGrow: 1` ci-dessous rend ce
+             * comportement effectif) ; s'efface silencieusement (hauteur
+             * nulle) dès que le contenu dépasse la hauteur visible — le
+             * défilement normal reprend alors, jamais bloqué par ce
+             * spacer.
+             */}
+            <View style={styles.recapSpacer} />
+
+            {/*
+             * Cadre récapitulatif (point 8, REWORK09 ; reformulé REWORK12,
+             * ACT-08/09) : frère du groupe Paramètres, jamais son enfant
+             * (vérifié directement sur `3261:4156`/`3261:4157`) — largeur
+             * utile complète, contenu calculé (`formatExerciseRecap`,
+             * jamais une valeur Figma statique), croît verticalement avec
+             * le texte (aucune hauteur figée).
+             */}
+            <View style={styles.summaryCard} testID="exercise-summary-card">
+              <Text style={styles.summaryText}>{formatExerciseRecap(local)}</Text>
             </View>
           </>
         ) : (
@@ -632,7 +711,13 @@ const styles = StyleSheet.create({
   elevated: {
     zIndex: 1,
   },
+  // Complétion REWORK12 : `flexGrow: 1` rend effectif `recapSpacer`
+  // ci-dessous (pousse le récapitulatif au bas du contenu lorsque celui-ci
+  // tient dans la hauteur visible), sans jamais empêcher le défilement
+  // normal si le contenu la dépasse — voir la note de tête de
+  // `recapSpacer`.
   bodyContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
@@ -647,12 +732,40 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing[8],
   },
-  nameInput: {
-    ...type.exerciseFieldValue,
+  // Complétion REWORK12 (D-105, `3261:4151`) : « Zone bleue — Contexte
+  // séance et nom de l'activité » — fixe, sous l'en-tête, accolée sans
+  // espace au séparateur (`marginTop`/`padding` de l'en-tête déjà nuls,
+  // aucun ajustement local nécessaire). Hauteur non figée en dur — dérivée
+  // par construction de `paddingTop + gap + hauteur du champ +
+  // paddingBottom` (voir `dimensions.exerciseContextBand` et le
+  // commentaire associé dans `tokens.ts`).
+  contextBand: {
+    backgroundColor: colors.exerciseContextBandBackground,
+    paddingHorizontal: spacing[24],
+    paddingTop: dimensions.exerciseContextBand.paddingTop,
+    paddingBottom: dimensions.exerciseContextBand.paddingBottom,
+    gap: dimensions.exerciseContextBand.gap,
+  },
+  // `Contexte — Nom de la séance` (`3261:4152`) : `Séance · {nom}`, vérifié
+  // directement `14/17` Regular — token dédié `type.contextLine`.
+  contextLine: {
+    ...type.contextLine,
     color: colors.textPrimary,
-    backgroundColor: colors.background,
+  },
+  // Complétion REWORK12 : même géométrie que la précédente implémentation
+  // (`dimensions.exerciseTextField`, `46/8/14`, inchangée — REWORK09) mais
+  // fond transparent et liseré blanc intérieur (`colors.sessionNameBorder`,
+  // même token que `Nom de la séance` dans Composition), posée sur la zone
+  // bleue plutôt qu'un fond blanc opaque. Valeur en `type.modalTitle`
+  // (`18/22` Semi Bold), vérifiée directement sur `3261:4154`/`3261:4163` —
+  // remplace `type.exerciseFieldValue` (`13px` Regular), devenu sans
+  // consommateur.
+  nameInput: {
+    ...type.modalTitle,
+    color: colors.textPrimary,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.exerciseFieldBorder,
+    borderColor: colors.sessionNameBorder,
     borderRadius: dimensions.exerciseTextField.radius,
     height: dimensions.exerciseTextField.height,
     paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
@@ -772,14 +885,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 12,
   },
+  // Complétion REWORK12 : `flex: 1` — pousse `summaryCard` au bas du
+  // contenu défilant lorsque celui-ci tient dans la hauteur visible
+  // (rendu effectif par `bodyContent.flexGrow: 1`) ; s'efface (hauteur
+  // nulle) dès que le contenu dépasse la hauteur visible, laissant le
+  // défilement normal reprendre — jamais un blocage. Vérifié directement
+  // sur `3261:4156`/`3261:4165` (« Espace flexible — pousse la synthèse en
+  // bas »).
+  recapSpacer: {
+    flex: 1,
+  },
   // Point 8 (REWORK09) : largeur utile complète, liseré `colors.tourSurface`
   // (même valeur que la source Figma, `#CDCEFA`, déjà réutilisée pour le
   // carré des chevrons ci-dessus — pas de nouveau token dupliqué), rayon
   // `12`, marges internes horizontales `12`/verticales `8`. Aucune hauteur
   // figée : le cadre grandit avec le texte (`formatExerciseRecap`, jamais
-  // une valeur Figma statique).
+  // une valeur Figma statique). `marginTop` retiré (complétion REWORK12) :
+  // `summaryCard` est désormais un frère du groupe Paramètres séparé par
+  // `recapSpacer`/le `gap` uniforme de `bodyContent`, plus un enfant
+  // directement accolé nécessitant sa propre marge locale.
   summaryCard: {
-    marginTop: spacing[12],
     borderWidth: 1,
     borderColor: colors.tourSurface,
     borderRadius: dimensions.exerciseSummaryCard.radius,

@@ -43,7 +43,7 @@ function ExerciseRouteStub() {
   const { draft, updateDraft } = useSessionDraft();
 
   const [initialSnapshot] = useState<SessionDraftExercise>(
-    () => draft.exercise ?? createExerciseDraft(),
+    () => draft.exercises[0] ?? createExerciseDraft("ex-1"),
   );
   const [local, setLocal] = useState<SessionDraftExercise>(initialSnapshot);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -67,7 +67,7 @@ function ExerciseRouteStub() {
     }
     finishingRef.current = true;
     updateDraftCallCount += 1;
-    updateDraft({ exercise: local });
+    updateDraft({ exercises: [local] });
     setIsFinishing(true);
   }
 

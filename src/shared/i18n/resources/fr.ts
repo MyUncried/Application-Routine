@@ -128,10 +128,33 @@ export const fr = {
     exercise: {
       // REWORK09 (mission directe utilisateur, 2026-09-04, points 1/2) :
       // `titleAdd`/`titleEdit` — l'ancien grand titre local du corps
-      // défilant — sont supprimés avec lui ; l'en-tête fixe partagé affiche
-      // désormais le nom réel de la Séance (`FixedHeader`, comme
-      // `CompositionScreen.tsx`), jamais un titre d'écran distinct.
+      // défilant — étaient supprimés avec lui, l'en-tête fixe partagé
+      // affichant alors le nom réel de la Séance.
+      //
+      // Complétion REWORK12 (`[ChatGPT] Applique impérativement le
+      // protocole KODJO actif...`, 2026-09-04, D-105) : **réintroduits**,
+      // désormais avec leur sens original de titre fonctionnel d'écran —
+      // le nom de la Séance n'est plus utilisé comme titre (déplacé dans
+      // la zone bleue contextuelle, voir `context` ci-dessous). Frame
+      // Figma `1992:9132`/`1992:9212` (« Ajouter une activité ») —
+      // « Modifier une activité » n'a pas de frame Figma dédiée mais est
+      // explicitement demandée par l'autorisation, même patron que
+      // `08 – Conception fonctionnelle détaillée.md` (« Titre de l'écran »).
+      titleAdd: "Ajouter une activité",
+      titleEdit: "Modifier une activité",
+      // Étape 2 (CE-T01-15, `1992:9292`) : titre fonctionnel propre à cette
+      // étape, distinct de `titleAdd`/`titleEdit` — jamais de distinction
+      // création/modification à cette étape (vérifié directement, aucune
+      // frame Figma dédiée à une variante « modification » de cette étape).
+      titleInformation: "Informations complémentaires",
       backAccessibilityLabel: "Retour",
+      // Complétion REWORK12 (D-105) : « Zone bleue — Contexte séance et nom
+      // de l'activité » (`3261:4151`/`3261:4160`) — `prefix` compose
+      // `"${prefix} · ${nom de la séance}"`, jamais un littéral local dans
+      // `ExerciseScreen.tsx`.
+      context: {
+        prefix: "Séance",
+      },
       type: {
         label: "Type d’activité",
         exercise: "Exercice",
@@ -140,7 +163,9 @@ export const fr = {
       // REWORK09, point 2/3 : « Nom » → « Nom de l'activité » (`Forms /
       // Text Field — Source exact`, libellé visible ET accessibilityLabel
       // du champ — même chaîne réutilisée pour les deux, patron déjà
-      // établi).
+      // établi). Complétion REWORK12 : réutilisée telle quelle comme
+      // placeholder du champ, désormais logé dans la zone bleue
+      // contextuelle plutôt que comme un champ autonome.
       name: "Nom de l’activité",
       executionMode: {
         label: "Mode d’exécution",
@@ -196,13 +221,21 @@ export const fr = {
         cancelAccessibilityLabel: "Annuler",
         validateAccessibilityLabel: "Valider",
       },
-      // REWORK09, point 8 « cadre récapitulatif » — deux fragments propres
-      // à cette formulation, distincts de `composition.exerciseRow`
+      // REWORK09, point 8 « cadre récapitulatif » — fragments propres à
+      // cette formulation, distincts de `composition.exerciseRow`
       // (réutilisé par ailleurs pour `min`/`s`/pluriels/« de »/« avec »,
       // voir `compositionPresentation.ts`, `formatExerciseRecap`).
+      //
+      // Complétion REWORK12 (D-105) : `modePrefix` (« Mode ») n'a plus de
+      // consommateur — la synthèse ne préfixe plus jamais par le type ni le
+      // mode d'exécution, vérifié directement sur `3261:4157`/`3261:4166`
+      // — supprimé plutôt que laissé mort. `pauseSuffix` (« de pause entre
+      // les séries ») est scindé : `pauseLabel` (« de pause ») s'applique
+      // toujours dès qu'une pause existe, `pauseSuffix` (« entre les
+      // séries ») uniquement lorsque `seriesCount > 1`.
       recap: {
-        modePrefix: "Mode",
-        pauseSuffix: "de pause entre les séries",
+        pauseLabel: "de pause",
+        pauseSuffix: "entre les séries",
       },
       instruction: {
         label: "Consigne",

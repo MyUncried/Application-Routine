@@ -76,20 +76,26 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     expect(router.getPathname()).toBe("/composition");
     expect(screen.queryByLabelText(exercise.name)).toBeNull();
 
-    // 3. Insertion entre Compte à rebours et Tour : `+ Ajouter une
-    // activité` a disparu, la ligne Exercice existe, avec le nom saisi.
-    expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+    // 3. Insertion entre Compte à rebours et Tour : le bouton `+ Ajouter
+    // une activité` reste utilisable (complétion REWORK12, COMP-03 —
+    // abroge l'ancien masquage), la ligne Exercice existe, avec le nom
+    // saisi.
+    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
     expect(screen.getByText("Pompes")).toBeTruthy();
     // REWORK12 (COMP-01) : la ligne Exercice reprend l'anatomie de
-    // `BoundaryActivityRow` — `composition-exercise-row` remplace l'ancien
-    // testID d'icône dédié `composition-exercise-icon`, supprimé.
+    // `BoundaryActivityRow` — son testID porte désormais l'identifiant réel
+    // (généré par `Crypto.randomUUID()`, non prévisible ici), retrouvé par
+    // préfixe (`composition-exercise-row-`).
+    const exerciseRowTestId = findTestIdStartingWith(screen.toJSON(), "composition-exercise-row-");
+    expect(exerciseRowTestId).not.toBeNull();
+
     const order = testIdOrder(screen.toJSON(), [
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-row",
+      exerciseRowTestId as string,
     ]);
     expect(order).toEqual([
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-row",
+      exerciseRowTestId,
     ]);
 
     // 5. Résumé recalculé : "1 activité · ..." (jamais l'état vide "0 activité · 0 min").
@@ -130,6 +136,17 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     );
   });
 });
+
+/** Premier `testID` rencontré commençant par `prefix` — utilisé pour retrouver une ligne Exercice dont l'identifiant réel (UUID) n'est pas prévisible en test. */
+function findTestIdStartingWith(tree: ReturnType<typeof screen.toJSON>, prefix: string): string | null {
+  let found: string | null = null;
+  walk(tree, (node) => {
+    if (found === null && typeof node?.props?.testID === "string" && node.props.testID.startsWith(prefix)) {
+      found = node.props.testID as string;
+    }
+  });
+  return found;
+}
 
 /** Ordre de première apparition (parcours préfixe) des `testID` demandés dans l'arbre rendu. */
 function testIdOrder(tree: ReturnType<typeof screen.toJSON>, ids: string[]): string[] {

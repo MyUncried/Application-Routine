@@ -63,7 +63,7 @@ describe("SessionDraftProvider", () => {
         color: "#E5484D",
         initialCountdownSeconds: 20,
         finalPhaseSeconds: 15,
-        exercise: { ...createExerciseDraft(), name: "Gainage", durationSeconds: 30 },
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 }],
       });
     });
     expect(captured.draft.name).toBe("Séance simple");

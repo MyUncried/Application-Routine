@@ -11,7 +11,8 @@ import { strings } from "@/shared/i18n";
  */
 
 export type CompositionSummaryFacts = {
-  readonly exercise: SessionDraftExercise | null;
+  /** Collection ORDONNÉE d'Activités (`SessionDraft.exercises`, complétion REWORK12) — remplace l'ancien champ `exercise` singulier. */
+  readonly exercises: readonly SessionDraftExercise[];
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
 };
@@ -20,46 +21,50 @@ export type CompositionSummaryFacts = {
  * Résumé `N activités · durée estimée` de la Composition (§9 du plan
  * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B ; Séries/Pause
  * après Série corrigées en T01-S08, revue PR #9 —
- * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736).
+ * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736 ;
+ * généralisée à plusieurs Activités — complétion REWORK12, 2026-09-04).
  *
- * État vide (`exercise === null`) : chaîne locale et complète
+ * État vide (`exercises.length === 0`) : chaîne locale et complète
  * `"0 activité · 0 min"` (arbitrage V2) — n'appelle jamais
  * `formatActivityCount(0)`, qui produit délibérément `"0 activités"`
  * (pluriel) pour le Catalogue et reste inchangé.
  *
- * État non vide, mode Durée (RM-036/RM-037/RM-071) : une Série répète la
- * durée de l'Exercice puis sa Pause après Série éventuelle (RM-036) ; chaque
- * Pause après Série génère une Récupération technique comptée dans la durée
- * estimée (RM-037/RM-071, l'exception de la dernière Série omise avant une
- * Récupération explicite suivante étant hors périmètre de T01-S08, aucune
- * Récupération n'existant encore) — d'où
- * `seriesCount × durationSeconds + seriesCount × pauseSeconds`. Arrondi à la
- * minute supérieure via `formatEstimatedDuration` (`Math.ceil`, RM-101,
- * inchangé).
- *
- * État non vide, mode Répétitions (RM-072, déjà validée) : aucune durée
- * conventionnelle n'est attribuée à l'Exercice lui-même, mais les Pauses
- * après Série restent déterminables et donc comptées
- * (`seriesCount × pauseSeconds`) ; la durée estimée reste une borne
- * minimale, précédée de `≥` — jamais présentée comme une valeur exacte.
+ * État non vide : chaque Activité contribue sa propre durée estimée, SOMMÉE
+ * — mode Durée (RM-036/RM-037/RM-071), une Série répète la durée de
+ * l'Exercice puis sa Pause après Série éventuelle (RM-036) ; chaque Pause
+ * après Série génère une Récupération technique comptée dans la durée
+ * estimée (RM-037/RM-071) — d'où, par Activité,
+ * `seriesCount × durationSeconds + seriesCount × pauseSeconds`. Mode
+ * Répétitions (RM-072) : aucune durée conventionnelle n'est attribuée à
+ * l'Exercice lui-même, mais ses Pauses après Série restent comptées
+ * (`seriesCount × pauseSeconds`) — dès qu'AU MOINS UNE Activité de la
+ * collection est en mode Répétitions, la durée totale devient une borne
+ * minimale, précédée de `≥` (jamais présentée comme une valeur exacte, même
+ * si d'autres Activités de la même Composition sont en mode Durée). Arrondi
+ * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
+ * RM-101, inchangé), appliqué une seule fois à la somme totale.
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
-  if (facts.exercise === null) {
+  if (facts.exercises.length === 0) {
     return strings.screens.composition.summary.empty;
   }
 
-  const isRepetitionMode = facts.exercise.executionMode === "REPETITIONS";
-  const seriesCount = facts.exercise.seriesCount;
-  const activityDurationSeconds = isRepetitionMode
-    ? 0
-    : seriesCount * (facts.exercise.durationSeconds ?? 0);
-  const pauseSeconds = seriesCount * facts.exercise.pauseSeconds;
+  let isLowerBoundEstimate = false;
+  let activitiesAndPauseSeconds = 0;
+  for (const exercise of facts.exercises) {
+    const isRepetitionMode = exercise.executionMode === "REPETITIONS";
+    if (isRepetitionMode) {
+      isLowerBoundEstimate = true;
+    }
+    const activityDurationSeconds = isRepetitionMode ? 0 : exercise.seriesCount * (exercise.durationSeconds ?? 0);
+    activitiesAndPauseSeconds += activityDurationSeconds + exercise.seriesCount * exercise.pauseSeconds;
+  }
   const estimatedDurationSeconds =
-    facts.initialCountdownSeconds + activityDurationSeconds + pauseSeconds + facts.finalPhaseSeconds;
+    facts.initialCountdownSeconds + activitiesAndPauseSeconds + facts.finalPhaseSeconds;
   const formattedDuration = formatEstimatedDuration(estimatedDurationSeconds);
-  const durationLabel = isRepetitionMode ? `≥ ${formattedDuration}` : formattedDuration;
+  const durationLabel = isLowerBoundEstimate ? `≥ ${formattedDuration}` : formattedDuration;
 
-  return `${formatActivityCount(1)} · ${durationLabel}`;
+  return `${formatActivityCount(facts.exercises.length)} · ${durationLabel}`;
 }
 
 /**
@@ -152,40 +157,44 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
   return `${base} ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exerciseRow.pauseSuffix}`;
 }
 
-export type ExerciseRecapFacts = ExerciseRowSummaryFacts;
+export type ExerciseRecapFacts = ExerciseRowSummaryFacts & {
+  /** Nom de l'Activité en cours d'édition, intégré au récapitulatif (complétion REWORK12) — jamais un littéral figé. */
+  readonly name: string;
+};
 
 /**
  * Récapitulatif calculé de l'écran `Création d'une Activité — Paramètres
- * essentiels` (CE-T01-13, cadre sous la rangée compacte Durée/Pause/
- * Séries) — REWORK09 (mission directe utilisateur, 2026-09-04, point 8).
+ * essentiels` (CE-T01-13, cadre ancré en bas du formulaire) — REWORK09
+ * (mission directe utilisateur, 2026-09-04, point 8), **reformulé par la
+ * complétion REWORK12** (`[ChatGPT] Applique impérativement le protocole
+ * KODJO actif...`, 2026-09-04) après mise à jour Figma/documentaire (D-105,
+ * `06 – Ecrans et navigation de la V1.md` §« Étape 1 »).
  *
  * Format exact vérifié directement sur les nœuds Figma actuels
- * (`1992:9166`/`1992:9246`) : `"Exercice · Mode Durée · 3 séries de
- * 1 min 30 s, avec 15 s de pause entre les séries."` (mode Répétition :
- * `"...3 séries de 12 répétitions, avec..."`). Jamais une valeur figée :
- * recalculé à chaque changement du brouillon d'Activité (`ExerciseScreen
- * .tsx`, `local`). Le type reste toujours `Exercice` en T01 (`Récupération`
- * non livré) — réutilise `strings.screens.exercise.type.exercise`, jamais
- * un littéral local.
+ * (`3261:4157`/`3261:4166`, frames `1992:9132`/`1992:9212`) :
+ * `"3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les
+ * séries."` (Durée) / `"3 séries de 12 squat sautés, avec 15 s de pause
+ * entre les séries."` (Répétitions) — plus jamais de préfixe `Exercice ·
+ * Mode X ·` (supprimé, REWORK09's `exercise.type.exercise`/
+ * `exercise.recap.modePrefix` désormais sans consommateur). `entre les
+ * séries` n'est ajouté que lorsque `seriesCount > 1` (implicite dans les
+ * deux exemples Figma, `3 séries` ; règle explicite posée par la
+ * documentation mise à jour pour le cas `1 série`, non illustré sur Figma).
+ * Jamais une valeur figée : recalculé à chaque changement du brouillon
+ * d'Activité (`ExerciseScreen.tsx`, `local`).
  *
  * Réutilise `formatCompactDuration`/`formatCountWithUnit` déjà établis
  * pour `formatExerciseRowSummary` ci-dessus (mêmes unités/pluriels/« de »/
- * « avec », `strings.screens.composition.exerciseRow`) — seule la
- * formulation de la clause de pause diffère
- * (`strings.screens.exercise.recap.pauseSuffix`, « de pause entre les
- * séries », distincte de `exerciseRow.pauseSuffix`, « de pause par
- * série » — deux écrans, deux formulations Figma distinctes, jamais
- * fusionnées). La clause de pause est entièrement omise lorsque
- * `pauseSeconds === 0`, comme `formatExerciseRowSummary` (D-095).
+ * « avec », `strings.screens.composition.exerciseRow`) — la clause de
+ * pause est entièrement omise lorsque `pauseSeconds === 0`, comme
+ * `formatExerciseRowSummary` (D-095) ; `exercise.recap.pauseSuffix`
+ * (« entre les séries ») reste distinct de `exerciseRow.pauseSuffix`
+ * (« de pause par série »), désormais appliqué CONDITIONNELLEMENT (au
+ * pluriel uniquement) plutôt que systématiquement.
  */
 export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   const exercise = strings.screens.exercise;
   const exerciseRow = strings.screens.composition.exerciseRow;
-
-  const modeLabel =
-    facts.executionMode === "DURATION"
-      ? exercise.executionMode.duration
-      : exercise.executionMode.repetitions;
 
   const seriesLabel = formatCountWithUnit(
     facts.seriesCount,
@@ -195,18 +204,16 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
 
   const activityLabel =
     facts.executionMode === "DURATION"
-      ? formatCompactDuration(facts.durationSeconds ?? 0)
-      : formatCountWithUnit(
-          facts.repetitionCount ?? 0,
-          exerciseRow.repetitionSingular,
-          exerciseRow.repetitionPlural,
-        );
+      ? `${facts.name} ${exerciseRow.of} ${formatCompactDuration(facts.durationSeconds ?? 0)}`
+      : `${facts.repetitionCount ?? 0} ${facts.name}`;
 
-  const base = `${exercise.type.exercise} · ${exercise.recap.modePrefix} ${modeLabel} · ${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
+  const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
 
   if (facts.pauseSeconds <= 0) {
     return `${base}.`;
   }
 
-  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseSuffix}.`;
+  const pauseSuffix = facts.seriesCount > 1 ? ` ${exercise.recap.pauseSuffix}` : "";
+
+  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}.`;
 }

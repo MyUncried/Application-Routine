@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react-native
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { ScrollView, StyleSheet } from "react-native";
 
-import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
@@ -14,12 +14,16 @@ jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
 
+jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-exercise-id") }));
+
 const mockBack = jest.fn();
+let mockSearchParams: { exerciseId?: string } = {};
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
     useRouter: () => ({ back: mockBack, push: jest.fn() }),
+    useLocalSearchParams: () => mockSearchParams,
   };
 });
 
@@ -39,15 +43,24 @@ function defaultExitGuardResult() {
   return { isPendingExit: false, cancelExit: jest.fn(), confirmExit: jest.fn() };
 }
 
-function renderScreen(draftExercise: ReturnType<typeof createExerciseDraft> | null = null) {
+/**
+ * Complétion REWORK12 : rend l'écran en mode AJOUT (`draftExercise` omis —
+ * `draft.exercises` vide, aucun `exerciseId` en paramètre de route) ou en
+ * mode MODIFICATION (`draftExercise` fourni — inséré dans `draft.exercises`
+ * ET son `id` transmis comme `exerciseId`, exactement comme
+ * `CompositionScreen.tsx` le fait via `router.push({pathname: "/exercise",
+ * params: {exerciseId}})`).
+ */
+function renderScreen(draftExercise: SessionDraftExercise | null = null) {
   const updateDraft = jest.fn();
+  mockSearchParams = draftExercise ? { exerciseId: draftExercise.id } : {};
   const contextValue: SessionDraftContextValue = {
     draft: {
       name: "Séance simple",
       color: "#3B82F6",
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: draftExercise,
+      exercises: draftExercise ? [draftExercise] : [],
     },
     updateDraft,
     resetDraft: jest.fn(),
@@ -84,41 +97,33 @@ beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
   mockBack.mockReset();
+  mockSearchParams = {};
 });
 
-describe("ExerciseScreen — REWORK09 — Shell partagé (header/séparateur fixes, formulaire central défilant, action finale fixe)", () => {
-  it("uses the shared FixedHeader/HeaderSeparator (Header / Fixed, Action / Back), showing the real Session name — never a local title", () => {
-    renderScreen(null); // draft.name = "Séance simple" (helper de rendu)
+describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/séparateur fixes, bandeau contextuel fixe, formulaire central défilant, action finale fixe)", () => {
+  it("uses the shared FixedHeader/HeaderSeparator (Header / Fixed, Action / Back), showing the functional title 'Ajouter une activité' — never the Session name (complétion REWORK12, D-105)", () => {
+    renderScreen(null);
 
     const header = screen.getByTestId("screen-header");
-    expect(within(header).getByText("Séance simple")).toBeTruthy();
+    expect(within(header).getByText(t.titleAdd)).toBeTruthy();
+    expect(within(header).queryByText("Séance simple")).toBeNull();
     expect(screen.getByTestId("screen-header-back")).toBeTruthy();
     expect(screen.getByTestId("screen-header-separator")).toBeTruthy();
   });
 
-  it("falls back to the canonical 'Nom de la séance' placeholder in the header when the Session has no name yet", () => {
-    const updateDraft = jest.fn();
-    const contextValue: SessionDraftContextValue = {
-      draft: {
-        name: "",
-        color: "#3B82F6",
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
-        exercise: null,
-      },
-      updateDraft,
-      resetDraft: jest.fn(),
-    };
-    render(
-      <TestSafeAreaProvider>
-        <SessionDraftContext.Provider value={contextValue}>
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
-      </TestSafeAreaProvider>,
-    );
+  it("shows 'Modifier une activité' in the header when editing an existing Activity (exerciseId param matches an item of draft.exercises)", () => {
+    renderScreen({ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 });
 
-    const header = screen.getByTestId("screen-header");
-    expect(within(header).getByText(strings.screens.composition.name)).toBeTruthy();
+    expect(within(screen.getByTestId("screen-header")).getByText(t.titleEdit)).toBeTruthy();
+    expect(screen.queryByText(t.titleAdd)).toBeNull();
+  });
+
+  it("shows the Séance context line 'Séance · {nom}' and the Nom de l'activité field inside a fixed context band, above the scrollable body (complétion REWORK12, D-105)", () => {
+    renderScreen(null);
+
+    const band = screen.getByTestId("exercise-context-band");
+    expect(within(band).getByText(`${t.context.prefix} · Séance simple`)).toBeTruthy();
+    expect(within(band).getByLabelText(t.name)).toBeTruthy();
   });
 
   it("Retour (Action / Back) calls router.back() with no special handling", () => {
@@ -127,7 +132,7 @@ describe("ExerciseScreen — REWORK09 — Shell partagé (header/séparateur fix
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  it("exactly one scrollable container exists for the whole screen — the header, separator and final action are structural siblings of it, never its descendants", () => {
+  it("exactly one scrollable container exists for the whole screen — the header, separator, context band and final action are structural siblings of it, never its descendants", () => {
     renderScreen(null);
 
     const { UNSAFE_root } = render(
@@ -139,7 +144,7 @@ describe("ExerciseScreen — REWORK09 — Shell partagé (header/séparateur fix
               color: "#3B82F6",
               initialCountdownSeconds: 10,
               finalPhaseSeconds: 5,
-              exercise: null,
+              exercises: [],
             },
             updateDraft: jest.fn(),
             resetDraft: jest.fn(),
@@ -156,27 +161,40 @@ describe("ExerciseScreen — REWORK09 — Shell partagé (header/séparateur fix
     const body = screen.getAllByTestId("exercise-body")[0];
     expect(within(body).queryByTestId("screen-header")).toBeNull();
     expect(within(body).queryByTestId("screen-header-separator")).toBeNull();
+    expect(within(body).queryByTestId("exercise-context-band")).toBeNull();
     expect(within(body).queryByLabelText(t.validateAction)).toBeNull();
   });
 });
 
-describe("ExerciseScreen — REWORK09 — ordre exact du formulaire (point 2)", () => {
-  it("renders, in this exact order: Nom de l'activité, Type d'activité, Mode d'exécution, Paramètres de l'activité", () => {
+describe("ExerciseScreen — REWORK12 — étape 2 (Informations complémentaires)", () => {
+  it("shows the functional title 'Informations complémentaires' at step 2, and hides the context band (absent from CE-T01-15, 1992:9292)", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+    fireEvent.press(screen.getByLabelText(t.validateAction));
+
+    expect(within(screen.getByTestId("screen-header")).getByText(t.titleInformation)).toBeTruthy();
+    expect(screen.queryByTestId("exercise-context-band")).toBeNull();
+  });
+});
+
+describe("ExerciseScreen — REWORK09/REWORK12 — ordre exact du formulaire (point 2)", () => {
+  /**
+   * Complétion REWORK12 (D-105) : le champ Nom de l'activité n'a plus son
+   * propre titre textuel visible (`t.name` n'apparaît plus comme nœud
+   * `Text` autonome, seulement comme `accessibilityLabel`/placeholder de
+   * son `TextInput`, déjà vérifié par un test dédié ci-dessus) — l'ordre
+   * porte désormais sur les trois titres de section du corps défilant.
+   */
+  it("renders, in this exact order: Type d'activité, Mode d'exécution, Paramètres de l'activité", () => {
     renderScreen(null);
 
-    const order = textOrder(screen.toJSON(), [
-      t.name,
-      t.type.label,
-      t.executionMode.label,
-      t.parametersTitle,
-    ]);
-    expect(order).toEqual([t.name, t.type.label, t.executionMode.label, t.parametersTitle]);
+    const order = textOrder(screen.toJSON(), [t.type.label, t.executionMode.label, t.parametersTitle]);
+    expect(order).toEqual([t.type.label, t.executionMode.label, t.parametersTitle]);
   });
 
-  it("no longer renders the old local body title ('Ajouter une activité'/'Modifier une activité') or any incompatible legacy hierarchy", () => {
+  it("REWORK12 — now DOES render the functional title (Ajouter/Modifier une activité) in the header — reintroduced with a new meaning (D-105), superseding the previous REWORK09 assertion that it had been removed", () => {
     renderScreen(null);
-    expect(screen.queryByText("Ajouter une activité")).toBeNull();
-    expect(screen.queryByText("Modifier une activité")).toBeNull();
+    expect(screen.getByText(t.titleAdd)).toBeTruthy();
   });
 });
 
@@ -205,19 +223,21 @@ function walk(node: any, visit: (node: any) => void): void {
   }
 }
 
-describe("ExerciseScreen — REWORK09 — Champ Nom de l'activité (point 3, Forms / Text Field — Source exact)", () => {
-  it("carries the canonical white field anatomy (fond blanc, liseré/rayon/hauteur dédiés), no grey style inherited from the old screen", () => {
+describe("ExerciseScreen — REWORK12 — Champ Nom de l'activité (zone bleue contextuelle, D-105)", () => {
+  it("carries the canonical transparent field anatomy on the blue band (fond transparent, liseré blanc, rayon/hauteur inchangés, typographie KODJO / Modal title)", () => {
     renderScreen(null);
 
     const field = screen.getByLabelText(t.name);
     const flattened = StyleSheet.flatten(field.props.style);
-    expect(flattened.backgroundColor).toBe(colors.background);
-    expect(flattened.backgroundColor).not.toBe(colors.surface);
+    expect(flattened.backgroundColor).toBe("transparent");
     expect(flattened.borderWidth).toBe(1);
-    expect(flattened.borderColor).toBe(colors.exerciseFieldBorder);
+    expect(flattened.borderColor).toBe(colors.sessionNameBorder);
     expect(flattened.borderRadius).toBe(dimensions.exerciseTextField.radius);
     expect(flattened.height).toBe(dimensions.exerciseTextField.height);
     expect(flattened.paddingHorizontal).toBe(dimensions.exerciseTextField.paddingHorizontal);
+    expect(flattened.fontSize).toBe(18);
+    expect(flattened.lineHeight).toBe(22);
+    expect(flattened.fontWeight).toBe("600");
   });
 
   it("starts on Étape 1 with the Valider button disabled (empty name), enabled once Nom and the default Durée are both valid", () => {
@@ -405,10 +425,6 @@ describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (poin
     renderScreen(null);
     const control = screen.getByTestId("exercise-field-duration-control");
     expect(control.props.accessibilityRole).toBe("button");
-    // Le contrôle occupe toute sa colonne (124×42 minimum) — cible réelle
-    // supérieure aux dimensions minimales conventionnelles React Native
-    // pour un `Pressable` de cette taille, sans `hitSlop` supplémentaire
-    // requis ici (contrairement aux icônes isolées `28×28`).
     const controlStyle = StyleSheet.flatten(control.props.style);
     expect(controlStyle.width).toBeGreaterThanOrEqual(74);
     expect(controlStyle.height).toBe(42);
@@ -568,9 +584,18 @@ describe("ExerciseScreen — REWORK09 — verrou de non-régression de la roulet
   });
 });
 
-describe("ExerciseScreen — REWORK09 — cadre récapitulatif calculé (point 8)", () => {
-  it("shows a computed recap reflecting the current draft, never a static Figma value, growing with its own content (no fixed height)", () => {
+/**
+ * REWORK09 (point 8), **reformulé par la complétion REWORK12** (D-105) :
+ * plus de préfixe `Exercice · Mode X ·`, le nom de l'Activité est désormais
+ * intégré au texte — voir `compositionPresentation.test.ts` pour la
+ * couverture exhaustive de `formatExerciseRecap` elle-même ; ces tests-ci
+ * vérifient uniquement que l'écran la câble correctement (frère du groupe
+ * Paramètres, jamais son enfant ; recalculée en direct).
+ */
+describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformulé (point 8, ACT-08/09)", () => {
+  it("shows a computed recap reflecting the current draft's own name, never a static Figma value, growing with its own content (no fixed height), as a sibling of the Paramètres group", () => {
     renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
     const summary = screen.getByTestId("exercise-summary-card");
     const summaryStyle = StyleSheet.flatten(summary.props.style);
@@ -579,11 +604,14 @@ describe("ExerciseScreen — REWORK09 — cadre récapitulatif calculé (point 8
     expect(summaryStyle.borderRadius).toBe(12);
 
     // Valeurs par défaut de `createExerciseDraft()` : mode Durée, 1 série, pause 0 s.
-    expect(within(summary).getByText(/^Exercice · Mode Durée · 1 série de/)).toBeTruthy();
+    expect(within(summary).getByText(/^1 série de Pompes de/)).toBeTruthy();
+    expect(within(summary).queryByText(/Exercice/)).toBeNull();
+    expect(within(summary).queryByText(/Mode/)).toBeNull();
   });
 
   it("recomputes the recap after Valider commits a new Durée, and after switching to Répétitions mode", () => {
     renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
@@ -600,7 +628,7 @@ describe("ExerciseScreen — REWORK09 — cadre récapitulatif calculé (point 8
     expect(within(summary).getByText(/1 min 30 s/)).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
-    expect(within(summary).getByText(/^Exercice · Mode Répétition ·/)).toBeTruthy();
+    expect(within(summary).getByText(/^1 série de 1 Pompes/)).toBeTruthy();
   });
 
   it("omits the pause clause entirely when pauseSeconds is 0 (default), never showing 'avec 0 s de pause'", () => {
@@ -611,17 +639,17 @@ describe("ExerciseScreen — REWORK09 — cadre récapitulatif calculé (point 8
   });
 });
 
-describe("ExerciseScreen — mode modification (draft.exercise !== null)", () => {
-  it("prefills the name from the existing exercise, and shows the real Session name (never a body title) in the header", () => {
-    renderScreen({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+describe("ExerciseScreen — mode modification (draft.exercises contains the targeted Activity)", () => {
+  it("prefills the name from the existing exercise, and shows 'Modifier une activité' (never the Session name) in the header", () => {
+    renderScreen({ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 });
 
     expect(screen.getByLabelText(t.name).props.value).toBe("Gainage");
-    expect(within(screen.getByTestId("screen-header")).getByText("Séance simple")).toBeTruthy();
+    expect(within(screen.getByTestId("screen-header")).getByText(t.titleEdit)).toBeTruthy();
   });
 
-  it("Terminer calls updateDraft exactly once with the edited local copy, and calls router.back()", () => {
+  it("Terminer calls updateDraft exactly once, replacing the edited Activity by id inside the exercises collection, and calls router.back()", () => {
     const { updateDraft } = renderScreen({
-      ...createExerciseDraft(),
+      ...createExerciseDraft("ex-1"),
       name: "Gainage",
       durationSeconds: 45,
     });
@@ -631,13 +659,13 @@ describe("ExerciseScreen — mode modification (draft.exercise !== null)", () =>
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
     expect(updateDraft).toHaveBeenCalledWith({
-      exercise: expect.objectContaining({ name: "Gainage", durationSeconds: 45 }),
+      exercises: [expect.objectContaining({ id: "ex-1", name: "Gainage", durationSeconds: 45 })],
     });
   });
 
   it("a second Terminer press before any intermediate render is a no-op (finishingRef synchronous lock)", () => {
     const { updateDraft } = renderScreen({
-      ...createExerciseDraft(),
+      ...createExerciseDraft("ex-1"),
       name: "Gainage",
       durationSeconds: 45,
     });
@@ -651,14 +679,12 @@ describe("ExerciseScreen — mode modification (draft.exercise !== null)", () =>
   });
 
   /**
-   * REWORK12 (ACT-10, `[ChatGPT] CHANGES_REQUESTED — REWORK12 — Activité +
-   * intégration dans Composition`, 2026-09-04) : bout en bout mode
-   * Répétition — création, validation, `Terminer`, exactement comme le test
-   * mode Durée ci-dessus.
+   * REWORK12 (ACT-10) : bout en bout mode Répétition — création,
+   * validation, `Terminer`, exactement comme le test mode Durée ci-dessus.
    */
   it("REWORK12 (ACT-10) — end-to-end Répétition mode: Terminer persists the exact repetitionCount/pauseSeconds/seriesCount edited via the drafts", () => {
     const { updateDraft } = renderScreen({
-      ...createExerciseDraft(),
+      ...createExerciseDraft("ex-1"),
       name: "Squats",
       executionMode: "REPETITIONS",
       repetitionCount: 12,
@@ -672,21 +698,23 @@ describe("ExerciseScreen — mode modification (draft.exercise !== null)", () =>
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
     expect(updateDraft).toHaveBeenCalledWith({
-      exercise: expect.objectContaining({
-        name: "Squats",
-        executionMode: "REPETITIONS",
-        repetitionCount: 12,
-        durationSeconds: null,
-        pauseSeconds: 15,
-        seriesCount: 3,
-      }),
+      exercises: [
+        expect.objectContaining({
+          name: "Squats",
+          executionMode: "REPETITIONS",
+          repetitionCount: 12,
+          durationSeconds: null,
+          pauseSeconds: 15,
+          seriesCount: 3,
+        }),
+      ],
     });
   });
 
   /** REWORK12 (ACT-10) : réouverture — les valeurs exactes du brouillon existant sont restituées, mode Répétition inclus (pas seulement le nom, voir le test Durée ci-dessus). */
   it("REWORK12 (ACT-10) — reopening an existing Répétition-mode Activity restores its exact repetitionCount/pauseSeconds/seriesCount", () => {
     renderScreen({
-      ...createExerciseDraft(),
+      ...createExerciseDraft("ex-1"),
       name: "Squats",
       executionMode: "REPETITIONS",
       repetitionCount: 12,
@@ -702,6 +730,53 @@ describe("ExerciseScreen — mode modification (draft.exercise !== null)", () =>
     expect(screen.getByText("12")).toBeTruthy(); // Répétitions
     expect(screen.getByText("00 min 15 s")).toBeTruthy(); // Pause (formatDurationRowValue)
     expect(screen.getByText("3")).toBeTruthy(); // Séries
+  });
+
+  /**
+   * Complétion REWORK12 (« Plusieurs activités et bouton persistant ») :
+   * `Terminer` doit AJOUTER une nouvelle Activité en fin de collection sans
+   * jamais écraser une Activité déjà présente lorsqu'aucun `exerciseId` n'a
+   * été transmis (parcours ajout, `renderScreen(null)`).
+   */
+  it("REWORK12 (« Plusieurs activités ») — Terminer on a NEW Activity (no exerciseId param) appends it after any Activity already present in draft.exercises, never replacing it", () => {
+    const updateDraft = jest.fn();
+    mockSearchParams = {}; // parcours ajout — aucun exerciseId
+    const existing: SessionDraftExercise = {
+      ...createExerciseDraft("ex-existing"),
+      name: "Gainage",
+      durationSeconds: 30,
+    };
+    render(
+      <TestSafeAreaProvider>
+        <SessionDraftContext.Provider
+          value={{
+            draft: {
+              name: "Séance simple",
+              color: "#3B82F6",
+              initialCountdownSeconds: 10,
+              finalPhaseSeconds: 5,
+              exercises: [existing],
+            },
+            updateDraft,
+            resetDraft: jest.fn(),
+          }}
+        >
+          <ExerciseScreen />
+        </SessionDraftContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.validateAction));
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        expect.objectContaining({ id: "ex-existing", name: "Gainage" }),
+        expect.objectContaining({ id: "generated-exercise-id", name: "Squats" }),
+      ],
+    });
   });
 });
 

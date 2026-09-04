@@ -42,6 +42,18 @@ import {
 export type SessionDraftExerciseExecutionMode = "DURATION" | "REPETITIONS";
 
 export type SessionDraftExercise = {
+  /**
+   * Identifiant stable, propre au brouillon (jamais un identifiant de
+   * persistance SQLite — voir la note de tête de `toCreateSessionInput`) —
+   * introduit par la complétion REWORK12 (« Plusieurs activités et bouton
+   * persistant ») pour permettre l'édition ciblée d'une Activité au sein
+   * d'une collection ordonnée. Fourni par l'appelant (`createExerciseDraft`
+   * ne génère jamais lui-même d'identifiant — ce fichier reste une fonction
+   * pure, sans dépendance `expo-crypto`/React ; `ExerciseScreen.tsx` est
+   * responsable de la génération réelle, via `Crypto.randomUUID()`, déjà
+   * utilisé ailleurs dans le projet pour les identifiants persistés).
+   */
+  readonly id: string;
   readonly name: string;
   readonly executionMode: SessionDraftExerciseExecutionMode;
   /** Non nul uniquement en mode `DURATION` (RM-034). */
@@ -62,17 +74,29 @@ export type SessionDraft = {
   readonly color: SessionColor;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
-  readonly exercise: SessionDraftExercise | null;
+  /**
+   * Collection ORDONNÉE d'Activités (T01-S08, complétion REWORK12 — « La
+   * transformation du brouillon actuel, limité à un champ `exercise`
+   * unique, vers une collection ordonnée d'activités est explicitement
+   * autorisée dans ce lot »). Remplace l'ancien champ `exercise:
+   * SessionDraftExercise | null`. L'ordre de ce tableau EST l'ordre
+   * d'insertion/affichage dans `Composition d'une séance` — aucun index de
+   * tri séparé. Le déplacement réel (réorganisation par geste) reste hors
+   * périmètre de S08 et appartient à S09 (poignée indicative uniquement,
+   * COMP-01) ; seuls l'ajout en fin de collection et le remplacement d'un
+   * élément existant par son `id` sont exercés en S08.
+   */
+  readonly exercises: readonly SessionDraftExercise[];
 };
 
-/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucun Exercice défini). */
+/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité définie). */
 export function createEmptyDraft(): SessionDraft {
   return {
     name: "",
     color: DEFAULT_SESSION_COLOR,
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
-    exercise: null,
+    exercises: [],
   };
 }
 
@@ -82,9 +106,13 @@ export function createEmptyDraft(): SessionDraft {
  * durée initiale canonique (`DEFAULT_EXERCISE_DURATION_SECONDS`), une
  * Série sans pause (`DEFAULT_SERIES_COUNT`/`DEFAULT_PAUSE_SECONDS`), aucune
  * consigne, aucune zone corporelle sélectionnée.
+ *
+ * `id` est désormais un paramètre obligatoire (complétion REWORK12) —
+ * fourni par l'appelant, jamais généré ici (fonction pure).
  */
-export function createExerciseDraft(): SessionDraftExercise {
+export function createExerciseDraft(id: string): SessionDraftExercise {
   return {
+    id,
     name: "",
     executionMode: DEFAULT_EXECUTION_MODE,
     durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -114,6 +142,15 @@ export function createExerciseDraft(): SessionDraftExercise {
  * n'est donc jamais restauré à la réouverture pour l'instant (T01-S08
  * n'appelle de toute façon jamais cette fonction : la persistance/réouverture
  * réelle restent hors périmètre).
+ *
+ * Limite disclosée (complétion REWORK12) : `Session`/`Cycle`/`Tour`
+ * (`Session.ts`) modélisent toujours une seule Activité persistée
+ * (`cycle.tour.exercise`, jamais un tableau) — cette fonction produit donc
+ * une collection à un seul élément. La collection à plusieurs éléments du
+ * brouillon (`SessionDraft.exercises`) n'a pas d'équivalent persisté avant
+ * une tranche ultérieure qui étendrait `Session`/SQLite en conséquence,
+ * hors périmètre de cette mission (« Enregistrer la séance », CE-T01-11,
+ * reste lui-même hors périmètre T01-S08).
  */
 export function toSessionDraft(session: Session): SessionDraft {
   return {
@@ -121,16 +158,19 @@ export function toSessionDraft(session: Session): SessionDraft {
     color: session.color,
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
-    exercise: {
-      name: session.cycle.tour.exercise.name,
-      executionMode: session.cycle.tour.exercise.executionMode,
-      durationSeconds: session.cycle.tour.exercise.durationSeconds,
-      repetitionCount: session.cycle.tour.exercise.repetitionCount,
-      seriesCount: session.cycle.tour.exercise.seriesCount,
-      pauseSeconds: session.cycle.tour.exercise.pauseSeconds,
-      instruction: session.cycle.tour.exercise.instruction,
-      bodyZoneIds: [],
-    },
+    exercises: [
+      {
+        id: session.cycle.tour.exercise.id,
+        name: session.cycle.tour.exercise.name,
+        executionMode: session.cycle.tour.exercise.executionMode,
+        durationSeconds: session.cycle.tour.exercise.durationSeconds,
+        repetitionCount: session.cycle.tour.exercise.repetitionCount,
+        seriesCount: session.cycle.tour.exercise.seriesCount,
+        pauseSeconds: session.cycle.tour.exercise.pauseSeconds,
+        instruction: session.cycle.tour.exercise.instruction,
+        bodyZoneIds: [],
+      },
+    ],
   };
 }
 
@@ -147,7 +187,11 @@ function bodyZoneIdSetsEqual(a: readonly string[], b: readonly string[]): boolea
  * pour être réutilisée directement par `ExerciseScreen` (comparaison de sa
  * copie de travail locale à son instantané initial, indépendamment du
  * `SessionDraft` partagé). Les zones corporelles sont comparées comme un
- * ensemble : leur ordre n'est pas significatif.
+ * ensemble : leur ordre n'est pas significatif. `id` est comparé comme
+ * n'importe quel autre champ (complétion REWORK12) — sans effet pratique
+ * ici, puisque `ExerciseScreen` compare toujours une copie de travail à son
+ * propre instantané initial, qui partagent nécessairement le même `id`
+ * tout au long d'une session d'édition.
  */
 export function exerciseEquals(
   a: SessionDraftExercise | null,
@@ -157,6 +201,7 @@ export function exerciseEquals(
     return a === b;
   }
   return (
+    a.id === b.id &&
     a.name === b.name &&
     a.executionMode === b.executionMode &&
     a.durationSeconds === b.durationSeconds &&
@@ -166,6 +211,22 @@ export function exerciseEquals(
     a.instruction === b.instruction &&
     bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds)
   );
+}
+
+/**
+ * Compare deux collections d'Activités élément par élément, dans l'ORDRE
+ * (l'ordre lui-même est significatif — voir `SessionDraft.exercises`) —
+ * introduite par la complétion REWORK12, réutilisée par
+ * `isSessionDraftDirty` ci-dessous.
+ */
+function exercisesEqual(
+  a: readonly SessionDraftExercise[],
+  b: readonly SessionDraftExercise[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((exercise, index) => exerciseEquals(exercise, b[index]));
 }
 
 /**
@@ -181,7 +242,7 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
     draft.color !== initial.color ||
     draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
     draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
-    !exerciseEquals(draft.exercise, initial.exercise)
+    !exercisesEqual(draft.exercises, initial.exercises)
   );
 }
 
@@ -206,6 +267,19 @@ function collectViolations(
  * de défaut rencontrée. Ne délègue l'assemblage final à
  * `validateCreateSessionInput` que lorsque plus aucune violation n'a été
  * relevée.
+ *
+ * Limite disclosée (complétion REWORK12) : `CreateSessionInput`/`Session`
+ * (`Session.ts`) modélisent toujours une seule Activité persistable
+ * (`exercise`, jamais un tableau) — cette fonction continue donc de ne
+ * valider/assembler que la PREMIÈRE Activité de `draft.exercises`
+ * (`exercises[0] ?? null`, même comportement que l'ancien champ singulier
+ * `exercise` pour une collection à au plus un élément). Une collection à
+ * plusieurs Activités n'est pas encore représentable par
+ * `CreateSessionInput` — cette fonction n'est de toute façon jamais
+ * invoquée par un parcours réellement câblé en T01-S08 (« Enregistrer la
+ * séance », CE-T01-11, reste hors périmètre ; `Continuer`/`Enregistrer`
+ * restent désactivés dans `CompositionScreen.tsx`), donc sans régression
+ * observable pour l'utilisateur de cette tranche.
  */
 export function toCreateSessionInput(draft: SessionDraft): ValidationResult<CreateSessionInput> {
   const violations: ValidationViolation[] = [
@@ -217,23 +291,25 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     ),
   ];
 
-  if (draft.exercise === null) {
+  const exerciseDraft = draft.exercises[0] ?? null;
+
+  if (exerciseDraft === null) {
     violations.push(
       { code: "REQUIRED", field: "exercise.name" },
       { code: "REQUIRED", field: "exercise.durationSeconds" },
     );
   } else {
-    violations.push(...collectViolations(validateExerciseName(draft.exercise.name)));
+    violations.push(...collectViolations(validateExerciseName(exerciseDraft.name)));
 
-    if (draft.exercise.durationSeconds === null) {
+    if (exerciseDraft.durationSeconds === null) {
       violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
     } else {
       violations.push(
-        ...collectViolations(validateExerciseDurationSeconds(draft.exercise.durationSeconds)),
+        ...collectViolations(validateExerciseDurationSeconds(exerciseDraft.durationSeconds)),
       );
     }
 
-    violations.push(...collectViolations(validateInstruction(draft.exercise.instruction)));
+    violations.push(...collectViolations(validateInstruction(exerciseDraft.instruction)));
   }
 
   if (violations.length > 0) {
@@ -244,7 +320,7 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
   // necessarily present here. Final assembly still goes through
   // `validateCreateSessionInput`, the single complete validator of a
   // persistable entry.
-  const exercise = draft.exercise as SessionDraftExercise & { durationSeconds: number };
+  const exercise = exerciseDraft as SessionDraftExercise & { durationSeconds: number };
 
   return validateCreateSessionInput({
     name: draft.name,

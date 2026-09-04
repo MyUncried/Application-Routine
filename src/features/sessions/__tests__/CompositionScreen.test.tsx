@@ -4,7 +4,7 @@ import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
-import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
@@ -59,15 +59,20 @@ function renderScreen() {
   );
 }
 
-/** Contourne `SessionDraftProvider` pour préremplir `draft.exercise` — celui-ci n'expose aucun moyen interactif de le faire depuis Composition seule. */
-function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> | null) {
+/**
+ * Contourne `SessionDraftProvider` pour préremplir `draft.exercises` —
+ * celui-ci n'expose aucun moyen interactif de le faire depuis Composition
+ * seule. Complétion REWORK12 : accepte une collection (0, 1 ou plusieurs
+ * Activités), remplace l'ancien paramètre `exercise: ... | null` singulier.
+ */
+function renderScreenWithDraft(exercises: readonly SessionDraftExercise[]) {
   const contextValue: SessionDraftContextValue = {
     draft: {
       name: "Séance simple",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise,
+      exercises,
     },
     updateDraft: jest.fn(),
     resetDraft: jest.fn(),
@@ -475,10 +480,19 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
 });
 
 describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
-  it("hides '+ Ajouter une activité' and shows the Exercise row once draft.exercise is set", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+  /**
+   * Complétion REWORK12 (COMP-03, « Plusieurs activités et bouton
+   * persistant ») : `+ Ajouter une activité` ne se masque plus jamais —
+   * abroge le comportement REWORK09/T01-S08 précédent (masqué dès qu'une
+   * Activité existait, modèle à Exercice unique).
+   */
+  it("keeps '+ Ajouter une activité' visible AND shows the Exercise row once an Activity is set (COMP-03 — never hidden any more)", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
-    expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
     expect(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeTruthy();
     expect(screen.getByText("Gainage")).toBeTruthy();
   });
@@ -493,18 +507,18 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
    * bloc Tour, voir COMP-02 ci-dessous) ni de second slot à droite.
    */
   it("REWORK12 (COMP-01) — shows only the composition-reorder structure icon on the Exercise row, never composition-main-content nor a right-side icon", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
-    const row = screen.getByTestId("composition-exercise-row");
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
     expect(screen.queryByTestId("composition-exercise-icon")).toBeNull();
     expect(within(row).queryByTestId("composition-row-icon-composition-main-content")).toBeNull();
   });
 
   it("REWORK12 (COMP-01) — the Exercise row's structure icon displays the canonical 20×20 glyph at opacity 0.5, same as the Compte à rebours/Fin de séance cards (same shared component, by construction)", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
-    const row = screen.getByTestId("composition-exercise-row");
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
     const reorderIcon = within(row).getByTestId("composition-boundary-handle-icon");
     const flattened = StyleSheet.flatten(reorderIcon.props.style);
     expect(flattened.width).toBe(20);
@@ -513,9 +527,9 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   });
 
   it("REWORK12 (COMP-01) — the Exercise row reuses the exact same card anatomy (fond, liseré, rayon) as the Compte à rebours initial card, by construction (same limitCardBase/boundaryRow styles)", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
-    const exerciseRow = screen.getByTestId("composition-exercise-row");
+    const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
     const exerciseCardStyle = StyleSheet.flatten(exerciseRow.props.style);
     const countdownCardStyle = StyleSheet.flatten(
       screen.getByLabelText(composition.countdown.label).props.style,
@@ -526,36 +540,76 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
-    renderScreenWithDraft({
-      ...createExerciseDraft(),
-      name: "Gainage",
-      durationSeconds: 90,
-      seriesCount: 3,
-      pauseSeconds: 15,
-      instruction: "Ne pas creuser le dos",
-    });
+    renderScreenWithDraft([
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Gainage",
+        durationSeconds: 90,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        instruction: "Ne pas creuser le dos",
+      },
+    ]);
 
     expect(screen.getByText("Gainage")).toBeTruthy();
     expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
     expect(screen.queryByText("Ne pas creuser le dos")).toBeNull();
   });
 
-  it("pressing the Exercise row navigates to /exercise (reopen for editing)", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+  it("pressing the Exercise row navigates to /exercise with its own exerciseId (reopen for editing, complétion REWORK12 — édition ciblée par identifiant)", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
     fireEvent.press(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel));
-    expect(mockPush).toHaveBeenCalledWith("/exercise");
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { exerciseId: "ex-1" },
+    });
   });
 
-  it("never shows the Exercise row while draft.exercise is null", () => {
-    renderScreenWithDraft(null);
+  it("never shows the Exercise row while draft.exercises is empty", () => {
+    renderScreenWithDraft([]);
     expect(screen.queryByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeNull();
+  });
+
+  /**
+   * Complétion REWORK12 (« Plusieurs activités et bouton persistant »),
+   * test obligatoire de l'autorisation : deux Activités distinctes
+   * coexistent, dans l'ordre de la collection, le bouton Ajouter reste
+   * utilisable, et presser chaque ligne navigue avec SON PROPRE identifiant
+   * — jamais celui d'une autre.
+   */
+  it("REWORK12 (« Plusieurs activités ») — renders one row per Activity, in collection order, each navigating to /exercise with its own exerciseId, button still usable", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+    ]);
+
+    expect(screen.getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
+    expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+    expect(screen.getByText("Gainage")).toBeTruthy();
+    expect(screen.getByText("Squats")).toBeTruthy();
+
+    const order = testIdOrder(screen.toJSON(), [
+      "composition-exercise-row-ex-1",
+      "composition-exercise-row-ex-2",
+    ]);
+    expect(order).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
+
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { exerciseId: "ex-2" },
+    });
+
+    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
   });
 });
 
 describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de correction après contre-recette iPhone 2026-09-03)", () => {
   it("initial order (no Activity yet): + Ajouter une activité ABOVE Compte à rebours initial, then Tour, then Fin de séance (UI-COMP-002)", () => {
-    renderScreenWithDraft(null);
+    renderScreenWithDraft([]);
 
     const order = testIdOrder(screen.toJSON(), [
       "composition-add-activity-icon",
@@ -579,16 +633,16 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
   });
 
   it("order once an Activity exists: Compte à rebours initial, then the created Activity, then Tour, then Fin de séance (UI-COMP-003) — never after Tour", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
     const order = testIdOrder(screen.toJSON(), [
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-row",
+      "composition-exercise-row-ex-1",
       "composition-row-icon-composition-end-session",
     ]);
     expect(order).toEqual([
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-row",
+      "composition-exercise-row-ex-1",
       "composition-row-icon-composition-end-session",
     ]);
 
@@ -806,7 +860,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   });
 
   it("REWORK08-C/REWORK09 — the Tour summary reflects the real computed activity count/duration, not a static placeholder (the redundant bottomAction copy no longer exists to compare against since REWORK09)", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
@@ -973,10 +1027,10 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
   });
 
   it("REWORK12 (COMP-02) — the Tour icon's source is the same asset as the Exercise row's structure icon, matching the source verified directly on the current Figma node (2028:11742), never the previous icon-tour.svg", () => {
-    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
     const tourIcon = screen.getByTestId("composition-tour-icon");
-    const exerciseRow = screen.getByTestId("composition-exercise-row");
+    const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
     const exerciseStructureIcon = within(exerciseRow).getByTestId("composition-boundary-handle-icon");
 
     // `composition-main-content` (Tour) reste un SVG distinct de

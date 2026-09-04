@@ -72,7 +72,7 @@ function aValidDraft(): SessionDraft {
   return {
     ...createEmptyDraft(),
     name: "Séance simple",
-    exercise: { ...createExerciseDraft(), name: "Gainage" },
+    exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
   };
 }
 
@@ -111,7 +111,7 @@ describe("SessionService.createSession", () => {
     const draft: SessionDraft = {
       ...aValidDraft(),
       name: "  Séance   simple  ",
-      exercise: { ...createExerciseDraft(), name: "  Gainage  " },
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "  Gainage  " }],
     };
 
     const result = await service.createSession(draft);
@@ -159,7 +159,7 @@ describe("SessionService.createSession", () => {
     const draft: SessionDraft = {
       ...createEmptyDraft(),
       name: "Séance simple",
-      exercise: { ...createExerciseDraft(), name: "Gainage" },
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
     };
 
     await service.createSession(draft);
@@ -220,7 +220,7 @@ describe("SessionService.updateSession", () => {
     const draft: SessionDraft = {
       ...aValidDraft(),
       name: "  Nom modifié  ",
-      exercise: { ...createExerciseDraft(), name: "  Gainage  " },
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "  Gainage  " }],
     };
 
     const result = await service.updateSession("session-1", draft);

@@ -125,7 +125,11 @@ describe("strings", () => {
   it("exposes the Exercise screen texts (T01-S08)", () => {
     // REWORK09 (mission directe utilisateur, 2026-09-04) : `titleAdd`/
     // `titleEdit` (grand titre local, remplacé par le nom réel de la
-    // Séance dans l'en-tête fixe partagé) n'existent plus.
+    // Séance dans l'en-tête fixe partagé) avaient été retirés.
+    //
+    // Complétion REWORK12 (`[ChatGPT] Applique impérativement le protocole
+    // KODJO actif...`, 2026-09-04, D-105) : réintroduits avec un sens
+    // fonctionnel — voir le test dédié ci-dessous.
     expect(strings.screens.exercise.backAccessibilityLabel).toBe("Retour");
     expect(strings.screens.exercise.name).toBe("Nom de l’activité");
     expect(strings.screens.exercise.executionMode).toEqual({
@@ -153,12 +157,21 @@ describe("strings", () => {
     expect(strings.screens.exercise.repetitionCount.compactLabel).toBe("Répétitions");
   });
 
-  it("REWORK09 — exposes the Exercise recap fragments (mode prefix, distinct pause suffix from the Composition row summary)", () => {
-    expect(strings.screens.exercise.recap.modePrefix).toBe("Mode");
-    expect(strings.screens.exercise.recap.pauseSuffix).toBe("de pause entre les séries");
+  it("REWORK12 — exposes the Exercise recap fragments (pause label always applied, suffix conditional on several Séries), modePrefix removed (no longer consumed)", () => {
+    expect(strings.screens.exercise.recap).toEqual({
+      pauseLabel: "de pause",
+      pauseSuffix: "entre les séries",
+    });
     expect(strings.screens.exercise.recap.pauseSuffix).not.toBe(
       strings.screens.composition.exerciseRow.pauseSuffix,
     );
+  });
+
+  it("REWORK12 — exposes the functional titles Ajouter/Modifier une activité and Informations complémentaires, and the Séance context prefix (D-105)", () => {
+    expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
+    expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
+    expect(strings.screens.exercise.titleInformation).toBe("Informations complémentaires");
+    expect(strings.screens.exercise.context).toEqual({ prefix: "Séance" });
   });
 
   it("exposes the Exercise Type segment (Exercice/Récupération) and the Paramètres section title (CE-T01-13, AUD-08)", () => {

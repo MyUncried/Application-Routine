@@ -18,7 +18,6 @@ const sources = {
   "navigation-profile-inactive": require("../../../assets/icons/navigation-profile.svg"),
   "navigation-search": require("../../../assets/icons/navigation-search.svg"),
   "composition-initial-countdown": require("../../../assets/icons/composition-initial-countdown.svg"),
-  "composition-main-content": require("../../../assets/icons/composition-main-content.svg"),
   "composition-end-session": require("../../../assets/icons/composition-end-session.svg"),
   "composition-reorder": require("../../../assets/icons/composition-reorder.svg"),
   "state-selected": require("../../../assets/icons/state-selected.svg"),
@@ -59,7 +58,6 @@ const sizes = {
   "navigation-profile-inactive": [26, 29],
   "navigation-search": [26, 26],
   "composition-initial-countdown": [24, 24],
-  "composition-main-content": [18, 18],
   "composition-end-session": [24, 24],
   // R4-04 (cycle REWORK04) : affichage porté de `16×16` à `20×20`. REWORK06
   // (addendum « écarts visuels encore ouverts », 2026-09-04) : porté à
@@ -83,7 +81,21 @@ const sizes = {
   // COMPLEMENTS REVIEWED`, 2026-09-03) : export canonique `icon-tour.svg`
   // (composant Figma `3066:4685`, octets exacts téléchargés depuis
   // l'asset MCP fourni par l'autorisation, jamais redessiné).
-  "icon-tour": [20, 20],
+  //
+  // REWORK12-bis (`.github/orchestration/reports/2026-09-04_icon-tour-
+  // canonical-source-alignment.md`, `DESIGN_ICON_TOUR_CANONICAL_SOURCE_
+  // ALIGNED`) : `Icon / Tour` (`3066:4685`) a été reconstruit sur le dessin
+  // validé de `Nouvelle séance — Nom renseigné` (`2028:12003`) — géométrie
+  // canonique désormais `18×18` (`20×20` R4-11 abandonné, pas une
+  // régression : c'est le même composant DSF, reconstruit sur une
+  // géométrie différente et republiée). `assets/icons/icon-tour.svg`
+  // lui-même a été remplacé par le nouvel export (octets exacts, commit
+  // `890b1e7`) — seule cette taille d'affichage est corrigée ici pour
+  // suivre l'actif. `composition-main-content` (ancienne source
+  // concurrente, `icon/contenu-principal`) est retiré de ce registre : le
+  // manifeste Figma (`assets/icons/manifest.json`) ne porte plus aucune
+  // entrée pour cette icône.
+  "icon-tour": [18, 18],
   // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
   // + structure Tour`, 2026-09-04) : actifs SVG canoniques `wheel-action-
   // cancel.svg`/`wheel-action-validate.svg` (`3089:81`/`3089:83`),

@@ -111,7 +111,7 @@ export function CompositionScreen() {
   // même contenu canonique (`formatCompositionSummary`), jamais recalculé
   // ni reformulé localement pour l'un ou l'autre emplacement.
   const compositionSummary = formatCompositionSummary({
-    exercise: draft.exercise,
+    exercises: draft.exercises,
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
   });
@@ -166,29 +166,35 @@ export function CompositionScreen() {
          * composant DS (`dimensions.compactSecondaryButton`, même token que
          * le bouton Créer du Catalogue) — fond blanc, bordure/icône/texte
          * primaires, cible tactile `≥48` via `hitSlop` indépendante de la
-         * boîte visuelle. Masqué dès qu'un Exercice existe (modèle T01,
-         * `draft.exercise` unique, jamais un tableau) : la ligne de résumé
-         * de l'Exercice le remplace alors ailleurs dans la structure (voir
-         * plus bas, UI-COMP-003), jamais à cette position.
+         * boîte visuelle.
+         *
+         * **Complétion REWORK12 (COMP-03)** (`[ChatGPT] Applique
+         * impérativement le protocole KODJO actif...`, 2026-09-04) : reste
+         * désormais TOUJOURS visible et utilisable, y compris après l'ajout
+         * d'une ou plusieurs Activités — abroge la restriction précédente
+         * (« Masqué dès qu'un Exercice existe », modèle T01 à Exercice
+         * unique) : `draft.exercises` est désormais une collection ordonnée
+         * (`SessionDraft.ts`), et ce bouton navigue systématiquement vers
+         * `/exercise` SANS paramètre `exerciseId` — un identifiant frais y
+         * est généré, ajoutant toujours une NOUVELLE Activité en fin de
+         * collection, jamais en remplacement d'une existante.
          */}
-        {draft.exercise === null ? (
-          <Pressable
-            onPress={() => router.push("/exercise")}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: false }}
-            accessibilityLabel={composition.addActivity}
-            hitSlop={{
-              top: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-              bottom: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-              left: spacing[8],
-              right: spacing[8],
-            }}
-            style={styles.addActivityAction}
-          >
-            <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
-            <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
-          </Pressable>
-        ) : null}
+        <Pressable
+          onPress={() => router.push("/exercise")}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: false }}
+          accessibilityLabel={composition.addActivity}
+          hitSlop={{
+            top: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
+            bottom: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
+            left: spacing[8],
+            right: spacing[8],
+          }}
+          style={styles.addActivityAction}
+        >
+          <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
+          <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
+        </Pressable>
       </ContextBand>
 
       {/*
@@ -291,20 +297,31 @@ export function CompositionScreen() {
         </AnchoredRow>
 
         {/*
-         * UI-COMP-003 : une fois créée, l'Activité s'insère ICI — entre Compte
-         * à rebours initial et Tour, jamais après Tour par défaut.
+         * UI-COMP-003 : une fois créée, chaque Activité s'insère ICI — entre
+         * Compte à rebours initial et Tour, jamais après Tour par défaut.
+         *
+         * **Complétion REWORK12 (« Plusieurs activités et bouton
+         * persistant »)** : `draft.exercises` est désormais une collection
+         * ORDONNÉE (`SessionDraft.ts`) — chaque élément produit sa propre
+         * `BoundaryActivityRow`, dans l'ORDRE de la collection (celui-ci EST
+         * l'ordre d'affichage, aucun tri séparé). Presser une ligne ouvre
+         * `/exercise` avec son `exerciseId` (édition ciblée par
+         * identifiant) — jamais l'identifiant d'une autre Activité de la
+         * liste. Le déplacement réel reste hors périmètre de S08 (poignée
+         * indicative uniquement, COMP-01/S09).
          */}
-        {draft.exercise !== null ? (
+        {draft.exercises.map((exercise) => (
           <BoundaryActivityRow
-            testID="composition-exercise-row"
+            key={exercise.id}
+            testID={`composition-exercise-row-${exercise.id}`}
             icon={null}
-            label={draft.exercise.name}
-            value={formatExerciseRowSummary(draft.exercise)}
+            label={exercise.name}
+            value={formatExerciseRowSummary(exercise)}
             isOpen={false}
-            onPress={() => router.push("/exercise")}
+            onPress={() => router.push({ pathname: "/exercise", params: { exerciseId: exercise.id } })}
             accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
           />
-        ) : null}
+        ))}
 
         <TourCard label={composition.tour.label} summary={compositionSummary} />
 
@@ -581,26 +598,30 @@ function BoundaryActivityRow({
  *   — `icon-tour.svg` (`3066:4685`, `20×20`), octets exacts téléchargés
  *   depuis l'asset MCP fourni par l'autorisation, jamais redessinée ni
  *   substituée. Ferme le blocage reconduit depuis `REWORK02`.
- * - **REWORK12 (COMP-02)** (`[ChatGPT] CHANGES_REQUESTED — REWORK12`,
- *   2026-09-04) : `icon-tour.svg` remplacé par `composition-main-content`
- *   (dimensions inchangées `18×18`, déjà enregistré dans `KodjoIcon.tsx`,
- *   aucun nouvel actif) — vérifié directement sur le nœud Figma actuel
- *   (`2028:11742`, en-tête de la structure Tour) : l'icône réellement
- *   affichée y est `icon/contenu-principal` (`18×18`), un SVG distinct de
- *   `icon-tour.svg` (comparaison directe des exports Figma — glyphes
- *   visuellement différents, pas une variante de rendu du même dessin).
- *   L'énoncé « même icône qu'à gauche de la carte d'Activité » de
- *   l'autorisation ne correspond PAS littéralement à ce qui est observé
- *   (le slot gauche de `Composition / Activity Row` reste
- *   `Icon / Structure / Movable`/`composition-reorder`, un troisième SVG
- *   encore différent) — écart disclosé, résolu en faveur de la source
- *   Figma directement vérifiée plutôt que de la description littérale,
- *   conformément à la règle de gouvernance « ne jamais se fonder sur un
- *   rapport antérieur ou l'implémentation existante, contrôler directement
- *   les nœuds Figma actuels ». `icon-tour.svg` n'a plus de consommateur
- *   après ce changement ; l'actif est conservé (aucune suppression
- *   demandée par cette mission) mais son export `KodjoIcon.tsx` (`sources`/
- *   `sizes["icon-tour"]`) devient orphelin, signalé ici pour traçabilité.
+ * - **REWORK12 (COMP-02), première tentative** (`[ChatGPT] CHANGES_REQUESTED
+ *   — REWORK12`, 2026-09-04) : `icon-tour.svg` avait été temporairement
+ *   remplacé par `composition-main-content` après avoir constaté, sur le
+ *   Figma alors en vigueur, que l'icône réellement affichée dans l'en-tête
+ *   de la structure Tour (`icon/contenu-principal`) ne correspondait pas à
+ *   l'ancien export `icon-tour.svg` — écart disclosé dans le rapport de
+ *   mission de ce cycle.
+ * - **REWORK12-bis — correction canonique définitive** (`[ChatGPT] Applique
+ *   impérativement le protocole KODJO actif...`, 2026-09-04 ; `.github/
+ *   orchestration/reports/2026-09-04_icon-tour-canonical-source-alignment
+ *   .md`, `DESIGN_ICON_TOUR_CANONICAL_SOURCE_ALIGNED`) : le composant DSF
+ *   `Icon / Tour` (`3066:4685`) a depuis été **reconstruit** sur le dessin
+ *   validé (celui de `Nouvelle séance — Nom renseigné`, `2028:12003`) et
+ *   republié à `18×18` (contre `20×20` auparavant) ; `assets/icons/icon-
+ *   tour.svg` a été remplacé par le nouvel export (octets exacts). `icon-
+ *   tour` (`KodjoIcon.tsx`) redevient donc la source canonique correcte —
+ *   revenue ici depuis `composition-main-content`, désormais retiré du
+ *   registre (`KodjoIcon.tsx`) et du manifeste Figma (`assets/icons/
+ *   manifest.json` ne porte plus aucune entrée `composition.mainContent`).
+ *   Ce n'est pas un aller-retour arbitraire : la première tentative avait
+ *   correctement diagnostiqué que l'ancien `icon-tour.svg` (`20×20`) ne
+ *   correspondait pas à la source canonique — la correction définitive
+ *   porte sur LEQUEL export résout ce défaut (le même composant DSF
+ *   reconstruit, pas un composant concurrent).
  * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
  *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
  *   `rowLabel`/`tourCardLabel`).
@@ -683,7 +704,7 @@ function TourCard({ label, summary }: { label: string; summary: string }) {
         testID="composition-tour-card"
       >
         <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
-          <KodjoIcon name="composition-main-content" testID="composition-tour-icon" />
+          <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
         </View>
         {/*
          * REWORK08-C : titre + synthèse forment désormais UN SEUL bloc
