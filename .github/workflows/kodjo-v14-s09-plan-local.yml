@@ -76,16 +76,16 @@ jobs:
             $m=[regex]::Match($env:TRIGGER_BODY,'(?m)^attempt=(\d+)\s*$'); if(-not$m.Success){throw 'Revision attempt missing.'}; $attempt=[int]$m.Groups[1].Value
             $s=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$'); if(-not$s.Success){throw 'Revision session_id missing.'}; $session=$s.Groups[1].Value
             $feedbackMarker='REVIEW_FEEDBACK:'; $idx=$env:TRIGGER_BODY.IndexOf($feedbackMarker); if($idx -lt 0){throw 'Revision feedback missing.'}; $feedback=$env:TRIGGER_BODY.Substring($idx+$feedbackMarker.Length).Trim()
-            $prompt="KODJO T01-S09 V1.4 — RÉVISION PLAN tentative $attempt. Reprends exactement la session de plan précédente. Corrige uniquement selon le feedback de revue, puis revalide contre les sources Git actuelles. Ne modifie aucun fichier. Si une vraie décision produit/UX est indéterminable, retourne CLARIFICATION_REQUIRED. Feedback: $feedback"
+            $prompt="KODJO T01-S09 V1.4 - REVISION PLAN tentative $attempt. Reprends exactement la session de plan precedente. Corrige uniquement selon le feedback de revue, puis revalide contre les sources Git actuelles. Ne modifie aucun fichier. Si une vraie decision produit/UX est indeterminable, retourne CLARIFICATION_REQUIRED. Feedback: $feedback"
             $raw=(& $env:CLAUDE_PATH -p --resume $session --output-format json $prompt 2>&1|Out-String)
           } else {
             $lines=@(
-              'KODJO T01-S09 — CONSTRUIRE LE PLAN V1.4. Phase strictement lecture seule.',
-              "Baseline Git autorisée: $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Issue métier: #17.",
-              'Lis et cite comme sources de vérité: docs/PRODUCT.md, docs/INDEX.md, les spécifications fonctionnelles 06 à 13 (notamment 07 registre des décisions et 13 contrats d’écran), les images categories-seance.png et categories-nouvelle-inline.png, le code réel T01-S01 à S08 sous app/ et src/, et le rapport Figma blockers catégories/headers si pertinent.',
-              'Le plan doit couvrir: navigation Composition vers Catégories, zéro/multi-catégories, création inline, persistance complète T01-S08, zones corporelles, migration additive, transaction/atomicité, prévention double-submit, reset après succès, retour Catalogue, tests, chemins probables, critères d’acceptation et preuves attendues.',
-              'Distingue explicitement règle fonctionnelle, rendu/état UI, contrainte technique, décision validée et point À CLARIFIER. N’invente rien. Les documents versionnés plus récents supersèdent toute formulation ancienne incompatible de l’Issue.',
-              'Ne développe pas S10. Aucun Edit/Write, aucun commit/push. Le plan doit permettre une implémentation sans micro-arbitrages humains.'
+              'KODJO T01-S09 - CONSTRUIRE LE PLAN V1.4. Phase strictement lecture seule.',
+              "Baseline Git autorisee: $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Issue metier: #17.",
+              'Lis et cite comme sources de verite: docs/PRODUCT.md, docs/INDEX.md, les specifications fonctionnelles 06 a 13 (notamment 07 registre des decisions et 13 contrats d'ecran), les images categories-seance.png et categories-nouvelle-inline.png, le code reel T01-S01 a S08 sous app/ et src/, et le rapport Figma blockers categories/headers si pertinent.',
+              'Le plan doit couvrir: navigation Composition vers Categories, zero/multi-categories, creation inline, persistance complete T01-S08, zones corporelles, migration additive, transaction/atomicite, prevention double-submit, reset apres succes, retour Catalogue, tests, chemins probables, criteres d'acceptation et preuves attendues.',
+              'Distingue explicitement regle fonctionnelle, rendu/etat UI, contrainte technique, decision validee et point A CLARIFIER. N'invente rien. Les documents versionnes plus recents supersedent toute formulation ancienne incompatible de l'Issue.',
+              'Ne developpe pas S10. Aucun Edit/Write, aucun commit/push. Le plan doit permettre une implementation sans micro-arbitrages humains.'
             )
             $prompt=$lines -join [Environment]::NewLine
             $raw=(& $env:CLAUDE_PATH -p --output-format json $prompt 2>&1|Out-String)
