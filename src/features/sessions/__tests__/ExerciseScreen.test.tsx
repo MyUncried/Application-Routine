@@ -7,7 +7,7 @@ import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
-import { colors, dimensions } from "@/shared/ui/tokens";
+import { colors, dimensions, type } from "@/shared/ui/tokens";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 jest.mock("expo-haptics", () => ({
@@ -224,7 +224,15 @@ function walk(node: any, visit: (node: any) => void): void {
 }
 
 describe("ExerciseScreen — REWORK12 — Champ Nom de l'activité (zone bleue contextuelle, D-105)", () => {
-  it("carries the canonical transparent field anatomy on the blue band (fond transparent, liseré blanc, rayon/hauteur inchangés, typographie KODJO / Modal title)", () => {
+  /**
+   * REWORK13 (R13-01, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
+   * typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04) :
+   * `type.screenTitle` (`20/24` Semi Bold) remplace `type.modalTitle`
+   * (`18/22` Semi Bold, REWORK12-bis) — identique à `Nom de la séance`
+   * (Composition). Géométrie/fond/liseré/bandeau : inchangés (assertions
+   * héritées ci-dessous).
+   */
+  it("carries the canonical transparent field anatomy on the blue band (fond transparent, liseré blanc, rayon/hauteur inchangés, typographie KODJO / Screen title)", () => {
     renderScreen(null);
 
     const field = screen.getByLabelText(t.name);
@@ -235,9 +243,14 @@ describe("ExerciseScreen — REWORK12 — Champ Nom de l'activité (zone bleue c
     expect(flattened.borderRadius).toBe(dimensions.exerciseTextField.radius);
     expect(flattened.height).toBe(dimensions.exerciseTextField.height);
     expect(flattened.paddingHorizontal).toBe(dimensions.exerciseTextField.paddingHorizontal);
-    expect(flattened.fontSize).toBe(18);
-    expect(flattened.lineHeight).toBe(22);
-    expect(flattened.fontWeight).toBe("600");
+    expect(flattened.fontSize).toBe(type.screenTitle.fontSize);
+    expect(flattened.lineHeight).toBe(type.screenTitle.lineHeight);
+    expect(flattened.fontWeight).toBe(type.screenTitle.fontWeight);
+    expect(flattened.fontSize).toBe(20);
+    expect(flattened.lineHeight).toBe(24);
+    // Aucune valeur locale `18/22` (type.modalTitle) ne subsiste pour ce champ.
+    expect(flattened.fontSize).not.toBe(18);
+    expect(flattened.lineHeight).not.toBe(22);
   });
 
   it("starts on Étape 1 with the Valider button disabled (empty name), enabled once Nom and the default Durée are both valid", () => {

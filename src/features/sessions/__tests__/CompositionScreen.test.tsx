@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { useCallback, useMemo, useState } from "react";
 import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
@@ -64,24 +65,55 @@ function renderScreen() {
  * celui-ci n'expose aucun moyen interactif de le faire depuis Composition
  * seule. Complétion REWORK12 : accepte une collection (0, 1 ou plusieurs
  * Activités), remplace l'ancien paramètre `exercise: ... | null` singulier.
+ *
+ * REWORK13 (R13-02) : `updateDraft` est désormais un VRAI merge d'état
+ * local (`useState`, même patron que `SessionDraftProvider.tsx`), pas un
+ * `jest.fn()` statique — nécessaire pour que confirmer un sélecteur de
+ * durée (Compte à rebours/Fin de séance) produise un re-rendu observable,
+ * condition requise par les tests obligatoires R13-02 n°2/n°3 ci-dessous.
+ * Aucun test existant n'observait `updateDraft` lui-même (jamais un
+ * `toHaveBeenCalledWith` dessus dans ce fichier) : ce changement ne
+ * régresse aucune assertion préexistante.
  */
-function renderScreenWithDraft(exercises: readonly SessionDraftExercise[]) {
-  const contextValue: SessionDraftContextValue = {
-    draft: {
-      name: "Séance simple",
+function StatefulDraftWrapper({
+  initialExercises,
+  children,
+}: {
+  initialExercises: readonly SessionDraftExercise[];
+  children: React.ReactNode;
+}) {
+  const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() => ({
+    name: "Séance simple",
+    color: DEFAULT_SESSION_COLOR,
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    exercises: initialExercises,
+  }));
+  const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
+    setDraft((current) => ({ ...current, ...patch }));
+  }, []);
+  const resetDraft = useCallback(() => {
+    setDraft({
+      name: "",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercises,
-    },
-    updateDraft: jest.fn(),
-    resetDraft: jest.fn(),
-  };
+      exercises: [],
+    });
+  }, []);
+  const value = useMemo<SessionDraftContextValue>(
+    () => ({ draft, updateDraft, resetDraft }),
+    [draft, updateDraft, resetDraft],
+  );
+  return <SessionDraftContext.Provider value={value}>{children}</SessionDraftContext.Provider>;
+}
+
+function renderScreenWithDraft(exercises: readonly SessionDraftExercise[]) {
   return render(
     <TestSafeAreaProvider>
-      <SessionDraftContext.Provider value={contextValue}>
+      <StatefulDraftWrapper initialExercises={exercises}>
         <CompositionScreen />
-      </SessionDraftContext.Provider>
+      </StatefulDraftWrapper>
     </TestSafeAreaProvider>,
   );
 }
@@ -859,14 +891,68 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(controlStyle.height).toBe(44);
   });
 
-  it("REWORK08-C/REWORK09 — the Tour summary reflects the real computed activity count/duration, not a static placeholder (the redundant bottomAction copy no longer exists to compare against since REWORK09)", () => {
+  /**
+   * REWORK13 (R13-02) : la synthèse compte/totalise EXCLUSIVEMENT les
+   * Activités — `initialCountdownSeconds`/`finalPhaseSeconds` du brouillon
+   * (`10 s`/`5 s` par défaut dans `renderScreenWithDraft`) ne contribuent
+   * plus du tout, contrairement à l'ancien commentaire de ce test.
+   */
+  it("REWORK08-C/REWORK09/REWORK13 — the Tour summary reflects the real computed Activity-only duration, not a static placeholder", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
     );
-    // Contexte : Compte à rebours 10 s + Exercice 45 s + Fin de séance 5 s = 60 s = 1 min.
+    // Contexte : seule l'Activité contribue désormais — 45 s -> ceil(45/60) = 1 min.
     expect(tourSummary.props.children).toBe("1 activité · 1 min");
+  });
+
+  /**
+   * REWORK13 (R13-02), tests obligatoires n°2 et n°3 : confirmer le Compte
+   * à rebours initial ou la Fin de séance n'actualise jamais la synthèse du
+   * Tour (seulement sa propre carte) ; modifier une Activité ou le nombre
+   * de Tours l'actualise conformément aux références.
+   */
+  it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Tour summary", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+
+    const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
+      "composition-tour-summary",
+    ).props.children;
+    expect(tourSummaryBefore).toBe("1 activité · 1 min");
+
+    // Compte à rebours initial : ouvre, change, confirme.
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(screen.getByText("02 min 10 s")).toBeTruthy(); // sa propre carte a bien changé
+    expect(
+      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+        .props.children,
+    ).toBe(tourSummaryBefore); // la synthèse Tour, elle, reste identique
+
+    // Fin de séance : idem.
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 3);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(screen.getByText("03 min 05 s")).toBeTruthy();
+    expect(
+      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+        .props.children,
+    ).toBe(tourSummaryBefore);
+  });
+
+  it("REWORK13 (R13-02) — adding a second Activity updates the Tour summary accordingly (count and duration both recomputed)", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+    ]);
+
+    const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
+      "composition-tour-summary",
+    );
+    // 45 + 30 = 75s -> ceil(75/60) = 2 min.
+    expect(tourSummary.props.children).toBe("2 activités · 2 min");
   });
 
   it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {

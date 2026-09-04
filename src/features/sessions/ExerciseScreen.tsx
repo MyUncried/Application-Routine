@@ -756,12 +756,20 @@ const styles = StyleSheet.create({
   // (`dimensions.exerciseTextField`, `46/8/14`, inchangée — REWORK09) mais
   // fond transparent et liseré blanc intérieur (`colors.sessionNameBorder`,
   // même token que `Nom de la séance` dans Composition), posée sur la zone
-  // bleue plutôt qu'un fond blanc opaque. Valeur en `type.modalTitle`
-  // (`18/22` Semi Bold), vérifiée directement sur `3261:4154`/`3261:4163` —
-  // remplace `type.exerciseFieldValue` (`13px` Regular), devenu sans
-  // consommateur.
+  // bleue plutôt qu'un fond blanc opaque.
+  //
+  // REWORK13 (R13-01, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
+  // typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04 ;
+  // `.github/orchestration/reports/2026-09-04_activity-name-typography-
+  // tour-summary-scope.md`) : valeur portée de `type.modalTitle` (`18/22`
+  // Semi Bold, REWORK12-bis) à `type.screenTitle` (`20/24` Semi Bold) —
+  // identique au style de `Nom de la séance` dans Composition, vérifié
+  // directement sur `1992:9132` (référence Figma explicitement citée par
+  // l'autorisation). Géométrie du champ (46/8/14), fond transparent, liseré
+  // blanc, bandeau contextuel et `Séance · {nom}` en `14/17` : strictement
+  // préservés, aucune autre propriété modifiée.
   nameInput: {
-    ...type.modalTitle,
+    ...type.screenTitle,
     color: colors.textPrimary,
     backgroundColor: "transparent",
     borderWidth: 1,

@@ -13,16 +13,28 @@ import { strings } from "@/shared/i18n";
 export type CompositionSummaryFacts = {
   /** Collection ORDONNÉE d'Activités (`SessionDraft.exercises`, complétion REWORK12) — remplace l'ancien champ `exercise` singulier. */
   readonly exercises: readonly SessionDraftExercise[];
-  readonly initialCountdownSeconds: number;
-  readonly finalPhaseSeconds: number;
 };
 
 /**
- * Résumé `N activités · durée estimée` de la Composition (§9 du plan
+ * Résumé `N activités · durée estimée` sous `Nombre de tours` (§9 du plan
  * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B ; Séries/Pause
  * après Série corrigées en T01-S08, revue PR #9 —
  * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736 ;
  * généralisée à plusieurs Activités — complétion REWORK12, 2026-09-04).
+ *
+ * **REWORK13 (R13-02, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
+ * typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04 ;
+ * `.github/orchestration/reports/2026-09-04_activity-name-typography-tour-
+ * summary-scope.md`)** : `initialCountdownSeconds`/`finalPhaseSeconds`
+ * retirés de `CompositionSummaryFacts` et de la formule — cette synthèse
+ * compte et totalise EXCLUSIVEMENT les Activités du Tour ; `Compte à
+ * rebours initial` et `Fin de séance` sont des éléments STRUCTURELS hors
+ * Tour, toujours exclus de sa durée (confirmer l'un ou l'autre
+ * sélecteur n'actualise donc plus jamais cette synthèse, seulement sa
+ * propre carte — par construction, ces champs n'étant plus lus ici). Les
+ * autres règles de calcul (durée estimée globale du plan, chapitres 09/10)
+ * ne sont pas concernées par ce changement : elles décrivent un total
+ * différent, jamais cette synthèse locale.
  *
  * État vide (`exercises.length === 0`) : chaîne locale et complète
  * `"0 activité · 0 min"` (arbitrage V2) — n'appelle jamais
@@ -42,7 +54,8 @@ export type CompositionSummaryFacts = {
  * minimale, précédée de `≥` (jamais présentée comme une valeur exacte, même
  * si d'autres Activités de la même Composition sont en mode Durée). Arrondi
  * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
- * RM-101, inchangé), appliqué une seule fois à la somme totale.
+ * RM-101, inchangé), appliqué une seule fois à la somme totale des
+ * Activités.
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
   if (facts.exercises.length === 0) {
@@ -59,9 +72,7 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     const activityDurationSeconds = isRepetitionMode ? 0 : exercise.seriesCount * (exercise.durationSeconds ?? 0);
     activitiesAndPauseSeconds += activityDurationSeconds + exercise.seriesCount * exercise.pauseSeconds;
   }
-  const estimatedDurationSeconds =
-    facts.initialCountdownSeconds + activitiesAndPauseSeconds + facts.finalPhaseSeconds;
-  const formattedDuration = formatEstimatedDuration(estimatedDurationSeconds);
+  const formattedDuration = formatEstimatedDuration(activitiesAndPauseSeconds);
   const durationLabel = isLowerBoundEstimate ? `≥ ${formattedDuration}` : formattedDuration;
 
   return `${formatActivityCount(facts.exercises.length)} · ${durationLabel}`;

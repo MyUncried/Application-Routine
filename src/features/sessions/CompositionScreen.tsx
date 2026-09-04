@@ -110,11 +110,15 @@ export function CompositionScreen() {
   // `Nombre de tours`) et par `bottomAction` (synthèse déjà existante) —
   // même contenu canonique (`formatCompositionSummary`), jamais recalculé
   // ni reformulé localement pour l'un ou l'autre emplacement.
-  const compositionSummary = formatCompositionSummary({
-    exercises: draft.exercises,
-    initialCountdownSeconds: draft.initialCountdownSeconds,
-    finalPhaseSeconds: draft.finalPhaseSeconds,
-  });
+  //
+  // REWORK13 (R13-02) : `initialCountdownSeconds`/`finalPhaseSeconds` ne
+  // sont plus transmis — `Compte à rebours initial`/`Fin de séance` sont
+  // des éléments structurels hors Tour, désormais toujours exclus de cette
+  // synthèse (voir `compositionPresentation.ts`). Confirmer l'un ou
+  // l'autre sélecteur n'actualise donc plus jamais `compositionSummary`,
+  // par construction (ces deux champs du brouillon ne sont plus lus par
+  // cette fonction).
+  const compositionSummary = formatCompositionSummary({ exercises: draft.exercises });
 
   return (
     <ScreenShell>

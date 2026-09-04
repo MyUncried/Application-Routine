@@ -8,43 +8,34 @@ import {
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 
+/**
+ * REWORK13 (R13-02, `[ChatGPT] CHANGES_REQUESTED — REWORK13 — typographie
+ * Nom d'activité + périmètre synthèse Tour`, 2026-09-04) :
+ * `initialCountdownSeconds`/`finalPhaseSeconds` sont retirés de
+ * `CompositionSummaryFacts` — cette synthèse compte et totalise
+ * EXCLUSIVEMENT les Activités du Tour, `Compte à rebours initial`/`Fin de
+ * séance` (éléments structurels hors Tour) en sont désormais toujours
+ * exclus. Tous les montants ci-dessous sont donc recalculés à partir des
+ * seules contributions d'Activité (plus aucune constante `10`/`5` de
+ * compte à rebours/fin de séance dans la formule).
+ */
 describe("formatCompositionSummary", () => {
   it("displays the exact local empty-state label when there is no Activity yet", () => {
-    expect(
-      formatCompositionSummary({
-        exercises: [],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
-      }),
-    ).toBe("0 activité · 0 min");
+    expect(formatCompositionSummary({ exercises: [] })).toBe("0 activité · 0 min");
   });
 
-  it("ignores initial/final phase seconds entirely while the draft is empty (not part of the formula)", () => {
-    expect(
-      formatCompositionSummary({
-        exercises: [],
-        initialCountdownSeconds: 999,
-        finalPhaseSeconds: 999,
-      }),
-    ).toBe("0 activité · 0 min");
-  });
-
-  it("formats 10s + 45s + 5s = 60s as '1 activité · 1 min'", () => {
+  it("formats a single 45s Activity (1 série, sans pause) as '1 activité · 1 min'", () => {
     expect(
       formatCompositionSummary({
         exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       }),
     ).toBe("1 activité · 1 min");
   });
 
-  it("formats 10s + 60s + 5s = 75s as '1 activité · 2 min' (Math.ceil, never underestimating)", () => {
+  it("rounds a non-exact minute up (61s) to '1 activité · 2 min' (Math.ceil, never underestimating)", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 60 }],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 61 }],
       }),
     ).toBe("1 activité · 2 min");
   });
@@ -53,54 +44,51 @@ describe("formatCompositionSummary", () => {
     expect(
       formatCompositionSummary({
         exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: null }],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       }),
-    ).toBe("1 activité · 1 min");
+    ).toBe("1 activité · 0 min");
+  });
+
+  /**
+   * R13-02, test obligatoire n°1 : une même liste d'Activités produit
+   * exactement la même synthèse quelles que soient les valeurs du compte à
+   * rebours initial et de la fin de séance — garanti ici par construction :
+   * `CompositionSummaryFacts` (type exporté) n'expose plus que `exercises`,
+   * ces deux champs ne peuvent donc structurellement plus influencer le
+   * résultat. Preuve directe : deux appels avec la même collection
+   * produisent toujours exactement la même chaîne.
+   */
+  it("REWORK13 (R13-02) — the summary is fully determined by the Activities collection alone (CompositionSummaryFacts exposes only 'exercises')", () => {
+    const exercises = [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }];
+    expect(formatCompositionSummary({ exercises })).toBe(formatCompositionSummary({ exercises }));
   });
 
   describe("mode Répétitions (T01-S08, arbitrage B — RM-072/D-070/D-008)", () => {
-    function repetitionExercise(repetitionCount: number): SessionDraftExercise {
+    function repetitionExercise(repetitionCount: number, pauseSeconds = 0): SessionDraftExercise {
       return {
         ...createExerciseDraft("ex-1"),
         name: "Fentes",
         executionMode: "REPETITIONS" as const,
         durationSeconds: null,
         repetitionCount,
+        pauseSeconds,
       };
     }
 
-    it("prefixes the duration with '≥' and ignores the exercise's own duration entirely", () => {
+    it("prefixes the duration with '≥' and ignores the exercise's own duration entirely (only the pause contributes)", () => {
       expect(
-        formatCompositionSummary({
-          exercises: [repetitionExercise(12)],
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
-        }),
-      ).toBe("1 activité · ≥ 1 min"); // 10 + 0 + 5 = 15s -> ceil = 1 min
+        formatCompositionSummary({ exercises: [repetitionExercise(12, 20)] }),
+      ).toBe("1 activité · ≥ 1 min"); // 20s (pause) -> ceil(20/60) = 1 min
     });
 
-    it("still applies Math.ceil to the Compte à rebours/Fin de séance sum alone", () => {
+    it("still applies Math.ceil to the pause sum alone", () => {
       expect(
-        formatCompositionSummary({
-          exercises: [repetitionExercise(20)],
-          initialCountdownSeconds: 40,
-          finalPhaseSeconds: 25,
-        }),
-      ).toBe("1 activité · ≥ 2 min"); // 40 + 0 + 25 = 65s -> ceil = 2 min
+        formatCompositionSummary({ exercises: [repetitionExercise(20, 65)] }),
+      ).toBe("1 activité · ≥ 2 min"); // 65s -> ceil(65/60) = 2 min
     });
 
     it("never underestimates: a repetition count change alone never changes the displayed minimum", () => {
-      const first = formatCompositionSummary({
-        exercises: [repetitionExercise(5)],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
-      });
-      const second = formatCompositionSummary({
-        exercises: [repetitionExercise(50)],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
-      });
+      const first = formatCompositionSummary({ exercises: [repetitionExercise(5, 20)] });
+      const second = formatCompositionSummary({ exercises: [repetitionExercise(50, 20)] });
       expect(first).toBe(second);
       expect(first).toBe("1 activité · ≥ 1 min");
     });
@@ -108,15 +96,13 @@ describe("formatCompositionSummary", () => {
     it("never shows the '≥' prefix in Duration mode", () => {
       const result = formatCompositionSummary({
         exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
       expect(result).not.toContain("≥");
     });
   });
 
   describe("Séries et Pause après Série (T01-S08, revue PR #9 — RM-036/RM-037/RM-071/RM-072)", () => {
-    it("mode Durée : multiplie durationSeconds ET pauseSeconds par seriesCount (90s, 3 Séries, pause 15s -> 330s -> 6 min)", () => {
+    it("mode Durée : multiplie durationSeconds ET pauseSeconds par seriesCount (90s, 3 Séries, pause 15s -> 315s -> 6 min)", () => {
       expect(
         formatCompositionSummary({
           exercises: [
@@ -128,13 +114,11 @@ describe("formatCompositionSummary", () => {
               pauseSeconds: 15,
             },
           ],
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
         }),
-      ).toBe("1 activité · 6 min"); // 10 + 3*90 + 3*15 + 5 = 330s -> ceil(330/60) = 6 min
+      ).toBe("1 activité · 6 min"); // 3*90 + 3*15 = 315s -> ceil(315/60) = 6 min
     });
 
-    it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 75s min -> ≥ 2 min)", () => {
+    it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 60s -> ≥ 1 min)", () => {
       expect(
         formatCompositionSummary({
           exercises: [
@@ -148,10 +132,8 @@ describe("formatCompositionSummary", () => {
               pauseSeconds: 20,
             },
           ],
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
         }),
-      ).toBe("1 activité · ≥ 2 min"); // 10 + 3*20 + 5 = 75s -> ceil(75/60) = 2 min
+      ).toBe("1 activité · ≥ 1 min"); // 3*20 = 60s -> ceil(60/60) = 1 min
     });
 
     it("Pause nulle : n'ajoute rien à la durée estimée, quel que soit seriesCount", () => {
@@ -166,13 +148,11 @@ describe("formatCompositionSummary", () => {
               pauseSeconds: 0,
             },
           ],
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
         }),
-      ).toBe("1 activité · 4 min"); // 10 + 4*45 + 4*0 + 5 = 195s -> ceil(195/60) = 4 min
+      ).toBe("1 activité · 3 min"); // 4*45 + 4*0 = 180s -> ceil(180/60) = 3 min
     });
 
-    it("une seule Série : non-régression, formule équivalente à l'ancienne (seriesCount=1)", () => {
+    it("une seule Série : non-régression, formule équivalente au comportement historique (seriesCount=1)", () => {
       expect(
         formatCompositionSummary({
           exercises: [
@@ -184,10 +164,8 @@ describe("formatCompositionSummary", () => {
               pauseSeconds: 0,
             },
           ],
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
         }),
-      ).toBe("1 activité · 1 min"); // 10 + 45 + 5 = 60s -> ceil = 1 min, identique au comportement T01-S07
+      ).toBe("1 activité · 1 min"); // 45s -> ceil(45/60) = 1 min
     });
 
     it("fait varier seriesCount seul : le résultat change en conséquence", () => {
@@ -195,18 +173,14 @@ describe("formatCompositionSummary", () => {
         exercises: [
           { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
       const threeSeries = formatCompositionSummary({
         exercises: [
           { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
-      expect(oneSeries).toBe("1 activité · 1 min"); // 10 + 45 + 5 = 60s
-      expect(threeSeries).toBe("1 activité · 3 min"); // 10 + 135 + 5 = 150s -> ceil(150/60) = 3 min
+      expect(oneSeries).toBe("1 activité · 1 min"); // 45s
+      expect(threeSeries).toBe("1 activité · 3 min"); // 3*45 = 135s -> ceil(135/60) = 3 min
       expect(oneSeries).not.toBe(threeSeries);
     });
 
@@ -221,8 +195,6 @@ describe("formatCompositionSummary", () => {
             pauseSeconds: 0,
           },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
       const withPause = formatCompositionSummary({
         exercises: [
@@ -234,11 +206,9 @@ describe("formatCompositionSummary", () => {
             pauseSeconds: 30,
           },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
-      expect(noPause).toBe("1 activité · 2 min"); // 10 + 90 + 0 + 5 = 105s -> ceil = 2 min
-      expect(withPause).toBe("1 activité · 3 min"); // 10 + 90 + 60 + 5 = 165s -> ceil = 3 min
+      expect(noPause).toBe("1 activité · 2 min"); // 2*45 = 90s -> ceil(90/60) = 2 min
+      expect(withPause).toBe("1 activité · 3 min"); // 2*45 + 2*30 = 150s -> ceil(150/60) = 3 min
       expect(noPause).not.toBe(withPause);
     });
   });
@@ -256,10 +226,8 @@ describe("formatCompositionSummary", () => {
           { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
           { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
-      expect(result).toBe("2 activités · 2 min"); // 10 + 45 + 30 + 5 = 90s -> ceil(90/60) = 2 min
+      expect(result).toBe("2 activités · 2 min"); // 45 + 30 = 75s -> ceil(75/60) = 2 min
     });
 
     it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once Math.ceil at the very end", () => {
@@ -275,13 +243,11 @@ describe("formatCompositionSummary", () => {
             pauseSeconds: 20,
           },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
-      // 10 + 90 + (0 + 20) + 5 = 125s -> ceil(125/60) = 3 min ; au moins une
+      // 90 + (0 + 1*20) = 110s -> ceil(110/60) = 2 min ; au moins une
       // Activité en mode Répétitions -> préfixe '≥' même si l'autre est en
       // mode Durée.
-      expect(result).toBe("2 activités · ≥ 3 min");
+      expect(result).toBe("2 activités · ≥ 2 min");
     });
 
     it("never prefixes with '≥' when every Activity is in Durée mode, even with several Activities", () => {
@@ -290,8 +256,6 @@ describe("formatCompositionSummary", () => {
           { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
           { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
         ],
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
       });
       expect(result).not.toContain("≥");
     });
