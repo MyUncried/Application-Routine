@@ -29,7 +29,10 @@
     {"key":"composition.endSession","file":"composition-end-session","figmaNodeId":"2537:1471","width":24,"height":24,"usage":["Composition"]},
     {"key":"composition.reorder","file":"composition-reorder","figmaNodeId":"3066:4676","width":20,"height":20,"usage":["Composition"]},
     {"key":"state.selected","file":"state-selected","figmaNodeId":"2537:1509","width":24,"height":24,"usage":["Sélecteur de couleur"]},
-    {"key":"icon.tour","file":"icon-tour","figmaNodeId":"3066:4685","width":20,"height":20,"usage":["Composition — Nombre de tours"]}
+    {"key":"icon.tour","file":"icon-tour","figmaNodeId":"3066:4685","width":20,"height":20,"usage":["Composition — Nombre de tours"]},
+    {"key":"composition.fixed","file":"composition-fixed","figmaNodeId":"3066:4680","width":20,"height":20,"usage":["Composition — structure fixe"]},
+    {"key":"wheel.action.cancel","file":"wheel-action-cancel","figmaNodeId":"3089:81","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]},
+    {"key":"wheel.action.validate","file":"wheel-action-validate","figmaNodeId":"3089:83","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]}
   ],
   "branding": {
     "splashLogo": {
