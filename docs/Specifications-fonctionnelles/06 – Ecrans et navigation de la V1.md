@@ -700,17 +700,33 @@ Le retour ramène à la Composition.
 
 ### Étape 1 — Paramètres essentiels
 
-L’écran comporte notamment, dans cet ordre :
+L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en création et `Modifier une activité` en modification. Le nom de la Séance n’est pas utilisé comme titre d’écran.
 
-- `Nom de l’activité` ;
+Sous l’en-tête, un bandeau contextuel bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
+
+- `Séance · {nom de la séance}`, en `KODJO / Body` Regular ;
+- le champ du nom de l’Activité, de fond transparent et entouré d’un liseré blanc intérieur de `1` point ; sa valeur utilise `KODJO / Modal title` (`18/22`, Semi Bold).
+
+Le contexte est placé à `12` points du haut du bandeau. L’espacement vertical entre le contexte et le champ est `spacing/24`. Le reste du formulaire affiche ensuite, dans cet ordre :
+
 - `Type d’activité`, avec les choix `Exercice / Récupération` ;
 - `Mode d’exécution` ;
 - `Paramètres de l’activité`, regroupant les valeurs d’exécution ;
-- bouton `Terminer`.
+- synthèse calculée de l’Activité, ancrée en bas du contenu ;
+- bouton `Valider` pour un Exercice ou `Terminer` pour une Récupération.
 
 Le nom est obligatoire.
 
-Les contrôles `Exercice / Récupération` et `Durée / Répétition` partagent chacun leur largeur intérieure en deux zones égales. Le texte de chaque option reste centré dans sa zone, quel que soit le palier de largeur. Le texte récapitulatif des paramètres est placé dans un cadre de largeur utile complète ; il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
+Les contrôles `Exercice / Récupération` et `Durée / Répétition` partagent chacun leur largeur intérieure en deux zones égales. Le texte de chaque option reste centré dans sa zone, quel que soit le palier de largeur. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe un cadre de largeur utile complète et reste à `spacing/24` au-dessus du bouton final. Il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
+
+La synthèse ne préfixe jamais la phrase par le type d’Activité ni par le mode d’exécution. Elle suit les formes suivantes :
+
+- Durée, une Série : `1 série de {activité} de {durée}` ;
+- Durée, plusieurs Séries : `{N} séries de {activité} de {durée}` ;
+- Répétitions, une Série : `1 série de {X} {activité}` ;
+- Répétitions, plusieurs Séries : `{N} séries de {X} {activité}` ;
+- si la pause est non nulle, ajouter `, avec {pause} de pause` ; ajouter ensuite ` entre les séries` seulement si `N > 1` ;
+- si la pause est nulle, omettre entièrement la proposition introduite par `avec`.
 
 ### Mode d’Exécution
 
@@ -1376,6 +1392,8 @@ Pour une planification périodique, le dialogue à trois choix présente sur sa 
 
 ![[images/execution-reinitialiser.png|260]]
 
+Référence Figma : `1992:8224`, `Modal — Réinitialiser l’activité`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Neutral,Actions=2` (`2590:2926`), instance `2591:3047`. Il mesure `354 × 215`.
+
 #### Objectif
 
 Permettre de recommencer l’Activité / Série en cours depuis son état initial sans revenir en arrière dans la Séance.
@@ -1385,6 +1403,21 @@ Permettre de recommencer l’Activité / Série en cours depuis son état initia
 La modale s’affiche après appui sur `Réinitialiser l’activité`.
 
 L’Exécution est suspendue pendant l’affichage de la modale.
+
+#### Contenu
+
+**Titre**
+
+> Réinitialiser l’activité ?
+
+**Message**
+
+> L’activité en cours recommencera depuis le début. La progression de la séance sera conservée.
+
+**Actions**
+
+- `Annuler`, action neutre grise ;
+- `Confirmer`, action primaire bleue.
 
 #### Comportement
 
@@ -1400,9 +1433,13 @@ Après confirmation :
 
 `Annuler` ferme la modale et reprend l’Activité à son état précédent.
 
+Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
+
 ### Modale – Passage à l’Activité suivante
 
 ![[images/execution-activite-suivante.png|260]]
+
+Référence Figma : `1992:8326`, `Modal — Passer à l’activité suivante`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Neutral,Actions=2` (`2590:2926`), instance `2591:3058`. Il mesure `354 × 215`.
 
 #### Objectif
 
@@ -1423,7 +1460,12 @@ Elle ne s’affiche pas pour un Exercice en mode Répétition : dans ce cas, `Ac
 
 **Message**
 
-> La séance continuera avec l’activité suivante. L’activité en cours sera enregistrée comme Partielle.
+> La séance continuera avec l’activité suivante, elle sera enregistrée comme partiellement exécutée.
+
+**Actions**
+
+- `Annuler`, action neutre grise ;
+- `Confirmer`, action primaire bleue.
 
 #### Comportement
 
@@ -1438,9 +1480,13 @@ Après confirmation :
 
 `Annuler` ferme la modale et reprend l’Activité en cours.
 
+Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`. Le terme visuel `partiellement exécutée` décrit le résultat à l’utilisateur ; le statut métier enregistré reste `Partielle`.
+
 ### Modale – Pause / arrêt de l’Exécution
 
 ![[images/execution-pause.png|260]]
+
+Référence Figma : `1992:8428`, `Modal — Séance en pause`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Danger,Actions=2` (`2590:2960`), instance `2591:3070`. Il mesure `354 × 194`.
 
 #### Objectif
 
@@ -1458,10 +1504,19 @@ L’Exécution est immédiatement suspendue.
 
 > Séance en pause
 
+**Message**
+
+> L’activité « Squats assistés » est suspendue.  
+> Le chronomètre reprendra là où il s’est arrêté.
+
+Le nom d’Activité est dynamique ; `Squats assistés` est uniquement la donnée d’illustration de la frame.
+
 **Actions**
 
-- `Reprendre la séance`
-- `Arrêter la séance`
+- `Reprendre la séance`, action primaire bleue
+- `Arrêter la séance`, action destructive rouge
+
+Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
 
 #### Reprendre la séance
 

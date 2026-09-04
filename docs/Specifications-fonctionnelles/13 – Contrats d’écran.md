@@ -571,17 +571,19 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 | Type initial | `Exercice` |
 | Mode initial T01 | `Durée` |
 
-L’en-tête fixe utilise le nom réel de la Séance et un contrôle Retour. Le corps défilant affiche, dans cet ordre : champ `Nom de l’activité` ; titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétition` ; titre `Paramètres de l’activité` ; contrôles `Durée`, `Pause`, `Séries` ; cadre récapitulatif. L’action finale fixe suit le libellé Figma `Valider`.
+L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Regular puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte `KODJO / Modal title` (`18/22`, Semi Bold).
 
-Les deux contrôles segmentés divisent strictement leur largeur intérieure en deux parts égales. La rangée des trois paramètres reste lisible ; en largeur compacte elle peut se réorganiser sans réduire les cibles sous `48 × 48`. Le récapitulatif occupe la largeur utile, possède des marges internes et grandit avec le texte.
+Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétition` ; titre `Paramètres de l’activité` ; contrôles `Durée`, `Pause`, `Séries` ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
+
+Les deux contrôles segmentés divisent strictement leur largeur intérieure en deux parts égales. La rangée des trois paramètres reste lisible ; en largeur compacte elle peut se réorganiser sans réduire les cibles sous `48 × 48`. Le récapitulatif occupe la largeur utile, possède des marges internes, grandit avec le texte et reste à `spacing/24` au-dessus de l’action finale.
 
 En T01, seul le parcours Exercice en mode Durée est requis de bout en bout. Les choix Récupération et Répétition restent visibles selon la frame mais doivent porter un état explicitement désactivé jusqu’aux tranches qui livrent leurs contrats ; ils ne peuvent ouvrir un écran partiel. `Séries` reste fixé à `1` pour la séance simple T01. Le nom et une durée strictement positive sont obligatoires. La Pause peut valoir `0 s`.
 
 `Durée` ouvre CE-T01-14. Les contrôles Pause et Séries n’ouvrent pas de sélecteur non livré dans T01. `Valider` reste désactivé tant que l’Exercice est invalide ; lorsqu’il est valide, il ouvre CE-T01-15 en conservant les paramètres dans le brouillon d’Activité.
 
-Le récapitulatif est calculé et suit les valeurs courantes ; le texte de la frame n’est jamais statique. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
+Le récapitulatif est calculé et suit les valeurs confirmées ; le texte de la frame n’est jamais statique. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le type d’Activité ni par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. Si la pause est non nulle, ajouter `, avec {pause} de pause`, puis ` entre les séries` seulement si `N > 1`. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
 
-Tests bloquants : titre de Séance réel ; segments égaux et états accessibles ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
+Tests bloquants : titre fonctionnel ; contexte de Séance présent dans le bandeau ; champ Nom transparent et typographie conforme ; segments égaux et états accessibles ; synthèse calculée et ancrée en bas ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
 
 ---
 
@@ -632,7 +634,7 @@ Tests bloquants communs : une seule instance de roulette ; source native OS ; br
 | Entrée | Validation des paramètres essentiels CE-T01-13 |
 | Sortie | Composition CE-T01-09 |
 
-L’en-tête fixe conserve le nom réel de la Séance. Le corps affiche `Informations complémentaires`, le champ multiligne `Consigne (facultative)` avec l’indication `Décrivez brièvement le geste`, puis `Zones corporelles (facultatif)` et les valeurs du référentiel sous forme de tags multisélection. L’action finale fixe est `Terminer`.
+L’en-tête fixe affiche le titre fonctionnel `Informations complémentaires`. Le corps affiche le champ multiligne `Consigne (facultative)` avec l’indication `Décrivez brièvement le geste`, puis `Zones corporelles (facultatif)` et les valeurs du référentiel sous forme de tags multisélection. L’action finale fixe est `Terminer`.
 
 La Consigne et les Zones corporelles sont facultatives. Les zones visibles dans Figma sont le référentiel initial attendu, mais l’écran les charge depuis le service de référentiel ; l’utilisateur ne peut ni les créer, ni les renommer, ni les supprimer. Les tags suivent les mêmes règles adaptatives et tactiles que CE-T01-11. Le champ grandit ou le corps défile sans masquer l’action finale.
 
