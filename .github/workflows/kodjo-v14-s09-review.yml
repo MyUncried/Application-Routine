@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           CURRENT_HEAD=$(git rev-parse HEAD)
-          if printf '%s' "$COMMENT_BODY" | grep -q '\\[KODJO_S09_REVIEW_BRIDGE\\]'; then
+          if printf '%s' "$COMMENT_BODY" | grep -Fq '[KODJO_S09_REVIEW_BRIDGE]'; then
             SOURCE_COMMENT_ID=$(printf '%s' "$COMMENT_BODY" | sed -n 's/^source_comment_id=//p' | head -n1)
             test -n "$SOURCE_COMMENT_ID"
             COMMENT_BODY=$(gh api "repos/${{ github.repository }}/issues/comments/$SOURCE_COMMENT_ID" --jq '.body')
