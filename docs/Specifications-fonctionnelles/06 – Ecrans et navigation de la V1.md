@@ -155,8 +155,8 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
 - Une roulette ou un pop-up compact est ancré au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, il est repositionné au-dessus ou transformé en présentation basse défilante.
-- La roulette compacte de durée ou d’heure mesure `190` points de haut : barre d’actions supérieure de `40` points et zone de roulette native de `150` points. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
-- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
+- La roulette compacte de durée ou d’heure utilise le composant DSF `Picker / Popover — Source exact`, variante `Type=Duration` ou `Type=Time`. Sa hauteur de référence est `190` points : barre d’actions supérieure de `40` points et zone de roulette native d’au moins `150` points ; la primitive native OS conserve sa hauteur intrinsèque lorsqu’elle exige davantage. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
+- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28` contenant une icône vectorielle de `24 × 24` issue de `assets/icons/wheel-action-cancel.svg` ou `assets/icons/wheel-action-validate.svg`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve une seule zone de sélection visible : le cadre gris natif. Aucun cadre bleu ne se superpose à cette zone. Les unités `min`, `s` ou `h` sont en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée.
 - Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Valider enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après validation. Une réouverture restitue la dernière valeur validée.
 
@@ -594,6 +594,8 @@ Dans l’interface, le nombre est affiché sous la forme d’un contrôle compac
 
 Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
 
+La section Tour respecte l’anatomie du composant DSF `Composition / Tour Section` (`3067:270`). Le **conteneur extérieur** mesure `374 pt`, possède le fond bleu et les angles arrondis, et constitue l’unique surface visuelle englobante. Son **en-tête interne transparent** mesure `354 pt`, avec un inset de `10 pt` de chaque côté ; il ne possède ni fond, ni bordure, ni apparence de carte et porte uniquement l’icône Tour, le titre, la synthèse éventuelle et le contrôle du nombre de tours. Les **cartes d’activité** éventuelles mesurent `354 pt`, sont placées sous l’en-tête interne transparent et restent à l’intérieur du conteneur extérieur avec le même inset latéral de `10 pt`. Sans activité, une seule structure bleue est visible : aucun élément intérieur distinct ne doit apparaître comme une carte. Le fond bleu appartient exclusivement au conteneur extérieur de `374 pt`.
+
 ### Retour haptique des roulettes
 
 Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibration` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
@@ -608,6 +610,8 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Act
 Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
 
 La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour, au moyen de la poignée de glisser-déposer.
+
+La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application de `icon.compact` à cette poignée sont interdits.
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 

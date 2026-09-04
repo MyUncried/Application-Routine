@@ -379,7 +379,9 @@ L’écran affiche, dans cet ordre : en-tête fixe avec Retour et `Composition d
 
 Les valeurs `10 s`, `x1` et `5 s` sont les valeurs initiales métier. Le nom est vide. La couleur proposée par défaut est une vraie valeur du brouillon et non un simple décor. Le Cycle technique reste invisible.
 
-Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`, le contexte `154–207`, le corps commence à `207` et l’action finale occupe `790–874`. L’en-tête et l’action finale restent fixes ; le corps défile. Les lignes structurelles ont une hauteur visuelle de `60`, le Tour est contenu dans le cadre prévu par le Design System et le résumé reste centré immédiatement au-dessus de l’action finale.
+Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`, le contexte `154–207`, le corps commence à `207` et l’action finale occupe `790–874`. L’en-tête et l’action finale restent fixes ; le corps défile. Les lignes structurelles ont une hauteur visuelle de `60` et le résumé reste centré immédiatement au-dessus de l’action finale.
+
+Le Tour réutilise `Composition / Tour Section` (`3067:270`). Son **conteneur extérieur** de `374 pt` porte seul le fond bleu et les angles arrondis. Son **en-tête interne transparent** mesure `354 pt`, avec un inset de `10 pt` de chaque côté, sans fond, bordure ni apparence de carte ; il contient l’icône Tour, `Nombre de tours`, la synthèse éventuelle et le contrôle du nombre de tours. Dans cet état sans activité, aucune carte intérieure n’est visible : le conteneur extérieur bleu constitue l’unique structure.
 
 | Contrôle | Résultat |
 | --- | --- |
@@ -392,7 +394,7 @@ Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`
 | Fin de séance | Ouvre CE-T01-10. |
 | Action finale | Affichée désactivée tant que le nom et au moins un Exercice valide ne sont pas présents. Son libellé suit le composant Figma de l’état : `Enregistrer` avant validation complète, puis `Continuer` lorsque la Composition est valide. |
 
-Tests bloquants : valeurs initiales exactes ; aucune Activité fictive ; aucune mention de Cycle ; bouton Ajouter avec l’icône vectorielle `action-add` ; action finale réellement désactivée ; clavier ne masquant ni le champ ni l’action ; conformité visuelle à `2028:11137` sur `402 × 874`.
+Tests bloquants : valeurs initiales exactes ; aucune Activité fictive ; aucune mention de Cycle ; une seule structure bleue pour le Tour sans activité, sans carte intérieure ni fond sur l’en-tête interne transparent ; conteneur extérieur `374 pt` et en-tête interne transparent `354 pt` avec inset latéral `10 pt` ; bouton Ajouter avec l’icône vectorielle `action-add` ; action finale réellement désactivée ; clavier ne masquant ni le champ ni l’action ; conformité visuelle à `2028:11137` sur `402 × 874`.
 
 ---
 
@@ -442,11 +444,11 @@ Tests bloquants : exactement 12 valeurs provenant du Design System ; grille et i
 | Nature | Contrôle intégré, malgré le nom historique de la frame |
 | Déclencheur | Appui sur la ligne `Compte à rebours initial` |
 
-Le sélecteur minutes/secondes mesure `330 × 150` sur la référence et est aligné sous la ligne concernée, à `x=36, y=278`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes avancent par pas de `5`. La valeur initiale est `00 min 10 s`.
+Le sélecteur minutes/secondes mesure `330 × 150` sur la référence et est aligné sous la ligne concernée, à `x=36, y=278`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes couvrent `00` à `59` et avancent par pas de `1`. La valeur initiale est `00 min 10 s`.
 
-Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour dans le brouillon et dans le sous-libellé de la ligne. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
+Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local ; le sous-libellé de la ligne reste inchangé jusqu’à Valider. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
 
-Toucher de nouveau la ligne ou hors du sélecteur le ferme. L’ouverture d’un autre sélecteur ferme celui-ci. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
+Toucher un chiffre, la bande de sélection, la ligne déclencheuse ou l’extérieur ne ferme pas la roulette. Annuler et Valider sont les seules actions qui la ferment. L’ouverture d’un autre sélecteur exige d’abord l’annulation ou la validation du sélecteur courant. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
 
 Tests bloquants : deux roulettes fonctionnelles ; bornes et pas conformes aux règles métier ; retour haptique une fois par cran ; conservation de `0 s` ; fermeture et réouverture sur la dernière valeur ; conformité à `2028:11375`.
 
@@ -491,13 +493,15 @@ Tests bloquants : quatre libellés exacts ; fond réellement bloqué ; aucune su
 
 La Composition affiche les données réelles dans l’ordre enregistré : Compte à rebours ; Activités avant le Tour ; Tour ; Activités du Tour ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible et vaut toujours `1`. Dans T01, le Tour reste `x1` dans les données de recette même si la frame illustre `x3`.
 
-Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La poignée vectorielle `composition-reorder` permet le déplacement ; toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
+Le Tour est composé d’un **conteneur extérieur** bleu de `374 pt`, unique surface englobante, et d’un **en-tête interne transparent** de `354 pt` placé avec un inset latéral de `10 pt`. L’en-tête interne transparent ne possède ni fond, ni bordure, ni apparence de carte et porte uniquement l’icône Tour, le titre, la synthèse et le contrôle du nombre de tours. Les **cartes d’activité** du Tour mesurent `354 pt`, sont placées sous cet en-tête et à l’intérieur du conteneur extérieur avec le même inset de `10 pt`. Le fond bleu appartient exclusivement au conteneur extérieur, jamais à l’en-tête interne transparent.
+
+Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La ligne est une instance de `Composition / Activity Row` (`2588:2679`), variante de contenu `Movable`. Son slot gauche `Slot / Structure` (`3125:3979`) mesure `28 × 28` et contient exclusivement l’instance `Icon / Structure / Movable` (`3066:4676`, instance interne `3125:3980`) : actif `assets/icons/composition-reorder.svg`, dessin `20 × 20`, opacité `50 %`, couleur `color.iconNeutral`. Toute copie locale `icon/réorganiser` en `16 × 16` est non conforme. Toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
 
 Le bouton `Ajouter une activité` reste unique et placé au-dessus de la structure. Une nouvelle Activité est insérée après le Compte à rebours, avant le Tour, puis peut être déplacée. Les éléments structurels ne sont ni déplaçables ni supprimables. Deux Exercices successifs sans pause produisent l’avertissement non bloquant prévu.
 
 Le résumé inférieur est calculé depuis la Composition ; `5 activités · 19 min` est un exemple. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucune ligne ni le résumé ne passe sous l’action.
 
-Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
+Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; conteneur extérieur Tour `374 pt` bleu, en-tête interne transparent `354 pt` et cartes d’activité `354 pt`, tous deux avec inset latéral `10 pt` ; aucun fond ou effet de carte sur l’en-tête interne transparent ; ajout, ouverture et réorganisation avec le bon ID ; chaque carte d’Activité emploie l’instance canonique `3066:4676` en `20 × 20` dans un slot `28 × 28`, sans icône locale `16 × 16` ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
 
 ---
 
@@ -511,7 +515,7 @@ Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; auc
 | Nature | Contrôle intégré, malgré le nom historique de la frame |
 | Déclencheur | Appui sur `Fin de séance` |
 
-Le composant et les règles sont identiques à CE-T01-07. Sur la référence, le sélecteur `330 × 150` est placé à `x=36, y=646` et sélectionne initialement `00 min 05 s`. Il doit être ancré à la ligne Fin de séance, puis repositionné au-dessus lorsque la hauteur sûre ou l’action fixe l’exige.
+Le composant et les règles sont identiques à CE-T01-07. Sur la référence, le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`2537:1110`), possède une surface `330 × 190` (barre d’actions `40` + contenu natif d’au moins `150`) est placé à `x=36, y=646` et sélectionne initialement `00 min 05 s`. Il doit être ancré à la ligne Fin de séance, puis repositionné au-dessus lorsque la hauteur sûre ou l’action fixe l’exige.
 
 La valeur est stockée séparément du Compte à rebours initial. `0 s` rend la phase instantanée mais ne supprime ni la ligne ni l’élément du Plan d’Exécution. Une modification de ce contrôle ne change aucune Activité et ne modifie pas le résumé du nombre d’Activités.
 
@@ -597,9 +601,9 @@ Tests bloquants : titre de Séance réel ; segments égaux et états accessibles
 
 Le sélecteur est ancré au contrôle Durée ; sur la référence il se trouve à `x=36, y=474`. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée.
 
-Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La durée sélectionnée actualise immédiatement le contrôle et le récapitulatif. Une durée totale de `0 s` laisse `Valider` désactivé.
+Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. Le défilement actualise uniquement un brouillon local ; le contrôle et le récapitulatif restent inchangés jusqu’à Valider. Une durée totale de `0 s` laisse l’action finale de l’écran désactivée après validation.
 
-Toucher hors du sélecteur ou le contrôle Durée le ferme ; la dernière valeur demeure dans le brouillon. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
+Toucher hors du sélecteur, un chiffre, la bande centrale ou le contrôle Durée ne le ferme pas. Annuler détruit le brouillon et restitue la valeur validée ; Valider applique exactement les valeurs centrées puis ferme. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
 
 Tests bloquants : ancrage, roulettes et unités corrects ; mise à jour du récapitulatif ; validation impossible à `0 s` ; haptique une fois par cran ; absence de modification de Pause ou Séries ; conformité à `1992:9430`.
 
@@ -622,6 +626,22 @@ La Consigne et les Zones corporelles sont facultatives. Les zones visibles dans 
 `Terminer` enregistre atomiquement l’Activité avec les paramètres conservés de l’étape 1, l’insère immédiatement après le Compte à rebours et avant le Tour, puis revient à CE-T01-09. L’omission de toute information complémentaire est valide. Un double appui ne crée pas deux Activités. Retour ramène à l’étape 1 avec toutes les valeurs conservées ; une sortie du parcours avec modifications non enregistrées suit D-094.
 
 Tests bloquants : paramètres essentiels intacts ; Terminer possible sans Consigne ni zone ; multisélection réelle ; aucune création de zone corporelle ; une seule Activité insérée au bon emplacement ; Composition et résumé recalculés ; conformité à `1992:9292`.
+
+## 5 bis. Références canoniques des contrôles T01
+
+| Contrat | Contrôle et variante DSF obligatoires | Actif ou primitive |
+| --- | --- | --- |
+| CE-T01-01 | aucun contrôle interactif | branding du manifeste |
+| CE-T01-02/03 | `Navigation / Bottom` (`2537:214`, Active=Sessions), `Catalogue / Session Card` (`2537:1400`) | SVG du manifeste |
+| CE-T01-04/05/09 | `Header / Fixed` (`2581:2740`, Standard/Back=On), `Action / Back` (`2624:3105`), `Composition / Tour Section` (`3067:270`) | `control-back.svg`, `icon-tour.svg`, icônes Structure |
+| CE-T01-06 | `Overlay / Color Popover` (`2537:1511`) | `state-selected.svg` |
+| CE-T01-07/10/14 | `Picker / Popover` (`2537:1174`), `Type=Duration` (`2537:1110`) | Picker wheel natif OS ; `wheel-action-cancel.svg`, `wheel-action-validate.svg` |
+| CE-T01-08 | `Overlay / Confirmation Sheet` (`2590:2961`), variante destructive 2 actions | `Modal` natif + primitives RN |
+| CE-T01-11/12 | `Forms / Text Field` (`2537:1075`) et `Button / Primary` (`2537:1046`) | `TextInput` natif + primitives RN |
+| CE-T01-13 | `Controls / Segmented` (`2586:2759`), `Activity / Parameter Row` (`2537:1567`), `Forms / Select Field` (`2537:1095`) | primitives RN + chevrons SVG |
+| CE-T01-15 | `Forms / Text Field` (`2537:1075`, Multiline) | `TextInput` natif |
+
+Les contrats héritent des dimensions, tokens, actifs et statuts du tableau unique du chapitre 12. Une capture d’écran ne peut pas remplacer le node DSF, la variante et l’actif ou primitive indiqués ici.
 
 ## 6. Matrice complète de couverture T01
 

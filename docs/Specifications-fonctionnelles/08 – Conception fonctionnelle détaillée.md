@@ -874,16 +874,16 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Nom de la séance | Champ obligatoire de 1 à 80 caractères. |
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
-| Tour | Seul conteneur affiché ; `x1` par défaut, réglable de 1 à 99 par pop-up compact. |
+| Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par pop-up compact. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le sélecteur. |
 | Activités | Cartes ordonnées ; toucher ouvre la modification ; glisser à gauche révèle `Dupliquer` et `Supprimer`. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
-| Résumé | `N activités · durée estimée`, centré en bas de la Composition. À l'état vide (aucun Exercice défini), affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
+| Résumé | `N activité(s) · durée estimée`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. À l'état vide (aucun Exercice défini), affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
 | Continuer | Désactivé lorsque le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent ; ouvre les Catégories. |
 
 Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
 
-Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur validée et leur propre brouillon. L’ouverture copie la dernière valeur validée dans le brouillon ; le défilement ne modifie ni la carte ni le résumé. Annuler abandonne le brouillon. Valider enregistre exactement les minutes et secondes centrées et actualise alors seulement la carte. Les secondes couvrent `00` à `59` avec un pas de `1`.
+Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur validée et leur propre brouillon. L’ouverture copie la dernière valeur validée dans le brouillon ; le défilement ne modifie ni la carte ni la synthèse intégrée au Tour. Annuler abandonne le brouillon. Valider enregistre exactement les minutes et secondes centrées et actualise alors seulement la carte et cette synthèse. Les secondes couvrent `00` à `59` avec un pas de `1`.
 
 Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Continuer la création` conserve les données ; `Abandonner` les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
