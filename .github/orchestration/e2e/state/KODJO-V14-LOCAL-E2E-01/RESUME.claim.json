@@ -1,0 +1,13 @@
+{
+    "test_id":  "KODJO-V14-LOCAL-E2E-01",
+    "stage":  "RESUME",
+    "status":  "CLAIMED",
+    "call_ordinal":  2,
+    "run_id":  "33917607203",
+    "execution_head":  "161b91b135e2538886c8257b405cc8b72e34efdc",
+    "authorized_base":  "a6a62d04c4563725f6c20b71c6120f0e2edfbad3",
+    "mode":  "LOCAL_WRITE",
+    "writer":  "CLAUDE_LOCAL",
+    "fallback":  "NONE",
+    "claude_cloud":  false
+}
