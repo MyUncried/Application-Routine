@@ -63,15 +63,21 @@ jobs:
           $cpPath=Join-Path $env:STATE_ROOT (if('${{ inputs.stage }}' -eq 'BASE'){'BASE.checkpoint.json'}else{'RESUME.checkpoint.json'}); if(-not(Test-Path $cpPath)){throw 'Checkpoint missing.'}
           $cp=Get-Content $cpPath -Raw|ConvertFrom-Json
           if($cp.test_id -ne $env:TEST_ID -or $cp.stage -ne '${{ inputs.stage }}' -or $cp.status -ne 'AUTHORIZED' -or $cp.mode -ne 'LOCAL_WRITE' -or $cp.writer -ne 'CLAUDE_LOCAL'){throw 'Checkpoint authorization mismatch.'}
-          if($cp.authorized_head -ne $head){throw "HEAD mismatch authorized=$($cp.authorized_head) actual=$head"}; if($cp.consumed -ne $false){throw 'Checkpoint consumed.'}
+          if($cp.consumed -ne $false){throw 'Checkpoint consumed.'}
+          $checkpointCommit=(git log -1 --format=%H -- $cpPath).Trim(); if([string]::IsNullOrWhiteSpace($checkpointCommit)){throw 'Checkpoint commit not found.'}
+          $authorizedBase=(git rev-parse "$checkpointCommit^1").Trim()
+          if($cp.authorized_head -ne $authorizedBase){throw "Authorized base mismatch: checkpoint=$($cp.authorized_head) parent=$authorizedBase"}
+          $allowedControlPrefix='.github/orchestration/e2e/state/KODJO-V14-LOCAL-E2E-01/'
+          $controlDelta=@(git diff --name-only $authorizedBase..$head)
+          foreach($path in $controlDelta){$n=$path -replace '\\','/';if(-not $n.StartsWith($allowedControlPrefix)){throw "HEAD guard failed: non-control change after authorized base: $n"}}
           if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.claim.json'))){throw 'Duplicate claim.'}; if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.result.json'))){throw 'Duplicate result.'}
           if('${{ inputs.stage }}' -eq 'RESUME'){$base=Get-Content (Join-Path $env:STATE_ROOT 'BASE.result.json') -Raw|ConvertFrom-Json; $t=Get-ChildItem $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.session_id).jsonl" -ErrorAction SilentlyContinue; if(@($t).Count -ne 1){throw 'Native BASE transcript missing or ambiguous.'}}
-          "head=$head" >> $env:GITHUB_OUTPUT; "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
+          "head=$head" >> $env:GITHUB_OUTPUT; "authorized_base=$authorizedBase" >> $env:GITHUB_OUTPUT; "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
 
       - name: Claim stage
         run: |
           $ErrorActionPreference='Stop'; $stage='${{ inputs.stage }}'; $ordinal=if($stage -eq 'BASE'){1}else{2}; $path=Join-Path $env:STATE_ROOT ($stage+'.claim.json')
-          $o=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='CLAIMED';call_ordinal=$ordinal;run_id="$env:GITHUB_RUN_ID";authorized_head='${{ steps.gate.outputs.head }}';mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false}|ConvertTo-Json
+          $o=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='CLAIMED';call_ordinal=$ordinal;run_id="$env:GITHUB_RUN_ID";execution_head='${{ steps.gate.outputs.head }}';authorized_base='${{ steps.gate.outputs.authorized_base }}';mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false}|ConvertTo-Json
           [IO.File]::WriteAllText($path,$o,(New-Object Text.UTF8Encoding($false))); git add -- $path; git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: claim $stage $env:GITHUB_RUN_ID"; git push origin "HEAD:$env:EXPECTED_TARGET_REF"
 
       - name: Claude BASE 1 of 2
