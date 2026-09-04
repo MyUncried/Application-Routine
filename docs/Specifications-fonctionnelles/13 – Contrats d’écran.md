@@ -375,7 +375,7 @@ Dans T01, une action secondaire qui n’est pas encore livrée ne doit pas appar
 
 #### Structure et données initiales obligatoires
 
-L’écran affiche, dans cet ordre : en-tête fixe avec Retour et `Composition d’une séance` ; champ `Nom de la séance` et sélecteur de couleur ; action vectorielle `Ajouter une activité` ; `Compte à rebours initial` à `10 secondes` ; conteneur `Nombre de tours` à `1`, dont le sous-libellé affiche le résumé calculé `0 activité · 0 min` ; `Fin de séance` à `5 s` ; action finale. Aucun résumé séparé n’est affiché au bas de l’écran.
+L’écran affiche, dans cet ordre : en-tête fixe avec Retour et `Composition d’une séance` ; champ `Nom de la séance` et sélecteur de couleur ; action vectorielle `Ajouter une activité` ; `Compte à rebours initial` à `10 secondes` ; conteneur `Nombre de tours` à `1`, dont le sous-libellé affiche le résumé calculé `0 activité · 0 min` ; `Fin de séance` à `5 s` ; action finale. Ce résumé compte et totalise exclusivement les Activités : les durées du Compte à rebours initial et de la Fin de séance en sont toujours exclues. Aucun résumé séparé n’est affiché au bas de l’écran.
 
 Dans tous les états de cet écran, l’icône du conteneur Tour est une instance de `Icon / Tour` (`3066:4685`), issue de la référence validée `Nouvelle séance — Nom renseigné` (`2028:12003`, ancien nœud source `2028:12040`). L’actif de développement unique est `assets/icons/icon-tour.svg`, clé `icon.tour` ; aucune copie vectorielle locale n’est admise.
 
@@ -446,7 +446,7 @@ Tests bloquants : exactement 12 valeurs provenant du Design System ; grille et i
 
 Le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`2537:1110`), mesure `330 × 190` : barre d’actions `40` et primitive native `150`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes vont de `00` à `59` par pas de `1`. Deux cadres gris distincts `56 × 34`, rayon `17`, couvrent uniquement les chiffres centrés ; les unités restent hors des cadres.
 
-Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Confirmer. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
+Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Confirmer. La confirmation actualise uniquement la carte `Compte à rebours initial` : elle ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours`. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
 
 Toucher un chiffre ou la zone sélectionnée ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. L’ouverture d’un autre sélecteur ferme celui-ci sans confirmer son brouillon. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
 
@@ -497,7 +497,7 @@ Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La C
 
 Le bouton `Ajouter une activité` reste unique et placé au-dessus de la structure. Une nouvelle Activité est insérée après le Compte à rebours, avant le Tour, puis peut être déplacée. Les éléments structurels ne sont ni déplaçables ni supprimables. Deux Exercices successifs sans pause produisent l’avertissement non bloquant prévu.
 
-Le résumé intégré au conteneur Tour est calculé depuis la Composition ; `5 activités · 19 min` est un exemple. Il est placé sous `Nombre de tours`, au format du sous-libellé des cartes (`11/13`, gris secondaire, écart `4`). Le groupe de textes est centré verticalement avec le sélecteur `66 × 34`. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucun élément ne passe sous l’action.
+Le résumé intégré au conteneur Tour est calculé exclusivement depuis les Activités ; `5 activités · 19 min` est un exemple. Il exclut toujours la durée du Compte à rebours initial et celle de la Fin de séance, éléments structurels hors Tour. Il est placé sous `Nombre de tours`, au format du sous-libellé des cartes (`11/13`, gris secondaire, écart `4`). Le groupe de textes est centré verticalement avec le sélecteur `66 × 34`. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucun élément ne passe sous l’action.
 
 Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
 
@@ -515,7 +515,7 @@ Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; auc
 
 Le composant et les règles sont identiques à CE-T01-07. La variante `Type=Duration` mesure `330 × 190` et sélectionne initialement `00 min 05 s`. Elle doit être ancrée à la ligne Fin de séance, puis repositionnée au-dessus lorsque la hauteur sûre ou l’action fixe l’exige.
 
-La valeur est stockée séparément du Compte à rebours initial. `0 s` rend la phase instantanée mais ne supprime ni la ligne ni l’élément du Plan d’Exécution. Une modification de ce contrôle ne change aucune Activité et ne modifie pas le résumé du nombre d’Activités.
+La valeur est stockée séparément du Compte à rebours initial. `0 s` rend la phase instantanée mais ne supprime ni la ligne ni l’élément du Plan d’Exécution. Une modification de ce contrôle ne change aucune Activité et ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours` ; seule la carte `Fin de séance` est actualisée.
 
 Tests bloquants : valeur initiale `5 s` ; indépendance avec le Compte à rebours ; deux roulettes et haptique conformes ; dernière valeur conservée ; aucune superposition avec l’action finale ; conformité à `2028:11457`.
 
@@ -573,7 +573,7 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 | Type initial | `Exercice` |
 | Mode initial T01 | `Durée` |
 
-L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Inter Regular `14/17` puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte `KODJO / Modal title` (`18/22`, Semi Bold). Le shell porte explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la limite du bandeau ; cette marge ne doit jamais être obtenue indirectement par l’interligne.
+L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Inter Regular `14/17` puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte le token canonique `KODJO / Screen title` (`20/24`, Semi Bold), exactement comme `Nom de la séance`. Le shell porte explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la limite du bandeau ; cette marge ne doit jamais être obtenue indirectement par l’interligne.
 
 Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétition` ; titre `Paramètres de l’activité` ; contrôles `Durée`, `Pause`, `Séries` ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
 

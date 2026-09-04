@@ -583,7 +583,7 @@ L’écran affiche notamment :
 - le champ `Nom de la séance` ;
 - un contrôle de couleur compact placé à côté du nom ;
 - une palette de 12 couleurs organisée en grille 4 × 3 ;
-- le résumé `N activité(s) · durée estimée`, intégré sous `Nombre de tours` dans le conteneur Tour.
+- le résumé `N activité(s) · durée des Activités`, intégré sous `Nombre de tours` dans le conteneur Tour.
 
 Le champ `Nom de la séance` mesure `354 × 42`. Dans tous les états de Composition, son fond est transparent afin de laisser apparaître la couleur de la séance ; il possède un liseré blanc intérieur de `1` point (`color.sessionNameBorder`). Le texte et le contrôle de couleur conservent leurs styles et positions canoniques.
 
@@ -596,9 +596,9 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface, le nombre est affiché sans signe `×`, dans un contrôle compact placé à droite du bloc de textes. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas.
+Dans l’interface, le nombre est affiché sans signe `×`, dans un contrôle compact placé à droite du bloc de textes. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. Cette synthèse compte uniquement les Activités et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas.
 
-La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée après toute modification validée de la Composition et reste attachée au conteneur Tour dans ses états fermé et déployé.
+La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Activités ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement la carte structurelle concernée et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Tour dans ses états fermé et déployé.
 
 Un appui sur le contrôle de valeur ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`). Le défilement ne modifie qu’un brouillon ; Annuler ferme sans enregistrer et Confirmer applique la valeur centrée.
 
@@ -707,7 +707,7 @@ L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en créat
 Sous l’en-tête, un bandeau contextuel bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
 - `Séance · {nom de la séance}`, en Inter Regular `14/17` ;
-- le champ du nom de l’Activité, de fond transparent et entouré d’un liseré blanc intérieur de `1` point ; sa valeur utilise `KODJO / Modal title` (`18/22`, Semi Bold).
+- le champ du nom de l’Activité, de fond transparent et entouré d’un liseré blanc intérieur de `1` point ; sa valeur utilise le token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance`.
 
 Le bandeau applique explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la fin de la zone bleue. Cet espace est une propriété du shell : il ne dépend ni de la hauteur de ligne du contexte ni d’une coordonnée absolue. Il constitue aussi la valeur canonique à employer sous les actions contextuelles `+ Créer` et `+ Ajouter une activité`.
 
