@@ -194,12 +194,12 @@ describe("strings", () => {
     );
   });
 
-  it("exposes the exact D-094 exercise exit-confirm modal texts", () => {
+  it("exposes the exact D-094/CE-T01-16 exercise exit-confirm modal texts (REWORK11, 2026-09-04 — 'Continuer la modification'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {
     expect(strings.screens.exercise.exitConfirmModal).toEqual({
       title: "Abandonner les modifications ?",
       message: "Les modifications apportées à cette activité seront perdues.",
-      continueEditing: "Continuer la modification",
-      abandon: "Abandonner",
+      continueEditing: "Annuler",
+      abandon: "Confirmer",
     });
   });
 

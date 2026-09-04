@@ -216,8 +216,15 @@ export const fr = {
       exitConfirmModal: {
         title: "Abandonner les modifications ?",
         message: "Les modifications apportées à cette activité seront perdues.",
-        continueEditing: "Continuer la modification",
-        abandon: "Abandonner",
+        // REWORK11 (`[ChatGPT] CHANGES_REQUESTED — REWORK11 — dialogue
+        // d'abandon d'une Activité`, 2026-09-04) : « Continuer la
+        // modification » → « Annuler », « Abandonner » → « Confirmer » —
+        // vérifié directement sur l'instance `3224:4140` (frame CE-T01-16,
+        // `3224:4082`). Mêmes clés (`continueEditing`/`abandon`), mêmes
+        // props `onCancel`/`onConfirm` déjà correctement nommées ;
+        // même correction que REWORK10 sur `composition.abandonModal`.
+        continueEditing: "Annuler",
+        abandon: "Confirmer",
       },
     },
     calendar: {
