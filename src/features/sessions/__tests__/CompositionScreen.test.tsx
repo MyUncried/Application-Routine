@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Keyboard, Platform, StyleSheet } from "react-native";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { Keyboard, ScrollView, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -84,32 +84,24 @@ function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> 
 const composition = strings.screens.composition;
 
 /**
- * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
- * déjà `"ios"` — forcé ici explicitement, par robustesse, plutôt que de
- * dépendre implicitement de ce défaut. `DurationWheelPicker` (`PHASE02
- * REWORK01 ADDENDUM — NATIVE APPLE WHEEL TARGET`, 2026-09-03) délègue donc
- * à la roulette native SwiftUI — les interactions de test ci-dessous
- * utilisent `fireNativeSelectionChange` (événement `selectionChange`,
- * convention du composant natif), jamais `fireEvent.scroll` (mécanisme du
- * seul chemin Android/web, testé séparément dans
- * `DurationWheelPicker.test.tsx`).
+ * `DurationWheelPicker` utilise une seule implémentation (`ScrollView` +
+ * calcul manuel) sur toutes les plateformes depuis l'audit indépendant
+ * REWORK04 (`[ChatGPT] CHANGES_REQUESTED — Composition d'une séance —
+ * audit indépendant REWORK04`, 2026-09-03 — voir `DurationWheelPicker.tsx`
+ * pour la justification complète du changement de primitive). Les
+ * interactions de test ci-dessous utilisent donc `scrollWheelColumn`
+ * (événement `scroll`, le seul mécanisme réel désormais).
  */
-let originalPlatformOS: typeof Platform.OS;
+const WHEEL_ITEM_HEIGHT = 40;
 
-beforeAll(() => {
-  originalPlatformOS = Platform.OS;
-  Platform.OS = "ios";
-});
-
-afterAll(() => {
-  Platform.OS = originalPlatformOS;
-});
-
-function fireNativeSelectionChange(
-  element: ReturnType<typeof screen.getByTestId>,
-  selection: number,
-) {
-  fireEvent(element, "selectionChange", { nativeEvent: { selection } });
+function scrollWheelColumn(element: ReturnType<typeof screen.getByTestId>, index: number) {
+  fireEvent.scroll(element, {
+    nativeEvent: {
+      contentOffset: { y: index * WHEEL_ITEM_HEIGHT },
+      contentSize: {},
+      layoutMeasurement: {},
+    },
+  });
 }
 
 beforeEach(() => {
@@ -282,7 +274,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
     // Still exactly one picker mounted, now driven by the final phase value (05 s).
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
+    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue.now).toBe(5);
   });
 
   it("opening the color palette closes an already-open duration picker", () => {
@@ -327,7 +319,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
+    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 1);
 
     // La ligne reste sur la valeur validée précédente (défaut 10 s) tant
     // que le sélecteur n'est pas refermé — jamais mise à jour en cours de
@@ -343,7 +335,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 2);
     // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
     expect(screen.getByText("00 min 10 s")).toBeTruthy();
 
@@ -361,7 +353,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 2);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
 
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
@@ -373,14 +365,14 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
+    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 1);
+    scrollWheelColumn(screen.getByTestId("duration-wheel-seconds"), 10);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (01 min 10 s)
     expect(screen.getByText("01 min 10 s")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
-    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
+    expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue.now).toBe(1);
+    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue.now).toBe(10);
   });
 
   it("selecting a color actually applies it to the draft (compact swatch background) and closes the palette", () => {
@@ -592,7 +584,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("CMP-04/T-03/T-04/T-05 — the Tour card is a distinct DS component (background different from the general background), showing the 'Nombre de tours' label and a square violet control (content '1', no '×', white chevron), never the Activity icon", () => {
+  it("CMP-04/T-03/T-04a/b/c/T-05 — the Tour card is a distinct DS component (background different from the general background), showing the 'Nombre de tours' label and a control frame with '1' distinct from a dedicated violet chevron square, never the Activity icon", () => {
     renderScreen();
 
     const tourCard = screen.getByTestId("composition-tour-card");
@@ -602,13 +594,27 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).getByText("1")).toBeTruthy();
     expect(within(tourCard).queryByText("×1")).toBeNull();
 
-    // T-04/R4-10 : contrôle carré `28×28` violet (`colors.selection`), chevron blanc.
+    // T-04a/b/c : cadre parent clair `66×30` — `1` en texte nu (jamais sur
+    // fond violet), carré violet `28×28` distinct contenant SEULEMENT le
+    // chevron blanc.
     const control = screen.getByTestId("composition-tour-control");
     const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.backgroundColor).toBe(colors.selection);
-    expect(controlStyle.width).toBe(28);
-    expect(controlStyle.height).toBe(28);
-    const chevron = within(control).getByTestId("composition-tour-control-chevron");
+    expect(controlStyle.width).toBe(66);
+    expect(controlStyle.height).toBe(30);
+    expect(controlStyle.backgroundColor).not.toBe(colors.selection);
+
+    const valueText = within(control).getByText("1");
+    expect(StyleSheet.flatten(valueText.props.style).color).not.toBe(colors.background);
+
+    const chevronBox = screen.getByTestId("composition-tour-control-chevron-box");
+    const chevronBoxStyle = StyleSheet.flatten(chevronBox.props.style);
+    expect(chevronBoxStyle.backgroundColor).toBe(colors.selection);
+    expect(chevronBoxStyle.width).toBe(28);
+    expect(chevronBoxStyle.height).toBe(28);
+    // Le "1" n'est jamais un enfant du carré violet.
+    expect(within(chevronBox).queryByText("1")).toBeNull();
+
+    const chevron = within(chevronBox).getByTestId("composition-tour-control-chevron");
     expect(chevron.props.style.tintColor).toBe(colors.background);
 
     // Jamais l'icône d'une Activité réutilisée comme icône Tour.
@@ -691,6 +697,14 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(StyleSheet.flatten(nameField.props.style).color).toBe(colors.textPrimary);
   });
 
+  it("R4-01 — the placeholder itself (not just typed text) uses color/text-primary (#141414), per the audit's explicit correction of placeholderTextColor", () => {
+    renderScreen();
+
+    const nameField = screen.getByLabelText(composition.name);
+    expect(nameField.props.placeholderTextColor).toBe(colors.textPrimary);
+    expect(nameField.props.placeholderTextColor).not.toBe(colors.textSecondary);
+  });
+
   it("R4-03 — Boundary Activity and Tour card titles use the KODJO / Card / Title style (14/18 Semi Bold, #141414)", () => {
     renderScreen();
 
@@ -745,6 +759,96 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     const flattened = StyleSheet.flatten(container.props.style);
     expect(flattened.marginHorizontal).toBe(-10);
     expect(flattened.paddingHorizontal).toBe(10);
+  });
+});
+
+/**
+ * R4-13 / S-01…S-09 (`[ChatGPT] REWORK04 ADDENDUM — FIXED SHELL /
+ * ACTIVITIES SCROLL CONTRACT`, 2026-09-03, absorbé et confirmé par
+ * `[ChatGPT] CHANGES_REQUESTED — Composition d'une séance — audit
+ * indépendant REWORK04`, 2026-09-03).
+ *
+ * Limite disclosed : le modèle T01 ne permet qu'un unique Exercice
+ * (`draft.exercise`, jamais un tableau) — une fixture avec « assez
+ * d'activités pour dépasser la hauteur disponible » (S-05) n'est donc pas
+ * représentable avec des données réelles à ce stade. Ces tests prouvent la
+ * STRUCTURE du contrat (conteneur défilant unique, zones fixes hors de ce
+ * conteneur, ordre interne) plutôt qu'un dépassement réel de hauteur —
+ * seule preuve accessible sans device ni modèle multi-activités.
+ */
+describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scroll)", () => {
+  it("S-03/S-09 — exactly one scrollable container exists for the whole screen", () => {
+    const { UNSAFE_root } = renderScreen();
+    const scrollViews = UNSAFE_root.findAllByType(ScrollView);
+    expect(scrollViews).toHaveLength(1);
+    expect(scrollViews[0].props.testID).toBe("composition-body");
+  });
+
+  it("S-01/S-02 — Header, its separator, and the Context band are structural siblings of the scrollable list, never its descendants", () => {
+    renderScreen();
+
+    const scrollable = screen.getByTestId("composition-body");
+    expect(within(scrollable).queryByTestId("screen-header")).toBeNull();
+    expect(within(scrollable).queryByTestId("screen-header-separator")).toBeNull();
+    expect(within(scrollable).queryByTestId("screen-context-band")).toBeNull();
+  });
+
+  it("S-04 — Bottom Action (summary + Continuer) is a structural sibling of the scrollable list, never its descendant", () => {
+    renderScreen();
+
+    const scrollable = screen.getByTestId("composition-body");
+    expect(within(scrollable).queryByTestId("composition-bottom-action")).toBeNull();
+    expect(screen.getByTestId("composition-bottom-action")).toBeTruthy();
+  });
+
+  it("S-04 — the scrollable list contains, in order, Compte à rebours initial, the Tour section, then Fin de séance", () => {
+    renderScreen();
+
+    const scrollable = screen.getByTestId("composition-body");
+    expect(within(scrollable).getByLabelText(composition.countdown.label)).toBeTruthy();
+    expect(within(scrollable).getByTestId("composition-tour-section")).toBeTruthy();
+    expect(within(scrollable).getByLabelText(composition.finalPhase.label)).toBeTruthy();
+
+    const labelOrder = textOrder(screen.toJSON(), [
+      composition.countdown.label,
+      composition.tour.label,
+      composition.finalPhase.label,
+    ]);
+    expect(labelOrder).toEqual([
+      composition.countdown.label,
+      composition.tour.label,
+      composition.finalPhase.label,
+    ]);
+  });
+
+  it("S-06 — opening a duration picker never moves the fixed Header/Context/Bottom Action zones (their own styles stay identical whether a selector is open or not)", () => {
+    renderScreen();
+
+    const headerBefore = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
+    const contextBefore = StyleSheet.flatten(screen.getByTestId("screen-context-band").props.style);
+    const bottomBefore = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    const headerAfter = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
+    const contextAfter = StyleSheet.flatten(screen.getByTestId("screen-context-band").props.style);
+    const bottomAfter = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
+
+    expect(headerAfter).toEqual(headerBefore);
+    expect(contextAfter).toEqual(contextBefore);
+    expect(bottomAfter).toEqual(bottomBefore);
+  });
+
+  it("S-08 — the bottom safe-area inset is applied exactly once (Bottom Action only, never duplicated on the scrollable list)", () => {
+    renderScreen();
+
+    const scrollContent = StyleSheet.flatten(
+      screen.getByTestId("composition-body").props.contentContainerStyle,
+    );
+    expect(scrollContent.paddingBottom).toBe(16); // spacing[16] fixe, aucun insets.bottom ici.
+
+    const bottomAction = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
+    expect(bottomAction.marginBottom).toBeGreaterThanOrEqual(16); // insets.bottom + spacing[16], seul point d'application.
   });
 });
 

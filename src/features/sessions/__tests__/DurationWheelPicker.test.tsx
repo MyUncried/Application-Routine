@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Platform, StyleSheet } from "react-native";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { colors } from "@/shared/ui/tokens";
@@ -40,32 +40,22 @@ beforeEach(() => {
 });
 
 /**
- * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
- * `"ios"` — hérité par `DurationWheelPicker`, qui délègue alors à la
- * roulette native SwiftUI, jamais à la réimplémentation maison ci-dessous
- * testée. Tout ce bloc `describe` porte sur le chemin Android/web
- * (`LegacyDurationWheelPicker`, réel, toujours livré pour ces plateformes)
- * — forcé explicitement, restauré après chaque test.
+ * **Changement de primitive — audit indépendant REWORK04** (`[ChatGPT]
+ * CHANGES_REQUESTED — Composition d'une séance — audit indépendant
+ * REWORK04`, 2026-09-03) : `DurationWheelPicker` utilise désormais une
+ * seule implémentation (`ScrollView` + calcul manuel) sur toutes les
+ * plateformes — plus de délégation à la roulette native SwiftUI ni de
+ * `Platform.OS`. Ce fichier ne teste donc plus qu'un seul chemin, entièrement
+ * composé de primitives React Native standard réellement exercées par ces
+ * tests (contrairement aux mocks `@expo/ui` du cycle précédent, qui ne
+ * prouvaient que la couche JS).
  *
- * **Toolbar Annuler/Valider — contrat R4-08/R4-09** (`[ChatGPT] REWORK04
- * IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03) :
- * remplace le contrat `onChange`/démontage du cycle précédent. `onValidate`
- * n'est appelé QUE par un appui sur le bouton Valider, jamais pendant le
+ * **Toolbar Annuler/Valider — contrat R4-08/R4-09** : `onValidate` n'est
+ * appelé QUE par un appui sur le bouton Valider, jamais pendant le
  * défilement ni au démontage seul ; `onCancel` ferme sans jamais appeler
  * `onValidate`.
  */
-describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker, ScrollView + toucher direct)", () => {
-  let originalPlatformOS: typeof Platform.OS;
-
-  beforeEach(() => {
-    originalPlatformOS = Platform.OS;
-    Platform.OS = "android";
-  });
-
-  afterEach(() => {
-    Platform.OS = originalPlatformOS;
-  });
-
+describe("DurationWheelPicker", () => {
   it("renders both columns with accessibilityRole=adjustable and the correct accessibilityValue bounds (R4-05: seconds 0…59)", () => {
     render(<DurationWheelPicker {...renderProps()} />);
 
@@ -78,6 +68,15 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
     expect(seconds.props.accessibilityValue).toEqual({ min: 0, max: 59, now: 0 });
   });
 
+  it("W-09/W-10 — renders the initial digits and units immediately, visible at mount (never an empty spinning wheel)", () => {
+    render(<DurationWheelPicker {...renderProps({ totalSeconds: 75 })} />); // 1 min 15 s
+
+    expect(screen.getByTestId("duration-wheel-minutes-item-1")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-seconds-item-15")).toBeTruthy();
+    expect(screen.getByText("min")).toBeTruthy();
+    expect(screen.getByText("s")).toBeTruthy();
+  });
+
   it("renders the Cancel and Validate toolbar actions", () => {
     render(<DurationWheelPicker {...renderProps()} />);
 
@@ -86,7 +85,7 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
     expect(screen.getByLabelText(VALIDATE_LABEL)).toBeTruthy();
   });
 
-  it("never calls onValidate or onCancel while scrolling/pressing values — draft only (R4-08)", () => {
+  it("R4-08 — never calls onValidate or onCancel while scrolling/pressing values — draft only, the picker stays open", () => {
     const props = renderProps();
     render(<DurationWheelPicker {...props} />);
 
@@ -96,9 +95,10 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
 
     expect(props.onValidate).not.toHaveBeenCalled();
     expect(props.onCancel).not.toHaveBeenCalled();
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
   });
 
-  it("Cancel calls onCancel exactly once, never onValidate, regardless of prior scrolling", () => {
+  it("R4-09b — Cancel calls onCancel exactly once, never onValidate, regardless of prior scrolling", () => {
     const props = renderProps();
     render(<DurationWheelPicker {...props} />);
 
@@ -109,16 +109,16 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
     expect(props.onValidate).not.toHaveBeenCalled();
   });
 
-  it("Validate calls onValidate exactly once, with the currently centered draft total, never onCancel", () => {
+  it("R4-09c/W-08 — Validate calls onValidate exactly once, with exactly the currently centered draft total, never onCancel", () => {
     const props = renderProps({ totalSeconds: 0 });
     render(<DurationWheelPicker {...props} />);
 
     scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT); // 1 min
-    scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 17); // 17 s (pas de 1)
+    scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 11); // 11 s
     fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
 
     expect(props.onValidate).toHaveBeenCalledTimes(1);
-    expect(props.onValidate).toHaveBeenCalledWith(60 + 17);
+    expect(props.onValidate).toHaveBeenCalledWith(60 + 11); // 01 min 11 s
     expect(props.onCancel).not.toHaveBeenCalled();
   });
 
@@ -229,7 +229,7 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
     });
   });
 
-  it("restores exactly the last committed value on re-mount (close/reopen) — Cancel never changes it", () => {
+  it("W-08 — restores exactly the last committed value on re-mount (close/reopen), example 01 min 10 s — Cancel never changes it", () => {
     const props = renderProps({ totalSeconds: 70 }); // 1 min 10 s
     const { unmount } = render(<DurationWheelPicker {...props} />);
 
@@ -251,16 +251,103 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
     });
   });
 
-  describe("hiérarchie visuelle (CE-T01-07, AUD-05 — T01_S01_S08_CONFORMITY_AUDIT_20260902.md)", () => {
-    it("renders a central selection band and edge fade overlays, non-interactive, for both columns", () => {
+  describe("R4-06/W-07/W-11 — bande de sélection unique (traverse colonnes ET unités)", () => {
+    it("renders exactly one selection band spanning the full wheel row, never one per column", () => {
       render(<DurationWheelPicker {...renderProps()} />);
 
-      const overlays = screen.getAllByTestId("wheel-selection-overlay");
-      expect(overlays).toHaveLength(2);
-      for (const overlay of overlays) {
-        expect(overlay.props.pointerEvents).toBe("none");
-      }
-      expect(screen.getAllByTestId("wheel-selection-band")).toHaveLength(2);
+      // Une seule instance du calque de superposition (pas une par colonne).
+      expect(screen.getAllByTestId("wheel-selection-overlay")).toHaveLength(1);
+      expect(screen.getAllByTestId("wheel-selection-band")).toHaveLength(1);
+    });
+
+    it("colours the band neutral grey (colors.surface/colors.divider), never the pale blue selectionSurface token", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const band = screen.getByTestId("wheel-selection-band");
+      const flattened = StyleSheet.flatten(band.props.style);
+      expect(flattened.backgroundColor).toBe(colors.surface);
+      expect(flattened.backgroundColor).not.toBe(colors.selectionSurface);
+      expect(flattened.borderColor).toBe(colors.divider);
+    });
+
+    it("positions the band's width to cover the entire wheel row (both columns and both units), not a single column's width", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const overlay = screen.getByTestId("wheel-selection-overlay");
+      const row = screen.getByTestId("duration-wheel-row");
+      const overlayStyle = StyleSheet.flatten(overlay.props.style);
+      const rowStyle = StyleSheet.flatten(row.props.style);
+
+      // Le calque est positionné en absolu, left/right à 0, à l'intérieur du
+      // MÊME conteneur (`duration-wheel-row`) que les deux colonnes et les
+      // deux unités — sa largeur effective est donc celle de ce conteneur.
+      expect(overlayStyle.position).toBe("absolute");
+      expect(overlayStyle.left).toBe(0);
+      expect(overlayStyle.right).toBe(0);
+      expect(rowStyle.width).toBeGreaterThan(0);
+    });
+
+    it("never intercepts scroll/press gestures (pointerEvents=none)", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+      expect(screen.getByTestId("wheel-selection-overlay").props.pointerEvents).toBe("none");
+    });
+  });
+
+  describe("R4-07 — géométrie canonique de la roulette (largeurs exactes, mission de design)", () => {
+    it("gives the minutes and seconds columns their exact canonical widths (76 each)", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const minutesStyle = StyleSheet.flatten(screen.getByTestId("duration-wheel-minutes").props.style);
+      const secondsStyle = StyleSheet.flatten(screen.getByTestId("duration-wheel-seconds").props.style);
+      expect(minutesStyle.width).toBe(76);
+      expect(secondsStyle.width).toBe(76);
+    });
+
+    it("gives the 'min' and 's' units their exact canonical widths (32 and 20) in bold 14/18, positioned with the canonical gaps (4 digit/unit, 22 between groups)", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const minUnit = screen.getByText("min");
+      const sUnit = screen.getByText("s");
+      const minStyle = StyleSheet.flatten(minUnit.props.style);
+      const sStyle = StyleSheet.flatten(sUnit.props.style);
+
+      expect(minStyle.width).toBe(32);
+      expect(minStyle.marginRight).toBe(22);
+      expect(minStyle.fontWeight).toBe("600");
+      expect(minStyle.fontSize).toBe(14);
+      expect(minStyle.lineHeight).toBe(18);
+
+      expect(sStyle.width).toBe(20);
+      expect(sStyle.fontWeight).toBe("600");
+
+      const minutesStyle = StyleSheet.flatten(screen.getByTestId("duration-wheel-minutes").props.style);
+      const secondsStyle = StyleSheet.flatten(screen.getByTestId("duration-wheel-seconds").props.style);
+      expect(minutesStyle.marginRight).toBe(4);
+      expect(secondsStyle.marginRight).toBe(4);
+    });
+
+    it("never lets any column or unit overflow the wheel row's own bounded width", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const rowWidth = StyleSheet.flatten(screen.getByTestId("duration-wheel-row").props.style).width as number;
+      const minutesWidth = StyleSheet.flatten(screen.getByTestId("duration-wheel-minutes").props.style)
+        .width as number;
+      const secondsWidth = StyleSheet.flatten(screen.getByTestId("duration-wheel-seconds").props.style)
+        .width as number;
+      const minUnitWidth = StyleSheet.flatten(screen.getByText("min").props.style).width as number;
+      const sUnitWidth = StyleSheet.flatten(screen.getByText("s").props.style).width as number;
+
+      // Somme exacte des six mesures R4-07 (76+4+32+22+76+4+20=234) — jamais
+      // moins que ce que les éléments réclament, jamais plus (pas d'espace
+      // résiduel où un élément pourrait déborder sans être détecté).
+      const minutesGap = StyleSheet.flatten(screen.getByTestId("duration-wheel-minutes").props.style)
+        .marginRight as number;
+      const secondsGap = StyleSheet.flatten(screen.getByTestId("duration-wheel-seconds").props.style)
+        .marginRight as number;
+      const minUnitGap = StyleSheet.flatten(screen.getByText("min").props.style).marginRight as number;
+
+      const total = minutesWidth + minutesGap + minUnitWidth + minUnitGap + secondsWidth + secondsGap + sUnitWidth;
+      expect(total).toBe(rowWidth);
     });
   });
 
@@ -295,186 +382,8 @@ describe("DurationWheelPicker — chemin Android/web (LegacyDurationWheelPicker,
       expect(props.onValidate).toHaveBeenCalledWith(2 * 60 + 30);
     });
   });
-});
 
-/**
- * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
- * `"ios"` — aucun forçage nécessaire ici (posé explicitement quand même,
- * par robustesse). Ces tests portent sur `NativeAppleDurationWheelPicker` :
- * la roulette native SwiftUI elle-même (perspective, fondu, inertie,
- * magnétisme natifs) n'est PAS exercée par Jest — seule la couche JS de ce
- * composant l'est. Aucune de ces preuves ne remplace la capture/vidéo
- * iPhone exigée avant clôture (voir le rapport de mission).
- */
-describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPicker, @expo/ui/swift-ui)", () => {
-  let originalPlatformOS: typeof Platform.OS;
-
-  beforeEach(() => {
-    originalPlatformOS = Platform.OS;
-    Platform.OS = "ios";
-  });
-
-  afterEach(() => {
-    Platform.OS = originalPlatformOS;
-  });
-
-  function fireNativeSelectionChange(
-    element: ReturnType<typeof screen.getByTestId>,
-    selection: number,
-  ) {
-    fireEvent(element, "selectionChange", { nativeEvent: { selection } });
-  }
-
-  function frameWidth(testID: string): number | undefined {
-    const modifiers = screen.getByTestId(testID).props.modifiers as {
-      $type: string;
-      width?: number;
-    }[];
-    return modifiers.find((modifier) => modifier.$type === "frame")?.width;
-  }
-
-  it("renders the native Host/Picker structure and the toolbar, without crashing", () => {
-    render(<DurationWheelPicker {...renderProps()} />);
-
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
-    expect(screen.getByTestId("duration-wheel-seconds")).toBeTruthy();
-    expect(screen.getByTestId("duration-wheel-toolbar")).toBeTruthy();
-    expect(screen.getByLabelText(CANCEL_LABEL)).toBeTruthy();
-    expect(screen.getByLabelText(VALIDATE_LABEL)).toBeTruthy();
-  });
-
-  it("never calls onValidate or onCancel while the picker stays mounted, no matter how many native selection events occur (R4-08)", () => {
-    const props = renderProps();
-    render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 10);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 30);
-
-    expect(props.onValidate).not.toHaveBeenCalled();
-    expect(props.onCancel).not.toHaveBeenCalled();
-  });
-
-  it("Cancel calls onCancel exactly once, never onValidate, regardless of prior native selection changes", () => {
-    const props = renderProps();
-    render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5);
-    fireEvent.press(screen.getByLabelText(CANCEL_LABEL));
-
-    expect(props.onCancel).toHaveBeenCalledTimes(1);
-    expect(props.onValidate).not.toHaveBeenCalled();
-  });
-
-  it("Validate calls onValidate exactly once with the currently centered draft total, never onCancel", () => {
-    const props = renderProps({ totalSeconds: 0 });
-    render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5);
-    fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
-
-    expect(props.onValidate).toHaveBeenCalledTimes(1);
-    expect(props.onValidate).toHaveBeenCalledWith(5 * 60);
-    expect(props.onCancel).not.toHaveBeenCalled();
-  });
-
-  it("propagates exactly one haptic call per newly observed native selection", () => {
-    render(<DurationWheelPicker {...renderProps()} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5);
-    expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
-  });
-
-  it("does nothing when the native picker reports the value already selected — no haptic", () => {
-    render(<DurationWheelPicker {...renderProps()} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 0);
-    expect(Haptics.selectionAsync).not.toHaveBeenCalled();
-  });
-
-  it("keeps native selections independent between the minutes and seconds columns, combining into the correct total on Validate", () => {
-    const props = renderProps();
-    render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 30);
-    fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
-
-    expect(props.onValidate).toHaveBeenCalledWith(2 * 60 + 30);
-  });
-
-  it("R4-05 — reports every second value 0…59 exactly (pas de 1, aucun arrondi)", () => {
-    const props = renderProps();
-    render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 37);
-    fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
-
-    expect(props.onValidate).toHaveBeenCalledWith(37);
-  });
-
-  it("restores exactly the last committed value on re-mount (close/reopen) — example 01 min 10 s, Cancel never changes it", () => {
-    const props = renderProps({ totalSeconds: 70 });
-    const { unmount } = render(<DurationWheelPicker {...props} />);
-
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 5); // draft only
-    fireEvent.press(screen.getByLabelText(CANCEL_LABEL));
-    expect(props.onValidate).not.toHaveBeenCalled();
-    unmount();
-
-    render(<DurationWheelPicker {...props} />);
-    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
-  });
-
-  describe("géométrie canonique R4-07 (mission de design, `2026-09-03_design-complements-composition-wheel.md`)", () => {
-    it("gives the minutes column an explicit frame width of 76, with a trailing gap of 4 before its unit", () => {
-      render(<DurationWheelPicker {...renderProps()} />);
-
-      expect(frameWidth("duration-wheel-minutes")).toBe(76);
-      const modifiers = screen.getByTestId("duration-wheel-minutes").props.modifiers as {
-        $type: string;
-        trailing?: number;
-      }[];
-      const paddingModifier = modifiers.find((modifier) => modifier.$type === "padding");
-      expect(paddingModifier?.trailing).toBe(4);
-    });
-
-    it("gives the seconds column the exact same frame width (76) and trailing gap (4) as the minutes column", () => {
-      render(<DurationWheelPicker {...renderProps()} />);
-
-      expect(frameWidth("duration-wheel-seconds")).toBe(frameWidth("duration-wheel-minutes"));
-    });
-
-    it("gives the 'min' and 's' unit texts their canonical widths (32 and 20) in bold 14pt", () => {
-      const { UNSAFE_getAllByProps } = render(<DurationWheelPicker {...renderProps()} />);
-
-      const minUnit = UNSAFE_getAllByProps({ text: "min" })[0];
-      const sUnit = UNSAFE_getAllByProps({ text: "s" })[0];
-
-      const minModifiers = minUnit.props.modifiers as { $type: string; width?: number; size?: number }[];
-      expect(minModifiers.find((m) => m.$type === "frame")?.width).toBe(32);
-      expect(minModifiers.some((m) => m.$type === "bold")).toBe(true);
-      expect(minModifiers.find((m) => m.$type === "font")?.size).toBe(14);
-
-      const sModifiers = sUnit.props.modifiers as { $type: string; width?: number }[];
-      expect(sModifiers.find((m) => m.$type === "frame")?.width).toBe(20);
-      expect(sModifiers.some((m) => m.$type === "bold")).toBe(true);
-    });
-
-    it("W-04 — never renders a second, overlaid selection frame (blue band) — only the native SwiftUI frame subsists", () => {
-      render(<DurationWheelPicker {...renderProps()} />);
-      expect(screen.queryByTestId("duration-wheel-native-selection-band")).toBeNull();
-    });
-
-    it("R4-08 — never renders the previous cycle's invisible tap-to-close target on the selection band", () => {
-      render(<DurationWheelPicker {...renderProps()} />);
-      expect(screen.queryByTestId("duration-wheel-native-close-tap")).toBeNull();
-    });
-  });
-
-  describe("toolbar Annuler/Valider — géométrie (R4-09, D-098)", () => {
+  describe("toolbar Annuler/Valider — géométrie (R4-09a, D-098)", () => {
     it("gives Cancel and Validate a 28×28 visual circle with a hitSlop that extends the touch target to 48×48", () => {
       render(<DurationWheelPicker {...renderProps()} />);
 

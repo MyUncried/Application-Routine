@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -115,7 +115,13 @@ export function CompositionScreen() {
             onChangeText={(text) => updateDraft({ name: text })}
             onFocus={closeOverlay}
             placeholder={composition.name}
-            placeholderTextColor={colors.textSecondary}
+            // R4-01 (`[ChatGPT] CHANGES_REQUESTED — Composition d'une
+            // séance — audit indépendant REWORK04`, 2026-09-03) : le
+            // placeholder lui-même utilise désormais `text-primary`
+            // (`#141414`), pas seulement le texte réellement saisi —
+            // corrige `placeholderTextColor`, précédemment
+            // `colors.textSecondary`.
+            placeholderTextColor={colors.textPrimary}
             accessibilityLabel={composition.name}
             maxLength={NAME_MAX_LENGTH}
             style={styles.nameInput}
@@ -162,7 +168,37 @@ export function CompositionScreen() {
         ) : null}
       </ContextBand>
 
-      <View style={styles.body} testID="composition-body">
+      {/*
+       * R4-13 (`Fixed Header + Fixed Context + Scrollable Content + Fixed
+       * Bottom Action`, `[ChatGPT] REWORK04 ADDENDUM — FIXED SHELL /
+       * ACTIVITIES SCROLL CONTRACT`, 2026-09-03) : `composition-body` est
+       * désormais un unique `ScrollView` — le seul conteneur défilant de
+       * l'écran. Header/séparateur/bande Context restent au-dessus, hors de
+       * ce `ScrollView` (jamais recouverts) ; la zone d'action basse
+       * (synthèse + `Continuer`) reste en dessous, également hors de ce
+       * `ScrollView` (S-01 à S-04). `keyboardShouldPersistTaps="handled"` :
+       * un appui sur une ligne/action de cette liste reste effectif même si
+       * le champ Nom a le focus clavier, sans nécessiter un premier appui
+       * « perdu » pour seulement fermer le clavier (même patron déjà
+       * établi sur `ExerciseScreen.tsx`).
+       *
+       * Limite disclosed (non vérifiée sur device) : un popover de roulette
+       * (`PopoverAnchor`, `position: absolute` relatif à sa ligne) ancré à
+       * une ligne proche du bas de la zone visible du `ScrollView` pourrait
+       * être partiellement rogné par le bord de ce dernier — comportement
+       * standard de clipping React Native, non contourné ici faute de
+       * pouvoir le vérifier sans appareil. En T01, au plus 4 lignes
+       * existent (Compte à rebours, Activité optionnelle, Tour, Fin de
+       * séance) : le risque pratique reste faible tant qu'aucune Activité
+       * supplémentaire n'existe (hors périmètre T01, modèle à Exercice
+       * unique).
+       */}
+      <ScrollView
+        style={styles.body}
+        contentContainerStyle={styles.bodyContent}
+        keyboardShouldPersistTaps="handled"
+        testID="composition-body"
+      >
         <AnchoredRow testID="composition-anchored-row-countdown" elevated={openOverlay === "countdown"}>
           <BoundaryActivityRow
             icon="composition-initial-countdown"
@@ -241,7 +277,7 @@ export function CompositionScreen() {
             </PopoverAnchor>
           ) : null}
         </AnchoredRow>
-      </View>
+      </ScrollView>
 
       {/*
        * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
@@ -438,10 +474,16 @@ function BoundaryActivityRow({
  * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
  *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
  *   `rowLabel`/`tourCardLabel`).
- * - **T-04/R4-10** : contrôle carré `28×28` (réduit depuis `36×36`) violet
- *   (`colors.selection` = `#5F60EE`, alias `color.wheelAction*` non
- *   applicable ici — couleur propre au contrôle Tour, `12 – Architecture
- *   technique.md`) avec chevron blanc (`KodjoIcon`'s `tintColor`).
+ * - **T-04a/b/c** (`[ChatGPT] CHANGES_REQUESTED — Composition d'une séance
+ *   — audit indépendant REWORK04`, 2026-09-03) : anatomie du contrôle
+ *   **refaite**, inversant `T-04/R4-10` du cycle précédent — désormais un
+ *   cadre parent clair `66×30` (`tourCardControl`, fond `colors.background`)
+ *   contenant DEUX éléments distincts côte à côte : la valeur `1` en texte
+ *   nu à gauche (`tourCardControlValue`, jamais sur fond violet) et un
+ *   carré violet `28×28` à droite (`tourCardControlChevronBox`,
+ *   `colors.selection`) contenant UNIQUEMENT le chevron blanc — le cycle
+ *   précédent plaçait `1` et le chevron ensemble dans le même carré
+ *   violet, explicitement interdit par cette revue.
  * - **T-05** : contenu `1` seul — le signe `×` retiré.
  * - **R4-12** : le conteneur Tour (`tourSectionContainer`, `374`) est
  *   désormais plus large que la carte interne qu'il héberge (`354`,
@@ -472,12 +514,14 @@ function TourCard({ label }: { label: string }) {
         <Text style={styles.tourCardLabel}>{label}</Text>
         <View style={styles.tourCardControl} testID="composition-tour-control">
           <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
-          <KodjoIcon
-            name="control-chevron-down"
-            testID="composition-tour-control-chevron"
-            tintColor={colors.background}
-            size={12}
-          />
+          <View style={styles.tourCardControlChevronBox} testID="composition-tour-control-chevron-box">
+            <KodjoIcon
+              name="control-chevron-down"
+              testID="composition-tour-control-chevron"
+              tintColor={colors.background}
+              size={12}
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -485,18 +529,25 @@ function TourCard({ label }: { label: string }) {
 }
 
 const styles = StyleSheet.create({
-  // A-01 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03
-  // CUMULATIVE CORRECTION`, 2026-09-03) : `flex: 1` — le corps occupe
-  // désormais tout l'espace vertical restant entre la bande Context et
-  // `bottomAction` (ses lignes restent alignées en haut, comportement par
-  // défaut d'un conteneur flex sans `justifyContent`), poussant
-  // mécaniquement `bottomAction` au bas de la zone utile. Remplace la
-  // dépendance précédente au seul `marginTop: "auto"` de `bottomAction`
-  // (jugée insuffisante au rendu réel — bloc « trop haut »).
+  // A-01 (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
+  // CORRECTION`, 2026-09-03) : `flex: 1` — le corps occupe tout l'espace
+  // vertical restant entre la bande Context et `bottomAction`, poussant
+  // mécaniquement ce dernier au bas de la zone utile.
+  //
+  // R4-13/S-01…S-09 (`[ChatGPT] REWORK04 ADDENDUM — FIXED SHELL /
+  // ACTIVITIES SCROLL CONTRACT`, 2026-09-03) : `body` est désormais le
+  // `ScrollView` lui-même (style du conteneur défilant, sans padding
+  // propre) — le padding/l'écart entre lignes vivent dans `bodyContent`
+  // (`contentContainerStyle`), seul appliqué au CONTENU défilant. Header,
+  // séparateur, bande Context et `bottomAction` restent hors de ce
+  // `ScrollView`, donc jamais recouverts ni déplacés par le défilement.
   body: {
     flex: 1,
+  },
+  bodyContent: {
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
+    paddingBottom: spacing[16],
     gap: spacing[16],
   },
   // CMP-02 : champ blanc unique regroupant Nom et Sélecteur de couleur.
@@ -622,31 +673,33 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textPrimary,
   },
-  // T-04 : contrôle carré violet avec chevron blanc — auparavant un
-  // contrôle blanc arrondi. Dimension fixe (`36`) choisie pour contenir
-  // confortablement le chevron (`24×24`, taille DS exacte, non redimensionné)
-  // et le chiffre `1` côte à côte ; non confirmée contre un rendu réel
-  // (`NON_VERIFIABLE_DEVICE`, voir le rapport de mission).
-  // R4-10 : contrôle carré `28×28` (réduit depuis `36×36`, valeur propre
-  // au contrôle Tour — coïncide numériquement avec
-  // `dimensions.wheelPicker.actionVisualCircle` sans lien sémantique,
-  // volontairement non partagée). Le chevron interne est explicitement
-  // redimensionné (`KodjoIcon`'s prop `size`, voir `KodjoIcon.tsx`) pour
-  // tenir aux côtés du chiffre dans ce carré plus compact, sans agrandir
-  // la boîte elle-même.
+  // T-04a/b/c : cadre parent clair `66×30` — contient la valeur `1` (texte
+  // nu, à gauche) et le carré violet dédié au chevron (à droite,
+  // `tourCardControlChevronBox`) comme deux éléments frères distincts.
+  // Remplace l'anatomie du cycle précédent (`1` + chevron dans le même
+  // carré violet), explicitement interdite par cette revue.
   tourCardControl: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[2],
-    width: 28,
-    height: 28,
-    backgroundColor: colors.selection,
+    justifyContent: "space-between",
+    width: 66,
+    height: 30,
+    paddingHorizontal: spacing[6],
+    backgroundColor: colors.background,
     borderRadius: 8,
   },
   tourCardControlValue: {
     ...type.label,
-    color: colors.background,
+    color: colors.textPrimary,
+  },
+  // Carré violet dédié, ne contenant QUE le chevron blanc (T-04c).
+  tourCardControlChevronBox: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.selection,
+    borderRadius: 8,
   },
   // R4-03 (`KODJO / Card / Title`, `14/18` Semi Bold) : auparavant
   // `type.body` (`14/20` Regular), non conforme au style DSF partagé.
