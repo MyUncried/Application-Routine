@@ -108,20 +108,20 @@ jobs:
           $plan=Get-Content $env:PLAN_PATH -Raw
           if($env:MODE -eq 'INITIAL'){
             $lines=@(
-              'KODJO T01-S09 V1.4 — IMPLÉMENTATION DU PLAN APPROUVÉ.',
-              "Baseline autorisée: $env:TARGET_BRANCH @ $env:SOURCE_HEAD.",
-              'Plan approuvé:',
+              'KODJO T01-S09 V1.4 - IMPLEMENTATION DU PLAN APPROUVE.',
+              "Baseline autorisee: $env:TARGET_BRANCH @ $env:SOURCE_HEAD.",
+              'Plan approuve:',
               $plan,
-              'Implémente T01-S09 conformément au plan et aux sources Git actuelles. Relis PRODUCT/INDEX, les documents 06 à 13, les captures catégories et le code T01-S01 à S08 avant d’écrire. Les règles documentaires priment sur les suppositions.',
-              'Modifie uniquement le code produit et les tests nécessaires sous app/ et src/. Ne modifie aucun workflow, fichier .github, CLAUDE.md, documentation ou migration001.ts. Toute migration doit être additive. Préserve les comportements S01-S08 non concernés.',
-              'Exécute les tests ciblés et contrôles raisonnables. Ne committe pas et ne pousse pas. Résous les micro-écarts techniques directement. Signale uniquement une vraie décision produit/UX indéterminable.'
+              'Implemente T01-S09 conformement au plan et aux sources Git actuelles. Relis PRODUCT/INDEX, les documents 06 a 13, les captures categories et le code T01-S01 a S08 avant d'ecrire. Les regles documentaires priment sur les suppositions.',
+              'Modifie uniquement le code produit et les tests necessaires sous app/ et src/. Ne modifie aucun workflow, fichier .github, CLAUDE.md, documentation ou migration001.ts. Toute migration doit etre additive. Preserve les comportements S01-S08 non concernes.',
+              'Execute les tests cibles et controles raisonnables. Ne committe pas et ne pousse pas. Resous les micro-ecarts techniques directement. Signale uniquement une vraie decision produit/UX indeterminable.'
             )
             $prompt=$lines -join [Environment]::NewLine
             $raw=(& $env:CLAUDE_PATH -p --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
           } else {
             $marker=if($env:MODE -eq 'VISUAL'){'VISUAL_FEEDBACK:'}else{'REVIEW_FEEDBACK:'}
             $idx=$env:TRIGGER_BODY.IndexOf($marker); if($idx -lt 0){throw 'Correction feedback missing.'}; $feedback=$env:TRIGGER_BODY.Substring($idx+$marker.Length).Trim()
-            $prompt="KODJO T01-S09 V1.4 — CORRECTION $env:MODE tentative $env:ATTEMPT. Reprends exactement la session d'implémentation. Corrige uniquement les écarts décrits, revalide contre le plan approuvé et les sources Git actuelles, exécute les tests pertinents. Ne committe pas et ne pousse pas. Si une vraie décision produit est indéterminable, signale-la. Feedback: $feedback"
+            $prompt="KODJO T01-S09 V1.4 - CORRECTION $env:MODE tentative $env:ATTEMPT. Reprends exactement la session d'implementation. Corrige uniquement les ecarts decrits, revalide contre le plan approuve et les sources Git actuelles, execute les tests pertinents. Ne committe pas et ne pousse pas. Si une vraie decision produit est indeterminable, signale-la. Feedback: $feedback"
             $raw=(& $env:CLAUDE_PATH -p --resume $env:SESSION --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
           }
           if($LASTEXITCODE -ne 0){throw 'Claude implementation invocation failed.'}
