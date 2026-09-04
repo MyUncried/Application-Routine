@@ -133,9 +133,8 @@ jobs:
             printf '%s\n' '' 'IMPLEMENTATION DIFF:' >> /tmp/prompt.txt
             cat /tmp/kodjo-review/diff-trimmed.txt >> /tmp/prompt.txt
           fi
-          PROMPT=$(cat /tmp/prompt.txt)
           SCHEMA='{"type":"object","properties":{"decision":{"type":"string","enum":["APPROVE","REVISE","CLARIFY"]},"summary":{"type":"string"},"feedback":{"type":"string"},"blocking_points":{"type":"array","items":{"type":"string"}},"sources_checked":{"type":"array","items":{"type":"string"}}},"required":["decision","summary","feedback","blocking_points","sources_checked"],"additionalProperties":false}'
-          jq -n --arg model 'gpt-5.6-luna' --arg prompt "$PROMPT" --argjson schema "$SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"medium"},max_output_tokens:1800,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_s09_review",strict:true,schema:$schema}}}' > /tmp/request.json
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/prompt.txt --argjson schema "$SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"medium"},max_output_tokens:1800,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_s09_review",strict:true,schema:$schema}}}' > /tmp/request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/request.json -o /tmp/response.json
           OUTPUT=$(jq -r '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n")' /tmp/response.json)
           printf '%s' "$OUTPUT" | jq -e . >/dev/null
