@@ -491,13 +491,13 @@ Tests bloquants : quatre libellés exacts ; fond réellement bloqué ; aucune su
 
 La Composition affiche les données réelles dans l’ordre enregistré : Compte à rebours ; Activités avant le Tour ; Tour ; Activités du Tour ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible et vaut toujours `1`. Dans T01, le Tour reste `x1` dans les données de recette même si la frame illustre `x3`.
 
-Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La poignée vectorielle `composition-reorder` permet le déplacement ; toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
+Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La ligne est une instance de `Composition / Activity Row` (`2588:2679`), variante de contenu `Movable`. Son slot gauche `Slot / Structure` (`3125:3979`) mesure `28 × 28` et contient exclusivement l’instance `Icon / Structure / Movable` (`3066:4676`, instance interne `3125:3980`) : actif `assets/icons/composition-reorder.svg`, dessin `20 × 20`, opacité `50 %`, couleur `color.iconNeutral`. Toute copie locale `icon/réorganiser` en `16 × 16` est non conforme. Toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
 
 Le bouton `Ajouter une activité` reste unique et placé au-dessus de la structure. Une nouvelle Activité est insérée après le Compte à rebours, avant le Tour, puis peut être déplacée. Les éléments structurels ne sont ni déplaçables ni supprimables. Deux Exercices successifs sans pause produisent l’avertissement non bloquant prévu.
 
 Le résumé inférieur est calculé depuis la Composition ; `5 activités · 19 min` est un exemple. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucune ligne ni le résumé ne passe sous l’action.
 
-Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
+Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; chaque carte d’Activité emploie l’instance canonique `3066:4676` en `20 × 20` dans un slot `28 × 28`, sans icône locale `16 × 16` ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
 
 ---
 
