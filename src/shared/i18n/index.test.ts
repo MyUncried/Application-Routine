@@ -92,12 +92,12 @@ describe("strings", () => {
     expect(strings.screens.composition.summary.empty).toBe("0 activité · 0 min");
   });
 
-  it("exposes the exact abandon-creation modal texts (docs §06, « Les modales »)", () => {
+  it("exposes the exact abandon-creation modal texts (docs §06, « Les modales » ; REWORK10, 2026-09-04 — 'Continuer la création'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {
     expect(strings.screens.composition.abandonModal).toEqual({
       title: "Abandonner la création ?",
       message: "Les informations saisies seront perdues et la séance ne sera pas créée.",
-      continueCreating: "Continuer la création",
-      abandon: "Abandonner",
+      continueCreating: "Annuler",
+      abandon: "Confirmer",
     });
   });
 

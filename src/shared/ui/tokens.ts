@@ -76,6 +76,19 @@ export const colors = {
   exerciseParameterControlBorder: "#DBDBE5",
   exerciseParameterValueText: "#14171C",
   exerciseParameterLabelText: "#1F1F26",
+  // REWORK10 (`[ChatGPT] CHANGES_REQUESTED — REWORK10 — dialogue
+  // d'abandon de création`, 2026-09-04) : `Overlay / Decision Dialog`
+  // (`2590:2961`, instance `2591:3083` sur la frame CE-T01-08 `2028:11298`)
+  // — six valeurs canoniques vérifiées directement sur ce nœud, aucune ne
+  // coïncidant avec un token existant (notamment le rouge destructif,
+  // `#E62B1E`/`#DB2E2E`, distinct de `color.danger`, `#D92D20`, déjà
+  // utilisé ailleurs pour un rouge différent).
+  dialogTitleText: "#121212",
+  dialogMessageText: "#474D57",
+  dialogNeutralActionBackground: "#F3F4F6",
+  dialogNeutralActionText: "#292E38",
+  dialogDestructiveActionBackground: "#E62B1E",
+  dialogDestructiveActionBorder: "#DB2E2E",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -120,6 +133,21 @@ export const type = {
   // documentant pas explicitement de hauteur de ligne fixe pour ce texte
   // (« leading: normal ») — estimation raisonnée, signalée comme telle.
   exerciseFieldValue: { ...regular, fontSize: 13, lineHeight: 18 },
+  // REWORK10 (`Overlay / Decision Dialog`, `2590:2961`/`2591:3083`,
+  // vérifié directement sur `2028:11298`) : message du dialogue, `14px`
+  // Regular, hauteur de ligne `21` (documentée explicitement par Figma,
+  // `leading-[21px]` — contrairement aux tokens `parameterColumnLabel`/
+  // `exerciseFieldValue` ci-dessus, ici une vraie valeur Figma, pas une
+  // estimation) — distincte de `type.body` (`14/20`), à `1pt` près, donc
+  // un token dédié plutôt qu'une réutilisation approximative.
+  dialogMessage: { ...regular, fontSize: 14, lineHeight: 21 },
+  // Libellé de l'action neutre (« Annuler »), `16px` Semi Bold.
+  dialogNeutralActionLabel: { ...semiBold, fontSize: 16, lineHeight: 20 },
+  // Libellé de l'action destructive (« Confirmer »), `16px` MEDIUM —
+  // vérifié explicitement distinct en graisse du libellé neutre
+  // ci-dessus sur le nœud Figma (`font-['Inter:Medium']` vs `Inter:Semi_
+  // Bold`), pas une incohérence à corriger silencieusement.
+  dialogDestructiveActionLabel: { ...medium, fontSize: 16, lineHeight: 20 },
 } as const;
 
 export const spacing = {
@@ -260,6 +288,30 @@ export const dimensions = {
   // cadre réel grandit avec le texte, jamais figé — voir `ExerciseScreen
   // .tsx`).
   exerciseSummaryCard: { radius: 12, paddingHorizontal: 12, paddingVertical: 8 },
+  // REWORK10 — `Overlay / Decision Dialog` (`2590:2961`), vérifié
+  // directement sur l'instance `2591:3083` de `2028:11298` : carte
+  // `354` large, rayon `18`, padding `24` (haut/bas/horizontal — dérivé
+  // par construction : contenu 306 = 354 − 2×24 ; bas 194 − 122 − 48 =
+  // 24) ; deux actions `147×48` chacune, rayon `24` (pleinement arrondi,
+  // = hauteur/2), écart horizontal `12` ; écart vertical entre chaque
+  // bloc (titre→message, message→actions) `16` (`spacing/16`, seule
+  // valeur explicitement documentée par Figma pour cet interstice —
+  // appliquée uniformément aux deux, cohérente avec la mesure observée
+  // sur l'instance concrète). Hauteur totale (`194` en illustration
+  // Figma) volontairement NON figée en dur dans le code — dérivée de ce
+  // padding/gap plutôt qu'imposée, pour ne jamais tronquer un message
+  // qui recevrait davantage de texte ou une échelle de police plus
+  // grande (même principe que `exerciseSummaryCard` ci-dessus).
+  decisionDialog: {
+    width: 354,
+    radius: 18,
+    padding: 24,
+    gap: 16,
+    actionWidth: 147,
+    actionHeight: 48,
+    actionRadius: 24,
+    actionGap: 12,
+  },
 } as const;
 
 export const minTouchTarget = 48;

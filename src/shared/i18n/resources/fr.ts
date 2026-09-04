@@ -101,8 +101,16 @@ export const fr = {
       abandonModal: {
         title: "Abandonner la création ?",
         message: "Les informations saisies seront perdues et la séance ne sera pas créée.",
-        continueCreating: "Continuer la création",
-        abandon: "Abandonner",
+        // REWORK10 (`[ChatGPT] CHANGES_REQUESTED — REWORK10 — dialogue
+        // d'abandon de création`, 2026-09-04) : « Continuer la création »
+        // → « Annuler », « Abandonner » → « Confirmer » — vérifié
+        // directement sur l'instance `2591:3083` de la frame CE-T01-08
+        // (`2028:11298`). Clés inchangées (`continueCreating`/`abandon`) :
+        // seule la valeur affichée change, aucun renommage de clé —
+        // `onCancel`/`onConfirm` (props du composant) portaient déjà la
+        // sémantique correcte avant ce cycle.
+        continueCreating: "Annuler",
+        abandon: "Confirmer",
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
