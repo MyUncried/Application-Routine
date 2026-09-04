@@ -76,7 +76,11 @@ jobs:
           if($sentinel -notmatch 'test_id=KODJO-V14-LOCAL-E2E-01' -or $sentinel -notmatch 'stage=BASE' -or $sentinel -notmatch 'status=BASE_WRITTEN' -or $sentinel -notmatch 'stage=RESUME' -or $sentinel -notmatch 'status=RESUME_WRITTEN'){throw 'Sentinel content invalid.'}
 
           $cp.consumed=$true
-          $cp.consumed_run_id="$env:GITHUB_RUN_ID"
+          if($cp.PSObject.Properties['consumed_run_id']){
+            $cp.consumed_run_id="$env:GITHUB_RUN_ID"
+          } else {
+            $cp | Add-Member -NotePropertyName consumed_run_id -NotePropertyValue "$env:GITHUB_RUN_ID"
+          }
           [IO.File]::WriteAllText($cpPath,($cp|ConvertTo-Json -Depth 10),(New-Object Text.UTF8Encoding($false)))
           $res=[ordered]@{test_id=$env:TEST_ID;stage='RESUME';status='SUCCESS_RECOVERED';run_id="$env:GITHUB_RUN_ID";source_run_id='33917607203';session_id=$session;marker_sha256=$hash;mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false;recovery_reason='path_enforcer_untracked_directory_collapse'}|ConvertTo-Json
           $rp=Join-Path $env:STATE_ROOT 'RESUME.result.json'
