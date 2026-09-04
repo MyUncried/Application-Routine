@@ -1,0 +1,20 @@
+{
+  "schema": "kodjo.e2e.checkpoint.v1",
+  "test_id": "KODJO-V14-LOCAL-E2E-01",
+  "stage": "RESUME",
+  "status": "AUTHORIZED",
+  "mode": "LOCAL_WRITE",
+  "writer": "CLAUDE_LOCAL",
+  "authorized_head": "a6a62d04c4563725f6c20b71c6120f0e2edfbad3",
+  "consumed": false,
+  "allowed_paths": [
+    ".github/orchestration/e2e/KODJO_V14_LOCAL_E2E_SENTINEL.md",
+    ".github/orchestration/reports/KODJO_V14_LOCAL_E2E_01_*.md"
+  ],
+  "claude_call_ordinal": 2,
+  "claude_call_budget": 2,
+  "fallback": "NONE",
+  "claude_cloud": false,
+  "next_actor": "CLAUDE_LOCAL",
+  "purpose": "Resume the exact BASE session after the non-interactive Edit permission block, complete the bounded sentinel/report write with acceptEdits, and prove native session continuity without context reinjection."
+}
