@@ -1,7 +1,8 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Icon / Tour">
-<path id="Vector" d="M15.8 8C15.5699 6.89318 15.0317 5.8739 14.2476 5.05959C13.4634 4.24528 12.4651 3.66906 11.3678 3.39734C10.2705 3.12562 9.11867 3.16944 8.04514 3.52375C6.97161 3.87807 6.02002 4.52846 5.3 5.4L3.8 7" stroke="#595E66" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_2" d="M4 4V7.2H7.2M4.2 12C4.43014 13.1068 4.96829 14.1261 5.75244 14.9404C6.53659 15.7547 7.53485 16.3309 8.6322 16.6027C9.72955 16.8744 10.8813 16.8306 11.9549 16.4762C13.0284 16.1219 13.98 15.4715 14.7 14.6L16.2 13" stroke="#595E66" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_3" d="M16 16V12.8H12.8" stroke="#595E66" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="Icon / Tour">
+    <path d="M12.75 1.5L15 3.75L12.75 6" stroke="#141414" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2.25 8.25V6.75C2.25 5.95435 2.56607 5.19129 3.12868 4.62868C3.69129 4.06607 4.45435 3.75 5.25 3.75H15" stroke="#141414" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5.25 16.5L3 14.25L5.25 12" stroke="#141414" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15.75 9.75V11.25C15.75 12.0456 15.4339 12.8087 14.8713 13.3713C14.3087 13.9339 13.5456 14.25 12.75 14.25H3" stroke="#141414" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
 </svg>

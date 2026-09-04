@@ -984,8 +984,25 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Synthèse de l’Activité | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
 | Conteneur Tour | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
 | Sélecteur du nombre de tours | `66 × 34` ; carré violet `28 × 28` avec `3` points de marge en haut, à droite et en bas |
+| Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
 Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+
+##### Source canonique de l’icône Tour
+
+Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autorisée. Son dessin provient de l’icône validée dans la frame `Nouvelle séance — Nom renseigné` (`2028:12003`), ancien nœud graphique local `2028:12040`, désormais remplacé dans l’écran par une instance du composant DSF. La référence exportable unique est `assets/icons/icon-tour.svg`, déclarée sous la clé `icon.tour` dans `assets/icons/manifest.json` et destinée à `KodjoIcon name="icon-tour"`. L’ancienne géométrie `20 × 20`, les copies `icon/contenu-principal` et toute autre entrée de manifeste concurrente ne sont plus canoniques.
+
+| Écran concerné | Frame | Instance `Icon / Tour` |
+| --- | --- | --- |
+| Nouvelle séance — État initial | `2028:11137` | `I3067:4835;3067:247` |
+| Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
+| Modal — Paramétrer le compte à rebours initial | `2028:11375` | `3272:4131` |
+| Modal — Paramétrer la fin de séance | `2028:11457` | `3272:4136` |
+| Composition — Nombre de tours — roulette compacte ouverte | `2028:11580` | `3272:4141` |
+| Composition d’une séance — sans Cycle | `2028:11700` | `3272:4146` |
+| Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
+| Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
+| Nouvelle séance — Nom renseigné | `2028:12003` | `3272:4161` |
 
 Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Ils décrivent le component set unique `Picker / Popover — Source exact`, notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 

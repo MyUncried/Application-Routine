@@ -377,6 +377,8 @@ Dans T01, une action secondaire qui n’est pas encore livrée ne doit pas appar
 
 L’écran affiche, dans cet ordre : en-tête fixe avec Retour et `Composition d’une séance` ; champ `Nom de la séance` et sélecteur de couleur ; action vectorielle `Ajouter une activité` ; `Compte à rebours initial` à `10 secondes` ; conteneur `Nombre de tours` à `1`, dont le sous-libellé affiche le résumé calculé `0 activité · 0 min` ; `Fin de séance` à `5 s` ; action finale. Aucun résumé séparé n’est affiché au bas de l’écran.
 
+Dans tous les états de cet écran, l’icône du conteneur Tour est une instance de `Icon / Tour` (`3066:4685`), issue de la référence validée `Nouvelle séance — Nom renseigné` (`2028:12003`, ancien nœud source `2028:12040`). L’actif de développement unique est `assets/icons/icon-tour.svg`, clé `icon.tour` ; aucune copie vectorielle locale n’est admise.
+
 Les valeurs `10 s`, `x1` et `5 s` sont les valeurs initiales métier. Le nom est vide. Le champ `Nom de la séance` réutilise `Session / Name Field — Source exact` (`2537:1480`) : `354 × 42`, fond transparent laissant apparaître la couleur de séance et liseré blanc intérieur `1` lié à `color/session-name-border`. La couleur proposée par défaut est une vraie valeur du brouillon et non un simple décor. Le Cycle technique reste invisible.
 
 Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`, le contexte `154–207`, le corps commence à `207` et l’action finale occupe `790–874`. L’en-tête et l’action finale restent fixes ; le corps défile. Les lignes structurelles ont une hauteur visuelle de `60`, le Tour est contenu dans le cadre prévu par le Design System et le résumé reste intégré sous `Nombre de tours`.
