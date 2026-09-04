@@ -90,8 +90,11 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     ]);
 
     // 5. Résumé recalculé : "1 activité · ..." (jamais l'état vide "0 activité · 0 min").
+    // REWORK08-C : la même synthèse apparaît désormais à deux emplacements
+    // (bottomAction ET sous « Nombre de tours ») — `getAllByText` prouve
+    // les deux occurrences plutôt que de supposer une occurrence unique.
     expect(screen.queryByText(composition.summary.empty)).toBeNull();
-    expect(screen.getByText(/^1 activité ·/)).toBeTruthy();
+    expect(screen.getAllByText(/^1 activité ·/)).toHaveLength(2);
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", () => {

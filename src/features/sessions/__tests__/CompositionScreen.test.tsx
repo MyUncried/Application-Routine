@@ -254,7 +254,11 @@ describe("CompositionScreen — état initial", () => {
   it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
     renderScreen();
 
-    expect(screen.getByText("0 activité · 0 min")).toBeTruthy();
+    // REWORK08-C : la même synthèse canonique apparaît désormais à deux
+    // emplacements (bottomAction ET sous « Nombre de tours », voir la
+    // description du bloc "Tour" ci-dessous) — `getAllByText` prouve les
+    // deux occurrences plutôt que de supposer une occurrence unique.
+    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(2);
     expect(screen.queryByText("0 activités · 0 min")).toBeNull();
   });
 
@@ -364,7 +368,38 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.queryByText("01 min 10 s")).toBeNull();
     // The exercise is still null in T01-S07: the summary stays the exact
     // local empty label regardless of countdown/final-phase changes (§9.1).
-    expect(screen.getByText("0 activité · 0 min")).toBeTruthy();
+    // REWORK08-C : apparaît désormais à deux emplacements (bottomAction +
+    // synthèse Tour) — `getAllByText` prouve les deux occurrences.
+    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(2);
+    // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
+    // déclenche la fermeture ») : le sélecteur reste réellement monté —
+    // preuve explicite, pas seulement déduite du libellé du test.
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+  });
+
+  it("REWORK08-B — no chain of native selection-change events, however many, ever closes the picker — only Annuler/Valider do (root cause: composition-backdrop previously intercepted the very first touch on the wheel before it reached the native Host view)", () => {
+    renderScreen();
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    // Simule un défilement réel : plusieurs crans successifs sur les deux
+    // roues, comme un vrai geste de glissement continu.
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 3);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 5);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
+
+    // Le sélecteur — et le body élevé qui le porte — restent montés après
+    // toute cette séquence, jamais fermés par un simple changement de
+    // sélection.
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-body").props.style).zIndex).toBe(1);
+
+    // Seul Valider ferme (et commit) — la fermeture explicite reste
+    // possible et fonctionne normalement après cette séquence.
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(screen.getByText("03 min 10 s")).toBeTruthy();
   });
 
   it("selects a real value in the countdown picker, committed to the row exactly once on Validate (R4-09) (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
@@ -701,6 +736,54 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).queryByTestId("composition-exercise-icon")).toBeNull();
   });
 
+  it("REWORK08-C — shows the activity-count/duration summary directly under 'Nombre de tours', same block as the title, styled exactly like the Boundary Activity rows' secondary line, without touching the frozen outer structure or the white/violet control", () => {
+    renderScreen();
+
+    const tourCard = screen.getByTestId("composition-tour-card");
+    const summary = within(tourCard).getByTestId("composition-tour-summary");
+
+    // Contenu canonique (même fonction que bottomAction), état vide T01-S07.
+    expect(summary.props.children).toBe("0 activité · 0 min");
+
+    // Même bloc textuel que le titre — un unique conteneur
+    // (`composition-tour-text-block`) porte les deux, pas deux éléments
+    // dispersés dans la rangée.
+    const textBlock = within(tourCard).getByTestId("composition-tour-text-block");
+    expect(within(textBlock).getByText(composition.tour.label)).toBeTruthy();
+    expect(within(textBlock).getByTestId("composition-tour-summary")).toBeTruthy();
+
+    // Typographie exactement identique à la ligne secondaire des cartes
+    // limites (réutilisation du même style, jamais une simple ressemblance).
+    const countdownSecondaryLine = within(
+      screen.getByLabelText(composition.countdown.label),
+    ).getByText("00 min 10 s");
+    expect(StyleSheet.flatten(summary.props.style)).toEqual(
+      StyleSheet.flatten(countdownSecondaryLine.props.style),
+    );
+
+    // Acquis gelés REWORK07B non modifiés par cet ajout : structure
+    // extérieure bleue (fond/rayon) et contrôle blanc/violet inchangés.
+    const tourSection = screen.getByTestId("composition-tour-section");
+    expect(StyleSheet.flatten(tourSection.props.style).backgroundColor).toBe(colors.tourSurface);
+    expect(StyleSheet.flatten(tourSection.props.style).borderRadius).toBe(10);
+    const control = screen.getByTestId("composition-tour-control");
+    const controlStyle = StyleSheet.flatten(control.props.style);
+    expect(controlStyle.width).toBe(78);
+    expect(controlStyle.height).toBe(44);
+  });
+
+  it("REWORK08-C — updates the Tour summary reactively with the same content as bottomAction, staying in sync as the draft changes (both consume the exact same computed value, never two independent computations)", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
+      "composition-tour-summary",
+    );
+    const bottomSummary = within(screen.getByTestId("composition-bottom-action")).getByText(
+      /activité/,
+    );
+    expect(tourSummary.props.children).toBe(bottomSummary.props.children);
+  });
+
   it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
     renderScreen();
 
@@ -940,6 +1023,40 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(headerAfter).toEqual(headerBefore);
     expect(contextAfter).toEqual(contextBefore);
     expect(bottomAfter).toEqual(bottomBefore);
+  });
+
+  it("REWORK08-B — elevates the scrollable body itself (composition-body) above the backdrop while a duration picker is anchored inside it — the AnchoredRow's own zIndex alone is scoped to its siblings inside the ScrollView, never reaching a non-sibling backdrop rendered at the ScreenShell level", () => {
+    renderScreen();
+
+    const bodyClosed = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
+    expect(bodyClosed.zIndex).toBeUndefined();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    const bodyOpenCountdown = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
+    expect(bodyOpenCountdown.zIndex).toBe(1);
+
+    // Fermeture par Annuler (jamais le backdrop lui-même, pour isoler la
+    // preuve de retour à l'état non élevé, indépendamment du mécanisme de
+    // fermeture) : le body redescend à son zIndex par défaut.
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
+    const bodyClosedAgain = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
+    expect(bodyClosedAgain.zIndex).toBeUndefined();
+
+    // Même élévation pour l'autre sélecteur de durée ancré dans le body.
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    const bodyOpenFinalPhase = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
+    expect(bodyOpenFinalPhase.zIndex).toBe(1);
+  });
+
+  it("REWORK08-B — never elevates the scrollable body for the colour palette (ContextBand is already a direct sibling of the backdrop and carries its own correct elevation — no need to also elevate the unrelated ScrollView)", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
+    const bodyStyle = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
+    expect(bodyStyle.zIndex).toBeUndefined();
+
+    const contextBand = screen.getByTestId("screen-context-band");
+    expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
   });
 
   it("S-08 — the bottom safe-area inset is applied exactly once (Bottom Action only, never duplicated on the scrollable list)", () => {

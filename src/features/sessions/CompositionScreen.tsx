@@ -91,6 +91,11 @@ export function CompositionScreen() {
   );
 
   const closeOverlay = useCallback(() => setOpenOverlay(null), []);
+  // REWORK08-B — voir la documentation détaillée sur `<ScrollView
+  // style={styles.body}>` ci-dessous : élève le `ScrollView` lui-même
+  // (jamais seulement l'`AnchoredRow` qu'il contient) au-dessus du
+  // `backdrop` tant qu'un sélecteur de durée y est ancré.
+  const bodyElevated = openOverlay === "countdown" || openOverlay === "finalPhase";
 
   const toggleOverlay = useCallback((kind: OverlayKind) => {
     Keyboard.dismiss();
@@ -98,6 +103,18 @@ export function CompositionScreen() {
   }, []);
 
   const composition = strings.screens.composition;
+  // REWORK08-C (`[ChatGPT] CHANGES_REQUESTED — REWORK08 — roulette native +
+  // synthèse Tour`, 2026-09-04, addendum précédemment `QUEUED_FOR_NEXT_
+  // COMPOSITION_REWORK` désormais explicitement autorisé) : calculée UNE
+  // SEULE FOIS, réutilisée à la fois par `TourCard` (nouvelle synthèse sous
+  // `Nombre de tours`) et par `bottomAction` (synthèse déjà existante) —
+  // même contenu canonique (`formatCompositionSummary`), jamais recalculé
+  // ni reformulé localement pour l'un ou l'autre emplacement.
+  const compositionSummary = formatCompositionSummary({
+    exercise: draft.exercise,
+    initialCountdownSeconds: draft.initialCountdownSeconds,
+    finalPhaseSeconds: draft.finalPhaseSeconds,
+  });
 
   return (
     <ScreenShell>
@@ -198,9 +215,51 @@ export function CompositionScreen() {
        * séance) : le risque pratique reste faible tant qu'aucune Activité
        * supplémentaire n'existe (hors périmètre T01, modèle à Exercice
        * unique).
+       *
+       * **REWORK08-B — cause racine identifiée et corrigée** (`[ChatGPT]
+       * CHANGES_REQUESTED — REWORK08 — roulette native + synthèse Tour`,
+       * 2026-09-04 ; constat iPhone : « dès que l'utilisateur touche une
+       * roue... le sélecteur se ferme »). Chaîne d'événements AVANT
+       * correction : `AnchoredRow.elevated` (voir plus bas) portait
+       * `zIndex: 1`, mais un `zIndex` React Native ne se compare qu'ENTRE
+       * FRÈRES PARTAGEANT LE MÊME PARENT — or `AnchoredRow` est un
+       * descendant de CE `ScrollView`, jamais un frère direct de
+       * `composition-backdrop` (frère direct de `ScreenShell`, rendu
+       * APRÈS ce `ScrollView`). L'élévation de `AnchoredRow` ne « remontait »
+       * donc jamais jusqu'au niveau où `backdrop` est comparé : ce dernier,
+       * dernier frère de `ScreenShell` au `zIndex` par défaut identique (0)
+       * à celui — également par défaut — de ce `ScrollView`, gagnait la
+       * priorité de peinture/hit-testing sur l'ENSEMBLE du `ScrollView`,
+       * popover ancré compris. Toute pression — un tap franc sur Annuler/
+       * Valider comme le début d'un geste de défilement sur une roue —
+       * atteignait donc `composition-backdrop` en premier, qui fermait
+       * immédiatement le sélecteur via `closeOverlay` (`onPress`), avant
+       * même que la vue native `Host` ne reçoive le geste. Aucune ligne du
+       * mécanisme `elevated`/`backdrop` lui-même n'était fautive
+       * isolément — seule la portée du `zIndex` de `AnchoredRow`, un
+       * niveau trop bas dans l'arbre, ne pouvait pas produire l'effet
+       * documenté par son propre commentaire (« un zIndex supérieur...
+       * suffit à rester peint au-dessus du backdrop » — vrai pour
+       * `ContextBand`, frère direct de `backdrop`, jamais vérifié pour
+       * `AnchoredRow`, imbriqué plus profondément).
+       *
+       * Correction APRÈS : ce `ScrollView` — frère direct réel de
+       * `composition-backdrop` — porte désormais lui-même `zIndex: 1`
+       * (`bodyElevated`, réutilise `styles.elevated`, même mécanisme déjà
+       * établi et correct pour `ContextBand`) tant qu'un sélecteur de
+       * durée (`countdown`/`finalPhase`) y est ancré — jamais pour la
+       * palette de couleur (`color`), gérée par `ContextBand`, un frère
+       * direct distinct qui n'a pas besoin de cette élévation
+       * supplémentaire. `AnchoredRow.elevated` reste par ailleurs
+       * nécessaire et inchangé : il départage désormais correctement les
+       * DEUX `AnchoredRow` ENTRE ELLES (éviter qu'une ligne fermée ne
+       * peigne par-dessus le popover d'une ligne ouverte, cas déjà couvert
+       * par UI-CTRL-002) — un problème de portée différent, à un niveau de
+       * l'arbre différent, désormais correctement distingué de celui
+       * corrigé ici.
        */}
       <ScrollView
-        style={styles.body}
+        style={[styles.body, bodyElevated ? styles.elevated : null]}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
         testID="composition-body"
@@ -258,7 +317,7 @@ export function CompositionScreen() {
           </Pressable>
         ) : null}
 
-        <TourCard label={composition.tour.label} />
+        <TourCard label={composition.tour.label} summary={compositionSummary} />
 
         <AnchoredRow testID="composition-anchored-row-finalPhase" elevated={openOverlay === "finalPhase"}>
           <BoundaryActivityRow
@@ -302,13 +361,7 @@ export function CompositionScreen() {
         testID="composition-bottom-action"
         style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
-        <Text style={styles.summary}>
-          {formatCompositionSummary({
-            exercise: draft.exercise,
-            initialCountdownSeconds: draft.initialCountdownSeconds,
-            finalPhaseSeconds: draft.finalPhaseSeconds,
-          })}
-        </Text>
+        <Text style={styles.summary}>{compositionSummary}</Text>
 
         {/*
          * `Continuer` (CE-T01-04) — ARBITRAGE REQUIS, voir rapport d'audit :
@@ -355,10 +408,21 @@ export function CompositionScreen() {
  * Correction UI-CTRL-002 (cycle de correction après contre-recette iPhone,
  * 2026-09-03) : cette superposition seule ne suffisait pas. `elevated`
  * élève l'`AnchoredRow` elle-même (et non plus seulement son popover
- * interne) au-dessus de ses frères tant que son sélecteur est ouvert — même
- * mécanisme que le `backdrop` dédié (voir `CompositionScreen` ci-dessus) :
- * un `zIndex` supérieur à celui des frères par défaut (0) suffit à rester
- * peint au-dessus du `backdrop`.
+ * interne) au-dessus de SES FRÈRES DIRECTS — c'est-à-dire les autres
+ * `AnchoredRow`/`TourCard` à l'intérieur du même `ScrollView` — afin
+ * qu'une ligne fermée ne peigne jamais par-dessus le popover d'une ligne
+ * ouverte.
+ *
+ * **Précision REWORK08-B** (portée corrigée d'une affirmation antérieure
+ * inexacte de ce commentaire) : ce `zIndex` NE suffit PAS, à lui seul, à
+ * rester peint au-dessus de `composition-backdrop` — un `zIndex` React
+ * Native ne se compare qu'entre frères partageant le même parent immédiat,
+ * or `AnchoredRow` est un DESCENDANT du `ScrollView` (`composition-body`),
+ * jamais un frère direct de `backdrop` (frère direct de `ScreenShell`).
+ * C'est désormais le `ScrollView` lui-même qui porte sa propre élévation
+ * conditionnelle (`bodyElevated`, voir `CompositionScreen` ci-dessus) pour
+ * gagner face à `backdrop` — un mécanisme distinct, à un niveau de l'arbre
+ * différent, nécessaire en plus de celui-ci (pas à sa place).
  */
 function AnchoredRow({
   children,
@@ -551,13 +615,24 @@ function BoundaryActivityRow({
  *   géométrie `374 large / inset 10 / contenu 354` requise pour porter
  *   cette surface — aucun nouveau conteneur n'était nécessaire. Absence
  *   d'activité : une seule structure bleue reste visible (aucune carte
- *   intérieure ne dessine plus sa propre surface). La synthèse
- *   activité/durée sous le libellé `Nombre de tours` (addendum `[ChatGPT]
- *   ADDENDUM EN ATTENTE — prochain run Roulette + synthèse Tour`,
- *   2026-09-04) reste explicitement **hors périmètre de ce cycle**
- *   (`QUEUED_FOR_NEXT_COMPOSITION_REWORK`) — non implémentée ici.
+ *   intérieure ne dessine plus sa propre surface).
+ *
+ * - **REWORK08-C — synthèse sous « Nombre de tours »** (`[ChatGPT]
+ *   CHANGES_REQUESTED — REWORK08 — roulette native + synthèse Tour`,
+ *   2026-09-04) : l'addendum précédemment `QUEUED_FOR_NEXT_COMPOSITION_
+ *   REWORK` est désormais implémenté. Titre + synthèse forment un seul
+ *   bloc textuel (`tourCardTextBlock`, colonne — même patron que
+ *   `boundaryRowTitleSlot`), centré verticalement avec `tourCardControl`
+ *   par le `alignItems: "center"` déjà porté par `tourHeader` (hérité,
+ *   inchangé). La synthèse (`composition-tour-summary`) réutilise
+ *   exactement `formatCompositionSummary` (même contenu canonique que
+ *   `bottomAction`, calculé une seule fois dans `CompositionScreen`) et
+ *   exactement le style `boundaryRowSecondaryLine` (même typographie que
+ *   la ligne secondaire des cartes `Compte à rebours initial`/`Fin de
+ *   séance`, réutilisé tel quel, jamais dupliqué). Structure extérieure
+ *   bleue et contrôle blanc/violet du nombre de tours : non touchés.
  */
-function TourCard({ label }: { label: string }) {
+function TourCard({ label, summary }: { label: string; summary: string }) {
   return (
     <View style={styles.tourSectionContainer} testID="composition-tour-section">
       <View
@@ -570,7 +645,25 @@ function TourCard({ label }: { label: string }) {
         <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
           <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
         </View>
-        <Text style={styles.tourCardLabel}>{label}</Text>
+        {/*
+         * REWORK08-C : titre + synthèse forment désormais UN SEUL bloc
+         * textuel (`tourCardTextBlock`, colonne — même patron que
+         * `boundaryRowTitleSlot`), centré verticalement avec le cadre du
+         * contrôle grâce à `tourHeader.alignItems: "center"` (hérité,
+         * inchangé). La synthèse réutilise exactement le même contenu
+         * canonique (`formatCompositionSummary`, calculé une seule fois
+         * dans `CompositionScreen`) et exactement le même style
+         * typographique que la ligne secondaire des cartes limites —
+         * `styles.boundaryRowSecondaryLine` est réutilisé tel quel
+         * ci-dessous, jamais dupliqué localement, pour garantir l'identité
+         * exacte demandée plutôt qu'une simple ressemblance.
+         */}
+        <View style={styles.tourCardTextBlock} testID="composition-tour-text-block">
+          <Text style={styles.tourCardLabel}>{label}</Text>
+          <Text style={styles.boundaryRowSecondaryLine} testID="composition-tour-summary">
+            {summary}
+          </Text>
+        </View>
         <View style={styles.tourCardControl} testID="composition-tour-control">
           <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
           <View style={styles.tourCardControlChevronBox} testID="composition-tour-control-chevron-box">
@@ -650,9 +743,14 @@ const styles = StyleSheet.create({
   },
   // Backdrop dédié (CMP-01/D-03) : couvre tout l'écran, rendu uniquement
   // pendant qu'un sélecteur est ouvert, sans `zIndex` propre — reste donc
-  // peint sous la ligne/bande `elevated` (`zIndex: 1`) par cette seule
-  // valeur par défaut (0), tout en restant au-dessus des autres frères de
-  // premier niveau du seul fait de son ordre de rendu (dernier frère).
+  // peint sous le FRÈRE DIRECT `elevated` (`ContextBand` pour la palette de
+  // couleur, `composition-body`/`ScrollView` pour un sélecteur de durée —
+  // voir `bodyElevated`, REWORK08-B) par cette seule valeur par défaut (0),
+  // tout en restant au-dessus des autres frères directs de `ScreenShell`
+  // du seul fait de son ordre de rendu (dernier frère). Un `zIndex` porté
+  // par un DESCENDANT de ces frères (ex. `AnchoredRow`, à l'intérieur du
+  // `ScrollView`) ne suffit jamais à lui seul — voir la correction
+  // REWORK08-B documentée sur `AnchoredRow` et sur le `ScrollView`.
   backdrop: {
     position: "absolute",
     top: 0,
@@ -745,10 +843,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // REWORK08-C : bloc unique titre + synthèse (même patron que
+  // `boundaryRowTitleSlot`) — `flex: 1` (auparavant sur `tourCardLabel`
+  // directement, quand le titre était seul dans la rangée) porte
+  // désormais l'espace disponible du bloc entier, poussant
+  // `tourCardControl` à droite ; `gap` identique à `boundaryRowTitleSlot`.
+  tourCardTextBlock: {
+    flex: 1,
+    gap: spacing[2],
+  },
   // R4-03/REWORK06 : même style de titre que les cartes limites (voir `rowLabel`).
   tourCardLabel: {
     ...type.cardTitle,
-    flex: 1,
     color: colors.textPrimary,
   },
   // T-04a/b/c (cycle REWORK04) : cadre parent clair contenant la valeur `1`
