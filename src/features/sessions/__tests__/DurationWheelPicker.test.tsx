@@ -497,6 +497,38 @@ describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPick
       expect(sModifiers.some((m) => m.$type === "bold")).toBe(true);
     });
 
+    /**
+     * Correction bloquante — visibilité des valeurs (« CORRECTION BLOQUANTE
+     * AVANT T01-S09 — VISIBILITÉ DES ROULETTES », 2026-09-05) : preuve
+     * directe que chaque chiffre et chaque unité porte désormais une
+     * couleur de premier plan EXPLICITE (`colors.textPrimary`), jamais la
+     * seule couleur par défaut de SwiftUI (`Color.primary`, dynamique, dont
+     * la résolution via ce pont natif s'est révélée non fiable — cause
+     * racine de la régression).
+     */
+    it("REWORK14 (visibilité) — every digit and unit text carries an explicit foregroundStyle(colors.textPrimary), never relying on SwiftUI's default dynamic color", () => {
+      const { UNSAFE_getAllByProps } = render(<DurationWheelPicker {...renderProps()} />);
+
+      const minutesFirstDigit = UNSAFE_getAllByProps({ text: "00" })[0];
+      const digitModifiers = minutesFirstDigit.props.modifiers as {
+        $type: string;
+        style?: string;
+        color?: string;
+      }[];
+      const foreground = digitModifiers.find((m) => m.$type === "foregroundStyle");
+      expect(foreground).toBeDefined();
+      expect(foreground?.style ?? foreground?.color).toBe(colors.textPrimary);
+
+      const minUnit = UNSAFE_getAllByProps({ text: "min" })[0];
+      const sUnit = UNSAFE_getAllByProps({ text: "s" })[0];
+      for (const unit of [minUnit, sUnit]) {
+        const unitModifiers = unit.props.modifiers as { $type: string; style?: string; color?: string }[];
+        const unitForeground = unitModifiers.find((m) => m.$type === "foregroundStyle");
+        expect(unitForeground).toBeDefined();
+        expect(unitForeground?.style ?? unitForeground?.color).toBe(colors.textPrimary);
+      }
+    });
+
     it("W-04/R4-06 — never renders a second, overlaid selection frame (blue band) — only the native SwiftUI frame subsists", () => {
       render(<DurationWheelPicker {...renderProps()} />);
       expect(screen.queryByTestId("duration-wheel-native-selection-band")).toBeNull();

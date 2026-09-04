@@ -1,6 +1,7 @@
 import { Host, Picker as SwiftUIPicker, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel as accessibilityLabelModifier,
+  foregroundStyle,
   frame,
   pickerStyle,
   tag,
@@ -102,6 +103,14 @@ export function NumberWheelPicker(props: NumberWheelPickerProps) {
  * en détail ici : zone roue en `minHeight` (jamais figée), surface opaque
  * blanche arrondie/bordée/ombrée, aucune fermeture par toucher d'un chiffre
  * ou de la zone sélectionnée.
+ *
+ * **Correction bloquante — visibilité des valeurs** (« CORRECTION
+ * BLOQUANTE AVANT T01-S09 — VISIBILITÉ DES ROULETTES », 2026-09-05) : même
+ * cause racine et même correction que `NativeAppleDurationWheelPicker`
+ * (voir sa note de tête pour la justification complète) — chaque
+ * `SwiftUIText` de la colonne porte désormais explicitement
+ * `foregroundStyle(colors.textPrimary)`, jamais la couleur de premier plan
+ * par défaut de SwiftUI (dynamique, non fiable derrière ce pont natif).
  */
 function NativeAppleNumberWheelPicker({
   value,
@@ -148,7 +157,7 @@ function NativeAppleNumberWheelPicker({
           testID="number-wheel-column"
         >
           {VALUES.map((item) => (
-            <SwiftUIText key={item} modifiers={[tag(item)]}>
+            <SwiftUIText key={item} modifiers={[tag(item), foregroundStyle(colors.textPrimary)]}>
               {String(item)}
             </SwiftUIText>
           ))}

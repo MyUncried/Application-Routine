@@ -267,6 +267,24 @@ describe("NumberWheelPicker — chemin iOS natif (NativeAppleNumberWheelPicker, 
     expect(UNSAFE_root.findAllByType(ScrollView)).toHaveLength(0);
   });
 
+  /**
+   * Correction bloquante — visibilité des valeurs (« CORRECTION BLOQUANTE
+   * AVANT T01-S09 — VISIBILITÉ DES ROULETTES », 2026-09-05) : même cause
+   * racine et même correction que `DurationWheelPicker` — preuve directe
+   * que chaque valeur de la colonne porte une couleur de premier plan
+   * EXPLICITE (`colors.textPrimary`), jamais la seule couleur par défaut de
+   * SwiftUI.
+   */
+  it("REWORK14 (visibilité) — every value text carries an explicit foregroundStyle(colors.textPrimary), never relying on SwiftUI's default dynamic color", () => {
+    const { UNSAFE_getAllByProps } = render(<NumberWheelPicker {...renderProps({ value: 1 })} />);
+
+    const firstValue = UNSAFE_getAllByProps({ text: "1" })[0];
+    const modifiers = firstValue.props.modifiers as { $type: string; style?: string; color?: string }[];
+    const foreground = modifiers.find((m) => m.$type === "foregroundStyle");
+    expect(foreground).toBeDefined();
+    expect(foreground?.style ?? foreground?.color).toBe(colors.textPrimary);
+  });
+
   it("never calls onValidate or onCancel while the picker stays mounted, no matter how many native selection events occur (ACT-07)", () => {
     const props = renderProps();
     render(<NumberWheelPicker {...props} />);

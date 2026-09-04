@@ -3,6 +3,7 @@ import {
   accessibilityLabel as accessibilityLabelModifier,
   bold,
   font,
+  foregroundStyle,
   frame,
   padding,
   pickerStyle,
@@ -152,6 +153,28 @@ export function DurationWheelPicker(props: DurationWheelPickerProps) {
  * R4-08/R4-09 : aucune fermeture par tap sur un chiffre ou la zone de
  * sélection — seules les actions Annuler/Valider de la toolbar ferment le
  * sélecteur.
+ *
+ * **Correction bloquante — visibilité des valeurs** (« CORRECTION
+ * BLOQUANTE AVANT T01-S09 — VISIBILITÉ DES ROULETTES », 2026-09-05) :
+ * chaque `SwiftUIText` (chiffres des deux colonnes, unités `min`/`s`)
+ * portait précédemment ses seuls modificateurs de mise en page/typo
+ * (`frame`/`padding`/`bold`/`font`), sans jamais fixer explicitement sa
+ * couleur de premier plan. `Text` (`@expo/ui/swift-ui`) sans
+ * `foregroundStyle` explicite retombe sur la couleur de premier plan par
+ * défaut de SwiftUI (`Color.primary`, dynamique clair/sombre) — une
+ * couleur dont la résolution dépend de l'environnement de trait
+ * (`colorScheme`) effectivement propagé jusqu'à la vue native via le pont
+ * `Host` ; en pratique sur ce pont, cette résolution s'est révélée non
+ * fiable (valeurs invisibles constatées sur device malgré une roulette
+ * pleinement manipulable — cause racine retenue parmi celles listées par
+ * l'autorisation : « couleur dynamique iOS non résolue »). Chaque
+ * `SwiftUIText` porte désormais explicitement `foregroundStyle(colors
+ * .textPrimary)` — même token que la valeur affichée par le chemin
+ * Android/web (`itemLabel`, `colors.textPrimary`), pour une identité
+ * visuelle réelle entre les deux plateformes plutôt qu'une simple
+ * ressemblance. Aucun changement de mise en page, de géométrie, de cadre
+ * de sélection ni de comportement — uniquement l'ajout de cette seule
+ * propriété de couleur, sur les nœuds de texte déjà existants.
  */
 function NativeAppleDurationWheelPicker({
   totalSeconds,
@@ -216,7 +239,7 @@ function NativeAppleDurationWheelPicker({
             testID="duration-wheel-minutes"
           >
             {minutesValues.map((value) => (
-              <SwiftUIText key={value} modifiers={[tag(value)]}>
+              <SwiftUIText key={value} modifiers={[tag(value), foregroundStyle(colors.textPrimary)]}>
                 {formatTwoDigits(value)}
               </SwiftUIText>
             ))}
@@ -227,6 +250,7 @@ function NativeAppleDurationWheelPicker({
               padding({ trailing: NATIVE_COLUMN_INTERVAL }),
               bold(),
               font({ size: 14 }),
+              foregroundStyle(colors.textPrimary),
             ]}
           >
             min
@@ -243,12 +267,19 @@ function NativeAppleDurationWheelPicker({
             testID="duration-wheel-seconds"
           >
             {SECONDS_VALUES.map((value) => (
-              <SwiftUIText key={value} modifiers={[tag(value)]}>
+              <SwiftUIText key={value} modifiers={[tag(value), foregroundStyle(colors.textPrimary)]}>
                 {formatTwoDigits(value)}
               </SwiftUIText>
             ))}
           </SwiftUIPicker>
-          <SwiftUIText modifiers={[frame({ width: NATIVE_SECONDS_UNIT_WIDTH }), bold(), font({ size: 14 })]}>
+          <SwiftUIText
+            modifiers={[
+              frame({ width: NATIVE_SECONDS_UNIT_WIDTH }),
+              bold(),
+              font({ size: 14 }),
+              foregroundStyle(colors.textPrimary),
+            ]}
+          >
             s
           </SwiftUIText>
         </HStack>
