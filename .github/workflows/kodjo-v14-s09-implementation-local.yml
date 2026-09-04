@@ -112,7 +112,7 @@ jobs:
               "Baseline autorisee: $env:TARGET_BRANCH @ $env:SOURCE_HEAD.",
               'Plan approuve:',
               $plan,
-              'Implemente T01-S09 conformement au plan et aux sources Git actuelles. Relis PRODUCT/INDEX, les documents 06 a 13, les captures categories et le code T01-S01 a S08 avant d'ecrire. Les regles documentaires priment sur les suppositions.',
+              'Implemente T01-S09 conformement au plan et aux sources Git actuelles. Relis PRODUCT/INDEX, les documents 06 a 13, les captures categories et le code T01-S01 a S08 avant d''ecrire. Les regles documentaires priment sur les suppositions.',
               'Modifie uniquement le code produit et les tests necessaires sous app/ et src/. Ne modifie aucun workflow, fichier .github, CLAUDE.md, documentation ou migration001.ts. Toute migration doit etre additive. Preserve les comportements S01-S08 non concernes.',
               'Execute les tests cibles et controles raisonnables. Ne committe pas et ne pousse pas. Resous les micro-ecarts techniques directement. Signale uniquement une vraie decision produit/UX indeterminable.'
             )
