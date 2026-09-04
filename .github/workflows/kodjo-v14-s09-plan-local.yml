@@ -16,7 +16,7 @@ concurrency:
 env:
   ISSUE_NUMBER: '17'
   TARGET_BRANCH: feat/creation-seance-catalogue
-  INITIAL_HEAD: f7b3c3158b6de94c5593a5a09daeb11120b0d12e
+  INITIAL_HEAD: 76b8c1f0027b66fa98e4017458fa5d2ccc68a47d
   CLAUDE_CODE_PROJECT_DIR_NAME: kodjo-v14-s09
 
 jobs:
