@@ -105,7 +105,7 @@ jobs:
           PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
         run: |
           $ErrorActionPreference='Stop'
-          $plan=Get-Content $env:PLAN_PATH -Raw
+          $plan=Get-Content $env:PLAN_PATH -Raw -Encoding UTF8
           if($env:MODE -eq 'INITIAL'){
             $lines=@(
               'KODJO T01-S09 V1.4 - IMPLEMENTATION DU PLAN APPROUVE.',
@@ -172,7 +172,7 @@ jobs:
           $newHead=(git rev-parse HEAD).Trim()
           git push origin "HEAD:$env:TARGET_BRANCH"
           if($LASTEXITCODE -ne 0){throw 'Push failed.'}
-          $summary=Get-Content $env:SUMMARY_PATH -Raw
+          $summary=Get-Content $env:SUMMARY_PATH -Raw -Encoding UTF8
           $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$newHead`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`nplan_comment_id=$env:PLAN_COMMENT_ID`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`n$summary"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28'}
           $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments"
