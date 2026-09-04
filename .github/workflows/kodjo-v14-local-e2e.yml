@@ -5,16 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: E2E stage
         required: true
         type: choice
         options: [BASE, RESUME]
       authorization:
-        description: Exact one-time launch authorization
         required: true
         type: string
       target_ref:
-        description: Dedicated E2E branch
         required: true
         type: string
 
@@ -39,7 +36,6 @@ jobs:
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
       CLAUDE_CONFIG_DIR: ${{ vars.KODJO_LOCAL_CLAUDE_CONFIG_DIR }}
-      GH_TOKEN: ${{ github.token }}
     defaults:
       run:
         shell: powershell
@@ -60,58 +56,47 @@ jobs:
           $expectedAuth = if ('${{ inputs.stage }}' -eq 'BASE') { 'LAUNCH KODJO V14 LOCAL E2E 01 BASE' } else { 'LAUNCH KODJO V14 LOCAL E2E 01 RESUME' }
           if ('${{ inputs.authorization }}' -ne $expectedAuth) { throw 'Invalid launch authorization.' }
           if ($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine') { throw 'Unexpected repository.' }
-
           $branch = (git branch --show-current).Trim()
-          if ($branch -ne $env:EXPECTED_TARGET_REF) { throw "Unexpected checked-out branch: $branch" }
-          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain))) { throw 'Worktree is not clean before execution.' }
+          if ($branch -ne $env:EXPECTED_TARGET_REF) { throw "Unexpected branch: $branch" }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain))) { throw 'Worktree not clean.' }
           $head = (git rev-parse HEAD).Trim()
-          if ([string]::IsNullOrWhiteSpace($head)) { throw 'Unable to resolve HEAD.' }
-
           $claude = Get-Command claude.cmd -ErrorAction Stop
-          if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CONFIG_DIR)) { throw 'CLAUDE_CONFIG_DIR missing.' }
           $credPath = Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'
           if (-not (Test-Path $credPath)) { throw '.credentials.json missing.' }
           $cred = Get-Content $credPath -Raw | ConvertFrom-Json
-          $expiresAt = [int64]$cred.claudeAiOauth.expiresAt
-          if ($expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) { throw 'Claude access token expired; refusing model call.' }
-
+          if ([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) { throw 'Claude token expired; refusing model call.' }
           $checkpointPath = Join-Path $env:STATE_ROOT (if ('${{ inputs.stage }}' -eq 'BASE') { 'BASE.checkpoint.json' } else { 'RESUME.checkpoint.json' })
           if (-not (Test-Path $checkpointPath)) { throw "Checkpoint missing: $checkpointPath" }
           $cp = Get-Content $checkpointPath -Raw | ConvertFrom-Json
           if ($cp.test_id -ne $env:TEST_ID -or $cp.stage -ne '${{ inputs.stage }}') { throw 'Checkpoint identity mismatch.' }
-          if ($cp.status -ne 'AUTHORIZED' -or $cp.mode -ne 'LOCAL_WRITE' -or $cp.writer -ne 'CLAUDE_LOCAL') { throw 'Checkpoint is not authorized for LOCAL_WRITE/CLAUDE_LOCAL.' }
-          if ($cp.authorized_head -ne $head) { throw "HEAD mismatch. authorized=$($cp.authorized_head) actual=$head" }
+          if ($cp.status -ne 'AUTHORIZED' -or $cp.mode -ne 'LOCAL_WRITE' -or $cp.writer -ne 'CLAUDE_LOCAL') { throw 'Checkpoint authorization mismatch.' }
+          if ($cp.authorized_head -ne $head) { throw "HEAD mismatch: authorized=$($cp.authorized_head) actual=$head" }
           if ($cp.consumed -ne $false) { throw 'Checkpoint already consumed.' }
-
-          $claimPath = Join-Path $env:STATE_ROOT ('${{ inputs.stage }}' + '.claim.json')
-          $resultPath = Join-Path $env:STATE_ROOT ('${{ inputs.stage }}' + '.result.json')
-          if (Test-Path $claimPath) { throw 'Stage already claimed; duplicate blocked.' }
-          if (Test-Path $resultPath) { throw 'Stage already completed; duplicate blocked.' }
-
+          if (Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}' + '.claim.json'))) { throw 'Duplicate claim blocked.' }
+          if (Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}' + '.result.json'))) { throw 'Duplicate result blocked.' }
+          if ('${{ inputs.stage }}' -eq 'RESUME') {
+            $baseResult = Join-Path $env:STATE_ROOT 'BASE.result.json'
+            if (-not (Test-Path $baseResult)) { throw 'BASE.result.json missing.' }
+            $base = Get-Content $baseResult -Raw | ConvertFrom-Json
+            $transcript = Get-ChildItem -Path $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.session_id).jsonl" -ErrorAction SilentlyContinue
+            if (@($transcript).Count -ne 1) { throw 'Exactly one native BASE transcript required.' }
+          }
           "head=$head" >> $env:GITHUB_OUTPUT
           "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
-          "checkpoint_path=$checkpointPath" >> $env:GITHUB_OUTPUT
 
       - name: Claim stage before model invocation
-        id: claim
         env:
           HEAD_SHA: ${{ steps.gate.outputs.head }}
         run: |
           $ErrorActionPreference = 'Stop'
           $stage = '${{ inputs.stage }}'
-          $claimPath = Join-Path $env:STATE_ROOT ($stage + '.claim.json')
           $ordinal = if ($stage -eq 'BASE') { 1 } else { 2 }
-          $claim = [ordered]@{
-            test_id=$env:TEST_ID; stage=$stage; status='CLAIMED'; call_ordinal=$ordinal;
-            run_id="$env:GITHUB_RUN_ID"; head=$env:HEAD_SHA; mode='LOCAL_WRITE'; writer='CLAUDE_LOCAL';
-            claude_cloud=$false; fallback='NONE'; created_at=(Get-Date).ToUniversalTime().ToString('o')
-          } | ConvertTo-Json -Depth 5
-          New-Item -ItemType Directory -Force -Path (Split-Path $claimPath) | Out-Null
-          [IO.File]::WriteAllText($claimPath, $claim, (New-Object Text.UTF8Encoding($false)))
-          git add -- $claimPath
+          $path = Join-Path $env:STATE_ROOT ($stage + '.claim.json')
+          $claim = [ordered]@{test_id=$env:TEST_ID;stage=$stage;status='CLAIMED';call_ordinal=$ordinal;run_id="$env:GITHUB_RUN_ID";authorized_head=$env:HEAD_SHA;mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';claude_cloud=$false;fallback='NONE';created_at=(Get-Date).ToUniversalTime().ToString('o')} | ConvertTo-Json
+          [IO.File]::WriteAllText($path,$claim,(New-Object Text.UTF8Encoding($false)))
+          git add -- $path
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: claim $stage $env:GITHUB_RUN_ID"
           git push origin "HEAD:$env:EXPECTED_TARGET_REF"
-          "claim_commit=$((git rev-parse HEAD).Trim())" >> $env:GITHUB_OUTPUT
 
       - name: Run Claude Local BASE — call 1/2
         if: inputs.stage == 'BASE'
@@ -120,95 +105,63 @@ jobs:
           CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $markerBytes = New-Object byte[] 24
-          $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
-          try { $rng.GetBytes($markerBytes) } finally { $rng.Dispose() }
-          $marker = 'KODJO-E2E-' + (([BitConverter]::ToString($markerBytes) -replace '-', '').ToLowerInvariant())
-          $sha = [Security.Cryptography.SHA256]::Create()
-          try { $markerHash = ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($marker))) -replace '-', '').ToLowerInvariant() } finally { $sha.Dispose() }
+          $bytes = New-Object byte[] 24
+          $rng = [Security.Cryptography.RandomNumberGenerator]::Create(); try {$rng.GetBytes($bytes)} finally {$rng.Dispose()}
+          $marker = 'KODJO-E2E-' + (([BitConverter]::ToString($bytes) -replace '-','').ToLowerInvariant())
+          $sha = [Security.Cryptography.SHA256]::Create(); try {$markerHash=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($marker)))-replace '-','').ToLowerInvariant()} finally {$sha.Dispose()}
+          $prompt = "KODJO V1.4 LOCAL E2E-01 BASE. Lis .github/orchestration/KODJO_V14_LOCAL_E2E_01_SPEC.md et $env:STATE_ROOT/BASE.checkpoint.json. Modifie uniquement $env:SENTINEL_PATH et crée un rapport $env:REPORT_PREFIX<timestamp>.md. Dans la sentinelle, ajoute test_id=$env:TEST_ID, stage=BASE, status=BASE_WRITTEN. Mémorise ce marqueur sans l'écrire dans aucun fichier ni le répéter dans ta réponse: $marker. N'effectue aucun commit ni push."
+          $raw = (& $env:CLAUDE_PATH -p --output-format json $prompt 2>&1 | Out-String); $exit=$LASTEXITCODE; $marker=$null; $prompt=$null
+          if ($exit -ne 0) { throw "Claude BASE failed: $exit" }
+          $p=$raw|ConvertFrom-Json; if ([string]::IsNullOrWhiteSpace($p.session_id)) {throw 'No BASE session_id.'}
+          "session_id=$($p.session_id)" >> $env:GITHUB_OUTPUT; "marker_hash=$markerHash" >> $env:GITHUB_OUTPUT; "duration_ms=$($p.duration_ms)" >> $env:GITHUB_OUTPUT; "num_turns=$($p.num_turns)" >> $env:GITHUB_OUTPUT; "cost=$($p.total_cost_usd)" >> $env:GITHUB_OUTPUT
 
-          $prompt = @"
-          KODJO V1.4 LOCAL E2E-01 — BASE. Tu es l'écrivain local autorisé pour ce micro-test uniquement.
-          Lis .github/orchestration/KODJO_V14_LOCAL_E2E_01_SPEC.md et le checkpoint $env:STATE_ROOT/BASE.checkpoint.json.
-          Modifie uniquement $env:SENTINEL_PATH et crée le rapport Markdown autorisé par la spécification.
-          Dans la sentinelle, écris exactement une section BASE indiquant test_id=$env:TEST_ID, stage=BASE et status=BASE_WRITTEN. Ne révèle pas le marqueur ci-dessous dans les fichiers ni dans ta réponse.
-          Mémorise dans cette session le marqueur suivant pour RESUME : $marker
-          N'effectue aucun commit ni push. Termine par un rapport conforme au protocole.
-          "@
-          $raw = (& $env:CLAUDE_PATH -p --output-format json $prompt 2>&1 | Out-String)
-          $exit = $LASTEXITCODE
-          $marker = $null; $prompt = $null
-          if ($exit -ne 0) { throw "Claude BASE failed with exit code $exit." }
-          $parsed = $raw | ConvertFrom-Json
-          if ([string]::IsNullOrWhiteSpace($parsed.session_id)) { throw 'BASE returned no session_id.' }
-          "session_id=$($parsed.session_id)" >> $env:GITHUB_OUTPUT
-          "marker_hash=$markerHash" >> $env:GITHUB_OUTPUT
-          "duration_ms=$($parsed.duration_ms)" >> $env:GITHUB_OUTPUT
-          "num_turns=$($parsed.num_turns)" >> $env:GITHUB_OUTPUT
-          "total_cost_usd=$($parsed.total_cost_usd)" >> $env:GITHUB_OUTPUT
-
-      - name: Resolve RESUME session and run Claude Local — call 2/2
+      - name: Run Claude Local RESUME — call 2/2
         if: inputs.stage == 'RESUME'
         id: resume
         env:
           CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
         run: |
-          $ErrorActionPreference = 'Stop'
-          $baseResultPath = Join-Path $env:STATE_ROOT 'BASE.result.json'
-          if (-not (Test-Path $baseResultPath)) { throw 'BASE.result.json missing.' }
-          $base = Get-Content $baseResultPath -Raw | ConvertFrom-Json
-          if ($base.status -ne 'SUCCESS' -or [string]::IsNullOrWhiteSpace($base.session_id)) { throw 'BASE result incompatible.' }
-          $transcript = Get-ChildItem -Path $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.session_id).jsonl" -ErrorAction SilentlyContinue
-          if (@($transcript).Count -ne 1) { throw 'Exactly one native BASE transcript was not found.' }
+          $ErrorActionPreference='Stop'
+          $base=Get-Content (Join-Path $env:STATE_ROOT 'BASE.result.json') -Raw|ConvertFrom-Json
+          $prompt="KODJO V1.4 LOCAL E2E-01 RESUME. Lis $env:STATE_ROOT/RESUME.checkpoint.json. Modifie uniquement $env:SENTINEL_PATH et crée un rapport $env:REPORT_PREFIX<timestamp>.md. Dans la sentinelle, ajoute test_id=$env:TEST_ID, stage=RESUME, status=RESUME_WRITTEN. N'écris jamais le marqueur mémorisé dans un fichier. Dans ta réponse finale, inclus une ligne exactement CONTINUITY_MARKER=<marqueur mémorisé>. N'effectue aucun commit ni push."
+          $raw=(& $env:CLAUDE_PATH -p --resume $base.session_id --output-format json $prompt 2>&1|Out-String); $exit=$LASTEXITCODE
+          if($exit -ne 0){throw "Claude RESUME failed: $exit"}
+          $p=$raw|ConvertFrom-Json; if($p.session_id -ne $base.session_id){throw 'SESSION_RESUME mismatch.'}
+          $m=[regex]::Match([string]$p.result,'(?m)^CONTINUITY_MARKER=(KODJO-E2E-[0-9a-f]+)\s*$'); if(-not $m.Success){throw 'Continuity marker line missing.'}
+          $sha=[Security.Cryptography.SHA256]::Create(); try{$h=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($m.Groups[1].Value)))-replace '-','').ToLowerInvariant()}finally{$sha.Dispose()}
+          if($h -ne $base.marker_sha256){throw 'NO_CONTEXT_REINJECTION marker mismatch.'}
+          "session_id=$($p.session_id)" >> $env:GITHUB_OUTPUT; "marker_hash=$h" >> $env:GITHUB_OUTPUT; "duration_ms=$($p.duration_ms)" >> $env:GITHUB_OUTPUT; "num_turns=$($p.num_turns)" >> $env:GITHUB_OUTPUT; "cost=$($p.total_cost_usd)" >> $env:GITHUB_OUTPUT
 
-          $prompt = @"
-          KODJO V1.4 LOCAL E2E-01 — RESUME. Reprends cette même session.
-          Lis le checkpoint $env:STATE_ROOT/RESUME.checkpoint.json.
-          Restitue le marqueur mémorisé pendant BASE uniquement dans ta réponse finale, puis modifie uniquement $env:SENTINEL_PATH et crée le rapport Markdown autorisé. Dans la sentinelle, ajoute une section RESUME indiquant test_id=$env:TEST_ID, stage=RESUME et status=RESUME_WRITTEN. N'écris jamais le marqueur dans un fichier. N'effectue aucun commit ni push.
-          "@
-          $raw = (& $env:CLAUDE_PATH -p --resume $base.session_id --output-format json $prompt 2>&1 | Out-String)
-          $exit = $LASTEXITCODE
-          if ($exit -ne 0) { throw "Claude RESUME failed with exit code $exit." }
-          $parsed = $raw | ConvertFrom-Json
-          $returned = ([string]$parsed.result).Trim()
-          $sha = [Security.Cryptography.SHA256]::Create()
-          try { $returnedHash = ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($returned))) -replace '-', '').ToLowerInvariant() } finally { $sha.Dispose() }
-          if ($parsed.session_id -ne $base.session_id) { throw 'SESSION_RESUME mismatch.' }
-          if ($returnedHash -ne $base.marker_sha256) { throw 'NO_CONTEXT_REINJECTION proof failed: marker mismatch.' }
-          "session_id=$($parsed.session_id)" >> $env:GITHUB_OUTPUT
-          "marker_hash=$returnedHash" >> $env:GITHUB_OUTPUT
-          "duration_ms=$($parsed.duration_ms)" >> $env:GITHUB_OUTPUT
-          "num_turns=$($parsed.num_turns)" >> $env:GITHUB_OUTPUT
-          "total_cost_usd=$($parsed.total_cost_usd)" >> $env:GITHUB_OUTPUT
-
-      - name: Enforce write-path confinement and required outputs
-        id: verify
+      - name: Enforce Claude write-path confinement
         run: |
-          $ErrorActionPreference = 'Stop'
-          $changed = @(git status --porcelain | ForEach-Object { $_.Substring(3).Trim() })
-          if ($changed.Count -eq 0) { throw 'Claude produced no file changes.' }
-          $sentinelSeen = $false
-          $reportSeen = $false
-          foreach ($path in $changed) {
-            $normalized = $path -replace '\\','/'
-            if ($normalized -eq $env:SENTINEL_PATH) { $sentinelSeen = $true; continue }
-            if ($normalized.StartsWith($env:REPORT_PREFIX) -and $normalized.EndsWith('.md')) { $reportSeen = $true; continue }
-            throw "WRITE_PATH_CONFINEMENT failed: unauthorized path $normalized"
-          }
-          if (-not $sentinelSeen) { throw 'Required sentinel change missing.' }
-          if (-not $reportSeen) { throw 'Required E2E report missing.' }
-          "changed_count=$($changed.Count)" >> $env:GITHUB_OUTPUT
+          $ErrorActionPreference='Stop'
+          $changed=@(git status --porcelain|ForEach-Object{$_.Substring(3).Trim()})
+          if($changed.Count -eq 0){throw 'Claude produced no changes.'}
+          $sentinel=$false; $report=$false
+          foreach($path in $changed){$n=$path -replace '\\','/'; if($n -eq $env:SENTINEL_PATH){$sentinel=$true;continue}; if($n.StartsWith($env:REPORT_PREFIX) -and $n.EndsWith('.md')){$report=$true;continue}; throw "Unauthorized Claude path: $n"}
+          if(-not $sentinel){throw 'Sentinel change missing.'}; if(-not $report){throw 'Report missing.'}
 
       - name: Persist result and publish controlled commit
         env:
           BASE_SESSION: ${{ steps.base.outputs.session_id }}
-          BASE_MARKER_HASH: ${{ steps.base.outputs.marker_hash }}
+          BASE_HASH: ${{ steps.base.outputs.marker_hash }}
           BASE_DURATION: ${{ steps.base.outputs.duration_ms }}
           BASE_TURNS: ${{ steps.base.outputs.num_turns }}
-          BASE_COST: ${{ steps.base.outputs.total_cost_usd }}
+          BASE_COST: ${{ steps.base.outputs.cost }}
           RESUME_SESSION: ${{ steps.resume.outputs.session_id }}
-          RESUME_MARKER_HASH: ${{ steps.resume.outputs.marker_hash }}
+          RESUME_HASH: ${{ steps.resume.outputs.marker_hash }}
           RESUME_DURATION: ${{ steps.resume.outputs.duration_ms }}
           RESUME_TURNS: ${{ steps.resume.outputs.num_turns }}
-          RESUME_COST: ${{ steps.resume.outputs.total_cost_usd }}
+          RESUME_COST: ${{ steps.resume.outputs.cost }}
         run: |
+          $ErrorActionPreference='Stop'
+          $stage='${{ inputs.stage }}'; $cpPath=Join-Path $env:STATE_ROOT ($stage+'.checkpoint.json'); $cp=Get-Content $cpPath -Raw|ConvertFrom-Json; $cp.consumed=$true; $cp.consumed_run_id="$env:GITHUB_RUN_ID"; $cp|ConvertTo-Json -Depth 10|Set-Content -Encoding UTF8 $cpPath
+          if($stage -eq 'BASE'){$session=$env:BASE_SESSION;$hash=$env:BASE_HASH;$duration=$env:BASE_DURATION;$turns=$env:BASE_TURNS;$cost=$env:BASE_COST}else{$session=$env:RESUME_SESSION;$hash=$env:RESUME_HASH;$duration=$env:RESUME_DURATION;$turns=$env:RESUME_TURNS;$cost=$env:RESUME_COST}
+          $result=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='SUCCESS';run_id="$env:GITHUB_RUN_ID";session_id=$session;marker_sha256=$hash;duration_ms=$duration;num_turns=$turns;total_cost_usd=$cost;mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false;published_at=(Get-Date).ToUniversalTime().ToString('o')}|ConvertTo-Json
+          $resultPath=Join-Path $env:STATE_ROOT ($stage+'.result.json'); [IO.File]::WriteAllText($resultPath,$result,(New-Object Text.UTF8Encoding($false)))
+          git add -- $env:SENTINEL_PATH "$env:REPORT_PREFIX*" $env:STATE_ROOT
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: publish $stage result $env:GITHUB_RUN_ID"
+          git push origin "HEAD:$env:EXPECTED_TARGET_REF"
+          Write-Host "KODJO_V14_E2E_STAGE=$stage SUCCESS"
+          Write-Host "SESSION_ID=$session"
+          Write-Host "FALLBACK=NONE"
