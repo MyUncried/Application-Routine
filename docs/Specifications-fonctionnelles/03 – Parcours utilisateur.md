@@ -218,7 +218,7 @@ Les modifications s'appliquent uniquement aux occurrences futures.
 ### Supprimer une routine
 
 1. Depuis la vue Semaine, révéler l’action **Supprimer** par glissement gauche.
-2. Pour une planification périodique, choisir **Cette occurrence** ou **Cette occurrence et les suivantes**.
+2. Pour une planification périodique, choisir **Seulement cette occurrence** ou **Toutes les occurrences à venir** ; **Annuler** occupe une seconde ligne en pleine largeur.
 3. Confirmer la suppression.
 
 Les occurrences futures cessent d'être générées. Les Exécutions déjà enregistrées sont conservées. Les occurrences planifiées passées non exécutées ne sont pas présentées dans l'interface du MVP.

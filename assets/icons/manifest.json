@@ -15,6 +15,7 @@
     {"key":"control.back","file":"control-back","figmaNodeId":"2884:4426","width":24,"height":24,"usage":["Création de séance","Création d’activité"]},
     {"key":"control.chevronDown","file":"control-chevron-down","figmaNodeId":"2884:4419","width":24,"height":24,"usage":["Catalogue","Sélecteurs"]},
     {"key":"control.chevronUp","file":"control-chevron-up","figmaNodeId":"2884:4417","width":24,"height":24,"usage":["Sélecteurs"]},
+    {"key":"control.repetitionPullDown","file":"control-repetition-pull-down","figmaNodeId":"2745:4","width":28,"height":28,"usage":["Composition — Nombre de tours"]},
     {"key":"navigation.sessions.active","file":"navigation-sessions","figmaNodeId":"2537:95","width":30,"height":20,"usage":["Navigation T01"]},
     {"key":"navigation.sessions.inactive","file":"navigation-sessions-inactive","figmaNodeId":"2537:127","width":30,"height":20,"usage":["Navigation T01"]},
     {"key":"navigation.calendar.inactive","file":"navigation-calendar","figmaNodeId":"2537:103","width":26,"height":26,"usage":["Navigation T01"]},

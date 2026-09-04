@@ -885,7 +885,7 @@ Le Cycle reste présent dans le modèle avec une répétition toujours égale à
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur validée et leur propre brouillon. L’ouverture copie la dernière valeur validée dans le brouillon ; le défilement ne modifie ni la carte ni la synthèse intégrée au Tour. Annuler abandonne le brouillon. Valider enregistre exactement les minutes et secondes centrées et actualise alors seulement la carte et cette synthèse. Les secondes couvrent `00` à `59` avec un pas de `1`.
 
-Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Continuer la création` conserve les données ; `Abandonner` les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
+Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
 ## Catégories de la séance
 
@@ -929,7 +929,7 @@ Retour pendant une nouvelle création ouvre `Abandonner la création ?`. `Contin
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 
-Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une Récupération utilisent `Picker / Popover — Source exact` (`2537:1174`), variante `Type=Duration` (`2537:1110`) : hauteur de référence `190`, barre supérieure Annuler/Valider de `40`, roulette native d’au moins `150` et largeur `330`. La primitive native OS est la référence comportementale. Le brouillon reste local jusqu’à Valider ; Annuler restaure la valeur précédemment enregistrée. Cette évolution ne s’applique pas implicitement aux roulettes `Nombre de répétitions` et `Nombre de Séries`, qui demeurent à contrôler séparément.
+Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une Récupération utilisent le composant compact canonique : `190` points de haut, barre supérieure Annuler/Valider de `40` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Le brouillon reste local jusqu’à Valider ; Annuler restaure la valeur précédemment enregistrée. L’état ouvert de la Récupération ne contient qu’une seule instance canonique, directement sous le contrôle Durée, sans duplication de barre d’actions ni de roulette. Cette évolution ne s’applique pas implicitement aux roulettes `Nombre de répétitions` et `Nombre de Séries`, qui demeurent à contrôler séparément.
 | Consigne                  | Texte multiligne  | Étape 2                            | Non         | Vide                           | 1000 caractères max                            | Activité | Saisie         | Écran Informations complémentaires |
 | Zones corporelles         | Tags              | Étape 2, Exercice uniquement       | Non         | Aucune                         | Plusieurs zones autorisées                     | Activité | Sélection      | Référentiel prédéfini ; écran Informations complémentaires |
 | Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom + durée/répétitions obligatoires           | Statique | Enregistrer    |                                                                                                                                                                                                                                        |
@@ -1061,7 +1061,7 @@ Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une R�
 
 ## Planifier une séance
 
-Les sélecteurs ouverts `Heure` et `Rappel personnalisé` utilisent `Picker / Popover — Source exact` (`2537:1174`), variante `Type=Time` (`2884:4415`) ou la variante de durée adaptée au rappel : hauteur de référence `190` (`40` d’actions + contenu natif d’au moins `150`), adaptée à la largeur disponible d’environ `310` points. Annuler, à gauche, abandonne le brouillon ; Valider, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `28 × 28`, chacun placé dans une cible tactile de `48 × 48`.
+Les sélecteurs ouverts `Heure` et `Rappel personnalisé` utilisent la roulette compacte canonique de `190` points (`40` d’actions + `150` de contenu natif), adaptée à la largeur disponible d’environ `310` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Annuler, à gauche, abandonne le brouillon ; Valider, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `28 × 28`, chacun placé dans une cible tactile de `48 × 48`.
 
 ### Règles liées à la couleur
 
@@ -1091,11 +1091,13 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 
 | Action                                           | Confirmation      | Boutons                 | Conséquence                                                            |
 | ------------------------------------------------ | ----------------- | ----------------------- | ---------------------------------------------------------------------- |
-| Supprimer une séance archivée                    | Oui               | Annuler / Supprimer la séance | Disponible uniquement depuis `Archivées` ; conserve les Exécutions |
-| Arrêter une séance en cours                      | Oui               | Continuer / Arrêter     | Enregistre une exécution interrompue                                     |
+| Supprimer une séance archivée                    | Oui               | Annuler / Confirmer | Dialogue centré ; disponible uniquement depuis `Archivées` ; conserve les Exécutions |
+| Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
 | Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
 | Supprimer une catégorie                          | Oui (si utilisée) | Annuler / Supprimer     | Retire la catégorie des Séances concernées ; les Instantanés historiques restent inchangés |
 | Réinitialiser les préférences                    | Oui               | Annuler / Réinitialiser | Restaure les préférences par défaut                                    |
 | Supprimer l'historique                           | Oui               | Annuler / Supprimer     | Supprime toutes les exécutions enregistrées                            |
-| Quitter la création d'une séance non enregistrée | Oui               | Continuer / Quitter     | Abandonne la création                                                  |
+| Quitter la création d'une séance non enregistrée | Oui               | Annuler / Confirmer | Dialogue centré ; `Confirmer` abandonne la création |
+
+Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:2961`) : largeur `354`, rayon `18`, centrage dans l’écran et voile bloquant. Le dernier paragraphe est séparé de la première ligne d’actions par `spacing/16`. Avec deux choix, les boutons `147 × 48` sont alignés ; avec trois choix, `Seulement cette occurrence` et `Toutes les occurrences à venir` sont les deux actions destructives de la première ligne, puis `Annuler` occupe la seconde ligne en pleine largeur `306 × 48`. Les textes sont centrés horizontalement et verticalement.

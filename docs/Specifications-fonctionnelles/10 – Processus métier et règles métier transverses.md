@@ -30,7 +30,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-015 | La création s’effectue dans un écran unique `Composition d’une séance` ; il n’existe plus d’écran préalable réservé au nom. |
 | RM-016 | Une couleur est proposée par défaut et peut être choisie dans une palette prédéfinie de 12 couleurs organisée en 4 × 3. |
 | RM-017 | `Continuer` reste désactivé tant que le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. |
-| RM-018 | Retour pendant une création commencée demande confirmation. `Continuer la création` conserve les données ; `Abandonner` supprime le brouillon et revient au Catalogue. |
+| RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter une activité`. |
 | RM-020 | La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Les suivantes sont insérées après la dernière Activité existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Tour. |
 | RM-021 | Toucher une carte d’Activité ouvre directement son édition. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. |

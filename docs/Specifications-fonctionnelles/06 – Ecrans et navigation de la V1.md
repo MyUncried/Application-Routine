@@ -155,17 +155,18 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
 - Une roulette ou un pop-up compact est ancré au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, il est repositionné au-dessus ou transformé en présentation basse défilante.
-- La roulette compacte de durée ou d’heure utilise le composant DSF `Picker / Popover — Source exact`, variante `Type=Duration` ou `Type=Time`. Sa hauteur de référence est `190` points : barre d’actions supérieure de `40` points et zone de roulette native d’au moins `150` points ; la primitive native OS conserve sa hauteur intrinsèque lorsqu’elle exige davantage. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
-- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28` contenant une icône vectorielle de `24 × 24` issue de `assets/icons/wheel-action-cancel.svg` ou `assets/icons/wheel-action-validate.svg`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
-- La roulette conserve une seule zone de sélection visible : le cadre gris natif. Aucun cadre bleu ne se superpose à cette zone. Les unités `min`, `s` ou `h` sont en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée.
+- La roulette compacte de durée ou d’heure mesure `190` points de haut : barre d’actions supérieure de `40` points et zone de roulette native de `150` points. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
+- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
+- La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
 - Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Valider enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après validation. Une réouverture restitue la dernière valeur validée.
 
-### Modales et bottom sheets
+### Dialogues d’action et modales plein écran
 
-- Un bottom sheet occupe la largeur disponible et intègre l’inset inférieur.
-- Sa hauteur est déterminée par son contenu, dans la limite de `85 %` de la hauteur sûre. Au-delà, son contenu interne défile tandis que le titre et les actions essentielles restent accessibles.
+- Une décision contextuelle s’affiche dans un dialogue flottant centré, jamais dans une feuille ancrée au bas de l’écran. Le dialogue mesure `354` points de large, possède un rayon de `18` et une ombre ; le voile laisse le contexte visible mais non interactif.
+- Sa hauteur est déterminée par son contenu. Le dernier paragraphe est séparé de la première ligne d’actions par `spacing/16`, soit `16` points, et la dernière action conserve un inset inférieur de `24` points.
 - Une action destructrice et son action d’annulation ne doivent jamais être masquées par l’indicateur d’accueil ou le clavier.
-- Le premier bouton d’action est placé `16` points après le message de confirmation. Les actions suivantes conservent l’espacement interne défini par leur groupe.
+- Avec deux choix, les boutons `147 × 48` sont alignés sur une ligne et séparés de `12` points. Avec trois choix, les deux décisions destructives occupent la première ligne ; `Annuler`, neutre, occupe seul la seconde ligne en pleine largeur `306 × 48`, avec `12` points d’écart vertical.
+- Les libellés sont centrés horizontalement et verticalement dans leur cadre. Une action principale est bleue, une action destructive est rouge avec texte blanc et une action neutre est grise avec texte sombre.
 - Le fond de contexte reste visible selon l’état Figma de référence, mais n’est pas interactif tant que la modale est ouverte.
 
 ### Exceptions adaptatives par famille d’écran
@@ -546,7 +547,7 @@ L’état révélant les actions d’une Activité est illustré par :
 
 | État | Capture | Règle matérialisée |
 | --- | --- | --- |
-| Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial et action principale désactivée |
+| Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée |
 | Nom renseigné | ![[images/composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` |
 | Palette de couleurs ouverte | ![[images/composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé |
 | Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Valider circulaires |
@@ -581,7 +582,9 @@ L’écran affiche notamment :
 - le champ `Nom de la séance` ;
 - un contrôle de couleur compact placé à côté du nom ;
 - une palette de 12 couleurs organisée en grille 4 × 3 ;
-- le résumé `N activités · durée estimée`, centré en bas de la Composition.
+- le résumé `N activité(s) · durée estimée`, intégré sous `Nombre de tours` dans le conteneur Tour.
+
+Le champ `Nom de la séance` mesure `354 × 42`. Dans tous les états de Composition, son fond est transparent afin de laisser apparaître la couleur de la séance ; il possède un liseré blanc intérieur de `1` point (`color.sessionNameBorder`). Le texte et le contrôle de couleur conservent leurs styles et positions canoniques.
 
 Une couleur est proposée par défaut. L’ouverture de la palette ne grise pas le reste de l’écran.
 
@@ -590,11 +593,11 @@ Une couleur est proposée par défaut. L’ouverture de la palette ne grise pas 
 
 Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface, le nombre est affiché sous la forme d’un contrôle compact `xN`, placé immédiatement à droite de l’intitulé `Tour`. Les anciens boutons `+ / −` ne sont pas utilisés.
+Dans l’interface, le nombre est affiché sans signe `×`, dans un contrôle compact placé à droite du bloc de textes. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas.
+
+La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée après toute modification validée de la Composition et reste attachée au conteneur Tour dans ses états fermé et déployé.
 
 Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
-
-La section Tour respecte l’anatomie du composant DSF `Composition / Tour Section` (`3067:270`). Le **conteneur extérieur** mesure `374 pt`, possède le fond bleu et les angles arrondis, et constitue l’unique surface visuelle englobante. Son **en-tête interne transparent** mesure `354 pt`, avec un inset de `10 pt` de chaque côté ; il ne possède ni fond, ni bordure, ni apparence de carte et porte uniquement l’icône Tour, le titre, la synthèse éventuelle et le contrôle du nombre de tours. Les **cartes d’activité** éventuelles mesurent `354 pt`, sont placées sous l’en-tête interne transparent et restent à l’intérieur du conteneur extérieur avec le même inset latéral de `10 pt`. Sans activité, une seule structure bleue est visible : aucun élément intérieur distinct ne doit apparaître comme une carte. Le fond bleu appartient exclusivement au conteneur extérieur de `374 pt`.
 
 ### Retour haptique des roulettes
 
@@ -610,8 +613,6 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Act
 Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
 
 La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour, au moyen de la poignée de glisser-déposer.
-
-La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application de `icon.compact` à cette poignée sont interdits.
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
@@ -698,11 +699,11 @@ Le retour ramène à la Composition.
 
 ### Étape 1 — Paramètres essentiels
 
-L’écran comporte notamment :
+L’écran comporte notamment, dans cet ordre :
 
-- Type d’Activité ;
-- Nom ;
-- Mode d’Exécution ;
+- `Nom de l’activité` ;
+- `Type d’activité`, avec les choix `Exercice / Récupération` ;
+- `Mode d’exécution` ;
 - `Paramètres de l’activité`, regroupant les valeurs d’exécution ;
 - bouton `Terminer`.
 
@@ -767,10 +768,10 @@ Permettre de créer ou modifier une Activité de type `Récupération`.
 ### Contenu
 
 
-L’écran comporte :
+L’écran comporte, dans cet ordre :
 
-- le type `Récupération` ;
-- `Nom` ;
+- `Nom de l’activité` ;
+- `Type d’activité`, avec `Récupération` sélectionné ;
 - `Paramètres de l’activité` ;
 - `Durée`, sélectionnée par une roulette minutes/secondes ;
 - bouton `Valider`.
@@ -1299,15 +1300,15 @@ La Composition reste visible en arrière-plan, assombrie et non interactive.
 
 **Actions**
 
-- `Continuer la création`
-- `Abandonner`
+- `Annuler`, action neutre grise
+- `Confirmer`, action destructive rouge
 
 #### Comportement
 
 
-`Continuer la création` ferme la modale et conserve intégralement la création en cours.
+`Annuler` ferme le dialogue et conserve intégralement la création en cours.
 
-`Abandonner` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue des séances`.
+`Confirmer` supprime la nouvelle Séance et tout son contenu déjà saisi, puis revient au `Catalogue des séances`.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
@@ -1352,19 +1353,19 @@ L’action `Supprimer` est révélée par glissement gauche dans la liste `Archi
 
 ![[images/suppression-seance-archivee.png|260]]
 
-La modale demande une confirmation explicite. L’arrière-plan conserve la liste des Séances archivées et l’option `Supprimer` visible. `Annuler` ferme la modale et revient à la liste `Archivées`.
+Le dialogue flottant centré demande une confirmation explicite. L’arrière-plan conserve la liste des Séances archivées et l’option `Supprimer` visible. `Annuler` ferme le dialogue et revient à la liste `Archivées`.
 
-Dans le prototype MVP, le bouton de confirmation `Supprimer la séance` ne possède volontairement aucun lien tant qu’un état actualisé de la liste n’est pas représenté. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
+Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
 ### Modales – Suppression d’une planification
 
 ![[images/calendrier-suppression-unique.png|260]]
 
-Pour une planification unique, `Supprimer` ouvre une confirmation. Après validation, la planification est supprimée, la Séance associée et les Exécutions historiques sont conservées.
+Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée, la Séance associée et les Exécutions historiques sont conservées.
 
 ![[images/calendrier-suppression-periodique.png|260]]
 
-Pour une planification périodique, `Supprimer` propose `Cette occurrence` ou `Cette occurrence et les suivantes`. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
+Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
 
 ### Modale – Réinitialisation de l’Activité
 
