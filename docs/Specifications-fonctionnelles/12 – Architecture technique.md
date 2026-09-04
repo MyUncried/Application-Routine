@@ -786,8 +786,8 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
-| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Time` (`2884:4415`), Numeric menu ou Date selon contrat |
-| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré |
+| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat |
+| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
 | Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` |
 | Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
@@ -796,7 +796,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des activités et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Activité | `Activity / Parameter Row — Source exact` | `Mode=Duration/Repetitions/Recovery` |
-| Répétition | `Controls / Repetition Pull-down — Source exact` | contrôle générique ; bornes et valeur dans le contrat d’écran |
+| Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
@@ -814,7 +814,7 @@ Les composants suffixés `Source exact` ont été extraits d’un écran source 
 
 ### Design tokens canoniques
 
-Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 1er septembre 2026, elles contiennent respectivement `58`, `60` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 4 septembre 2026, elles contiennent respectivement `59`, `62` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
 
 Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
 
@@ -842,9 +842,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.danger` | `#D92D20` | Action destructive et état négatif |
 | `color.dangerSurface` | `#FFF1F0` | Fond destructif léger |
 | `color.wheelActionCancelBackground` | `#F5F7FA` | Cercle d’annulation d’une roulette ; alias de `color.surface` |
-| `color.wheelActionValidateBackground` | `#0508E5` | Cercle de validation d’une roulette ; alias de `color.primary` |
+| `color.wheelActionConfirmBackground` | `#0508E5` | Cercle de confirmation d’une roulette ; alias de `color.primary` |
 | `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
-| `color.wheelActionValidateIcon` | `#FFFFFF` | Coche de validation sur fond primaire |
+| `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
@@ -947,7 +947,7 @@ Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structu
 | ---: | --- |
 | `6` | Petit indicateur ou contrôle très compact |
 | `8` | Petit champ ou contrôle compact |
-| `10` | Options de contrôles segmentés, options de rappel et pull-down compact de répétitions |
+| `10` | Options de contrôles segmentés et options de rappel |
 | `12` | Carte et champ standard |
 | `16` | Bouton secondaire compact, calendrier contextuel et message temporaire |
 | `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
@@ -973,8 +973,9 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
-| Roulette compacte | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptative au conteneur (`330` en Activité, environ `310` en Planification) |
-| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; Annuler à gauche et Valider à droite dans la barre supérieure |
+| Roulette compacte à deux colonnes | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptée au conteneur (`330` en Activité, environ `310` en Planification) |
+| Roulette numérique compacte à une colonne | `136 × 190` ; largeur minimale déterminée par deux cibles tactiles `48 × 48` et une colonne sélectionnée `56 × 34` centrée |
+| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; Annuler à gauche et Confirmer à droite dans la barre supérieure |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
 | Champ Nom de la séance | `354 × 42`, fond transparent, liseré blanc intérieur `1`; token `color.sessionNameBorder` |
@@ -983,7 +984,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 
 Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
-Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/validate-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/validate-icon`. Ils décrivent le composant représentatif `Picker / Popover — Source exact`, variante `Type=Duration`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
+Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Ils décrivent le component set unique `Picker / Popover — Source exact`, notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
 ### Règles de dimensionnement des composants
 

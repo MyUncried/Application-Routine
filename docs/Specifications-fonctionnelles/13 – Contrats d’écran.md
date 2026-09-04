@@ -444,9 +444,9 @@ Tests bloquants : exactement 12 valeurs provenant du Design System ; grille et i
 
 Le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`2537:1110`), mesure `330 × 190` : barre d’actions `40` et primitive native `150`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes vont de `00` à `59` par pas de `1`. Deux cadres gris distincts `56 × 34`, rayon `17`, couvrent uniquement les chiffres centrés ; les unités restent hors des cadres.
 
-Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Valider. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
+Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Confirmer. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
 
-Toucher un chiffre ou la zone sélectionnée ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Valider enregistre exactement les valeurs centrées puis ferme. L’ouverture d’un autre sélecteur ferme celui-ci sans valider son brouillon. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
+Toucher un chiffre ou la zone sélectionnée ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. L’ouverture d’un autre sélecteur ferme celui-ci sans confirmer son brouillon. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
 
 Tests bloquants : deux roulettes fonctionnelles ; bornes et pas conformes aux règles métier ; retour haptique une fois par cran ; conservation de `0 s` ; fermeture et réouverture sur la dernière valeur ; conformité à `2028:11375`.
 
@@ -579,7 +579,7 @@ En T01, seul le parcours Exercice en mode Durée est requis de bout en bout. Les
 
 `Durée` ouvre CE-T01-14. Les contrôles Pause et Séries n’ouvrent pas de sélecteur non livré dans T01. `Valider` reste désactivé tant que l’Exercice est invalide ; lorsqu’il est valide, il ouvre CE-T01-15 en conservant les paramètres dans le brouillon d’Activité.
 
-Le récapitulatif est calculé et suit les valeurs courantes ; le texte de la frame n’est jamais statique. Retour avec modifications non enregistrées suit la modale d’abandon d’Activité définie par D-094 lorsqu’elle est livrée ; avant cela, aucune donnée ne peut être supprimée silencieusement.
+Le récapitulatif est calculé et suit les valeurs courantes ; le texte de la frame n’est jamais statique. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
 
 Tests bloquants : titre de Séance réel ; segments égaux et états accessibles ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
 
@@ -595,13 +595,30 @@ Tests bloquants : titre de Séance réel ; segments égaux et états accessibles
 | Déclencheur | Appui sur `Durée` dans CE-T01-13 |
 | Composant | `Picker / Popover — Source exact`, `Type=Duration` (`2537:1110`), `330 × 190` |
 
-Le sélecteur est ancré au contrôle Durée et présente une seule instance canonique. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée. Aucune seconde barre Annuler/Valider, seconde roulette ou bordure locale ne peut être superposée.
+Le sélecteur est ancré au contrôle Durée et présente une seule instance canonique. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
 
-Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La durée sélectionnée reste locale pendant le défilement ; le contrôle et le récapitulatif ne sont actualisés qu’après Valider. Une durée totale de `0 s` laisse la validation de l’Activité désactivée après application.
+Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La durée sélectionnée reste locale pendant le défilement ; le contrôle et le récapitulatif ne sont actualisés qu’après Confirmer. Une durée totale de `0 s` laisse la validation de l’Activité désactivée après application.
 
-Toucher une valeur ou le cadre sélectionné ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Valider applique la valeur puis ferme. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
+Toucher une valeur ou le cadre sélectionné ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer applique la valeur puis ferme. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
 
 Tests bloquants : ancrage, roulettes et unités corrects ; mise à jour du récapitulatif ; validation impossible à `0 s` ; haptique une fois par cran ; absence de modification de Pause ou Séries ; conformité à `1992:9430`.
+
+### Contrat transverse — Sélections numériques compactes
+
+Tout contrôle scalaire auparavant décrit comme `pull-up`, `pull-down`, menu numérique ou pop-up numérique utilise désormais `Picker / Popover — Source exact` (`2537:1174`), variante `Type=Numeric wheel` (`3210:49`). Le contrôle fermé reste le déclencheur compact `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) et affiche la dernière valeur confirmée.
+
+La roulette ouverte mesure `136 × 190` : barre supérieure de `40`, contenu natif de `150`, une seule colonne numérique et une zone sélectionnée de `56 × 34`. Chaque action possède une cible `48 × 48`, un cercle `28 × 28` et un cadre d’icône `24 × 24`. Annuler détruit le brouillon et ferme ; Confirmer enregistre la valeur centrée et ferme. Toucher la roulette, la zone sélectionnée ou arrêter le défilement ne ferme jamais le sélecteur.
+
+| Usage | Frame Figma ouverte | Valeurs/bornes | Composant et variante |
+| --- | --- | --- | --- |
+| Profil — Compte à rebours initial | `1992:474` — `Profil — Roulette compte à rebours initial ouverte` | Secondes selon le contrat Profil ; exemple centré `10` | `Picker / Popover`, `Type=Numeric wheel` |
+| Profil — Fin de séance | `1992:579` — `Profil — Roulette fin de séance ouverte` | Secondes selon le contrat Profil ; exemple centré `5` | `Picker / Popover`, `Type=Numeric wheel` |
+| Nombre de Séries | `1992:9618` — `Création activité — Séries — roulette compacte ouverte` | `1–99`, défaut `1` | `Picker / Popover`, `Type=Numeric wheel` |
+| Nombre de Répétitions | `1992:9709` — `Création activité — Répétitions — roulette compacte ouverte` | `1–99`, défaut `1` | `Picker / Popover`, `Type=Numeric wheel` |
+| Nombre de Tours | `2028:11580` — `Composition — Nombre de tours — roulette compacte ouverte` | `1–99`, défaut `1` | `Picker / Popover`, `Type=Numeric wheel` |
+| Nombre de semaines | `1992:7537` — `Planifier une séance — Roulette nombre de semaines ouverte` | entier `≥ 1`; exemple centré `2` | `Picker / Popover`, `Type=Numeric wheel` |
+
+Tests bloquants communs : une seule instance de roulette ; source native OS ; brouillon distinct de la valeur confirmée ; aucune fermeture au simple défilement ; confirmation explicite ; dernière valeur confirmée restituée ; cibles tactiles conformes ; aucun menu numérique historique restant.
 
 ---
 
@@ -619,9 +636,37 @@ L’en-tête fixe conserve le nom réel de la Séance. Le corps affiche `Informa
 
 La Consigne et les Zones corporelles sont facultatives. Les zones visibles dans Figma sont le référentiel initial attendu, mais l’écran les charge depuis le service de référentiel ; l’utilisateur ne peut ni les créer, ni les renommer, ni les supprimer. Les tags suivent les mêmes règles adaptatives et tactiles que CE-T01-11. Le champ grandit ou le corps défile sans masquer l’action finale.
 
-`Terminer` enregistre atomiquement l’Activité avec les paramètres conservés de l’étape 1, l’insère immédiatement après le Compte à rebours et avant le Tour, puis revient à CE-T01-09. L’omission de toute information complémentaire est valide. Un double appui ne crée pas deux Activités. Retour ramène à l’étape 1 avec toutes les valeurs conservées ; une sortie du parcours avec modifications non enregistrées suit D-094.
+`Terminer` enregistre atomiquement l’Activité avec les paramètres conservés de l’étape 1, l’insère immédiatement après le Compte à rebours et avant le Tour, puis revient à CE-T01-09. L’omission de toute information complémentaire est valide. Un double appui ne crée pas deux Activités. Retour ramène à l’étape 1 avec toutes les valeurs conservées ; une sortie du parcours avec modifications non enregistrées ouvre CE-T01-16.
 
 Tests bloquants : paramètres essentiels intacts ; Terminer possible sans Consigne ni zone ; multisélection réelle ; aucune création de zone corporelle ; une seule Activité insérée au bon emplacement ; Composition et résumé recalculés ; conformité à `1992:9292`.
+
+---
+
+### CE-T01-16 — Abandonner les modifications d’une Activité
+
+#### Identification et contenu exact
+
+| Propriété | Valeur |
+| --- | --- |
+| Frame Figma | `3224:4082` — `Modal — Abandonner les modifications d’une activité` |
+| Instance | `3224:4140` — `Overlay / Decision Dialog — Abandon activité` |
+| Composant | `Overlay / Decision Dialog` (`2590:2961`), variante `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) |
+| Déclencheur | Tentative de sortie d’un écran Activité contenant des modifications locales non enregistrées |
+
+L’écran Activité reste visible, assombri et non interactif. Le dialogue flottant mesure `354 × 186`, possède un rayon de `18` et est centré dans l’écran.
+
+| Élément | Texte exact |
+| --- | --- |
+| Titre | `Abandonner les modifications ?` |
+| Message | `Les modifications apportées à cette activité seront perdues.` |
+| Action non destructive | `Annuler` |
+| Action destructive | `Confirmer` |
+
+Les deux boutons `147 × 48` sont disposés sur une ligne avec un écart de `12`. `Annuler` utilise le gris neutre ; `Confirmer` utilise le rouge destructif avec texte blanc. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
+
+`Annuler` ferme le dialogue et conserve intégralement la copie de travail locale. `Confirmer` détruit uniquement les modifications locales non enregistrées de l’Activité et revient à la Composition ; aucune autre donnée de la Séance n’est modifiée. Le geste Retour système est traité comme `Annuler`. Toucher le voile ne déclenche jamais `Confirmer`.
+
+Tests bloquants : ouverture uniquement en présence d’un brouillon modifié ; conservation exacte après Annuler ; abandon limité à l’Activité après Confirmer ; voile bloquant ; Retour système non destructif ; textes et géométrie conformes à `3224:4082`.
 
 ## 6. Matrice complète de couverture T01
 
@@ -642,5 +687,6 @@ Tests bloquants : paramètres essentiels intacts ; Terminer possible sans Consig
 | CE-T01-13 | `1992:9132` | Oui | Brouillon Exercice | Segments, champs, paramètres, Valider | Oui | Contrôles DS | Obligatoire |
 | CE-T01-14 | `1992:9430` | Oui | Durée Exercice | Roulettes min/s | Oui | Picker DS | Obligatoire |
 | CE-T01-15 | `1992:9292` | Oui | Consigne, zones, Activité | Champ, tags, Terminer | Oui | Tags et contrôles DS | Obligatoire |
+| CE-T01-16 | `3224:4082` | Oui | Brouillon local d’Activité | Annuler, Confirmer | Oui | Decision Dialog DS | Obligatoire |
 
-Les quinze frames dont la construction principale est affectée à T01 possèdent désormais un contrat. Les états repris ultérieurement restent soumis à une revalidation fonctionnelle, technique ou de layout dans leur tranche d’affectation.
+Les seize frames dont la construction principale est affectée à T01 possèdent désormais un contrat. Les états repris ultérieurement restent soumis à une revalidation fonctionnelle, technique ou de layout dans leur tranche d’affectation.

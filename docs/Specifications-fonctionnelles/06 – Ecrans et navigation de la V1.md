@@ -154,11 +154,12 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles.
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
-- Une roulette ou un pop-up compact est ancré au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, il est repositionné au-dessus ou transformé en présentation basse défilante.
+- Une roulette est ancrée au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, elle est repositionnée au-dessus ou transformée en présentation basse défilante.
 - La roulette compacte de durée ou d’heure mesure `190` points de haut : barre d’actions supérieure de `40` points et zone de roulette native de `150` points. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
-- La barre d’actions place Annuler à gauche et Valider à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Valider. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
+- La barre d’actions place Annuler à gauche et Confirmer à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Confirmer. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
-- Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Valider enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après validation. Une réouverture restitue la dernière valeur validée.
+- Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après confirmation. Une réouverture restitue la dernière valeur confirmée.
+- Tout contrôle historique de type `pull-up`, `pull-down` ou menu numérique ouvre désormais la variante `Type=Numeric wheel` du composant DSF `Picker / Popover — Source exact`. Cette variante native OS comporte une seule colonne, mesure `136 × 190`, conserve une zone de sélection de `56 × 34` et les deux actions canoniques Annuler/Confirmer. Le contrôle fermé continue d’afficher uniquement la dernière valeur confirmée.
 
 ### Dialogues d’action et modales plein écran
 
@@ -550,9 +551,9 @@ L’état révélant les actions d’une Activité est illustré par :
 | Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée |
 | Nom renseigné | ![[images/composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` |
 | Palette de couleurs ouverte | ![[images/composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé |
-| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Valider circulaires |
-| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Valider circulaires |
-| Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Sélection compacte du nombre de répétitions du Tour |
+| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires |
+| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires |
+| Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
 ### Objectif
 
 Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
@@ -597,7 +598,7 @@ Dans l’interface, le nombre est affiché sans signe `×`, dans un contrôle co
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée après toute modification validée de la Composition et reste attachée au conteneur Tour dans ses états fermé et déployé.
 
-Un appui sur le contrôle `xN` ouvre un picker / une roulette permettant de sélectionner le nombre de répétitions.
+Un appui sur le contrôle de valeur ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`). Le défilement ne modifie qu’un brouillon ; Annuler ferme sans enregistrer et Confirmer applique la valeur centrée.
 
 ### Retour haptique des roulettes
 
@@ -676,8 +677,8 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 | Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions |
 | Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite |
 | Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série avec validation explicite |
-| Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Sélecteur compact du nombre de Séries |
-| Répétitions ouvertes | ![[images/creation-activite-repetitions-ouvert.png\|220]] | Sélecteur compact de la cible de répétitions |
+| Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
+| Répétitions ouvertes | ![[images/creation-activite-repetitions-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
 | Informations complémentaires | ![[images/creation-activite-informations.png\|220]] | Deuxième étape facultative : Consigne et Zones corporelles |
 ### Objectif
 
@@ -899,7 +900,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 | Heure ouverte | ![[images/planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite |
 | Rappel personnalisé ouvert | ![[images/planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite |
 | Rappel personnalisé sélectionné | ![[images/planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement |
-| Nombre de semaines ouvert | ![[images/planifier-semaines-ouvert.png\|220]] | Fréquence hebdomadaire compacte |
+| Nombre de semaines ouvert | ![[images/planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
 | Aucune répétition | ![[images/planifier-sans-repetition.png\|220]] | Variante de planification unique |
 | Changer la Séance | ![[images/planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée |
 
@@ -1314,6 +1315,8 @@ Ce comportement concerne uniquement le parcours de création. Pour une Séance e
 
 ### Modale – Abandonner les modifications d’une Activité (D-094)
 
+![[images/activite-abandon-modifications.png|260]]
+
 #### Objectif
 
 Éviter la perte accidentelle des modifications apportées à une Activité de type Exercice, dans l’écran `Création / modification d’une Activité — Exercice`.
@@ -1336,14 +1339,16 @@ L’écran Exercice reste visible en arrière-plan, assombri et non interactif.
 
 **Actions**
 
-- `Continuer la modification`
-- `Abandonner`
+- `Annuler`, action neutre grise
+- `Confirmer`, action destructive rouge
 
 #### Comportement
 
-`Continuer la modification` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
+`Annuler` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
 
-`Abandonner` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté.
+`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
+
+La référence de production est la frame Figma `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Elle instancie `Overlay / Decision Dialog`, variante `PrimaryTone=Danger, SecondaryTone=Neutral, Actions=2` (`2590:2934`) : dialogue centré de `354 × 186`, rayon `18`, boutons `147 × 48`, écart horizontal `12` et espacement `16` entre la dernière ligne du message et les actions. Les libellés sont centrés horizontalement et verticalement dans leurs boutons.
 
 ### Modale – Confirmer la suppression d’une Séance archivée
 
@@ -1479,7 +1484,7 @@ La modale ne peut être fermée que par l’une des deux actions prévues.
 
 Ces réglages ne sont plus des modales dans le MVP.
 
-Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Ces deux valeurs possèdent des brouillons et des valeurs validées indépendants. Dans le Profil, toucher la préférence correspondante ouvre un sélecteur intégré présentant visuellement `0 s`, `5 s`, `10 s` et `15 s` ; ce sélecteur historique du Profil n’est pas remplacé par la nouvelle roulette compacte dans la présente décision.
+Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Ces deux valeurs possèdent des brouillons et des valeurs confirmées indépendants. Dans le Profil, toucher la préférence correspondante ouvre la roulette numérique compacte native à une colonne, avec les valeurs en secondes et les actions Annuler/Confirmer. Le choix ne modifie la préférence qu’après confirmation.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
