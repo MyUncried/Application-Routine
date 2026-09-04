@@ -79,26 +79,12 @@ jobs:
           cp /tmp/source-comment.txt /tmp/kodjo-review/source-comment.txt
           gh api repos/${{ github.repository }}/issues/17 > /tmp/kodjo-review/issue.json
           printf 'HEAD=%s\n' "$(git rev-parse HEAD)" > /tmp/kodjo-review/source-attestation.txt
-
-          DOCS=(
-            "docs/PRODUCT.md"
-            "docs/INDEX.md"
-            "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md"
-            "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md"
-            "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md"
-            "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md"
-            "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md"
-            "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md"
-            "docs/Specifications-fonctionnelles/12 – Architecture technique.md"
-            "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md"
-          )
           : > /tmp/kodjo-review/evidence.txt
-          for f in "${DOCS[@]}"; do
+          while IFS= read -r f; do
             printf '\n===== %s =====\n' "$f" >> /tmp/kodjo-review/evidence.txt
             rg -n -C 3 -i 'T01-S09|Catégor|Enregistrer la séance|atomic|transaction|zone corporelle|double|D-015|D-016|D-092|D-093|D-094|Composition|Catalogue' "$f" >> /tmp/kodjo-review/evidence.txt || true
-          done
+          done < <(printf '%s\n' 'docs/PRODUCT.md' 'docs/INDEX.md' 'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md' 'docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md' 'docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md' 'docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md' 'docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md' 'docs/Specifications-fonctionnelles/11 – API fonctionnelles.md' 'docs/Specifications-fonctionnelles/12 – Architecture technique.md' 'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md')
           head -c 220000 /tmp/kodjo-review/evidence.txt > /tmp/kodjo-review/evidence-trimmed.txt
-
           if [ '${{ steps.source.outputs.kind }}' = 'IMPLEMENTATION' ]; then
             BASE='${{ steps.source.outputs.base_head }}'
             test -n "$BASE"
@@ -111,48 +97,35 @@ jobs:
           fi
 
       - name: Run independent OpenAI review
-        id: openai
         shell: bash
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           KIND='${{ steps.source.outputs.kind }}'
-          ATTEMPT='${{ steps.source.outputs.attempt }}'
-          SOURCE=$(cat /tmp/kodjo-review/source-comment.txt)
-          ISSUE=$(jq -r '.body' /tmp/kodjo-review/issue.json)
-          EVIDENCE=$(cat /tmp/kodjo-review/evidence-trimmed.txt)
           if [ "$KIND" = PLAN ]; then
-            EXTRA=''
-            TASK='Review the proposed implementation plan for T01-S09. Verify it against the provided current repository evidence, issue mission, screen contracts, functional specifications, data model, business rules, API/architecture and decision register. Do not invent missing rules. Minor technical omissions should produce REVISE with precise actionable feedback, not a human escalation. Use CLARIFY only for an actual product/UX decision that cannot be determined from the sources. APPROVE only when the plan is executable, source-grounded and sufficient to implement without recurring micro-arbitrations.'
+            TASK='Review the T01-S09 plan against the current authoritative project sources. Minor technical omissions => REVISE. Use CLARIFY only for a genuine product/UX decision not determinable from sources. APPROVE only when executable and source-grounded.'
           else
-            DIFF=$(cat /tmp/kodjo-review/diff-trimmed.txt)
-            PLAN=$(cat /tmp/kodjo-review/approved-plan.txt)
-            EXTRA=$(printf '\nAPPROVED PLAN:\n%s\n\nIMPLEMENTATION DIFF:\n%s\n' "$PLAN" "$DIFF")
-            TASK='Review the T01-S09 implementation against the approved plan and the provided source-of-truth evidence. Check functional behavior, screen contracts/design-system implications represented in documentation, data persistence/atomicity, error/loading/double-submit behavior, tests, architecture and scope. Treat technical or implementation defects as REVISE with precise feedback. Use CLARIFY only for a real unresolved product/UX decision. APPROVE only when the implementation is ready for user visual review; visual fidelity that requires device inspection may be deferred to that gate, but known code/document mismatches must not be deferred.'
+            TASK='Review the T01-S09 implementation against the approved plan and current authoritative sources. Check behavior, contracts, persistence and atomicity, errors/loading/double-submit, tests, architecture and scope. Technical defects => REVISE. Use CLARIFY only for a genuine unresolved product/UX decision. APPROVE only when ready for user visual review.'
           fi
-          PROMPT=$(cat <<EOF
-You are the independent KODJO V1.4 review gate. $TASK
-
-The review is against authoritative project sources, not generic best practices. Hierarchy: Figma/rendered screenshots = visual representation and represented states; functional docs = behavior/interactions/business rules; technical docs = implementation constraints; decision register = explicit arbitrations. Do not turn a purely graphic detail into a business rule.
-
-Issue #17 mission:
-$ISSUE
-
-Candidate output:
-$SOURCE
-
-Verified source excerpts:
-$EVIDENCE
-$EXTRA
-EOF
-          )
+          printf '%s\n' "You are the independent KODJO V1.4 review gate. $TASK" 'Hierarchy: Figma/rendered screenshots = visual representation and represented states; functional docs = behaviors/interactions/business rules; technical docs = implementation constraints; decision register = explicit arbitrations. Do not invent.' '' 'ISSUE #17:' > /tmp/prompt.txt
+          jq -r '.body' /tmp/kodjo-review/issue.json >> /tmp/prompt.txt
+          printf '%s\n' '' 'CANDIDATE OUTPUT:' >> /tmp/prompt.txt
+          cat /tmp/kodjo-review/source-comment.txt >> /tmp/prompt.txt
+          printf '%s\n' '' 'VERIFIED SOURCE EXCERPTS:' >> /tmp/prompt.txt
+          cat /tmp/kodjo-review/evidence-trimmed.txt >> /tmp/prompt.txt
+          if [ "$KIND" = IMPLEMENTATION ]; then
+            printf '%s\n' '' 'APPROVED PLAN:' >> /tmp/prompt.txt
+            cat /tmp/kodjo-review/approved-plan.txt >> /tmp/prompt.txt
+            printf '%s\n' '' 'IMPLEMENTATION DIFF:' >> /tmp/prompt.txt
+            cat /tmp/kodjo-review/diff-trimmed.txt >> /tmp/prompt.txt
+          fi
+          PROMPT=$(cat /tmp/prompt.txt)
           SCHEMA='{"type":"object","properties":{"decision":{"type":"string","enum":["APPROVE","REVISE","CLARIFY"]},"summary":{"type":"string"},"feedback":{"type":"string"},"blocking_points":{"type":"array","items":{"type":"string"}},"sources_checked":{"type":"array","items":{"type":"string"}}},"required":["decision","summary","feedback","blocking_points","sources_checked"],"additionalProperties":false}'
-          jq -n --arg model "gpt-5.6-luna" --arg prompt "$PROMPT" --argjson schema "$SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"medium"},max_output_tokens:1800,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_s09_review",strict:true,schema:$schema}}}' > /tmp/request.json
+          jq -n --arg model 'gpt-5.6-luna' --arg prompt "$PROMPT" --argjson schema "$SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"medium"},max_output_tokens:1800,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_s09_review",strict:true,schema:$schema}}}' > /tmp/request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/request.json -o /tmp/response.json
           OUTPUT=$(jq -r '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n")' /tmp/response.json)
           printf '%s' "$OUTPUT" | jq -e . >/dev/null
           printf '%s' "$OUTPUT" > /tmp/review.json
-          echo "decision=$(jq -r '.decision' /tmp/review.json)" >> "$GITHUB_OUTPUT"
 
       - name: Route review result
         shell: bash
@@ -161,80 +134,21 @@ EOF
           KIND='${{ steps.source.outputs.kind }}'
           ATTEMPT='${{ steps.source.outputs.attempt }}'
           SESSION='${{ steps.source.outputs.session }}'
-          HEAD='${{ steps.source.outputs.head }}'
+          HEAD_SHA='${{ steps.source.outputs.head }}'
           DECISION=$(jq -r '.decision' /tmp/review.json)
           SUMMARY=$(jq -r '.summary' /tmp/review.json)
           FEEDBACK=$(jq -r '.feedback' /tmp/review.json)
           SOURCES=$(jq -r '.sources_checked[]?' /tmp/review.json | sed 's/^/- /')
-
-          if [ "$DECISION" = APPROVE ]; then
-            if [ "$KIND" = PLAN ]; then
-              cat > /tmp/out.md <<EOF
-[KODJO_S09_PLAN_GATE]
-source_plan_comment_id=$SOURCE_COMMENT_ID
-source_head=$HEAD
-session_id=$SESSION
-attempt=$ATTEMPT
-STATUT : PLAN_READY_FOR_USER_GATE
-
-$SUMMARY
-
-Sources contrôlées :
-$SOURCES
-
-Action utilisateur attendue dans ChatGPT Work : **APPROUVER PLAN S09** ou **CORRIGER PLAN S09 : ...**
-EOF
-            else
-              cat > /tmp/out.md <<EOF
-[KODJO_S09_VISUAL_GATE]
-source_implementation_comment_id=$SOURCE_COMMENT_ID
-head=$HEAD
-session_id=$SESSION
-attempt=$ATTEMPT
-STATUT : VISUAL_REVIEW_READY
-
-$SUMMARY
-
-Sources contrôlées :
-$SOURCES
-
-Action utilisateur attendue dans ChatGPT Work après contrôle sur iPhone : **VALIDER VISUEL S09** ou **CORRIGER VISUEL S09 : ...**
-EOF
-            fi
-            gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/out.md
-            exit 0
-          fi
-
-          if [ "$DECISION" = CLARIFY ] || [ "$ATTEMPT" -ge 3 ]; then
-            cat > /tmp/out.md <<EOF
-[KODJO_S09_CLARIFICATION_REQUIRED]
-kind=$KIND
-source_comment_id=$SOURCE_COMMENT_ID
-head=$HEAD
-session_id=$SESSION
-attempt=$ATTEMPT
-STATUT : CLARIFICATION_REQUIRED
-
-$SUMMARY
-
-$FEEDBACK
-EOF
-            gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/out.md
-            exit 0
-          fi
-
-          NEXT=$((ATTEMPT+1))
-          if [ "$KIND" = PLAN ]; then
-            TRIGGER='[KODJO_V14_S09] PLAN_REVISION'
+          : > /tmp/out.md
+          if [ "$DECISION" = APPROVE ] && [ "$KIND" = PLAN ]; then
+            printf '%s\n' '[KODJO_S09_PLAN_GATE]' "source_plan_comment_id=$SOURCE_COMMENT_ID" "source_head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : PLAN_READY_FOR_USER_GATE' '' "$SUMMARY" '' 'Sources contrôlées :' "$SOURCES" '' 'Action utilisateur attendue dans ChatGPT Work : APPROUVER PLAN S09 ou CORRIGER PLAN S09 : ...' > /tmp/out.md
+          elif [ "$DECISION" = APPROVE ]; then
+            printf '%s\n' '[KODJO_S09_VISUAL_GATE]' "source_implementation_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : VISUAL_REVIEW_READY' '' "$SUMMARY" '' 'Sources contrôlées :' "$SOURCES" '' 'Action utilisateur attendue dans ChatGPT Work : VALIDER VISUEL S09 ou CORRIGER VISUEL S09 : ...' > /tmp/out.md
+          elif [ "$DECISION" = CLARIFY ] || [ "$ATTEMPT" -ge 3 ]; then
+            printf '%s\n' '[KODJO_S09_CLARIFICATION_REQUIRED]' "kind=$KIND" "source_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : CLARIFICATION_REQUIRED' '' "$SUMMARY" '' "$FEEDBACK" > /tmp/out.md
           else
-            TRIGGER='[KODJO_V14_S09] IMPLEMENTATION_REVISION'
+            NEXT=$((ATTEMPT+1))
+            if [ "$KIND" = PLAN ]; then TRIGGER='[KODJO_V14_S09] PLAN_REVISION'; else TRIGGER='[KODJO_V14_S09] IMPLEMENTATION_REVISION'; fi
+            printf '%s\n' "$TRIGGER" "attempt=$NEXT" "session_id=$SESSION" "source_head=$HEAD_SHA" 'REVIEW_FEEDBACK:' "$FEEDBACK" > /tmp/out.md
           fi
-          cat > /tmp/out.md <<EOF
-$TRIGGER
-attempt=$NEXT
-session_id=$SESSION
-source_head=$HEAD
-REVIEW_FEEDBACK:
-$FEEDBACK
-EOF
           gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/out.md
