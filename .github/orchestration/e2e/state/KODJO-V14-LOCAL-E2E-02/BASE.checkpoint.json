@@ -1,20 +1,21 @@
 {
-  "schema": "kodjo.e2e.checkpoint.v1",
-  "test_id": "KODJO-V14-LOCAL-E2E-02",
-  "stage": "BASE",
-  "status": "AUTHORIZED",
-  "mode": "LOCAL_WRITE",
-  "writer": "CLAUDE_LOCAL",
-  "authorized_head": "c6e4f259b16a6a592c9ed54c040b172af3d05fd3",
-  "consumed": false,
-  "allowed_paths": [
-    ".github/orchestration/e2e/KODJO_V14_LOCAL_E2E_02_SENTINEL.md",
-    ".github/orchestration/reports/KODJO_V14_LOCAL_E2E_02_*.md"
-  ],
-  "claude_call_ordinal": 1,
-  "claude_call_budget": 2,
-  "fallback": "NONE",
-  "claude_cloud": false,
-  "next_actor": "CLAUDE_LOCAL",
-  "purpose": "Execute BASE for the clean KODJO V1.4 LOCAL E2E-02 qualification with all E2E-01 fixes integrated."
+    "schema":  "kodjo.e2e.checkpoint.v1",
+    "test_id":  "KODJO-V14-LOCAL-E2E-02",
+    "stage":  "BASE",
+    "status":  "AUTHORIZED",
+    "mode":  "LOCAL_WRITE",
+    "writer":  "CLAUDE_LOCAL",
+    "authorized_head":  "c6e4f259b16a6a592c9ed54c040b172af3d05fd3",
+    "consumed":  true,
+    "allowed_paths":  [
+                          ".github/orchestration/e2e/KODJO_V14_LOCAL_E2E_02_SENTINEL.md",
+                          ".github/orchestration/reports/KODJO_V14_LOCAL_E2E_02_*.md"
+                      ],
+    "claude_call_ordinal":  1,
+    "claude_call_budget":  2,
+    "fallback":  "NONE",
+    "claude_cloud":  false,
+    "next_actor":  "CLAUDE_LOCAL",
+    "purpose":  "Execute BASE for the clean KODJO V1.4 LOCAL E2E-02 qualification with all E2E-01 fixes integrated.",
+    "consumed_run_id":  "33922161183"
 }

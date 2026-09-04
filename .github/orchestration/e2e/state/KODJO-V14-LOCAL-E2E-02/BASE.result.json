@@ -1,0 +1,12 @@
+{
+    "test_id":  "KODJO-V14-LOCAL-E2E-02",
+    "stage":  "BASE",
+    "status":  "SUCCESS",
+    "run_id":  "33922161183",
+    "session_id":  "dcbb2c25-a784-4e49-a17c-5245466eab59",
+    "marker_sha256":  "88bdbe8071baa7bb6e6d0e080ca4e609bbde462845f3256b8882175416b38e5c",
+    "mode":  "LOCAL_WRITE",
+    "writer":  "CLAUDE_LOCAL",
+    "fallback":  "NONE",
+    "claude_cloud":  false
+}
