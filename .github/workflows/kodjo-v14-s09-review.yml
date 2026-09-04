@@ -96,7 +96,7 @@ jobs:
           : > /tmp/kodjo-review/evidence.txt
           while IFS= read -r f; do
             printf '\n===== %s =====\n' "$f" >> /tmp/kodjo-review/evidence.txt
-            rg -n -C 3 -i 'T01-S09|Catégor|Enregistrer la séance|atomic|transaction|zone corporelle|double|D-015|D-016|D-092|D-093|D-094|Composition|Catalogue' "$f" >> /tmp/kodjo-review/evidence.txt || true
+            grep -En -C 3 -i 'T01-S09|Catégor|Enregistrer la séance|atomic|transaction|zone corporelle|double|D-015|D-016|D-092|D-093|D-094|Composition|Catalogue' "$f" >> /tmp/kodjo-review/evidence.txt || true
           done < <(printf '%s\n' 'docs/PRODUCT.md' 'docs/INDEX.md' 'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md' 'docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md' 'docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md' 'docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md' 'docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md' 'docs/Specifications-fonctionnelles/11 – API fonctionnelles.md' 'docs/Specifications-fonctionnelles/12 – Architecture technique.md' 'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md')
           head -c 220000 /tmp/kodjo-review/evidence.txt > /tmp/kodjo-review/evidence-trimmed.txt
           if [ '${{ steps.source.outputs.kind }}' = 'IMPLEMENTATION' ]; then
@@ -121,7 +121,7 @@ jobs:
           else
             TASK='Review the T01-S09 implementation against the approved plan and current authoritative sources. Check behavior, contracts, persistence and atomicity, errors/loading/double-submit, tests, architecture and scope. Technical defects => REVISE. Use CLARIFY only for a genuine unresolved product/UX decision. APPROVE only when ready for user visual review.'
           fi
-          printf '%s\n' "You are the independent KODJO V1.4 review gate. $TASK" 'Hierarchy: Figma/rendered screenshots = visual representation and represented states; functional docs = behaviors/interactions/business rules; technical docs = implementation constraints; decision register = explicit arbitrations. Do not invent.' '' 'ISSUE #17:' > /tmp/prompt.txt
+          printf '%s\n' "You are the independent KODJO V1.4 review gate. $TASK" 'Hierarchy: current checked-out HEAD and current versioned sources supersede a stale baseline written in the Issue body; Figma/rendered screenshots = visual representation and represented states; functional docs = behaviors/interactions/business rules; technical docs = implementation constraints; decision register = explicit arbitrations. Do not invent. Treat the verified source excerpts below as the evidence at the current HEAD.' '' 'ISSUE #17:' > /tmp/prompt.txt
           jq -r '.body' /tmp/kodjo-review/issue.json >> /tmp/prompt.txt
           printf '%s\n' '' 'CANDIDATE OUTPUT:' >> /tmp/prompt.txt
           cat /tmp/kodjo-review/source-comment.txt >> /tmp/prompt.txt
