@@ -895,9 +895,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Bouton Retour | Bouton | Toujours | Oui | Visible | Revient à la composition | Système | Retour | |
 | Titre de l’écran | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | En-tête fixe |
-| Texte introductif | Texte | Toujours | Non | « Sélectionnez une ou plusieurs catégories. » | Texte fixe | Statique | Aucune | |
-| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Valeurs par défaut et personnalisées |
-| Bouton Créer une catégorie | Bouton | Toujours | Non | Visible | Nom unique par utilisateur | Statique | Créer | Ajoute une catégorie personnalisée |
+| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; une sélection ne change pas l’ordre |
+| Bouton Créer une catégorie | Bouton | Toujours | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Ajoute une catégorie personnalisée ; si le nom normalisé existe déjà, sélectionne l’existante |
 | Bouton Enregistrer la séance | Bouton | Toujours | Oui | Actif | La séance doit être valide | Statique | Enregistrer | Retourne à Catalogue de séances |
 
 ### Règles fonctionnelles
@@ -906,9 +905,11 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | --- | --- |
 | Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
 | Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
-| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle catégorie est ajoutée et sélectionnée. |
+| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle catégorie est ajoutée au brouillon et sélectionnée, sans persistance avant l’enregistrement final. |
 | Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
-| Enregistrement | Enregistre les catégories sélectionnées et ramène à Catalogue de séances. |
+| Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories du brouillon et leurs associations, puis ramène au Catalogue de séances. |
+| Échec d’enregistrement | Reste sur l’écran, conserve le brouillon complet, réactive l’action et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
+| Réorganisation | Aucune réorganisation manuelle des Catégories dans le MVP. |
 
 
 ## Activité

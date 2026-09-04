@@ -14,7 +14,7 @@ Un contrat d’écran ne remplace ni Figma ni les autres chapitres. Il précise,
 - les chevauchements, troncatures et contenus masqués ;
 - une navigation ou un état de données différent de celui spécifié.
 
-Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les quinze frames dont la construction principale est affectée à T01.
+Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les seize frames dont la construction principale est affectée à T01 ainsi que les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10. Ces contrats S10 réutilisent les frames T01 existantes et ne créent aucune représentation Figma supplémentaire.
 
 ## 2. Sources et ordre d’application
 
@@ -493,13 +493,13 @@ Tests bloquants : quatre libellés exacts ; fond réellement bloqué ; aucune su
 
 La Composition affiche les données réelles dans l’ordre enregistré : Compte à rebours ; Activités avant le Tour ; Tour ; Activités du Tour ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible et vaut toujours `1`. Dans T01, le Tour reste `x1` dans les données de recette même si la frame illustre `x3`.
 
-Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La poignée vectorielle `composition-reorder` permet le déplacement ; toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
+Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La ligne utilise le composant `Composition / Activity Row` ; son slot structurel gauche `28 × 28` contient exclusivement une instance de `Icon / Structure / Movable` (`3066:4676`) : actif `assets/icons/composition-reorder.svg`, dessin `20 × 20`, opacité `50 %`, couleur `color.iconNeutral`. Le token `icon.compact = 16 × 16` et toute copie locale historique `icon/réorganiser` sont interdits pour cette poignée. Toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
 
 Le bouton `Ajouter une activité` reste unique et placé au-dessus de la structure. Une nouvelle Activité est insérée après le Compte à rebours, avant le Tour, puis peut être déplacée. Les éléments structurels ne sont ni déplaçables ni supprimables. Deux Exercices successifs sans pause produisent l’avertissement non bloquant prévu.
 
 Le résumé intégré au conteneur Tour est calculé exclusivement depuis les Activités ; `5 activités · 19 min` est un exemple. Il exclut toujours la durée du Compte à rebours initial et celle de la Fin de séance, éléments structurels hors Tour. Il est placé sous `Nombre de tours`, au format du sous-libellé des cartes (`11/13`, gris secondaire, écart `4`). Le groupe de textes est centré verticalement avec le sélecteur `66 × 34`. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucun élément ne passe sous l’action.
 
-Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
+Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; chaque carte d’Activité utilise `Icon / Structure / Movable` (`3066:4676`) en `20 × 20` dans un slot `28 × 28`, sans icône locale `16 × 16` ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
 
 ---
 
@@ -532,13 +532,15 @@ Tests bloquants : valeur initiale `5 s` ; indépendance avec le Compte à rebour
 | Sortie | Catalogue après enregistrement |
 | Screen Shell | `Shell / Screen`, `Bottom=Action` |
 
-L’en-tête fixe affiche Retour et `Catégories de la séance`. Le corps affiche le libellé `Catégories`, les Catégories réelles sous forme de tags multisélection, l’action `+ Créer une catégorie` et l’action fixe `Enregistrer la séance`.
+L’en-tête fixe affiche Retour et `Catégories de la séance`. Le corps affiche directement le libellé `Catégories`, les Catégories réelles sous forme de tags multisélection, l’action `+ Créer une catégorie` et l’action fixe `Enregistrer la séance`. Aucun texte introductif supplémentaire n’est affiché.
 
-Les libellés visibles dans la frame sont des données du référentiel, pas une liste codée dans l’écran. L’ordre provient du référentiel. Les tags passent automatiquement à la ligne dans la largeur utile avec `8` points d’écart, hauteur visuelle `30` et cible tactile minimale `48`. L’état sélectionné combine le style du composant et un indicateur accessible ; il ne repose pas uniquement sur la couleur.
+Les libellés visibles dans la frame sont des données du référentiel, pas une liste codée dans l’écran. Les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante. Une sélection ne change pas leur position et aucune réorganisation manuelle n’est disponible dans le MVP. Chaque tag est une instance du composant DSF `Selection / Category Tag` (`3302:4166`), variante `State=Unselected` ou `State=Selected`. Les tags passent automatiquement à la ligne dans la largeur utile avec `8` points d’écart horizontal. Leur pilule visuelle mesure `30` points de haut et est centrée dans une cible tactile de hauteur minimale `48`; deux rangées utilisent donc un pas vertical minimal de `48` et leurs cibles ne se chevauchent pas. L’état sélectionné combine le style du composant et un indicateur accessible ; il ne repose pas uniquement sur la couleur.
 
-Toucher un tag inverse uniquement son association temporaire. Zéro, une ou plusieurs Catégories sont autorisées. Retour ramène à la Composition avec les sélections temporaires conservées dans le brouillon. `Créer une catégorie` ouvre CE-T01-12. `Enregistrer la séance` réalise une écriture atomique de la Séance, sa Composition et ses associations, puis recharge CE-T01-03. Un double appui ne peut créer aucun doublon.
+Toucher un tag inverse uniquement son association temporaire. Zéro, une ou plusieurs Catégories sont autorisées. Retour ramène à la Composition avec les sélections temporaires conservées dans le brouillon. `Créer une catégorie` ouvre CE-T01-12. `Enregistrer la séance` réalise une transaction unique comprenant la Séance, sa Composition, les nouvelles Catégories du brouillon et toutes leurs associations, puis recharge CE-T01-03. Un double appui ne peut créer aucun doublon.
 
-Tests bloquants : multisélection réelle ; enregistrement sans Catégorie autorisé ; référentiel chargé depuis les données ; Retour non destructif ; écriture unique et retour sur la bonne carte ; action finale toujours atteignable avec défilement, clavier et texte agrandi ; conformité à `2028:11204`.
+En cas d’échec, aucune donnée partielle n’est conservée : l’écran reste affiché, le brouillon complet est conservé, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative réutilise exactement le même brouillon.
+
+Tests bloquants : multisélection réelle ; ordre prédéfini puis personnalisé stable ; aucune réorganisation manuelle ; enregistrement sans Catégorie autorisé ; référentiel chargé depuis les données ; Retour non destructif ; transaction unique et retour sur la bonne carte ; échec sans donnée partielle, avec brouillon conservé, action réactivée et message exact ; action finale toujours atteignable avec défilement, clavier et texte agrandi ; conformité à `2028:11204`.
 
 ---
 
@@ -554,11 +556,11 @@ Tests bloquants : multisélection réelle ; enregistrement sans Catégorie autor
 
 L’action de création est remplacée à son emplacement par une ligne contenant le champ `Nom de la catégorie`, `Annuler` et `Ajouter`. Le champ reçoit immédiatement le focus et le clavier ne masque ni la ligne ni `Enregistrer la séance`.
 
-`Annuler` ferme la ligne sans créer de donnée ni modifier les sélections. `Ajouter` reste désactivé pour une valeur vide ou composée d’espaces. Après normalisation définie par le modèle, un nom déjà existant ne crée pas de doublon : la Catégorie existante est sélectionnée et la ligne se ferme, ou une erreur inline explicite est affichée selon le service de référentiel. Un nom valide crée la Catégorie, l’ajoute au référentiel, la sélectionne pour la Séance et ferme la ligne.
+`Annuler` ferme la ligne sans créer de donnée ni modifier les sélections. `Ajouter` reste désactivé pour une valeur vide ou composée d’espaces et la saisie est limitée à `40` caractères après trim. Après normalisation canonique de comparaison, un nom déjà existant ne crée pas de doublon : la Catégorie existante est sélectionnée et la ligne se ferme. Un nom valide et nouveau ajoute une Catégorie personnalisée au brouillon, la place après les Catégories prédéfinies et après les personnalisées plus anciennes, la sélectionne pour la Séance et ferme la ligne. Aucune Catégorie nouvelle n’est persistée avant `Enregistrer la séance`.
 
 Retour système avec le clavier ouvert ferme d’abord le clavier ; un second Retour suit CE-T01-11. Les erreurs restent attachées au champ et ne déplacent pas les tags par position absolue.
 
-Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé à vide ; création et sélection d’un nom valide ; aucun doublon ; conservation de la Composition ; action Enregistrer atteignable ; conformité à `2028:11248`.
+Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé à vide ; limite de `40` caractères après trim ; ajout au brouillon et sélection d’un nom valide ; ordre stable ; sélection automatique de l’existante en cas de doublon normalisé ; aucune persistance avant l’enregistrement final ; aucun doublon ni Catégorie orpheline après abandon ou échec ; conservation de la Composition ; action Enregistrer atteignable ; conformité à `2028:11248`.
 
 ---
 
@@ -694,3 +696,178 @@ Tests bloquants : ouverture uniquement en présence d’un brouillon modifié ; 
 | CE-T01-16 | `3224:4082` | Oui | Brouillon local d’Activité | Annuler, Confirmer | Oui | Decision Dialog DS | Obligatoire |
 
 Les seize frames dont la construction principale est affectée à T01 possèdent désormais un contrat. Les états repris ultérieurement restent soumis à une revalidation fonctionnelle, technique ou de layout dans leur tranche d’affectation.
+
+## 7. Contrats T01-S10 — Réouverture et modification bout en bout
+
+### 7.1 Règle de réutilisation Figma
+
+T01-S10 ne crée aucune nouvelle structure visuelle. La modification d’une Séance réutilise les frames, composants et variantes du parcours de création T01. Une différence limitée aux données préchargées, au texte d’instance, à l’identifiant persistant ou à l’action métier relève du présent contrat et ne justifie pas une copie de frame.
+
+Le dialogue d’abandon réutilise `Overlay / Decision Dialog` (`2590:2961`), variante `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`). La frame `2028:11298` reste la référence de production pour sa géométrie dans le contexte Séance ; les textes sont des propriétés d’instance définies par CE-T01-S10-06.
+
+### CE-T01-S10-01 — Ouvrir une Séance existante en modification
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Point d’entrée | Carte d’une Séance existante dans `1992:9910` — `Catalogue des séances — Liste par défaut` |
+| Écran cible | Réutilisation de CE-T01-04 à CE-T01-10 et de la frame `2028:11700` |
+| Précondition | La Séance possède un identifiant persistant valide |
+
+L’action de modification d’une carte ouvre `Composition d’une séance` en mode modification. Elle transmet exclusivement l’identifiant de la Séance sélectionnée ; elle ne crée pas de nouvelle Séance et ne réutilise pas un brouillon appartenant à une autre navigation.
+
+Pendant le chargement, aucune valeur par défaut de création ne doit remplacer une valeur persistée. Si l’identifiant est absent ou inconnu, l’écran de modification n’est pas affiché comme s’il contenait une Séance vide : l’erreur est traitée conformément à la gestion technique des erreurs et le Catalogue reste la destination sûre.
+
+Tests bloquants : bon identifiant transmis ; aucune création anticipée ; aucune donnée d’une autre Séance ; titre fonctionnel `Composition d’une séance` inchangé ; structure visuelle conforme aux frames T01 réutilisées.
+
+### CE-T01-S10-02 — Réhydrater intégralement le brouillon de modification
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Déclencheur | Ouverture valide issue de CE-T01-S10-01 |
+| Source de données | Agrégat persistant de la Séance identifiée |
+| Écran de référence | `2028:11700` — `Composition d’une séance — sans Cycle` |
+
+Avant toute interaction de modification, le brouillon local reçoit une copie complète de la Séance persistée : identifiant, nom, couleur, compte à rebours initial, Activités ordonnées, paramètres de chaque Activité, appartenance au Tour, nombre de Tours, fin de séance et associations de Catégories. Les informations complémentaires des Activités sont également conservées.
+
+La réhydratation ne doit ni remplacer les données persistées par des valeurs par défaut, ni perdre les champs non visibles dans la frame courante. Les résumés affichés sont recalculés depuis le brouillon réhydraté selon les règles actives ; les valeurs de démonstration Figma ne sont jamais injectées.
+
+Tests bloquants : égalité fonctionnelle entre agrégat persistant et brouillon initial ; ordre exact des Activités ; catégories et informations complémentaires conservées ; aucune valeur fictive ; aucune écriture en base pendant la réhydratation.
+
+### CE-T01-S10-03 — Modifier les propriétés générales de la Séance
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Écran principal | `2028:11700` — Composition |
+| États réutilisés | `2028:11921` — couleur ; `2028:11375` — compte à rebours ; `2028:11457` — fin de séance |
+| Brouillon | Copie locale issue de CE-T01-S10-02 |
+
+Le nom, la couleur, le compte à rebours initial, le nombre de Tours, la structure et la fin de séance se modifient avec les mêmes composants, bornes, roulettes et validations que pendant la création. Chaque sélecteur modifie uniquement son brouillon local jusqu’à son action explicite `Confirmer`.
+
+La modification d’un compte à rebours ou d’une fin de séance actualise uniquement la carte structurelle concernée. Elle ne modifie jamais la synthèse placée sous `Nombre de tours`, calculée exclusivement depuis les Activités. Aucune modification locale n’est persistée avant l’enregistrement final défini par CE-T01-S10-07.
+
+Tests bloquants : reprise exacte des composants T01 ; brouillons locaux des sélecteurs ; Annuler sans effet ; Confirmer appliqué au brouillon de Séance seulement ; synthèse du Tour conforme ; aucune persistance intermédiaire.
+
+### CE-T01-S10-04 — Modifier une Activité existante sans la dupliquer
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Déclencheur | Appui sur une ligne d’Activité existante dans la Composition |
+| Écrans | Réutilisation de CE-T01-13 à CE-T01-16 et des frames Activité correspondantes |
+| Titre d’instance | `Modifier une activité` |
+
+L’écran d’Activité reçoit l’identifiant stable de l’Activité sélectionnée et initialise une copie de travail avec toutes ses valeurs. La structure visuelle reste identique à celle de l’ajout ; seul le titre d’instance et le contexte métier changent.
+
+`Valider` puis `Terminer` remplacent dans le brouillon de Séance l’Activité portant le même identifiant, à la même position et dans le même conteneur. Ils ne créent jamais une deuxième Activité. Un retour avec modifications locales ouvre CE-T01-16 ; après `Confirmer`, la version présente dans le brouillon de Séance avant l’ouverture de l’Activité reste intacte.
+
+Tests bloquants : bon identifiant ; valeurs préchargées ; absence de duplication ; position et appartenance au Tour conservées sauf déplacement explicite ; abandon limité à la copie locale ; aucune persistance de Séance à cette étape.
+
+### CE-T01-S10-05 — Modifier les Catégories associées
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Écran | Réutilisation de `2028:11204` — `Nouvelle séance — Catégories` |
+| État inline | Réutilisation de `2028:11248` |
+| Composant | `Selection / Category Tag` (`3302:4166`) |
+
+À l’ouverture, les tags reflètent exactement les associations persistées de la Séance. L’utilisateur peut désélectionner, sélectionner ou créer une Catégorie selon CE-T01-11 et CE-T01-12. Les changements restent dans le brouillon de modification jusqu’à l’enregistrement final.
+
+Une Catégorie créée avec un nom distinct est ajoutée au brouillon selon les règles actives puis sélectionnée pour la Séance. Elle reste non persistée jusqu’à l’enregistrement final. Un nom égal, après normalisation canonique, à une Catégorie existante sélectionne cette Catégorie et ferme la création inline ; aucun doublon n’est créé. Le nom personnalisé est limité à `40` caractères après trim.
+
+Tests bloquants : associations initiales exactes ; multisélection ; zéro Catégorie autorisée ; règle de doublon ; limite de longueur ; aucune modification prématurée des associations persistées de la Séance.
+
+### CE-T01-S10-06 — Abandonner les modifications de la Séance
+
+#### Identification et contenu exact
+
+| Propriété | Valeur |
+| --- | --- |
+| Référence de géométrie | `2028:11298` — dialogue de décision appliqué à une Séance |
+| Composant | `Overlay / Decision Dialog` (`2590:2961`) |
+| Variante | `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) |
+| Déclencheur | Tentative de sortie de la Composition avec un brouillon différent de l’état réhydraté |
+
+| Élément | Texte exact |
+| --- | --- |
+| Titre | `Abandonner les modifications ?` |
+| Message | `Les modifications apportées à cette séance seront perdues.` |
+| Action non destructive | `Annuler` |
+| Action destructive | `Confirmer` |
+
+La géométrie, les couleurs, les alignements, les espacements et les cibles tactiles sont ceux du composant existant ; aucune nouvelle frame ni nouveau composant ne sont créés. `Annuler` ferme le dialogue et conserve intégralement le brouillon. `Confirmer` détruit le brouillon de modification, conserve la version persistée inchangée et revient au Catalogue. Le Retour système est non destructif et équivaut à `Annuler`. Toucher le voile ne confirme jamais.
+
+Si aucune valeur n’a changé, la sortie revient directement au Catalogue sans afficher le dialogue.
+
+Tests bloquants : dialogue uniquement si le brouillon est modifié ; textes exacts ; conservation après Annuler ; version persistée inchangée après Confirmer ; aucune suppression de la Séance ; Retour système et voile non destructifs.
+
+### CE-T01-S10-07 — Enregistrer atomiquement la Séance modifiée
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Action finale | `Enregistrer la séance` dans l’étape Catégories |
+| Entrée | Brouillon complet issu de CE-T01-S10-02 à CE-T01-S10-05 |
+| Sortie | CE-T01-S10-08 après succès ; CE-T01-S10-09 après échec |
+
+L’enregistrement exécute une mise à jour de la Séance portant l’identifiant d’origine. Il persiste en une transaction cohérente les propriétés générales, Activités et leur ordre, structure du Tour, informations complémentaires, nouvelles Catégories du brouillon et associations de Catégories. Il ne crée aucune seconde Séance et aucun échec ne laisse de Catégorie orpheline.
+
+Le bouton est protégé contre le double appui pendant l’opération. Le brouillon n’est réinitialisé qu’après confirmation du succès de la transaction. Toute erreur provoque l’annulation complète de l’écriture : aucune propriété, Activité ou association partielle ne devient visible comme version enregistrée.
+
+Tests bloquants : opération `update` sur l’identifiant d’origine ; transaction atomique ; absence de duplication ; tous les champs supportés conservés ; double appui sans double écriture ; brouillon réinitialisé uniquement après succès.
+
+### CE-T01-S10-08 — Revenir au Catalogue actualisé
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Précondition | Succès confirmé de CE-T01-S10-07 |
+| Destination | `1992:9910` — `Catalogue des séances — Liste par défaut` |
+| Données | Nouvelle lecture depuis la source persistante |
+
+Après succès, l’application revient au Catalogue et recharge les données persistées. La carte portant l’identifiant de la Séance modifiée reste unique et affiche immédiatement son nom, sa couleur, sa durée, son nombre d’Activités et ses autres informations calculées actualisées.
+
+L’ordre du Catalogue suit la règle métier existante ; T01-S10 ne crée aucune nouvelle règle de tri. Le retour ne repose pas sur une carte construite uniquement depuis l’ancien brouillon en mémoire. Une nouvelle ouverture de la même Séance doit réhydrater les valeurs qui viennent d’être enregistrées.
+
+Tests bloquants : une seule carte pour l’identifiant ; valeurs actualisées ; rechargement observable ; aucun résidu de l’ancienne version ; réouverture conforme à la dernière version persistée.
+
+### CE-T01-S10-09 — Échec de chargement ou d’enregistrement
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Cas | Échec de lecture initiale ou échec de la transaction de mise à jour |
+| Référence | Règles communes du présent chapitre et gestion technique des erreurs du chapitre 12 |
+
+Un échec de chargement ne présente jamais les valeurs par défaut d’une nouvelle Séance comme si elles provenaient de la Séance demandée. L’utilisateur peut revenir au Catalogue sans mutation de données.
+
+Un échec d’enregistrement maintient l’utilisateur dans le parcours de modification, conserve exactement le brouillon et réactive l’action après la fin de la tentative. Un message utilisateur compréhensible indique que les modifications n’ont pas été enregistrées ; aucun détail technique interne n’est exposé. Une nouvelle tentative réutilise le même brouillon et le même identifiant.
+
+La transaction échouée ne produit aucune modification partielle. Le verrou contre le double appui est toujours libéré après l’échec. Aucun reset, retour automatique au Catalogue ou message de succès n’est autorisé.
+
+Tests bloquants : aucune fausse donnée après échec de lecture ; brouillon conservé après échec d’écriture ; action réactivée ; nouvelle tentative possible ; aucune écriture partielle ; aucune navigation ou confirmation mensongère.
+
+### 7.2 Matrice de couverture T01-S10
+
+| Contrat | Frame ou composant réutilisé | Différence propre à S10 | Nouvelle frame requise |
+| --- | --- | --- | --- |
+| CE-T01-S10-01 | `1992:9910` | Transmission de l’identifiant et mode modification | Non |
+| CE-T01-S10-02 | `2028:11700` | Réhydratation de l’agrégat persistant | Non |
+| CE-T01-S10-03 | Frames Composition T01 | Brouillon préchargé, aucune persistance intermédiaire | Non |
+| CE-T01-S10-04 | Frames Activité T01 + `3224:4082` | Remplacement par identifiant, titre `Modifier une activité` | Non |
+| CE-T01-S10-05 | `2028:11204`, `2028:11248` | Associations existantes présélectionnées | Non |
+| CE-T01-S10-06 | `Overlay / Decision Dialog` + géométrie `2028:11298` | Textes et effets métier de l’abandon des modifications | Non |
+| CE-T01-S10-07 | Action existante `Enregistrer la séance` | Mise à jour atomique au lieu d’une création | Non |
+| CE-T01-S10-08 | `1992:9910` | Carte existante actualisée, sans duplication | Non |
+| CE-T01-S10-09 | Règles communes d’erreur | Conservation du brouillon et nouvelle tentative | Non |

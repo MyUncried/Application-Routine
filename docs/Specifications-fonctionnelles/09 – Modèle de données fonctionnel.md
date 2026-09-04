@@ -837,17 +837,21 @@ Les **séances** référencent zéro, une ou plusieurs catégories.
 | -------------------- | ----------------------------- | :---------: | ---------------------------------------------------- |
 | Identifiant          | Identifiant unique            | Obligatoire | Stable pendant toute la durée de vie de la catégorie |
 | Utilisateur           | Propriétaire de la catégorie  | Obligatoire | Une catégorie appartient à un seul utilisateur              |
-| Nom                  | Libellé affiché               | Obligatoire | Unique par utilisateur                               |
+| Nom                  | Libellé affiché               | Obligatoire | Non vide après trim ; maximum `40` caractères ; unique par utilisateur après normalisation canonique |
 | Icône                | Icône représentative          | Facultatif  | Choisie dans la bibliothèque de l'application        |
 | Couleur              | Couleur d'affichage           | Facultatif  | Choisie dans la palette de l'application             |
-| Ordre d'affichage    | Position dans les listes      | Obligatoire | Modifiable par l'utilisateur                         |
+| Ordre d'affichage    | Position dans les listes      | Obligatoire | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; non modifiable manuellement dans le MVP |
 | Date de création     | Date de création              | Obligatoire | Générée automatiquement                              |
 | Date de modification | Dernière modification         | Obligatoire | Mise à jour automatiquement                          |
 ## Règles métier
 
 - Une séance peut être associée à zéro, une ou plusieurs catégories.
 - Un utilisateur peut créer et personnaliser ses catégories.
-- Le nom d'une catégorie est unique pour un même utilisateur.
+- Le nom d'une catégorie est limité à `40` caractères après trim et est unique pour un même utilisateur après normalisation canonique de comparaison.
+- Une tentative de création avec un nom normalisé déjà existant ne crée pas de doublon : elle réutilise et sélectionne la Catégorie existante.
+- Les Catégories prédéfinies sont affichées selon leur `displayOrder`. Les Catégories personnalisées viennent ensuite, par date de création croissante. La sélection ou l’utilisation d’une Catégorie ne change pas sa position et aucune réorganisation manuelle n’est disponible dans le MVP.
+- Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste une donnée du brouillon jusqu’à l’enregistrement final. Elle n’acquiert une identité persistante que dans la transaction qui crée la Séance et son association.
+- L’abandon du parcours ou l’échec de cette transaction ne laisse aucune Catégorie personnalisée orpheline dans le référentiel persistant.
 - Une catégorie peut être utilisée par zéro, une ou plusieurs séances.
 - Une Catégorie peut être supprimée, qu’elle soit utilisée ou non.
 - Si une Catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances.

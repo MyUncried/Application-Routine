@@ -617,6 +617,8 @@ Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’
 
 La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour, au moyen de la poignée de glisser-déposer.
 
+La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
+
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
 Aucune Récupération explicite n’est ajoutée implicitement par l’application. La seule exception est la matérialisation technique d’une pause après Série configurée sur un Exercice.
@@ -834,10 +836,12 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 ### Contenu et comportement
 
 - les Catégories sont proposées sous forme de tags sélectionnables ;
+- les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante ; leur sélection ne change pas leur position et aucune réorganisation manuelle n’est proposée dans le MVP ;
 - la sélection est multiple ;
 - aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ;
-- `Enregistrer la séance` enregistre la sélection et ramène directement au `Catalogue des séances`.
+- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; une nouvelle Catégorie reste dans le brouillon jusqu’à l’enregistrement final ;
+- `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories et leurs associations, puis ramène directement au `Catalogue des séances` ;
+- en cas d’échec, aucune donnée partielle n’est conservée, le brouillon reste intact, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
 
 ## Écran 7 – Calendrier
 
