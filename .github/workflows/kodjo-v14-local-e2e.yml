@@ -60,7 +60,8 @@ jobs:
           $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
           $credPath=Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'; if(-not(Test-Path $credPath)){throw 'Credentials missing.'}
           $cred=Get-Content $credPath -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired.'}
-          $cpPath=Join-Path $env:STATE_ROOT (if('${{ inputs.stage }}' -eq 'BASE'){'BASE.checkpoint.json'}else{'RESUME.checkpoint.json'}); if(-not(Test-Path $cpPath)){throw 'Checkpoint missing.'}
+          $cpFile=if('${{ inputs.stage }}' -eq 'BASE'){'BASE.checkpoint.json'}else{'RESUME.checkpoint.json'}
+          $cpPath=Join-Path $env:STATE_ROOT $cpFile; if(-not(Test-Path $cpPath)){throw 'Checkpoint missing.'}
           $cp=Get-Content $cpPath -Raw|ConvertFrom-Json
           if($cp.test_id -ne $env:TEST_ID -or $cp.stage -ne '${{ inputs.stage }}' -or $cp.status -ne 'AUTHORIZED' -or $cp.mode -ne 'LOCAL_WRITE' -or $cp.writer -ne 'CLAUDE_LOCAL'){throw 'Checkpoint authorization mismatch.'}
           if($cp.consumed -ne $false){throw 'Checkpoint consumed.'}
