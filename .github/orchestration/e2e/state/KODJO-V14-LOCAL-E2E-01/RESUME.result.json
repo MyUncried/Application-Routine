@@ -1,0 +1,14 @@
+{
+    "test_id":  "KODJO-V14-LOCAL-E2E-01",
+    "stage":  "RESUME",
+    "status":  "SUCCESS_RECOVERED",
+    "run_id":  "33920790174",
+    "source_run_id":  "33917607203",
+    "session_id":  "014c5010-10d8-4bd9-a65b-abbacbfebee0",
+    "marker_sha256":  "ee8766bcce050870fb7ba2468421ea84a758640b89fec7681e50b68bd594fe55",
+    "mode":  "LOCAL_WRITE",
+    "writer":  "CLAUDE_LOCAL",
+    "fallback":  "NONE",
+    "claude_cloud":  false,
+    "recovery_reason":  "path_enforcer_untracked_directory_collapse"
+}
