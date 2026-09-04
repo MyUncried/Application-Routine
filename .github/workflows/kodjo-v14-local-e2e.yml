@@ -57,30 +57,80 @@ jobs:
           if($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine'){throw 'Unexpected repository.'}
           if((git branch --show-current).Trim() -ne $env:EXPECTED_TARGET_REF){throw 'Unexpected branch.'}
           if(-not [string]::IsNullOrWhiteSpace((git status --porcelain))){throw 'Worktree not clean.'}
-          $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
-          $credPath=Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'; if(-not(Test-Path $credPath)){throw 'Credentials missing.'}
-          $cred=Get-Content $credPath -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired.'}
+          $head=(git rev-parse HEAD).Trim()
+          $claude=Get-Command claude.cmd -ErrorAction Stop
+          $credPath=Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'
+          if(-not(Test-Path $credPath)){throw 'Credentials missing.'}
+          $cred=Get-Content $credPath -Raw|ConvertFrom-Json
+          if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired.'}
+
           $cpFile=if('${{ inputs.stage }}' -eq 'BASE'){'BASE.checkpoint.json'}else{'RESUME.checkpoint.json'}
-          $cpPath=Join-Path $env:STATE_ROOT $cpFile; if(-not(Test-Path $cpPath)){throw 'Checkpoint missing.'}
+          $cpPath=Join-Path $env:STATE_ROOT $cpFile
+          if(-not(Test-Path $cpPath)){throw 'Checkpoint missing.'}
           $cp=Get-Content $cpPath -Raw|ConvertFrom-Json
           if($cp.test_id -ne $env:TEST_ID -or $cp.stage -ne '${{ inputs.stage }}' -or $cp.status -ne 'AUTHORIZED' -or $cp.mode -ne 'LOCAL_WRITE' -or $cp.writer -ne 'CLAUDE_LOCAL'){throw 'Checkpoint authorization mismatch.'}
           if($cp.consumed -ne $false){throw 'Checkpoint consumed.'}
-          $checkpointCommit=(git log -1 --format=%H -- $cpPath).Trim(); if([string]::IsNullOrWhiteSpace($checkpointCommit)){throw 'Checkpoint commit not found.'}
+
+          $checkpointCommit=(git log -1 --format=%H -- $cpPath).Trim()
+          if([string]::IsNullOrWhiteSpace($checkpointCommit)){throw 'Checkpoint commit not found.'}
           $authorizedBase=(git rev-parse "$checkpointCommit^1").Trim()
           if($cp.authorized_head -ne $authorizedBase){throw "Authorized base mismatch: checkpoint=$($cp.authorized_head) parent=$authorizedBase"}
           $allowedControlPrefix='.github/orchestration/e2e/state/KODJO-V14-LOCAL-E2E-01/'
           $revisionRange="$authorizedBase..$head"
           $controlDelta=@(git diff --name-only $revisionRange)
-          foreach($path in $controlDelta){$n=$path -replace '\\','/';if(-not $n.StartsWith($allowedControlPrefix)){throw "HEAD guard failed: non-control change after authorized base: $n"}}
-          if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.claim.json'))){throw 'Duplicate claim.'}; if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.result.json'))){throw 'Duplicate result.'}
-          if('${{ inputs.stage }}' -eq 'RESUME'){$base=Get-Content (Join-Path $env:STATE_ROOT 'BASE.result.json') -Raw|ConvertFrom-Json; $t=Get-ChildItem $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.session_id).jsonl" -ErrorAction SilentlyContinue; if(@($t).Count -ne 1){throw 'Native BASE transcript missing or ambiguous.'}}
-          "head=$head" >> $env:GITHUB_OUTPUT; "authorized_base=$authorizedBase" >> $env:GITHUB_OUTPUT; "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
+          foreach($path in $controlDelta){
+            $n=$path -replace '\\','/'
+            if(-not $n.StartsWith($allowedControlPrefix)){throw "HEAD guard failed: non-control change after authorized base: $n"}
+          }
+
+          if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.claim.json'))){throw 'Duplicate claim.'}
+          if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.result.json'))){throw 'Duplicate result.'}
+
+          if('${{ inputs.stage }}' -eq 'RESUME'){
+            $baseResultPath=Join-Path $env:STATE_ROOT 'BASE.result.json'
+            if(Test-Path $baseResultPath){
+              $base=Get-Content $baseResultPath -Raw|ConvertFrom-Json
+              $baseSession=[string]$base.session_id
+              $baseHash=[string]$base.marker_sha256
+            } else {
+              $baseClaimPath=Join-Path $env:STATE_ROOT 'BASE.claim.json'
+              if(-not(Test-Path $baseClaimPath)){throw 'BASE claim missing for forensic recovery.'}
+              $baseClaim=Get-Content $baseClaimPath -Raw|ConvertFrom-Json
+              if($baseClaim.test_id -ne $env:TEST_ID -or $baseClaim.stage -ne 'BASE' -or $baseClaim.status -ne 'CLAIMED' -or [int]$baseClaim.call_ordinal -ne 1){throw 'BASE claim invalid for forensic recovery.'}
+              $projectDir=Join-Path (Join-Path $env:CLAUDE_CONFIG_DIR 'projects') $env:CLAUDE_CODE_PROJECT_DIR_NAME
+              if(-not(Test-Path $projectDir)){throw 'BASE project transcript directory missing.'}
+              $transcripts=@(Get-ChildItem $projectDir -File -Filter '*.jsonl' -ErrorAction Stop)
+              if($transcripts.Count -ne 1){throw "Expected exactly one BASE transcript, found $($transcripts.Count)."}
+              $baseSession=[IO.Path]::GetFileNameWithoutExtension($transcripts[0].Name)
+              $rawTranscript=Get-Content $transcripts[0].FullName -Raw
+              $markers=@([regex]::Matches($rawTranscript,'KODJO-E2E-[0-9a-f]{48}')|ForEach-Object{$_.Value}|Select-Object -Unique)
+              if($markers.Count -ne 1){throw "Expected exactly one unique BASE continuity marker, found $($markers.Count)."}
+              $sha=[Security.Cryptography.SHA256]::Create()
+              try{$baseHash=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($markers[0])))-replace '-','').ToLowerInvariant()}finally{$sha.Dispose()}
+              $markers=$null
+              $rawTranscript=$null
+            }
+            if([string]::IsNullOrWhiteSpace($baseSession)-or[string]::IsNullOrWhiteSpace($baseHash)){throw 'BASE forensic recovery incomplete.'}
+            $native=@(Get-ChildItem $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$baseSession.jsonl" -ErrorAction SilentlyContinue)
+            if($native.Count -ne 1){throw 'Native BASE transcript missing or ambiguous.'}
+            "base_session=$baseSession" >> $env:GITHUB_OUTPUT
+            "base_hash=$baseHash" >> $env:GITHUB_OUTPUT
+          }
+          "head=$head" >> $env:GITHUB_OUTPUT
+          "authorized_base=$authorizedBase" >> $env:GITHUB_OUTPUT
+          "claude_path=$($claude.Source)" >> $env:GITHUB_OUTPUT
 
       - name: Claim stage
         run: |
-          $ErrorActionPreference='Stop'; $stage='${{ inputs.stage }}'; $ordinal=if($stage -eq 'BASE'){1}else{2}; $path=Join-Path $env:STATE_ROOT ($stage+'.claim.json')
+          $ErrorActionPreference='Stop'
+          $stage='${{ inputs.stage }}'
+          $ordinal=if($stage -eq 'BASE'){1}else{2}
+          $path=Join-Path $env:STATE_ROOT ($stage+'.claim.json')
           $o=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='CLAIMED';call_ordinal=$ordinal;run_id="$env:GITHUB_RUN_ID";execution_head='${{ steps.gate.outputs.head }}';authorized_base='${{ steps.gate.outputs.authorized_base }}';mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false}|ConvertTo-Json
-          [IO.File]::WriteAllText($path,$o,(New-Object Text.UTF8Encoding($false))); git add -- $path; git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: claim $stage $env:GITHUB_RUN_ID"; git push origin "HEAD:$env:EXPECTED_TARGET_REF"
+          [IO.File]::WriteAllText($path,$o,(New-Object Text.UTF8Encoding($false)))
+          git add -- $path
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: claim $stage $env:GITHUB_RUN_ID"
+          git push origin "HEAD:$env:EXPECTED_TARGET_REF"
 
       - name: Claude BASE 1 of 2
         if: inputs.stage == 'BASE'
@@ -88,21 +138,62 @@ jobs:
         env:
           CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
         run: |
-          $ErrorActionPreference='Stop'; $b=New-Object byte[] 24; $r=[Security.Cryptography.RandomNumberGenerator]::Create();try{$r.GetBytes($b)}finally{$r.Dispose()};$marker='KODJO-E2E-'+(([BitConverter]::ToString($b)-replace '-','').ToLowerInvariant());$s=[Security.Cryptography.SHA256]::Create();try{$hash=([BitConverter]::ToString($s.ComputeHash([Text.Encoding]::UTF8.GetBytes($marker)))-replace '-','').ToLowerInvariant()}finally{$s.Dispose()}
+          $ErrorActionPreference='Stop'
+          $b=New-Object byte[] 24
+          $r=[Security.Cryptography.RandomNumberGenerator]::Create()
+          try{$r.GetBytes($b)}finally{$r.Dispose()}
+          $marker='KODJO-E2E-'+(([BitConverter]::ToString($b)-replace '-','').ToLowerInvariant())
+          $s=[Security.Cryptography.SHA256]::Create()
+          try{$hash=([BitConverter]::ToString($s.ComputeHash([Text.Encoding]::UTF8.GetBytes($marker)))-replace '-','').ToLowerInvariant()}finally{$s.Dispose()}
           $prompt="KODJO V1.4 LOCAL E2E-01 BASE. Lis .github/orchestration/KODJO_V14_LOCAL_E2E_01_SPEC.md et $env:STATE_ROOT/BASE.checkpoint.json. Modifie uniquement $env:SENTINEL_PATH et crée un rapport $env:REPORT_PREFIX<timestamp>.md. Ajoute dans la sentinelle test_id=$env:TEST_ID, stage=BASE, status=BASE_WRITTEN. Mémorise sans l'écrire ni le répéter: $marker. Aucun commit/push."
-          $raw=(& $env:CLAUDE_PATH -p --output-format json $prompt 2>&1|Out-String);$exit=$LASTEXITCODE;$marker=$null;$prompt=$null;if($exit -ne 0){throw "BASE failed $exit"};$p=$raw|ConvertFrom-Json;if([string]::IsNullOrWhiteSpace($p.session_id)){throw 'No session_id.'};"session=$($p.session_id)" >> $env:GITHUB_OUTPUT;"hash=$hash" >> $env:GITHUB_OUTPUT
+          $raw=(& $env:CLAUDE_PATH -p --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
+          $exit=$LASTEXITCODE
+          $marker=$null
+          $prompt=$null
+          if($exit -ne 0){throw "BASE failed $exit"}
+          $p=$raw|ConvertFrom-Json
+          if([string]::IsNullOrWhiteSpace($p.session_id)){throw 'No session_id.'}
+          "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
+          "hash=$hash" >> $env:GITHUB_OUTPUT
 
       - name: Claude RESUME 2 of 2
         if: inputs.stage == 'RESUME'
         id: resume
         env:
           CLAUDE_PATH: ${{ steps.gate.outputs.claude_path }}
+          BASE_SESSION: ${{ steps.gate.outputs.base_session }}
+          BASE_HASH: ${{ steps.gate.outputs.base_hash }}
         run: |
-          $ErrorActionPreference='Stop';$base=Get-Content (Join-Path $env:STATE_ROOT 'BASE.result.json') -Raw|ConvertFrom-Json;$prompt="KODJO V1.4 LOCAL E2E-01 RESUME. Lis $env:STATE_ROOT/RESUME.checkpoint.json. Modifie uniquement $env:SENTINEL_PATH et crée un rapport $env:REPORT_PREFIX<timestamp>.md. Ajoute stage=RESUME,status=RESUME_WRITTEN. N'écris jamais le marqueur dans un fichier. Réponse finale: une ligne CONTINUITY_MARKER=<marqueur mémorisé>. Aucun commit/push.";$raw=(& $env:CLAUDE_PATH -p --resume $base.session_id --output-format json $prompt 2>&1|Out-String);if($LASTEXITCODE -ne 0){throw 'RESUME failed.'};$p=$raw|ConvertFrom-Json;if($p.session_id -ne $base.session_id){throw 'Session mismatch.'};$m=[regex]::Match([string]$p.result,'(?m)^CONTINUITY_MARKER=(KODJO-E2E-[0-9a-f]+)\s*$');if(-not$m.Success){throw 'Marker missing.'};$s=[Security.Cryptography.SHA256]::Create();try{$h=([BitConverter]::ToString($s.ComputeHash([Text.Encoding]::UTF8.GetBytes($m.Groups[1].Value)))-replace '-','').ToLowerInvariant()}finally{$s.Dispose()};if($h -ne $base.marker_sha256){throw 'Marker mismatch.'};"session=$($p.session_id)" >> $env:GITHUB_OUTPUT;"hash=$h" >> $env:GITHUB_OUTPUT
+          $ErrorActionPreference='Stop'
+          if([string]::IsNullOrWhiteSpace($env:BASE_SESSION)){throw 'Recovered BASE session missing.'}
+          if([string]::IsNullOrWhiteSpace($env:BASE_HASH)){throw 'Recovered BASE marker hash missing.'}
+          $prompt="KODJO V1.4 LOCAL E2E-01 RESUME. Reprends la même session BASE après le blocage de permission Edit. Lis $env:STATE_ROOT/RESUME.checkpoint.json. Termine le travail BASE interrompu: modifie uniquement $env:SENTINEL_PATH et crée un rapport $env:REPORT_PREFIX<timestamp>.md. La sentinelle doit contenir test_id=$env:TEST_ID, stage=BASE, status=BASE_WRITTEN puis stage=RESUME, status=RESUME_WRITTEN. N'écris jamais le marqueur mémorisé dans un fichier. Réponse finale: une ligne CONTINUITY_MARKER=<marqueur mémorisé>. Aucun commit/push."
+          $raw=(& $env:CLAUDE_PATH -p --resume $env:BASE_SESSION --permission-mode acceptEdits --output-format json $prompt 2>&1|Out-String)
+          if($LASTEXITCODE -ne 0){throw 'RESUME failed.'}
+          $p=$raw|ConvertFrom-Json
+          if($p.session_id -ne $env:BASE_SESSION){throw 'Session mismatch.'}
+          $m=[regex]::Match([string]$p.result,'(?m)^CONTINUITY_MARKER=(KODJO-E2E-[0-9a-f]{48})\s*$')
+          if(-not$m.Success){throw 'Marker missing.'}
+          $s=[Security.Cryptography.SHA256]::Create()
+          try{$h=([BitConverter]::ToString($s.ComputeHash([Text.Encoding]::UTF8.GetBytes($m.Groups[1].Value)))-replace '-','').ToLowerInvariant()}finally{$s.Dispose()}
+          if($h -ne $env:BASE_HASH){throw 'Marker mismatch.'}
+          "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
+          "hash=$h" >> $env:GITHUB_OUTPUT
 
       - name: Enforce Claude write paths
         run: |
-          $ErrorActionPreference='Stop';$c=@(git status --porcelain|ForEach-Object{$_.Substring(3).Trim()});if($c.Count -eq 0){throw 'No Claude changes.'};$sent=$false;$rep=$false;foreach($p in $c){$n=$p-replace '\\','/';if($n -eq $env:SENTINEL_PATH){$sent=$true;continue};if($n.StartsWith($env:REPORT_PREFIX)-and$n.EndsWith('.md')){$rep=$true;continue};throw "Unauthorized path $n"};if(-not$sent-or-not$rep){throw 'Required sentinel/report missing.'}
+          $ErrorActionPreference='Stop'
+          $c=@(git status --porcelain|ForEach-Object{$_.Substring(3).Trim()})
+          if($c.Count -eq 0){throw 'No Claude changes.'}
+          $sent=$false
+          $rep=$false
+          foreach($p in $c){
+            $n=$p-replace '\\','/'
+            if($n -eq $env:SENTINEL_PATH){$sent=$true;continue}
+            if($n.StartsWith($env:REPORT_PREFIX)-and$n.EndsWith('.md')){$rep=$true;continue}
+            throw "Unauthorized path $n"
+          }
+          if(-not$sent-or-not$rep){throw 'Required sentinel/report missing.'}
 
       - name: Publish controlled result
         env:
@@ -111,4 +202,18 @@ jobs:
           RS: ${{ steps.resume.outputs.session }}
           RH: ${{ steps.resume.outputs.hash }}
         run: |
-          $ErrorActionPreference='Stop';$stage='${{ inputs.stage }}';$cpPath=Join-Path $env:STATE_ROOT ($stage+'.checkpoint.json');$cp=Get-Content $cpPath -Raw|ConvertFrom-Json;$cp.consumed=$true;$cp.consumed_run_id="$env:GITHUB_RUN_ID";[IO.File]::WriteAllText($cpPath,($cp|ConvertTo-Json -Depth 10),(New-Object Text.UTF8Encoding($false)));if($stage -eq 'BASE'){$session=$env:BS;$hash=$env:BH}else{$session=$env:RS;$hash=$env:RH};$res=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='SUCCESS';run_id="$env:GITHUB_RUN_ID";session_id=$session;marker_sha256=$hash;mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false}|ConvertTo-Json;$rp=Join-Path $env:STATE_ROOT ($stage+'.result.json');[IO.File]::WriteAllText($rp,$res,(New-Object Text.UTF8Encoding($false)));git add -- $env:SENTINEL_PATH "$env:REPORT_PREFIX*" $env:STATE_ROOT;git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: publish $stage $env:GITHUB_RUN_ID";git push origin "HEAD:$env:EXPECTED_TARGET_REF";Write-Host "KODJO_V14_E2E_STAGE=$stage SUCCESS"
+          $ErrorActionPreference='Stop'
+          $stage='${{ inputs.stage }}'
+          $cpPath=Join-Path $env:STATE_ROOT ($stage+'.checkpoint.json')
+          $cp=Get-Content $cpPath -Raw|ConvertFrom-Json
+          $cp.consumed=$true
+          $cp.consumed_run_id="$env:GITHUB_RUN_ID"
+          [IO.File]::WriteAllText($cpPath,($cp|ConvertTo-Json -Depth 10),(New-Object Text.UTF8Encoding($false)))
+          if($stage -eq 'BASE'){$session=$env:BS;$hash=$env:BH}else{$session=$env:RS;$hash=$env:RH}
+          $res=[ordered]@{test_id=$env:TEST_ID;stage=$stage;status='SUCCESS';run_id="$env:GITHUB_RUN_ID";session_id=$session;marker_sha256=$hash;mode='LOCAL_WRITE';writer='CLAUDE_LOCAL';fallback='NONE';claude_cloud=$false}|ConvertTo-Json
+          $rp=Join-Path $env:STATE_ROOT ($stage+'.result.json')
+          [IO.File]::WriteAllText($rp,$res,(New-Object Text.UTF8Encoding($false)))
+          git add -- $env:SENTINEL_PATH "$env:REPORT_PREFIX*" $env:STATE_ROOT
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "e2e: publish $stage $env:GITHUB_RUN_ID"
+          git push origin "HEAD:$env:EXPECTED_TARGET_REF"
+          Write-Host "KODJO_V14_E2E_STAGE=$stage SUCCESS"
