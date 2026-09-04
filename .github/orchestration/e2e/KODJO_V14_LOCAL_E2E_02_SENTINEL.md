@@ -7,3 +7,4 @@ Ce fichier est réservé au test `KODJO-V14-LOCAL-E2E-02` et ne contient aucune 
 ## Entrées
 
 - test_id=KODJO-V14-LOCAL-E2E-02, stage=BASE, status=BASE_WRITTEN, timestamp=2026-09-04T21:41:06Z
+- test_id=KODJO-V14-LOCAL-E2E-02, stage=RESUME, status=RESUME_WRITTEN, timestamp=2026-09-04T21:45:12Z
