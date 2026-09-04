@@ -109,7 +109,7 @@ jobs:
           RESULT_PATH: ${{ steps.claude.outputs.result_path }}
         run: |
           $ErrorActionPreference='Stop'
-          $plan=Get-Content $env:RESULT_PATH -Raw
+          $plan=Get-Content $env:RESULT_PATH -Raw -Encoding UTF8
           $body="[KODJO_S09_PLAN_OUTPUT]`nsource_head=$env:SOURCE_HEAD`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`nSTATUT : PLAN_READY_FOR_REVIEW`n`n$plan"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28'}
           $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments"
