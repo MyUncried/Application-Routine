@@ -249,8 +249,10 @@ export function CompositionScreen() {
               {/* Poignée de réorganisation (CE-T01-09) : présente conformément au
                   composant `Composition / Activity Row`, mais non interactive —
                   un seul Exercice existe dans le modèle T01, rien à réordonner
-                  avant qu'une Composition à plusieurs Activités n'existe. */}
-              <KodjoIcon name="composition-reorder" testID="composition-reorder-icon" opacity={0.5} />
+                  avant qu'une Composition à plusieurs Activités n'existe.
+                  REWORK07-A : opacité `0.5` désormais portée par défaut dans
+                  `KodjoIcon.tsx` (`defaultOpacities`), plus de littéral local. */}
+              <KodjoIcon name="composition-reorder" testID="composition-reorder-icon" />
             </View>
             <Text style={styles.exerciseRowSummary}>{formatExerciseRowSummary(draft.exercise)}</Text>
           </Pressable>
@@ -423,6 +425,19 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
  * l'état ouvert comme fermé — `accessibilityState.expanded` porte déjà
  * cette information pour l'accessibilité, sans dépendre d'un indice visuel
  * qui décale la mise en page.
+ *
+ * **REWORK07-A** (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON /
+ * STRUCTURE / MOVABLE UNIQUEMENT`, 2026-09-04) : le slot gauche
+ * (`boundaryRowHandleSlot`) revient de `32×32` (REWORK06) à `28×28`
+ * (`dimensions.structureMovableIcon.slot`) — la valeur canonique du
+ * composant Figma/DSF `Icon / Structure / Movable` (`3066:4676`), pas un
+ * abandon de la correction REWORK06 : l'asset affiché a lui-même été
+ * remplacé par son export canonique (voir `KodjoIcon.tsx`), qui occupe
+ * réellement son canevas — l'agrandissement précédent du conteneur
+ * compensait un glyphe sous-dimensionné, plus nécessaire une fois l'asset
+ * corrigé. L'opacité `0.5` du pictogramme n'est plus passée localement
+ * (`opacity={0.5}` supprimé) — portée par défaut dans `KodjoIcon.tsx`
+ * (`defaultOpacities`), automatiquement appliquée sans paramètre d'écran.
  */
 function BoundaryActivityRow({
   icon,
@@ -449,7 +464,7 @@ function BoundaryActivityRow({
       style={[styles.limitCardBase, styles.boundaryRow]}
     >
       <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-        <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" opacity={0.5} />
+        <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" />
       </View>
       <View style={styles.boundaryRowTitleSlot}>
         <Text style={styles.rowLabel} numberOfLines={1}>
@@ -637,15 +652,19 @@ const styles = StyleSheet.create({
   boundaryRow: {
     backgroundColor: colors.background,
   },
-  // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06
-  // (addendum « poignées de déplacement des cartes encore trop petites »,
-  // 2026-09-04) : slot porté à `32×32` pour accueillir l'icône désormais
-  // affichée `24×24` (voir `KodjoIcon.tsx`) avec une marge visible, sans
-  // changer sa fonction ni son ancrage (toujours le slot gauche de la
-  // rangée).
+  // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06 (addendum
+  // « poignées encore trop petites », 2026-09-04) : porté à `32×32` pour
+  // compenser un glyphe sous-dimensionné. REWORK07-A (`[ChatGPT]
+  // CHANGES_REQUESTED — REWORK07-A — ICON / STRUCTURE / MOVABLE
+  // UNIQUEMENT`, 2026-09-04) : diagnostic établi — le glyphe lui-même était
+  // en cause, pas le slot ; l'asset canonique remplacé (`KodjoIcon.tsx`),
+  // le slot revient à `28×28`
+  // (`dimensions.structureMovableIcon.slot`), valeur canonique DSF,
+  // partagée avec `KodjoIcon.tsx` (source unique, plus de littéral local
+  // dupliqué).
   boundaryRowHandleSlot: {
-    width: 32,
-    height: 32,
+    width: dimensions.structureMovableIcon.slot,
+    height: dimensions.structureMovableIcon.slot,
     alignItems: "center",
     justifyContent: "center",
   },

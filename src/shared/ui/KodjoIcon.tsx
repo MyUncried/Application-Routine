@@ -1,5 +1,7 @@
 import { Image } from "expo-image";
 
+import { dimensions } from "./tokens";
+
 const sources = {
   "action-add": require("../../../assets/icons/action-add.svg"),
   "action-start": require("../../../assets/icons/action-start.svg"),
@@ -49,18 +51,23 @@ const sizes = {
   "composition-initial-countdown": [24, 24],
   "composition-main-content": [18, 18],
   "composition-end-session": [24, 24],
-  // R4-04 (cycle REWORK04) : affichage porté de `16×16` à `20×20`.
-  // REWORK06 (addendum « écarts visuels encore ouverts », `[ChatGPT]
-  // PLAN_APPROVED — REWORK06`, 2026-09-04) : « poignées de déplacement des
-  // cartes encore trop petites » — porté à `24×24`. Même master vectoriel
-  // (`composition-reorder.svg`, `2537:1456`) dans les deux cas, un
-  // agrandissement d'affichage d'un SVG existant n'altère pas son tracé.
-  // Aucun export dédié à `Icon / Structure / Movable` (`3066:4676`,
-  // mentionné par la mission de design) n'a été fourni avec une URL
-  // téléchargeable dans aucune autorisation reçue à ce jour — lacune
-  // déclarée, pas un remplacement d'asset silencieux (voir le rapport de
-  // mission).
-  "composition-reorder": [24, 24],
+  // R4-04 (cycle REWORK04) : affichage porté de `16×16` à `20×20`. REWORK06
+  // (addendum « écarts visuels encore ouverts », 2026-09-04) : porté à
+  // `24×24` sur la base de l'asset provisoire alors en place
+  // (`composition-reorder.svg`, `2537:1456`, `16×16`). REWORK07-A
+  // (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON / STRUCTURE /
+  // MOVABLE UNIQUEMENT`, 2026-09-04) : diagnostic indépendant établi —
+  // l'ancien master ne dessinait son encre que dans `x=5…11` de son
+  // `viewBox` `16×16`, donc agrandir sa boîte d'affichage n'agrandissait
+  // pas proportionnellement le tracé visible, expliquant l'aspect « encore
+  // trop petit » malgré les deux hausses précédentes. **Asset remplacé**
+  // par l'export canonique du composant Figma/DSF `Icon / Structure /
+  // Movable` (`3066:4676`, octets exacts, jamais redessiné) et la taille
+  // ramenée à son glyphe intrinsèque réel (`dimensions.structureMovableIcon
+  // .glyph`, `20×20`) — cette baisse numérique n'est pas un retour en
+  // arrière : le tracé du nouvel asset couvre l'essentiel de son canevas,
+  // contrairement à l'ancien.
+  "composition-reorder": [dimensions.structureMovableIcon.glyph, dimensions.structureMovableIcon.glyph],
   "state-selected": [24, 24],
   // R4-11 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
   // COMPLEMENTS REVIEWED`, 2026-09-03) : export canonique `icon-tour.svg`
@@ -69,10 +76,36 @@ const sizes = {
   "icon-tour": [20, 20],
 } as const;
 
+/**
+ * Opacité par défaut intrinsèque à un nom d'icône — REWORK07-A (`[ChatGPT]
+ * CHANGES_REQUESTED — REWORK07-A — ICON / STRUCTURE / MOVABLE UNIQUEMENT`,
+ * 2026-09-04) : jusqu'ici, l'opacité `0.5` du pictogramme
+ * `Icon / Structure / Movable` était un littéral local (`opacity={0.5}`)
+ * répété à chaque appelant (`CompositionScreen.tsx`, rangées limites et
+ * ligne Exercice) — aucune garantie qu'un futur appelant l'applique aussi.
+ * Portée ici comme valeur par défaut du composant partagé : tout appel
+ * `<KodjoIcon name="composition-reorder" />` sans prop `opacity` obtient
+ * automatiquement `0.5`, sans paramètre d'écran. Absente de ce registre
+ * pour un nom = opacité par défaut `1`, comportement inchangé pour toutes
+ * les autres familles d'icônes. La prop `opacity` explicite reste
+ * disponible et prioritaire si un appelant a un besoin réellement différent
+ * (aucun cas actuel).
+ */
+const defaultOpacities: Partial<Record<keyof typeof sources, number>> = {
+  "composition-reorder": 0.5,
+};
+
 export type KodjoIconName = keyof typeof sources;
 
 export type KodjoIconProps = {
   name: KodjoIconName;
+  /**
+   * Opacité explicite — remplace la valeur par défaut intrinsèque de `name`
+   * (`defaultOpacities`, `1` si absente) pour CETTE instance uniquement.
+   * Optionnel ; la plupart des appelants n'ont pas besoin de la fournir,
+   * REWORK07-A ayant justement supprimé les littéraux locaux redondants
+   * pour `composition-reorder`.
+   */
   opacity?: number;
   /**
    * Recolore l'icône (`Image.tintColor`, `expo-image`) — correction T-04
@@ -112,15 +145,16 @@ export type KodjoIconProps = {
  * dimensions logiques restent celles des nœuds de référence ; le SVG assure
  * un rendu indépendant de la densité de pixels, sans glyphe de substitution.
  */
-export function KodjoIcon({ name, opacity = 1, tintColor, size, testID }: KodjoIconProps) {
+export function KodjoIcon({ name, opacity, tintColor, size, testID }: KodjoIconProps) {
   const [defaultWidth, defaultHeight] = sizes[name];
   const width = size ?? defaultWidth;
   const height = size ?? defaultHeight;
+  const resolvedOpacity = opacity ?? defaultOpacities[name] ?? 1;
 
   return (
     <Image
       source={sources[name]}
-      style={{ width, height, opacity, tintColor }}
+      style={{ width, height, opacity: resolvedOpacity, tintColor }}
       contentFit="contain"
       accessible={false}
       testID={testID}

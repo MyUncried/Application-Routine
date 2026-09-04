@@ -456,13 +456,14 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(screen.getByTestId("composition-reorder-icon")).toBeTruthy();
   });
 
-  it("REWORK06 — the composition-reorder (grip handle) icon now displays 24×24 (up from 20×20/R4-04 — addendum 'poignées encore trop petites')", () => {
+  it("REWORK07-A — the composition-reorder (grip handle) icon on the Exercise row now displays the canonical 20×20 glyph (asset replaced by the Icon/Structure/Movable export, 3066:4676 — down from 24×24/REWORK06, a deliberate correction, not a regression: the old asset's ink only filled a fraction of its box) at opacity 0.5, with no local opacity prop needed", () => {
     renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
 
     const reorderIcon = screen.getByTestId("composition-reorder-icon");
     const flattened = StyleSheet.flatten(reorderIcon.props.style);
-    expect(flattened.width).toBe(24);
-    expect(flattened.height).toBe(24);
+    expect(flattened.width).toBe(20);
+    expect(flattened.height).toBe(20);
+    expect(flattened.opacity).toBe(0.5);
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
@@ -798,15 +799,21 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(flattened.lineHeight).toBe(14);
   });
 
-  it("REWORK06 — the structure/move slot is 32×32 (up from 28×28/R4-04, up from 24×24 originally — addendum 'poignées encore trop petites')", () => {
+  it("REWORK07-A — the structure/move slot is back to the canonical 28×28 (down from 32×32/REWORK06 — the oversized container compensated for an undersized glyph, no longer needed once the asset itself was replaced) — the icon inside renders the canonical 20×20 glyph at opacity 0.5, with no local opacity prop needed", () => {
     renderScreen();
 
     const handleSlot = within(screen.getByLabelText(composition.countdown.label)).getByTestId(
       "composition-boundary-handle-slot",
     );
     const flattened = StyleSheet.flatten(handleSlot.props.style);
-    expect(flattened.width).toBe(32);
-    expect(flattened.height).toBe(32);
+    expect(flattened.width).toBe(28);
+    expect(flattened.height).toBe(28);
+
+    const handleIcon = within(handleSlot).getByTestId("composition-boundary-handle-icon");
+    const iconStyle = StyleSheet.flatten(handleIcon.props.style);
+    expect(iconStyle.width).toBe(20);
+    expect(iconStyle.height).toBe(20);
+    expect(iconStyle.opacity).toBe(0.5);
   });
 
   it("R4-11 — the canonical Tour icon is now rendered in the Tour card's icon slot (asset gap closed)", () => {

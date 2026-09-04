@@ -27,7 +27,7 @@
     {"key":"composition.initialCountdown","file":"composition-initial-countdown","figmaNodeId":"2537:1461","width":24,"height":24,"usage":["Composition"]},
     {"key":"composition.mainContent","file":"composition-main-content","figmaNodeId":"2537:1427","width":18,"height":18,"usage":["Composition"]},
     {"key":"composition.endSession","file":"composition-end-session","figmaNodeId":"2537:1471","width":24,"height":24,"usage":["Composition"]},
-    {"key":"composition.reorder","file":"composition-reorder","figmaNodeId":"2537:1456","width":16,"height":16,"usage":["Composition"]},
+    {"key":"composition.reorder","file":"composition-reorder","figmaNodeId":"3066:4676","width":20,"height":20,"usage":["Composition"]},
     {"key":"state.selected","file":"state-selected","figmaNodeId":"2537:1509","width":24,"height":24,"usage":["Sélecteur de couleur"]},
     {"key":"icon.tour","file":"icon-tour","figmaNodeId":"3066:4685","width":20,"height":20,"usage":["Composition — Nombre de tours"]}
   ],

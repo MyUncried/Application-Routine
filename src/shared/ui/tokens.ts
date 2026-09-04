@@ -133,6 +133,20 @@ export const dimensions = {
   // carte elle-même) — inversion explicite de `T-01` (cycle précédent, qui
   // avait unifié la largeur de Tour avec celle des cartes limites).
   compositionTourSection: { containerWidth: 374, cardWidth: 354, inset: 10, closedHeight: 54 },
+  // REWORK07-A (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON /
+  // STRUCTURE / MOVABLE UNIQUEMENT`, 2026-09-04) : géométrie canonique du
+  // pictogramme structurel `Icon / Structure / Movable` (`3066:4676`) —
+  // `glyph` est la taille intrinsèque du dessin exporté (`sizes` de
+  // `KodjoIcon.tsx`), `slot` la taille du conteneur qui l'entoure quand un
+  // écran en a besoin (`CompositionScreen.tsx`, `boundaryRowHandleSlot` →
+  // `structureIconSlot`). Source unique partagée par les deux fichiers,
+  // remplace les littéraux locaux `24×24`/`32×32` introduits par REWORK04/
+  // REWORK06 sur la base d'un asset provisoire (`composition-reorder.svg`,
+  // `2537:1456`, `16×16`, encre ne couvrant que `x=5…11`) — le diagnostic
+  // REWORK07-A a établi que l'agrandissement de l'affichage d'un glyphe
+  // sous-dimensionné n'en corrige pas la proportion visuelle ; seul le
+  // remplacement par l'export canonique le corrige réellement.
+  structureMovableIcon: { glyph: 20, slot: 28 },
 } as const;
 
 export const minTouchTarget = 48;
