@@ -1,0 +1,66 @@
+name: KODJO V1.4 S09 — Finalize
+run-name: T01-S09 / FINALIZE / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-v14-s09-finalize
+  cancel-in-progress: false
+
+env:
+  ISSUE_NUMBER: '17'
+  TARGET_BRANCH: feat/creation-seance-catalogue
+
+jobs:
+  finalize:
+    if: >
+      github.event.issue.number == 17 &&
+      github.event.comment.user.login == 'MyUncried' &&
+      contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_APPROVED')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate visual approval and final technical state
+        id: gate
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner.'}
+          if((git branch --show-current).Trim() -ne $env:TARGET_BRANCH){throw 'Unexpected branch.'}
+          if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Worktree not clean.'}
+          $head=(git rev-parse HEAD).Trim()
+          $m=[regex]::Match($env:TRIGGER_BODY,'(?m)^head=([0-9a-f]{40})\s*$'); if(-not$m.Success){throw 'Approved head missing.'}
+          if($head -ne $m.Groups[1].Value){throw "Visual approval HEAD mismatch: $head"}
+          npm test -- --runInBand
+          if($LASTEXITCODE -ne 0){throw 'Final Jest failed.'}
+          npx tsc --noEmit
+          if($LASTEXITCODE -ne 0){throw 'Final TypeScript check failed.'}
+          "head=$head" >> $env:GITHUB_OUTPUT
+
+      - name: Publish S09 ready-to-close checkpoint
+        env:
+          HEAD: ${{ steps.gate.outputs.head }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $body="[KODJO_S09_FINAL_CHECKPOINT]`nhead=$env:HEAD`nSTATUT : S09_READY_TO_CLOSE`n`nGate visuel utilisateur validé sur ce HEAD. Tests Jest et TypeScript repassés après validation visuelle. Aucun appel Claude effectué par cette étape."
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28'}
+          $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments"
+          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json -Depth 4) | Out-Null
+          Write-Host 'KODJO_S09=READY_TO_CLOSE'
