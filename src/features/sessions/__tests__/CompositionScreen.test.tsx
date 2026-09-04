@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Keyboard, ScrollView, StyleSheet } from "react-native";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -84,24 +84,33 @@ function renderScreenWithDraft(exercise: ReturnType<typeof createExerciseDraft> 
 const composition = strings.screens.composition;
 
 /**
- * `DurationWheelPicker` utilise une seule implémentation (`ScrollView` +
- * calcul manuel) sur toutes les plateformes depuis l'audit indépendant
- * REWORK04 (`[ChatGPT] CHANGES_REQUESTED — Composition d'une séance —
- * audit indépendant REWORK04`, 2026-09-03 — voir `DurationWheelPicker.tsx`
- * pour la justification complète du changement de primitive). Les
- * interactions de test ci-dessous utilisent donc `scrollWheelColumn`
- * (événement `scroll`, le seul mécanisme réel désormais).
+ * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
+ * déjà `"ios"` — forcé ici explicitement, par robustesse. `DurationWheelPicker`
+ * délègue donc à la roulette native SwiftUI (restaurée par `[ChatGPT]
+ * PLAN_APPROVED — REWORK06 — RESTAURATION CIBLÉE DE LA ROULETTE + VERROU
+ * DE CAPITALISATION`, 2026-09-04, après une suppression injustifiée par
+ * `REWORK05` — voir `DurationWheelPicker.tsx`) — les interactions de test
+ * ci-dessous utilisent `fireNativeSelectionChange` (événement
+ * `selectionChange`, convention du composant natif), jamais
+ * `fireEvent.scroll` (mécanisme du seul chemin Android/web, testé
+ * séparément dans `DurationWheelPicker.test.tsx`).
  */
-const WHEEL_ITEM_HEIGHT = 40;
+let originalPlatformOS: typeof Platform.OS;
 
-function scrollWheelColumn(element: ReturnType<typeof screen.getByTestId>, index: number) {
-  fireEvent.scroll(element, {
-    nativeEvent: {
-      contentOffset: { y: index * WHEEL_ITEM_HEIGHT },
-      contentSize: {},
-      layoutMeasurement: {},
-    },
-  });
+beforeAll(() => {
+  originalPlatformOS = Platform.OS;
+  Platform.OS = "ios";
+});
+
+afterAll(() => {
+  Platform.OS = originalPlatformOS;
+});
+
+function fireNativeSelectionChange(
+  element: ReturnType<typeof screen.getByTestId>,
+  selection: number,
+) {
+  fireEvent(element, "selectionChange", { nativeEvent: { selection } });
 }
 
 beforeEach(() => {
@@ -146,21 +155,48 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("composition-row-icon-composition-end-session")).toBeTruthy();
   });
 
-  it("shows no chevron on rows by default (absent from the closed-state reference, CMP-03/05), and an open chevron once toggled", () => {
+  it("REWORK06 — never renders a chevron on rows, closed or open (permanently removed — the previous conditional chevron changed the row's flex-child count, shifting the role icon between states)", () => {
     renderScreen();
 
-    // Deux lignes repliables (Compte à rebours, Fin de séance), toutes deux
-    // fermées par défaut — aucun chevron n'est rendu tant qu'elles restent
-    // fermées (correction consolidée, CMP-03/CMP-05, 2026-09-03 : supprime
-    // le chevron `LAY-05` précédent, absent de la référence en état fermé).
+    // Fermé : jamais de chevron (déjà vrai avant REWORK06).
     expect(screen.queryByTestId("composition-row-chevron-down")).toBeNull();
     expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    // Seule la ligne ouverte porte le chevron, comme unique indice visuel
-    // restant de l'état développé.
-    expect(screen.getByTestId("composition-row-chevron-up")).toBeTruthy();
+    // Ouvert : plus aucun chevron non plus (renversement du comportement
+    // précédent — `accessibilityState.expanded` porte déjà cette
+    // information pour l'accessibilité, sans indice visuel qui décale la
+    // mise en page).
+    expect(screen.queryByTestId("composition-row-chevron-down")).toBeNull();
+    expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
+  });
+
+  it("REWORK06 — the role icon's slot keeps exactly the same style (and the row exposes the same number of top-level slots) whether the row is closed or open (proves the chevron removal fixes the previous icon position drift)", () => {
+    renderScreen();
+
+    const rowBefore = screen.getByLabelText(composition.countdown.label);
+    const iconSlotBefore = within(rowBefore).getByTestId(
+      "composition-row-icon-composition-initial-countdown",
+    ).parent;
+    const childCountBefore = (rowBefore.children as unknown[]).length;
+    const iconSlotStyleBefore = StyleSheet.flatten(iconSlotBefore?.props.style);
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+
+    const rowAfter = screen.getByLabelText(composition.countdown.label);
+    const iconSlotAfter = within(rowAfter).getByTestId(
+      "composition-row-icon-composition-initial-countdown",
+    ).parent;
+    const childCountAfter = (rowAfter.children as unknown[]).length;
+    const iconSlotStyleAfter = StyleSheet.flatten(iconSlotAfter?.props.style);
+
+    // Même nombre d'enfants directs de la rangée (aucun chevron
+    // conditionnel n'apparaît/disparaît) et même style pour le slot qui
+    // porte l'icône de rôle — la position ne peut donc plus dériver entre
+    // les deux états.
+    expect(childCountAfter).toBe(childCountBefore);
+    expect(iconSlotStyleAfter).toEqual(iconSlotStyleBefore);
   });
 
   it("anchors the open picker as a superposed popover (position: absolute), never pushing the layout below (CE-T01-06/07, AUD-05)", () => {
@@ -274,7 +310,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
     // Still exactly one picker mounted, now driven by the final phase value (05 s).
-    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue.now).toBe(5);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
   });
 
   it("opening the color palette closes an already-open duration picker", () => {
@@ -319,7 +355,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 1);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
 
     // La ligne reste sur la valeur validée précédente (défaut 10 s) tant
     // que le sélecteur n'est pas refermé — jamais mise à jour en cours de
@@ -335,7 +371,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
     // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
     expect(screen.getByText("00 min 10 s")).toBeTruthy();
 
@@ -353,7 +389,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
 
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
@@ -365,14 +401,14 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    scrollWheelColumn(screen.getByTestId("duration-wheel-minutes"), 1);
-    scrollWheelColumn(screen.getByTestId("duration-wheel-seconds"), 10);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (01 min 10 s)
     expect(screen.getByText("01 min 10 s")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
-    expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue.now).toBe(1);
-    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue.now).toBe(10);
+    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
   });
 
   it("selecting a color actually applies it to the draft (compact swatch background) and closes the palette", () => {
@@ -418,6 +454,15 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
 
     expect(screen.getByTestId("composition-exercise-icon")).toBeTruthy();
     expect(screen.getByTestId("composition-reorder-icon")).toBeTruthy();
+  });
+
+  it("REWORK06 — the composition-reorder (grip handle) icon now displays 24×24 (up from 20×20/R4-04 — addendum 'poignées encore trop petites')", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    const reorderIcon = screen.getByTestId("composition-reorder-icon");
+    const flattened = StyleSheet.flatten(reorderIcon.props.style);
+    expect(flattened.width).toBe(24);
+    expect(flattened.height).toBe(24);
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
@@ -594,17 +639,36 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).getByText("1")).toBeTruthy();
     expect(within(tourCard).queryByText("×1")).toBeNull();
 
-    // T-04a/b/c : cadre parent clair `66×30` — `1` en texte nu (jamais sur
-    // fond violet), carré violet `28×28` distinct contenant SEULEMENT le
-    // chevron blanc.
+    // T-04a/b/c/REWORK06 : cadre parent clair `78×44` (agrandi depuis
+    // `66×30` — addendum « cadre plus haut, marges visibles identiques en
+    // haut/bas/droite ») — `1` en texte nu (jamais sur fond violet), centré
+    // et en gras (`type.cardTitle`, `16/20` Semi Bold), carré violet `28×28`
+    // distinct (inchangé) contenant SEULEMENT le chevron blanc.
     const control = screen.getByTestId("composition-tour-control");
     const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBe(66);
-    expect(controlStyle.height).toBe(30);
+    expect(controlStyle.width).toBe(78);
+    expect(controlStyle.height).toBe(44);
     expect(controlStyle.backgroundColor).not.toBe(colors.selection);
+    // REWORK06 : marges visibles identiques en haut, en bas et à droite du
+    // carré violet (`28×28`, inchangé) — dérivées, pas de simple test de
+    // présence : `alignItems: "center"` centre mécaniquement le carré dans
+    // les `44` de hauteur (`(44-28)/2 = 8` en haut/bas), et
+    // `paddingRight` égale explicitement cette même valeur à droite.
+    expect(controlStyle.alignItems).toBe("center");
+    expect(controlStyle.paddingRight).toBe(8);
+    expect((controlStyle.height - 28) / 2).toBe(controlStyle.paddingRight);
 
     const valueText = within(control).getByText("1");
-    expect(StyleSheet.flatten(valueText.props.style).color).not.toBe(colors.background);
+    const valueTextStyle = StyleSheet.flatten(valueText.props.style);
+    expect(valueTextStyle.color).not.toBe(colors.background);
+    // REWORK06 : valeur centrée (horizontalement par `flex`+`textAlign`,
+    // verticalement par le centrage flex hérité du cadre parent) et plus
+    // grande/grasse (`type.cardTitle`, `16/20` Semi Bold — auparavant
+    // `type.label`, `14/18` Medium).
+    expect(valueTextStyle.textAlign).toBe("center");
+    expect(valueTextStyle.fontSize).toBe(16);
+    expect(valueTextStyle.lineHeight).toBe(20);
+    expect(valueTextStyle.fontWeight).toBe("600");
 
     const chevronBox = screen.getByTestId("composition-tour-control-chevron-box");
     const chevronBoxStyle = StyleSheet.flatten(chevronBox.props.style);
@@ -705,22 +769,22 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(nameField.props.placeholderTextColor).not.toBe(colors.textSecondary);
   });
 
-  it("R4-03 — Boundary Activity and Tour card titles use the KODJO / Card / Title style (14/18 Semi Bold, #141414)", () => {
+  it("R4-03/REWORK06 — Boundary Activity and Tour card titles use the KODJO / Card / Title style, now 16/20 Semi Bold (up from 14/18 — addendum 'titres des cartes encore trop petits')", () => {
     renderScreen();
 
     const countdownLabel = within(screen.getByLabelText(composition.countdown.label)).getByText(
       composition.countdown.label,
     );
     const flattened = StyleSheet.flatten(countdownLabel.props.style);
-    expect(flattened.fontSize).toBe(14);
-    expect(flattened.lineHeight).toBe(18);
+    expect(flattened.fontSize).toBe(16);
+    expect(flattened.lineHeight).toBe(20);
     expect(flattened.fontWeight).toBe("600");
     expect(flattened.color).toBe(colors.textPrimary);
 
     const tourLabel = within(screen.getByTestId("composition-tour-card")).getByText(
       composition.tour.label,
     );
-    expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(14);
+    expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(16);
   });
 
   it("R4-03 — the Boundary Activity secondary duration line uses the KODJO / Card / Supporting style (11/14)", () => {
@@ -734,15 +798,15 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(flattened.lineHeight).toBe(14);
   });
 
-  it("R4-04 — the structure/move slot is 28×28 (up from 24×24)", () => {
+  it("REWORK06 — the structure/move slot is 32×32 (up from 28×28/R4-04, up from 24×24 originally — addendum 'poignées encore trop petites')", () => {
     renderScreen();
 
     const handleSlot = within(screen.getByLabelText(composition.countdown.label)).getByTestId(
       "composition-boundary-handle-slot",
     );
     const flattened = StyleSheet.flatten(handleSlot.props.style);
-    expect(flattened.width).toBe(28);
-    expect(flattened.height).toBe(28);
+    expect(flattened.width).toBe(32);
+    expect(flattened.height).toBe(32);
   });
 
   it("R4-11 — the canonical Tour icon is now rendered in the Tour card's icon slot (asset gap closed)", () => {

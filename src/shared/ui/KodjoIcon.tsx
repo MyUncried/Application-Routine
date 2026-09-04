@@ -49,14 +49,18 @@ const sizes = {
   "composition-initial-countdown": [24, 24],
   "composition-main-content": [18, 18],
   "composition-end-session": [24, 24],
-  // R4-04 (slot structure `28×28`, icône `20×20`) : affichage porté de
-  // `16×16` à `20×20` — même master vectoriel (`composition-reorder.svg`,
-  // `2537:1456`), un agrandissement d'affichage d'un SVG existant n'altère
-  // pas son tracé. Aucun export dédié à `Icon / Structure / Movable`
-  // (`3066:4676`, mentionné par la mission de design) n'a été fourni avec
-  // une URL téléchargeable dans cette autorisation — lacune déclarée, pas
-  // un remplacement d'asset silencieux (voir le rapport de mission).
-  "composition-reorder": [20, 20],
+  // R4-04 (cycle REWORK04) : affichage porté de `16×16` à `20×20`.
+  // REWORK06 (addendum « écarts visuels encore ouverts », `[ChatGPT]
+  // PLAN_APPROVED — REWORK06`, 2026-09-04) : « poignées de déplacement des
+  // cartes encore trop petites » — porté à `24×24`. Même master vectoriel
+  // (`composition-reorder.svg`, `2537:1456`) dans les deux cas, un
+  // agrandissement d'affichage d'un SVG existant n'altère pas son tracé.
+  // Aucun export dédié à `Icon / Structure / Movable` (`3066:4676`,
+  // mentionné par la mission de design) n'a été fourni avec une URL
+  // téléchargeable dans aucune autorisation reçue à ce jour — lacune
+  // déclarée, pas un remplacement d'asset silencieux (voir le rapport de
+  // mission).
+  "composition-reorder": [24, 24],
   "state-selected": [24, 24],
   // R4-11 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
   // COMPLEMENTS REVIEWED`, 2026-09-03) : export canonique `icon-tour.svg`

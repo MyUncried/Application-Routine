@@ -1,6 +1,16 @@
+import { Host, HStack, Picker as SwiftUIPicker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel as accessibilityLabelModifier,
+  bold,
+  font,
+  frame,
+  padding,
+  pickerStyle,
+  tag,
+} from "@expo/ui/swift-ui/modifiers";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
 import {
@@ -16,6 +26,7 @@ import {
   secondsValueToIndex,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
+import { WheelSelectionOverlay } from "@/features/sessions/WheelSelectionOverlay";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -27,30 +38,26 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  * borne haute à 5999 s (99 min 59 s, `08` l.925) sans dupliquer ce
  * composant.
  *
- * **Changement de primitive — audit indépendant REWORK04** (`[ChatGPT]
- * CHANGES_REQUESTED — Composition d'une séance — audit indépendant
- * REWORK04`, 2026-09-03) : ce composant délégait auparavant, sur iOS, à la
- * roulette native SwiftUI (`@expo/ui/swift-ui`, `pickerStyle('wheel')`).
- * Après **trois cycles consécutifs** de corrections de géométrie sur cette
- * primitive (`REWORK02`, `REWORK03`, `REWORK04`), toutes jugées
- * insuffisantes à la recette device sans qu'aucune preuve de rendu réel
- * n'ait jamais été obtenue dans cet environnement (aucun simulateur/
- * appareil/accès caméra), l'audit indépendant autorise explicitement à
- * « sélectionner une primitive standard Expo/React Native/lib déjà
- * installée et documenter le choix » si `@expo/ui` ne rend pas
- * effectivement le contrat. **Décision retenue** : ce composant utilise
- * désormais l'implémentation maison (`ScrollView` + calcul manuel,
- * auparavant réservée à Android/web) sur **toutes les plateformes**, y
- * compris iOS — `Platform.OS` n'est plus consulté ici. Justification :
- * cette implémentation est intégralement composée de primitives React
- * Native standard (`View`, `ScrollView`, `Text`, `Pressable`), donc son
- * rendu est { a } entièrement sous contrôle direct du code de ce fichier —
- * plus de frontière de rendu natif opaque à ce sandbox — et { b }
- * réellement exercée par les tests Jest de ce projet (contrairement aux
- * mocks `@expo/ui`, qui ne prouvent que la couche JS et masquaient
- * précisément l'échec device signalé par cet audit). Ce choix reste
- * néanmoins `NON_VERIFIABLE_DEVICE` tant qu'une capture iPhone réelle n'a
- * pas confirmé le rendu — voir le rapport de mission.
+ * **Restauration de la primitive native — REWORK06** (`[ChatGPT]
+ * PLAN_APPROVED — REWORK06 — RESTAURATION CIBLÉE DE LA ROULETTE + VERROU DE
+ * CAPITALISATION`, 2026-09-04) : le cycle précédent (`REWORK05`) avait
+ * remplacé, sur iOS, la roulette native SwiftUI par l'implémentation maison
+ * (`ScrollView`), au motif que trois cycles de corrections de géométrie sur
+ * la primitive native avaient échoué à la recette device. Cette décision a
+ * été déclarée **NON CONFORME / RÉGRESSION MAJEURE** — la primitive native
+ * `pickerStyle('wheel')` porte le look & feel Apple (inertie, courbure,
+ * fade natif) qu'aucune réimplémentation maison ne peut reproduire, et une
+ * suite Jest verte sur l'implémentation de substitution ne constituait pas
+ * une preuve de conformité visuelle. **Règle désormais permanente** (voir
+ * `.github/AI_ORCHESTRATION.md`, « Priorité aux primitives natives de
+ * l'OS ») : lorsqu'une primitive native existe pour l'interaction demandée,
+ * elle doit être systématiquement privilégiée et corrigée dans son
+ * intégration (conteneur, largeur, alignement) plutôt que remplacée.
+ *
+ * Sur iOS, ce composant délègue donc de nouveau à la roulette native
+ * SwiftUI (`@expo/ui/swift-ui`, `pickerStyle('wheel')`) ; la
+ * réimplémentation maison (`ScrollView` + calcul manuel) reste le seul
+ * chemin sur Android/web (`@expo/ui/swift-ui` est iOS/tvOS uniquement).
  *
  * **Toolbar Annuler/Valider — contrat R4-08/R4-09** : `onCancel` ferme sans
  * rien modifier, `onValidate` valide exactement les valeurs actuellement
@@ -58,15 +65,6 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  * sélecteur. Aucun appel automatique au démontage : Annuler doit
  * précisément NE PAS committer, un commit automatique à la fermeture
  * rendrait Annuler impossible à distinguer de Valider.
- *
- * **Bande de sélection unique — R4-06/W-07/W-11** : une seule bande grise
- * (`colors.divider`/`colors.surface`, jamais `colors.selectionSurface`
- * bleu pâle — l'ancienne `WheelSelectionOverlay`, réutilisée par
- * `NumberWheelPicker`, produisait par erreur une bande PAR COLONNE d'une
- * teinte bleue, jamais remarqué jusqu'à cet audit) traverse désormais
- * visuellement les DEUX colonnes ET les DEUX unités en une fois — un seul
- * calque `position: absolute` positionné par rapport au conteneur commun
- * (`wheelRow`), pas un calque par colonne.
  */
 
 const ITEM_HEIGHT = 40;
@@ -74,33 +72,36 @@ const SECONDS_VALUES = Array.from({ length: WHEEL_SECONDS_ITEM_COUNT }, (_, inde
   secondsIndexToValue(index),
 );
 
+/**
+ * Géométrie canonique de la roulette compacte — `R4-07`/`R4-09` (registre
+ * REWORK04), `D-098` (`07 – Registre des décisions`, « Validée
+ * post-Figma ») pour les hauteurs. Colonnes/unités : `R4-07` donne des
+ * largeurs explicites (`min 76`, unité `min` `32`, intervalle central `22`,
+ * `s` `76`, unité `s` `20`, écart chiffre/unité `4`).
+ *
+ * **Tension documentaire non silencieuse** (conservée de REWORK04) : le
+ * paragraphe « Contrat complet du picker » de l'autorisation REWORK04
+ * donnait `toolbar 48` et `zone roue 196` (panneau `354×244`), tandis que
+ * `D-098` (Registre des décisions, rang de préséance le plus élevé selon
+ * `docs/INDEX.md` §6) donne `40 + 150 = 190`. Résolu par un rapprochement :
+ * la cible tactile de chaque action reste `48×48` (les deux sources
+ * s'accordent), obtenue via `hitSlop` autour d'une boîte visuelle de
+ * `28×28` dans une rangée de hauteur VISUELLE `40` (`D-098`). Pour la zone
+ * roue, `150` (`D-098`) est retenu, appliqué en `minHeight` (pas une
+ * hauteur figée, pour ne pas contraindre artificiellement le rendu natif).
+ */
 const WHEEL_TOOLBAR_HEIGHT = dimensions.wheelPicker.toolbarHeight;
+const WHEEL_CONTENT_MIN_HEIGHT = dimensions.wheelPicker.wheelContentMinHeight;
 const WHEEL_ACTION_VISUAL_CIRCLE = dimensions.wheelPicker.actionVisualCircle;
 const WHEEL_ACTION_TOUCH_TARGET = dimensions.wheelPicker.actionTouchTarget;
 const WHEEL_ACTION_HIT_SLOP = (WHEEL_ACTION_TOUCH_TARGET - WHEEL_ACTION_VISUAL_CIRCLE) / 2;
 
-/**
- * Géométrie canonique de la roulette — `R4-07` (mission de design
- * `2026-09-03_design-complements-composition-wheel.md`, registre R4). Ces
- * six mesures sont des valeurs exactes fournies par cette mission, jamais
- * un calcul dynamique dépendant de la largeur de l'écran (abandonné au
- * cycle précédent — un contrat fixe existe désormais, il n'y a plus lieu
- * de le dériver).
- */
-const MINUTES_COLUMN_WIDTH = 76;
-const MINUTES_UNIT_WIDTH = 32;
-const COLUMN_INTERVAL = 22;
-const SECONDS_COLUMN_WIDTH = 76;
-const SECONDS_UNIT_WIDTH = 20;
-const DIGIT_UNIT_GAP = 4;
-const WHEEL_ROW_WIDTH =
-  MINUTES_COLUMN_WIDTH +
-  DIGIT_UNIT_GAP +
-  MINUTES_UNIT_WIDTH +
-  COLUMN_INTERVAL +
-  SECONDS_COLUMN_WIDTH +
-  DIGIT_UNIT_GAP +
-  SECONDS_UNIT_WIDTH;
+const NATIVE_MINUTES_COLUMN_WIDTH = 76;
+const NATIVE_MINUTES_UNIT_WIDTH = 32;
+const NATIVE_COLUMN_INTERVAL = 22;
+const NATIVE_SECONDS_COLUMN_WIDTH = 76;
+const NATIVE_SECONDS_UNIT_WIDTH = 20;
+const NATIVE_DIGIT_UNIT_GAP = 4;
 
 export type DurationWheelPickerProps = {
   totalSeconds: number;
@@ -116,6 +117,145 @@ export type DurationWheelPickerProps = {
   maxTotalSeconds?: number;
 };
 
+export function DurationWheelPicker(props: DurationWheelPickerProps) {
+  if (Platform.OS === "ios") {
+    return <NativeAppleDurationWheelPicker {...props} />;
+  }
+  return <LegacyDurationWheelPicker {...props} />;
+}
+
+/**
+ * Roulette native SwiftUI (iOS uniquement) — `Host` + `HStack` +
+ * `Picker` × 2 (`pickerStyle('wheel')`), chaque colonne portant ses propres
+ * options via `<SwiftUIText modifiers={[tag(valeur)]}>`.
+ *
+ * D-05 : les séparateurs d'unité (`min`/`s`) sont des `SwiftUIText`
+ * (`@expo/ui/swift-ui`), jamais des `Text` React Native — un `HStack`
+ * natif ne compose que des vues SwiftUI. R4-07 : ces unités sont en gras
+ * (`bold()`), taille `14` (`font({size:14})`).
+ *
+ * D-04 : la zone roue n'a pas de hauteur figée (`WHEEL_CONTENT_MIN_HEIGHT`
+ * est un plancher, `minHeight`, pas `height`) — `matchContents` laisse
+ * SwiftUI dimensionner la roulette nativement au-delà de ce plancher si
+ * nécessaire (inertie/courbure/fade natifs préservés, REWORK06).
+ *
+ * D-02 : surface opaque blanche, arrondie, bordée et ombrée
+ * (`nativeSurface`) enveloppant toolbar + `Host` — masque totalement le
+ * contenu sous-jacent.
+ *
+ * W-01…W-03 : largeurs bornées, valeurs canoniques `R4-07`.
+ *
+ * W-04/R4-06 : un seul cadre de sélection, natif SwiftUI — aucune bande
+ * superposée par ce fichier (aucun second cadre, jamais de bleu).
+ *
+ * R4-08/R4-09 : aucune fermeture par tap sur un chiffre ou la zone de
+ * sélection — seules les actions Annuler/Valider de la toolbar ferment le
+ * sélecteur.
+ */
+function NativeAppleDurationWheelPicker({
+  totalSeconds,
+  onValidate,
+  onCancel,
+  minutesAccessibilityLabel,
+  secondsAccessibilityLabel,
+  cancelAccessibilityLabel,
+  validateAccessibilityLabel,
+  maxTotalSeconds = WHEEL_TOTAL_SECONDS_MAX,
+}: DurationWheelPickerProps) {
+  const minutesMaxIndex = minutesMaxIndexFor(maxTotalSeconds);
+  const minutesValues = Array.from({ length: minutesMaxIndex + 1 }, (_, index) => index);
+  // `useState(() => ...)` : initialisé UNE SEULE FOIS au montage — jamais
+  // recalculé depuis `totalSeconds` à un rendu ultérieur (brouillon local).
+  const [initial] = useState(() => fromTotalSeconds(totalSeconds, maxTotalSeconds));
+  const [draftMinutes, setDraftMinutes] = useState(initial.minutes);
+  const [draftSeconds, setDraftSeconds] = useState(initial.seconds);
+  const draftRef = useRef({ minutes: initial.minutes, seconds: initial.seconds });
+
+  function handleMinutesChange(value: number) {
+    if (value === draftRef.current.minutes) {
+      return;
+    }
+    draftRef.current.minutes = value;
+    setDraftMinutes(value);
+    Haptics.selectionAsync().catch(() => {});
+  }
+
+  function handleSecondsChange(value: number) {
+    if (value === draftRef.current.seconds) {
+      return;
+    }
+    draftRef.current.seconds = value;
+    setDraftSeconds(value);
+    Haptics.selectionAsync().catch(() => {});
+  }
+
+  function handleValidate() {
+    onValidate(toTotalSeconds(draftRef.current.minutes, draftRef.current.seconds, maxTotalSeconds));
+  }
+
+  return (
+    <View style={styles.nativeSurface} testID="duration-wheel-picker">
+      <PickerToolbar
+        onCancel={onCancel}
+        onValidate={handleValidate}
+        cancelAccessibilityLabel={cancelAccessibilityLabel}
+        validateAccessibilityLabel={validateAccessibilityLabel}
+      />
+      <Host style={styles.nativeHost} matchContents>
+        <HStack spacing={0} alignment="center">
+          <SwiftUIPicker
+            selection={draftMinutes}
+            onSelectionChange={handleMinutesChange}
+            modifiers={[
+              pickerStyle("wheel"),
+              frame({ width: NATIVE_MINUTES_COLUMN_WIDTH }),
+              padding({ trailing: NATIVE_DIGIT_UNIT_GAP }),
+              accessibilityLabelModifier(minutesAccessibilityLabel),
+            ]}
+            testID="duration-wheel-minutes"
+          >
+            {minutesValues.map((value) => (
+              <SwiftUIText key={value} modifiers={[tag(value)]}>
+                {formatTwoDigits(value)}
+              </SwiftUIText>
+            ))}
+          </SwiftUIPicker>
+          <SwiftUIText
+            modifiers={[
+              frame({ width: NATIVE_MINUTES_UNIT_WIDTH }),
+              padding({ trailing: NATIVE_COLUMN_INTERVAL }),
+              bold(),
+              font({ size: 14 }),
+            ]}
+          >
+            min
+          </SwiftUIText>
+          <SwiftUIPicker
+            selection={draftSeconds}
+            onSelectionChange={handleSecondsChange}
+            modifiers={[
+              pickerStyle("wheel"),
+              frame({ width: NATIVE_SECONDS_COLUMN_WIDTH }),
+              padding({ trailing: NATIVE_DIGIT_UNIT_GAP }),
+              accessibilityLabelModifier(secondsAccessibilityLabel),
+            ]}
+            testID="duration-wheel-seconds"
+          >
+            {SECONDS_VALUES.map((value) => (
+              <SwiftUIText key={value} modifiers={[tag(value)]}>
+                {formatTwoDigits(value)}
+              </SwiftUIText>
+            ))}
+          </SwiftUIPicker>
+          <SwiftUIText modifiers={[frame({ width: NATIVE_SECONDS_UNIT_WIDTH }), bold(), font({ size: 14 })]}>
+            s
+          </SwiftUIText>
+        </HStack>
+      </Host>
+    </View>
+  );
+}
+
 /**
  * Toolbar Annuler/Valider (R4-09) — cercles `28×28` visibles dans une
  * cible tactile `48×48` (`hitSlop`, jamais un agrandissement de la boîte
@@ -124,8 +264,8 @@ export type DurationWheelPickerProps = {
  *
  * **Glyphes Annuler/Valider — lacune DSF déclarée** (R4-09 exige des
  * icônes croix/coche ; contrairement à l'icône Tour, R4-11, aucune URL
- * d'export Figma n'a été fournie pour ces deux glyphes dans aucune des
- * deux autorisations REWORK04). Rendus provisoirement en caractères
+ * d'export Figma n'a été fournie pour ces deux glyphes dans aucune
+ * autorisation reçue à ce jour). Rendus provisoirement en caractères
  * Unicode (`✕`, `✓`) plutôt qu'un tracé SVG inventé ou un pictogramme
  * existant détourné — lacune explicitement escaladée dans le rapport de
  * mission, pas un défaut silencieux.
@@ -168,39 +308,19 @@ function PickerToolbar({
 }
 
 /**
- * Bande de sélection unique (R4-06/W-07/W-11) — un seul calque couvrant la
- * largeur totale de `wheelRow` (`WHEEL_ROW_WIDTH`, les deux colonnes ET les
- * deux unités), positionné par rapport à ce conteneur commun. `pointerEvents
- * ="none"` sur chaque calque : ne doit jamais intercepter le geste de
- * défilement des `ScrollView` sous-jacents.
- */
-function WheelSelectionBand() {
-  return (
-    <View style={styles.selectionBandLayer} pointerEvents="none" testID="wheel-selection-overlay">
-      <View style={[styles.fade, { height: ITEM_HEIGHT, top: 0 }]} />
-      <View
-        style={[styles.band, { top: ITEM_HEIGHT, height: ITEM_HEIGHT }]}
-        testID="wheel-selection-band"
-      />
-      <View style={[styles.fade, { height: ITEM_HEIGHT, bottom: 0 }]} />
-    </View>
-  );
-}
-
-/**
- * Mécanisme de détection : `onScroll` (`scrollEventThrottle={16}`), pas
- * `onMomentumScrollEnd` — voir `wheelPickerMath.ts` pour la justification
- * complète. `onMomentumScrollEnd`/`onScrollEndDrag` ne servent qu'à une
- * correction d'alignement final.
+ * Mécanisme de détection (chemin maison, Android/web uniquement) :
+ * `onScroll` (`scrollEventThrottle={16}`), pas `onMomentumScrollEnd` — voir
+ * `wheelPickerMath.ts` pour la justification complète. `onMomentumScrollEnd`/
+ * `onScrollEndDrag` ne servent qu'à une correction d'alignement final.
  *
  * `CTRL-01` : chaque valeur visible est aussi sélectionnable par appui
  * direct (`Pressable` par item), pas seulement par glissement — ce tap ne
- * ferme jamais le sélecteur (R4-08).
+ * ferme jamais le sélecteur (R4-08, même contrat que le chemin natif).
  *
  * Brouillon local / valeur validée, toolbar Annuler/Valider (voir la note
- * de tête du fichier).
+ * de tête) : même patron que le chemin natif.
  */
-export function DurationWheelPicker({
+function LegacyDurationWheelPicker({
   totalSeconds,
   onValidate,
   onCancel,
@@ -220,9 +340,10 @@ export function DurationWheelPicker({
   const secondsScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    // Alignement initial, une seule fois au montage — aucune fonction de
-    // nettoyage : Annuler/Valider sont les seules actions qui valident/
-    // ferment (R4-08/R4-09), jamais le démontage seul.
+    // Alignement initial, une seule fois au montage — plus de fonction de
+    // nettoyage nécessaire ici : aucun commit automatique au démontage à
+    // conserver, Annuler/Valider sont les seules actions qui valident/
+    // ferment (R4-08/R4-09).
     minutesScrollRef.current?.scrollTo({
       y: indexToOffset(initial.minutes, ITEM_HEIGHT),
       animated: false,
@@ -276,15 +397,14 @@ export function DurationWheelPicker({
   }
 
   return (
-    <View style={styles.surface} testID="duration-wheel-picker">
+    <View style={styles.legacySurface} testID="duration-wheel-picker">
       <PickerToolbar
         onCancel={onCancel}
         onValidate={handleValidate}
         cancelAccessibilityLabel={cancelAccessibilityLabel}
         validateAccessibilityLabel={validateAccessibilityLabel}
       />
-      <View style={styles.wheelRow} testID="duration-wheel-row">
-        <WheelSelectionBand />
+      <View style={styles.container}>
         <WheelColumn
           scrollRef={minutesScrollRef}
           values={minutesValues}
@@ -292,15 +412,12 @@ export function DurationWheelPicker({
           now={initial.minutes}
           accessibilityLabel={minutesAccessibilityLabel}
           testID="duration-wheel-minutes"
-          columnWidth={MINUTES_COLUMN_WIDTH}
           onScroll={(event) => handleColumnScroll(event, "minutes")}
           onMomentumScrollEnd={() => alignColumn("minutes")}
           onScrollEndDrag={() => alignColumn("minutes")}
           onItemPress={(index) => handleItemPress(index, "minutes")}
         />
-        <Text style={[styles.unit, { width: MINUTES_UNIT_WIDTH, marginRight: COLUMN_INTERVAL }]}>
-          min
-        </Text>
+        <Text style={styles.separator}>min</Text>
         <WheelColumn
           scrollRef={secondsScrollRef}
           values={SECONDS_VALUES}
@@ -308,13 +425,12 @@ export function DurationWheelPicker({
           now={initial.seconds}
           accessibilityLabel={secondsAccessibilityLabel}
           testID="duration-wheel-seconds"
-          columnWidth={SECONDS_COLUMN_WIDTH}
           onScroll={(event) => handleColumnScroll(event, "seconds")}
           onMomentumScrollEnd={() => alignColumn("seconds")}
           onScrollEndDrag={() => alignColumn("seconds")}
           onItemPress={(index) => handleItemPress(index, "seconds")}
         />
-        <Text style={[styles.unit, { width: SECONDS_UNIT_WIDTH }]}>s</Text>
+        <Text style={styles.separator}>s</Text>
       </View>
     </View>
   );
@@ -327,7 +443,6 @@ type WheelColumnProps = {
   now: number;
   accessibilityLabel: string;
   testID: string;
-  columnWidth: number;
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   onMomentumScrollEnd: () => void;
   onScrollEndDrag: () => void;
@@ -341,57 +456,96 @@ function WheelColumn({
   now,
   accessibilityLabel,
   testID,
-  columnWidth,
   onScroll,
   onMomentumScrollEnd,
   onScrollEndDrag,
   onItemPress,
 }: WheelColumnProps) {
   return (
-    <ScrollView
-      ref={scrollRef}
-      testID={testID}
-      style={[styles.column, { width: columnWidth, marginRight: DIGIT_UNIT_GAP }]}
-      showsVerticalScrollIndicator={false}
-      snapToInterval={ITEM_HEIGHT}
-      decelerationRate="fast"
-      scrollEventThrottle={16}
-      onScroll={onScroll}
-      onMomentumScrollEnd={onMomentumScrollEnd}
-      onScrollEndDrag={onScrollEndDrag}
-      accessibilityRole="adjustable"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityValue={{ min: 0, max, now }}
-      onAccessibilityAction={(event) => {
-        const currentIndex = testID === "duration-wheel-seconds" ? secondsValueToIndex(now) : now;
-        if (event.nativeEvent.actionName === "increment") {
-          onItemPress(Math.min(currentIndex + 1, values.length - 1));
-        } else if (event.nativeEvent.actionName === "decrement") {
-          onItemPress(Math.max(currentIndex - 1, 0));
-        }
-      }}
-      accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
-    >
-      {values.map((value, index) => (
-        <Pressable
-          key={value}
-          style={styles.item}
-          onPress={() => onItemPress(index)}
-          accessibilityRole="button"
-          accessibilityLabel={formatTwoDigits(value)}
-          testID={`${testID}-item-${value}`}
-        >
-          <Text style={styles.itemLabel}>{formatTwoDigits(value)}</Text>
-        </Pressable>
-      ))}
-    </ScrollView>
+    <View style={styles.wheelArea}>
+      <ScrollView
+        ref={scrollRef}
+        testID={testID}
+        style={styles.column}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_HEIGHT}
+        decelerationRate="fast"
+        scrollEventThrottle={16}
+        onScroll={onScroll}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        onScrollEndDrag={onScrollEndDrag}
+        accessibilityRole="adjustable"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityValue={{ min: 0, max, now }}
+        onAccessibilityAction={(event) => {
+          const currentIndex =
+            testID === "duration-wheel-seconds" ? secondsValueToIndex(now) : now;
+          if (event.nativeEvent.actionName === "increment") {
+            onItemPress(Math.min(currentIndex + 1, values.length - 1));
+          } else if (event.nativeEvent.actionName === "decrement") {
+            onItemPress(Math.max(currentIndex - 1, 0));
+          }
+        }}
+        accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+      >
+        {values.map((value, index) => (
+          <Pressable
+            key={value}
+            style={styles.item}
+            onPress={() => onItemPress(index)}
+            accessibilityRole="button"
+            accessibilityLabel={formatTwoDigits(value)}
+            testID={`${testID}-item-${value}`}
+          >
+            <Text style={styles.itemLabel}>{formatTwoDigits(value)}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <WheelSelectionOverlay itemHeight={ITEM_HEIGHT} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Surface opaque blanche, arrondie, bordée et ombrée — masque totalement
-  // le contenu sous-jacent.
-  surface: {
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    paddingVertical: spacing[8],
+    gap: spacing[4],
+  },
+  wheelArea: {
+    height: ITEM_HEIGHT * 3,
+  },
+  column: {
+    height: ITEM_HEIGHT * 3,
+  },
+  item: {
+    height: ITEM_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemLabel: {
+    ...type.metricPrimary,
+    color: colors.textPrimary,
+  },
+  separator: {
+    ...type.body,
+    color: colors.textSecondary,
+  },
+  // D-02 : surface opaque blanche, arrondie, bordée, ombrée — masque
+  // totalement le contenu sous-jacent (le `Host` lui-même n'a et ne doit
+  // avoir aucun fond propre, c'est cette surface qui le porte).
+  nativeSurface: {
     backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,
@@ -404,9 +558,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[12],
     paddingBottom: spacing[8],
   },
+  legacySurface: {
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    paddingHorizontal: spacing[12],
+  },
   // R4-09 : toolbar en haut, hauteur visuelle `40` (`D-098`) — les actions
   // atteignent `48×48` de cible tactile via `hitSlop`, pas via cette
-  // hauteur de rangée.
+  // hauteur de rangée (voir la note de tête du fichier).
   toolbar: {
     flexDirection: "row",
     alignItems: "center",
@@ -439,66 +605,13 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: colors.wheelActionValidateIcon,
   },
-  // R4-07 : rangée de largeur canonique fixe (`WHEEL_ROW_WIDTH`, `234`),
-  // centrée dans `surface` (plus large — largeur de la ligne hôte).
-  wheelRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  // D-04 : pas de hauteur figée sur le `Host` lui-même — `matchContents`
+  // dimensionne au contenu natif réel. `minHeight` garantit seulement le
+  // plancher canonique `D-098` (voir la note de tête du fichier).
+  // `alignSelf: "center"` centre la roulette (largeur intrinsèque `234`,
+  // R4-07) dans `nativeSurface`, plus large (largeur de la ligne hôte).
+  nativeHost: {
     alignSelf: "center",
-    width: WHEEL_ROW_WIDTH,
-    height: ITEM_HEIGHT * 3,
-    paddingVertical: spacing[8],
-  },
-  column: {
-    height: ITEM_HEIGHT * 3,
-  },
-  item: {
-    height: ITEM_HEIGHT,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemLabel: {
-    ...type.metricPrimary,
-    color: colors.textPrimary,
-  },
-  // R4-07 : unités `min`/`s` en gras, `14/18` — auparavant `type.body`
-  // (Regular, `14/20`), et positionnées hors du conteneur commun de
-  // colonnes (`separator`, cycle précédent) plutôt qu'alignées au gap exact.
-  unit: {
-    ...type.compactCardTitle,
-    color: colors.textPrimary,
-    textAlign: "left",
-  },
-  // R4-06/W-07/W-11 : bande de sélection UNIQUE couvrant toute la largeur
-  // de `wheelRow` (colonnes + unités), voir `WheelSelectionBand` — jamais
-  // une bande par colonne (défaut de l'ancienne `WheelSelectionOverlay`,
-  // par ailleurs teintée en bleu pâle, `colors.selectionSurface`, plutôt
-  // qu'en gris neutre).
-  // Aucun `zIndex` explicite : rendu comme PREMIER enfant de `wheelRow`,
-  // ce calque peint donc naturellement SOUS les colonnes suivantes (ordre
-  // de peinture par défaut de React Native) — visible en arrière-plan des
-  // chiffres, jamais par-dessus.
-  selectionBandLayer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  band: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.surface,
-  },
-  fade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: colors.background,
-    opacity: 0.55,
+    minHeight: WHEEL_CONTENT_MIN_HEIGHT,
   },
 });

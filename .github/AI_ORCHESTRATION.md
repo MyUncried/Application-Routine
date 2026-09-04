@@ -310,6 +310,38 @@ Claude modifie uniquement le périmètre approuvé et ses dépendances indispens
 
 Après `CHANGES_REQUESTED` ou `RETEST_REQUIRED`, conserver le contexte de tâche et transmettre uniquement la demande de correction et le delta depuis le dernier état. Aucun nettoyage/refactoring opportuniste hors périmètre.
 
+## Conservation des acquis / Change Control
+
+Introduite par `[ChatGPT] PLAN_APPROVED — REWORK06 — RESTAURATION CIBLÉE DE LA ROULETTE + VERROU DE CAPITALISATION` (2026-09-04), à la suite d’une régression majeure où une correction locale de la roulette de Composition avait entraîné le remplacement complet d’une primitive native déjà acceptée par une réimplémentation maison, présentée à tort comme équivalente sur la seule base d’une suite Jest verte.
+
+Un composant, écran, comportement ou choix technique déjà validé explicitement, ou constituant la dernière version de référence acceptée, devient une **BASELINE GELÉE**.
+
+Dès lors :
+
+1. Toute nouvelle mission est un **delta** appliqué à cette baseline, jamais une autorisation de réécriture générale.
+2. Tout élément non explicitement ouvert par la mission en cours est hors périmètre et doit rester inchangé.
+3. Une correction locale n’autorise ni changement de primitive, ni remplacement de composant, ni refonte d’architecture, ni réécriture massive des tests.
+4. Si Claude estime qu’une substitution ou une refonte est indispensable, il doit s’arrêter **avant tout code** avec le statut `CHANGE_REQUEST_REQUIRED` et fournir : le blocage démontré ; l’alternative proposée ; les fichiers et comportements touchés ; les acquis qui risquent d’être perdus ; les tests et preuves de non-régression envisagés. Une autorisation ChatGPT distincte est obligatoire avant tout code.
+5. Le silence ou l’ambiguïté d’une instruction ne vaut jamais autorisation de remplacer un acquis.
+6. Avant modification, Claude établit la liste `PRESERVE / CHANGE / FORBIDDEN` du périmètre concerné. Après modification, le rapport de mission démontre que chaque élément `PRESERVE` est resté inchangé.
+7. Une suite Jest verte ne permet jamais, à elle seule, de remplacer une preuve visuelle ou tactile sur appareil réel.
+8. Tout diff dépassant le composant ciblé, ses styles strictement dépendants et ses tests ciblés impose un arrêt `SCOPE_EXPANSION_REQUIRED`.
+
+`CHANGE_REQUEST_REQUIRED` et `SCOPE_EXPANSION_REQUIRED` sont des barrières d’arrêt au même titre que celles de la machine à états principale (§ « Machine à états ») : elles interdisent l’écriture tant qu’une autorisation `PLAN_APPROVED` distincte ne les lève pas explicitement.
+
+## Priorité aux primitives natives de l’OS
+
+Introduite par la même autorisation REWORK06 (2026-09-04), à la suite du remplacement non autorisé d’une roulette native iOS (`@expo/ui/swift-ui`, `pickerStyle("wheel")`) par une réimplémentation React Native personnalisée.
+
+1. Lorsqu’une primitive native iOS ou Android existe pour l’interaction demandée, Claude doit **systématiquement la privilégier**.
+2. Il est interdit de remplacer une primitive native disponible par une réimplémentation personnalisée React Native, un assemblage de `ScrollView`, une imitation graphique ou une bibliothèque tierce uniquement pour faciliter le style ou les tests.
+3. Si le rendu natif nécessite une adaptation de conteneur, de largeur, d’alignement ou d’habillage, corriger l’intégration autour de la primitive native sans remplacer son mécanisme d’interaction.
+4. Une dérogation n’est possible que si Claude démontre, avant tout code, que la primitive native ne peut pas satisfaire une exigence fonctionnelle validée. Il doit alors s’arrêter en `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED`, documenter les preuves, les impacts et l’alternative, puis attendre une autorisation ChatGPT explicite avant tout code.
+5. L’absence de couverture Jest, la difficulté de mocker la primitive, ou l’impossibilité pour Claude d’obtenir lui-même une capture device ne constituent jamais une justification de remplacement.
+6. Les tests doivent vérifier que la branche concernée utilise réellement la primitive native attendue et qu’aucun fallback personnalisé ne lui est substitué silencieusement.
+
+`NATIVE_PRIMITIVE_EXCEPTION_REQUIRED` est une barrière d’arrêt au même titre que `CHANGE_REQUEST_REQUIRED`/`SCOPE_EXPANSION_REQUIRED` ci-dessus.
+
 ## Rapport après implémentation
 
 Le rapport humain reste lisible dans GitHub, mais lorsque le transport le permet sa sortie machine est structurée. Les champs minimaux sont : `status`, `task`, `summary`, `files_modified`, `acceptance_criteria`, `tests_run`, `tests_not_run`, `plan_deviations`, `limitations`, `technical_decisions`, `clarifications`, `performance`, `commit`, `self_check`. `performance` contient, lorsque observables, `ai_duration`, `turns_or_calls`, `permission_denials`, `context_assessment`, `cost_or_consumption`, `inefficiencies`, `action`. Le workflow rend ensuite cette structure lisible ; l’orchestrateur ne doit pas dépendre du reparsing d’un bloc Markdown libre pour détecter stagnation ou échec.

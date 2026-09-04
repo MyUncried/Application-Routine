@@ -30,7 +30,13 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
  * 2026-09-03 ; correction cumulative post contre-recette iPhone —
  * `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE CORRECTION`,
- * 2026-09-03, identifiants `C-01/C-02/T-01…T-05/A-01`).
+ * 2026-09-03, identifiants `C-01/C-02/T-01…T-05/A-01`) ; REWORK06
+ * (`[ChatGPT] PLAN_APPROVED — REWORK06 — RESTAURATION CIBLÉE DE LA
+ * ROULETTE + VERROU DE CAPITALISATION`, 2026-09-04) — Header, zone Context
+ * et zone Bottom Action sont désormais une **BASELINE GELÉE** (validation
+ * iPhone utilisateur `CONFORME`) : conservées inchangées ce cycle, toute
+ * régression de leur position est interdite (voir `.github/
+ * AI_ORCHESTRATION.md`, « Conservation des acquis / Change Control »).
  *
  * Le brouillon vient de `SessionDraftProvider` (monté par
  * `app/(creation)/_layout.tsx`, au-dessus de cet écran) — cette route ne
@@ -405,10 +411,18 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
  * sans toucher au layout (CMP-03/05 initial, cycle précédent, avait laissé
  * ce slot vide faute d'instruction explicite de réutilisation).
  *
- * Chevron : supprimé à l'état fermé (absent de la référence signalée par
- * le cycle précédent). Conservé uniquement à l'état ouvert, comme seul
- * indice visuel restant de l'état « développé » (`accessibilityState.
- * expanded` porte déjà cette information pour l'accessibilité).
+ * **Chevron définitivement retiré** (`[ChatGPT] PLAN_APPROVED — REWORK06 —
+ * RESTAURATION CIBLÉE DE LA ROULETTE + VERROU DE CAPITALISATION`,
+ * 2026-09-04, addendum « écarts visuels encore ouverts ») : le cycle
+ * précédent conservait un chevron (`control-chevron-up`) uniquement à
+ * l'état ouvert — cet élément supplémentaire, ajouté à droite de l'icône de
+ * rôle, faisait varier le nombre d'enfants de la rangée entre les états
+ * fermé/ouvert, donc la position de l'icône de rôle elle-même (« l'icône
+ * fonctionnelle de la carte... doit garder exactement la même position
+ * ouverte et fermée »). Le chevron est désormais entièrement supprimé, à
+ * l'état ouvert comme fermé — `accessibilityState.expanded` porte déjà
+ * cette information pour l'accessibilité, sans dépendre d'un indice visuel
+ * qui décale la mise en page.
  */
 function BoundaryActivityRow({
   icon,
@@ -448,9 +462,6 @@ function BoundaryActivityRow({
       <View style={styles.boundaryRowIconSlot}>
         <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
       </View>
-      {isOpen ? (
-        <KodjoIcon name="control-chevron-up" testID="composition-row-chevron-up" />
-      ) : null}
     </Pressable>
   );
 }
@@ -474,16 +485,21 @@ function BoundaryActivityRow({
  * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
  *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
  *   `rowLabel`/`tourCardLabel`).
- * - **T-04a/b/c** (`[ChatGPT] CHANGES_REQUESTED — Composition d'une séance
- *   — audit indépendant REWORK04`, 2026-09-03) : anatomie du contrôle
- *   **refaite**, inversant `T-04/R4-10` du cycle précédent — désormais un
- *   cadre parent clair `66×30` (`tourCardControl`, fond `colors.background`)
+ * - **T-04a/b/c** (audit indépendant REWORK04, 2026-09-03) : anatomie du
+ *   contrôle **refaite**, inversant `T-04/R4-10` du cycle précédent —
+ *   cadre parent clair (`tourCardControl`, fond `colors.background`)
  *   contenant DEUX éléments distincts côte à côte : la valeur `1` en texte
- *   nu à gauche (`tourCardControlValue`, jamais sur fond violet) et un
- *   carré violet `28×28` à droite (`tourCardControlChevronBox`,
- *   `colors.selection`) contenant UNIQUEMENT le chevron blanc — le cycle
- *   précédent plaçait `1` et le chevron ensemble dans le même carré
- *   violet, explicitement interdit par cette revue.
+ *   nu (`tourCardControlValue`, jamais sur fond violet) et un carré violet
+ *   `28×28` (`tourCardControlChevronBox`, `colors.selection`) contenant
+ *   UNIQUEMENT le chevron blanc — le cycle précédent plaçait `1` et le
+ *   chevron ensemble dans le même carré violet, explicitement interdit.
+ *   **REWORK06** (`[ChatGPT] PLAN_APPROVED — REWORK06`, 2026-09-04,
+ *   addendum) : cadre porté de `66×30` à `78×44` — le `1` est désormais
+ *   centré horizontalement ET verticalement (auparavant aligné à gauche),
+ *   en `type.cardTitle` (`16/20` Semi Bold, auparavant `type.label` `14/18`
+ *   Medium) ; le carré violet dispose de marges visibles identiques en
+ *   haut/bas/droite (`8pt` chacune, dérivées par construction — voir
+ *   `tourCardControl` ci-dessous).
  * - **T-05** : contenu `1` seul — le signe `×` retiré.
  * - **R4-12** : le conteneur Tour (`tourSectionContainer`, `374`) est
  *   désormais plus large que la carte interne qu'il héberge (`354`,
@@ -621,12 +637,15 @@ const styles = StyleSheet.create({
   boundaryRow: {
     backgroundColor: colors.background,
   },
-  // R4-04 (slot structure `28×28`, icône `20×20`) : agrandi depuis `24×24`
-  // — le pictogramme (`composition-reorder`, désormais affiché `20×20`,
-  // voir `KodjoIcon.tsx`) reste centré dans ce slot.
+  // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06
+  // (addendum « poignées de déplacement des cartes encore trop petites »,
+  // 2026-09-04) : slot porté à `32×32` pour accueillir l'icône désormais
+  // affichée `24×24` (voir `KodjoIcon.tsx`) avec une marge visible, sans
+  // changer sa fonction ni son ancrage (toujours le slot gauche de la
+  // rangée).
   boundaryRowHandleSlot: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -667,30 +686,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // R4-03 : même style de titre que les cartes limites (voir `rowLabel`).
+  // R4-03/REWORK06 : même style de titre que les cartes limites (voir `rowLabel`).
   tourCardLabel: {
-    ...type.compactCardTitle,
+    ...type.cardTitle,
     flex: 1,
     color: colors.textPrimary,
   },
-  // T-04a/b/c : cadre parent clair `66×30` — contient la valeur `1` (texte
-  // nu, à gauche) et le carré violet dédié au chevron (à droite,
-  // `tourCardControlChevronBox`) comme deux éléments frères distincts.
-  // Remplace l'anatomie du cycle précédent (`1` + chevron dans le même
-  // carré violet), explicitement interdite par cette revue.
+  // T-04a/b/c (cycle REWORK04) : cadre parent clair contenant la valeur `1`
+  // (texte nu, jamais sur fond violet) et le carré violet dédié au chevron
+  // (`tourCardControlChevronBox`) comme deux éléments frères distincts.
+  //
+  // REWORK06 (addendum « écarts visuels encore ouverts », 2026-09-04) :
+  // hauteur portée de `30` à `44` — `alignItems: "center"` centre
+  // mécaniquement le carré violet (`28`) dans cette hauteur, dégageant une
+  // marge haut/bas de `(44-28)/2 = 8` ; `paddingRight: spacing[8]` (`8`)
+  // égale cette même marge à droite du carré, comme demandé (« marges
+  // visibles identiques en haut, en bas et à droite »). Largeur portée de
+  // `66` à `78` pour dégager l'espace nécessaire au centrage du chiffre.
   tourCardControl: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    width: 66,
-    height: 30,
-    paddingHorizontal: spacing[6],
+    width: 78,
+    height: 44,
+    paddingLeft: spacing[8],
+    paddingRight: spacing[8],
     backgroundColor: colors.background,
-    borderRadius: 8,
+    borderRadius: 10,
   },
+  // REWORK06 : `1` centré horizontalement (`flex: 1` + `textAlign:
+  // "center"`, occupe tout l'espace entre le padding gauche et le carré
+  // violet — auparavant hors flex, aligné au bord gauche du cadre par
+  // `justifyContent: "space-between"`) et verticalement (centrage flex par
+  // `tourCardControl.alignItems: "center"`, hérité). Style porté de
+  // `type.label` (`14/18` Medium) à `type.cardTitle` (`16/20` Semi Bold) —
+  // « en gras et plus grand ».
   tourCardControlValue: {
-    ...type.label,
+    ...type.cardTitle,
     color: colors.textPrimary,
+    flex: 1,
+    textAlign: "center",
   },
   // Carré violet dédié, ne contenant QUE le chevron blanc (T-04c).
   tourCardControlChevronBox: {
@@ -701,10 +735,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.selection,
     borderRadius: 8,
   },
-  // R4-03 (`KODJO / Card / Title`, `14/18` Semi Bold) : auparavant
-  // `type.body` (`14/20` Regular), non conforme au style DSF partagé.
+  // R4-03 (cycle REWORK04) : `type.compactCardTitle` (`14/18` Semi Bold),
+  // auparavant `type.body` (`14/20` Regular). REWORK06 (addendum « titres
+  // des cartes... encore trop petits », 2026-09-04) : porté à
+  // `type.cardTitle` (`16/20` Semi Bold) — token DSF déjà canonique,
+  // partagé avec `SessionCard.tsx` (Catalogue), plutôt qu'une nouvelle
+  // taille locale inventée. Effet de bord accepté : la ligne Exercice de
+  // cet écran (non explicitement citée par l'addendum) partage `rowLabel`
+  // et grandit donc identiquement.
   rowLabel: {
-    ...type.compactCardTitle,
+    ...type.cardTitle,
     color: colors.textPrimary,
   },
   // LAY-03 : hauteur/rayon issus du composant DS
