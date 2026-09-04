@@ -536,5 +536,25 @@ describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPick
       expect(cancelStyle.backgroundColor).toBe(colors.wheelActionCancelBackground);
       expect(validateStyle.backgroundColor).toBe(colors.wheelActionValidateBackground);
     });
+
+    it("REWORK07B — renders the canonical wheel-action SVG assets at 24×24, never the previous Unicode ✕/✓ glyphs", () => {
+      render(<DurationWheelPicker {...renderProps()} />);
+
+      const cancelIcon = screen.getByTestId("duration-wheel-cancel-icon");
+      const validateIcon = screen.getByTestId("duration-wheel-validate-icon");
+      expect(StyleSheet.flatten(cancelIcon.props.style).width).toBe(24);
+      expect(StyleSheet.flatten(cancelIcon.props.style).height).toBe(24);
+      expect(StyleSheet.flatten(validateIcon.props.style).width).toBe(24);
+      expect(StyleSheet.flatten(validateIcon.props.style).height).toBe(24);
+
+      // Actifs canoniques réellement chargés — leur `source` diffère (pas
+      // le même module require), preuve qu'il ne s'agit pas du même
+      // pictogramme rendu deux fois par accident.
+      expect(cancelIcon.props.source).not.toBe(validateIcon.props.source);
+
+      // Plus aucun glyphe Unicode texte — la lacune DSF R4-09 est fermée.
+      expect(screen.queryByText("✕")).toBeNull();
+      expect(screen.queryByText("✓")).toBeNull();
+    });
   });
 });

@@ -520,20 +520,48 @@ function BoundaryActivityRow({
  *   désormais plus large que la carte interne qu'il héberge (`354`,
  *   inset `10`/côté) — INVERSE explicitement `T-01` (qui avait unifié la
  *   largeur de Tour avec celle des cartes limites) : `T-01` unifiait la
- *   GÉOMÉTRIE DE BOÎTE (padding/bordure/rayon, toujours vrai) ; R4-12
- *   distingue désormais la LARGEUR EXTÉRIEURE du conteneur (rôle de
- *   conteneur, pas une carte elle-même) de celle, inchangée, de la carte
+ *   GÉOMÉTRIE DE BOÎTE (padding/bordure/rayon, toujours vrai à l'époque) ;
+ *   R4-12 distingue la LARGEUR EXTÉRIEURE du conteneur (rôle de conteneur,
+ *   pas une carte elle-même) de celle, alors inchangée, de la carte
  *   interne. `marginHorizontal: -inset` fait « déborder » le conteneur de
  *   `10pt` de chaque côté au-delà du padding de `body` (`24`), portant sa
  *   largeur extérieure réelle à `374` sur le canevas de référence
  *   (`402pt`) sans aucune constante de largeur codée en dur — dérivée par
  *   construction, comme pour la marge basse de la navigation (`N-03`).
+ *
+ * - **REWORK07B — structure extérieure / en-tête transparent** (`[ChatGPT]
+ *   PLAN_APPROVED — REWORK07B — contrôles canoniques + structure Tour`,
+ *   2026-09-04 ; `12 – Architecture technique.md`, « Anatomie canonique —
+ *   Nombre de tours » ; `13 – Contrats d'écran.md`, CE-T01-08/09) : **T-01
+ *   est ici explicitement révisé, pas silencieusement contredit** — la
+ *   documentation canonique établit que la SEULE surface visuelle du bloc
+ *   Tour est la **structure extérieure** (`tourSectionContainer`, `374 pt`,
+ *   fond `colors.tourSurface` = `#CDCEFA`, rayon canonique `10`, distinct
+ *   du rayon `12` de `limitCardBase`/cartes limites), jamais la carte
+ *   interne. L'**en-tête technique intérieur** (`tourHeader`, testID
+ *   inchangé `composition-tour-card` — seule sa signification visuelle
+ *   change, pas son identifiant) redevient un simple conteneur de mise en
+ *   page **transparent** : ni fond, ni bordure, ni rayon, ni apparence de
+ *   carte autonome — `limitCardBase` (fond/bordure/padding partagés avec
+ *   `BoundaryActivityRow`) ne s'applique donc plus ici. Le `paddingVertical`
+ *   et le `minHeight` que portait auparavant la carte interne (via
+ *   `limitCardBase`/`tourCard`) sont **relocalisés** sur la structure
+ *   extérieure (mêmes valeurs numériques, seul le propriétaire change) :
+ *   `tourSectionContainer` disposait déjà, depuis R4-12, exactement de la
+ *   géométrie `374 large / inset 10 / contenu 354` requise pour porter
+ *   cette surface — aucun nouveau conteneur n'était nécessaire. Absence
+ *   d'activité : une seule structure bleue reste visible (aucune carte
+ *   intérieure ne dessine plus sa propre surface). La synthèse
+ *   activité/durée sous le libellé `Nombre de tours` (addendum `[ChatGPT]
+ *   ADDENDUM EN ATTENTE — prochain run Roulette + synthèse Tour`,
+ *   2026-09-04) reste explicitement **hors périmètre de ce cycle**
+ *   (`QUEUED_FOR_NEXT_COMPOSITION_REWORK`) — non implémentée ici.
  */
 function TourCard({ label }: { label: string }) {
   return (
     <View style={styles.tourSectionContainer} testID="composition-tour-section">
       <View
-        style={[styles.limitCardBase, styles.tourCard]}
+        style={styles.tourHeader}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ disabled: true }}
@@ -686,16 +714,28 @@ const styles = StyleSheet.create({
   },
   // R4-12 : conteneur Tour, plus large que la carte interne qu'il héberge
   // — voir `TourCard` ci-dessus pour la justification complète du calcul.
+  // REWORK07B : porte désormais la surface visuelle elle-même (fond,
+  // rayon, padding vertical, hauteur minimale) — relocalisés depuis
+  // l'ancien style `tourCard` (voir `tourHeader` ci-dessous), qui ne
+  // portait pas encore la bonne largeur (`374`) pour cette surface.
   tourSectionContainer: {
     marginHorizontal: -dimensions.compositionTourSection.inset,
     paddingHorizontal: dimensions.compositionTourSection.inset,
-  },
-  // Carte `Tour`, voir `TourCard` ci-dessus pour la justification complète
-  // (géométrie partagée `limitCardBase`/T-01, icône canonique/T-02/R4-11,
-  // contrôle carré violet/T-04/R4-10, contenu `1` seul/T-05).
-  tourCard: {
-    backgroundColor: colors.selectionSurface,
+    paddingVertical: spacing[12],
+    borderRadius: dimensions.compositionTourSection.radius,
+    backgroundColor: colors.tourSurface,
     minHeight: dimensions.compositionTourSection.closedHeight,
+  },
+  // En-tête technique intérieur de `TourCard`, voir la documentation
+  // REWORK07B ci-dessus pour la justification complète : simple rangée de
+  // mise en page (icône/titre/contrôle), **transparente** — ni fond, ni
+  // bordure, ni rayon, ni padding propres (portés par `tourSectionContainer`
+  // désormais). N'utilise plus `limitCardBase` (fond/bordure partagés avec
+  // `BoundaryActivityRow`, non conformes ici depuis la révision REWORK07B).
+  tourHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
   },
   // R4-04 : même slot que `boundaryRowHandleSlot` (`28×28`) — icône Tour
   // désormais réellement affichée dedans (R4-11), plus un espace vide.

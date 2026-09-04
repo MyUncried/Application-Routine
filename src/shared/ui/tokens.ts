@@ -32,8 +32,25 @@ export const colors = {
   // le nom du token primitif, pour exprimer l'intention au point d'usage.
   wheelActionCancelBackground: "#F5F7FA",
   wheelActionValidateBackground: "#0508E5",
+  // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
+  // + structure Tour`, 2026-09-04) : `PickerToolbar` (`DurationWheelPicker
+  // .tsx`) consomme désormais les actifs SVG canoniques (`wheel-action-
+  // cancel.svg`/`wheel-action-validate.svg`, `3089:81`/`3089:83`) au lieu
+  // des glyphes Unicode `✕`/`✓` — leur couleur est portée nativement par
+  // le tracé du SVG (identique à ces valeurs), sans `tintColor` requis.
+  // Ces deux tokens n'ont donc plus de consommateur direct dans le code,
+  // mais sont conservés pour la traçabilité DSF (`color.wheelAction*Icon`,
+  // registre `12 – Architecture technique.md`) et une éventuelle
+  // réutilisation future (ex. `tintColor` sur un contexte non standard).
   wheelActionCancelIcon: "#141414",
   wheelActionValidateIcon: "#FFFFFF",
+  // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
+  // + structure Tour`, 2026-09-04 ; `12 – Architecture technique.md`,
+  // « Anatomie canonique — Nombre de tours ») : fond bleu propre à la
+  // **structure extérieure** de `Composition / Tour Section` (`3067:270`)
+  // — distinct de `selectionSurface` (`#E5F0FF`), jusqu'ici réutilisé par
+  // erreur pour ce rôle alors que la source canonique documente `#CDCEFA`.
+  tourSurface: "#CDCEFA",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -132,7 +149,14 @@ export const dimensions = {
   // est plus large que la carte qu'il héberge (rôle de conteneur, pas une
   // carte elle-même) — inversion explicite de `T-01` (cycle précédent, qui
   // avait unifié la largeur de Tour avec celle des cartes limites).
-  compositionTourSection: { containerWidth: 374, cardWidth: 354, inset: 10, closedHeight: 54 },
+  // `radius` ajouté par REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B —
+  // contrôles canoniques + structure Tour`, 2026-09-04 ; « Anatomie
+  // canonique — Nombre de tours ») : rayon canonique de la **structure
+  // extérieure** elle-même (`10`), distinct du rayon `12` partagé par
+  // `limitCardBase`/`standardCard` (cartes limites) — cette structure n'est
+  // plus une carte au sens `limitCardBase`, mais la seule surface visuelle
+  // englobante du bloc Tour (voir `TourCard` dans `CompositionScreen.tsx`).
+  compositionTourSection: { containerWidth: 374, cardWidth: 354, inset: 10, closedHeight: 54, radius: 10 },
   // REWORK07-A (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON /
   // STRUCTURE / MOVABLE UNIQUEMENT`, 2026-09-04) : géométrie canonique du
   // pictogramme structurel `Icon / Structure / Movable` (`3066:4676`) —

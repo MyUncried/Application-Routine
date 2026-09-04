@@ -27,6 +27,7 @@ import {
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
 import { WheelSelectionOverlay } from "@/features/sessions/WheelSelectionOverlay";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -262,13 +263,16 @@ function NativeAppleDurationWheelPicker({
  * visuelle elle-même — même patron que `addActivityAction`/`CreateAction`
  * déjà établi dans ce projet).
  *
- * **Glyphes Annuler/Valider — lacune DSF déclarée** (R4-09 exige des
- * icônes croix/coche ; contrairement à l'icône Tour, R4-11, aucune URL
- * d'export Figma n'a été fournie pour ces deux glyphes dans aucune
- * autorisation reçue à ce jour). Rendus provisoirement en caractères
- * Unicode (`✕`, `✓`) plutôt qu'un tracé SVG inventé ou un pictogramme
- * existant détourné — lacune explicitement escaladée dans le rapport de
- * mission, pas un défaut silencieux.
+ * **Glyphes Annuler/Valider — actifs canoniques** (REWORK07B, `[ChatGPT]
+ * PLAN_APPROVED — REWORK07B — contrôles canoniques + structure Tour`,
+ * 2026-09-04) : la lacune DSF déclarée depuis R4-09 (aucune URL d'export
+ * Figma fournie pour ces deux glyphes, rendus provisoirement en caractères
+ * Unicode `✕`/`✓`) est fermée — `assets/icons/wheel-action-cancel.svg`
+ * (`3089:81`) et `assets/icons/wheel-action-validate.svg` (`3089:83`),
+ * octets exacts, consommés via `KodjoIcon` (jamais un tracé inventé ni un
+ * pictogramme existant détourné). Couleur portée nativement par le SVG
+ * (`#141414`/blanc, déjà identique aux tokens `color.wheelAction*Icon`) —
+ * aucun `tintColor` nécessaire.
  */
 function PickerToolbar({
   onCancel,
@@ -291,7 +295,7 @@ function PickerToolbar({
         style={styles.actionCancel}
         testID="duration-wheel-cancel"
       >
-        <Text style={styles.actionGlyphCancel}>✕</Text>
+        <KodjoIcon name="wheel-action-cancel" testID="duration-wheel-cancel-icon" />
       </Pressable>
       <Pressable
         onPress={onValidate}
@@ -301,7 +305,7 @@ function PickerToolbar({
         style={styles.actionValidate}
         testID="duration-wheel-validate"
       >
-        <Text style={styles.actionGlyphValidate}>✓</Text>
+        <KodjoIcon name="wheel-action-validate" testID="duration-wheel-validate-icon" />
       </Pressable>
     </View>
   );
@@ -594,16 +598,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.wheelActionValidateBackground,
     alignItems: "center",
     justifyContent: "center",
-  },
-  actionGlyphCancel: {
-    fontSize: 14,
-    lineHeight: 16,
-    color: colors.wheelActionCancelIcon,
-  },
-  actionGlyphValidate: {
-    fontSize: 14,
-    lineHeight: 16,
-    color: colors.wheelActionValidateIcon,
   },
   // D-04 : pas de hauteur figée sur le `Host` lui-même — `matchContents`
   // dimensionne au contenu natif réel. `minHeight` garantit seulement le

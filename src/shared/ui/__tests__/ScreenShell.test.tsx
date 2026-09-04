@@ -57,6 +57,17 @@ describe("FixedHeader", () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
+  it("REWORK07B — the Retour chevron itself renders at the canonical 24×24 (up from 14×14 — `Action / Back`, `2624:3105`, registered 24×24 in the manifest), inside the unchanged 28×28 circle / 48×48 touch target", () => {
+    renderWithSafeArea(
+      <FixedHeader title="Composition" onBack={jest.fn()} backAccessibilityLabel="Retour" />,
+    );
+
+    const icon = screen.getByTestId("screen-header-back-icon");
+    const flattened = StyleSheet.flatten(icon.props.style);
+    expect(flattened.width).toBe(24);
+    expect(flattened.height).toBe(24);
+  });
+
   it("reserves the real top safe-area inset in the header's own height, exactly once", () => {
     renderWithSafeArea(<FixedHeader title="Composition" />);
 

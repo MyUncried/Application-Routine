@@ -23,20 +23,29 @@ const sources = {
   "composition-reorder": require("../../../assets/icons/composition-reorder.svg"),
   "state-selected": require("../../../assets/icons/state-selected.svg"),
   "icon-tour": require("../../../assets/icons/icon-tour.svg"),
+  "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
+  "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
 } as const;
 
 const sizes = {
   "action-add": [24, 24],
   "action-start": [28, 28],
-  // R4-02 (`Action / Back`, `2624:3105`) : affichage réduit de `24×24` à
-  // `14×14` — la cible tactile (`minTouchTarget`, inchangée) est portée
-  // par le `hitSlop`/conteneur de l'appelant, jamais par cette taille
-  // d'affichage. Effet de bord accepté : `ExerciseScreen.tsx` (hors
-  // périmètre de cette revue, non modifié) consomme la même icône
-  // partagée et hérite donc de la même taille d'affichage — aucun fichier
-  // de cet écran n'est modifié, seul le rendu de l'icône change, effet
-  // inhérent à la correction d'un token DSF réellement partagé.
-  "control-back": [14, 14],
+  // R4-02 (cycle REWORK04) : affichage réduit de `24×24` à `14×14` — la
+  // cible tactile (`minTouchTarget`, inchangée) était portée par le
+  // `hitSlop`/conteneur de l'appelant, jamais par cette taille d'affichage.
+  // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
+  // + structure Tour`, 2026-09-04) : **revenu à `24×24`** — le registre de
+  // traçabilité canonique (`12 – Architecture technique.md`, `Action /
+  // Back`, `2624:3105`) documente explicitement le cadre SVG à `24×24`
+  // (cible tactile `48×48` et cercle visible `28×28` inchangés, toujours
+  // portés par `dimensions.backAction`/`hitSlop` dans `ScreenShell.tsx`,
+  // jamais par cette taille d'affichage). `14×14` était non conforme.
+  // Effet de bord accepté, déjà documenté au cycle R4-02 : `ExerciseScreen
+  // .tsx` (hors périmètre de cette revue, non modifié) consomme la même
+  // icône partagée et hérite donc de la même taille d'affichage — aucun
+  // fichier de cet écran n'est modifié, seul le rendu de l'icône change,
+  // effet inhérent à la correction d'un token DSF réellement partagé.
+  "control-back": [24, 24],
   "control-chevron-down": [24, 24],
   "control-chevron-up": [24, 24],
   "navigation-sessions-active": [30, 20],
@@ -74,6 +83,16 @@ const sizes = {
   // (composant Figma `3066:4685`, octets exacts téléchargés depuis
   // l'asset MCP fourni par l'autorisation, jamais redessiné).
   "icon-tour": [20, 20],
+  // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
+  // + structure Tour`, 2026-09-04) : actifs SVG canoniques `wheel-action-
+  // cancel.svg`/`wheel-action-validate.svg` (`3089:81`/`3089:83`),
+  // remplaçant les glyphes Unicode `✕`/`✓` de `PickerToolbar` dans
+  // `DurationWheelPicker.tsx`. Cadre `24×24`, matching le `viewBox` exact
+  // de chaque export — le cercle visible `28×28` et la cible tactile
+  // `48×48` restent portés par `dimensions.wheelPicker`, jamais par cette
+  // taille d'affichage (même patron que `control-back`).
+  "wheel-action-cancel": [24, 24],
+  "wheel-action-validate": [24, 24],
 } as const;
 
 /**

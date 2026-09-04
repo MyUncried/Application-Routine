@@ -630,11 +630,26 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("CMP-04/T-03/T-04a/b/c/T-05 — the Tour card is a distinct DS component (background different from the general background), showing the 'Nombre de tours' label and a control frame with '1' distinct from a dedicated violet chevron square, never the Activity icon", () => {
+  it("CMP-04/T-03/T-04a/b/c/T-05/REWORK07B — the Tour card is a distinct DS component (background carried by the outer structure, never the inner header), showing the 'Nombre de tours' label and a control frame with '1' distinct from a dedicated violet chevron square, never the Activity icon", () => {
     renderScreen();
 
+    // REWORK07B (« Anatomie canonique — Nombre de tours ») : la SEULE
+    // surface visuelle est la structure extérieure (`composition-tour-
+    // section`, fond bleu canonique) — l'en-tête intérieur
+    // (`composition-tour-card`) est désormais transparent, sans fond ni
+    // bordure ni rayon propres.
+    const tourSection = screen.getByTestId("composition-tour-section");
+    const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
+    expect(tourSectionStyle.backgroundColor).toBe(colors.tourSurface);
+    expect(tourSectionStyle.backgroundColor).not.toBe(colors.background);
+    expect(tourSectionStyle.borderRadius).toBe(10);
+
     const tourCard = screen.getByTestId("composition-tour-card");
-    expect(StyleSheet.flatten(tourCard.props.style).backgroundColor).not.toBe(colors.background);
+    const tourCardStyle = StyleSheet.flatten(tourCard.props.style);
+    expect(tourCardStyle.backgroundColor).toBeUndefined();
+    expect(tourCardStyle.borderWidth).toBeUndefined();
+    expect(tourCardStyle.borderRadius).toBeUndefined();
+
     expect(within(tourCard).getByText(composition.tour.label)).toBeTruthy();
     // T-05 : contenu `1` seul, plus de préfixe `×`.
     expect(within(tourCard).getByText("1")).toBeTruthy();
@@ -727,20 +742,37 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(handleSlot).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
   });
 
-  it("T-01 — the Tour card shares the exact same box geometry (padding/border/radius) as the Boundary Activity rows, so their left/right edges align", () => {
+  it("REWORK07B — supersedes T-01: the Tour section's own box geometry (border/radius/background) is now independent from the Boundary Activity rows' shared limitCardBase — the outer structure carries its own canonical radius/background, the inner header carries none of it", () => {
+    // T-01 (cycle REWORK03) affirmait que la carte Tour partageait
+    // EXACTEMENT la géométrie de boîte de `limitCardBase` avec les cartes
+    // limites. La documentation canonique désormais mergée (« Anatomie
+    // canonique — Nombre de tours », `12 – Architecture technique.md`)
+    // établit que la structure extérieure du Tour est une surface
+    // distincte (rayon `10`, fond bleu propre), jamais alignée sur
+    // `limitCardBase` (rayon `12`, bordure grise) — ce test remplace T-01
+    // explicitement, documentant la supersession plutôt que de la
+    // silencieusement contredire.
     renderScreen();
 
     const countdownRow = screen.getByLabelText(composition.countdown.label);
+    const tourSection = screen.getByTestId("composition-tour-section");
     const tourCard = screen.getByTestId("composition-tour-card");
     const countdownStyle = StyleSheet.flatten(countdownRow.props.style);
-    const tourStyle = StyleSheet.flatten(tourCard.props.style);
+    const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
+    const tourCardStyle = StyleSheet.flatten(tourCard.props.style);
 
-    expect(tourStyle.paddingHorizontal).toBe(countdownStyle.paddingHorizontal);
-    expect(tourStyle.paddingVertical).toBe(countdownStyle.paddingVertical);
-    expect(tourStyle.borderWidth).toBe(countdownStyle.borderWidth);
-    expect(tourStyle.borderRadius).toBe(countdownStyle.borderRadius);
-    // Seul le fond diverge (teinte propre à Tour) — géométrie identique.
-    expect(tourStyle.backgroundColor).not.toBe(countdownStyle.backgroundColor);
+    // L'en-tête intérieur (`composition-tour-card`) ne porte plus aucune
+    // des propriétés de boîte de `limitCardBase`.
+    expect(tourCardStyle.borderWidth).toBeUndefined();
+    expect(tourCardStyle.borderRadius).toBeUndefined();
+    expect(tourCardStyle.backgroundColor).toBeUndefined();
+
+    // La structure extérieure (`composition-tour-section`) porte sa propre
+    // géométrie canonique, explicitement distincte de celle des cartes
+    // limites (`limitCardBase`, rayon `12`, bordure grise `colors.border`).
+    expect(tourSectionStyle.borderRadius).toBe(10);
+    expect(tourSectionStyle.borderRadius).not.toBe(countdownStyle.borderRadius);
+    expect(tourSectionStyle.borderWidth).toBeUndefined();
   });
 
   it("A-01 — the body region is flex:1, guaranteeing the Bottom Action zone is pushed to the very bottom of the available space rather than floating above it, and no marginTop:auto remains on bottomAction itself", () => {
