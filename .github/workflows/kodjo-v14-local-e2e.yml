@@ -69,7 +69,8 @@ jobs:
           $authorizedBase=(git rev-parse "$checkpointCommit^1").Trim()
           if($cp.authorized_head -ne $authorizedBase){throw "Authorized base mismatch: checkpoint=$($cp.authorized_head) parent=$authorizedBase"}
           $allowedControlPrefix='.github/orchestration/e2e/state/KODJO-V14-LOCAL-E2E-01/'
-          $controlDelta=@(git diff --name-only $authorizedBase..$head)
+          $revisionRange="$authorizedBase..$head"
+          $controlDelta=@(git diff --name-only $revisionRange)
           foreach($path in $controlDelta){$n=$path -replace '\\','/';if(-not $n.StartsWith($allowedControlPrefix)){throw "HEAD guard failed: non-control change after authorized base: $n"}}
           if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.claim.json'))){throw 'Duplicate claim.'}; if(Test-Path (Join-Path $env:STATE_ROOT ('${{ inputs.stage }}'+'.result.json'))){throw 'Duplicate result.'}
           if('${{ inputs.stage }}' -eq 'RESUME'){$base=Get-Content (Join-Path $env:STATE_ROOT 'BASE.result.json') -Raw|ConvertFrom-Json; $t=Get-ChildItem $env:CLAUDE_CONFIG_DIR -Recurse -File -Filter "$($base.session_id).jsonl" -ErrorAction SilentlyContinue; if(@($t).Count -ne 1){throw 'Native BASE transcript missing or ambiguous.'}}
