@@ -483,21 +483,46 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(screen.getByText("Gainage")).toBeTruthy();
   });
 
-  it("shows the composition-main-content and composition-reorder icons on the Exercise row (CE-T01-09 icons, previously unused)", () => {
+  /**
+   * REWORK12 (COMP-01, `[ChatGPT] CHANGES_REQUESTED — REWORK12`,
+   * 2026-09-04) : la ligne Exercice reprend désormais strictement
+   * l'anatomie de `Composition / Boundary Activity — Source exact`
+   * (`BoundaryActivityRow`, `icon={null}`) — un seul pictogramme, le slot
+   * structure/poignée `composition-reorder` à gauche, jamais l'ancienne
+   * icône `composition-main-content` (désormais réservée à l'icône du
+   * bloc Tour, voir COMP-02 ci-dessous) ni de second slot à droite.
+   */
+  it("REWORK12 (COMP-01) — shows only the composition-reorder structure icon on the Exercise row, never composition-main-content nor a right-side icon", () => {
     renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
 
-    expect(screen.getByTestId("composition-exercise-icon")).toBeTruthy();
-    expect(screen.getByTestId("composition-reorder-icon")).toBeTruthy();
+    const row = screen.getByTestId("composition-exercise-row");
+    expect(within(row).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
+    expect(screen.queryByTestId("composition-exercise-icon")).toBeNull();
+    expect(within(row).queryByTestId("composition-row-icon-composition-main-content")).toBeNull();
   });
 
-  it("REWORK07-A — the composition-reorder (grip handle) icon on the Exercise row now displays the canonical 20×20 glyph (asset replaced by the Icon/Structure/Movable export, 3066:4676 — down from 24×24/REWORK06, a deliberate correction, not a regression: the old asset's ink only filled a fraction of its box) at opacity 0.5, with no local opacity prop needed", () => {
+  it("REWORK12 (COMP-01) — the Exercise row's structure icon displays the canonical 20×20 glyph at opacity 0.5, same as the Compte à rebours/Fin de séance cards (same shared component, by construction)", () => {
     renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
 
-    const reorderIcon = screen.getByTestId("composition-reorder-icon");
+    const row = screen.getByTestId("composition-exercise-row");
+    const reorderIcon = within(row).getByTestId("composition-boundary-handle-icon");
     const flattened = StyleSheet.flatten(reorderIcon.props.style);
     expect(flattened.width).toBe(20);
     expect(flattened.height).toBe(20);
     expect(flattened.opacity).toBe(0.5);
+  });
+
+  it("REWORK12 (COMP-01) — the Exercise row reuses the exact same card anatomy (fond, liseré, rayon) as the Compte à rebours initial card, by construction (same limitCardBase/boundaryRow styles)", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    const exerciseRow = screen.getByTestId("composition-exercise-row");
+    const exerciseCardStyle = StyleSheet.flatten(exerciseRow.props.style);
+    const countdownCardStyle = StyleSheet.flatten(
+      screen.getByLabelText(composition.countdown.label).props.style,
+    );
+    expect(exerciseCardStyle.borderColor).toBe(countdownCardStyle.borderColor);
+    expect(exerciseCardStyle.borderRadius).toBe(countdownCardStyle.borderRadius);
+    expect(exerciseCardStyle.backgroundColor).toBe(countdownCardStyle.backgroundColor);
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
@@ -558,12 +583,12 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
 
     const order = testIdOrder(screen.toJSON(), [
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-icon",
+      "composition-exercise-row",
       "composition-row-icon-composition-end-session",
     ]);
     expect(order).toEqual([
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-icon",
+      "composition-exercise-row",
       "composition-row-icon-composition-end-session",
     ]);
 
@@ -735,8 +760,13 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const chevron = within(chevronBox).getByTestId("composition-tour-control-chevron");
     expect(chevron.props.style.tintColor).toBe(colors.background);
 
-    // Jamais l'icône d'une Activité réutilisée comme icône Tour.
-    expect(within(tourCard).queryByTestId("composition-exercise-icon")).toBeNull();
+    // REWORK12 (COMP-02) : icône du bloc Tour = `composition-main-content`
+    // (vérifiée directement sur le nœud Figma actuel `2028:11742`,
+    // « icon/contenu-principal ») — jamais l'ancienne `icon-tour`, jamais
+    // `composition-reorder` (icône de poignée/structure de la ligne
+    // Exercice, un troisième SVG distinct) ; voir aussi le test R4-11
+    // dédié ci-dessous (`composition-tour-icon`, comparaison de `source`).
+    expect(within(tourCard).getByTestId("composition-tour-icon")).toBeTruthy();
   });
 
   it("REWORK08-C — shows the activity-count/duration summary directly under 'Nombre de tours', same block as the title, styled exactly like the Boundary Activity rows' secondary line, without touching the frozen outer structure or the white/violet control", () => {
@@ -940,6 +970,20 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
 
     const iconSlot = screen.getByTestId("composition-tour-icon-slot");
     expect(within(iconSlot).getByTestId("composition-tour-icon")).toBeTruthy();
+  });
+
+  it("REWORK12 (COMP-02) — the Tour icon's source is the same asset as the Exercise row's structure icon, matching the source verified directly on the current Figma node (2028:11742), never the previous icon-tour.svg", () => {
+    renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
+
+    const tourIcon = screen.getByTestId("composition-tour-icon");
+    const exerciseRow = screen.getByTestId("composition-exercise-row");
+    const exerciseStructureIcon = within(exerciseRow).getByTestId("composition-boundary-handle-icon");
+
+    // `composition-main-content` (Tour) reste un SVG distinct de
+    // `composition-reorder` (structure/poignée) — sources différentes,
+    // preuve directe qu'il ne s'agit pas du même module réutilisé deux
+    // fois par accident.
+    expect(tourIcon.props.source).not.toBe(exerciseStructureIcon.props.source);
   });
 
   it("R4-12 — the Tour Section container is wider than its inner card (breaks out of body's own padding by the canonical inset on each side)", () => {

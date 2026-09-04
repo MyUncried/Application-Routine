@@ -295,26 +295,15 @@ export function CompositionScreen() {
          * à rebours initial et Tour, jamais après Tour par défaut.
          */}
         {draft.exercise !== null ? (
-          <Pressable
+          <BoundaryActivityRow
+            testID="composition-exercise-row"
+            icon={null}
+            label={draft.exercise.name}
+            value={formatExerciseRowSummary(draft.exercise)}
+            isOpen={false}
             onPress={() => router.push("/exercise")}
-            accessibilityRole="button"
             accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
-            style={styles.exerciseRow}
-          >
-            <View style={styles.exerciseRowHeader}>
-              <KodjoIcon name="composition-main-content" testID="composition-exercise-icon" />
-              <Text style={styles.rowLabel}>{draft.exercise.name}</Text>
-              <View style={styles.exerciseRowSpacer} />
-              {/* Poignée de réorganisation (CE-T01-09) : présente conformément au
-                  composant `Composition / Activity Row`, mais non interactive —
-                  un seul Exercice existe dans le modèle T01, rien à réordonner
-                  avant qu'une Composition à plusieurs Activités n'existe.
-                  REWORK07-A : opacité `0.5` désormais portée par défaut dans
-                  `KodjoIcon.tsx` (`defaultOpacities`), plus de littéral local. */}
-              <KodjoIcon name="composition-reorder" testID="composition-reorder-icon" />
-            </View>
-            <Text style={styles.exerciseRowSummary}>{formatExerciseRowSummary(draft.exercise)}</Text>
-          </Pressable>
+          />
         ) : null}
 
         <TourCard label={composition.tour.label} summary={compositionSummary} />
@@ -503,6 +492,26 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
  * corrigé. L'opacité `0.5` du pictogramme n'est plus passée localement
  * (`opacity={0.5}` supprimé) — portée par défaut dans `KodjoIcon.tsx`
  * (`defaultOpacities`), automatiquement appliquée sans paramètre d'écran.
+ *
+ * **REWORK12 (COMP-01)** (`[ChatGPT] CHANGES_REQUESTED — REWORK12 —
+ * Activité + intégration dans Composition`, 2026-09-04) : `icon` devient
+ * nullable — vérifié directement sur les nœuds Figma actuels (`2028:11723`
+ * pour `Composition / Boundary Activity — Source exact`, `2028:11733` pour
+ * `Composition / Activity Row`, `2588:2679`) que ces deux composants
+ * partagent EXACTEMENT la même anatomie de carte (fond, liseré, rayon,
+ * hauteur, slot structure `28×28` à gauche) à une seule différence près :
+ * `Boundary Activity` porte une icône de rôle supplémentaire dans un
+ * troisième slot à droite (`icon`), que `Activity Row` n'a jamais —
+ * `icon={null}` omet entièrement ce troisième slot plutôt que de le rendre
+ * vide, pour rester fidèle à la structure Figma réelle de `Activity Row`
+ * (aucun troisième slot du tout, pas un slot présent mais inoccupé).
+ * `accessibilityLabel`/`testID` deviennent des props optionnelles
+ * (`accessibilityLabel` par défaut = `label`, comportement inchangé pour
+ * les deux appelants `Boundary Activity` existants) — nécessaires à la
+ * ligne Exercice, dont le nom accessible (`Modifier l'exercice`) diffère du
+ * titre affiché (nom réel de l'Activité) et dont les tests doivent pouvoir
+ * cibler cette rangée précisément (les trois appels de ce composant
+ * partagent sinon les mêmes `testID` internes, jamais uniques par défaut).
  */
 function BoundaryActivityRow({
   icon,
@@ -511,22 +520,30 @@ function BoundaryActivityRow({
   isOpen,
   onPress,
   structureIcon = "composition-reorder",
+  accessibilityLabel = label,
+  testID,
 }: {
-  icon: KodjoIconName;
+  /** `null` omet entièrement le troisième slot (droite) — anatomie exacte de `Composition / Activity Row`, qui n'en a jamais. */
+  icon: KodjoIconName | null;
   label: string;
   value: string;
   isOpen: boolean;
   onPress: () => void;
   /** C-02 : pictogramme du slot gauche — remplaçable sans changer le layout (ex. futur pictogramme « carte fixe »). */
   structureIcon?: KodjoIconName;
+  /** REWORK12 : nom accessible distinct du titre affiché — par défaut `label` (comportement inchangé des deux appelants `Boundary Activity`). */
+  accessibilityLabel?: string;
+  /** REWORK12 : identifiant de la rangée elle-même, pour un ciblage de test sans ambiguïté entre les appels de ce composant. */
+  testID?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ expanded: isOpen }}
       style={[styles.limitCardBase, styles.boundaryRow]}
+      testID={testID}
     >
       <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
         <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" />
@@ -539,9 +556,11 @@ function BoundaryActivityRow({
           {value}
         </Text>
       </View>
-      <View style={styles.boundaryRowIconSlot}>
-        <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
-      </View>
+      {icon !== null ? (
+        <View style={styles.boundaryRowIconSlot}>
+          <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -562,6 +581,26 @@ function BoundaryActivityRow({
  *   — `icon-tour.svg` (`3066:4685`, `20×20`), octets exacts téléchargés
  *   depuis l'asset MCP fourni par l'autorisation, jamais redessinée ni
  *   substituée. Ferme le blocage reconduit depuis `REWORK02`.
+ * - **REWORK12 (COMP-02)** (`[ChatGPT] CHANGES_REQUESTED — REWORK12`,
+ *   2026-09-04) : `icon-tour.svg` remplacé par `composition-main-content`
+ *   (dimensions inchangées `18×18`, déjà enregistré dans `KodjoIcon.tsx`,
+ *   aucun nouvel actif) — vérifié directement sur le nœud Figma actuel
+ *   (`2028:11742`, en-tête de la structure Tour) : l'icône réellement
+ *   affichée y est `icon/contenu-principal` (`18×18`), un SVG distinct de
+ *   `icon-tour.svg` (comparaison directe des exports Figma — glyphes
+ *   visuellement différents, pas une variante de rendu du même dessin).
+ *   L'énoncé « même icône qu'à gauche de la carte d'Activité » de
+ *   l'autorisation ne correspond PAS littéralement à ce qui est observé
+ *   (le slot gauche de `Composition / Activity Row` reste
+ *   `Icon / Structure / Movable`/`composition-reorder`, un troisième SVG
+ *   encore différent) — écart disclosé, résolu en faveur de la source
+ *   Figma directement vérifiée plutôt que de la description littérale,
+ *   conformément à la règle de gouvernance « ne jamais se fonder sur un
+ *   rapport antérieur ou l'implémentation existante, contrôler directement
+ *   les nœuds Figma actuels ». `icon-tour.svg` n'a plus de consommateur
+ *   après ce changement ; l'actif est conservé (aucune suppression
+ *   demandée par cette mission) mais son export `KodjoIcon.tsx` (`sources`/
+ *   `sizes["icon-tour"]`) devient orphelin, signalé ici pour traçabilité.
  * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
  *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
  *   `rowLabel`/`tourCardLabel`).
@@ -644,7 +683,7 @@ function TourCard({ label, summary }: { label: string; summary: string }) {
         testID="composition-tour-card"
       >
         <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
-          <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
+          <KodjoIcon name="composition-main-content" testID="composition-tour-icon" />
         </View>
         {/*
          * REWORK08-C : titre + synthèse forment désormais UN SEUL bloc
@@ -950,25 +989,6 @@ const styles = StyleSheet.create({
   addActivityLabel: {
     ...type.button,
     color: colors.primary,
-  },
-  exerciseRow: {
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    gap: spacing[4],
-  },
-  exerciseRowHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  exerciseRowSpacer: {
-    flex: 1,
-  },
-  exerciseRowSummary: {
-    ...type.supporting,
-    color: colors.textSecondary,
   },
   // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer`.
   // A-01 : plus de `marginTop: "auto"` ici — `body` (`flex: 1`, ci-dessus)

@@ -80,13 +80,16 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     // activité` a disparu, la ligne Exercice existe, avec le nom saisi.
     expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
     expect(screen.getByText("Pompes")).toBeTruthy();
+    // REWORK12 (COMP-01) : la ligne Exercice reprend l'anatomie de
+    // `BoundaryActivityRow` — `composition-exercise-row` remplace l'ancien
+    // testID d'icône dédié `composition-exercise-icon`, supprimé.
     const order = testIdOrder(screen.toJSON(), [
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-icon",
+      "composition-exercise-row",
     ]);
     expect(order).toEqual([
       "composition-row-icon-composition-initial-countdown",
-      "composition-exercise-icon",
+      "composition-exercise-row",
     ]);
 
     // 5. Résumé recalculé : "1 activité · ..." (jamais l'état vide "0 activité · 0 min").

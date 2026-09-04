@@ -459,19 +459,41 @@ describe("ExerciseScreen — REWORK09 — sélections et ancrage du popover uniq
     expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
   });
 
-  it("opens the Séries picker (NumberWheelPicker) on its control's press, immediate-apply behaviour unchanged (not the draft/commit contract of DurationWheelPicker)", () => {
+  /**
+   * REWORK12 (ACT-07) : `NumberWheelPicker` suit désormais le même contrat
+   * brouillon/confirmation que `DurationWheelPicker` — plus d'application
+   * immédiate au fil du geste. `Platform.OS` par défaut dans cet
+   * environnement Jest (`jest-expo`) est `"ios"` : la roulette native
+   * SwiftUI est donc exercée ici (`selectionChange`, jamais `scroll`).
+   */
+  it("opens the Séries picker (NumberWheelPicker) on its control's press, draft/confirm contract (ACT-07) — never immediate-apply", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
     fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
-    fireEvent.scroll(screen.getByTestId("exercise-series-count-wheel"), {
-      nativeEvent: { contentOffset: { y: 80 } }, // index 2 -> valeur 3 (bornes 1-99)
+    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", {
+      nativeEvent: { selection: 3 }, // valeur 3 (bornes 1-99)
     });
-    expect(screen.getAllByText("3").length).toBeGreaterThan(0);
+    // Brouillon uniquement — le contrôle fermé (`"1"`, valeur initiale) reste affiché tant que Confirmer n'a pas été pressé.
+    expect(screen.queryByText("1")).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
+    fireEvent.press(screen.getByTestId("number-wheel-validate"));
     expect(screen.queryByTestId("exercise-series-count-wheel")).toBeNull();
     expect(screen.getByText("3")).toBeTruthy();
+  });
+
+  it("Annuler on the Séries picker discards the draft — the control keeps its previous value (ACT-07)", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
+    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", {
+      nativeEvent: { selection: 7 },
+    });
+    fireEvent.press(screen.getByTestId("number-wheel-cancel"));
+
+    expect(screen.queryByTestId("exercise-series-count-wheel")).toBeNull();
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.queryByText("7")).toBeNull();
   });
 });
 
@@ -626,6 +648,60 @@ describe("ExerciseScreen — mode modification (draft.exercise !== null)", () =>
     fireEvent.press(finishButton);
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * REWORK12 (ACT-10, `[ChatGPT] CHANGES_REQUESTED — REWORK12 — Activité +
+   * intégration dans Composition`, 2026-09-04) : bout en bout mode
+   * Répétition — création, validation, `Terminer`, exactement comme le test
+   * mode Durée ci-dessus.
+   */
+  it("REWORK12 (ACT-10) — end-to-end Répétition mode: Terminer persists the exact repetitionCount/pauseSeconds/seriesCount edited via the drafts", () => {
+    const { updateDraft } = renderScreen({
+      ...createExerciseDraft(),
+      name: "Squats",
+      executionMode: "REPETITIONS",
+      repetitionCount: 12,
+      durationSeconds: null,
+      pauseSeconds: 15,
+      seriesCount: 3,
+    });
+
+    fireEvent.press(screen.getByLabelText(t.validateAction)); // -> Étape 2
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercise: expect.objectContaining({
+        name: "Squats",
+        executionMode: "REPETITIONS",
+        repetitionCount: 12,
+        durationSeconds: null,
+        pauseSeconds: 15,
+        seriesCount: 3,
+      }),
+    });
+  });
+
+  /** REWORK12 (ACT-10) : réouverture — les valeurs exactes du brouillon existant sont restituées, mode Répétition inclus (pas seulement le nom, voir le test Durée ci-dessus). */
+  it("REWORK12 (ACT-10) — reopening an existing Répétition-mode Activity restores its exact repetitionCount/pauseSeconds/seriesCount", () => {
+    renderScreen({
+      ...createExerciseDraft(),
+      name: "Squats",
+      executionMode: "REPETITIONS",
+      repetitionCount: 12,
+      durationSeconds: null,
+      pauseSeconds: 15,
+      seriesCount: 3,
+    });
+
+    expect(screen.getByLabelText(t.name).props.value).toBe("Squats");
+    expect(screen.getByLabelText(t.executionMode.repetitions).props.accessibilityState.selected).toBe(
+      true,
+    );
+    expect(screen.getByText("12")).toBeTruthy(); // Répétitions
+    expect(screen.getByText("00 min 15 s")).toBeTruthy(); // Pause (formatDurationRowValue)
+    expect(screen.getByText("3")).toBeTruthy(); // Séries
   });
 });
 

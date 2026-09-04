@@ -359,8 +359,14 @@ export function ExerciseScreen() {
                     {openOverlay === "repetitionCount" ? (
                       <NumberWheelPicker
                         value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
-                        onChange={(value) => patchLocal({ repetitionCount: value })}
+                        onValidate={(value) => {
+                          patchLocal({ repetitionCount: value });
+                          closeOverlay();
+                        }}
+                        onCancel={closeOverlay}
                         accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
+                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
                         testID="exercise-repetition-count-wheel"
                       />
                     ) : null}
@@ -382,8 +388,14 @@ export function ExerciseScreen() {
                     {openOverlay === "seriesCount" ? (
                       <NumberWheelPicker
                         value={local.seriesCount}
-                        onChange={(value) => patchLocal({ seriesCount: value })}
+                        onValidate={(value) => {
+                          patchLocal({ seriesCount: value });
+                          closeOverlay();
+                        }}
+                        onCancel={closeOverlay}
                         accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
+                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
                         testID="exercise-series-count-wheel"
                       />
                     ) : null}
