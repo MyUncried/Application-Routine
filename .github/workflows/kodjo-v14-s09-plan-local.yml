@@ -82,9 +82,9 @@ jobs:
             $lines=@(
               'KODJO T01-S09 - CONSTRUIRE LE PLAN V1.4. Phase strictement lecture seule.',
               "Baseline Git autorisee: $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Issue metier: #17.",
-              'Lis et cite comme sources de verite: docs/PRODUCT.md, docs/INDEX.md, les specifications fonctionnelles 06 a 13 (notamment 07 registre des decisions et 13 contrats d'ecran), les images categories-seance.png et categories-nouvelle-inline.png, le code reel T01-S01 a S08 sous app/ et src/, et le rapport Figma blockers categories/headers si pertinent.',
-              'Le plan doit couvrir: navigation Composition vers Categories, zero/multi-categories, creation inline, persistance complete T01-S08, zones corporelles, migration additive, transaction/atomicite, prevention double-submit, reset apres succes, retour Catalogue, tests, chemins probables, criteres d'acceptation et preuves attendues.',
-              'Distingue explicitement regle fonctionnelle, rendu/etat UI, contrainte technique, decision validee et point A CLARIFIER. N'invente rien. Les documents versionnes plus recents supersedent toute formulation ancienne incompatible de l'Issue.',
+              'Lis et cite comme sources de verite: docs/PRODUCT.md, docs/INDEX.md, les specifications fonctionnelles 06 a 13 (notamment 07 registre des decisions et 13 contrats d''ecran), les images categories-seance.png et categories-nouvelle-inline.png, le code reel T01-S01 a S08 sous app/ et src/, et le rapport Figma blockers categories/headers si pertinent.',
+              'Le plan doit couvrir: navigation Composition vers Categories, zero/multi-categories, creation inline, persistance complete T01-S08, zones corporelles, migration additive, transaction/atomicite, prevention double-submit, reset apres succes, retour Catalogue, tests, chemins probables, criteres d''acceptation et preuves attendues.',
+              'Distingue explicitement regle fonctionnelle, rendu/etat UI, contrainte technique, decision validee et point A CLARIFIER. N''invente rien. Les documents versionnes plus recents supersedent toute formulation ancienne incompatible de l''Issue.',
               'Ne developpe pas S10. Aucun Edit/Write, aucun commit/push. Le plan doit permettre une implementation sans micro-arbitrages humains.'
             )
             $prompt=$lines -join [Environment]::NewLine
