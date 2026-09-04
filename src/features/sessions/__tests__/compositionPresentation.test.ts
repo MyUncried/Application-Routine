@@ -4,6 +4,7 @@ import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import {
   formatCompositionSummary,
   formatDurationRowValue,
+  formatExerciseRecap,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 
@@ -400,5 +401,107 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
     });
     expect(result.toLowerCase()).not.toContain("consigne");
     expect(result.toLowerCase()).not.toContain("zone");
+  });
+});
+
+describe("formatExerciseRecap (REWORK09, mission directe utilisateur, 2026-09-04, point 8 — cadre récapitulatif de CE-T01-13)", () => {
+  it("matches the exact Figma example, mode Durée (nœud 1992:9166)", () => {
+    const result = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 90,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    });
+    expect(result).toBe(
+      "Exercice · Mode Durée · 3 séries de 1 min 30 s, avec 15 s de pause entre les séries.",
+    );
+  });
+
+  it("matches the exact Figma example, mode Répétition (nœud 1992:9246)", () => {
+    const result = formatExerciseRecap({
+      executionMode: "REPETITIONS",
+      durationSeconds: null,
+      repetitionCount: 12,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    });
+    expect(result).toBe(
+      "Exercice · Mode Répétition · 3 séries de 12 répétitions, avec 15 s de pause entre les séries.",
+    );
+  });
+
+  it("omits the pause clause entirely when pauseSeconds is 0, never 'avec 0 s de pause entre les séries'", () => {
+    const result = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(result).toBe("Exercice · Mode Durée · 1 série de 30 s.");
+    expect(result.toLowerCase()).not.toContain("pause");
+  });
+
+  it("uses the exact singular for a single série (T01: seriesCount always 1), never '1 séries'", () => {
+    const result = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 45,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(result).toContain("1 série de");
+    expect(result).not.toContain("1 séries");
+  });
+
+  it("uses a pause suffix ('de pause entre les séries') distinct from formatExerciseRowSummary's own ('de pause par série') — two different Figma screens, never conflated", () => {
+    const recap = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 15,
+    });
+    const rowSummary = formatExerciseRowSummary({
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 15,
+    });
+    expect(recap).toContain("de pause entre les séries");
+    expect(rowSummary).toContain("de pause par série");
+    expect(recap).not.toContain("de pause par série");
+  });
+
+  it("always prefixes with the literal 'Exercice' type label (Récupération not delivered in T01), reusing strings.screens.exercise.type.exercise rather than a local literal", () => {
+    const result = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(result.startsWith("Exercice · Mode Durée")).toBe(true);
+  });
+
+  it("recomputes fully from the given facts — never a static Figma placeholder value", () => {
+    const first = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    const second = formatExerciseRecap({
+      executionMode: "DURATION",
+      durationSeconds: 120,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+    });
+    expect(first).not.toBe(second);
+    expect(second).toContain("2 min");
   });
 });

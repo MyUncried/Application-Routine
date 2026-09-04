@@ -151,3 +151,62 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
 
   return `${base} ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exerciseRow.pauseSuffix}`;
 }
+
+export type ExerciseRecapFacts = ExerciseRowSummaryFacts;
+
+/**
+ * Récapitulatif calculé de l'écran `Création d'une Activité — Paramètres
+ * essentiels` (CE-T01-13, cadre sous la rangée compacte Durée/Pause/
+ * Séries) — REWORK09 (mission directe utilisateur, 2026-09-04, point 8).
+ *
+ * Format exact vérifié directement sur les nœuds Figma actuels
+ * (`1992:9166`/`1992:9246`) : `"Exercice · Mode Durée · 3 séries de
+ * 1 min 30 s, avec 15 s de pause entre les séries."` (mode Répétition :
+ * `"...3 séries de 12 répétitions, avec..."`). Jamais une valeur figée :
+ * recalculé à chaque changement du brouillon d'Activité (`ExerciseScreen
+ * .tsx`, `local`). Le type reste toujours `Exercice` en T01 (`Récupération`
+ * non livré) — réutilise `strings.screens.exercise.type.exercise`, jamais
+ * un littéral local.
+ *
+ * Réutilise `formatCompactDuration`/`formatCountWithUnit` déjà établis
+ * pour `formatExerciseRowSummary` ci-dessus (mêmes unités/pluriels/« de »/
+ * « avec », `strings.screens.composition.exerciseRow`) — seule la
+ * formulation de la clause de pause diffère
+ * (`strings.screens.exercise.recap.pauseSuffix`, « de pause entre les
+ * séries », distincte de `exerciseRow.pauseSuffix`, « de pause par
+ * série » — deux écrans, deux formulations Figma distinctes, jamais
+ * fusionnées). La clause de pause est entièrement omise lorsque
+ * `pauseSeconds === 0`, comme `formatExerciseRowSummary` (D-095).
+ */
+export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
+  const exercise = strings.screens.exercise;
+  const exerciseRow = strings.screens.composition.exerciseRow;
+
+  const modeLabel =
+    facts.executionMode === "DURATION"
+      ? exercise.executionMode.duration
+      : exercise.executionMode.repetitions;
+
+  const seriesLabel = formatCountWithUnit(
+    facts.seriesCount,
+    exerciseRow.seriesSingular,
+    exerciseRow.seriesPlural,
+  );
+
+  const activityLabel =
+    facts.executionMode === "DURATION"
+      ? formatCompactDuration(facts.durationSeconds ?? 0)
+      : formatCountWithUnit(
+          facts.repetitionCount ?? 0,
+          exerciseRow.repetitionSingular,
+          exerciseRow.repetitionPlural,
+        );
+
+  const base = `${exercise.type.exercise} · ${exercise.recap.modePrefix} ${modeLabel} · ${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
+
+  if (facts.pauseSeconds <= 0) {
+    return `${base}.`;
+  }
+
+  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseSuffix}.`;
+}

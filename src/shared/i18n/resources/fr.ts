@@ -118,15 +118,22 @@ export const fr = {
       },
     },
     exercise: {
-      titleAdd: "Ajouter une activité",
-      titleEdit: "Modifier une activité",
+      // REWORK09 (mission directe utilisateur, 2026-09-04, points 1/2) :
+      // `titleAdd`/`titleEdit` — l'ancien grand titre local du corps
+      // défilant — sont supprimés avec lui ; l'en-tête fixe partagé affiche
+      // désormais le nom réel de la Séance (`FixedHeader`, comme
+      // `CompositionScreen.tsx`), jamais un titre d'écran distinct.
       backAccessibilityLabel: "Retour",
       type: {
         label: "Type d’activité",
         exercise: "Exercice",
         recovery: "Récupération",
       },
-      name: "Nom",
+      // REWORK09, point 2/3 : « Nom » → « Nom de l'activité » (`Forms /
+      // Text Field — Source exact`, libellé visible ET accessibilityLabel
+      // du champ — même chaîne réutilisée pour les deux, patron déjà
+      // établi).
+      name: "Nom de l’activité",
       executionMode: {
         label: "Mode d’exécution",
         duration: "Durée",
@@ -134,6 +141,8 @@ export const fr = {
       },
       parametersTitle: "Paramètres de l’activité",
       duration: {
+        // Déjà conforme au libellé compact Figma (« Durée ») — aucun
+        // changement de valeur nécessaire.
         label: "Durée",
         // Distinct de `executionMode.duration` (même mot, deux contrôles
         // différents : l'onglet de mode et la ligne roulette) — un même
@@ -149,14 +158,26 @@ export const fr = {
         // avec celui de la ligne une fois le sélecteur ouvert (audit
         // `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`, AUD-05).
         wheelAccessibilityLabel: "Roulette nombre de répétitions",
+        // REWORK09, point 6 : libellé COURT affiché au-dessus du contrôle
+        // compact (`Activity / Parameter Row — Source exact`) — distinct
+        // de `label`/`accessibilityLabel` ci-dessus, conservés inchangés
+        // pour le nom accessible complet.
+        compactLabel: "Répétitions",
       },
       pauseSeconds: {
         label: "Pause après Série",
+        // REWORK09, point 6 : nom accessible explicite — auparavant
+        // confondu avec `label`, désormais distinct du libellé compact
+        // visible ci-dessous (même patron que `duration`).
+        accessibilityLabel: "Pause après Série",
+        compactLabel: "Pause",
       },
       seriesCount: {
         label: "Nombre de Séries",
         accessibilityLabel: "Nombre de Séries",
         wheelAccessibilityLabel: "Roulette nombre de Séries",
+        // REWORK09, point 6.
+        compactLabel: "Séries",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -166,6 +187,14 @@ export const fr = {
         // de `DurationWheelPicker`, hors périmètre visuel de cette revue.
         cancelAccessibilityLabel: "Annuler",
         validateAccessibilityLabel: "Valider",
+      },
+      // REWORK09, point 8 « cadre récapitulatif » — deux fragments propres
+      // à cette formulation, distincts de `composition.exerciseRow`
+      // (réutilisé par ailleurs pour `min`/`s`/pluriels/« de »/« avec »,
+      // voir `compositionPresentation.ts`, `formatExerciseRecap`).
+      recap: {
+        modePrefix: "Mode",
+        pauseSuffix: "de pause entre les séries",
       },
       instruction: {
         label: "Consigne",

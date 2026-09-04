@@ -254,11 +254,10 @@ describe("CompositionScreen — état initial", () => {
   it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
     renderScreen();
 
-    // REWORK08-C : la même synthèse canonique apparaît désormais à deux
-    // emplacements (bottomAction ET sous « Nombre de tours », voir la
-    // description du bloc "Tour" ci-dessous) — `getAllByText` prouve les
-    // deux occurrences plutôt que de supposer une occurrence unique.
-    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(2);
+    // REWORK09 : la ligne de synthèse basse est supprimée (redondante
+    // depuis REWORK08-C) — une seule occurrence subsiste désormais, sous
+    // « Nombre de tours » (voir composition-tour-summary ci-dessous).
+    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(1);
     expect(screen.queryByText("0 activités · 0 min")).toBeNull();
   });
 
@@ -368,9 +367,9 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.queryByText("01 min 10 s")).toBeNull();
     // The exercise is still null in T01-S07: the summary stays the exact
     // local empty label regardless of countdown/final-phase changes (§9.1).
-    // REWORK08-C : apparaît désormais à deux emplacements (bottomAction +
-    // synthèse Tour) — `getAllByText` prouve les deux occurrences.
-    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(2);
+    // REWORK09 : une seule occurrence désormais (synthèse Tour uniquement,
+    // la ligne basse redondante a été supprimée).
+    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(1);
     // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
     // déclenche la fermeture ») : le sélecteur reste réellement monté —
     // preuve explicite, pas seulement déduite du libellé du test.
@@ -641,11 +640,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
   });
 
-  it("CMP-02 — Name field and colour selector share a single white rounded field, distinct from the loose Context band background", () => {
+  it("REWORK09 — supersedes CMP-02's opaque white field: Name field and colour selector still share a single rounded field, but it is now transparent with a white 1pt border (Session/Name Field — Source exact, 2537:1480), letting the Context band colour show through", () => {
     renderScreen();
 
     const field = screen.getByTestId("composition-name-color-field");
-    expect(StyleSheet.flatten(field.props.style).backgroundColor).toBe(colors.background);
+    const flattened = StyleSheet.flatten(field.props.style);
+    expect(flattened.backgroundColor).toBe("transparent");
+    expect(flattened.borderWidth).toBe(1);
+    expect(flattened.borderColor).toBe(colors.sessionNameBorder);
+    expect(colors.sessionNameBorder).toBe("#FFFFFF");
     expect(within(field).getByLabelText(composition.name)).toBeTruthy();
     expect(within(field).getByLabelText(composition.colorPicker.label)).toBeTruthy();
   });
@@ -772,16 +775,14 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(controlStyle.height).toBe(44);
   });
 
-  it("REWORK08-C — updates the Tour summary reactively with the same content as bottomAction, staying in sync as the draft changes (both consume the exact same computed value, never two independent computations)", () => {
+  it("REWORK08-C/REWORK09 — the Tour summary reflects the real computed activity count/duration, not a static placeholder (the redundant bottomAction copy no longer exists to compare against since REWORK09)", () => {
     renderScreenWithDraft({ ...createExerciseDraft(), name: "Gainage", durationSeconds: 45 });
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
     );
-    const bottomSummary = within(screen.getByTestId("composition-bottom-action")).getByText(
-      /activité/,
-    );
-    expect(tourSummary.props.children).toBe(bottomSummary.props.children);
+    // Contexte : Compte à rebours 10 s + Exercice 45 s + Fin de séance 5 s = 60 s = 1 min.
+    expect(tourSummary.props.children).toBe("1 activité · 1 min");
   });
 
   it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
@@ -799,12 +800,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(countdownRow).queryByTestId("composition-row-chevron-down")).toBeNull();
   });
 
-  it("CMP-06 — the summary and Continuer are grouped in a single Bottom Action zone, summary immediately above Continuer", () => {
+  it("REWORK09 — supersedes CMP-06: the redundant summary line is removed from the Bottom Action zone (moved to the Tour block by REWORK08-C) — only Continuer remains there", () => {
     renderScreen();
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
-    expect(within(bottomAction).getByText("0 activité · 0 min")).toBeTruthy();
+    expect(within(bottomAction).queryByText("0 activité · 0 min")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.continueAction)).toBeTruthy();
+    // La synthèse reste bien affichée ailleurs (sous « Nombre de tours »),
+    // jamais silencieusement perdue.
+    expect(screen.getByTestId("composition-tour-summary")).toBeTruthy();
   });
 
   it("C-01 — Boundary Activity rows have a white background with a visible grey border (auparavant colors.surface, jugé non conforme au rendu réel)", () => {

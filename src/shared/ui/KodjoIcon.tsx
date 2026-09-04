@@ -25,6 +25,7 @@ const sources = {
   "icon-tour": require("../../../assets/icons/icon-tour.svg"),
   "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
   "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
+  "select-field-chevron": require("../../../assets/icons/select-field-chevron.svg"),
 } as const;
 
 const sizes = {
@@ -93,6 +94,16 @@ const sizes = {
   // taille d'affichage (même patron que `control-back`).
   "wheel-action-cancel": [24, 24],
   "wheel-action-validate": [24, 24],
+  // REWORK09 (mission directe utilisateur, 2026-09-04) : chevron interne
+  // de `Forms / Select Field — Source exact` (`2537:1095`), consommé par
+  // les contrôles `Durée`/`Pause`/`Séries`/`Répétitions` de `Activity /
+  // Parameter Row` dans `ExerciseScreen.tsx`. `14×14`, matching le
+  // `viewBox` exact de l'export — distinct de `control-chevron-down`
+  // (fonction graphique différente, `24×24`, réutilisée ailleurs pour
+  // `Controls/Disclosure`) : pas de substitution/redimensionnement
+  // générique entre familles d'icônes (voir `2026-09-04_repetition-pull-
+  // down-canonical-icon.md`, § « Contrôle des icônes similaires »).
+  "select-field-chevron": [14, 14],
 } as const;
 
 /**

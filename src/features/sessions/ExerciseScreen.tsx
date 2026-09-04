@@ -22,7 +22,7 @@ import {
 } from "@/domain/sessions/validation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
-import { formatDurationRowValue } from "@/features/sessions/compositionPresentation";
+import { formatDurationRowValue, formatExerciseRecap } from "@/features/sessions/compositionPresentation";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
@@ -34,7 +34,8 @@ import {
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "duration" | "repetitionCount" | "pauseSeconds" | "seriesCount";
 
@@ -54,8 +55,23 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
 
 /**
  * Écran `Création / modification d'une Activité — Exercice` (T01-S08, docs
- * §06 Écran 4). Type verrouillé `Exercice` — le type `Récupération` (et son
- * propre écran 5) reste hors périmètre de tout T01.
+ * §06 Écran 4 ; CE-T01-13). Type verrouillé `Exercice` — le type
+ * `Récupération` (et son propre écran) reste hors périmètre de tout T01.
+ *
+ * **REWORK09 — reconstruction depuis le Shell/composants DS** (mission
+ * directe utilisateur, 2026-09-04, `G-01` à `G-08`) : cet écran utilise
+ * désormais le Shell partagé (`ScreenShell`/`FixedHeader`/`HeaderSeparator`,
+ * déjà validé par `CompositionScreen.tsx`) au lieu d'un en-tête local
+ * dupliqué, et une structure de formulaire entièrement reconstruite pour
+ * suivre l'ordre canonique vérifié directement sur les nœuds Figma actuels
+ * (`1992:9132`/`1992:9212`/`1992:9430`, page `Prototype MVP`) : `Nom de
+ * l'activité` → `Type d'activité` (segment `Exercice/Récupération`) →
+ * `Mode d'exécution` (segment `Durée/Répétition`) → `Paramètres de
+ * l'activité` (rangée compacte `Durée ou Répétitions`/`Pause`/`Séries` +
+ * récapitulatif calculé). L'ancien grand titre local (`titleAdd`/
+ * `titleEdit`) est supprimé — l'en-tête fixe affiche désormais le nom réel
+ * de la Séance, seul titre de cet écran (même patron que
+ * `CompositionScreen.tsx`).
  *
  * Copie de travail locale isolée du `SessionDraft` partagé (revue
  * indépendante ChatGPT, plan T01-S08) : toutes les modifications des deux
@@ -87,6 +103,17 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
  * l'écriture de ce fichier) s'exécute avant l'effet de retour ci-dessous,
  * jamais l'inverse — démontré par
  * `ExerciseNavigationGuard.integration.test.tsx` (vrai navigateur).
+ *
+ * **Roulette de durée — verrou de non-régression (REWORK09)** : aucune
+ * ligne de `DurationWheelPicker.tsx` n'est modifiée par cette mission — sa
+ * primitive native, son contrat `onValidate`/`onCancel` (brouillon local
+ * jusqu'à validation) et son comportement documenté restent strictement
+ * intacts. Seul son ANCRAGE change : un unique `PopoverAnchor`, commun aux
+ * quatre sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
+ * `pauseSeconds`/`seriesCount`), plutôt qu'un `AnchoredRow` par ligne
+ * verticale séparée (ancienne structure, incompatible avec la rangée
+ * horizontale unique désormais requise) — position, style et interaction
+ * du composant lui-même inchangés.
  */
 export function ExerciseScreen() {
   const router = useRouter();
@@ -96,7 +123,6 @@ export function ExerciseScreen() {
   const [initialSnapshot] = useState<SessionDraftExercise>(
     () => draft.exercise ?? createExerciseDraft(),
   );
-  const isEditing = draft.exercise !== null;
   const [local, setLocal] = useState<SessionDraftExercise>(initialSnapshot);
   const [step, setStep] = useState<1 | 2>(1);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -175,193 +201,206 @@ export function ExerciseScreen() {
 
   const step1Valid = isStep1Valid(local);
   const t = strings.screens.exercise;
+  // REWORK09-B (même correction que `CompositionScreen.tsx`, REWORK08-B) :
+  // élève le `ScrollView` lui-même (frère direct réel du `backdrop` dédié
+  // ci-dessous), jamais seulement un conteneur imbriqué — un `zIndex` porté
+  // par un descendant du `ScrollView` ne se compare jamais au `backdrop`,
+  // qui vivrait alors à un niveau de l'arbre différent. Un seul indicateur
+  // suffit ici (contrairement à Composition, à deux lignes ancrées
+  // séparées) : les quatre sélecteurs de la rangée compacte partagent
+  // désormais un unique `PopoverAnchor` commun.
+  const bodyElevated = openOverlay !== null;
 
   return (
-    <Pressable
-      style={[styles.container, { paddingTop: insets.top + spacing[16] }]}
-      onPress={closeOverlay}
-      accessible={false}
-    >
-      {/*
-       * UI-ACT-002 (cycle de correction après contre-recette iPhone,
-       * 2026-09-03) : l'en-tête fixe affiche le vrai nom de la Séance (celui
-       * saisi sur Composition), jamais « Ajouter une activité » — ce dernier
-       * reste le titre du CORPS défilant (ci-dessous), distinct. Repli sur le
-       * placeholder « Nom de la séance » tant qu'aucun nom n'a encore été
-       * saisi (Composition n'impose aucun nom avant d'ajouter une Activité).
-       */}
-      <View style={styles.header} testID="exercise-header">
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={t.backAccessibilityLabel}
-          hitSlop={spacing[8]}
-          style={styles.backButton}
-        >
-          <KodjoIcon name="control-back" testID="exercise-back-icon" />
-        </Pressable>
-        <Text style={styles.title}>
-          {draft.name.length > 0 ? draft.name : strings.screens.composition.name}
-        </Text>
-      </View>
-      <View style={styles.headerSeparator} />
+    <ScreenShell>
+      <FixedHeader
+        title={draft.name.length > 0 ? draft.name : strings.screens.composition.name}
+        onBack={() => router.back()}
+        backAccessibilityLabel={t.backAccessibilityLabel}
+      />
+      <HeaderSeparator />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        style={[styles.body, bodyElevated ? styles.elevated : null]}
+        contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
+        testID="exercise-body"
       >
         {step === 1 ? (
           <>
-            <Text style={styles.bodyTitle}>{isEditing ? t.titleEdit : t.titleAdd}</Text>
+            {/* Nom de l'activité — `Forms / Text Field — Source exact` (`2537:1075`). */}
+            <View>
+              <Text style={styles.fieldTitle}>{t.name}</Text>
+              <TextInput
+                value={local.name}
+                onChangeText={(text) => patchLocal({ name: text })}
+                onFocus={closeOverlay}
+                placeholder={t.name}
+                placeholderTextColor={colors.textSecondary}
+                accessibilityLabel={t.name}
+                maxLength={NAME_MAX_LENGTH}
+                style={styles.nameInput}
+                testID="exercise-name-input"
+              />
+            </View>
 
             {/*
-             * Segment `Exercice / Récupération` (CE-T01-13, élément
-             * structurel obligatoire même hors périmètre fonctionnel) :
-             * Récupération n'a ni écran ni parcours dans T01 (tout T01,
-             * confirmé) — visible mais désactivé, ne peut jamais ouvrir un
-             * écran partiel. `Exercice` reste verrouillé sélectionné.
+             * Type d'activité (CE-T01-13, élément structurel obligatoire
+             * même hors périmètre fonctionnel) : Récupération n'a ni écran
+             * ni parcours dans T01 (tout T01, confirmé) — visible mais
+             * désactivé, ne peut jamais ouvrir un écran partiel. `Exercice`
+             * reste verrouillé sélectionné. Titre visible (point 5,
+             * REWORK09) — un `accessibilityLabel` seul ne suffit plus.
              */}
-            <View
-              style={styles.segmentedControl}
-              accessibilityRole="tablist"
-              accessibilityLabel={t.type.label}
-            >
-              <SegmentButton label={t.type.exercise} selected onPress={() => {}} />
-              <SegmentButton label={t.type.recovery} selected={false} disabled onPress={() => {}} />
-            </View>
-
-            <Text style={styles.fieldLabel}>{t.name}</Text>
-            <TextInput
-              value={local.name}
-              onChangeText={(text) => patchLocal({ name: text })}
-              onFocus={closeOverlay}
-              placeholder={t.name}
-              placeholderTextColor={colors.textSecondary}
-              accessibilityLabel={t.name}
-              maxLength={NAME_MAX_LENGTH}
-              style={styles.nameInput}
-            />
-
-            <View
-              style={styles.segmentedControl}
-              accessibilityRole="tablist"
-              accessibilityLabel={t.executionMode.label}
-            >
-              <SegmentButton
-                label={t.executionMode.duration}
-                selected={local.executionMode === "DURATION"}
-                onPress={() => handleExecutionModeChange("DURATION")}
-              />
-              <SegmentButton
-                label={t.executionMode.repetitions}
-                selected={local.executionMode === "REPETITIONS"}
-                onPress={() => handleExecutionModeChange("REPETITIONS")}
-              />
-            </View>
-
-            <Text style={styles.sectionLabel}>{t.parametersTitle}</Text>
-
-            {local.executionMode === "DURATION" ? (
-              <AnchoredRow
-                testID="exercise-anchored-row-duration"
-                elevated={openOverlay === "duration"}
+            <View>
+              <Text style={styles.fieldTitle}>{t.type.label}</Text>
+              <View
+                style={styles.segmentedControl}
+                accessibilityRole="tablist"
+                accessibilityLabel={t.type.label}
               >
-                <Row
-                  label={t.duration.label}
-                  accessibilityLabel={t.duration.accessibilityLabel}
-                  value={formatDurationRowValue(
-                    local.durationSeconds ?? 0,
-                    WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+                <SegmentButton label={t.type.exercise} selected onPress={() => {}} />
+                <SegmentButton label={t.type.recovery} selected={false} disabled onPress={() => {}} />
+              </View>
+            </View>
+
+            {/* Mode d'exécution — titre visible (point 5, REWORK09). */}
+            <View>
+              <Text style={styles.fieldTitle}>{t.executionMode.label}</Text>
+              <View
+                style={styles.segmentedControl}
+                accessibilityRole="tablist"
+                accessibilityLabel={t.executionMode.label}
+              >
+                <SegmentButton
+                  label={t.executionMode.duration}
+                  selected={local.executionMode === "DURATION"}
+                  onPress={() => handleExecutionModeChange("DURATION")}
+                />
+                <SegmentButton
+                  label={t.executionMode.repetitions}
+                  selected={local.executionMode === "REPETITIONS"}
+                  onPress={() => handleExecutionModeChange("REPETITIONS")}
+                />
+              </View>
+            </View>
+
+            {/*
+             * Paramètres de l'activité — `Activity / Parameter Row —
+             * Source exact` : une seule rangée horizontale (remplace les
+             * trois anciennes lignes verticales), cadre récapitulatif en
+             * dessous.
+             */}
+            <View>
+              <Text style={styles.fieldTitle}>{t.parametersTitle}</Text>
+              <View style={styles.parameterCard} testID="exercise-parameter-card">
+                <View style={styles.parameterRow} testID="exercise-parameter-row">
+                  {local.executionMode === "DURATION" ? (
+                    <ParameterField
+                      testID="exercise-field-duration"
+                      width={dimensions.exerciseParameterRow.wideColumnWidth}
+                      label={t.duration.label}
+                      accessibilityLabel={t.duration.accessibilityLabel}
+                      value={formatDurationRowValue(
+                        local.durationSeconds ?? 0,
+                        WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+                      )}
+                      isOpen={openOverlay === "duration"}
+                      onPress={() => toggleOverlay("duration")}
+                    />
+                  ) : (
+                    <ParameterField
+                      testID="exercise-field-repetitionCount"
+                      width={dimensions.exerciseParameterRow.wideColumnWidth}
+                      label={t.repetitionCount.compactLabel}
+                      accessibilityLabel={t.repetitionCount.accessibilityLabel}
+                      value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
+                      isOpen={openOverlay === "repetitionCount"}
+                      onPress={() => toggleOverlay("repetitionCount")}
+                    />
                   )}
-                  isOpen={openOverlay === "duration"}
-                  onPress={() => toggleOverlay("duration")}
-                />
-                {openOverlay === "duration" ? (
+                  <ParameterField
+                    testID="exercise-field-pauseSeconds"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={t.pauseSeconds.compactLabel}
+                    accessibilityLabel={t.pauseSeconds.accessibilityLabel}
+                    value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
+                    isOpen={openOverlay === "pauseSeconds"}
+                    onPress={() => toggleOverlay("pauseSeconds")}
+                  />
+                  <ParameterField
+                    testID="exercise-field-seriesCount"
+                    width={dimensions.exerciseParameterRow.narrowColumnWidth}
+                    label={t.seriesCount.compactLabel}
+                    accessibilityLabel={t.seriesCount.accessibilityLabel}
+                    value={String(local.seriesCount)}
+                    isOpen={openOverlay === "seriesCount"}
+                    onPress={() => toggleOverlay("seriesCount")}
+                  />
+                </View>
+
+                {openOverlay !== null ? (
                   <PopoverAnchor>
-                    <DurationWheelPicker
-                      totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
-                      onValidate={(totalSeconds) => {
-                        patchLocal({ durationSeconds: totalSeconds });
-                        closeOverlay();
-                      }}
-                      onCancel={closeOverlay}
-                      maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
-                      minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                      secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-                      cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                      validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                    />
+                    {openOverlay === "duration" ? (
+                      <DurationWheelPicker
+                        totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
+                        onValidate={(totalSeconds) => {
+                          patchLocal({ durationSeconds: totalSeconds });
+                          closeOverlay();
+                        }}
+                        onCancel={closeOverlay}
+                        maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
+                        minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+                        secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+                      />
+                    ) : null}
+                    {openOverlay === "repetitionCount" ? (
+                      <NumberWheelPicker
+                        value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
+                        onChange={(value) => patchLocal({ repetitionCount: value })}
+                        accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
+                        testID="exercise-repetition-count-wheel"
+                      />
+                    ) : null}
+                    {openOverlay === "pauseSeconds" ? (
+                      <DurationWheelPicker
+                        totalSeconds={local.pauseSeconds}
+                        onValidate={(totalSeconds) => {
+                          patchLocal({ pauseSeconds: totalSeconds });
+                          closeOverlay();
+                        }}
+                        onCancel={closeOverlay}
+                        maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
+                        minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+                        secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+                      />
+                    ) : null}
+                    {openOverlay === "seriesCount" ? (
+                      <NumberWheelPicker
+                        value={local.seriesCount}
+                        onChange={(value) => patchLocal({ seriesCount: value })}
+                        accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
+                        testID="exercise-series-count-wheel"
+                      />
+                    ) : null}
                   </PopoverAnchor>
                 ) : null}
-              </AnchoredRow>
-            ) : (
-              <AnchoredRow
-                testID="exercise-anchored-row-repetitionCount"
-                elevated={openOverlay === "repetitionCount"}
-              >
-                <Row
-                  label={t.repetitionCount.label}
-                  isOpen={openOverlay === "repetitionCount"}
-                  value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
-                  onPress={() => toggleOverlay("repetitionCount")}
-                />
-                {openOverlay === "repetitionCount" ? (
-                  <PopoverAnchor>
-                    <NumberWheelPicker
-                      value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
-                      onChange={(value) => patchLocal({ repetitionCount: value })}
-                      accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
-                      testID="exercise-repetition-count-wheel"
-                    />
-                  </PopoverAnchor>
-                ) : null}
-              </AnchoredRow>
-            )}
+              </View>
 
-            <AnchoredRow testID="exercise-anchored-row-pauseSeconds" elevated={openOverlay === "pauseSeconds"}>
-              <Row
-                label={t.pauseSeconds.label}
-                isOpen={openOverlay === "pauseSeconds"}
-                value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
-                onPress={() => toggleOverlay("pauseSeconds")}
-              />
-              {openOverlay === "pauseSeconds" ? (
-                <PopoverAnchor>
-                  <DurationWheelPicker
-                    totalSeconds={local.pauseSeconds}
-                    onValidate={(totalSeconds) => {
-                      patchLocal({ pauseSeconds: totalSeconds });
-                      closeOverlay();
-                    }}
-                    onCancel={closeOverlay}
-                    maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
-                    minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                    secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-                    cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                    validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                  />
-                </PopoverAnchor>
-              ) : null}
-            </AnchoredRow>
-
-            <AnchoredRow testID="exercise-anchored-row-seriesCount" elevated={openOverlay === "seriesCount"}>
-              <Row
-                label={t.seriesCount.label}
-                isOpen={openOverlay === "seriesCount"}
-                value={String(local.seriesCount)}
-                onPress={() => toggleOverlay("seriesCount")}
-              />
-              {openOverlay === "seriesCount" ? (
-                <PopoverAnchor>
-                  <NumberWheelPicker
-                    value={local.seriesCount}
-                    onChange={(value) => patchLocal({ seriesCount: value })}
-                    accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
-                    testID="exercise-series-count-wheel"
-                  />
-                </PopoverAnchor>
-              ) : null}
-            </AnchoredRow>
+              {/*
+               * Cadre récapitulatif (point 8, REWORK09) : largeur utile
+               * complète, contenu calculé (`formatExerciseRecap`, jamais
+               * une valeur Figma statique), croît verticalement avec le
+               * texte (aucune hauteur figée).
+               */}
+              <View style={styles.summaryCard} testID="exercise-summary-card">
+                <Text style={styles.summaryText}>{formatExerciseRecap(local)}</Text>
+              </View>
+            </View>
           </>
         ) : (
           <>
@@ -376,7 +415,7 @@ export function ExerciseScreen() {
               style={styles.instructionInput}
             />
 
-            <Text style={styles.sectionLabel}>{t.bodyZones.label}</Text>
+            <Text style={styles.fieldTitle}>{t.bodyZones.label}</Text>
             <BodyZoneSelector
               zones={BODY_ZONES}
               selectedIds={local.bodyZoneIds}
@@ -419,41 +458,49 @@ export function ExerciseScreen() {
         </Pressable>
       )}
 
+      {/*
+       * Backdrop dédié (REWORK09, même mécanisme que `CompositionScreen
+       * .tsx`, CMP-01/D-03) — remplace l'ancien `Pressable` racine plein
+       * écran (`onPress={closeOverlay}` sur le conteneur entier), qui
+       * interceptait le geste avant même qu'il n'atteigne un contrôle
+       * imbriqué, y compris parfois le contrôle qu'on cherche justement à
+       * ouvrir (même défaut D-03 que Composition avant sa propre
+       * correction). Rendu uniquement quand un sélecteur est ouvert,
+       * dernier frère direct de `ScreenShell`, sans `zIndex` propre —
+       * reste donc sous le `ScrollView` `elevated` (`bodyElevated` ci-
+       * dessus) tant qu'un sélecteur y est ancré.
+       */}
+      {openOverlay !== null ? (
+        <Pressable
+          onPress={closeOverlay}
+          accessible={false}
+          testID="exercise-backdrop"
+          style={styles.backdrop}
+        />
+      ) : null}
+
       {isPendingExit ? (
         <ExerciseExitConfirmModal onCancel={cancelExit} onConfirm={confirmExit} />
       ) : null}
-    </Pressable>
+    </ScreenShell>
   );
 }
 
 /**
- * Ancre de positionnement d'un sélecteur intégré (correction CE-T01-07/14,
- * AUD-05) — même patron que `CompositionScreen.tsx` (`AnchoredRow`), non
- * partagé entre les deux écrans pour rester local à chacun (aucun état ni
- * dépendance commune au-delà du positionnement).
+ * Ancre de positionnement du sélecteur intégré (correction CE-T01-07/14,
+ * AUD-05, patron déjà établi) : React Native positionne un enfant
+ * `position: "absolute"` relativement à la boîte de son parent immédiat.
  *
- * `elevated` (cycle de correction après contre-recette iPhone, 2026-09-03,
- * UI-CTRL-002) : élève cette ligne au-dessus de ses frères (Row/section
- * suivante) tant que son propre popover est ouvert — même cause racine et
- * même correction que `CompositionScreen.tsx`, voir sa note pour le détail
- * géométrique démontré (UI-CTRL-001).
+ * **REWORK09** : un unique `PopoverAnchor`, désormais commun aux quatre
+ * sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
+ * `pauseSeconds`/`seriesCount`) — vérifié directement sur le nœud Figma
+ * `1992:9430` : le sélecteur ouvert (`Durée — Roulette compacte 190`,
+ * `330` de large) est positionné CENTRÉ sous `Cadre compact —
+ * Paramètres` (`354` de large, `(354-330)/2 = 12` de marge de chaque
+ * côté), jamais sous une seule colonne de `124`/`74`. Remplace les trois
+ * `PopoverAnchor` séparés (un par ancienne ligne verticale), incompatibles
+ * avec la rangée horizontale unique désormais requise.
  */
-function AnchoredRow({
-  children,
-  elevated,
-  testID,
-}: {
-  children: React.ReactNode;
-  elevated: boolean;
-  testID: string;
-}) {
-  return (
-    <View testID={testID} style={[styles.anchoredRow, elevated ? styles.elevated : null]}>
-      {children}
-    </View>
-  );
-}
-
 function PopoverAnchor({ children }: { children: React.ReactNode }) {
   return (
     <View style={styles.popoverAnchor} testID="exercise-popover-anchor">
@@ -462,40 +509,68 @@ function PopoverAnchor({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Row({
+/**
+ * `Activity / Parameter Row — Source exact` — une colonne (`Champ —
+ * Durée`/`Pause`/`Séries`/`Répétitions`) : libellé court au-dessus
+ * (`type.parameterColumnLabel`), contrôle `Forms / Select Field — Source
+ * exact` en dessous (fond blanc, liseré `colors.exerciseParameterControlBorder`,
+ * rayon `10`, hauteur `42`) — valeur alignée à gauche, carré chevron
+ * `28×28` (`colors.tourSurface`, `#CDCEFA`, rayon `6`) aligné à droite,
+ * chevron blanc `14×14` (`select-field-chevron`, point 7 REWORK09 —
+ * jamais un chevron sombre isolé).
+ */
+function ParameterField({
+  testID,
+  width,
   label,
   value,
   isOpen,
   onPress,
   accessibilityLabel,
 }: {
+  testID: string;
+  width: number;
   label: string;
   value: string;
   isOpen: boolean;
   onPress: () => void;
-  /** Distinct du libellé visuel uniquement lorsque celui-ci entre en collision avec un autre contrôle (ex. `Durée`, partagé avec l'onglet de mode). */
-  accessibilityLabel?: string;
+  accessibilityLabel: string;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ expanded: isOpen }}
-      style={styles.row}
-    >
-      <Text style={styles.rowLabel}>{label}</Text>
-      <View style={styles.rowTrailing}>
-        <Text style={styles.rowValue}>{value}</Text>
-        <KodjoIcon
-          name={isOpen ? "control-chevron-up" : "control-chevron-down"}
-          testID={`exercise-row-chevron-${isOpen ? "up" : "down"}`}
-        />
-      </View>
-    </Pressable>
+    <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
+      <Text style={styles.parameterLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityState={{ expanded: isOpen }}
+        style={[styles.parameterControl, { width }]}
+        testID={`${testID}-control`}
+      >
+        <Text style={styles.parameterValue} numberOfLines={1}>
+          {value}
+        </Text>
+        <View style={styles.parameterChevronBox} testID={`${testID}-chevron-box`}>
+          <KodjoIcon name="select-field-chevron" testID={`${testID}-chevron`} />
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
+/**
+ * `Controls / Segmented` (`2586:2759`), traduction canonique vérifiée
+ * directement sur les nœuds Figma actuels (`1992:9150`) — REWORK09,
+ * point 4. Remplace l'ancien composant local qui affichait la sélection
+ * sur fond blanc (`colors.background`) dans un conteneur `colors.surface` :
+ * conteneur blanc bordé (`colors.border`), option sélectionnée
+ * `colors.selection` (`#5F60EE`) avec texte blanc, option non
+ * sélectionnée transparente avec texte `colors.textSecondary`, libellés
+ * centrés (`justifyContent`/`alignItems: "center"`), états accessibles
+ * (`accessibilityRole="tab"`, `accessibilityState`) conservés.
+ */
 function SegmentButton({
   label,
   selected,
@@ -534,55 +609,41 @@ function SegmentButton({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // R4-13/S-01…S-09 (même contrat que `CompositionScreen.tsx`) : `body`
+  // est le `ScrollView` lui-même (style du conteneur défilant, sans
+  // padding propre) — le padding/l'écart entre champs vivent dans
+  // `bodyContent` (`contentContainerStyle`). Header/séparateur/action
+  // finale restent hors de ce `ScrollView`, jamais recouverts.
+  body: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  elevated: {
+    zIndex: 1,
+  },
+  bodyContent: {
     paddingHorizontal: spacing[24],
-    gap: spacing[16],
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  backButton: {
-    minWidth: minTouchTarget,
-    minHeight: minTouchTarget,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -spacing[12],
-  },
-  title: {
-    ...type.screenTitle,
-    color: colors.textPrimary,
-  },
-  // UI-ACT-002 : ligne de séparation sous l'en-tête fixe (Header/corps),
-  // même patron que `CompositionScreen.tsx` n'en avait pas encore besoin —
-  // ici explicitement requise par le contrat d'écran (Header → séparateur →
-  // corps défilant).
-  headerSeparator: {
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  bodyTitle: {
-    ...type.screenTitle,
-    color: colors.textPrimary,
-  },
-  fieldLabel: {
-    ...type.supporting,
-    color: colors.textSecondary,
-  },
-  scrollContent: {
-    gap: spacing[16],
+    paddingTop: spacing[16],
     paddingBottom: spacing[16],
+    gap: spacing[24],
+  },
+  // REWORK09, point 3 : `Forms / Text Field — Source exact` (`2537:1075`)
+  // — fond blanc, liseré dédié (distinct de `colors.border`), rayon `8`,
+  // hauteur `46`. Plus aucun style local gris hérité de l'ancien écran
+  // (`colors.surface`, rayon `12`).
+  fieldTitle: {
+    ...type.sectionTitle,
+    color: colors.textPrimary,
+    marginBottom: spacing[8],
   },
   nameInput: {
-    ...type.body,
+    ...type.exerciseFieldValue,
     color: colors.textPrimary,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[12],
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.exerciseFieldBorder,
+    borderRadius: dimensions.exerciseTextField.radius,
+    height: dimensions.exerciseTextField.height,
+    paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
   },
   instructionInput: {
     ...type.body,
@@ -594,33 +655,40 @@ const styles = StyleSheet.create({
     minHeight: 120,
     textAlignVertical: "top",
   },
-  sectionLabel: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
-  },
+  // REWORK09, point 4 : conteneur `354×42`, fond blanc, liseré
+  // `colors.border` (identique à la source Figma, `#e0e3e8`), padding `4`,
+  // écart entre segments `14`, rayon externe `12`.
   segmentedControl: {
     flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: spacing[4],
-    gap: spacing[4],
+    width: "100%",
+    height: dimensions.segmentedControl.height,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: dimensions.segmentedControl.containerRadius,
+    padding: dimensions.segmentedControl.padding,
+    gap: dimensions.segmentedControl.gap,
   },
+  // `flex: 1` distribue exactement 166pt à chacun des deux segments dans
+  // ce conteneur (354 - 2×4 padding - 14 gap = 332, /2 = 166) — dérivé par
+  // construction plutôt qu'une largeur codée en dur, mêmes proportions
+  // exactes que la source Figma.
   segment: {
     flex: 1,
+    height: dimensions.segmentedControl.segmentHeight,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing[8],
-    borderRadius: 8,
+    borderRadius: dimensions.segmentedControl.segmentRadius,
   },
   segmentSelected: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.selection,
   },
   segmentLabel: {
-    ...type.button,
+    ...type.label,
     color: colors.textSecondary,
   },
   segmentLabelSelected: {
-    color: colors.textPrimary,
+    color: colors.background,
   },
   segmentDisabled: {
     opacity: 0.5,
@@ -628,16 +696,56 @@ const styles = StyleSheet.create({
   segmentLabelDisabled: {
     color: colors.disabled,
   },
-  anchoredRow: {
-    // Sert uniquement de contexte de positionnement pour son sélecteur
-    // (voir `AnchoredRow` ci-dessus) ; aucune propriété de layout propre.
+  // REWORK09, point 6/7 : `Activity / Parameter Row — Source exact` —
+  // cadre compact englobant (`354` large, padding `8`, rayon `16`, fond
+  // `colors.exerciseParameterCardBackground`).
+  parameterCard: {
+    width: dimensions.exerciseParameterRow.cardWidth,
+    padding: dimensions.exerciseParameterRow.cardPadding,
+    borderRadius: dimensions.exerciseParameterRow.cardRadius,
+    backgroundColor: colors.exerciseParameterCardBackground,
   },
-  // Voir `CompositionScreen.tsx` (même nom, même rôle, même correction
-  // UI-CTRL-002) : élève une ligne au-dessus de ses frères tant que son
-  // sélecteur est ouvert, sans quoi le popover reste partiellement ou
-  // totalement recouvert par la ligne/section suivante.
-  elevated: {
-    zIndex: 1,
+  // Rangée utile `338×66` — une seule rangée horizontale, remplace les
+  // trois anciennes lignes verticales.
+  parameterRow: {
+    flexDirection: "row",
+    width: dimensions.exerciseParameterRow.rowWidth,
+    height: dimensions.exerciseParameterRow.rowHeight,
+    gap: dimensions.exerciseParameterRow.columnGap,
+  },
+  parameterLabel: {
+    ...type.parameterColumnLabel,
+    color: colors.exerciseParameterLabelText,
+  },
+  // `Forms / Select Field — Source exact` (`2537:1095`) : fond blanc,
+  // liseré dédié, rayon `10`, hauteur `42`, padding gauche `12`/droite `4`.
+  parameterControl: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: dimensions.exerciseParameterRow.controlHeight,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.exerciseParameterControlBorder,
+    borderRadius: dimensions.exerciseParameterRow.controlRadius,
+    paddingLeft: dimensions.exerciseParameterRow.controlPaddingLeft,
+    paddingRight: dimensions.exerciseParameterRow.controlPaddingRight,
+  },
+  parameterValue: {
+    ...type.label,
+    color: colors.exerciseParameterValueText,
+  },
+  // Carré canonique `28×28`, fond DSF `#CDCEFA` (`colors.tourSurface`,
+  // valeur identique déjà réutilisée pour la structure Tour de
+  // `CompositionScreen.tsx` — même token, pas de doublon), rayon `6`
+  // (point 7, REWORK09) — jamais un chevron sombre isolé sans cadre.
+  parameterChevronBox: {
+    width: dimensions.exerciseParameterRow.chevronBox,
+    height: dimensions.exerciseParameterRow.chevronBox,
+    borderRadius: dimensions.exerciseParameterRow.chevronBoxRadius,
+    backgroundColor: colors.tourSurface,
+    alignItems: "center",
+    justifyContent: "center",
   },
   popoverAnchor: {
     position: "absolute",
@@ -652,29 +760,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 12,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
-    backgroundColor: colors.surface,
-    borderRadius: 12,
+  // Point 8 (REWORK09) : largeur utile complète, liseré `colors.tourSurface`
+  // (même valeur que la source Figma, `#CDCEFA`, déjà réutilisée pour le
+  // carré des chevrons ci-dessus — pas de nouveau token dupliqué), rayon
+  // `12`, marges internes horizontales `12`/verticales `8`. Aucune hauteur
+  // figée : le cadre grandit avec le texte (`formatExerciseRecap`, jamais
+  // une valeur Figma statique).
+  summaryCard: {
+    marginTop: spacing[12],
+    borderWidth: 1,
+    borderColor: colors.tourSurface,
+    borderRadius: dimensions.exerciseSummaryCard.radius,
+    paddingHorizontal: dimensions.exerciseSummaryCard.paddingHorizontal,
+    paddingVertical: dimensions.exerciseSummaryCard.paddingVertical,
   },
-  rowTrailing: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[4],
-  },
-  rowLabel: {
+  summaryText: {
     ...type.body,
-    color: colors.textPrimary,
+    color: colors.exerciseParameterValueText,
   },
-  rowValue: {
-    ...type.body,
-    color: colors.textSecondary,
+  // Backdrop dédié (REWORK09) — même mécanisme que `CompositionScreen
+  // .tsx` : couvre tout l'écran, rendu uniquement pendant qu'un sélecteur
+  // est ouvert, sans `zIndex` propre — reste donc peint sous le
+  // `ScrollView` `elevated` (`bodyElevated`) par cette seule valeur par
+  // défaut (0), tout en restant au-dessus des autres frères directs de
+  // `ScreenShell` du seul fait de son ordre de rendu (dernier frère).
+  backdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   primaryAction: {
+    marginHorizontal: spacing[24],
     marginBottom: spacing[16],
     alignItems: "center",
     justifyContent: "center",

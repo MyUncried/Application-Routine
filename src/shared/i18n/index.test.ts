@@ -123,10 +123,11 @@ describe("strings", () => {
   });
 
   it("exposes the Exercise screen texts (T01-S08)", () => {
-    expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
-    expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
+    // REWORK09 (mission directe utilisateur, 2026-09-04) : `titleAdd`/
+    // `titleEdit` (grand titre local, remplacé par le nom réel de la
+    // Séance dans l'en-tête fixe partagé) n'existent plus.
     expect(strings.screens.exercise.backAccessibilityLabel).toBe("Retour");
-    expect(strings.screens.exercise.name).toBe("Nom");
+    expect(strings.screens.exercise.name).toBe("Nom de l’activité");
     expect(strings.screens.exercise.executionMode).toEqual({
       label: "Mode d’exécution",
       duration: "Durée",
@@ -142,6 +143,22 @@ describe("strings", () => {
     expect(strings.screens.exercise.finishAction).toBe("Terminer");
     expect(strings.screens.exercise.instruction.label).toBe("Consigne");
     expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+  });
+
+  it("REWORK09 — exposes short compact-row labels for Durée/Pause/Séries/Répétitions, distinct from their fuller accessibility labels", () => {
+    expect(strings.screens.exercise.duration.label).toBe("Durée");
+    expect(strings.screens.exercise.pauseSeconds.compactLabel).toBe("Pause");
+    expect(strings.screens.exercise.pauseSeconds.accessibilityLabel).toBe("Pause après Série");
+    expect(strings.screens.exercise.seriesCount.compactLabel).toBe("Séries");
+    expect(strings.screens.exercise.repetitionCount.compactLabel).toBe("Répétitions");
+  });
+
+  it("REWORK09 — exposes the Exercise recap fragments (mode prefix, distinct pause suffix from the Composition row summary)", () => {
+    expect(strings.screens.exercise.recap.modePrefix).toBe("Mode");
+    expect(strings.screens.exercise.recap.pauseSuffix).toBe("de pause entre les séries");
+    expect(strings.screens.exercise.recap.pauseSuffix).not.toBe(
+      strings.screens.composition.exerciseRow.pauseSuffix,
+    );
   });
 
   it("exposes the Exercise Type segment (Exercice/Récupération) and the Paramètres section title (CE-T01-13, AUD-08)", () => {

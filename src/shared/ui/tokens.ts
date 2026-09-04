@@ -51,6 +51,31 @@ export const colors = {
   // — distinct de `selectionSurface` (`#E5F0FF`), jusqu'ici réutilisé par
   // erreur pour ce rôle alors que la source canonique documente `#CDCEFA`.
   tourSurface: "#CDCEFA",
+  // REWORK09 (mission directe utilisateur, 2026-09-04, « CORRECTIONS
+  // CONNEXES DÉJÀ VALIDÉES — COMPOSITION » ; `12 – Architecture
+  // technique.md`, `color.sessionNameBorder`) : liseré du champ `Nom de la
+  // séance` (`Session / Name Field — Source exact`, `2537:1480`) sur la
+  // surface colorée de Composition — variable Figma canonique
+  // `color/session-name-border` (`VariableID:3163:4015`), jamais une
+  // couleur locale en dur.
+  sessionNameBorder: "#FFFFFF",
+  // REWORK09 (mission directe utilisateur, 2026-09-04, point 3 « Champ
+  // Nom de l'activité ») : `Forms / Text Field — Source exact` (`2537:1075`)
+  // documente un liseré `#c7c9d1`, distinct de `color.border` (`#E0E3E8`,
+  // utilisé ailleurs pour les cartes limites/Tour) — un token dédié évite
+  // de réutiliser à tort un token DSF portant une intention différente.
+  exerciseFieldBorder: "#C7C9D1",
+  // REWORK09, point 6/7 « Rangée compacte des paramètres » — `Activity /
+  // Parameter Row — Source exact` : fond du cadre compact englobant
+  // (`#f6f6ff`), liseré des contrôles `Forms / Select Field` (`#dbdbe5`),
+  // texte de valeur (`#14171c`) et libellé de colonne (`#1f1f26`) — quatre
+  // valeurs canoniques distinctes vérifiées directement sur les nœuds
+  // Figma `1992:9166`/`1992:9246`, aucune ne coïncidant avec un token
+  // existant.
+  exerciseParameterCardBackground: "#F6F6FF",
+  exerciseParameterControlBorder: "#DBDBE5",
+  exerciseParameterValueText: "#14171C",
+  exerciseParameterLabelText: "#1F1F26",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -80,6 +105,21 @@ export const type = {
   // ci-dessus.
   caption: { ...regular, fontSize: 11, lineHeight: 14 },
   navLabel: { ...regular, fontSize: 11, lineHeight: 16 },
+  // REWORK09 (mission directe utilisateur, 2026-09-04) — vérifiés sur les
+  // nœuds Figma actuels de `Activity / Parameter Row — Source exact`
+  // (`1992:9166`/`1992:9246`), sans équivalent parmi les tokens existants.
+  //
+  // Libellé de colonne (« Durée »/« Pause »/« Séries »/« Répétitions »),
+  // `15px` Semi Bold — hauteur de ligne `18` reprise de la hauteur réelle
+  // du nœud texte Figma (`18`), non documentée explicitement en tant que
+  // telle par Figma (« leading: normal »).
+  parameterColumnLabel: { ...semiBold, fontSize: 15, lineHeight: 18 },
+  // Valeur saisie dans `Forms / Text Field — Source exact` (`2537:1075`),
+  // `13px` Regular — hauteur de ligne `18` estimée par interpolation entre
+  // `caption` (`11/14`) et `body`/`label` (`14/18`…`14/20`), Figma ne
+  // documentant pas explicitement de hauteur de ligne fixe pour ce texte
+  // (« leading: normal ») — estimation raisonnée, signalée comme telle.
+  exerciseFieldValue: { ...regular, fontSize: 13, lineHeight: 18 },
 } as const;
 
 export const spacing = {
@@ -171,6 +211,55 @@ export const dimensions = {
   // sous-dimensionné n'en corrige pas la proportion visuelle ; seul le
   // remplacement par l'export canonique le corrige réellement.
   structureMovableIcon: { glyph: 20, slot: 28 },
+  // REWORK09 (mission directe utilisateur, 2026-09-04) — géométrie
+  // canonique vérifiée directement sur les nœuds Figma actuels
+  // (`1992:9132`/`1992:9430`/`1992:9212`, page `Prototype MVP`), pas sur
+  // une ancienne capture ni sur l'implémentation précédente.
+  //
+  // `Forms / Text Field — Source exact` (`2537:1075`, `Type=Single line`).
+  exerciseTextField: { height: 46, radius: 8, paddingHorizontal: 14 },
+  // `Controls / Segmented` (`2586:2759`) : conteneur `354×42`, padding `4`,
+  // écart entre segments `14`, chaque segment `166×34` (strictement égaux),
+  // rayon interne `10`, rayon externe `12`.
+  segmentedControl: {
+    height: 42,
+    containerRadius: 12,
+    padding: 4,
+    gap: 14,
+    segmentHeight: 34,
+    segmentRadius: 10,
+  },
+  // `Activity / Parameter Row — Source exact` : cadre compact englobant
+  // `354` large, padding `8`, rayon `16` ; rangée utile `338×66` ; colonnes
+  // Durée/Pause `124` large, Séries/Répétitions `74` large, écart
+  // horizontal `8`, écart vertical libellé/contrôle `6` ; contrôle
+  // (`Forms / Select Field — Source exact`, `2537:1095`) hauteur `42`,
+  // rayon `10`, padding gauche `12`/droite `4` ; carré du chevron `28×28`,
+  // rayon `6` ; chevron lui-même `14×14`.
+  exerciseParameterRow: {
+    cardWidth: 354,
+    cardPadding: 8,
+    cardRadius: 16,
+    rowWidth: 338,
+    rowHeight: 66,
+    wideColumnWidth: 124,
+    narrowColumnWidth: 74,
+    columnGap: 8,
+    labelGap: 6,
+    controlHeight: 42,
+    controlRadius: 10,
+    controlPaddingLeft: 12,
+    controlPaddingRight: 4,
+    chevronBox: 28,
+    chevronBoxRadius: 6,
+    chevronGlyph: 14,
+  },
+  // Cadre récapitulatif sous la rangée de paramètres — largeur utile
+  // complète (`354`), rayon `12`, marges internes horizontales `12`/
+  // verticales `8` ; hauteur `76` en illustration Figma uniquement (le
+  // cadre réel grandit avec le texte, jamais figé — voir `ExerciseScreen
+  // .tsx`).
+  exerciseSummaryCard: { radius: 12, paddingHorizontal: 12, paddingVertical: 8 },
 } as const;
 
 export const minTouchTarget = 48;

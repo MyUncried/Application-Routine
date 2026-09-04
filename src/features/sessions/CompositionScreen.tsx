@@ -348,21 +348,22 @@ export function CompositionScreen() {
 
       {/*
        * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
-       * synthèse et `Continuer` regroupés dans UNE seule zone d'action basse
-       * (`bottomAction`) — auparavant `summary` était un `Text` isolé entre
-       * le corps et le bouton, avec `marginTop: "auto"` posé sur le bouton
-       * seul (le texte pouvait donc se retrouver loin de l'action qu'il
-       * qualifie selon le contenu au-dessus). C'est désormais le groupe
-       * entier qui est poussé en bas (`marginTop: "auto"` sur
-       * `bottomAction`), la synthèse restant immédiatement au-dessus de
-       * `Continuer`.
+       * zone d'action basse (`bottomAction`), poussée en bas
+       * (`marginTop: "auto"`).
+       *
+       * REWORK09 (mission directe utilisateur, 2026-09-04, point 2
+       * « CORRECTIONS CONNEXES — COMPOSITION ») : la ligne de synthèse
+       * `0 activité · 0 min` précédemment affichée ICI est **supprimée** —
+       * devenue redondante depuis REWORK08-C, qui affiche désormais la même
+       * synthèse canonique (`compositionSummary`) directement sous le
+       * libellé `Nombre de tours` (voir `TourCard` ci-dessus). `Continuer`
+       * reste seul dans cette zone ; le style `summary` (devenu sans
+       * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
       <View
         testID="composition-bottom-action"
         style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
-        <Text style={styles.summary}>{compositionSummary}</Text>
-
         {/*
          * `Continuer` (CE-T01-04) — ARBITRAGE REQUIS, voir rapport d'audit :
          * le contrat exige une activation conditionnelle (Nom + Exercice
@@ -702,12 +703,28 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[16],
     gap: spacing[16],
   },
-  // CMP-02 : champ blanc unique regroupant Nom et Sélecteur de couleur.
+  // CMP-02 : champ unique regroupant Nom et Sélecteur de couleur — acquis
+  // préservé (fusion, géométrie, gap, padding, rayon inchangés).
+  //
+  // REWORK09 (mission directe utilisateur, 2026-09-04, point 1 « Champ Nom
+  // de la séance ») : `Session / Name Field — Source exact` (`2537:1480`)
+  // documente un fond TRANSPARENT (laissant apparaître la bande Context
+  // colorée sous-jacente, jamais un fond blanc opaque) et un liseré blanc
+  // intérieur de `1pt` via le token canonique `color.sessionNameBorder`
+  // (`#FFFFFF`, variable Figma `color/session-name-border`,
+  // `VariableID:3163:4015`) — remplace `colors.background` (fond opaque),
+  // seule propriété modifiée par cette correction ; ce champ reste le seul
+  // représentant visuel concret du « Nom de la séance » dans cet écran
+  // (fusionné avec le sélecteur de couleur depuis CMP-02, acquis
+  // explicitement préservé), la transparence s'applique donc à l'ensemble
+  // du champ fusionné plutôt qu'à un sous-élément désormais inexistant.
   nameColorField: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing[12],
-    backgroundColor: colors.background,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.sessionNameBorder,
     borderRadius: 12,
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[4],
@@ -965,11 +982,6 @@ const styles = StyleSheet.create({
   bottomAction: {
     marginHorizontal: spacing[24],
     gap: spacing[12],
-  },
-  summary: {
-    ...type.body,
-    color: colors.textSecondary,
-    textAlign: "center",
   },
   continueAction: {
     alignItems: "center",
