@@ -18,6 +18,7 @@ function aSummary(overrides: Partial<SessionSummary> = {}): SessionSummary {
     color: "#E5484D",
     activityCount: 1,
     estimatedDurationSeconds: 1080,
+    isEstimatedDurationApproximate: false,
     tourRepeatCount: 1,
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -61,5 +62,11 @@ describe("SessionCard", () => {
 
     const buttons = screen.getAllByRole("button");
     expect(buttons).toHaveLength(2);
+  });
+
+  it("prefixes the estimated duration with ≥ when it is approximate (T01-S09, RM-072)", () => {
+    render(<SessionCard session={aSummary({ isEstimatedDurationApproximate: true })} />);
+
+    expect(screen.getByText("1 activité · ≥ 18 min · 1 tour")).toBeTruthy();
   });
 });

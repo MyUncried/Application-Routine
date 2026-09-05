@@ -10,10 +10,15 @@
  * - une conversion directe des valeurs déjà extraites par une projection
  *   SQL de résumé (ex. `listActive`), effectuée par l'appelant.
  *
- * Pour cette tranche (une seule Activité IN_TOUR, Tour ×1, Cycle ×1, aucune
- * pause), le Nombre d'Activités de la Composition vaut toujours `1` ; les
- * formules restent néanmoins exprimées pour rester correctes le jour où ces
- * cardinalités cesseront d'être figées.
+ * T01-S09 : le Nombre d'Activités de la Composition n'est plus figé à `1` —
+ * `Session.cycle.tour.exercises` est une collection ordonnée. La formule de
+ * durée par Activité reprend exactement celle déjà établie par
+ * `formatCompositionSummary` (`compositionPresentation.ts`) pour le
+ * brouillon : mode Durée, `seriesCount × durationSeconds + seriesCount ×
+ * pauseSeconds` ; mode Répétitions, aucune durée conventionnelle pour
+ * l'Exercice lui-même mais ses pauses restent comptées
+ * (`seriesCount × pauseSeconds`), et la durée totale devient alors une borne
+ * minimale (RM-072) — jamais présentée comme exacte.
  */
 
 import type { Session } from "./Session";
@@ -22,6 +27,8 @@ export type EstimatedDurationFacts = {
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
   readonly activityDurationSeconds: number;
+  /** `true` dès qu'au moins une Activité contribuant à `activityDurationSeconds` est en mode Répétitions (RM-072). */
+  readonly isLowerBoundEstimate: boolean;
 };
 
 export type ActivityCountFacts = {
@@ -45,16 +52,29 @@ export function computeTotalActivitiesToExecute(facts: ActivityCountFacts): numb
 }
 
 export function toEstimatedDurationFacts(session: Session): EstimatedDurationFacts {
+  let activityDurationSeconds = 0;
+  let isLowerBoundEstimate = false;
+
+  for (const exercise of session.cycle.tour.exercises) {
+    if (exercise.executionMode === "REPETITIONS") {
+      isLowerBoundEstimate = true;
+    } else {
+      activityDurationSeconds += exercise.seriesCount * (exercise.durationSeconds ?? 0);
+    }
+    activityDurationSeconds += exercise.seriesCount * exercise.pauseSeconds;
+  }
+
   return {
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
-    activityDurationSeconds: session.cycle.tour.exercise.durationSeconds,
+    activityDurationSeconds,
+    isLowerBoundEstimate,
   };
 }
 
 export function toActivityCountFacts(session: Session): ActivityCountFacts {
   return {
-    compositionActivityCount: 1,
+    compositionActivityCount: session.cycle.tour.exercises.length,
     tourRepeatCount: session.cycle.tour.repeatCount,
   };
 }

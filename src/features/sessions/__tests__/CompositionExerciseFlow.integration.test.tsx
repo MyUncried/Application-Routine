@@ -1,6 +1,13 @@
 import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
+import type { ReactNode } from "react";
 
+import type { Category } from "@/domain/categories/Category";
+import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
+import type { Session, SessionSummary } from "@/domain/sessions/Session";
+import type { SessionRepository, UpdateSessionOutcome } from "@/domain/sessions/SessionRepository";
+import { SessionService } from "@/features/sessions/SessionService";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -18,8 +25,10 @@ import { strings } from "@/shared/i18n";
  * enregistre atomiquement l'Activité ; elle s'insère entre Compte à rebours
  * et Tour ; le retour ramène sur Composition ; le résumé `N activité(s) ·
  * durée` est recalculé ; un double-appui sur `Terminer` ne crée pas de
- * doublon ; le bouton `Continuer` reste dans l'état documenté (ARBITRAGE
- * REQUIS, voir le rapport d'audit — non réévalué ici).
+ * doublon ; le bouton `Continuer` reste désactivé tant que le Nom de la
+ * séance est vide, et s'active/navigue réellement vers `/categories` une
+ * fois la Composition complète (T01-S09, résolution de l'ARBITRAGE
+ * précédemment documenté par l'audit).
  */
 
 jest.mock("expo-haptics", () => ({
@@ -28,6 +37,45 @@ jest.mock("expo-haptics", () => ({
 
 const composition = strings.screens.composition;
 const exercise = strings.screens.exercise;
+
+/**
+ * `/categories` (T01-S09) rend `CategoriesScreen`, qui appelle
+ * `useSessionService()` dès le montage (`listCategories`) — un contexte
+ * factice minimal (aucune dépendance SQLite réelle) est donc nécessaire
+ * pour que le test n°8 ci-dessous puisse simplement PROUVER LA NAVIGATION
+ * réelle vers cet écran, sans re-tester ici son propre comportement
+ * (couvert par `CategoriesScreen.test.tsx`).
+ */
+class NoopSessionRepository implements SessionRepository {
+  create(): Promise<Session> {
+    return Promise.reject(new Error("not used by this navigation-only test"));
+  }
+  findById(): Promise<Session | null> {
+    return Promise.resolve(null);
+  }
+  listActive(): Promise<readonly SessionSummary[]> {
+    return Promise.resolve([]);
+  }
+  update(): Promise<UpdateSessionOutcome> {
+    return Promise.reject(new Error("not used by this navigation-only test"));
+  }
+}
+
+class NoopCategoryRepository implements CategoryRepository {
+  listAll(): Promise<readonly Category[]> {
+    return Promise.resolve([]);
+  }
+}
+
+function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
+  return (
+    <SessionServiceContext.Provider
+      value={new SessionService(new NoopSessionRepository(), new NoopCategoryRepository())}
+    >
+      {children}
+    </SessionServiceContext.Provider>
+  );
+}
 
 function renderCreationRouter() {
   return renderRouter(
@@ -39,8 +87,10 @@ function renderCreationRouter() {
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      "(creation)/categories": require("../../../../app/(creation)/categories").default,
     },
-    { initialUrl: "/composition" },
+    { initialUrl: "/composition", wrapper: SessionServiceTestWrapper },
   );
 }
 
@@ -123,7 +173,7 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     expect(screen.queryByText(/^2 activités ·/)).toBeNull();
   });
 
-  it("7. Continuer reste désactivé (ARBITRAGE REQUIS, voir le rapport d'audit — comportement non réévalué par cette tâche)", () => {
+  it("7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)", () => {
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
@@ -134,6 +184,22 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject(
       { disabled: true },
     );
+  });
+
+  it("8. Continuer s'active pour une Composition complète (Nom + Activité valide) et ouvre réellement Catégories de la séance (T01-S09, CE-T01-11)", () => {
+    const router = renderCreationRouter();
+
+    fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    fireEvent.press(screen.getByLabelText(exercise.validateAction));
+    fireEvent.press(screen.getByLabelText(exercise.finishAction));
+
+    const continueAction = screen.getByLabelText(composition.continueAction);
+    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: false });
+
+    fireEvent.press(continueAction);
+    expect(router.getPathname()).toBe("/categories");
   });
 });
 

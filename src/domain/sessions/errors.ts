@@ -29,7 +29,16 @@ export type ValidationField =
   | "exercise.instruction"
   | "exercise.repetitionCount"
   | "exercise.seriesCount"
-  | "exercise.pauseSeconds";
+  | "exercise.pauseSeconds"
+  /**
+   * T01-S09 : violation portée par une Catégorie personnalisée du brouillon
+   * (`SessionDraft.categorySelections`, kind `"NEW"`) lors de l'assemblage
+   * final — même limite déjà acceptée pour `exercise.*` sur une collection
+   * (aucun index de Catégorie/Activité fautive n'est distingué ici, voir
+   * `SessionDraft.ts`) : en pratique non observable, l'écran `Catégories de
+   * la séance` ne place jamais dans le brouillon un nom déjà invalide.
+   */
+  | "category.name";
 
 export type ValidationDetails = {
   readonly min?: number;

@@ -20,6 +20,10 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  *
  * `exercise` ajoutée en T01-S08, sous le même `Stack` et le même Provider,
  * sans restructuration — confirmant la prédiction du commentaire ci-dessus.
+ *
+ * `categories` ajoutée en T01-S09 (CE-T01-11), même patron — `Enregistrer
+ * la séance` réinitialise le brouillon partagé (`resetDraft`) puis quitte
+ * ce `Stack` entièrement (`router.dismissTo("/")`) vers le Catalogue.
  */
 export default function CreationLayout() {
   return (
@@ -27,6 +31,7 @@ export default function CreationLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
+        <Stack.Screen name="categories" />
       </Stack>
     </SessionDraftProvider>
   );

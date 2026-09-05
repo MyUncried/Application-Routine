@@ -301,14 +301,28 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
   });
 });
 
-describe("validateCreateSessionInput (aggregated structured result)", () => {
+describe("validateCreateSessionInput (aggregated structured result, T01-S09)", () => {
+  function durationExercise() {
+    return {
+      name: "Gainage",
+      executionMode: "DURATION" as const,
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+      instruction: null,
+      bodyZoneIds: [],
+    };
+  }
+
   function validInput() {
     return {
       name: "Séance simple",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Gainage", durationSeconds: 30 },
+      exercises: [durationExercise()],
+      categories: [],
     };
   }
 
@@ -321,9 +335,88 @@ describe("validateCreateSessionInput (aggregated structured result)", () => {
         color: DEFAULT_SESSION_COLOR,
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
-        exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+        exercises: [durationExercise()],
+        categories: [],
       },
     });
+  });
+
+  it("fails with exactly the two historical violations when exercises is empty (zero Activity remains invalid)", () => {
+    const result = validateCreateSessionInput({ ...validInput(), exercises: [] });
+    expect(result).toEqual({
+      ok: false,
+      violations: [
+        { code: "REQUIRED", field: "exercise.name" },
+        { code: "REQUIRED", field: "exercise.durationSeconds" },
+      ],
+    });
+  });
+
+  it("validates and assembles every exercise of the collection, in order, never only the first", () => {
+    const second = {
+      ...durationExercise(),
+      name: "Squats",
+      durationSeconds: 45,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    };
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [durationExercise(), second],
+    });
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        ...validInput(),
+        exercises: [durationExercise(), second],
+      },
+    });
+  });
+
+  it("validates a REPETITIONS-mode exercise (no durationSeconds required, repetitionCount required instead)", () => {
+    const repetitionExercise = {
+      ...durationExercise(),
+      executionMode: "REPETITIONS" as const,
+      durationSeconds: null,
+      repetitionCount: 12,
+    };
+    const result = validateCreateSessionInput({ ...validInput(), exercises: [repetitionExercise] });
+    expect(result).toEqual({ ok: true, value: { ...validInput(), exercises: [repetitionExercise] } });
+  });
+
+  it("requires repetitionCount in REPETITIONS mode", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        { ...durationExercise(), executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: null },
+      ],
+    });
+    expect(result).toEqual({
+      ok: false,
+      violations: [{ code: "REQUIRED", field: "exercise.repetitionCount" }],
+    });
+  });
+
+  it("aggregates violations across every invalid exercise of the collection, not just one", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        { ...durationExercise(), name: "" },
+        { ...durationExercise(), name: "", durationSeconds: 0 },
+      ],
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toEqual([
+        { code: "REQUIRED", field: "exercise.name" },
+        { code: "REQUIRED", field: "exercise.name" },
+        {
+          code: "OUT_OF_RANGE",
+          field: "exercise.durationSeconds",
+          details: { min: 1, max: 5999 },
+        },
+      ]);
+    }
   });
 
   it("aggregates every violation across multiple invalid fields at once", () => {
@@ -331,7 +424,7 @@ describe("validateCreateSessionInput (aggregated structured result)", () => {
       ...validInput(),
       name: "   ",
       color: "#000000" as never,
-      exercise: { name: "Exercice", durationSeconds: 0 },
+      exercises: [{ ...durationExercise(), name: "Exercice", durationSeconds: 0 }],
     });
 
     expect(result.ok).toBe(false);
@@ -351,6 +444,37 @@ describe("validateCreateSessionInput (aggregated structured result)", () => {
     }
   });
 
+  it("passes an EXISTING category input through unchanged", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      categories: [{ kind: "EXISTING", categoryId: "cardio" }],
+    });
+    expect(result).toEqual({
+      ok: true,
+      value: { ...validInput(), categories: [{ kind: "EXISTING", categoryId: "cardio" }] },
+    });
+  });
+
+  it("normalizes a NEW category's name and rejects an invalid one with category.name", () => {
+    const ok = validateCreateSessionInput({
+      ...validInput(),
+      categories: [{ kind: "NEW", name: "  Cardio   Intense  " }],
+    });
+    expect(ok).toEqual({
+      ok: true,
+      value: { ...validInput(), categories: [{ kind: "NEW", name: "Cardio Intense" }] },
+    });
+
+    const invalid = validateCreateSessionInput({
+      ...validInput(),
+      categories: [{ kind: "NEW", name: "A".repeat(41) }],
+    });
+    expect(invalid).toEqual({
+      ok: false,
+      violations: [{ code: "TOO_LONG", field: "category.name", details: { max: 40 } }],
+    });
+  });
+
   it("never throws, even on a fully invalid input", () => {
     expect(() =>
       validateCreateSessionInput({
@@ -358,7 +482,10 @@ describe("validateCreateSessionInput (aggregated structured result)", () => {
         color: "#000000" as never,
         initialCountdownSeconds: -1,
         finalPhaseSeconds: -1,
-        exercise: { name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
+        exercises: [
+          { ...durationExercise(), name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
+        ],
+        categories: [{ kind: "NEW", name: "" }],
       }),
     ).not.toThrow();
   });

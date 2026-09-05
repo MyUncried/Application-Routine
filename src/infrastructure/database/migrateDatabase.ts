@@ -1,10 +1,20 @@
 import { DATABASE_VERSION, LOCAL_USER_SINGLETON_KEY } from "./constants";
 import type { Database } from "./Database";
 import { MIGRATION_001 } from "./migrations/migration001";
+import { MIGRATION_002 } from "./migrations/migration002";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
 
+/**
+ * Applique séquentiellement chaque migration additive manquante, jamais en
+ * bloc : une base à la version 1 (T01-S01…S08) ne rejoue jamais
+ * `MIGRATION_001` (déjà appliquée, immuable — « Conservation des acquis »)
+ * et n'exécute que `MIGRATION_002` (T01-S09). Une base neuve (version 0)
+ * traverse les deux à la suite, dans le même ordre. `migration001.ts` n'est
+ * jamais modifié pour ajouter cette étape : chaque migration reste un
+ * fichier indépendant, exécuté une fois, jamais réécrit.
+ */
 export async function migrateDatabase(database: Database): Promise<void> {
   const versionRow = await database.getFirstAsync<UserVersionRow>("PRAGMA user_version");
   const currentVersion = versionRow?.user_version ?? 0;
@@ -20,13 +30,21 @@ export async function migrateDatabase(database: Database): Promise<void> {
   }
 
   await database.withExclusiveTransactionAsync(async (transaction) => {
-    if (currentVersion === 0) {
+    let version = currentVersion;
+
+    if (version === 0) {
       await transaction.execAsync(MIGRATION_001);
       await transaction.runAsync(
         `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
          VALUES (?, 'usr_' || lower(hex(randomblob(16))), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
         [LOCAL_USER_SINGLETON_KEY],
       );
+      version = 1;
+    }
+
+    if (version === 1) {
+      await transaction.execAsync(MIGRATION_002);
+      version = 2;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

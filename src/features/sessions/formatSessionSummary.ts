@@ -38,8 +38,15 @@ export function formatTourCount(count: number): string {
  * troncature qui minorerait l'attente réelle de l'utilisateur — aucune
  * règle d'arrondi n'étant fixée par les spécifications fonctionnelles pour
  * ce cas (arbitrage documenté dans le plan d'implémentation de T01-S06).
+ *
+ * `isApproximate` (T01-S09, RM-072) : préfixe `≥` dès qu'au moins une
+ * Activité de la Composition est en mode Répétitions — même convention déjà
+ * établie côté brouillon par `formatCompositionSummary`
+ * (`compositionPresentation.ts`), désormais également appliquée à une
+ * Séance persistée (`SessionSummary.isEstimatedDurationApproximate`).
  */
-export function formatEstimatedDuration(seconds: number): string {
+export function formatEstimatedDuration(seconds: number, isApproximate = false): string {
   const minutes = Math.ceil(seconds / 60);
-  return `${minutes} ${strings.screens.sessions.card.durationUnit}`;
+  const formatted = `${minutes} ${strings.screens.sessions.card.durationUnit}`;
+  return isApproximate ? `≥ ${formatted}` : formatted;
 }

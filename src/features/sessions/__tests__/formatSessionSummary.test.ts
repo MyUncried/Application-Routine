@@ -53,4 +53,12 @@ describe("formatEstimatedDuration", () => {
   it("formats a zero duration as 0 min without any special case", () => {
     expect(formatEstimatedDuration(0)).toBe("0 min");
   });
+
+  it("prefixes with ≥ when isApproximate is true (T01-S09, RM-072)", () => {
+    expect(formatEstimatedDuration(1080, true)).toBe("≥ 18 min");
+  });
+
+  it("defaults isApproximate to false when omitted", () => {
+    expect(formatEstimatedDuration(1080)).toBe("18 min");
+  });
 });

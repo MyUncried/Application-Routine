@@ -9,7 +9,7 @@ import {
   type ActivityCountFacts,
   type EstimatedDurationFacts,
 } from "@/domain/sessions/calculations";
-import { DEFAULT_SESSION_COLOR, type Session } from "@/domain/sessions/Session";
+import { DEFAULT_SESSION_COLOR, type Activity, type Session } from "@/domain/sessions/Session";
 
 describe("computeEstimatedDurationSeconds (Facts only, no SQL/infra type)", () => {
   it("sums initial countdown, activity duration and final phase", () => {
@@ -17,6 +17,7 @@ describe("computeEstimatedDurationSeconds (Facts only, no SQL/infra type)", () =
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       activityDurationSeconds: 30,
+      isLowerBoundEstimate: false,
     };
     expect(computeEstimatedDurationSeconds(facts)).toBe(45);
   });
@@ -27,25 +28,21 @@ describe("computeEstimatedDurationSeconds (Facts only, no SQL/infra type)", () =
         initialCountdownSeconds: 0,
         finalPhaseSeconds: 0,
         activityDurationSeconds: 12,
+        isLowerBoundEstimate: false,
       }),
     ).toBe(12);
-  });
-
-  it("matches the value produced today by SqliteSessionRepository.listActive for the same figures", () => {
-    // Same values as the repository's summary test fixture (10 / 30 / 5 => 45).
-    const facts: EstimatedDurationFacts = {
-      initialCountdownSeconds: 10,
-      finalPhaseSeconds: 5,
-      activityDurationSeconds: 30,
-    };
-    expect(computeEstimatedDurationSeconds(facts)).toBe(45);
   });
 });
 
 describe("computeActivityCount / computeTotalActivitiesToExecute (Facts only)", () => {
-  it("returns the composition activity count as-is for this tranche (always 1)", () => {
+  it("returns the composition activity count as-is", () => {
     const facts: ActivityCountFacts = { compositionActivityCount: 1, tourRepeatCount: 1 };
     expect(computeActivityCount(facts)).toBe(1);
+  });
+
+  it("returns a composition activity count greater than one for several Activities (T01-S09)", () => {
+    const facts: ActivityCountFacts = { compositionActivityCount: 3, tourRepeatCount: 1 };
+    expect(computeActivityCount(facts)).toBe(3);
   });
 
   it("multiplies the composition count by the tour repeat count for the total to execute", () => {
@@ -55,7 +52,25 @@ describe("computeActivityCount / computeTotalActivitiesToExecute (Facts only)", 
 });
 
 describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate)", () => {
-  function aSession(): Session {
+  function anActivity(overrides: Partial<Activity> = {}): Activity {
+    return {
+      id: "activity-1",
+      type: "EXERCISE",
+      executionMode: "DURATION",
+      structuralPosition: "IN_TOUR",
+      position: 0,
+      name: "Gainage",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+      instruction: null,
+      bodyZoneIds: [],
+      ...overrides,
+    };
+  }
+
+  function aSession(exercises: readonly Activity[] = [anActivity()]): Session {
     return {
       id: "session-1",
       ownerId: "usr_test",
@@ -74,21 +89,10 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
           id: "tour-1",
           position: 1,
           repeatCount: 1,
-          exercise: {
-            id: "activity-1",
-            type: "EXERCISE",
-            executionMode: "DURATION",
-            structuralPosition: "IN_TOUR",
-            position: 0,
-            name: "Gainage",
-            durationSeconds: 30,
-            repetitionCount: null,
-            seriesCount: 1,
-            pauseSeconds: 0,
-            instruction: null,
-          },
+          exercises,
         },
       },
+      categories: [],
     };
   }
 
@@ -97,6 +101,7 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       activityDurationSeconds: 30,
+      isLowerBoundEstimate: false,
     });
   });
 
@@ -111,5 +116,53 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
     const session = aSession();
     expect(computeEstimatedDurationSeconds(toEstimatedDurationFacts(session))).toBe(45);
     expect(computeActivityCount(toActivityCountFacts(session))).toBe(1);
+  });
+
+  it("sums seriesCount × duration + seriesCount × pause across several DURATION Activities (T01-S09)", () => {
+    const session = aSession([
+      anActivity({ id: "a1", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 }),
+      anActivity({ id: "a2", name: "Squats", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 }),
+    ]);
+    // a1: 2×30 + 2×5 = 70 ; a2: 1×20 + 0 = 20 ; total 90.
+    expect(toEstimatedDurationFacts(session)).toEqual({
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      activityDurationSeconds: 90,
+      isLowerBoundEstimate: false,
+    });
+    expect(toActivityCountFacts(session)).toEqual({ compositionActivityCount: 2, tourRepeatCount: 1 });
+  });
+
+  it("excludes the Exercise's own duration for a REPETITIONS Activity but still counts its pause, and flags the estimate as a lower bound (RM-072)", () => {
+    const session = aSession([
+      anActivity({
+        id: "a1",
+        executionMode: "REPETITIONS",
+        durationSeconds: null,
+        repetitionCount: 12,
+        seriesCount: 3,
+        pauseSeconds: 10,
+      }),
+    ]);
+    // Repetitions: no nominal duration, only 3×10 = 30 of pause.
+    expect(toEstimatedDurationFacts(session)).toEqual({
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      activityDurationSeconds: 30,
+      isLowerBoundEstimate: true,
+    });
+  });
+
+  it("flags the estimate as a lower bound as soon as ANY Activity is in REPETITIONS mode, even alongside DURATION Activities", () => {
+    const session = aSession([
+      anActivity({ id: "a1", durationSeconds: 30 }),
+      anActivity({
+        id: "a2",
+        executionMode: "REPETITIONS",
+        durationSeconds: null,
+        repetitionCount: 12,
+      }),
+    ]);
+    expect(toEstimatedDurationFacts(session).isLowerBoundEstimate).toBe(true);
   });
 });

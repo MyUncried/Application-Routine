@@ -88,6 +88,7 @@ function StatefulDraftWrapper({
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
     exercises: initialExercises,
+    categorySelections: [],
   }));
   const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -99,6 +100,7 @@ function StatefulDraftWrapper({
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [],
+      categorySelections: [],
     });
   }, []);
   const value = useMemo<SessionDraftContextValue>(
@@ -1309,5 +1311,32 @@ describe("CompositionScreen — modale d'abandon", () => {
   it("never renders the modal while isPendingExit is false", () => {
     renderScreen();
     expect(screen.queryByText("Abandonner la création ?")).toBeNull();
+  });
+});
+
+describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () => {
+  it("stays disabled while the Composition is invalid (no Activity yet, even with a name)", () => {
+    renderScreenWithDraft([]);
+
+    const continueAction = screen.getByLabelText(composition.continueAction);
+    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("enables once the Composition is fully valid (name + at least one valid Activity) and navigates to /categories on press", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+
+    const continueAction = screen.getByLabelText(composition.continueAction);
+    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: false });
+
+    fireEvent.press(continueAction);
+    expect(mockPush).toHaveBeenCalledWith("/categories");
+  });
+
+  it("stays disabled again if the only Activity becomes invalid (defense in depth, mirrors toCreateSessionInput)", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "", durationSeconds: 45 }]);
+
+    expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
   });
 });

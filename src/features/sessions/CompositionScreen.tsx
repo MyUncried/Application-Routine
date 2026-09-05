@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { FIXED_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
-import { isSessionDraftDirty } from "@/domain/sessions/SessionDraft";
+import { isSessionDraftDirty, toCreateSessionInput } from "@/domain/sessions/SessionDraft";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
@@ -119,6 +119,14 @@ export function CompositionScreen() {
   // par construction (ces deux champs du brouillon ne sont plus lus par
   // cette fonction).
   const compositionSummary = formatCompositionSummary({ exercises: draft.exercises });
+
+  // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
+  // une Composition valide — `toCreateSessionInput` est la même validation
+  // complète que celle utilisée à l'enregistrement final (categorySelections
+  // est nécessairement vide à ce stade du parcours, sans effet sur ce
+  // résultat : D-106 n'exige jamais de Catégorie). Un brouillon invalide ne
+  // peut donc jamais être poursuivi ni, a fortiori, persisté.
+  const isCompositionValid = toCreateSessionInput(draft).ok;
 
   return (
     <ScreenShell>
@@ -375,19 +383,20 @@ export function CompositionScreen() {
         style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
         {/*
-         * `Continuer` (CE-T01-04) — ARBITRAGE REQUIS, voir rapport d'audit :
-         * le contrat exige une activation conditionnelle (Nom + Exercice
-         * valide) et un libellé dynamique `Enregistrer`/`Continuer`, mais la
-         * destination réelle (`Catégories de la séance`, CE-T01-11) n'existe
-         * pas avant T01-S09. Comportement conservé tel quel dans l'attente
-         * d'un arbitrage explicite — non tranché silencieusement.
+         * `Continuer` (CE-T01-04, résolu T01-S09) : activation conditionnelle
+         * — une Composition valide (Nom + toutes les Activités, voir
+         * `isCompositionValid` ci-dessus) ouvre désormais réellement l'écran
+         * `Catégories de la séance` (`/categories`, CE-T01-11). Le brouillon
+         * partagé (`SessionDraftProvider`) survit à cette navigation, comme à
+         * toute autre navigation entre écrans de ce même `Stack`.
          */}
         <Pressable
-          disabled
+          disabled={!isCompositionValid}
+          onPress={() => router.push("/categories")}
           accessibilityRole="button"
-          accessibilityState={{ disabled: true }}
+          accessibilityState={{ disabled: !isCompositionValid }}
           accessibilityLabel={composition.continueAction}
-          style={styles.continueAction}
+          style={[styles.continueAction, !isCompositionValid ? null : styles.continueActionEnabled]}
         >
           <Text style={styles.continueLabel}>{composition.continueAction}</Text>
         </Pressable>
@@ -1034,6 +1043,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[12],
     borderRadius: 24,
     backgroundColor: colors.disabled,
+  },
+  // T01-S09 : même patron que `primaryAction`/`primaryActionDisabled`
+  // (`ExerciseScreen.tsx`) — fond `colors.primary` uniquement pour l'état
+  // activé, jamais l'inverse (`continueAction.backgroundColor` reste le
+  // fond désactivé par défaut).
+  continueActionEnabled: {
+    backgroundColor: colors.primary,
   },
   continueLabel: {
     ...type.button,

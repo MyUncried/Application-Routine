@@ -8,7 +8,15 @@
  * rester cohérentes avec le comptage de caractères de SQLite.
  */
 
-import { SESSION_COLORS, type CreateSessionInput, type SessionColor } from "./Session";
+import { validateCategoryName } from "@/domain/categories/validation";
+
+import {
+  SESSION_COLORS,
+  type CreateSessionCategoryInput,
+  type CreateSessionExerciseInput,
+  type CreateSessionInput,
+  type SessionColor,
+} from "./Session";
 import {
   fail,
   ok,
@@ -199,9 +207,99 @@ function unwrap<T>(
 }
 
 /**
- * Valide et normalise un `CreateSessionInput` complet. Retourne un succès
- * portant l'entrée normalisée, ou un échec listant l'intégralité des
- * violations rencontrées (pas seulement la première).
+ * Valide une seule Activité d'un `CreateSessionInput.exercises` (T01-S09) :
+ * nom, champ propre au mode d'exécution (durée XOR répétitions, RM-034),
+ * nombre de Séries (D-092), pause après Série (`08` l.925) et Consigne.
+ * `bodyZoneIds` n'est pas revalidée ici (référentiel `bodyZones.ts`, hors
+ * Domaine Séance — voir la note de tête de `SessionDraft.toCreateSessionInput`
+ * pour la justification complète) : elle est reprise telle quelle.
+ */
+function validateSessionExerciseInput(
+  exercise: CreateSessionExerciseInput,
+): ValidationResult<CreateSessionExerciseInput> {
+  const violations: ValidationViolation[] = [];
+  const name = unwrap(validateExerciseName(exercise.name), violations);
+
+  let durationSeconds: number | null = null;
+  let repetitionCount: number | null = null;
+  if (exercise.executionMode === "DURATION") {
+    if (exercise.durationSeconds === null) {
+      violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
+    } else {
+      durationSeconds =
+        unwrap(validateExerciseDurationSeconds(exercise.durationSeconds), violations) ?? null;
+    }
+  } else {
+    if (exercise.repetitionCount === null) {
+      violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
+    } else {
+      repetitionCount = unwrap(validateRepetitionCount(exercise.repetitionCount), violations) ?? null;
+    }
+  }
+
+  const seriesCount = unwrap(validateSeriesCount(exercise.seriesCount), violations);
+  const pauseSeconds = unwrap(validatePauseSeconds(exercise.pauseSeconds), violations);
+  const instruction = unwrap(validateInstruction(exercise.instruction ?? null), violations);
+
+  if (violations.length > 0) {
+    return fail(violations);
+  }
+
+  return ok({
+    name: name as string,
+    executionMode: exercise.executionMode,
+    durationSeconds,
+    repetitionCount,
+    seriesCount: seriesCount as number,
+    pauseSeconds: pauseSeconds as number,
+    instruction: instruction === undefined ? null : instruction,
+    bodyZoneIds: exercise.bodyZoneIds,
+  });
+}
+
+/**
+ * Adapte une violation du Domaine Catégorie (`CategoryValidationViolation`,
+ * module séparé et volontairement non couplé au type d'erreur du Domaine
+ * Séance) vers `ValidationViolation` (Domaine Séance) au seul point
+ * d'assemblage où les deux se rencontrent : `category.name` fait partie de
+ * `ValidationField` (voir `errors.ts`) précisément pour rendre cette
+ * conversion valide, et les codes `REQUIRED`/`TOO_LONG` du Domaine Catégorie
+ * sont un sous-ensemble de `ValidationErrorCode`.
+ */
+function validateSessionCategoryName(
+  raw: string,
+  violations: ValidationViolation[],
+): string | undefined {
+  const result = validateCategoryName(raw);
+  if (result.ok) {
+    return result.value;
+  }
+  for (const violation of result.violations) {
+    violations.push({ code: violation.code, field: violation.field, details: violation.details });
+  }
+  return undefined;
+}
+
+/**
+ * Valide et normalise un `CreateSessionInput` complet (T01-S09 : collection
+ * ordonnée d'Activités + Catégories). Retourne un succès portant l'entrée
+ * normalisée, ou un échec listant l'intégralité des violations rencontrées
+ * (pas seulement la première) — Séance, TOUTES les Activités et TOUTE
+ * Catégorie personnalisée confondues.
+ *
+ * Un `exercises` vide échoue avec exactement les deux violations historiques
+ * (`REQUIRED` sur `exercise.name` puis `exercise.durationSeconds`, jamais une
+ * par Activité manquante puisqu'aucune n'existe) — « zéro Activité reste
+ * invalide » (Issue #17, AC directement dérivé).
+ *
+ * Limite disclosée (héritée de la complétion REWORK12, toujours vraie en
+ * T01-S09) : les champs de violation `exercise.*` ne portent aucun index —
+ * si PLUSIEURS Activités sont simultanément invalides, leurs violations
+ * s'accumulent sous les mêmes codes/champs sans distinguer laquelle est en
+ * cause. Sans conséquence pratique : `ExerciseScreen` n'autorise jamais
+ * `Terminer` sur une Activité déjà invalide (`isStep1Valid`), donc
+ * `draft.exercises` ne contient normalement que des Activités déjà valides
+ * individuellement au moment de l'enregistrement final.
  */
 export function validateCreateSessionInput(
   input: CreateSessionInput,
@@ -218,12 +316,35 @@ export function validateCreateSessionInput(
     validateFinalPhaseSeconds(input.finalPhaseSeconds),
     violations,
   );
-  const exerciseName = unwrap(validateExerciseName(input.exercise.name), violations);
-  const durationSeconds = unwrap(
-    validateExerciseDurationSeconds(input.exercise.durationSeconds),
-    violations,
-  );
-  const instruction = unwrap(validateInstruction(input.exercise.instruction), violations);
+
+  const exercises: CreateSessionExerciseInput[] = [];
+  if (input.exercises.length === 0) {
+    violations.push(
+      { code: "REQUIRED", field: "exercise.name" },
+      { code: "REQUIRED", field: "exercise.durationSeconds" },
+    );
+  } else {
+    for (const exercise of input.exercises) {
+      const validated = validateSessionExerciseInput(exercise);
+      if (validated.ok) {
+        exercises.push(validated.value);
+      } else {
+        violations.push(...validated.violations);
+      }
+    }
+  }
+
+  const categories: CreateSessionCategoryInput[] = [];
+  for (const category of input.categories) {
+    if (category.kind === "EXISTING") {
+      categories.push(category);
+      continue;
+    }
+    const validatedName = validateSessionCategoryName(category.name, violations);
+    if (validatedName !== undefined) {
+      categories.push({ kind: "NEW", name: validatedName });
+    }
+  }
 
   if (violations.length > 0) {
     return fail(violations);
@@ -234,10 +355,7 @@ export function validateCreateSessionInput(
     color: color as SessionColor,
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
-    exercise: {
-      name: exerciseName as string,
-      durationSeconds: durationSeconds as number,
-      instruction: instruction === undefined ? null : instruction,
-    },
+    exercises,
+    categories,
   });
 }

@@ -260,6 +260,34 @@ export const fr = {
         abandon: "Confirmer",
       },
     },
+    // T01-S09 (CE-T01-11/CE-T01-12, D-106/D-107) : aucun texte introductif
+    // supplémentaire n'est affiché sur cet écran — le titre de section
+    // (`sectionLabel`) et les tags suffisent, conformément à D-106.
+    categories: {
+      title: "Catégories de la séance",
+      backAccessibilityLabel: "Retour",
+      sectionLabel: "Catégories",
+      createAction: "Créer une catégorie",
+      tagAccessibility: {
+        selectedSuffix: "sélectionnée",
+      },
+      newCategory: {
+        placeholder: "Nom de la catégorie",
+        cancelAccessibilityLabel: "Annuler",
+        addAccessibilityLabel: "Ajouter",
+      },
+      loading: {
+        accessibilityLabel: "Chargement des catégories en cours",
+      },
+      error: {
+        message: "Impossible de charger vos catégories.",
+        retry: "Réessayer",
+      },
+      saveAction: "Enregistrer la séance",
+      // D-107 : message exact, reproduit mot pour mot — n'importe quelle
+      // reformulation locale serait non conforme.
+      saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
+    },
     calendar: {
       title: "Calendrier",
       placeholder:

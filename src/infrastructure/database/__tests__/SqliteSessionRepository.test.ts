@@ -6,11 +6,15 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import { SessionValidationError } from "@/domain/sessions/errors";
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
+import {
+  DEFAULT_SESSION_COLOR,
+  type CreateSessionInput,
+  type CreateSessionExerciseInput,
+} from "@/domain/sessions/Session";
 import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
-  mapSessionRow,
+  assembleSession,
   SqliteSessionRepository,
 } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -23,6 +27,8 @@ const IDS = [
   "10000000-0000-4000-8000-000000000002",
   "10000000-0000-4000-8000-000000000003",
   "10000000-0000-4000-8000-000000000004",
+  "10000000-0000-4000-8000-000000000005",
+  "10000000-0000-4000-8000-000000000006",
 ];
 
 const SECOND_IDS = [
@@ -30,6 +36,7 @@ const SECOND_IDS = [
   "20000000-0000-4000-8000-000000000002",
   "20000000-0000-4000-8000-000000000003",
   "20000000-0000-4000-8000-000000000004",
+  "20000000-0000-4000-8000-000000000005",
 ];
 
 const THIRD_IDS = [
@@ -37,6 +44,7 @@ const THIRD_IDS = [
   "30000000-0000-4000-8000-000000000002",
   "30000000-0000-4000-8000-000000000003",
   "30000000-0000-4000-8000-000000000004",
+  "30000000-0000-4000-8000-000000000005",
 ];
 
 describe("SqliteSessionRepository", () => {
@@ -51,7 +59,7 @@ describe("SqliteSessionRepository", () => {
     database.close();
   });
 
-  it("creates, reads and lists the exact T01-S01 aggregate", async () => {
+  it("creates, reads and lists a single-Activity aggregate (T01-S01 baseline, still supported)", async () => {
     const repository = new SqliteSessionRepository(database, uuidFactory());
     const created = await repository.create(validInput());
     const reopened = await repository.findById(created.id);
@@ -60,7 +68,8 @@ describe("SqliteSessionRepository", () => {
     expect(created.id).toBe(IDS[0]);
     expect(created.cycle.id).toBe(IDS[1]);
     expect(created.cycle.tour.id).toBe(IDS[2]);
-    expect(created.cycle.tour.exercise).toMatchObject({
+    expect(created.cycle.tour.exercises).toHaveLength(1);
+    expect(created.cycle.tour.exercises[0]).toMatchObject({
       id: IDS[3],
       type: "EXERCISE",
       executionMode: "DURATION",
@@ -70,13 +79,16 @@ describe("SqliteSessionRepository", () => {
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
+      bodyZoneIds: [],
     });
+    expect(created.categories).toEqual([]);
     expect(reopened).toEqual(created);
     expect(summaries).toEqual([
       expect.objectContaining({
         id: created.id,
         activityCount: 1,
         estimatedDurationSeconds: 45,
+        isEstimatedDurationApproximate: false,
         tourRepeatCount: 1,
       }),
     ]);
@@ -125,8 +137,8 @@ describe("SqliteSessionRepository", () => {
       created.id,
       created.cycle.id,
       created.cycle.tour.id,
-      created.cycle.tour.exercise.id,
-    ]).toEqual(IDS);
+      created.cycle.tour.exercises[0]?.id,
+    ]).toEqual(IDS.slice(0, 4));
   });
 
   it("rejects incomplete or out-of-contract input before persistence with a structured SessionValidationError", async () => {
@@ -138,7 +150,7 @@ describe("SqliteSessionRepository", () => {
     await expect(
       repository.create({
         ...validInput(),
-        exercise: { name: "Exercice", durationSeconds: 0 },
+        exercises: [{ ...anExercise(), durationSeconds: 0 }],
       }),
     ).rejects.toBeInstanceOf(SessionValidationError);
 
@@ -165,15 +177,13 @@ describe("SqliteSessionRepository", () => {
   it("validates any CreateSessionInput it receives directly, with no way to bypass validation", async () => {
     const repository = new SqliteSessionRepository(database, uuidFactory());
 
-    // No draft, no toCreateSessionInput involved: an invalid CreateSessionInput
-    // built by hand is still rejected before any SQL write, because the
-    // Repository revalidates every input independently of its origin.
-    const handCraftedInvalidInput = {
+    const handCraftedInvalidInput: CreateSessionInput = {
       name: "Nom valide",
       color: "#000000" as never,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Exercice", durationSeconds: 30 },
+      exercises: [anExercise()],
+      categories: [],
     };
 
     await expect(repository.create(handCraftedInvalidInput)).rejects.toBeInstanceOf(
@@ -205,74 +215,389 @@ describe("SqliteSessionRepository", () => {
       ...validRow(),
       repetition_count: 5,
     } as unknown as SessionAggregateRow;
-    expect(() => mapSessionRow(incoherentRow)).toThrow("does not satisfy");
+    expect(() => assembleSession([incoherentRow], new Map(), [])).toThrow("does not satisfy");
   });
 
-  it("rejects a row whose session status is ARCHIVED, expressible without a cast now that the type allows it", () => {
-    // SessionAggregateRow.status is "ACTIVE" | "ARCHIVED": this literal
-    // assigns directly, no `as unknown as SessionAggregateRow` needed.
+  it("rejects a row whose session status is ARCHIVED", () => {
     const archivedRow: SessionAggregateRow = { ...validRow(), status: "ARCHIVED" };
-    expect(() => mapSessionRow(archivedRow)).toThrow("does not satisfy");
+    expect(() => assembleSession([archivedRow], new Map(), [])).toThrow("does not satisfy");
   });
 
-  describe("update", () => {
-    it("updates all modifiable fields in place, preserving identifiers/owner/createdAt and renewing updatedAt", async () => {
-      const clock = fixedClock(["2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z"]);
+  describe("multi-Activity persistence (T01-S09)", () => {
+    it("persists ALL Activities of the collection, in order, without loss — zero loss of data validated in T01-S08", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          { ...anExercise(), name: "Gainage", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 },
+          {
+            ...anExercise(),
+            name: "Squats",
+            executionMode: "REPETITIONS",
+            durationSeconds: null,
+            repetitionCount: 12,
+            instruction: "Descendre lentement",
+            bodyZoneIds: ["cuisses", "genoux"],
+          },
+        ],
+      });
+
+      expect(created.cycle.tour.exercises).toHaveLength(2);
+      expect(created.cycle.tour.exercises.map((exercise) => exercise.name)).toEqual([
+        "Gainage",
+        "Squats",
+      ]);
+      expect(created.cycle.tour.exercises.map((exercise) => exercise.position)).toEqual([0, 1]);
+      expect(created.cycle.tour.exercises[1]).toMatchObject({
+        executionMode: "REPETITIONS",
+        durationSeconds: null,
+        repetitionCount: 12,
+        instruction: "Descendre lentement",
+        bodyZoneIds: ["cuisses", "genoux"],
+      });
+
+      const reopened = await repository.findById(created.id);
+      expect(reopened).toEqual(created);
+    });
+
+    it("preserves collection order across a connection close and reopen (real SQLite file)", async () => {
+      const filePath = path.join(os.tmpdir(), `kodjo-t01s09-order-${randomUUID()}.db`);
+      let writer: NodeSqliteDatabase | undefined;
+      let reader: NodeSqliteDatabase | undefined;
+
+      try {
+        writer = NodeSqliteDatabase.openFile(filePath);
+        await migrateDatabase(writer);
+        const repository = new SqliteSessionRepository(writer, uuidFactory());
+        const created = await repository.create({
+          ...validInput(),
+          exercises: [
+            { ...anExercise(), name: "Un" },
+            { ...anExercise(), name: "Deux" },
+            { ...anExercise(), name: "Trois" },
+          ],
+        });
+
+        writer.close();
+        writer = undefined;
+
+        reader = NodeSqliteDatabase.openFile(filePath);
+        const rereadRepository = new SqliteSessionRepository(reader);
+        const reread = await rereadRepository.findById(created.id);
+
+        expect(reread?.cycle.tour.exercises.map((exercise) => exercise.name)).toEqual([
+          "Un",
+          "Deux",
+          "Trois",
+        ]);
+      } finally {
+        try {
+          writer?.close();
+        } catch {
+          // Déjà fermée ou jamais ouverte.
+        }
+        try {
+          reader?.close();
+        } catch {
+          // Déjà fermée ou jamais ouverte.
+        }
+        fs.rmSync(filePath, { force: true });
+      }
+    });
+
+    it("rolls the whole aggregate back if a later Activity's insertion fails, keeping none of the earlier ones", async () => {
+      const failingDatabase = new FailingSecondActivityInsertDatabase(database);
+      const repository = new SqliteSessionRepository(failingDatabase, uuidFactory());
+
+      await expect(
+        repository.create({
+          ...validInput(),
+          exercises: [anExercise(), { ...anExercise(), name: "Squats" }],
+        }),
+      ).rejects.toThrow("forced second activity failure");
+
+      const row = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activities",
+      );
+      expect(row?.count).toBe(0);
+    });
+  });
+
+  describe("body zones persistence (D-093, T01-S09)", () => {
+    it("persists and rereads body zones for an Activity", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos", "epaules", "bras"] }],
+      });
+
+      expect([...(created.cycle.tour.exercises[0]?.bodyZoneIds ?? [])].sort()).toEqual(
+        ["bras", "dos", "epaules"].sort(),
+      );
+      const reopened = await repository.findById(created.id);
+      expect([...(reopened?.cycle.tour.exercises[0]?.bodyZoneIds ?? [])].sort()).toEqual(
+        ["bras", "dos", "epaules"].sort(),
+      );
+    });
+
+    it("rejects an unknown body zone id at the database level (defense in depth)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+
+      await expect(
+        repository.create({
+          ...validInput(),
+          exercises: [{ ...anExercise(), bodyZoneIds: ["not-a-real-zone"] }],
+        }),
+      ).rejects.toThrow();
+
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sessions",
+      );
+      expect(count?.count).toBe(0);
+    });
+  });
+
+  describe("categories persistence (D-106/D-107, T01-S09)", () => {
+    it("associates existing predefined categories by id, without creating any new row", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        categories: [
+          { kind: "EXISTING", categoryId: "cardio" },
+          { kind: "EXISTING", categoryId: "mobilite" },
+        ],
+      });
+
+      expect(created.categories.map((category) => category.id)).toEqual(["cardio", "mobilite"]);
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories",
+      );
+      expect(count?.count).toBe(10); // seed only — no new row created.
+    });
+
+    it("creates a new custom category and associates it, within the same transaction", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        categories: [{ kind: "NEW", name: "Ma Catégorie" }],
+      });
+
+      expect(created.categories).toHaveLength(1);
+      expect(created.categories[0]?.name).toBe("Ma Catégorie");
+      expect(created.categories[0]?.isPredefined).toBe(false);
+
+      const row = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories WHERE canonical_key = ?",
+        ["ma categorie"],
+      );
+      expect(row?.count).toBe(1);
+    });
+
+    it("never creates a duplicate category: a NEW selection matching an existing canonical key reuses it (D-106)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      await repository.create({
+        ...validInput(),
+        categories: [{ kind: "NEW", name: "Ma Catégorie" }],
+      });
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const second = await secondRepository.create({
+        ...validInput(),
+        name: "Deuxième séance",
+        categories: [{ kind: "NEW", name: "  ma   catégorie  " }],
+      });
+
+      expect(second.categories[0]?.name).toBe("Ma Catégorie"); // reuses the FIRST persisted label.
+      const row = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories WHERE canonical_key = ?",
+        ["ma categorie"],
+      );
+      expect(row?.count).toBe(1);
+    });
+
+    it("succeeds with zero categories (D-106: never required)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({ ...validInput(), categories: [] });
+      expect(created.categories).toEqual([]);
+    });
+
+    it("rolls back the whole transaction, including the new category, if a later step fails", async () => {
+      const failingDatabase = new FailingSessionCategoryInsertDatabase(database);
+      const repository = new SqliteSessionRepository(failingDatabase, uuidFactory());
+
+      await expect(
+        repository.create({
+          ...validInput(),
+          categories: [{ kind: "NEW", name: "Ma Catégorie" }],
+        }),
+      ).rejects.toThrow("forced session_categories failure");
+
+      const sessionCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sessions",
+      );
+      expect(sessionCount?.count).toBe(0);
+      const categoryCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories WHERE canonical_key = ?",
+        ["ma categorie"],
+      );
+      expect(categoryCount?.count).toBe(0); // the speculatively created category is rolled back too.
+    });
+
+    it("orders returned categories predefined-first by displayOrder, then custom by createdAt (D-107)", async () => {
+      const clock = fixedClock([
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:00:01.000Z",
+        "2026-01-01T00:00:02.000Z",
+      ]);
       const repository = new SqliteSessionRepository(database, uuidFactory(), clock);
+      const created = await repository.create({
+        ...validInput(),
+        categories: [
+          { kind: "NEW", name: "Zzz personnalisée" },
+          { kind: "EXISTING", categoryId: "cardio" }, // displayOrder 1
+          { kind: "EXISTING", categoryId: "renforcement" }, // displayOrder 0
+        ],
+      });
+
+      expect(created.categories.map((category) => category.id)).toEqual([
+        "renforcement",
+        "cardio",
+        created.categories[2]?.id,
+      ]);
+      expect(created.categories[2]?.isPredefined).toBe(false);
+    });
+  });
+
+  // T01-S06 : couverture ajoutée pour la Séance simple, sans modifier le
+  // contrat ni le code de production (`listActive()` — SqliteSessionRepository.ts —
+  // reste inchangé ; ces tests prouvent seulement ce qu'il fait déjà).
+  describe("listActive", () => {
+    it("excludes a session archived directly via SQL (no archiving feature exists in code)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const active = await repository.create(validInput());
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const archived = await secondRepository.create({ ...validInput(), name: "À archiver" });
+      await database.runAsync(
+        "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
+        ["2026-01-02T00:00:00.000Z", archived.id],
+      );
+
+      const summaries = await repository.listActive();
+
+      expect(summaries.map((summary) => summary.id)).toEqual([active.id]);
+      expect(summaries.some((summary) => summary.id === archived.id)).toBe(false);
+    });
+
+    it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      await repository.create({
+        ...validInput(),
+        exercises: [
+          { ...anExercise(), executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: 12 },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      expect(summaries[0]?.isEstimatedDurationApproximate).toBe(true);
+    });
+
+    it("sums seriesCount × duration + seriesCount × pause across several Activities in the estimated duration", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+        exercises: [
+          { ...anExercise(), name: "Un", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 },
+          { ...anExercise(), name: "Deux", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      // (2×30 + 2×5) + (1×20 + 0) = 70 + 20 = 90 ; + 10 + 5 = 105 -> ceil not applied here (raw seconds).
+      expect(summary?.estimatedDurationSeconds).toBe(105);
+      expect(summary?.activityCount).toBe(2);
+    });
+
+    it("sorts by COALESCE(last_executed_at, updated_at) DESC independently of insertion order", async () => {
+      const clockOldest = fixedClock(["2026-01-01T00:00:00.000Z"]);
+      const repositoryOldest = new SqliteSessionRepository(database, uuidFactory(), clockOldest);
+      const sessionOldest = await repositoryOldest.create({
+        ...validInput(),
+        name: "Jamais exécutée",
+      });
+
+      const clockMostRecent = fixedClock(["2026-01-02T00:00:00.000Z"]);
+      const repositoryMostRecent = new SqliteSessionRepository(
+        database,
+        secondUuidFactory(),
+        clockMostRecent,
+      );
+      const sessionMostRecent = await repositoryMostRecent.create({
+        ...validInput(),
+        name: "Exécutée très récemment",
+      });
+      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
+        "2026-01-30T00:00:00.000Z",
+        sessionMostRecent.id,
+      ]);
+
+      const clockMiddle = fixedClock(["2026-01-03T00:00:00.000Z"]);
+      const repositoryMiddle = new SqliteSessionRepository(
+        database,
+        thirdUuidFactory(),
+        clockMiddle,
+      );
+      const sessionMiddle = await repositoryMiddle.create({
+        ...validInput(),
+        name: "Exécutée il y a deux semaines",
+      });
+      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
+        "2026-01-15T00:00:00.000Z",
+        sessionMiddle.id,
+      ]);
+
+      const summaries = await repositoryOldest.listActive();
+
+      expect(summaries.map((summary) => summary.id)).toEqual([
+        sessionMostRecent.id,
+        sessionMiddle.id,
+        sessionOldest.id,
+      ]);
+    });
+  });
+
+  describe("update (generalized contract, out of the T01-S09 functional scope — T01-S10 will define real reopen UX)", () => {
+    it("replaces the Activity collection and preserves session/cycle/tour identifiers", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
 
       const outcome = await repository.update(created.id, {
+        ...validInput(),
         name: "Nom modifié",
-        color: "#5A5BD7",
-        initialCountdownSeconds: 15,
-        finalPhaseSeconds: 8,
-        exercise: { name: "Exercice modifié", durationSeconds: 45, instruction: "Nouvelle consigne" },
+        exercises: [
+          { ...anExercise(), name: "Nouveau 1" },
+          { ...anExercise(), name: "Nouveau 2" },
+        ],
       });
 
       expect(outcome.status).toBe("UPDATED");
       if (outcome.status !== "UPDATED") {
         throw new Error("expected update() to report UPDATED");
       }
-      const updated = outcome.session;
-
-      // Identifiants strictement préservés.
-      expect(updated.id).toBe(created.id);
-      expect(updated.cycle.id).toBe(created.cycle.id);
-      expect(updated.cycle.tour.id).toBe(created.cycle.tour.id);
-      expect(updated.cycle.tour.exercise.id).toBe(created.cycle.tour.exercise.id);
-      expect(updated.ownerId).toBe(created.ownerId);
-      expect(updated.createdAt).toBe(created.createdAt);
-
-      // updatedAt renouvelé, via l'horloge injectée (déterministe).
-      expect(updated.updatedAt).toBe("2026-02-01T00:00:00.000Z");
-      expect(updated.updatedAt).not.toBe(created.updatedAt);
-
-      // Tous les champs modifiables ont bien été appliqués.
-      expect(updated.name).toBe("Nom modifié");
-      expect(updated.color).toBe("#5A5BD7");
-      expect(updated.initialCountdownSeconds).toBe(15);
-      expect(updated.finalPhaseSeconds).toBe(8);
-      expect(updated.cycle.tour.exercise.name).toBe("Exercice modifié");
-      expect(updated.cycle.tour.exercise.durationSeconds).toBe(45);
-      expect(updated.cycle.tour.exercise.instruction).toBe("Nouvelle consigne");
+      expect(outcome.session.id).toBe(created.id);
+      expect(outcome.session.cycle.id).toBe(created.cycle.id);
+      expect(outcome.session.cycle.tour.id).toBe(created.cycle.tour.id);
+      expect(outcome.session.name).toBe("Nom modifié");
+      expect(outcome.session.cycle.tour.exercises.map((exercise) => exercise.name)).toEqual([
+        "Nouveau 1",
+        "Nouveau 2",
+      ]);
     });
 
-    it("targets only the exact activity row by id and session_id, leaving another session's activity untouched", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
-      const sessionA = await repository.create(validInput());
-
-      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
-      const sessionB = await secondRepository.create({ ...validInput(), name: "Séance B" });
-
-      await repository.update(sessionA.id, { ...validInput(), name: "A modifiée" });
-
-      const stillB = await repository.findById(sessionB.id);
-      expect(stillB?.name).toBe("Séance B");
-      expect(stillB?.cycle.tour.exercise.name).toBe("Gainage");
-      expect(stillB?.id).toBe(sessionB.id);
-    });
-
-    it("returns NOT_FOUND and performs no write, no implicit creation, for an unknown id", async () => {
+    it("returns NOT_FOUND and performs no write for an unknown id", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
 
       const outcome = await repository.update("00000000-0000-4000-8000-000000000099", validInput());
@@ -284,7 +609,7 @@ describe("SqliteSessionRepository", () => {
       expect(count?.count).toBe(0);
     });
 
-    it("returns ARCHIVED and performs no write for a session archived via direct SQL (no archiving feature exists in code)", async () => {
+    it("returns ARCHIVED and performs no write for a session archived via direct SQL", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
 
@@ -322,221 +647,65 @@ describe("SqliteSessionRepository", () => {
       expect(row?.name).toBe("Séance simple");
       expect(row?.updated_at).toBe(created.updatedAt);
     });
-
-    it("rolls the whole update back when the activity update fails after the session update already ran", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
-      const created = await repository.create(validInput());
-
-      const failingDatabase = new FailingActivityUpdateDatabase(database);
-      const failingRepository = new SqliteSessionRepository(failingDatabase, uuidFactory());
-
-      await expect(
-        failingRepository.update(created.id, { ...validInput(), name: "Nom modifié" }),
-      ).rejects.toThrow("forced activity update failure");
-
-      const reread = await repository.findById(created.id);
-      expect(reread?.name).toBe("Séance simple");
-      expect(reread?.updatedAt).toBe(created.updatedAt);
-    });
-
-    it("rolls back completely when the final reread is incoherent, without leaving a partial write", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
-      const created = await repository.create(validInput());
-
-      const tamperingDatabase = new IncoherentRereadDatabase(database);
-      const tamperingRepository = new SqliteSessionRepository(tamperingDatabase, uuidFactory());
-
-      await expect(
-        tamperingRepository.update(created.id, { ...validInput(), name: "Nom modifié" }),
-      ).rejects.toThrow("could not be read back coherently");
-
-      const reread = await repository.findById(created.id);
-      expect(reread?.name).toBe("Séance simple");
-      expect(reread?.updatedAt).toBe(created.updatedAt);
-    });
-
-    it("persists an update durably across a connection close and reopen (real SQLite file)", async () => {
-      const filePath = path.join(os.tmpdir(), `kodjo-t01s04-${randomUUID()}.db`);
-      let writer: NodeSqliteDatabase | undefined;
-      let reader: NodeSqliteDatabase | undefined;
-
-      try {
-        writer = NodeSqliteDatabase.openFile(filePath);
-        await migrateDatabase(writer);
-        const repository = new SqliteSessionRepository(writer, uuidFactory());
-        const created = await repository.create(validInput());
-
-        const outcome = await repository.update(created.id, {
-          ...validInput(),
-          name: "Nom modifié sur fichier",
-        });
-        expect(outcome.status).toBe("UPDATED");
-
-        writer.close();
-        writer = undefined;
-
-        reader = NodeSqliteDatabase.openFile(filePath);
-        const rereadRepository = new SqliteSessionRepository(reader);
-        const reread = await rereadRepository.findById(created.id);
-
-        expect(reread?.id).toBe(created.id);
-        expect(reread?.name).toBe("Nom modifié sur fichier");
-
-        reader.close();
-        reader = undefined;
-      } finally {
-        try {
-          writer?.close();
-        } catch {
-          // Déjà fermée ou jamais ouverte : sans conséquence pour le nettoyage.
-        }
-        try {
-          reader?.close();
-        } catch {
-          // Déjà fermée ou jamais ouverte : sans conséquence pour le nettoyage.
-        }
-        fs.rmSync(filePath, { force: true });
-      }
-    });
-  });
-
-  // T01-S06 : couverture ajoutée pour la Séance simple, sans modifier le
-  // contrat ni le code de production (`listActive()` — SqliteSessionRepository.ts —
-  // reste inchangé ; ces tests prouvent seulement ce qu'il fait déjà).
-  describe("listActive", () => {
-    it("excludes a session archived directly via SQL (no archiving feature exists in code)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
-      const active = await repository.create(validInput());
-
-      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
-      const archived = await secondRepository.create({ ...validInput(), name: "À archiver" });
-      await database.runAsync(
-        "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
-        ["2026-01-02T00:00:00.000Z", archived.id],
-      );
-
-      const summaries = await repository.listActive();
-
-      expect(summaries.map((summary) => summary.id)).toEqual([active.id]);
-      expect(summaries.some((summary) => summary.id === archived.id)).toBe(false);
-    });
-
-    it("sorts by COALESCE(last_executed_at, updated_at) DESC independently of insertion order", async () => {
-      // Trois Séances, délibérément insérées dans un ordre qui ne
-      // correspond ni à l'ordre attendu du résultat ni à son inverse :
-      //
-      //   ordre d'insertion : oldest, mostRecent, middle
-      //   ordre attendu (DESC sur COALESCE) : mostRecent, middle, oldest
-      //
-      // Si `listActive()` restituait simplement les lignes dans leur ordre
-      // d'insertion (ou son inverse, ce que certains moteurs font sans
-      // `ORDER BY` explicite), ce test échouerait : les deux permutations
-      // sont distinctes de l'ordre attendu. Seul un tri réellement fondé
-      // sur `COALESCE(last_executed_at, updated_at) DESC` peut le
-      // satisfaire.
-
-      // 1ʳᵉ Séance insérée : jamais exécutée, repli sur `updated_at`
-      // (2026-01-01) — clé de tri la plus ancienne des trois, doit finir
-      // EN DERNIER dans le résultat.
-      const clockOldest = fixedClock(["2026-01-01T00:00:00.000Z"]);
-      const repositoryOldest = new SqliteSessionRepository(database, uuidFactory(), clockOldest);
-      const sessionOldest = await repositoryOldest.create({
-        ...validInput(),
-        name: "Jamais exécutée",
-      });
-
-      // 2ᵉ Séance insérée : `updated_at` volontairement ancien (2026-01-02)
-      // mais `last_executed_at` posé directement en SQL au 2026-01-30 — la
-      // clé de tri la plus récente des trois, doit finir EN PREMIER. Si le
-      // tri ignorait `last_executed_at`, cette Séance apparaîtrait en
-      // dernier (son `updated_at` est le plus ancien) : le résultat attendu
-      // ne peut donc être obtenu qu'en utilisant réellement
-      // `last_executed_at` lorsqu'il existe.
-      const clockMostRecent = fixedClock(["2026-01-02T00:00:00.000Z"]);
-      const repositoryMostRecent = new SqliteSessionRepository(
-        database,
-        secondUuidFactory(),
-        clockMostRecent,
-      );
-      const sessionMostRecent = await repositoryMostRecent.create({
-        ...validInput(),
-        name: "Exécutée très récemment",
-      });
-      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
-        "2026-01-30T00:00:00.000Z",
-        sessionMostRecent.id,
-      ]);
-
-      // 3ᵉ Séance insérée : `updated_at` = 2026-01-03, `last_executed_at`
-      // posé directement en SQL au 2026-01-15 — clé de tri intermédiaire,
-      // doit finir AU MILIEU.
-      const clockMiddle = fixedClock(["2026-01-03T00:00:00.000Z"]);
-      const repositoryMiddle = new SqliteSessionRepository(
-        database,
-        thirdUuidFactory(),
-        clockMiddle,
-      );
-      const sessionMiddle = await repositoryMiddle.create({
-        ...validInput(),
-        name: "Exécutée il y a deux semaines",
-      });
-      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
-        "2026-01-15T00:00:00.000Z",
-        sessionMiddle.id,
-      ]);
-
-      const summaries = await repositoryOldest.listActive();
-
-      expect(summaries.map((summary) => summary.id)).toEqual([
-        sessionMostRecent.id,
-        sessionMiddle.id,
-        sessionOldest.id,
-      ]);
-    });
   });
 });
 
-function validInput() {
+function validInput(): CreateSessionInput {
   return {
     name: "Séance simple",
     color: DEFAULT_SESSION_COLOR,
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
-    exercise: { name: "Gainage", durationSeconds: 30 },
+    exercises: [anExercise()],
+    categories: [],
+  };
+}
+
+function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): CreateSessionExerciseInput {
+  return {
+    name: "Gainage",
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 1,
+    pauseSeconds: 0,
+    instruction: null,
+    bodyZoneIds: [],
+    ...overrides,
   };
 }
 
 function uuidFactory(): () => string {
   let index = 0;
-  return () => IDS[index++];
+  return () => IDS[index++]!;
 }
 
 function secondUuidFactory(): () => string {
   let index = 0;
-  return () => SECOND_IDS[index++];
+  return () => SECOND_IDS[index++]!;
 }
 
 function thirdUuidFactory(): () => string {
   let index = 0;
-  return () => THIRD_IDS[index++];
+  return () => THIRD_IDS[index++]!;
 }
 
-/** Horloge factice déterministe : renvoie les horodatages fournis, dans l'ordre, un par appel. */
+/** Horloge factice déterministe : renvoie les horodatages fournis, dans l'ordre, un par appel, puis répète le dernier indéfiniment (les transactions T01-S09 consomment plusieurs horodatages : timestamp + created_at de catégorie). */
 function fixedClock(timestamps: readonly string[]): () => string {
   let index = 0;
-  return () => timestamps[index++];
+  return () => timestamps[Math.min(index++, timestamps.length - 1)]!;
 }
 
 class FailingActivityInsertDatabase implements Database {
   constructor(private readonly delegate: Database) {}
 
   execAsync = (source: string) => this.delegate.execAsync(source);
-  getFirstAsync = <T>(source: string, parameters = []) =>
+  getFirstAsync = <T>(source: string, parameters: SqlParameters = []) =>
     this.delegate.getFirstAsync<T>(source, parameters);
-  getAllAsync = <T>(source: string, parameters = []) =>
+  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
     this.delegate.getAllAsync<T>(source, parameters);
 
-  runAsync(source: string, parameters = []) {
+  runAsync(source: string, parameters: SqlParameters = []) {
     if (source.includes("INSERT INTO activities")) {
       return Promise.reject(new Error("forced activity failure"));
     }
@@ -550,80 +719,63 @@ class FailingActivityInsertDatabase implements Database {
   }
 }
 
-/** Fait échouer le second `UPDATE` (`activities`) d'`update()`, après que le premier (`sessions`) a déjà réussi — pour prouver le rollback complet. */
-class FailingActivityUpdateDatabase implements Database {
+/** Laisse la PREMIÈRE insertion d'Activité réussir, force l'échec de la SECONDE — preuve de rollback complet même après une écriture partielle réelle. */
+class FailingSecondActivityInsertDatabase implements Database {
+  private activityInsertCount = 0;
+
   constructor(private readonly delegate: Database) {}
 
   execAsync = (source: string) => this.delegate.execAsync(source);
-  getFirstAsync = <T>(source: string, parameters = []) =>
+  getFirstAsync = <T>(source: string, parameters: SqlParameters = []) =>
     this.delegate.getFirstAsync<T>(source, parameters);
-  getAllAsync = <T>(source: string, parameters = []) =>
+  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
     this.delegate.getAllAsync<T>(source, parameters);
 
-  runAsync(source: string, parameters = []) {
-    if (source.includes("UPDATE activities")) {
-      return Promise.reject(new Error("forced activity update failure"));
+  runAsync(source: string, parameters: SqlParameters = []) {
+    if (source.includes("INSERT INTO activities")) {
+      this.activityInsertCount += 1;
+      if (this.activityInsertCount === 2) {
+        return Promise.reject(new Error("forced second activity failure"));
+      }
+    }
+    return this.delegate.runAsync(source, parameters);
+  }
+
+  withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
+    return this.delegate.withExclusiveTransactionAsync((transaction) => {
+      const shared = new FailingSecondActivityInsertDatabase(transaction);
+      shared.activityInsertCount = this.activityInsertCount;
+      return task(shared);
+    });
+  }
+}
+
+class FailingSessionCategoryInsertDatabase implements Database {
+  constructor(private readonly delegate: Database) {}
+
+  execAsync = (source: string) => this.delegate.execAsync(source);
+  getFirstAsync = <T>(source: string, parameters: SqlParameters = []) =>
+    this.delegate.getFirstAsync<T>(source, parameters);
+  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
+    this.delegate.getAllAsync<T>(source, parameters);
+
+  runAsync(source: string, parameters: SqlParameters = []) {
+    if (source.includes("INSERT INTO session_categories")) {
+      return Promise.reject(new Error("forced session_categories failure"));
     }
     return this.delegate.runAsync(source, parameters);
   }
 
   withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
     return this.delegate.withExclusiveTransactionAsync((transaction) =>
-      task(new FailingActivityUpdateDatabase(transaction)),
-    );
-  }
-}
-
-/**
- * Laisse les écritures réelles s'exécuter contre la vraie base, mais
- * intercepte précisément la **seconde** relecture de l'agrégat (celle qui
- * suit les deux `UPDATE` dans `SqliteSessionRepository.update`) pour la
- * faire paraître incohérente. Le premier appel (lecture avant écriture)
- * n'est jamais altéré. Sert à prouver que le Repository lève réellement à
- * l'intérieur de la transaction et déclenche un `ROLLBACK` réel sur la
- * vraie base — ce n'est pas un faux Repository qui contournerait la
- * transaction SQLite.
- */
-class IncoherentRereadDatabase implements Database {
-  private aggregateQueryCalls = 0;
-
-  constructor(private readonly delegate: Database) {}
-
-  execAsync = (source: string) => this.delegate.execAsync(source);
-  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
-    this.delegate.getAllAsync<T>(source, parameters);
-  runAsync = (source: string, parameters: SqlParameters = []) =>
-    this.delegate.runAsync(source, parameters);
-
-  async getFirstAsync<T>(source: string, parameters: SqlParameters = []): Promise<T | null> {
-    const result = await this.delegate.getFirstAsync<T>(source, parameters);
-    const isAggregateQuery =
-      source.includes("FROM sessions") && source.includes("activities.instruction");
-    if (!isAggregateQuery || !result) {
-      return result;
-    }
-
-    this.aggregateQueryCalls += 1;
-    if (this.aggregateQueryCalls !== 2) {
-      return result;
-    }
-
-    return {
-      ...(result as unknown as Record<string, unknown>),
-      activity_id: "tampered-activity-id",
-    } as T;
-  }
-
-  withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
-    return this.delegate.withExclusiveTransactionAsync((transaction) =>
-      task(new IncoherentRereadDatabase(transaction)),
+      task(new FailingSessionCategoryInsertDatabase(transaction)),
     );
   }
 }
 
 function validRow(): SessionAggregateRow {
   return {
-    session_id: IDS[0],
+    session_id: IDS[0]!,
     owner_id: "usr_test",
     session_name: "Séance",
     color: DEFAULT_SESSION_COLOR,
@@ -632,13 +784,13 @@ function validRow(): SessionAggregateRow {
     final_phase_seconds: 5,
     session_created_at: "2026-01-01T00:00:00.000Z",
     session_updated_at: "2026-01-01T00:00:00.000Z",
-    cycle_id: IDS[1],
+    cycle_id: IDS[1]!,
     cycle_position: 1,
     cycle_repeat_count: 1,
-    tour_id: IDS[2],
+    tour_id: IDS[2]!,
     tour_position: 1,
     tour_repeat_count: 1,
-    activity_id: IDS[3],
+    activity_id: IDS[3]!,
     activity_name: "Gainage",
     structural_position: "IN_TOUR",
     activity_position: 0,

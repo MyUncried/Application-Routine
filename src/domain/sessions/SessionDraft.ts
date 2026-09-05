@@ -1,19 +1,29 @@
 /**
  * Brouillon local de Séance (T01) : représentation en mémoire, potentiellement
  * incomplète, distincte de `CreateSessionInput`. « Le brouillon reste local
- * jusqu'à l'enregistrement final » — rien ici ne persiste quoi que ce soit.
+ * jusqu'à l'enregistrement final » — rien ici ne persiste quoi que ce soit,
+ * y compris une Catégorie personnalisée créée depuis l'écran `Catégories de
+ * la séance` (D-107) : elle reste une entrée `categorySelections` de kind
+ * `"NEW"`, jamais persistée isolément avant `Enregistrer la séance`.
  *
  * `toCreateSessionInput` emploie le même contrat de résultat structuré que
  * le reste des validations du Domaine : succès avec un `CreateSessionInput`
- * prêt à persister, ou échec listant **toutes** les violations déterminables
- * (complétude ET contenu, jamais seulement la première catégorie rencontrée).
- * Elle ne réimplémente aucune règle de bornes : elle réutilise les
- * validateurs élémentaires de `validation.ts`, puis délègue l'assemblage
- * final à `validateCreateSessionInput`, qui reste la validation complète de
- * l'entrée persistable. Elle ne lève jamais d'exception.
+ * prêt à persister, ou échec listant **toutes** les violations déterminables.
+ * Elle ne réimplémente aucune règle de bornes elle-même : elle assemble un
+ * candidat directement depuis les champs du brouillon (déjà de la bonne
+ * forme structurelle) et délègue l'intégralité de la validation/normalisation
+ * à `validateCreateSessionInput` (`validation.ts`), la seule validation
+ * complète d'une entrée persistable — réutilisée telle quelle par
+ * `SqliteSessionRepository` en défense de dernier recours, quelle que soit
+ * l'origine de l'entrée. Elle ne lève jamais d'exception.
  */
 
-import type { CreateSessionInput, Session, SessionColor } from "./Session";
+import type {
+  CreateSessionCategoryInput,
+  CreateSessionInput,
+  Session,
+  SessionColor,
+} from "./Session";
 import { DEFAULT_SESSION_COLOR } from "./Session";
 import {
   DEFAULT_EXECUTION_MODE,
@@ -23,17 +33,8 @@ import {
   DEFAULT_PAUSE_SECONDS,
   DEFAULT_SERIES_COUNT,
 } from "./defaults";
-import { fail, type ValidationResult, type ValidationViolation } from "./errors";
-import {
-  validateCreateSessionInput,
-  validateExerciseDurationSeconds,
-  validateExerciseName,
-  validateFinalPhaseSeconds,
-  validateInitialCountdownSeconds,
-  validateInstruction,
-  validateSessionColor,
-  validateSessionName,
-} from "./validation";
+import type { ValidationResult } from "./errors";
+import { validateCreateSessionInput } from "./validation";
 
 /**
  * Mode d'exécution d'un Exercice (T01-S08, RM-034) : soit une durée, soit
@@ -69,6 +70,20 @@ export type SessionDraftExercise = {
   readonly bodyZoneIds: readonly string[];
 };
 
+/**
+ * Sélection d'une Catégorie dans le brouillon (T01-S09, D-106/D-107) : soit
+ * une Catégorie déjà connue (prédéfinie ou persistée lors d'une Séance
+ * antérieure), identifiée par `categoryId` ; soit une Catégorie
+ * personnalisée créée dans ce même parcours, portant un `id` LOCAL au
+ * brouillon (jamais un identifiant de persistance — même convention que
+ * `SessionDraftExercise.id`) et son nom déjà normalisé
+ * (`normalizeCategoryName`, écran appelant) — elle n'existe dans aucune
+ * table tant que `Enregistrer la séance` n'a pas réussi.
+ */
+export type SessionDraftCategorySelection =
+  | { readonly kind: "EXISTING"; readonly categoryId: string }
+  | { readonly kind: "NEW"; readonly id: string; readonly name: string };
+
 export type SessionDraft = {
   readonly name: string;
   readonly color: SessionColor;
@@ -82,14 +97,21 @@ export type SessionDraft = {
    * SessionDraftExercise | null`. L'ordre de ce tableau EST l'ordre
    * d'insertion/affichage dans `Composition d'une séance` — aucun index de
    * tri séparé. Le déplacement réel (réorganisation par geste) reste hors
-   * périmètre de S08 et appartient à S09 (poignée indicative uniquement,
-   * COMP-01) ; seuls l'ajout en fin de collection et le remplacement d'un
-   * élément existant par son `id` sont exercés en S08.
+   * périmètre de S08/S09 (poignée indicative uniquement, COMP-01).
    */
   readonly exercises: readonly SessionDraftExercise[];
+  /**
+   * Sélection de Catégories (T01-S09) — zéro, une ou plusieurs (D-106).
+   * Aucun ordre propre significatif ici : l'ordre d'AFFICHAGE dans l'écran
+   * `Catégories de la séance` suit toujours le référentiel (prédéfinies par
+   * `displayOrder`, puis personnalisées par `createdAt`, D-107), jamais
+   * l'ordre de sélection — cette collection est un ENSEMBLE de sélections,
+   * pas une séquence à préserver.
+   */
+  readonly categorySelections: readonly SessionDraftCategorySelection[];
 };
 
-/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité définie). */
+/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Catégorie sélectionnée). */
 export function createEmptyDraft(): SessionDraft {
   return {
     name: "",
@@ -97,6 +119,7 @@ export function createEmptyDraft(): SessionDraft {
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
     exercises: [],
+    categorySelections: [],
   };
 }
 
@@ -128,29 +151,23 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
  * Convertit une `Session` persistée vers un `SessionDraft` modifiable —
  * l'inverse de `toCreateSessionInput`. Fonction pure, aucune dépendance
  * React ou SQLite. Copie sans perte les champs éditables (nom, couleur,
- * phases, nom/mode/durée-ou-répétitions/séries/pause/consigne de
- * l'Exercice) ; les champs d'identité et d'audit (`id`, `ownerId`,
- * `status`, `createdAt`, `updatedAt`, identifiants et `repeatCount` de
- * `cycle`/`tour`, et sur l'Exercice `id`/`type`/`structuralPosition`/
- * `position`) ne sont volontairement pas repris : `SessionDraft` ne les
- * modélise pas, et `sessionId` est transmis séparément lors de
- * l'enregistrement d'une modification.
+ * phases, TOUTES les Activités du Tour dans l'ordre — T01-S09, généralise
+ * la limite REWORK12 à une seule Activité — et les Catégories déjà
+ * associées, reprises comme autant de sélections `"EXISTING"`) ; les champs
+ * d'identité et d'audit (`id`, `ownerId`, `status`, `createdAt`,
+ * `updatedAt`, identifiants et `repeatCount` de `cycle`/`tour`, et sur
+ * chaque Activité `id`/`type`/`structuralPosition`/`position`) ne sont
+ * volontairement pas repris : `SessionDraft` ne les modélise pas, et
+ * `sessionId` est transmis séparément lors de l'enregistrement d'une
+ * modification.
  *
- * `bodyZoneIds` vaut toujours `[]` ici : `Session`/`DurationExercise`
- * (`Session.ts`) ne modélisent pas encore les Zones corporelles — cette
- * association n'est pas persistée avant une tranche ultérieure. Ce champ
- * n'est donc jamais restauré à la réouverture pour l'instant (T01-S08
- * n'appelle de toute façon jamais cette fonction : la persistance/réouverture
- * réelle restent hors périmètre).
+ * `SessionDraftExercise.id` reprend directement l'identifiant persisté de
+ * l'Activité (`Activity.id`) — un identifiant stable, jamais régénéré ici
+ * (édition ciblée par identifiant, même convention que `createExerciseDraft`).
  *
- * Limite disclosée (complétion REWORK12) : `Session`/`Cycle`/`Tour`
- * (`Session.ts`) modélisent toujours une seule Activité persistée
- * (`cycle.tour.exercise`, jamais un tableau) — cette fonction produit donc
- * une collection à un seul élément. La collection à plusieurs éléments du
- * brouillon (`SessionDraft.exercises`) n'a pas d'équivalent persisté avant
- * une tranche ultérieure qui étendrait `Session`/SQLite en conséquence,
- * hors périmètre de cette mission (« Enregistrer la séance », CE-T01-11,
- * reste lui-même hors périmètre T01-S08).
+ * Cette fonction reste hors périmètre du parcours de création T01-S09
+ * lui-même (réouverture/modification d'une Séance existante, T01-S10) —
+ * elle n'est appelée par aucun écran câblé avant cette tranche future.
  */
 export function toSessionDraft(session: Session): SessionDraft {
   return {
@@ -158,19 +175,21 @@ export function toSessionDraft(session: Session): SessionDraft {
     color: session.color,
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
-    exercises: [
-      {
-        id: session.cycle.tour.exercise.id,
-        name: session.cycle.tour.exercise.name,
-        executionMode: session.cycle.tour.exercise.executionMode,
-        durationSeconds: session.cycle.tour.exercise.durationSeconds,
-        repetitionCount: session.cycle.tour.exercise.repetitionCount,
-        seriesCount: session.cycle.tour.exercise.seriesCount,
-        pauseSeconds: session.cycle.tour.exercise.pauseSeconds,
-        instruction: session.cycle.tour.exercise.instruction,
-        bodyZoneIds: [],
-      },
-    ],
+    exercises: session.cycle.tour.exercises.map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name,
+      executionMode: exercise.executionMode,
+      durationSeconds: exercise.durationSeconds,
+      repetitionCount: exercise.repetitionCount,
+      seriesCount: exercise.seriesCount,
+      pauseSeconds: exercise.pauseSeconds,
+      instruction: exercise.instruction,
+      bodyZoneIds: exercise.bodyZoneIds,
+    })),
+    categorySelections: session.categories.map((category) => ({
+      kind: "EXISTING" as const,
+      categoryId: category.id,
+    })),
   };
 }
 
@@ -229,6 +248,37 @@ function exercisesEqual(
   return a.every((exercise, index) => exerciseEquals(exercise, b[index]));
 }
 
+function categorySelectionEquals(
+  a: SessionDraftCategorySelection,
+  b: SessionDraftCategorySelection,
+): boolean {
+  if (a.kind !== b.kind) {
+    return false;
+  }
+  if (a.kind === "EXISTING" && b.kind === "EXISTING") {
+    return a.categoryId === b.categoryId;
+  }
+  if (a.kind === "NEW" && b.kind === "NEW") {
+    return a.id === b.id && a.name === b.name;
+  }
+  return false;
+}
+
+/**
+ * Compare deux ensembles de sélections de Catégories — ordre indifférent
+ * (`SessionDraft.categorySelections` est un ensemble, pas une séquence,
+ * voir sa documentation), contenu déterminant.
+ */
+function categorySelectionsEqual(
+  a: readonly SessionDraftCategorySelection[],
+  b: readonly SessionDraftCategorySelection[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((selection) => b.some((other) => categorySelectionEquals(selection, other)));
+}
+
 /**
  * Compare les champs fonctionnels d'un brouillon à ceux d'un brouillon vide
  * (`createEmptyDraft()`) — utilisé par la garde de sortie de Composition
@@ -242,95 +292,46 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
     draft.color !== initial.color ||
     draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
     draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
-    !exercisesEqual(draft.exercises, initial.exercises)
+    !exercisesEqual(draft.exercises, initial.exercises) ||
+    !categorySelectionsEqual(draft.categorySelections, initial.categorySelections)
   );
 }
 
-function collectViolations(
-  ...results: readonly ValidationResult<unknown>[]
-): readonly ValidationViolation[] {
-  const violations: ValidationViolation[] = [];
-  for (const result of results) {
-    if (!result.ok) {
-      violations.push(...result.violations);
-    }
-  }
-  return violations;
-}
-
 /**
- * Valide et convertit un brouillon vers un `CreateSessionInput` persistable.
+ * Valide et convertit un brouillon vers un `CreateSessionInput` persistable
+ * (T01-S09 : TOUTES les Activités de `draft.exercises`, dans l'ordre, et
+ * TOUTES les sélections de `draft.categorySelections`).
  *
- * Agrège systématiquement **toutes** les violations déterminables — champs
- * de la Séance et champs de l'Exercice, complétude et contenu confondus —
- * avant de retourner un échec ; ne s'arrête jamais à la première catégorie
- * de défaut rencontrée. Ne délègue l'assemblage final à
- * `validateCreateSessionInput` que lorsque plus aucune violation n'a été
- * relevée.
- *
- * Limite disclosée (complétion REWORK12) : `CreateSessionInput`/`Session`
- * (`Session.ts`) modélisent toujours une seule Activité persistable
- * (`exercise`, jamais un tableau) — cette fonction continue donc de ne
- * valider/assembler que la PREMIÈRE Activité de `draft.exercises`
- * (`exercises[0] ?? null`, même comportement que l'ancien champ singulier
- * `exercise` pour une collection à au plus un élément). Une collection à
- * plusieurs Activités n'est pas encore représentable par
- * `CreateSessionInput` — cette fonction n'est de toute façon jamais
- * invoquée par un parcours réellement câblé en T01-S08 (« Enregistrer la
- * séance », CE-T01-11, reste hors périmètre ; `Continuer`/`Enregistrer`
- * restent désactivés dans `CompositionScreen.tsx`), donc sans régression
- * observable pour l'utilisateur de cette tranche.
+ * Assemble un candidat structurellement conforme directement depuis les
+ * champs du brouillon — sans revalider aucune borne elle-même — puis
+ * délègue l'intégralité de la validation/normalisation à
+ * `validateCreateSessionInput` (`validation.ts`), qui agrège systématiquement
+ * **toutes** les violations déterminables (Séance, chaque Activité, chaque
+ * Catégorie personnalisée) avant de retourner un échec ; ne s'arrête jamais
+ * à la première catégorie de défaut rencontrée. Ne lève jamais d'exception.
  */
 export function toCreateSessionInput(draft: SessionDraft): ValidationResult<CreateSessionInput> {
-  const violations: ValidationViolation[] = [
-    ...collectViolations(
-      validateSessionName(draft.name),
-      validateSessionColor(draft.color),
-      validateInitialCountdownSeconds(draft.initialCountdownSeconds),
-      validateFinalPhaseSeconds(draft.finalPhaseSeconds),
-    ),
-  ];
-
-  const exerciseDraft = draft.exercises[0] ?? null;
-
-  if (exerciseDraft === null) {
-    violations.push(
-      { code: "REQUIRED", field: "exercise.name" },
-      { code: "REQUIRED", field: "exercise.durationSeconds" },
-    );
-  } else {
-    violations.push(...collectViolations(validateExerciseName(exerciseDraft.name)));
-
-    if (exerciseDraft.durationSeconds === null) {
-      violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
-    } else {
-      violations.push(
-        ...collectViolations(validateExerciseDurationSeconds(exerciseDraft.durationSeconds)),
-      );
-    }
-
-    violations.push(...collectViolations(validateInstruction(exerciseDraft.instruction)));
-  }
-
-  if (violations.length > 0) {
-    return fail(violations);
-  }
-
-  // Every individual check above passed: the exercise and its duration are
-  // necessarily present here. Final assembly still goes through
-  // `validateCreateSessionInput`, the single complete validator of a
-  // persistable entry.
-  const exercise = exerciseDraft as SessionDraftExercise & { durationSeconds: number };
+  const categories: CreateSessionCategoryInput[] = draft.categorySelections.map((selection) =>
+    selection.kind === "EXISTING"
+      ? { kind: "EXISTING", categoryId: selection.categoryId }
+      : { kind: "NEW", name: selection.name },
+  );
 
   return validateCreateSessionInput({
     name: draft.name,
     color: draft.color,
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
-    exercise: {
+    exercises: draft.exercises.map((exercise) => ({
       name: exercise.name,
+      executionMode: exercise.executionMode,
       durationSeconds: exercise.durationSeconds,
+      repetitionCount: exercise.repetitionCount,
+      seriesCount: exercise.seriesCount,
+      pauseSeconds: exercise.pauseSeconds,
       instruction: exercise.instruction,
-    },
+      bodyZoneIds: exercise.bodyZoneIds,
+    })),
+    categories,
   });
 }

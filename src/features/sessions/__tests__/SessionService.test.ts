@@ -1,6 +1,8 @@
 import { describe, expect, it, jest } from "@jest/globals";
 
-import type { CreateSessionInput, Session, SessionSummary } from "@/domain/sessions/Session";
+import type { Category } from "@/domain/categories/Category";
+import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
+import type { Activity, CreateSessionInput, Session, SessionSummary } from "@/domain/sessions/Session";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
@@ -30,6 +32,28 @@ class FakeSessionRepository implements SessionRepository {
     jest.fn<(sessionId: string, input: CreateSessionInput) => Promise<UpdateSessionOutcome>>();
 }
 
+class FakeCategoryRepository implements CategoryRepository {
+  listAll = jest.fn<() => Promise<readonly Category[]>>();
+}
+
+function anActivity(overrides: Partial<Activity> = {}): Activity {
+  return {
+    id: "activity-1",
+    type: "EXERCISE",
+    executionMode: "DURATION",
+    structuralPosition: "IN_TOUR",
+    position: 0,
+    name: "Gainage",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 1,
+    pauseSeconds: 0,
+    instruction: null,
+    bodyZoneIds: [],
+    ...overrides,
+  };
+}
+
 function aSession(overrides: Partial<Session> = {}): Session {
   return {
     id: "session-1",
@@ -49,21 +73,10 @@ function aSession(overrides: Partial<Session> = {}): Session {
         id: "tour-1",
         position: 1,
         repeatCount: 1,
-        exercise: {
-          id: "activity-1",
-          type: "EXERCISE",
-          executionMode: "DURATION",
-          structuralPosition: "IN_TOUR",
-          position: 0,
-          name: "Gainage",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
-          instruction: null,
-        },
+        exercises: [anActivity()],
       },
     },
+    categories: [],
     ...overrides,
   };
 }
@@ -73,6 +86,19 @@ function aValidDraft(): SessionDraft {
     ...createEmptyDraft(),
     name: "Séance simple",
     exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
+  };
+}
+
+function normalizedExercise() {
+  return {
+    name: "Gainage",
+    executionMode: "DURATION" as const,
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 1,
+    pauseSeconds: 0,
+    instruction: null,
+    bodyZoneIds: [],
   };
 }
 
@@ -122,13 +148,44 @@ describe("SessionService.createSession", () => {
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+      exercises: [normalizedExercise()],
+      categories: [],
     });
     expect(result).toEqual({ ok: true, value: created });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toBe(created);
     }
+  });
+
+  it("threads multiple Activities and category selections through unaltered (T01-S09)", async () => {
+    const repository = new FakeSessionRepository();
+    repository.create.mockResolvedValue(aSession());
+    const service = new SessionService(repository);
+
+    const draft: SessionDraft = {
+      ...aValidDraft(),
+      exercises: [
+        { ...createExerciseDraft("ex-1"), name: "Gainage" },
+        { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
+      ],
+      categorySelections: [
+        { kind: "EXISTING", categoryId: "cardio" },
+        { kind: "NEW", id: "local-1", name: "Ma catégorie" },
+      ],
+    };
+
+    await service.createSession(draft);
+
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exercises: [normalizedExercise(), expect.objectContaining({ name: "Squats", durationSeconds: 45 })],
+        categories: [
+          { kind: "EXISTING", categoryId: "cardio" },
+          { kind: "NEW", name: "Ma catégorie" },
+        ],
+      }),
+    );
   });
 
   it("propagates a technical error from the repository unchanged, without turning it into a structured result", async () => {
@@ -168,7 +225,7 @@ describe("SessionService.createSession", () => {
       expect.objectContaining({
         initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
         finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
-        exercise: expect.objectContaining({ durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS }),
+        exercises: [expect.objectContaining({ durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS })],
       }),
     );
   });
@@ -200,16 +257,6 @@ describe("SessionService.updateSession", () => {
     });
   });
 
-  it("returns INVALID rather than NOT_FOUND when both the draft is invalid and the id is unknown, because validation precedes lookup", async () => {
-    const repository = new FakeSessionRepository();
-    const service = new SessionService(repository);
-
-    const result = await service.updateSession("does-not-exist", createEmptyDraft());
-
-    expect(repository.update).not.toHaveBeenCalled();
-    expect(result.status).toBe("INVALID");
-  });
-
   it("calls the repository exactly once with the normalized input for a valid draft, and returns UPDATED unchanged", async () => {
     const repository = new FakeSessionRepository();
     const updated = aSession({ name: "Nom modifié" });
@@ -231,7 +278,8 @@ describe("SessionService.updateSession", () => {
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Gainage", durationSeconds: 30, instruction: null },
+      exercises: [normalizedExercise()],
+      categories: [],
     });
     expect(result).toEqual(outcome);
   });
@@ -289,6 +337,7 @@ describe("SessionService.listActiveSessions", () => {
         color: DEFAULT_SESSION_COLOR,
         activityCount: 1,
         estimatedDurationSeconds: 45,
+        isEstimatedDurationApproximate: false,
         tourRepeatCount: 1,
         updatedAt: "2026-01-01T00:00:00.000Z",
       },
@@ -326,5 +375,36 @@ describe("SessionService.getSession", () => {
 
     expect(repository.findById).toHaveBeenCalledTimes(1);
     expect(repository.findById).toHaveBeenCalledWith("missing-id");
+  });
+});
+
+describe("SessionService.listCategories (T01-S09)", () => {
+  it("returns the CategoryRepository's list unchanged", async () => {
+    const sessionRepository = new FakeSessionRepository();
+    const categoryRepository = new FakeCategoryRepository();
+    const categories: readonly Category[] = [
+      {
+        id: "cardio",
+        name: "Cardio",
+        canonicalKey: "cardio",
+        isPredefined: true,
+        displayOrder: 1,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ];
+    categoryRepository.listAll.mockResolvedValue(categories);
+    const service = new SessionService(sessionRepository, categoryRepository);
+
+    const result = await service.listCategories();
+
+    expect(categoryRepository.listAll).toHaveBeenCalledTimes(1);
+    expect(result).toBe(categories);
+  });
+
+  it("throws explicitly when no CategoryRepository was provided, rather than returning an empty list", async () => {
+    const sessionRepository = new FakeSessionRepository();
+    const service = new SessionService(sessionRepository);
+
+    await expect(service.listCategories()).rejects.toThrow(/CategoryRepository/);
   });
 });

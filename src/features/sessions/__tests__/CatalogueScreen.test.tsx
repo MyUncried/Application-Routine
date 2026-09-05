@@ -61,6 +61,7 @@ function aSummary(id: string): SessionSummary {
     color: "#3B82F6",
     activityCount: 1,
     estimatedDurationSeconds: 60,
+    isEstimatedDurationApproximate: false,
     tourRepeatCount: 1,
     updatedAt: "2026-01-01T00:00:00.000Z",
   };

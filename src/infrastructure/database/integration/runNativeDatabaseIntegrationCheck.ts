@@ -19,7 +19,19 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercise: { name: "Exercice chronométré", durationSeconds: 30 },
+      exercises: [
+        {
+          name: "Exercice chronométré",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: null,
+          seriesCount: 1,
+          pauseSeconds: 0,
+          instruction: null,
+          bodyZoneIds: [],
+        },
+      ],
+      categories: [],
     });
 
     const reopened = await repository.findById(created.id);
@@ -29,7 +41,7 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       throw new Error("Native SQLite integration check failed.");
     }
 
-    if (![created.id, created.cycle.id, created.cycle.tour.id, created.cycle.tour.exercise.id].every(
+    if (![created.id, created.cycle.id, created.cycle.tour.id, created.cycle.tour.exercises[0]!.id].every(
       (identifier) => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier),
     )) {
       throw new Error("Crypto.randomUUID() identifiers are invalid.");

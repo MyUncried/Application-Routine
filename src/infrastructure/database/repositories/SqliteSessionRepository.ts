@@ -1,20 +1,21 @@
 import * as Crypto from "expo-crypto";
 
+import { canonicalCategoryKey } from "@/domain/categories/validation";
 import {
   computeActivityCount,
   computeEstimatedDurationSeconds,
 } from "@/domain/sessions/calculations";
 import {
-  FIXED_ACTIVITY_POSITION,
   FIXED_ACTIVITY_STRUCTURAL_POSITION,
   FIXED_CYCLE_REPEAT_COUNT,
-  FIXED_PAUSE_SECONDS,
-  FIXED_SERIES_COUNT,
   FIXED_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   SESSION_COLORS,
+  type Activity,
+  type Category,
+  type CreateSessionCategoryInput,
   type CreateSessionInput,
   type Session,
   type SessionColor,
@@ -27,14 +28,24 @@ import type {
 import { validateCreateSessionInput } from "@/domain/sessions/validation";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
+import { mapCategoryRow } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import type {
+  ActivityBodyZoneRow,
   SessionAggregateRow,
-  SessionSummaryRow,
+  SessionCategoryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
 type LocalUserRow = { id: string };
+type CategoryIdRow = { id: string };
 type UuidFactory = () => string;
 
+/**
+ * Une ligne par Activité (T01-S09, voir `DatabaseRows.ts`) — regroupées par
+ * `SqliteSessionRepository` avant assemblage, jamais consommées une par une
+ * par l'appelant. Ordonnée par `activities.position` : cet ordre EST celui
+ * restitué dans `Session.cycle.tour.exercises` (même contrat que
+ * `SessionDraft.exercises`).
+ */
 const AGGREGATE_QUERY = `
 SELECT
   sessions.id AS session_id,
@@ -70,6 +81,15 @@ JOIN activities
   AND activities.cycle_id = cycles.id
   AND activities.tour_id = tours.id
 WHERE sessions.id = ? AND sessions.owner_id = ?
+ORDER BY activities.position ASC
+`;
+
+const CATEGORIES_FOR_SESSION_QUERY = `
+SELECT categories.id, categories.name, categories.canonical_key, categories.is_predefined, categories.display_order, categories.created_at
+FROM session_categories
+JOIN categories ON categories.id = session_categories.category_id
+WHERE session_categories.session_id = ?
+ORDER BY categories.is_predefined DESC, categories.display_order ASC, categories.created_at ASC
 `;
 
 export class SqliteSessionRepository implements SessionRepository {
@@ -79,6 +99,15 @@ export class SqliteSessionRepository implements SessionRepository {
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
+  /**
+   * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, le
+   * Cycle, le Tour, TOUTES les Activités ordonnées du brouillon, leurs
+   * Zones corporelles, les Catégories personnalisées nécessaires (créées ou
+   * retrouvées par clé canonique) et les associations Séance↔Catégorie.
+   * Toute erreur au sein de cette transaction annule l'intégralité de
+   * l'écriture (§`withExclusiveTransactionAsync`, propagation d'exception) —
+   * aucune donnée partielle n'est jamais laissée.
+   */
   async create(input: CreateSessionInput): Promise<Session> {
     const validated = validateCreateSessionInput(input);
     if (!validated.ok) {
@@ -88,7 +117,6 @@ export class SqliteSessionRepository implements SessionRepository {
     const sessionId = this.uuidFactory();
     const cycleId = this.uuidFactory();
     const tourId = this.uuidFactory();
-    const activityId = this.uuidFactory();
     let created: Session | null = null;
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
@@ -125,39 +153,25 @@ export class SqliteSessionRepository implements SessionRepository {
         [tourId, cycleId, sessionId, FIXED_TOUR_REPEAT_COUNT],
       );
 
-      await transaction.runAsync(
-        `INSERT INTO activities (
-          id, session_id, cycle_id, tour_id, type, structural_position,
-          position, name, execution_mode, duration_seconds,
-          repetition_count, series_count, pause_seconds, instruction,
-          created_at, updated_at
-        ) VALUES (
-          ?, ?, ?, ?, 'EXERCISE', ?,
-          ?, ?, 'DURATION', ?,
-          NULL, ?, ?, ?, ?, ?
-        )`,
-        [
-          activityId,
-          sessionId,
-          cycleId,
-          tourId,
-          FIXED_ACTIVITY_STRUCTURAL_POSITION,
-          FIXED_ACTIVITY_POSITION,
-          normalized.exercise.name,
-          normalized.exercise.durationSeconds,
-          FIXED_SERIES_COUNT,
-          FIXED_PAUSE_SECONDS,
-          normalized.exercise.instruction ?? null,
-          timestamp,
-          timestamp,
-        ],
+      await insertActivities(
+        transaction,
+        sessionId,
+        cycleId,
+        tourId,
+        normalized.exercises,
+        this.uuidFactory,
+        timestamp,
       );
 
-      const row = await transaction.getFirstAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
-        sessionId,
-        user.id,
-      ]);
-      created = row ? mapSessionRow(row) : null;
+      const categoryIds = await resolveCategoryIds(
+        transaction,
+        normalized.categories,
+        this.uuidFactory,
+        timestamp,
+      );
+      await insertSessionCategories(transaction, sessionId, categoryIds);
+
+      created = await readSession(transaction, sessionId, user.id);
     });
 
     if (!created) {
@@ -167,6 +181,19 @@ export class SqliteSessionRepository implements SessionRepository {
     return created;
   }
 
+  /**
+   * Réouverture/modification bout en bout d'une Séance existante restent
+   * hors périmètre fonctionnel T01-S09 (T01-S10, Issue #17 « Hors
+   * périmètre ») — aucun écran n'appelle cette méthode à ce stade. Elle est
+   * néanmoins généralisée ici pour rester compatible avec le contrat
+   * `CreateSessionInput` multi-Activités/Catégories désormais partagé par
+   * `create()` : implémentation par REMPLACEMENT complet des Activités, de
+   * leurs Zones et des associations de Catégories de la Séance (nouveaux
+   * identifiants d'Activité à chaque appel) plutôt qu'une fusion fine par
+   * identifiant — un raffinement explicitement laissé à T01-S10, qui devra
+   * définir la véritable UX de modification (quelles Activités sont
+   * réellement "les mêmes" d'un enregistrement à l'autre).
+   */
   async update(sessionId: string, input: CreateSessionInput): Promise<UpdateSessionOutcome> {
     const validated = validateCreateSessionInput(input);
     if (!validated.ok) {
@@ -180,20 +207,18 @@ export class SqliteSessionRepository implements SessionRepository {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
 
-      const existingRow = await transaction.getFirstAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+      const existingRows = await transaction.getAllAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
         sessionId,
         user.id,
       ]);
-      if (!existingRow) {
+      if (existingRows.length === 0) {
         return;
       }
+      const existingRow = existingRows[0]!;
       if (existingRow.status !== "ACTIVE") {
         outcome = { status: "ARCHIVED" };
         return;
       }
-
-      assertT01S01Row(existingRow);
-      const activityId = existingRow.activity_id;
 
       const sessionUpdate = await transaction.runAsync(
         `UPDATE sessions SET name = ?, color = ?, initial_countdown_seconds = ?,
@@ -213,37 +238,34 @@ export class SqliteSessionRepository implements SessionRepository {
         throw new Error("Expected exactly one session row to be updated.");
       }
 
-      const activityUpdate = await transaction.runAsync(
-        `UPDATE activities SET name = ?, duration_seconds = ?, instruction = ?, updated_at = ?
-         WHERE id = ? AND session_id = ?`,
-        [
-          normalized.exercise.name,
-          normalized.exercise.durationSeconds,
-          normalized.exercise.instruction ?? null,
-          timestamp,
-          activityId,
-          sessionId,
-        ],
-      );
-      if (activityUpdate.changes !== 1) {
-        throw new Error("Expected exactly one activity row to be updated.");
-      }
+      const activityIds = existingRows.map((row) => row.activity_id);
+      await deleteActivityBodyZones(transaction, activityIds);
+      await transaction.runAsync(`DELETE FROM activities WHERE session_id = ?`, [sessionId]);
+      await transaction.runAsync(`DELETE FROM session_categories WHERE session_id = ?`, [sessionId]);
 
-      const reread = await transaction.getFirstAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+      await insertActivities(
+        transaction,
         sessionId,
-        user.id,
-      ]);
-      if (
-        !reread ||
-        reread.session_id !== sessionId ||
-        reread.activity_id !== activityId ||
-        reread.cycle_id !== existingRow.cycle_id ||
-        reread.tour_id !== existingRow.tour_id
-      ) {
+        existingRow.cycle_id,
+        existingRow.tour_id,
+        normalized.exercises,
+        this.uuidFactory,
+        timestamp,
+      );
+
+      const categoryIds = await resolveCategoryIds(
+        transaction,
+        normalized.categories,
+        this.uuidFactory,
+        timestamp,
+      );
+      await insertSessionCategories(transaction, sessionId, categoryIds);
+
+      const session = await readSession(transaction, sessionId, user.id);
+      if (!session) {
         throw new Error("The updated session could not be read back coherently.");
       }
-
-      outcome = { status: "UPDATED", session: mapSessionRow(reread) };
+      outcome = { status: "UPDATED", session };
     });
 
     return outcome;
@@ -251,25 +273,23 @@ export class SqliteSessionRepository implements SessionRepository {
 
   async findById(sessionId: string): Promise<Session | null> {
     const user = await getLocalUser(this.database);
-    const rows = await this.database.getAllAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
-      sessionId,
-      user.id,
-    ]);
-
-    if (rows.length === 0) {
-      return null;
-    }
-
-    if (rows.length !== 1) {
-      throw new Error("T01-S01 sessions must contain exactly one activity.");
-    }
-
-    return mapSessionRow(rows[0]);
+    return readSession(this.database, sessionId, user.id);
   }
 
   async listActive(): Promise<readonly SessionSummary[]> {
     const user = await getLocalUser(this.database);
-    const rows = await this.database.getAllAsync<SessionSummaryRow>(
+    const rows = await this.database.getAllAsync<{
+      id: string;
+      name: string;
+      color: string;
+      activity_count: number;
+      initial_countdown_seconds: number;
+      final_phase_seconds: number;
+      activity_duration_seconds: number;
+      has_repetition_activity: 0 | 1;
+      tour_repeat_count: number;
+      updated_at: string;
+    }>(
       `SELECT
         sessions.id,
         sessions.name,
@@ -277,7 +297,11 @@ export class SqliteSessionRepository implements SessionRepository {
         COUNT(activities.id) AS activity_count,
         sessions.initial_countdown_seconds,
         sessions.final_phase_seconds,
-        SUM(activities.duration_seconds) AS exercise_duration_seconds,
+        SUM(
+          activities.series_count * COALESCE(activities.duration_seconds, 0)
+          + activities.series_count * activities.pause_seconds
+        ) AS activity_duration_seconds,
+        MAX(CASE WHEN activities.execution_mode = 'REPETITIONS' THEN 1 ELSE 0 END) AS has_repetition_activity,
         tours.repeat_count AS tour_repeat_count,
         sessions.updated_at
       FROM sessions
@@ -310,48 +334,269 @@ async function getLocalUser(database: Database): Promise<LocalUserRow> {
   return user;
 }
 
-export function mapSessionRow(row: SessionAggregateRow): Session {
-  assertT01S01Row(row);
+/**
+ * Insère, dans l'ORDRE, une Activité par élément de `exercises` — `position`
+ * suit l'index de la collection (0-indexé), exactement l'ordre du brouillon
+ * (`SessionDraft.exercises`) — puis ses Zones corporelles associées.
+ */
+async function insertActivities(
+  transaction: Database,
+  sessionId: string,
+  cycleId: string,
+  tourId: string,
+  exercises: CreateSessionInput["exercises"],
+  uuidFactory: UuidFactory,
+  timestamp: string,
+): Promise<void> {
+  for (const [position, exercise] of exercises.entries()) {
+    const activityId = uuidFactory();
+
+    await transaction.runAsync(
+      `INSERT INTO activities (
+        id, session_id, cycle_id, tour_id, type, structural_position,
+        position, name, execution_mode, duration_seconds,
+        repetition_count, series_count, pause_seconds, instruction,
+        created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, 'EXERCISE', ?,
+        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?
+      )`,
+      [
+        activityId,
+        sessionId,
+        cycleId,
+        tourId,
+        FIXED_ACTIVITY_STRUCTURAL_POSITION,
+        position,
+        exercise.name,
+        exercise.executionMode,
+        exercise.durationSeconds,
+        exercise.repetitionCount,
+        exercise.seriesCount,
+        exercise.pauseSeconds,
+        exercise.instruction ?? null,
+        timestamp,
+        timestamp,
+      ],
+    );
+
+    for (const bodyZoneId of exercise.bodyZoneIds) {
+      await transaction.runAsync(
+        `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)`,
+        [activityId, bodyZoneId],
+      );
+    }
+  }
+}
+
+async function deleteActivityBodyZones(
+  transaction: Database,
+  activityIds: readonly string[],
+): Promise<void> {
+  for (const activityId of activityIds) {
+    await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [
+      activityId,
+    ]);
+  }
+}
+
+/**
+ * Résout chaque `CreateSessionCategoryInput` vers un identifiant de
+ * Catégorie réellement persisté (D-107) : `EXISTING` doit référencer une
+ * Catégorie déjà présente (défense en profondeur — une entrée orpheline
+ * échoue explicitement plutôt que de silencieusement créer une association
+ * vers rien) ; `NEW` retrouve la Catégorie existante de même clé canonique
+ * si elle existe déjà (jamais de doublon, D-106) ou la crée sinon. Les
+ * identifiants retournés sont dédupliqués (une même Catégorie ne peut être
+ * associée qu'une fois à la Séance, `session_categories` porte une clé
+ * primaire composite) tout en conservant l'ordre de première apparition.
+ */
+async function resolveCategoryIds(
+  transaction: Database,
+  categories: readonly CreateSessionCategoryInput[],
+  uuidFactory: UuidFactory,
+  timestamp: string,
+): Promise<readonly string[]> {
+  const resolved: string[] = [];
+  const seen = new Set<string>();
+
+  for (const category of categories) {
+    let categoryId: string;
+
+    if (category.kind === "EXISTING") {
+      const row = await transaction.getFirstAsync<CategoryIdRow>(
+        "SELECT id FROM categories WHERE id = ?",
+        [category.categoryId],
+      );
+      if (!row) {
+        throw new Error("Referenced category does not exist.");
+      }
+      categoryId = row.id;
+    } else {
+      const canonicalKey = canonicalCategoryKey(category.name);
+      const existing = await transaction.getFirstAsync<CategoryIdRow>(
+        "SELECT id FROM categories WHERE canonical_key = ?",
+        [canonicalKey],
+      );
+      if (existing) {
+        categoryId = existing.id;
+      } else {
+        categoryId = uuidFactory();
+        await transaction.runAsync(
+          `INSERT INTO categories (id, name, canonical_key, is_predefined, display_order, created_at)
+           VALUES (?, ?, ?, 0, NULL, ?)`,
+          [categoryId, category.name, canonicalKey, timestamp],
+        );
+      }
+    }
+
+    if (!seen.has(categoryId)) {
+      seen.add(categoryId);
+      resolved.push(categoryId);
+    }
+  }
+
+  return resolved;
+}
+
+async function insertSessionCategories(
+  transaction: Database,
+  sessionId: string,
+  categoryIds: readonly string[],
+): Promise<void> {
+  for (const categoryId of categoryIds) {
+    await transaction.runAsync(
+      `INSERT INTO session_categories (session_id, category_id) VALUES (?, ?)`,
+      [sessionId, categoryId],
+    );
+  }
+}
+
+/**
+ * Relit et assemble l'agrégat complet d'une Séance : lignes d'Activités
+ * (une par Activité, déjà ordonnées par `AGGREGATE_QUERY`), leurs Zones
+ * corporelles et les Catégories associées. `null` si la Séance n'existe pas
+ * (ou n'appartient pas à `ownerId`) — jamais une exception pour ce cas
+ * attendu.
+ */
+async function readSession(
+  database: Database,
+  sessionId: string,
+  ownerId: string,
+): Promise<Session | null> {
+  const rows = await database.getAllAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+    sessionId,
+    ownerId,
+  ]);
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const activityIds = rows.map((row) => row.activity_id);
+  const bodyZoneRows = await getBodyZonesForActivities(database, activityIds);
+  const bodyZonesByActivity = new Map<string, string[]>();
+  for (const zoneRow of bodyZoneRows) {
+    const list = bodyZonesByActivity.get(zoneRow.activity_id) ?? [];
+    list.push(zoneRow.body_zone_id);
+    bodyZonesByActivity.set(zoneRow.activity_id, list);
+  }
+
+  const categoryRows = await database.getAllAsync<SessionCategoryRow>(
+    CATEGORIES_FOR_SESSION_QUERY,
+    [sessionId],
+  );
+
+  return assembleSession(rows, bodyZonesByActivity, categoryRows.map(mapCategoryRow));
+}
+
+async function getBodyZonesForActivities(
+  database: Database,
+  activityIds: readonly string[],
+): Promise<readonly ActivityBodyZoneRow[]> {
+  if (activityIds.length === 0) {
+    return [];
+  }
+  // `activityIds` provient toujours de lignes déjà relues depuis SQLite
+  // (jamais une saisie utilisateur directe) : la construction de la liste
+  // de paramètres liés ci-dessous reste sûre (aucune concaténation de
+  // valeur dans le texte de la requête elle-même).
+  const placeholders = activityIds.map(() => "?").join(", ");
+  return database.getAllAsync<ActivityBodyZoneRow>(
+    `SELECT activity_id, body_zone_id FROM activity_body_zones WHERE activity_id IN (${placeholders})`,
+    activityIds,
+  );
+}
+
+export function assembleSession(
+  rows: readonly SessionAggregateRow[],
+  bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
+  categories: readonly Category[],
+): Session {
+  for (const row of rows) {
+    assertSessionAggregateRow(row);
+  }
+  const first = rows[0]!;
+
+  const exercises: Activity[] = rows.map((row) => ({
+    id: row.activity_id,
+    type: "EXERCISE",
+    executionMode: row.execution_mode,
+    structuralPosition: "IN_TOUR",
+    position: row.activity_position,
+    name: row.activity_name,
+    durationSeconds: row.duration_seconds,
+    repetitionCount: row.repetition_count,
+    seriesCount: row.series_count,
+    pauseSeconds: row.pause_seconds,
+    instruction: row.instruction,
+    bodyZoneIds: bodyZonesByActivity.get(row.activity_id) ?? [],
+  }));
 
   return {
-    id: row.session_id,
-    ownerId: row.owner_id,
-    name: row.session_name,
-    color: row.color as SessionColor,
+    id: first.session_id,
+    ownerId: first.owner_id,
+    name: first.session_name,
+    color: first.color as SessionColor,
     status: "ACTIVE",
-    initialCountdownSeconds: row.initial_countdown_seconds,
-    finalPhaseSeconds: row.final_phase_seconds,
-    createdAt: row.session_created_at,
-    updatedAt: row.session_updated_at,
+    initialCountdownSeconds: first.initial_countdown_seconds,
+    finalPhaseSeconds: first.final_phase_seconds,
+    createdAt: first.session_created_at,
+    updatedAt: first.session_updated_at,
     cycle: {
-      id: row.cycle_id,
+      id: first.cycle_id,
       position: 1,
       repeatCount: 1,
       tour: {
-        id: row.tour_id,
+        id: first.tour_id,
         position: 1,
         repeatCount: 1,
-        exercise: {
-          id: row.activity_id,
-          type: "EXERCISE",
-          executionMode: "DURATION",
-          structuralPosition: "IN_TOUR",
-          position: 0,
-          name: row.activity_name,
-          durationSeconds: row.duration_seconds,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
-          instruction: row.instruction,
-        },
+        exercises,
       },
     },
+    categories,
   };
 }
 
-function mapSummaryRow(row: SessionSummaryRow): SessionSummary {
-  if (row.activity_count !== 1 || row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT) {
-    throw new Error("T01-S01 summaries require one activity and one tour repetition.");
+/** @deprecated Conservé pour compatibilité de test direct (une seule ligne) — voir `assembleSession` pour l'assemblage réel multi-lignes. */
+export function mapSessionRow(row: SessionAggregateRow): Session {
+  return assembleSession([row], new Map(), []);
+}
+
+function mapSummaryRow(row: {
+  id: string;
+  name: string;
+  color: string;
+  activity_count: number;
+  initial_countdown_seconds: number;
+  final_phase_seconds: number;
+  activity_duration_seconds: number;
+  has_repetition_activity: 0 | 1;
+  tour_repeat_count: number;
+  updated_at: string;
+}): SessionSummary {
+  if (row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT) {
+    throw new Error("T01 summaries require exactly one Tour repetition.");
   }
 
   const activityCount = computeActivityCount({
@@ -361,21 +606,23 @@ function mapSummaryRow(row: SessionSummaryRow): SessionSummary {
   const estimatedDurationSeconds = computeEstimatedDurationSeconds({
     initialCountdownSeconds: row.initial_countdown_seconds,
     finalPhaseSeconds: row.final_phase_seconds,
-    activityDurationSeconds: row.exercise_duration_seconds,
+    activityDurationSeconds: row.activity_duration_seconds,
+    isLowerBoundEstimate: row.has_repetition_activity === 1,
   });
 
   return {
     id: row.id,
     name: row.name,
     color: row.color as SessionColor,
-    activityCount: activityCount as 1,
+    activityCount,
     estimatedDurationSeconds,
+    isEstimatedDurationApproximate: row.has_repetition_activity === 1,
     tourRepeatCount: 1,
     updatedAt: row.updated_at,
   };
 }
 
-function assertT01S01Row(row: SessionAggregateRow): void {
+function assertSessionAggregateRow(row: SessionAggregateRow): void {
   if (!SESSION_COLORS.includes(row.color as SessionColor)) {
     throw new Error("Persisted session color is invalid.");
   }
@@ -385,13 +632,19 @@ function assertT01S01Row(row: SessionAggregateRow): void {
     row.cycle_repeat_count !== FIXED_CYCLE_REPEAT_COUNT ||
     row.tour_position !== 1 ||
     row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT ||
-    row.structural_position !== FIXED_ACTIVITY_STRUCTURAL_POSITION ||
-    row.activity_position !== FIXED_ACTIVITY_POSITION ||
-    row.execution_mode !== "DURATION" ||
-    row.repetition_count !== null ||
-    row.series_count !== FIXED_SERIES_COUNT ||
-    row.pause_seconds !== FIXED_PAUSE_SECONDS
+    row.structural_position !== FIXED_ACTIVITY_STRUCTURAL_POSITION
   ) {
-    throw new Error("Persisted session does not satisfy the T01-S01 aggregate contract.");
+    throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+  }
+  if (row.execution_mode === "DURATION") {
+    if (row.duration_seconds === null || row.repetition_count !== null) {
+      throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+    }
+  } else if (row.execution_mode === "REPETITIONS") {
+    if (row.repetition_count === null || row.duration_seconds !== null) {
+      throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+    }
+  } else {
+    throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
   }
 }

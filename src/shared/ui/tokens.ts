@@ -335,6 +335,12 @@ export const dimensions = {
     paddingBottom: 16,
     gap: 24,
   },
+  // T01-S09 — `Selection / Category Tag` (`3302:4166`, CE-T01-11) : pilule
+  // visuelle `30` de haut, centrée dans une cible tactile de hauteur
+  // minimale `48` (même patron déjà documenté par `BodyZoneSelector.tsx`
+  // pour les Zones corporelles, ici la valeur canonique exacte de la
+  // Catégorie plutôt qu'une approximation).
+  categoryTag: { visualHeight: 30, radius: 15 },
 } as const;
 
 export const minTouchTarget = 48;

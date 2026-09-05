@@ -12,6 +12,8 @@
  * telle quelle, sans être confondue avec ce résultat structuré.
  */
 
+import type { Category } from "@/domain/categories/Category";
+import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import { toCreateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { ValidationResult, ValidationViolation } from "@/domain/sessions/errors";
@@ -38,7 +40,19 @@ export type UpdateSessionResult =
   | { readonly status: "ARCHIVED" };
 
 export class SessionService {
-  constructor(private readonly sessionRepository: SessionRepository) {}
+  /**
+   * `categoryRepository` (T01-S09) reste optionnel pour ne pas casser un
+   * appelant construit avant cette tranche (tests existants notamment) :
+   * `listCategories()` n'est appelée que par l'écran `Catégories de la
+   * séance`, jamais par `createSession`/`updateSession` (la résolution
+   * réelle des Catégories du brouillon reste entièrement à la charge du
+   * Repository, à l'intérieur de la transaction d'enregistrement — voir
+   * `SqliteSessionRepository.create()`).
+   */
+  constructor(
+    private readonly sessionRepository: SessionRepository,
+    private readonly categoryRepository?: CategoryRepository,
+  ) {}
 
   /**
    * Convertit le brouillon via `toCreateSessionInput` (Domaine). En cas
@@ -91,5 +105,20 @@ export class SessionService {
    */
   async getSession(sessionId: string): Promise<Session | null> {
     return this.sessionRepository.findById(sessionId);
+  }
+
+  /**
+   * Catégories disponibles pour l'écran `Catégories de la séance` (T01-S09,
+   * D-107) : prédéfinies par `displayOrder`, puis personnalisées par
+   * `createdAt` — ordre déjà garanti par `CategoryRepository.listAll()`,
+   * jamais retrié ici. Lève explicitement si aucun `CategoryRepository`
+   * n'a été fourni au constructeur, plutôt que de renvoyer silencieusement
+   * une liste vide trompeuse.
+   */
+  async listCategories(): Promise<readonly Category[]> {
+    if (!this.categoryRepository) {
+      throw new Error("SessionService was constructed without a CategoryRepository.");
+    }
+    return this.categoryRepository.listAll();
   }
 }

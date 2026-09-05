@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { DATABASE_NAME } from "@/infrastructure/database/constants";
 import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
+import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
@@ -74,7 +75,10 @@ function SessionServiceInitializer({ onServiceReady }: SessionServiceInitializer
 
   const sessionService = useMemo(() => {
     const database = new ExpoDatabase(nativeDatabase);
-    return new SessionService(new SqliteSessionRepository(database));
+    return new SessionService(
+      new SqliteSessionRepository(database),
+      new SqliteCategoryRepository(database),
+    );
   }, [nativeDatabase]);
 
   useEffect(() => {

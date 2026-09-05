@@ -17,19 +17,56 @@ export const DEFAULT_SESSION_COLOR = "#3B82F6" as const;
 
 export type SessionColor = (typeof SESSION_COLORS)[number];
 
-export type DurationExercise = {
+/**
+ * Activité persistée d'un Exercice (T01-S09, complétion REWORK12) : soit une
+ * durée, soit un nombre de répétitions — jamais les deux (RM-034) — un
+ * nombre de Séries et une pause après Série propres (D-092/RM-035/RM-037),
+ * une Consigne optionnelle et une sélection de Zones corporelles (D-093).
+ * Remplace `DurationExercise`, qui figeait `executionMode`/`seriesCount`/
+ * `pauseSeconds` aux valeurs uniques du contrat T01-S01 : une Séance peut
+ * désormais porter PLUSIEURS Activités de ce type, ordonnées par
+ * `position` dans le Tour (`Session.cycle.tour.exercises`).
+ */
+export type Activity = {
   id: string;
   type: "EXERCISE";
-  executionMode: "DURATION";
+  executionMode: "DURATION" | "REPETITIONS";
   structuralPosition: "IN_TOUR";
-  position: 0;
+  /** Rang 0-indexé de l'Activité dans le Tour — ordre d'exécution ET d'affichage, identique à `SessionDraft.exercises`. */
+  position: number;
   name: string;
-  durationSeconds: number;
-  repetitionCount: null;
-  seriesCount: 1;
-  pauseSeconds: 0;
+  /** Non nul uniquement en mode `DURATION` (RM-034). */
+  durationSeconds: number | null;
+  /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
+  repetitionCount: number | null;
+  seriesCount: number;
+  pauseSeconds: number;
   instruction: string | null;
+  /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent. */
+  bodyZoneIds: readonly string[];
 };
+
+/** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
+export type DurationExercise = Activity;
+
+/**
+ * Catégorie de Séance (T01-S09, D-106/D-107). Prédéfinie (`isPredefined:
+ * true`, `displayOrder` fixé par le référentiel MVP) ou personnalisée
+ * (`isPredefined: false`, `displayOrder: null`, ordonnée par `createdAt`
+ * croissant). `canonicalKey` est la clé de comparaison/unicité (espaces
+ * normalisés + casse + diacritiques ignorés) — jamais affichée telle quelle,
+ * `name` reste le libellé visible réellement saisi/normalisé (espaces
+ * uniquement, casse et accents conservés).
+ */
+export type Category = {
+  readonly id: string;
+  readonly name: string;
+  readonly canonicalKey: string;
+  readonly isPredefined: boolean;
+  readonly displayOrder: number | null;
+  readonly createdAt: string;
+};
+
 export type Session = {
   id: string;
   ownerId: string;
@@ -48,29 +85,61 @@ export type Session = {
       id: string;
       position: 1;
       repeatCount: 1;
-      exercise: DurationExercise;
+      /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Toujours au moins un élément (une Séance sans aucune Activité reste invalide, voir `toCreateSessionInput`). */
+      exercises: readonly Activity[];
     };
   };
+  /** Zéro, une ou plusieurs Catégories (D-106) — jamais un tri propre à la Séance : l'ordre restitué suit toujours celui du référentiel (D-107). */
+  categories: readonly Category[];
 };
+
+export type CreateSessionExerciseInput = {
+  name: string;
+  executionMode: "DURATION" | "REPETITIONS";
+  durationSeconds: number | null;
+  repetitionCount: number | null;
+  seriesCount: number;
+  pauseSeconds: number;
+  instruction?: string | null;
+  bodyZoneIds: readonly string[];
+};
+
+/**
+ * Catégorie à associer lors de l'enregistrement final (T01-S09, D-107) :
+ * soit une Catégorie déjà persistée (prédéfinie ou créée lors d'une Séance
+ * précédente), soit une Catégorie personnalisée à créer — sa création ne
+ * devient effective que dans la transaction atomique d'enregistrement de la
+ * Séance, jamais isolément avant elle.
+ */
+export type CreateSessionCategoryInput =
+  | { readonly kind: "EXISTING"; readonly categoryId: string }
+  | { readonly kind: "NEW"; readonly name: string };
 
 export type CreateSessionInput = {
   name: string;
   color: SessionColor;
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
-  exercise: {
-    name: string;
-    durationSeconds: number;
-    instruction?: string | null;
-  };
+  /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Doit compter au moins un élément : une entrée vide est un échec de validation (`REQUIRED`), jamais un agrégat persistable. */
+  exercises: readonly CreateSessionExerciseInput[];
+  /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */
+  categories: readonly CreateSessionCategoryInput[];
 };
 
 export type SessionSummary = {
   id: string;
   name: string;
   color: SessionColor;
-  activityCount: 1;
+  activityCount: number;
   estimatedDurationSeconds: number;
+  /**
+   * `true` dès qu'au moins une Activité de la Composition est en mode
+   * `REPETITIONS` (T01-S09) : `estimatedDurationSeconds` devient alors une
+   * borne minimale plutôt qu'une durée exacte (même règle que
+   * `formatCompositionSummary`, RM-072) — à la charge de la présentation
+   * d'en tirer un préfixe `≥` plutôt que de le coder ici.
+   */
+  isEstimatedDurationApproximate: boolean;
   tourRepeatCount: 1;
   updatedAt: string;
 };

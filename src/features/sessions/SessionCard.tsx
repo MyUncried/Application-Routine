@@ -34,7 +34,7 @@ export type SessionCardProps = {
 export function SessionCard({ session }: SessionCardProps) {
   const summaryLine = [
     formatActivityCount(session.activityCount),
-    formatEstimatedDuration(session.estimatedDurationSeconds),
+    formatEstimatedDuration(session.estimatedDurationSeconds, session.isEstimatedDurationApproximate),
     formatTourCount(session.tourRepeatCount),
   ].join(" · ");
 

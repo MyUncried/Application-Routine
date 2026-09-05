@@ -66,6 +66,104 @@ describe("migrateDatabase", () => {
     ).rejects.toThrow();
   });
 
+  it("seeds exactly the 10 predefined categories once, idempotently, ordered by displayOrder (T01-S09, D-107)", async () => {
+    await migrateDatabase(database);
+    const firstPass = await database.getAllAsync<{ id: string; name: string; canonical_key: string }>(
+      "SELECT id, name, canonical_key FROM categories ORDER BY display_order ASC",
+    );
+
+    await migrateDatabase(database);
+    const secondPass = await database.getAllAsync<{ id: string }>("SELECT id FROM categories");
+
+    expect(firstPass).toHaveLength(10);
+    expect(firstPass[0]).toEqual({ id: "renforcement", name: "Renforcement", canonical_key: "renforcement" });
+    expect(firstPass.map((row) => row.name)).toEqual([
+      "Renforcement",
+      "Cardio",
+      "Mobilité",
+      "Étirements",
+      "Équilibre",
+      "Coordination",
+      "Récupération",
+      "Respiration",
+      "Méditation",
+      "Autre",
+    ]);
+    expect(secondPass).toHaveLength(10); // idempotent: no duplicate seeding on a second migrateDatabase() call.
+  });
+
+  it("enforces canonical_key uniqueness on categories (T01-S09)", async () => {
+    await migrateDatabase(database);
+
+    await expect(
+      database.runAsync(
+        `INSERT INTO categories (id, name, canonical_key, is_predefined, display_order, created_at)
+         VALUES ('dup', 'Cardio bis', 'cardio', 0, NULL, 'now')`,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it("persists and enforces activity_body_zones referential integrity (T01-S09, D-093)", async () => {
+    await migrateDatabase(database);
+    await seedStructure(database);
+    await insertActivity(database, {
+      id: "activity-a",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+    });
+
+    await database.runAsync(
+      "INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)",
+      ["activity-a", "dos"],
+    );
+    const row = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM activity_body_zones",
+    );
+    expect(row?.count).toBe(1);
+
+    await expect(
+      database.runAsync("INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)", [
+        "activity-a",
+        "not-a-real-zone",
+      ]),
+    ).rejects.toThrow();
+  });
+
+  it("associates a session with a category via session_categories, cascading on session deletion (T01-S09)", async () => {
+    await migrateDatabase(database);
+    await seedStructure(database);
+
+    await database.runAsync(
+      "INSERT INTO session_categories (session_id, category_id) VALUES (?, ?)",
+      ["session-a", "cardio"],
+    );
+    const before = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM session_categories",
+    );
+    expect(before?.count).toBe(1);
+
+    await database.runAsync("DELETE FROM sessions WHERE id = ?", ["session-a"]);
+    const after = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM session_categories",
+    );
+    expect(after?.count).toBe(0);
+  });
+
+  it("never modifies migration001's tables/constraints: the T01-S01 color and NULL-safe duration rules still hold after migration002", async () => {
+    await migrateDatabase(database);
+    await seedStructure(database);
+
+    await expect(
+      insertActivity(database, {
+        id: "activity-invalid-both-post-migration002",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: 10,
+      }),
+    ).rejects.toThrow();
+  });
+
   it("enforces that cycle, tour and activity belong to the same session", async () => {
     await migrateDatabase(database);
     await seedStructure(database);
