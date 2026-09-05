@@ -41,8 +41,6 @@ jobs:
           $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
-          # S09-specific gate is immutable and its exact comment id is known.
-          # Resolve it directly: never scan/paginate the Issue to rediscover a known control artefact.
           $gate=Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_GATE_COMMENT_ID" -Headers $headers
           if($null -eq $gate -or [string]$gate.body -notmatch '\[KODJO_S09_PLAN_GATE\]' -or [string]$gate.body -notmatch 'STATUT : PLAN_READY_FOR_USER_GATE'){throw 'Direct plan gate invalid'}
           $gm=[regex]::Match([string]$gate.body,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$gm.Success){throw 'Plan id missing'}; $planId=$gm.Groups[1].Value
@@ -74,7 +72,7 @@ jobs:
       - name: Enforce scope and deterministic checks
         run: |
           $ErrorActionPreference='Stop'; $changed=@(git status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()}); if($changed.Count -eq 0){throw 'No changes'}
-          foreach($p in $changed){$n=$p-replace '\\','/'; if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}; if($n.StartsWith('app/') -or $n.StartsWith('src/')){continue}; throw "Unauthorized path: $n"}
+          foreach($p in $changed){$n=$p-replace '\\','/'; if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}; if($n.StartsWith('app/') -or $n.StartsWith('src/')){continue}; if($n.StartsWith('.github/orchestration/reports/') -and $n.EndsWith('.md')){continue}; throw "Unauthorized path: $n"}
           npm test -- --runInBand; if($LASTEXITCODE -ne 0){throw 'Jest failed'}; npx tsc --noEmit; if($LASTEXITCODE -ne 0){throw 'TypeScript failed'}
       - name: Commit push and publish for OpenAI review
         env:
@@ -84,5 +82,5 @@ jobs:
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
           RESULT: ${{ steps.claude.outputs.result }}
         run: |
-          $ErrorActionPreference='Stop'; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'; git add -- app src; git commit -m "feat: implement T01-S09 attempt $env:ATTEMPT"; if($LASTEXITCODE -ne 0){throw 'Commit failed'}; $new=(git rev-parse HEAD).Trim(); git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Push failed'}
+          $ErrorActionPreference='Stop'; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'; git add -- app src .github/orchestration/reports; git commit -m "feat: implement T01-S09 attempt $env:ATTEMPT"; if($LASTEXITCODE -ne 0){throw 'Commit failed'}; $new=(git rev-parse HEAD).Trim(); git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Push failed'}
           $summary=Get-Content $env:RESULT -Raw -Encoding UTF8; $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$new`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`nplan_comment_id=$env:PLAN_ID`ncontinuity_origin=DEV_S09_DEDICATED_SESSION`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`n$summary"; $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}; Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
