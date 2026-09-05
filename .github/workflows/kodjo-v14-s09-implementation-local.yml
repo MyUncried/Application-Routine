@@ -79,7 +79,7 @@ jobs:
           $rp=Join-Path $env:RUNNER_TEMP 'dev-result.txt'; [IO.File]::WriteAllText($rp,$resultText,(New-Object Text.UTF8Encoding($false))); "session=$($p.session_id)" >> $env:GITHUB_OUTPUT; "result=$rp" >> $env:GITHUB_OUTPUT
       - name: Enforce scope and deterministic checks
         run: |
-          $ErrorActionPreference='Stop'; $changed=@(git status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()}); if($changed.Count -eq 0){throw 'No changes'}
+          $ErrorActionPreference='Stop'; $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()}); if($changed.Count -eq 0){throw 'No changes'}
           $applicationChanged=$false
           foreach($p in $changed){$n=$p-replace '\\','/'; if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}; if($n.StartsWith('app/') -or $n.StartsWith('src/')){$applicationChanged=$true; continue}; if($n.StartsWith('docs/')){continue}; if($n.StartsWith('.github/orchestration/reports/') -and $n.EndsWith('.md')){continue}; throw "Unauthorized path: $n"}
           if(-not $applicationChanged){throw 'No application changes: report-only or documentation-only output cannot be published'}
