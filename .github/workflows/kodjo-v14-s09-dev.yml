@@ -1,0 +1,117 @@
+name: KODJO V1.4 S09 — DEV
+run-name: T01-S09 / DEV-S09 / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: kodjo-v14-s09-dev
+  cancel-in-progress: false
+
+env:
+  TARGET_BRANCH: feat/creation-seance-catalogue
+  EXPECTED_HEAD: 76b8c1f0027b66fa98e4017458fa5d2ccc68a47d
+  APPROVED_PLAN_ID: '5551118444'
+  REVIEW_SESSION_ID: 57ff2fe6-bc06-4177-8d40-85a0179113ad
+  HISTORICAL_SESSION_ID: 99404ae0-19e3-4004-8dde-cd670588afb5
+
+jobs:
+  dev:
+    if: github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] START_DEV_S09')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Preflight DEV-S09
+        id: gate
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner'}
+          if($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine'){throw 'Unexpected repository'}
+          if((git branch --show-current).Trim() -ne $env:TARGET_BRANCH){throw 'Unexpected branch'}
+          if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty worktree before DEV'}
+          $head=(git rev-parse HEAD).Trim()
+          if($head -ne $env:EXPECTED_HEAD){throw "HEAD mismatch: $head"}
+          if($env:TRIGGER_BODY -notmatch [regex]::Escape("approved_plan_comment_id=$env:APPROVED_PLAN_ID")){throw 'Approved plan id missing/mismatch'}
+          $claude=Get-Command claude.cmd -ErrorAction Stop
+          $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json
+          if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
+          "head=$head" >> $env:GITHUB_OUTPUT
+          "claude=$($claude.Source)" >> $env:GITHUB_OUTPUT
+
+      - name: Build canonical DEV context
+        id: context
+        run: |
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          $plan=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:APPROVED_PLAN_ID").body
+          if($plan -notmatch '\[KODJO_S09_PLAN_OUTPUT\]' -or $plan -notmatch 'attempt=2'){throw 'Approved plan artefact invalid'}
+          $issue=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17")
+          $ctx=Join-Path $env:RUNNER_TEMP 'dev-s09-context.txt'
+          $parts=@(
+            'KODJO V1.4 - IMPLEMENTATION T01-S09.',
+            'Tu es la NOUVELLE session Claude DEV-S09. Ne reprends aucune session REVIEW ou historique.',
+            'Le Gate 1 utilisateur est valide. Implémente uniquement le PLAN APPROUVE ci-dessous sur la branche courante.',
+            'Respecte strictement les sources actuelles. Aucun S10. Ne réinvente aucune décision.',
+            'Exigences critiques: toutes les Activités ordonnées de SessionDraft.exercises sont persistées sans perte; zéro Activité reste invalide; D-106/D-107; normalisation espaces+casse+diacritiques avec libellé visible conservé; max 40; doublon catégorie = sélectionner existante et fermer la ligne; ordre catégories; transaction atomique et rollback; double-submit; reset seulement après succès; migration002 additive sans modifier migration001.',
+            'Exécute les tests pertinents et TypeScript. Produis un rapport markdown versionné dans le repo conformément au protocole. Commit puis push sur feat/creation-seance-catalogue.',
+            'À la fin réponds avec: DEV_SESSION_ID, STATUS, COMMIT_SHA, TESTS, FILES_CHANGED, REPORT_PATH, NOTES.',
+            "`nSOURCE HEAD AVANT DEV:`n$env:EXPECTED_HEAD",
+            "`nISSUE #17:`n$($issue.body)",
+            "`nPLAN APPROUVE UNIQUE - COMMENT $env:APPROVED_PLAN_ID:`n$plan"
+          )
+          [IO.File]::WriteAllText($ctx,($parts -join "`n"),(New-Object Text.UTF8Encoding($false)))
+          "context=$ctx" >> $env:GITHUB_OUTPUT
+
+      - name: Claude DEV-S09 new session
+        id: claude
+        env:
+          CLAUDE_PATH: ${{ steps.gate.outputs.claude }}
+          CONTEXT_PATH: ${{ steps.context.outputs.context }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'dev-s09-out.json'; $err=Join-Path $env:RUNNER_TEMP 'dev-s09-err.txt'
+          $old=$ErrorActionPreference; $ErrorActionPreference='Continue'
+          Get-Content $env:CONTEXT_PATH -Raw -Encoding UTF8 | & $env:CLAUDE_PATH -p --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $exit=$LASTEXITCODE; $ErrorActionPreference=$old
+          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}; $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
+          if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.result) -or [string]::IsNullOrWhiteSpace([string]$p.session_id)){throw "Claude DEV technical failure: $stderr"}
+          if($p.session_id -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session reused'}
+          if($p.session_id -eq $env:REVIEW_SESSION_ID){throw 'Review session reused as DEV'}
+          $result=[string]$p.result
+          $after=(git rev-parse HEAD).Trim()
+          if($after -eq $env:EXPECTED_HEAD){throw 'DEV produced no commit'}
+          if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'DEV left dirty worktree'}
+          "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
+          "head=$after" >> $env:GITHUB_OUTPUT
+          $rp=Join-Path $env:RUNNER_TEMP 'dev-result.txt'; [IO.File]::WriteAllText($rp,$result,(New-Object Text.UTF8Encoding($false)))
+          "result=$rp" >> $env:GITHUB_OUTPUT
+
+      - name: Publish DEV result
+        env:
+          DEV_SESSION: ${{ steps.claude.outputs.session }}
+          DEV_HEAD: ${{ steps.claude.outputs.head }}
+          RESULT: ${{ steps.claude.outputs.result }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $r=Get-Content $env:RESULT -Raw -Encoding UTF8
+          $body="[KODJO_S09_DEV_OUTPUT]`napproved_plan_comment_id=$env:APPROVED_PLAN_ID`nsource_head=$env:EXPECTED_HEAD`ndev_head=$env:DEV_HEAD`ndev_session_id=$env:DEV_SESSION`ndeveloper=CLAUDE_NEW_DEV_SESSION`n`n$r"
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
