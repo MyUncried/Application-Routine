@@ -14,6 +14,14 @@ Le protocole distingue deux phases métier et deux gates humains obligatoires.
 
 `PLAN_BUILDING` → `PLAN_INTERNAL_REVIEW` → `PLAN_READY_FOR_USER_APPROVAL` → **GATE HUMAIN PLAN** → `IMPLEMENTING` → `IMPLEMENTATION_INTERNAL_REVIEW` → `VISUAL_REVIEW_REQUIRED` → **GATE HUMAIN VISUEL** → (`VISUAL_REWORK` → `IMPLEMENTATION_INTERNAL_REVIEW` → `VISUAL_REVIEW_REQUIRED`)* → `S09_DONE`.
 
+## Phase PLAN — lecture seule et trace durable
+
+La phase PLAN est strictement en lecture seule au niveau des outils Claude : aucun `Edit`, `Write`, commit ou push n'est autorisé.
+
+Le commentaire GitHub `[KODJO_S09_PLAN_OUTPUT]` constitue la trace durable et le rapport officiel de la phase PLAN. Aucun rapport fichier dans le dépôt n'est exigé ni autorisé pendant cette phase. La revue automatique ne doit donc jamais demander un fichier de rapport PLAN absent.
+
+L'enveloppe PowerShell 5.1 doit capturer séparément stdout et stderr de `claude.cmd`. Un message écrit sur stderr ne doit pas interrompre le workflow avant analyse du résultat. Si Claude retourne un JSON exploitable contenant le `session_id` certifié et un `result` non vide, ce résultat peut être publié même si le processus natif retourne un code non nul ; le code de sortie est alors journalisé comme avertissement. Si aucun JSON exploitable n'est disponible, le workflow s'arrête en échec technique avec un extrait de stderr.
+
 ## Gate humain 1 — Plan
 
 L'utilisateur est consulté uniquement lorsque le plan a déjà passé la revue interne ChatGPT/OpenAI et les corrections mineures automatiques.
@@ -73,10 +81,12 @@ Un retour `CORRIGER VISUEL S09` relance Claude local dans la même session histo
 - `git status --porcelain --untracked-files=all` ;
 - checkpoints consommables une seule fois ;
 - écriture PowerShell 5.1-safe des propriétés de checkpoint ;
+- capture séparée stdout/stderr des processus natifs Claude dans les étapes headless ;
 - session native Claude persistée et reprise explicitement ;
 - session historique S01-S08 certifiée disponible avant tout appel S09 ;
 - contrôle que tout retour Claude conserve exactement le même `session_id` ;
 - relecture obligatoire des sources actuelles malgré la mémoire de session ;
 - aucun Claude Cloud ; aucun fallback ;
 - commit/push uniquement après contrôles mécaniques ;
-- rapports obligatoires et traçabilité des décisions.
+- rapports obligatoires pour les phases d'écriture et traçabilité des décisions ;
+- en phase PLAN, `[KODJO_S09_PLAN_OUTPUT]` est le rapport durable officiel.
