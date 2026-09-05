@@ -1,0 +1,74 @@
+name: KODJO V1.4 S09 — Recover Worktree
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: kodjo-v14-s09-implementation
+  cancel-in-progress: false
+env:
+  TARGET_BRANCH: feat/creation-seance-catalogue
+jobs:
+  recover:
+    if: github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] RECOVER_WORKTREE')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      TRIGGER_AUTHOR: ${{ github.event.comment.user.login }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Verify and recover dirty S09 worktree
+        id: recover
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner'}
+          if($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine'){throw 'Unexpected repository'}
+          if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'RECOVER_WORKTREE must be user-authored'}
+          if((git branch --show-current).Trim() -ne $env:TARGET_BRANCH){throw 'Unexpected branch in retained worktree'}
+          $hm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_head=([0-9a-f]{40})\s*$')
+          $sm=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$')
+          $am=[regex]::Match($env:TRIGGER_BODY,'(?m)^attempt=(\d+)\s*$')
+          $rm=[regex]::Match($env:TRIGGER_BODY,'(?m)^failed_run=(\d+)\s*$')
+          if(-not$hm.Success -or -not$sm.Success -or -not$am.Success -or -not$rm.Success){throw 'Recovery metadata missing'}
+          $sourceHead=$hm.Groups[1].Value; $session=$sm.Groups[1].Value; $attempt=$am.Groups[1].Value; $failedRun=$rm.Groups[1].Value
+          $head=(git rev-parse HEAD).Trim(); if($head -ne $sourceHead){throw "Retained worktree HEAD mismatch: $head"}
+          $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()})
+          if($changed.Count -eq 0){throw 'No retained changes to recover'}
+          $applicationChanged=$false
+          foreach($p in $changed){
+            $n=$p-replace '\\','/'
+            if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
+            if($n.StartsWith('app/') -or $n.StartsWith('src/')){$applicationChanged=$true; continue}
+            if($n.StartsWith('docs/')){continue}
+            if($n.StartsWith('.github/orchestration/reports/') -and $n.EndsWith('.md')){continue}
+            throw "Unauthorized retained path: $n"
+          }
+          if(-not $applicationChanged){throw 'No retained application changes'}
+          npm test -- --runInBand; if($LASTEXITCODE -ne 0){throw 'Jest failed on recovered worktree'}
+          npx tsc --noEmit; if($LASTEXITCODE -ne 0){throw 'TypeScript failed on recovered worktree'}
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: recover T01-S09 attempt $attempt after run $failedRun"; if($LASTEXITCODE -ne 0){throw 'Recovery commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Recovery push failed'}
+          "head=$new" >> $env:GITHUB_OUTPUT
+          "session=$session" >> $env:GITHUB_OUTPUT
+          "attempt=$attempt" >> $env:GITHUB_OUTPUT
+          "failed_run=$failedRun" >> $env:GITHUB_OUTPUT
+      - name: Publish recovered implementation for OpenAI review
+        env:
+          HEAD_NEW: ${{ steps.recover.outputs.head }}
+          SESSION_ID: ${{ steps.recover.outputs.session }}
+          ATTEMPT: ${{ steps.recover.outputs.attempt }}
+          FAILED_RUN: ${{ steps.recover.outputs.failed_run }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=686da60aee7eb368722676ab5327960eef5691d8`nhead=$env:HEAD_NEW`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=RECOVERED_DIRTY_WORKTREE`nrecovered_from_failed_run=$env:FAILED_RUN`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`nLe worktree matériel conservé après l'échec technique Claude a été validé par contrôle de périmètre UTF-8, Jest complet et TypeScript, puis committé/poussé sans nouvel appel Claude."
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
