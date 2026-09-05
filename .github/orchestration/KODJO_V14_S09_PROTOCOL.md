@@ -23,6 +23,7 @@ Claude.ai désigne le compte/authentification/quota utilisé par Claude Code ; i
 
 Une tranche de développement utilise une session Claude dédiée et bornée. Pour S09 :
 - la revue du plan utilise une nouvelle session courte de REVIEW, sans reprendre la session historique ;
+- après un verdict `REVISE`, les itérations suivantes de revue du même plan peuvent reprendre cette même session REVIEW, à condition de cibler explicitement le nouvel artefact de plan ;
 - après Gate 1, le développement démarre dans une nouvelle session `DEV-S09` ;
 - les corrections techniques et visuelles de S09 réutilisent `DEV-S09` tant que la tranche reste ouverte ;
 - S10 démarrera dans une nouvelle session.
@@ -57,12 +58,45 @@ Codex/OpenAI construit le plan en lecture seule depuis le HEAD courant, l'Issue 
 
 Le plan candidat est soumis à une revue Claude indépendante dans une nouvelle session courte. Claude reçoit le plan et un paquet de preuves borné ; il ne reprend pas la session historique S01-S08.
 
+### Contrat exact de revue du plan
+
+La revue porte toujours sur **un artefact de plan unique identifié par son `source_plan_comment_id`**.
+
+Le paquet REVIEW doit respecter les règles suivantes :
+- la cible de revue est fournie intégralement et explicitement comme `TARGET PLAN` ;
+- les autres éléments sont uniquement des évidences : Issue courante, décisions actives, documentation actuelle et code actuel ;
+- aucun ancien plan complet ne doit être réinjecté comme contexte général s'il n'est pas indispensable ;
+- un contexte historique indispensable doit être marqué explicitement comme `SUPERSEDED_CONTEXT` et ne peut jamais devenir la cible de revue ;
+- le reviewer doit commencer sa réponse par `REVIEWED_PLAN_ID: <source_plan_comment_id>` ;
+- le workflow rejette techniquement toute réponse dont `REVIEWED_PLAN_ID` ne correspond pas exactement à la cible demandée ;
+- après `REVISE`, la même session REVIEW peut être reprise uniquement avec un nouvel identifiant de plan explicite et le même contrôle d'identité ;
+- la session REVIEW ne devient jamais la session DEV.
+
+Cette règle interdit qu'une revue soit considérée valide si Claude analyse un ancien plan présent dans le contexte au lieu du plan demandé.
+
 Résultats :
 - `APPROVE` : Gate 1 ;
 - `REVISE` : correction côté OpenAI/Codex puis nouvelle revue, dans une boucle bornée ;
 - `CLARIFY` : uniquement décision produit/UX réellement absente des sources, avec points bloquants précis.
 
 Aucune écriture métier ni développement avant Gate 1.
+
+## Capitalisation inter-tranches
+
+À partir de S10, le mécanisme PLAN/REVIEW doit être réutilisé comme infrastructure commune et paramétrée plutôt que reconstruit par tranche. Les invariants à conserver sont :
+- authentification OAuth Claude Code locale contrôlée avant appel ;
+- runner/repository/branche/HEAD/worktree contrôlés ;
+- nouvelle session REVIEW au premier passage d'une tranche ;
+- reprise éventuelle de cette seule session REVIEW pour une révision du plan ;
+- interdiction absolue de la session historique S01-S08 ;
+- prompt transporté par fichier UTF-8, jamais par construction PowerShell fragile de type here-string non indenté ;
+- cible `PLAN_ID` unique et vérifiée dans la sortie ;
+- paquet de preuves borné et actuel, sans pollution par des plans historiques ;
+- sortie structurée `APPROVE / REVISE / CLARIFY` ;
+- aucune session REVIEW utilisée pour le développement ;
+- aucune écriture métier avant Gate 1.
+
+Une fois S09 terminé, ces invariants doivent être déplacés vers un workflow/protocole générique réutilisable afin d'éviter de dupliquer les erreurs d'orchestration rencontrées pendant la stabilisation de S09.
 
 ## Gate humain 1 — Plan
 
