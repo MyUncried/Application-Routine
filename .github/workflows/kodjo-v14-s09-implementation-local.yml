@@ -12,6 +12,7 @@ env:
   ISSUE_NUMBER: '17'
   TARGET_BRANCH: feat/creation-seance-catalogue
   HISTORICAL_SESSION_ID: 99404ae0-19e3-4004-8dde-cd670588afb5
+  PLAN_GATE_COMMENT_ID: '5552063575'
 
 jobs:
   implement:
@@ -40,16 +41,12 @@ jobs:
           $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
-          $comments=@(); $page=1
-          do {
-            $pageComments=@(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments?per_page=100&page=$page" -Headers $headers)
-            $comments += $pageComments
-            $page++
-          } while($pageComments.Count -eq 100)
-          if($comments.Count -eq 0){throw 'Issue comments unavailable'}
-          $gate=@($comments|Where-Object{$_.body -match '\[KODJO_S09_PLAN_GATE\]' -and $_.body -match 'STATUT : PLAN_READY_FOR_USER_GATE'}|Select-Object -Last 1); if($gate.Count -ne 1){throw "No plan gate after complete pagination ($($comments.Count) comments read)"}
-          $gm=[regex]::Match([string]$gate[0].body,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$gm.Success){throw 'Plan id missing'}; $planId=$gm.Groups[1].Value
-          $gh=[regex]::Match([string]$gate[0].body,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$gh.Success){throw 'Plan head missing'}; $planHead=$gh.Groups[1].Value
+          # S09-specific gate is immutable and its exact comment id is known.
+          # Resolve it directly: never scan/paginate the Issue to rediscover a known control artefact.
+          $gate=Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_GATE_COMMENT_ID" -Headers $headers
+          if($null -eq $gate -or [string]$gate.body -notmatch '\[KODJO_S09_PLAN_GATE\]' -or [string]$gate.body -notmatch 'STATUT : PLAN_READY_FOR_USER_GATE'){throw 'Direct plan gate invalid'}
+          $gm=[regex]::Match([string]$gate.body,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$gm.Success){throw 'Plan id missing'}; $planId=$gm.Groups[1].Value
+          $gh=[regex]::Match([string]$gate.body,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$gh.Success){throw 'Plan head missing'}; $planHead=$gh.Groups[1].Value
           $plan=(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" -Headers $headers).body; if($plan -notmatch 'plan_builder=OPENAI'){throw 'Approved plan is not OpenAI-built'}
           $initial=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] PLAN_APPROVED'); $visual=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] VISUAL_CORRECTION')
           if($initial){if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'PLAN_APPROVED must be user-authored'}; if($head -ne $planHead){throw 'HEAD changed since plan'}; $attempt=1; $session=''; $mode='INITIAL'}
