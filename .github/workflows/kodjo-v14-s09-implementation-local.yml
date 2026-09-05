@@ -39,8 +39,15 @@ jobs:
           if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty worktree'}
           $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
-          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}; $comments=@(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments?per_page=100" -Headers $headers)
-          $gate=@($comments|Where-Object{$_.body -match '\[KODJO_S09_PLAN_GATE\]' -and $_.body -match 'STATUT : PLAN_READY_FOR_USER_GATE'}|Select-Object -Last 1); if($gate.Count -ne 1){throw 'No plan gate'}
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          $comments=@(); $page=1
+          do {
+            $pageComments=@(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments?per_page=100&page=$page" -Headers $headers)
+            $comments += $pageComments
+            $page++
+          } while($pageComments.Count -eq 100)
+          if($comments.Count -eq 0){throw 'Issue comments unavailable'}
+          $gate=@($comments|Where-Object{$_.body -match '\[KODJO_S09_PLAN_GATE\]' -and $_.body -match 'STATUT : PLAN_READY_FOR_USER_GATE'}|Select-Object -Last 1); if($gate.Count -ne 1){throw "No plan gate after complete pagination ($($comments.Count) comments read)"}
           $gm=[regex]::Match([string]$gate[0].body,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$gm.Success){throw 'Plan id missing'}; $planId=$gm.Groups[1].Value
           $gh=[regex]::Match([string]$gate[0].body,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$gh.Success){throw 'Plan head missing'}; $planHead=$gh.Groups[1].Value
           $plan=(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" -Headers $headers).body; if($plan -notmatch 'plan_builder=OPENAI'){throw 'Approved plan is not OpenAI-built'}
