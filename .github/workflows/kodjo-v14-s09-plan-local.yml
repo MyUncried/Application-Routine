@@ -84,26 +84,45 @@ jobs:
             $s=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$'); if(-not$s.Success){throw 'Revision session_id missing.'}; $session=$s.Groups[1].Value
             if($session -ne $env:INITIAL_SESSION_ID){throw "Revision attempted on non-certified session: $session"}
             $feedbackMarker='REVIEW_FEEDBACK:'; $idx=$env:TRIGGER_BODY.IndexOf($feedbackMarker); if($idx -lt 0){throw 'Revision feedback missing.'}; $feedback=$env:TRIGGER_BODY.Substring($idx+$feedbackMarker.Length).Trim()
-            $prompt="KODJO T01-S09 V1.4 - REVISION PLAN tentative $attempt. Continue exactement la session historique S01-S08 deja reprise pour S09. Corrige uniquement selon le feedback de revue, puis relis et revalide les sources Git/documentaires actuelles au HEAD $env:SOURCE_HEAD. La memoire de session aide a comprendre l'existant mais ne remplace jamais les sources de verite actuelles. Ne modifie aucun fichier. Si une vraie decision produit/UX est indeterminable, retourne CLARIFICATION_REQUIRED. Feedback: $feedback"
+            $prompt="KODJO T01-S09 V1.4 - REVISION PLAN tentative $attempt. Continue exactement la session historique S01-S08 deja reprise pour S09. Corrige uniquement selon le feedback de revue, puis relis et revalide les sources Git/documentaires actuelles au HEAD $env:SOURCE_HEAD. La memoire de session aide a comprendre l'existant mais ne remplace jamais les sources de verite actuelles. Phase PLAN strictement lecture seule: n'utilise ni Edit ni Write et ne cree aucun rapport fichier. Le commentaire GitHub PLAN_OUTPUT constitue le rapport durable de cette phase. Retourne le plan complet dans ta reponse. Si une vraie decision produit/UX est indeterminable, retourne CLARIFICATION_REQUIRED. Feedback: $feedback"
           } else {
             $lines=@(
               'KODJO T01-S09 - CONSTRUIRE LE PLAN V1.4 en reprenant la session historique S01-S08 certifiee. Phase strictement lecture seule.',
               "Baseline Git autorisee: $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Issue metier: #17.",
               'Tu disposes de l historique de developpement S01-S08 dans cette session, mais il ne constitue pas une source de verite. Relis obligatoirement le HEAD courant et toutes les sources applicables avant de planifier.',
+              'Si un plan S09 a deja ete produit dans cette meme session lors d une tentative headless precedente, reutilise-le comme brouillon, revalide-le contre les sources actuelles et retourne directement sa version finale plutot que de recommencer inutilement.',
               'Lis et cite comme sources de verite: docs/PRODUCT.md, docs/INDEX.md, les specifications fonctionnelles 06 a 13 (notamment 07 registre des decisions et 13 contrats d''ecran), les images categories-seance.png et categories-nouvelle-inline.png, le code reel T01-S01 a S08 sous app/ et src/, et le rapport Figma blockers categories/headers si pertinent.',
               'Le plan doit couvrir uniquement le perimetre T01-S09 confirme par les sources: navigation Composition vers Categories, zero/multi-categories si applicable, creation inline, persistance complete T01-S08, zones corporelles, migration additive, transaction/atomicite, prevention double-submit, reset apres succes, retour Catalogue, tests, chemins probables, criteres d''acceptation et preuves attendues.',
               'Distingue explicitement regle fonctionnelle, rendu/etat UI, contrainte technique, decision validee et point A CLARIFIER. N''invente rien. Les documents versionnes plus recents supersedent toute formulation ancienne incompatible de l''Issue.',
-              'Prends en compte comme vigilance de revue deja identifiee: ne pas etendre a plusieurs Exercices si hors perimetre; ne pas inventer limite 40 caracteres, normalisation/anti-doublon, ordre displayOrder/created_at, libelle dynamique ou affichage categories dans SessionCard sans source explicite; tracer D-015/D-016/D-092 a D-094 et contrats d''ecran; produire un rapport durable si le protocole l''exige.',
-              'Ne developpe pas S10. Aucun Edit/Write, aucun commit/push. Le plan doit permettre une implementation sans micro-arbitrages humains.'
+              'Prends en compte comme vigilance de revue deja identifiee: ne pas etendre a plusieurs Exercices si hors perimetre; ne pas inventer limite 40 caracteres, normalisation/anti-doublon, ordre displayOrder/created_at, libelle dynamique ou affichage categories dans SessionCard sans source explicite; tracer D-015/D-016/D-092 a D-094 et contrats d''ecran.',
+              'Phase PLAN strictement lecture seule: n utilise ni Edit ni Write, ne cree aucun rapport fichier et ne committe/pousse rien. Le commentaire GitHub PLAN_OUTPUT constitue le rapport durable de la phase PLAN. Retourne le plan complet dans ta reponse.',
+              'Ne developpe pas S10. Le plan doit permettre une implementation sans micro-arbitrages humains.'
             )
             $prompt=$lines -join [Environment]::NewLine
           }
-          $raw=(& $env:CLAUDE_PATH -p --resume $session --output-format json $prompt 2>&1|Out-String)
-          if($LASTEXITCODE -ne 0){throw 'Claude plan invocation failed.'}
-          $p=$raw|ConvertFrom-Json
-          if([string]::IsNullOrWhiteSpace($p.session_id)){throw 'No session_id.'}
+
+          $stdoutPath=Join-Path $env:RUNNER_TEMP 's09-claude-stdout.txt'
+          $stderrPath=Join-Path $env:RUNNER_TEMP 's09-claude-stderr.txt'
+          Remove-Item $stdoutPath,$stderrPath -Force -ErrorAction SilentlyContinue
+          $previousEap=$ErrorActionPreference
+          $ErrorActionPreference='Continue'
+          & $env:CLAUDE_PATH -p --resume $session --output-format json $prompt 1> $stdoutPath 2> $stderrPath
+          $exitCode=$LASTEXITCODE
+          $ErrorActionPreference=$previousEap
+
+          $raw=if(Test-Path $stdoutPath){Get-Content $stdoutPath -Raw -Encoding UTF8}else{''}
+          $stderr=if(Test-Path $stderrPath){Get-Content $stderrPath -Raw -Encoding UTF8}else{''}
+          $p=$null
+          if(-not [string]::IsNullOrWhiteSpace($raw)){
+            try{$p=$raw|ConvertFrom-Json}catch{$p=$null}
+          }
+          $hasUsableResult=($null -ne $p -and -not [string]::IsNullOrWhiteSpace([string]$p.session_id) -and -not [string]::IsNullOrWhiteSpace([string]$p.result))
+          if(-not $hasUsableResult){
+            $excerpt=if($stderr.Length -gt 1200){$stderr.Substring($stderr.Length-1200)}else{$stderr}
+            throw "Claude plan invocation produced no usable JSON result. exit=$exitCode stderr=$excerpt"
+          }
+          if($exitCode -ne 0){Write-Warning "Claude returned exit code $exitCode but produced a usable structured result; continuing with validated result."}
           if($p.session_id -ne $env:INITIAL_SESSION_ID){throw "Claude resumed unexpected session: $($p.session_id)"}
-          if([string]::IsNullOrWhiteSpace([string]$p.result)){throw 'No plan result.'}
           if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Read-only plan modified worktree.'}
           $resultPath=Join-Path $env:RUNNER_TEMP 's09-plan-result.txt'
           [IO.File]::WriteAllText($resultPath,[string]$p.result,(New-Object Text.UTF8Encoding($false)))
@@ -120,7 +139,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $plan=Get-Content $env:RESULT_PATH -Raw -Encoding UTF8
-          $body="[KODJO_S09_PLAN_OUTPUT]`nsource_head=$env:SOURCE_HEAD`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=S01-S08_CERTIFIED_SESSION`nSTATUT : PLAN_READY_FOR_REVIEW`n`n$plan"
+          $body="[KODJO_S09_PLAN_OUTPUT]`nsource_head=$env:SOURCE_HEAD`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=S01-S08_CERTIFIED_SESSION`nplan_report=GITHUB_PLAN_OUTPUT_COMMENT`nSTATUT : PLAN_READY_FOR_REVIEW`n`n$plan"
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28'}
           $uri="https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments"
           Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json -Depth 4) | Out-Null
