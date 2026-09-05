@@ -51,6 +51,12 @@ jobs:
           else{$am=[regex]::Match($env:TRIGGER_BODY,'(?m)^attempt=(\d+)\s*$'); $sm=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$'); $hm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$am.Success -or -not$sm.Success -or -not$hm.Success){throw 'Correction metadata missing'}; if($head -ne $hm.Groups[1].Value){throw 'Correction HEAD mismatch'}; $attempt=[int]$am.Groups[1].Value; $session=$sm.Groups[1].Value; if($session -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session forbidden'}; if($visual -and $env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'VISUAL_CORRECTION must be user-authored'}; $mode=if($visual){'VISUAL'}else{'REVISION'}}
           $pp=Join-Path $env:RUNNER_TEMP 'approved-plan.txt'; [IO.File]::WriteAllText($pp,[string]$plan,(New-Object Text.UTF8Encoding($false)))
           "head=$head" >> $env:GITHUB_OUTPUT; "claude=$($claude.Source)" >> $env:GITHUB_OUTPUT; "attempt=$attempt" >> $env:GITHUB_OUTPUT; "session=$session" >> $env:GITHUB_OUTPUT; "mode=$mode" >> $env:GITHUB_OUTPUT; "plan_id=$planId" >> $env:GITHUB_OUTPUT; "plan_path=$pp" >> $env:GITHUB_OUTPUT
+      - name: Provision Node dependencies
+        run: |
+          $ErrorActionPreference='Stop'
+          npm ci
+          if($LASTEXITCODE -ne 0){throw 'npm ci failed'}
+          if(-not (Test-Path 'node_modules/.bin/jest.cmd')){throw 'Jest unavailable after npm ci'}
       - name: Run Claude DEV-S09
         id: claude
         env:
