@@ -16,17 +16,20 @@ concurrency:
 env:
   TARGET_BRANCH: feat/creation-seance-catalogue
   EXPECTED_HEAD: 76b8c1f0027b66fa98e4017458fa5d2ccc68a47d
+  HISTORICAL_SESSION_ID: 99404ae0-19e3-4004-8dde-cd670588afb5
 
 jobs:
   review:
-    if: >
-      github.event.issue.number == 17 &&
-      github.event.comment.user.login == 'MyUncried' &&
-      contains(github.event.comment.body, '[KODJO_V14_S09] START_PLAN_REVIEW_CLAUDE')
-    runs-on: [self-hosted, Windows, X64]
+    if: github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] START_PLAN_REVIEW_CLAUDE')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       GH_TOKEN: ${{ github.token }}
       TRIGGER_BODY: ${{ github.event.comment.body }}
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,103 +38,70 @@ jobs:
           persist-credentials: false
 
       - name: Validate source state
-        shell: powershell
+        id: gate
         run: |
-          $ErrorActionPreference = 'Stop'
-          $head = (git rev-parse HEAD).Trim()
-          if ($head -ne $env:EXPECTED_HEAD) { throw "HEAD mismatch: $head" }
-          if (git status --porcelain --untracked-files=all) { throw 'Working tree is not clean.' }
+          $ErrorActionPreference='Stop'
+          if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner'}
+          if($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine'){throw 'Unexpected repository'}
+          if((git branch --show-current).Trim() -ne $env:TARGET_BRANCH){throw 'Unexpected branch'}
+          if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty worktree'}
+          $head=(git rev-parse HEAD).Trim()
+          if($head -ne $env:EXPECTED_HEAD){throw "HEAD mismatch: $head"}
+          $pm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_plan_comment_id=(\d+)\s*$')
+          if(-not $pm.Success){throw 'source_plan_comment_id missing'}
+          $claude=Get-Command claude.cmd -ErrorAction Stop
+          $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json
+          if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
+          "head=$head" >> $env:GITHUB_OUTPUT
+          "plan_id=$($pm.Groups[1].Value)" >> $env:GITHUB_OUTPUT
+          "claude=$($claude.Source)" >> $env:GITHUB_OUTPUT
 
-      - name: Build independent review packet
-        id: packet
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\kodjo-s09-review" | Out-Null
-          $packet = "$env:RUNNER_TEMP\kodjo-s09-review"
-          $sourceLine = ($env:TRIGGER_BODY -split "`n" | Where-Object { $_ -match '^source_plan_comment_id=' } | Select-Object -First 1)
-          if (-not $sourceLine) { throw 'source_plan_comment_id missing.' }
-          $sourceId = ($sourceLine -replace '^source_plan_comment_id=', '').Trim()
-          if ($sourceId -notmatch '^\d+$') { throw 'Invalid source_plan_comment_id.' }
-          gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$sourceId" --jq '.body' | Out-File -FilePath "$packet\plan.md" -Encoding utf8
-          $plan = Get-Content -Raw -Encoding UTF8 "$packet\plan.md"
-          if ($plan -notmatch '\[KODJO_S09_PLAN_OUTPUT\]' -or $plan -notmatch 'plan_builder=OPENAI' -or $plan -notmatch "source_head=$env:EXPECTED_HEAD") { throw 'Source plan attestation invalid.' }
-          gh api "repos/$env:GITHUB_REPOSITORY/issues/17" | Out-File -FilePath "$packet\issue.json" -Encoding utf8
-          gh api --paginate "repos/$env:GITHUB_REPOSITORY/issues/17/comments" | Out-File -FilePath "$packet\comments-pages.json" -Encoding utf8
-          $docs = @(
-            'docs/PRODUCT.md',
-            'docs/INDEX.md',
-            'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md',
-            'docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md',
-            'docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md',
-            'docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md',
-            'docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md',
-            'docs/Specifications-fonctionnelles/11 – API fonctionnelles.md',
-            'docs/Specifications-fonctionnelles/12 – Architecture technique.md',
-            'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md'
-          )
-          $evidence = New-Object System.Text.StringBuilder
-          foreach ($f in $docs) {
-            if (Test-Path -LiteralPath $f) {
-              [void]$evidence.AppendLine("`n===== $f =====")
-              [void]$evidence.AppendLine((Get-Content -Raw -Encoding UTF8 -LiteralPath $f))
-            }
-          }
-          [IO.File]::WriteAllText("$packet\docs.txt", $evidence.ToString(), [Text.UTF8Encoding]::new($false))
-          $code = git grep -n -E 'Category|Catégor|Composition|SessionDraft|SqliteSessionRepository|bodyZone|migration001|DATABASE_VERSION' -- app src 2>$null
-          [IO.File]::WriteAllLines("$packet\code.txt", @($code), [Text.UTF8Encoding]::new($false))
-          "source_id=$sourceId" >> $env:GITHUB_OUTPUT
-
-      - name: Review plan in a new Claude session
-        id: claude
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $packet = "$env:RUNNER_TEMP\kodjo-s09-review"
-          $prompt = @'
-          You are the independent reviewer of the KODJO T01-S09 implementation plan. This MUST be a new review session. Do not resume any historical Claude session and do not develop or modify repository files.
-
-          Audit the supplied OpenAI plan against the authoritative evidence. Sources outrank agent memory. Check exactly five axes: (1) complete S09 scope coverage, (2) source traceability, (3) no invented or obsolete rules, (4) technical executability against the current code, (5) testability.
-
-          Mandatory validated rule: category duplicate comparison normalizes spaces and ignores case AND accents/diacritics for the comparison key only; visible labels preserve entered casing/accents; no spelling correction, fuzzy matching, suggestion or automatic replacement in MVP. S10 reopening/editing is out of scope.
-
-          Verify additive migration only and no modification of migration001, SQLite atomicity, complete persistence of all T01-S01..S08 draft data including body zones where applicable, category selection/creation, duplicate handling, double-submit protection, reset only after successful save, Catalogue return/reload, loading/error behavior, screen contracts, TypeScript and tests.
-
-          Return exactly one verdict: APPROVE, REVISE, or CLARIFY. APPROVE only if the plan is executable without inventing a missing product/UX decision. For REVISE list each defect with evidence and required correction. For CLARIFY state the exact genuinely unresolved user decision and sources checked.
-          '@
-          $prompt += "`n`n===== OPENAI PLAN =====`n" + (Get-Content -Raw -Encoding UTF8 "$packet\plan.md")
-          $prompt += "`n`n===== ISSUE #17 =====`n" + (Get-Content -Raw -Encoding UTF8 "$packet\issue.json")
-          $prompt += "`n`n===== ISSUE COMMENTS =====`n" + (Get-Content -Raw -Encoding UTF8 "$packet\comments-pages.json")
-          $prompt += "`n`n===== VERSIONED DOCUMENTATION =====`n" + (Get-Content -Raw -Encoding UTF8 "$packet\docs.txt")
-          $prompt += "`n`n===== CODE EVIDENCE =====`n" + (Get-Content -Raw -Encoding UTF8 "$packet\code.txt")
-          $stdout = "$packet\claude.json"
-          $stderr = "$packet\claude.stderr.txt"
-          $proc = Start-Process -FilePath 'claude.cmd' -ArgumentList @('-p', $prompt, '--output-format', 'json', '--max-turns', '25') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-          if ($proc.ExitCode -ne 0) { throw "Claude review failed with exit code $($proc.ExitCode): $((Get-Content -Raw -ErrorAction SilentlyContinue $stderr))" }
-          $obj = Get-Content -Raw -Encoding UTF8 $stdout | ConvertFrom-Json
-          if (-not $obj.session_id -or -not $obj.result) { throw 'Claude JSON missing session_id/result.' }
-          if ($obj.session_id -eq '99404ae0-19e3-4004-8dde-cd670588afb5') { throw 'Historical session was reused unexpectedly.' }
-          [IO.File]::WriteAllText("$packet\review.txt", [string]$obj.result, [Text.UTF8Encoding]::new($false))
-          "session_id=$($obj.session_id)" >> $env:GITHUB_OUTPUT
-          if (git status --porcelain --untracked-files=all) { throw 'Review modified the repository.' }
-
-      - name: Publish independent review result
+      - name: Fresh Claude independent review
+        id: review
         env:
-          SOURCE_ID: ${{ steps.packet.outputs.source_id }}
-          REVIEW_SESSION_ID: ${{ steps.claude.outputs.session_id }}
-        shell: powershell
+          CLAUDE_PATH: ${{ steps.gate.outputs.claude }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
         run: |
-          $packet = "$env:RUNNER_TEMP\kodjo-s09-review"
-          $review = Get-Content -Raw -Encoding UTF8 "$packet\review.txt"
-          $body = @"
-          [KODJO_S09_PLAN_INDEPENDENT_REVIEW]
-          source_plan_comment_id=$env:SOURCE_ID
-          source_head=$env:EXPECTED_HEAD
-          reviewer=CLAUDE_NEW_SESSION
-          review_session_id=$env:REVIEW_SESSION_ID
+          $ErrorActionPreference='Stop'
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          $plan=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_ID").body
+          if($plan -notmatch '\[KODJO_S09_PLAN_OUTPUT\]' -or $plan -notmatch 'plan_builder=OPENAI'){throw 'Source comment is not the OpenAI S09 plan'}
+          if($plan -notmatch [regex]::Escape("source_head=$env:EXPECTED_HEAD")){throw 'Plan HEAD mismatch'}
+          $comments=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments?per_page=100")
+          $decisions=(($comments | Where-Object {$_.body -match '5456456851|5460885591|5460904461|5460923036|ARBITRAGE|DECISION|Catégor|doublon|diacrit'} | ForEach-Object {"COMMENT $($_.id):`n$($_.body)"}) -join "`n`n")
+          if($decisions.Length -gt 100000){$decisions=$decisions.Substring(0,100000)}
+          $sources=''
+          $files=@('docs/PRODUCT.md','docs/INDEX.md','docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md','docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md','docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md','docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md','docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md','docs/Specifications-fonctionnelles/11 – API fonctionnelles.md','docs/Specifications-fonctionnelles/12 – Architecture technique.md','docs/Specifications-fonctionnelles/13 – Contrats d’écran.md')
+          foreach($f in $files){if(Test-Path $f){$m=Select-String -Path $f -Pattern 'T01-S09|Catégor|Composition|atomic|transaction|zone corporelle|doubl|D-09[0-9]|Catalogue|Enregistrer|SessionDraft' -Context 2,2; $sources += "`n===== $f =====`n" + (($m|ForEach-Object{$_.ToString()}) -join "`n")}}
+          if($sources.Length -gt 150000){$sources=$sources.Substring(0,150000)}
+          $prompt="KODJO V1.4 — REVUE INDEPENDANTE DU PLAN T01-S09. Tu es un reviewer Claude dans une NOUVELLE session. N'utilise aucun contexte d'une session historique et ne développe/modifie aucun code. Lecture seule absolue. Vérifie le plan OpenAI contre l'Issue #17, ses arbitrages, la documentation versionnée et le code réel au HEAD $env:EXPECTED_HEAD. Axes obligatoires : couverture AC-01..AC-10, traçabilité, absence de règle inventée/obsolète, exécutabilité, testabilité, migration additive sans toucher migration001, atomicité SQLite, persistance complète du SessionDraft T01-S08 et zones corporelles, normalisation doublons espaces+casse+accents/diacritiques tout en conservant le libellé saisi, double-submit, reset uniquement après succès, navigation Catalogue, erreurs/loading, tests, aucun S10. CLARIFY uniquement pour une vraie décision produit indéterminable; défaut technique/documentaire=REVISE. Réponds STRICTEMENT :`nDECISION: APPROVE|REVISE|CLARIFY`nSUMMARY: ...`nBLOCKING_POINTS:`n- ... ou NONE`nFEEDBACK:`n... ou NONE`nSOURCES_CHECKED:`n- ...`n`nPLAN OPENAI COMPLET:`n$plan`n`nDECISIONS/COMMENTAIRES PERTINENTS:`n$decisions`n`nEXTRAITS DOCUMENTAIRES:`n$sources"
+          $out=Join-Path $env:RUNNER_TEMP 'review-out.json'; $err=Join-Path $env:RUNNER_TEMP 'review-err.txt'
+          $old=$ErrorActionPreference; $ErrorActionPreference='Continue'
+          & $env:CLAUDE_PATH -p --output-format json $prompt 1> $out 2> $err
+          $exit=$LASTEXITCODE; $ErrorActionPreference=$old
+          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}
+          $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}
+          $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
+          if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.result) -or [string]::IsNullOrWhiteSpace([string]$p.session_id)){throw "Claude review technical failure: $stderr"}
+          if($p.session_id -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session reused'}
+          if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Review modified worktree'}
+          $result=[string]$p.result
+          if($result -notmatch '(?m)^DECISION:\s*(APPROVE|REVISE|CLARIFY)\s*$'){throw 'Invalid Claude decision format'}
+          $rp=Join-Path $env:RUNNER_TEMP 'review.txt'
+          [IO.File]::WriteAllText($rp,$result,(New-Object Text.UTF8Encoding($false)))
+          "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
+          "result=$rp" >> $env:GITHUB_OUTPUT
 
-          $review
-          "@
-          $out = "$packet\out.md"
-          [IO.File]::WriteAllText($out, $body, [Text.UTF8Encoding]::new($false))
-          gh issue comment 17 --repo "$env:GITHUB_REPOSITORY" --body-file $out
+      - name: Publish independent review
+        env:
+          RESULT: ${{ steps.review.outputs.result }}
+          REVIEW_SESSION: ${{ steps.review.outputs.session }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          HEAD_SHA: ${{ steps.gate.outputs.head }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $r=Get-Content $env:RESULT -Raw -Encoding UTF8
+          $m=[regex]::Match($r,'(?m)^DECISION:\s*(APPROVE|REVISE|CLARIFY)\s*$'); $d=$m.Groups[1].Value
+          $body="[KODJO_S09_INDEPENDENT_PLAN_REVIEW]`nsource_plan_comment_id=$env:PLAN_ID`nsource_head=$env:HEAD_SHA`nreview_session_id=$env:REVIEW_SESSION`nreviewer=CLAUDE_NEW_SESSION`nDECISION=$d`n`n$r"
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
