@@ -118,9 +118,9 @@ jobs:
           test -n "${OPENAI_API_KEY:-}"
           KIND='${{ steps.source.outputs.kind }}'
           if [ "$KIND" = PLAN ]; then
-            TASK='Review the T01-S09 plan against the current authoritative project sources. The PLAN phase is strictly read-only: the GitHub PLAN_OUTPUT comment is the durable plan report, so absence of a repository report file is not a defect. Minor technical omissions => REVISE. Use CLARIFY only for a genuine product/UX decision not determinable from sources. APPROVE only when executable and source-grounded.'
+            TASK='Review the T01-S09 plan against the current authoritative project sources. The PLAN phase is strictly read-only: the GitHub PLAN_OUTPUT comment is the durable plan report, so absence of a repository report file is not a defect. Minor technical omissions => REVISE. Use CLARIFY only for a genuine product/UX decision not determinable from sources. If CLARIFY, blocking_points MUST enumerate every unresolved decision precisely and feedback MUST explain why each is not determinable from the supplied sources. APPROVE only when executable and source-grounded.'
           else
-            TASK='Review the T01-S09 implementation against the approved plan and current authoritative sources. Check behavior, contracts, persistence and atomicity, errors/loading/double-submit, tests, architecture and scope. Technical defects => REVISE. Use CLARIFY only for a genuine unresolved product/UX decision. APPROVE only when ready for user visual review.'
+            TASK='Review the T01-S09 implementation against the approved plan and current authoritative sources. Check behavior, contracts, persistence and atomicity, errors/loading/double-submit, tests, architecture and scope. Technical defects => REVISE. Use CLARIFY only for a genuine unresolved product/UX decision. If CLARIFY, blocking_points MUST enumerate every unresolved decision precisely. APPROVE only when ready for user visual review.'
           fi
           printf '%s\n' "You are the independent KODJO V1.4 review gate. $TASK" 'Hierarchy: current checked-out HEAD and current versioned sources supersede a stale baseline written in the Issue body; Figma/rendered screenshots = visual representation and represented states; functional docs = behaviors/interactions/business rules; technical docs = implementation constraints; decision register = explicit arbitrations. Do not invent. Treat the verified source excerpts below as the evidence at the current HEAD.' '' 'ISSUE #17:' > /tmp/prompt.txt
           jq -r '.body' /tmp/kodjo-review/issue.json >> /tmp/prompt.txt
@@ -153,13 +153,18 @@ jobs:
           SUMMARY=$(jq -r '.summary' /tmp/review.json)
           FEEDBACK=$(jq -r '.feedback' /tmp/review.json)
           SOURCES=$(jq -r '.sources_checked[]?' /tmp/review.json | sed 's/^/- /')
+          BLOCKERS=$(jq -r '.blocking_points[]?' /tmp/review.json | sed 's/^/- /')
+          if [ "$DECISION" = CLARIFY ]; then
+            test -n "$BLOCKERS"
+            test -n "$FEEDBACK"
+          fi
           : > /tmp/out.md
           if [ "$DECISION" = APPROVE ] && [ "$KIND" = PLAN ]; then
             printf '%s\n' '[KODJO_S09_PLAN_GATE]' "source_plan_comment_id=$SOURCE_COMMENT_ID" "source_head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : PLAN_READY_FOR_USER_GATE' '' "$SUMMARY" '' 'Sources contrôlées :' "$SOURCES" '' 'Action utilisateur attendue dans ChatGPT Work : APPROUVER PLAN S09 ou CORRIGER PLAN S09 : ...' > /tmp/out.md
           elif [ "$DECISION" = APPROVE ]; then
             printf '%s\n' '[KODJO_S09_VISUAL_GATE]' "source_implementation_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : VISUAL_REVIEW_READY' '' "$SUMMARY" '' 'Sources contrôlées :' "$SOURCES" '' 'Action utilisateur attendue dans ChatGPT Work : VALIDER VISUEL S09 ou CORRIGER VISUEL S09 : ...' > /tmp/out.md
           elif [ "$DECISION" = CLARIFY ] || [ "$ATTEMPT" -ge 3 ]; then
-            printf '%s\n' '[KODJO_S09_CLARIFICATION_REQUIRED]' "kind=$KIND" "source_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : CLARIFICATION_REQUIRED' '' "$SUMMARY" '' "$FEEDBACK" > /tmp/out.md
+            printf '%s\n' '[KODJO_S09_CLARIFICATION_REQUIRED]' "kind=$KIND" "source_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : CLARIFICATION_REQUIRED' '' "$SUMMARY" '' 'Points bloquants :' "$BLOCKERS" '' 'Feedback de revue :' "$FEEDBACK" '' 'Sources contrôlées :' "$SOURCES" > /tmp/out.md
           else
             NEXT=$((ATTEMPT+1))
             if [ "$KIND" = PLAN ]; then TRIGGER='[KODJO_V14_S09] PLAN_REVISION'; else TRIGGER='[KODJO_V14_S09] IMPLEMENTATION_REVISION'; fi
