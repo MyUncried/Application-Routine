@@ -36,7 +36,6 @@ jobs:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
           persist-credentials: false
-
       - name: Validate source state
         id: gate
         run: |
@@ -55,7 +54,6 @@ jobs:
           "head=$head" >> $env:GITHUB_OUTPUT
           "plan_id=$($pm.Groups[1].Value)" >> $env:GITHUB_OUTPUT
           "claude=$($claude.Source)" >> $env:GITHUB_OUTPUT
-
       - name: Fresh Claude independent review
         id: review
         env:
@@ -67,6 +65,7 @@ jobs:
           $plan=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_ID").body
           if($plan -notmatch '\[KODJO_S09_PLAN_OUTPUT\]' -or $plan -notmatch 'plan_builder=OPENAI'){throw 'Source comment is not the OpenAI S09 plan'}
           if($plan -notmatch [regex]::Escape("source_head=$env:EXPECTED_HEAD")){throw 'Plan HEAD mismatch'}
+          $issue=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17")
           $comments=(Invoke-RestMethod -Headers $h -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments?per_page=100")
           $decisions=(($comments | Where-Object {$_.body -match '5456456851|5460885591|5460904461|5460923036|ARBITRAGE|DECISION|Catégor|doublon|diacrit'} | ForEach-Object {"COMMENT $($_.id):`n$($_.body)"}) -join "`n`n")
           if($decisions.Length -gt 100000){$decisions=$decisions.Substring(0,100000)}
@@ -74,24 +73,20 @@ jobs:
           $files=@('docs/PRODUCT.md','docs/INDEX.md','docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md','docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md','docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md','docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md','docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md','docs/Specifications-fonctionnelles/11 – API fonctionnelles.md','docs/Specifications-fonctionnelles/12 – Architecture technique.md','docs/Specifications-fonctionnelles/13 – Contrats d’écran.md')
           foreach($f in $files){if(Test-Path $f){$m=Select-String -Path $f -Pattern 'T01-S09|Catégor|Composition|atomic|transaction|zone corporelle|doubl|D-09[0-9]|Catalogue|Enregistrer|SessionDraft' -Context 2,2; $sources += "`n===== $f =====`n" + (($m|ForEach-Object{$_.ToString()}) -join "`n")}}
           if($sources.Length -gt 150000){$sources=$sources.Substring(0,150000)}
-          $prompt="KODJO V1.4 — REVUE INDEPENDANTE DU PLAN T01-S09. Tu es un reviewer Claude dans une NOUVELLE session. N'utilise aucun contexte d'une session historique et ne développe/modifie aucun code. Lecture seule absolue. Vérifie le plan OpenAI contre l'Issue #17, ses arbitrages, la documentation versionnée et le code réel au HEAD $env:EXPECTED_HEAD. Axes obligatoires : couverture AC-01..AC-10, traçabilité, absence de règle inventée/obsolète, exécutabilité, testabilité, migration additive sans toucher migration001, atomicité SQLite, persistance complète du SessionDraft T01-S08 et zones corporelles, normalisation doublons espaces+casse+accents/diacritiques tout en conservant le libellé saisi, double-submit, reset uniquement après succès, navigation Catalogue, erreurs/loading, tests, aucun S10. CLARIFY uniquement pour une vraie décision produit indéterminable; défaut technique/documentaire=REVISE. Réponds STRICTEMENT :`nDECISION: APPROVE|REVISE|CLARIFY`nSUMMARY: ...`nBLOCKING_POINTS:`n- ... ou NONE`nFEEDBACK:`n... ou NONE`nSOURCES_CHECKED:`n- ...`n`nPLAN OPENAI COMPLET:`n$plan`n`nDECISIONS/COMMENTAIRES PERTINENTS:`n$decisions`n`nEXTRAITS DOCUMENTAIRES:`n$sources"
+          $prompt="KODJO V1.4 — REVUE INDEPENDANTE DU PLAN T01-S09. Tu es un reviewer Claude dans une NOUVELLE session. N'utilise aucun contexte d'une session historique et ne développe/modifie aucun code. Lecture seule absolue. Vérifie le plan OpenAI contre l'Issue #17, ses arbitrages, la documentation versionnée et le code réel au HEAD $env:EXPECTED_HEAD. Axes obligatoires : couverture AC-01..AC-10, traçabilité, absence de règle inventée/obsolète, exécutabilité, testabilité, migration additive sans toucher migration001, atomicité SQLite, persistance complète du SessionDraft T01-S08 et zones corporelles, normalisation doublons espaces+casse+accents/diacritiques tout en conservant le libellé saisi, double-submit, reset uniquement après succès, navigation Catalogue, erreurs/loading, tests, aucun S10. CLARIFY uniquement pour une vraie décision produit indéterminable; défaut technique/documentaire=REVISE. Réponds STRICTEMENT :`nDECISION: APPROVE|REVISE|CLARIFY`nSUMMARY: ...`nBLOCKING_POINTS:`n- ... ou NONE`nFEEDBACK:`n... ou NONE`nSOURCES_CHECKED:`n- ...`n`nISSUE #17:`n$($issue.body)`n`nPLAN OPENAI COMPLET:`n$plan`n`nDECISIONS/COMMENTAIRES PERTINENTS:`n$decisions`n`nEXTRAITS DOCUMENTAIRES:`n$sources"
           $out=Join-Path $env:RUNNER_TEMP 'review-out.json'; $err=Join-Path $env:RUNNER_TEMP 'review-err.txt'
           $old=$ErrorActionPreference; $ErrorActionPreference='Continue'
           & $env:CLAUDE_PATH -p --output-format json $prompt 1> $out 2> $err
           $exit=$LASTEXITCODE; $ErrorActionPreference=$old
-          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}
-          $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}
-          $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
+          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}; $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
           if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.result) -or [string]::IsNullOrWhiteSpace([string]$p.session_id)){throw "Claude review technical failure: $stderr"}
           if($p.session_id -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session reused'}
           if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Review modified worktree'}
           $result=[string]$p.result
           if($result -notmatch '(?m)^DECISION:\s*(APPROVE|REVISE|CLARIFY)\s*$'){throw 'Invalid Claude decision format'}
-          $rp=Join-Path $env:RUNNER_TEMP 'review.txt'
-          [IO.File]::WriteAllText($rp,$result,(New-Object Text.UTF8Encoding($false)))
+          $rp=Join-Path $env:RUNNER_TEMP 'review.txt'; [IO.File]::WriteAllText($rp,$result,(New-Object Text.UTF8Encoding($false)))
           "session=$($p.session_id)" >> $env:GITHUB_OUTPUT
           "result=$rp" >> $env:GITHUB_OUTPUT
-
       - name: Publish independent review
         env:
           RESULT: ${{ steps.review.outputs.result }}
