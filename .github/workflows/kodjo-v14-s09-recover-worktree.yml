@@ -11,6 +11,10 @@ concurrency:
 env:
   TARGET_BRANCH: feat/creation-seance-catalogue
   RECOVERY_BRANCH: recovery/t01-s09-attempt2
+  SOURCE_HEAD: 686da60aee7eb368722676ab5327960eef5691d8
+  SESSION_ID: 28152cdd-c52e-4452-aed2-728d0439e401
+  ATTEMPT: '2'
+
 jobs:
   recover:
     if: github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] RECOVER_WORKTREE')
@@ -57,9 +61,6 @@ jobs:
           $saved=(git rev-parse HEAD).Trim()
           git push --force-with-lease origin "HEAD:$env:RECOVERY_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Recovery branch push failed'}
           "head=$saved" >> $env:GITHUB_OUTPUT
-          "session=$session" >> $env:GITHUB_OUTPUT
-          "attempt=$attempt" >> $env:GITHUB_OUTPUT
-          "failed_run=$failedRun" >> $env:GITHUB_OUTPUT
       - name: Validate recovered implementation
         run: |
           $ErrorActionPreference='Stop'
@@ -68,12 +69,90 @@ jobs:
       - name: Promote validated recovery and publish for OpenAI review
         env:
           HEAD_NEW: ${{ steps.recover.outputs.head }}
-          SESSION_ID: ${{ steps.recover.outputs.session }}
-          ATTEMPT: ${{ steps.recover.outputs.attempt }}
-          FAILED_RUN: ${{ steps.recover.outputs.failed_run }}
         run: |
           $ErrorActionPreference='Stop'
           git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Target branch push failed'}
-          $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=686da60aee7eb368722676ab5327960eef5691d8`nhead=$env:HEAD_NEW`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=RECOVERED_DIRTY_WORKTREE`nrecovered_from_failed_run=$env:FAILED_RUN`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`nLe worktree matériel récupéré a été préservé sur $env:RECOVERY_BRANCH, puis validé par Jest complet et TypeScript avant promotion sur la branche applicative."
+          $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$env:HEAD_NEW`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=RECOVERED_DIRTY_WORKTREE`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW"
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
+          Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
+
+  repair:
+    if: github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] REPAIR_RECOVERY')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_AUTHOR: ${{ github.event.comment.user.login }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RECOVERY_BRANCH }}
+          fetch-depth: 0
+          clean: true
+      - name: Provision Node dependencies
+        run: npm ci
+      - name: Repair S09 code and tests in existing DEV session
+        run: |
+          $ErrorActionPreference='Stop'
+          if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner'}
+          if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'REPAIR_RECOVERY must be user-authored'}
+          $claude=(Get-Command claude.cmd -ErrorAction Stop).Source
+          $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json
+          if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
+          $prompt=@"
+KODJO V1.4 DEV-S09 — réparation de la récupération préservée.
+Tu reprends exclusivement la session $env:SESSION_ID, attempt=$env:ATTEMPT. Le checkout est la branche $env:RECOVERY_BRANCH, qui contient le travail S09 réel préservé au commit 3615ebf202f80c130ee90ef6ef4a8e4d2bad2435. Ne reset/clean/checkout rien.
+
+Le dernier Jest a donné 7 suites/58 tests en échec, 36 suites/571 tests réussis. Analyse les échecs et corrige le CODE et/ou les TESTS selon la règle réellement validée, sans masquer de régression.
+
+Règles impératives :
+- SessionDraft S09 sépare l'existence des catégories NEW (`categoryDrafts`) de leur sélection (`selectedCategoryIds`). Les anciennes fixtures/tests encore fondés sur `categorySelections` sont obsolètes et doivent être migrés vers ce contrat. `createEmptyDraft()` doit fournir les deux tableaux vides. `toCreateSessionInput` ne doit persister que les IDs sélectionnés, en résolvant les IDs locaux dans `categoryDrafts`.
+- Ne mets pas un fallback aveugle qui ferait disparaître une sélection valide ; corrige les fixtures et les constructions de SessionDraft pour respecter le type actuel. Si une compatibilité défensive est nécessaire à une frontière runtime, justifie-la et teste-la.
+- La roulette numérique S09 est désormais un overlay centré avec fond atténué, indépendant du déclencheur et du scroll. Les tests exigeant l'ancien `position:absolute` ancré au contenu sont supersédés et doivent être adaptés à la règle overlay, pas l'inverse.
+- Catégorie NEW : création => sélection automatique ; désélection => reste visible ; resélection => aucun doublon ; jamais persistée avant l'enregistrement final.
+- Vérifie aussi CategoriesScreen, SessionCard/CatalogueScreen/formatSessionSummary, SessionService et toute autre suite en échec. Corrige le code si le test exprime encore une règle valide.
+- Préserve S01-S08, migration001.ts immuable, aucun S10, aucun workflow/.github modifié.
+- Lance d'abord les tests ciblés, puis `npm test -- --runInBand` et `npx tsc --noEmit`. Continue jusqu'à ce que les deux soient verts ou jusqu'à une vraie ambiguïté produit non résoluble.
+- Ne committe et ne pousse pas : laisse les modifications dans le worktree pour l'étape suivante.
+"@
+          $pfile=Join-Path $env:RUNNER_TEMP 's09-repair.txt'; [IO.File]::WriteAllText($pfile,$prompt,(New-Object Text.UTF8Encoding($false)))
+          $out=Join-Path $env:RUNNER_TEMP 's09-repair-out.txt'; $err=Join-Path $env:RUNNER_TEMP 's09-repair-err.txt'
+          $old=$ErrorActionPreference; $ErrorActionPreference='Continue'
+          Get-Content $pfile -Raw -Encoding UTF8 | & $claude -p --resume $env:SESSION_ID --permission-mode acceptEdits --output-format json 1> $out 2> $err
+          $exit=$LASTEXITCODE; $ErrorActionPreference=$old
+          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}
+          Write-Host "Claude exit=$exit"; if($stderr){Write-Host $stderr}
+          $parsed=$null; try{$parsed=$raw|ConvertFrom-Json}catch{}
+          if($null -ne $parsed -and $parsed.session_id -and $parsed.session_id -ne $env:SESSION_ID){throw 'Session continuity mismatch'}
+          if($null -ne $parsed -and [string]$parsed.result -match '(?i)CLARIFICATION_REQUIRED|waiting_for='){throw 'Claude needs product clarification'}
+          # Material state is authoritative even if transport JSON is partial.
+          if((git status --porcelain).Count -eq 0 -and $exit -ne 0){throw 'Claude failed without material repair'}
+      - name: Validate repaired recovery
+        run: |
+          $ErrorActionPreference='Stop'
+          $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()})
+          foreach($p in $changed){
+            $n=$p-replace '\\','/'
+            if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
+            if($n.StartsWith('app/') -or $n.StartsWith('src/') -or $n.StartsWith('docs/')){continue}
+            if($n.StartsWith('.github/orchestration/reports/') -and $n.EndsWith('.md')){continue}
+            throw "Unauthorized repair path: $n"
+          }
+          npm test -- --runInBand; if($LASTEXITCODE -ne 0){throw 'Jest failed after S09 repair'}
+          npx tsc --noEmit; if($LASTEXITCODE -ne 0){throw 'TypeScript failed after S09 repair'}
+      - name: Commit repaired recovery, promote and publish
+        run: |
+          $ErrorActionPreference='Stop'
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: complete T01-S09 attempt 2 after test repair"; if($LASTEXITCODE -ne 0){throw 'Repair commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          git push origin "HEAD:$env:RECOVERY_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Recovery branch push failed'}
+          git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Target branch push failed'}
+          $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$new`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`ncontinuity_origin=RECOVERY_TEST_REPAIR`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`nRécupération préservée réparée dans la même session DEV-S09 ; Jest complet et TypeScript verts avant promotion."
           $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
           Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
