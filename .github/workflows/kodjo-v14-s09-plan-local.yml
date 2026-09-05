@@ -89,16 +89,16 @@ jobs:
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/prompt.txt <<'EOF'
-You are the KODJO V1.4 PLAN builder for T01-S09. Produce the complete implementation plan only; do not develop and do not propose repository writes during PLAN. Sources of truth outrank agent memory. Scope is S09 only: Categories de la séance and final save, preserving all validated T01-S01..S08 data.
+          You are the KODJO V1.4 PLAN builder for T01-S09. Produce the complete implementation plan only; do not develop and do not propose repository writes during PLAN. Sources of truth outrank agent memory. Scope is S09 only: Categories de la séance and final save, preserving all validated T01-S01..S08 data.
 
-Mandatory decisions already validated in Issue #17: category duplicate comparison normalizes spaces and is case-insensitive AND accent/diacritic-insensitive; visible label preserves the user's entered casing and accents; no spelling correction, fuzzy matching, suggestion or automatic replacement (deferred V2). Examples Étirements / Etirements / ÉTIREMENTS / etirements are duplicates. Do not reintroduce superseded rules.
+          Mandatory decisions already validated in Issue #17: category duplicate comparison normalizes spaces and is case-insensitive AND accent/diacritic-insensitive; visible label preserves the user's entered casing and accents; no spelling correction, fuzzy matching, suggestion or automatic replacement (deferred V2). Examples Étirements / Etirements / ÉTIREMENTS / etirements are duplicates. Do not reintroduce superseded rules.
 
-The plan must explicitly cover: additive migration only, never modify migration001; SQLite atomicity; complete persistence of T01-S08 data including body zones; category selection/creation; double-submit protection; reset only after successful save; return to Catalogue; loading/error behavior; screen contracts; tests and TypeScript; documentation propagation only where a validated decision requires it; no S10 reopening/edit flow.
+          The plan must explicitly cover: additive migration only, never modify migration001; SQLite atomicity; complete persistence of T01-S08 data including body zones; category selection/creation; double-submit protection; reset only after successful save; return to Catalogue; loading/error behavior; screen contracts; tests and TypeScript; documentation propagation only where a validated decision requires it; no S10 reopening/edit flow.
 
-For every material step cite the authoritative source or code evidence. Separate functional rule, UI/rendered state, technical constraint, validated decision, and unresolved point. Do not invent. If a genuine product/UX decision remains indeterminable after the supplied sources, mark it À CLARIFIER with the exact missing decision and evidence checked.
+          For every material step cite the authoritative source or code evidence. Separate functional rule, UI/rendered state, technical constraint, validated decision, and unresolved point. Do not invent. If a genuine product/UX decision remains indeterminable after the supplied sources, mark it À CLARIFIER with the exact missing decision and evidence checked.
 
-Quality axes: (1) scope coverage, (2) source traceability, (3) no invented/obsolete rules, (4) technical executability, (5) testability. Include files to create/modify/not modify, migration/data model, transaction boundaries, application/UI flow, acceptance criteria, tests, risks, and a final self-assessment on all five axes.
-EOF
+          Quality axes: (1) scope coverage, (2) source traceability, (3) no invented/obsolete rules, (4) technical executability, (5) testability. Include files to create/modify/not modify, migration/data model, transaction boundaries, application/UI flow, acceptance criteria, tests, risks, and a final self-assessment on all five axes.
+          EOF
           printf '\nSOURCE ATTESTATION:\n' >> /tmp/prompt.txt; cat /tmp/kodjo-plan/attestation.txt >> /tmp/prompt.txt
           printf '\nISSUE #17:\n' >> /tmp/prompt.txt; jq -r '.body' /tmp/kodjo-plan/issue.json >> /tmp/prompt.txt
           printf '\nRELEVANT ISSUE COMMENTS:\n' >> /tmp/prompt.txt; jq -r '.[] | "COMMENT_ID="+(.id|tostring)+"\n"+.body+"\n---"' /tmp/kodjo-plan/relevant-comments.json >> /tmp/prompt.txt
