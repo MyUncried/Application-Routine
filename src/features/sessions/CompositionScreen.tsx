@@ -16,6 +16,7 @@ import {
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
+import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
@@ -51,12 +52,15 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * D-03 identifié — un `Pressable` plein écran intercepte le geste avant
  * même qu'il n'atteigne un contrôle imbriqué, y compris parfois le
  * contrôle qu'on cherche justement à ouvrir). La racine (`ScreenShell`) est
- * désormais un simple conteneur ; un `Pressable` `backdrop` dédié n'est
- * rendu QUE lorsqu'un sélecteur est ouvert, en dernier frère de premier
- * niveau — sans `zIndex` propre (donc peint au-dessus des frères par
- * défaut, du seul fait de son ordre), il reste sous la ligne/bande
- * effectivement `elevated` (`zIndex: 1`) : les contrôles ouverts restent
- * tactiles, tout le reste ferme le sélecteur au toucher.
+ * désormais un simple conteneur.
+ *
+ * **T01-S09, correction VISUAL (point D)** : ce backdrop dédié
+ * (`composition-backdrop`, dismissible au toucher) ne reste actif QUE pour
+ * la palette de couleur (`ContextBand`, mécanisme d'ancrage local
+ * inchangé). Les roulettes numériques (Compte à rebours, Fin de séance)
+ * n'utilisent plus ce mécanisme du tout — elles s'ouvrent dans
+ * `WheelPickerOverlay`, une superposition plein écran dédiée dont le voile
+ * de fond n'est jamais dismissible au toucher (voir plus bas).
  *
  * `+ Ajouter une activité` (T01-S08) navigue vers l'écran Exercice
  * (`/exercise`) ; celui-ci lit lui-même `draft.exercise` pour déterminer
@@ -66,12 +70,17 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * est masqué dès qu'un Exercice existe : une ligne récapitulative le
  * remplace, pressable pour rouvrir l'écran en modification.
  *
- * Chaque roulette intégrée (Compte à rebours, Fin de séance) est ancrée en
- * superposition (`position: "absolute"`, correction CE-T01-06/07) plutôt
- * que rendue en flux : elle ne repousse plus les éléments suivants. La
- * validation de la valeur choisie n'a lieu qu'à la fermeture du sélecteur
- * (démontage de `DurationWheelPicker`, voir ce fichier) — jamais à chaque
- * cran de défilement (D-06).
+ * Chaque roulette (Compte à rebours, Fin de séance) s'ouvre désormais dans
+ * `WheelPickerOverlay` (T01-S09, correction VISUAL point D) — une
+ * superposition plein écran TRANSVERSALE à tout sélecteur numérique à
+ * roulette de l'application (voir ce composant), qui remplace l'ancien
+ * ancrage local en popover (`position: "absolute"` relatif à la ligne,
+ * CE-T01-06/07, historique conservé ci-dessous pour `AnchoredRow`/
+ * `PopoverAnchor`, retirés de cet écran par cette correction). La
+ * validation de la valeur choisie n'a toujours lieu qu'à la fermeture du
+ * sélecteur (démontage de `DurationWheelPicker`) — jamais à chaque cran de
+ * défilement (D-06) ; seules ses propres actions Annuler/Confirmer ferment
+ * désormais la superposition, jamais un toucher en dehors.
  *
  * `Retour` (correction CE-T01-04, AUD-03) : action visible identique au
  * patron déjà validé sur `ExerciseScreen.tsx` — navigation arrière normale,
@@ -91,11 +100,6 @@ export function CompositionScreen() {
   );
 
   const closeOverlay = useCallback(() => setOpenOverlay(null), []);
-  // REWORK08-B — voir la documentation détaillée sur `<ScrollView
-  // style={styles.body}>` ci-dessous : élève le `ScrollView` lui-même
-  // (jamais seulement l'`AnchoredRow` qu'il contient) au-dessus du
-  // `backdrop` tant qu'un sélecteur de durée y est ancré.
-  const bodyElevated = openOverlay === "countdown" || openOverlay === "finalPhase";
 
   const toggleOverlay = useCallback((kind: OverlayKind) => {
     Keyboard.dismiss();
@@ -122,7 +126,7 @@ export function CompositionScreen() {
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
   // une Composition valide — `toCreateSessionInput` est la même validation
-  // complète que celle utilisée à l'enregistrement final (categorySelections
+  // complète que celle utilisée à l'enregistrement final (selectedCategoryIds
   // est nécessairement vide à ce stade du parcours, sans effet sur ce
   // résultat : D-106 n'exige jamais de Catégorie). Un brouillon invalide ne
   // peut donc jamais être poursuivi ni, a fortiori, persisté.
@@ -223,90 +227,41 @@ export function CompositionScreen() {
        * « perdu » pour seulement fermer le clavier (même patron déjà
        * établi sur `ExerciseScreen.tsx`).
        *
-       * Limite disclosed (non vérifiée sur device) : un popover de roulette
-       * (`PopoverAnchor`, `position: absolute` relatif à sa ligne) ancré à
-       * une ligne proche du bas de la zone visible du `ScrollView` pourrait
-       * être partiellement rogné par le bord de ce dernier — comportement
-       * standard de clipping React Native, non contourné ici faute de
-       * pouvoir le vérifier sans appareil. En T01, au plus 4 lignes
-       * existent (Compte à rebours, Activité optionnelle, Tour, Fin de
-       * séance) : le risque pratique reste faible tant qu'aucune Activité
-       * supplémentaire n'existe (hors périmètre T01, modèle à Exercice
-       * unique).
-       *
-       * **REWORK08-B — cause racine identifiée et corrigée** (`[ChatGPT]
-       * CHANGES_REQUESTED — REWORK08 — roulette native + synthèse Tour`,
-       * 2026-09-04 ; constat iPhone : « dès que l'utilisateur touche une
-       * roue... le sélecteur se ferme »). Chaîne d'événements AVANT
-       * correction : `AnchoredRow.elevated` (voir plus bas) portait
-       * `zIndex: 1`, mais un `zIndex` React Native ne se compare qu'ENTRE
-       * FRÈRES PARTAGEANT LE MÊME PARENT — or `AnchoredRow` est un
-       * descendant de CE `ScrollView`, jamais un frère direct de
-       * `composition-backdrop` (frère direct de `ScreenShell`, rendu
-       * APRÈS ce `ScrollView`). L'élévation de `AnchoredRow` ne « remontait »
-       * donc jamais jusqu'au niveau où `backdrop` est comparé : ce dernier,
-       * dernier frère de `ScreenShell` au `zIndex` par défaut identique (0)
-       * à celui — également par défaut — de ce `ScrollView`, gagnait la
-       * priorité de peinture/hit-testing sur l'ENSEMBLE du `ScrollView`,
-       * popover ancré compris. Toute pression — un tap franc sur Annuler/
-       * Valider comme le début d'un geste de défilement sur une roue —
-       * atteignait donc `composition-backdrop` en premier, qui fermait
-       * immédiatement le sélecteur via `closeOverlay` (`onPress`), avant
-       * même que la vue native `Host` ne reçoive le geste. Aucune ligne du
-       * mécanisme `elevated`/`backdrop` lui-même n'était fautive
-       * isolément — seule la portée du `zIndex` de `AnchoredRow`, un
-       * niveau trop bas dans l'arbre, ne pouvait pas produire l'effet
-       * documenté par son propre commentaire (« un zIndex supérieur...
-       * suffit à rester peint au-dessus du backdrop » — vrai pour
-       * `ContextBand`, frère direct de `backdrop`, jamais vérifié pour
-       * `AnchoredRow`, imbriqué plus profondément).
-       *
-       * Correction APRÈS : ce `ScrollView` — frère direct réel de
-       * `composition-backdrop` — porte désormais lui-même `zIndex: 1`
-       * (`bodyElevated`, réutilise `styles.elevated`, même mécanisme déjà
-       * établi et correct pour `ContextBand`) tant qu'un sélecteur de
-       * durée (`countdown`/`finalPhase`) y est ancré — jamais pour la
-       * palette de couleur (`color`), gérée par `ContextBand`, un frère
-       * direct distinct qui n'a pas besoin de cette élévation
-       * supplémentaire. `AnchoredRow.elevated` reste par ailleurs
-       * nécessaire et inchangé : il départage désormais correctement les
-       * DEUX `AnchoredRow` ENTRE ELLES (éviter qu'une ligne fermée ne
-       * peigne par-dessus le popover d'une ligne ouverte, cas déjà couvert
-       * par UI-CTRL-002) — un problème de portée différent, à un niveau de
-       * l'arbre différent, désormais correctement distingué de celui
-       * corrigé ici.
+       * **REWORK08-B, superséde par la correction VISUAL T01-S09 (point D)** :
+       * les roulettes (Compte à rebours, Fin de séance) n'étaient jusqu'ici
+       * pas rendues en flux mais restaient ANCRÉES en popover à l'intérieur
+       * de ce `ScrollView` (`AnchoredRow`/`PopoverAnchor`, `position:
+       * absolute` relatif à leur ligne). REWORK08-B avait diagnostiqué et
+       * corrigé un défaut de portée de `zIndex` propre à ce mécanisme
+       * d'ancrage local (un `ScrollView` élevé au-dessus du `backdrop`
+       * partagé). La correction VISUAL retire désormais entièrement ce
+       * mécanisme d'ancrage pour les roulettes — remplacé par
+       * `WheelPickerOverlay`, une superposition plein écran TRANSVERSALE
+       * (rendue en dehors de ce `ScrollView`, voir plus bas), dont la
+       * position ne dépend structurellement plus ni de la ligne
+       * déclenchrice ni du défilement (exigence explicite de la revue,
+       * root cause du défaut historique de clipping/`zIndex` évoqué par
+       * REWORK08-B, désormais éliminée par construction plutôt que
+       * contournée). `AnchoredRow`/`PopoverAnchor`/`bodyElevated` sont
+       * donc retirés de cet écran ; seul le mécanisme de superposition
+       * dédié à la palette de couleur (`ContextBand.elevated`, gérée par
+       * son propre composant, jamais une roulette numérique) reste
+       * inchangé — hors périmètre de cette correction (D ne s'applique
+       * qu'aux sélecteurs numériques à roulette).
        */}
       <ScrollView
-        style={[styles.body, bodyElevated ? styles.elevated : null]}
+        style={styles.body}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
         testID="composition-body"
       >
-        <AnchoredRow testID="composition-anchored-row-countdown" elevated={openOverlay === "countdown"}>
-          <BoundaryActivityRow
-            icon="composition-initial-countdown"
-            label={composition.countdown.label}
-            value={formatDurationRowValue(draft.initialCountdownSeconds)}
-            isOpen={openOverlay === "countdown"}
-            onPress={() => toggleOverlay("countdown")}
-          />
-          {openOverlay === "countdown" ? (
-            <PopoverAnchor>
-              <DurationWheelPicker
-                totalSeconds={draft.initialCountdownSeconds}
-                onValidate={(totalSeconds) => {
-                  updateDraft({ initialCountdownSeconds: totalSeconds });
-                  closeOverlay();
-                }}
-                onCancel={closeOverlay}
-                minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-                secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
-                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-              />
-            </PopoverAnchor>
-          ) : null}
-        </AnchoredRow>
+        <BoundaryActivityRow
+          icon="composition-initial-countdown"
+          label={composition.countdown.label}
+          value={formatDurationRowValue(draft.initialCountdownSeconds)}
+          isOpen={openOverlay === "countdown"}
+          onPress={() => toggleOverlay("countdown")}
+        />
 
         {/*
          * UI-COMP-003 : une fois créée, chaque Activité s'insère ICI — entre
@@ -337,31 +292,13 @@ export function CompositionScreen() {
 
         <TourCard label={composition.tour.label} summary={compositionSummary} />
 
-        <AnchoredRow testID="composition-anchored-row-finalPhase" elevated={openOverlay === "finalPhase"}>
-          <BoundaryActivityRow
-            icon="composition-end-session"
-            label={composition.finalPhase.label}
-            value={formatDurationRowValue(draft.finalPhaseSeconds)}
-            isOpen={openOverlay === "finalPhase"}
-            onPress={() => toggleOverlay("finalPhase")}
-          />
-          {openOverlay === "finalPhase" ? (
-            <PopoverAnchor>
-              <DurationWheelPicker
-                totalSeconds={draft.finalPhaseSeconds}
-                onValidate={(totalSeconds) => {
-                  updateDraft({ finalPhaseSeconds: totalSeconds });
-                  closeOverlay();
-                }}
-                onCancel={closeOverlay}
-                minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-                secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
-                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-              />
-            </PopoverAnchor>
-          ) : null}
-        </AnchoredRow>
+        <BoundaryActivityRow
+          icon="composition-end-session"
+          label={composition.finalPhase.label}
+          value={formatDurationRowValue(draft.finalPhaseSeconds)}
+          isOpen={openOverlay === "finalPhase"}
+          onPress={() => toggleOverlay("finalPhase")}
+        />
       </ScrollView>
 
       {/*
@@ -402,7 +339,15 @@ export function CompositionScreen() {
         </Pressable>
       </View>
 
-      {openOverlay !== null ? (
+      {/*
+       * Backdrop dédié (CMP-01/D-03) — désormais réservé à la palette de
+       * couleur (`ContextBand`, ancrage local inchangé) : la correction
+       * VISUAL (point D) retire les roulettes numériques de ce mécanisme,
+       * qui se ferment uniquement via leurs propres actions Annuler/
+       * Confirmer (voir `WheelPickerOverlay`), jamais par un toucher en
+       * dehors.
+       */}
+      {openOverlay === "color" ? (
         <Pressable
           onPress={closeOverlay}
           accessible={false}
@@ -411,61 +356,44 @@ export function CompositionScreen() {
         />
       ) : null}
 
+      {/*
+       * T01-S09, correction VISUAL (point D) : chaque roulette numérique
+       * s'ouvre désormais dans `WheelPickerOverlay`, une superposition
+       * plein écran rendue ici — frère direct de `ScreenShell`, jamais un
+       * descendant du `ScrollView` défilant ni ancrée à sa ligne
+       * déclenchrice — voir ce composant pour la justification complète.
+       */}
+      <WheelPickerOverlay visible={openOverlay === "countdown"}>
+        <DurationWheelPicker
+          totalSeconds={draft.initialCountdownSeconds}
+          onValidate={(totalSeconds) => {
+            updateDraft({ initialCountdownSeconds: totalSeconds });
+            closeOverlay();
+          }}
+          onCancel={closeOverlay}
+          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
+          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+        />
+      </WheelPickerOverlay>
+      <WheelPickerOverlay visible={openOverlay === "finalPhase"}>
+        <DurationWheelPicker
+          totalSeconds={draft.finalPhaseSeconds}
+          onValidate={(totalSeconds) => {
+            updateDraft({ finalPhaseSeconds: totalSeconds });
+            closeOverlay();
+          }}
+          onCancel={closeOverlay}
+          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
+          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+        />
+      </WheelPickerOverlay>
+
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
     </ScreenShell>
-  );
-}
-
-/**
- * Ancre de positionnement d'un sélecteur intégré (correction CE-T01-06/07,
- * AUD-05) : React Native positionne un enfant `position: "absolute"`
- * relativement à la boîte de son parent immédiat, sans exiger que ce
- * parent porte explicitement `position: "relative"` (contrairement au
- * web). Ce `View` sert donc uniquement de parent immédiat commun à une
- * ligne et à son sélecteur, afin que ce dernier se superpose au contenu
- * suivant au lieu de le repousser.
- *
- * Correction UI-CTRL-002 (cycle de correction après contre-recette iPhone,
- * 2026-09-03) : cette superposition seule ne suffisait pas. `elevated`
- * élève l'`AnchoredRow` elle-même (et non plus seulement son popover
- * interne) au-dessus de SES FRÈRES DIRECTS — c'est-à-dire les autres
- * `AnchoredRow`/`TourCard` à l'intérieur du même `ScrollView` — afin
- * qu'une ligne fermée ne peigne jamais par-dessus le popover d'une ligne
- * ouverte.
- *
- * **Précision REWORK08-B** (portée corrigée d'une affirmation antérieure
- * inexacte de ce commentaire) : ce `zIndex` NE suffit PAS, à lui seul, à
- * rester peint au-dessus de `composition-backdrop` — un `zIndex` React
- * Native ne se compare qu'entre frères partageant le même parent immédiat,
- * or `AnchoredRow` est un DESCENDANT du `ScrollView` (`composition-body`),
- * jamais un frère direct de `backdrop` (frère direct de `ScreenShell`).
- * C'est désormais le `ScrollView` lui-même qui porte sa propre élévation
- * conditionnelle (`bodyElevated`, voir `CompositionScreen` ci-dessus) pour
- * gagner face à `backdrop` — un mécanisme distinct, à un niveau de l'arbre
- * différent, nécessaire en plus de celui-ci (pas à sa place).
- */
-function AnchoredRow({
-  children,
-  elevated,
-  testID,
-}: {
-  children: React.ReactNode;
-  elevated: boolean;
-  testID: string;
-}) {
-  return (
-    <View testID={testID} style={[styles.anchoredRow, elevated ? styles.elevated : null]}>
-      {children}
-    </View>
-  );
-}
-
-/** Conteneur du sélecteur superposé lui-même, ancré juste sous la ligne. */
-function PopoverAnchor({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={styles.popoverAnchor} testID="composition-popover-anchor">
-      {children}
-    </View>
   );
 }
 
@@ -808,39 +736,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     paddingVertical: spacing[8],
   },
-  anchoredRow: {
-    // Sert uniquement de contexte de positionnement pour son sélecteur
-    // (voir `AnchoredRow` ci-dessus) ; aucune propriété de layout propre.
-  },
-  // Élève une ligne/bande (et son popover) au-dessus de ses frères tant que
-  // son sélecteur est ouvert (correction UI-CTRL-002) et au-dessus du
-  // `backdrop` dédié (même mécanisme, voir la note de tête).
-  elevated: {
-    zIndex: 1,
-  },
-  popoverAnchor: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    marginTop: spacing[4],
-    zIndex: 20,
-    elevation: 8,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-  },
-  // Backdrop dédié (CMP-01/D-03) : couvre tout l'écran, rendu uniquement
-  // pendant qu'un sélecteur est ouvert, sans `zIndex` propre — reste donc
-  // peint sous le FRÈRE DIRECT `elevated` (`ContextBand` pour la palette de
-  // couleur, `composition-body`/`ScrollView` pour un sélecteur de durée —
-  // voir `bodyElevated`, REWORK08-B) par cette seule valeur par défaut (0),
-  // tout en restant au-dessus des autres frères directs de `ScreenShell`
-  // du seul fait de son ordre de rendu (dernier frère). Un `zIndex` porté
-  // par un DESCENDANT de ces frères (ex. `AnchoredRow`, à l'intérieur du
-  // `ScrollView`) ne suffit jamais à lui seul — voir la correction
-  // REWORK08-B documentée sur `AnchoredRow` et sur le `ScrollView`.
+  // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
+  // roulette ancrés en popover, `AnchoredRow`/`PopoverAnchor`,
+  // `bodyElevated`) est retiré — ces mécanismes n'ont plus de consommateur,
+  // les roulettes numériques passant désormais par `WheelPickerOverlay`
+  // (superposition plein écran, hors de ce `ScrollView`). Seul le backdrop
+  // dédié à la palette de couleur (`ContextBand`, mécanisme distinct et
+  // inchangé) reste actif ci-dessous.
   backdrop: {
     position: "absolute",
     top: 0,

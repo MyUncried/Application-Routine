@@ -11,7 +11,6 @@ import {
   canonicalCategoryKey,
   validateCategoryName,
 } from "@/domain/categories/validation";
-import type { SessionDraftCategorySelection } from "@/domain/sessions/SessionDraft";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -19,8 +18,8 @@ import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShe
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
-/** Un tag affiché : soit une Catégorie déjà connue (prédéfinie ou persistée), soit une Catégorie créée dans ce même parcours (jamais encore persistée). */
-type CategoryTag = { readonly key: string; readonly name: string; readonly selection: SessionDraftCategorySelection };
+/** Un tag affiché : soit une Catégorie déjà connue (prédéfinie ou persistée), soit une Catégorie créée dans ce même parcours (jamais encore persistée). Son existence (présence dans cette liste) est indépendante de son état sélectionné. */
+type CategoryTag = { readonly id: string; readonly name: string };
 
 type CategoriesLoadState =
   | { status: "loading" }
@@ -28,13 +27,6 @@ type CategoriesLoadState =
   | { status: "error" };
 
 type SaveState = { status: "idle" } | { status: "saving" } | { status: "error" };
-
-function selectionMatches(a: SessionDraftCategorySelection, b: SessionDraftCategorySelection): boolean {
-  if (a.kind !== b.kind) {
-    return false;
-  }
-  return a.kind === "EXISTING" && b.kind === "EXISTING" ? a.categoryId === b.categoryId : a.kind === "NEW" && b.kind === "NEW" && a.id === b.id;
-}
 
 /**
  * Écran `Catégories de la séance` (T01-S09, CE-T01-11/CE-T01-12,
@@ -47,7 +39,18 @@ function selectionMatches(a: SessionDraftCategorySelection, b: SessionDraftCateg
  * Aucun texte introductif : le libellé de section (`Catégories`) et les
  * tags suffisent (D-106). `Retour` (en-tête) revient à la Composition sans
  * rien réinitialiser — les sélections temporaires restent dans le
- * brouillon partagé, par construction (aucune action locale n'y touche).
+ * brouillon partagé, par construction (aucune action locale n'y touche) ;
+ * revenir ensuite sur cet écran restitue exactement le même état (Catégories
+ * personnalisées créées et sélection), le brouillon survivant à la
+ * navigation entre écrans du même `Stack`.
+ *
+ * **Correction du BLOCKING_POINT (revue 5551813745, T01-S09 correction
+ * VISUAL tentative 2)** : l'existence d'une Catégorie personnalisée dans le
+ * brouillon (`draft.categoryDrafts`) est désormais explicitement séparée de
+ * son état sélectionné (`draft.selectedCategoryIds`) — désélectionner un tag
+ * `NEW` ne le fait plus disparaître : il reste affiché, non sélectionné, et
+ * peut être resélectionné sans jamais être recréé en double (voir
+ * `SessionDraft.ts`, `SessionDraftCategoryDraft`).
  */
 export function CategoriesScreen() {
   const router = useRouter();
@@ -92,38 +95,29 @@ export function CategoriesScreen() {
 
   const persistedTags: readonly CategoryTag[] =
     categoriesState.status === "ready"
-      ? categoriesState.categories.map((category) => ({
-          key: `existing-${category.id}`,
-          name: category.name,
-          selection: { kind: "EXISTING", categoryId: category.id },
-        }))
+      ? categoriesState.categories.map((category) => ({ id: category.id, name: category.name }))
       : [];
 
   // Les Catégories créées dans ce même parcours (jamais encore persistées)
   // s'ajoutent après les prédéfinies et après les personnalisées déjà
   // connues (D-107) : simplement en fin de liste, puisque `persistedTags`
   // est déjà dans cet ordre et qu'une Catégorie fraîchement créée est par
-  // construction la plus récente.
-  const draftOnlyTags: readonly CategoryTag[] = draft.categorySelections
-    .filter((selection): selection is Extract<SessionDraftCategorySelection, { kind: "NEW" }> => selection.kind === "NEW")
-    .map((selection) => ({ key: `new-${selection.id}`, name: selection.name, selection }));
+  // construction la plus récente. Leur EXISTENCE (`draft.categoryDrafts`)
+  // ne dépend jamais de leur sélection courante — voir la note de tête.
+  const draftOnlyTags: readonly CategoryTag[] = draft.categoryDrafts;
 
   const tags: readonly CategoryTag[] = [...persistedTags, ...draftOnlyTags];
 
-  function isSelected(selection: SessionDraftCategorySelection): boolean {
-    return draft.categorySelections.some((current) => selectionMatches(current, selection));
+  function isSelected(id: string): boolean {
+    return draft.selectedCategoryIds.includes(id);
   }
 
-  function toggleTag(tag: CategoryTag) {
-    if (isSelected(tag.selection)) {
-      updateDraft({
-        categorySelections: draft.categorySelections.filter(
-          (current) => !selectionMatches(current, tag.selection),
-        ),
-      });
-      return;
-    }
-    updateDraft({ categorySelections: [...draft.categorySelections, tag.selection] });
+  function toggleTag(id: string) {
+    updateDraft({
+      selectedCategoryIds: isSelected(id)
+        ? draft.selectedCategoryIds.filter((current) => current !== id)
+        : [...draft.selectedCategoryIds, id],
+    });
   }
 
   function openCreateRow() {
@@ -138,6 +132,12 @@ export function CategoriesScreen() {
 
   const canAddCategory = validateCategoryName(newCategoryName).ok;
 
+  function selectId(id: string) {
+    if (!isSelected(id)) {
+      updateDraft({ selectedCategoryIds: [...draft.selectedCategoryIds, id] });
+    }
+  }
+
   function handleAddCategory() {
     const validated = validateCategoryName(newCategoryName);
     if (!validated.ok) {
@@ -147,40 +147,26 @@ export function CategoriesScreen() {
 
     // Candidats de correspondance canonique (D-106) : Catégories déjà
     // persistées (prédéfinies ou d'une Séance antérieure) ET Catégories
-    // déjà créées dans CE brouillon, dans ce même parcours.
-    const candidates = [
-      ...persistedTags.map((tag) => ({
-        id: tag.selection.kind === "EXISTING" ? tag.selection.categoryId : "",
-        canonicalKey: canonicalCategoryKey(tag.name),
-      })),
-      ...draftOnlyTags.map((tag) => ({
-        id: tag.selection.kind === "NEW" ? tag.selection.id : "",
-        canonicalKey: canonicalCategoryKey(tag.name),
-      })),
-    ];
+    // déjà créées dans CE brouillon, dans ce même parcours — qu'elles
+    // soient actuellement sélectionnées ou non (une Catégorie
+    // désélectionnée reste un candidat valide, jamais recréée en double).
+    const candidates = tags.map((tag) => ({ id: tag.id, canonicalKey: canonicalCategoryKey(tag.name) }));
     const match = findCategoryMatch(candidates, normalizedName);
 
     if (match) {
-      // Doublon canonique (D-106) : sélectionne l'existante (si elle ne
-      // l'est pas déjà — une Catégorie NEW l'est nécessairement, une
-      // EXISTING peut ne pas l'être) et ferme la ligne, sans créer aucune
-      // nouvelle entrée ni afficher d'erreur.
-      const existingSelection = persistedTags.find(
-        (tag) => tag.selection.kind === "EXISTING" && tag.selection.categoryId === match.id,
-      )?.selection;
-      if (existingSelection && !isSelected(existingSelection)) {
-        updateDraft({ categorySelections: [...draft.categorySelections, existingSelection] });
-      }
+      // Doublon canonique (D-106) : sélectionne l'existante — qu'elle soit
+      // déjà persistée ou déjà présente dans `categoryDrafts` — et ferme la
+      // ligne, sans jamais créer de nouvelle entrée ni afficher d'erreur.
+      selectId(match.id);
       cancelCreateRow();
       return;
     }
 
-    const newSelection: SessionDraftCategorySelection = {
-      kind: "NEW",
-      id: Crypto.randomUUID(),
-      name: normalizedName,
-    };
-    updateDraft({ categorySelections: [...draft.categorySelections, newSelection] });
+    const newId = Crypto.randomUUID();
+    updateDraft({
+      categoryDrafts: [...draft.categoryDrafts, { id: newId, name: normalizedName }],
+      selectedCategoryIds: [...draft.selectedCategoryIds, newId],
+    });
     cancelCreateRow();
   }
 
@@ -234,11 +220,11 @@ export function CategoriesScreen() {
 
         <View style={styles.tagRow} testID="categories-tag-row">
           {tags.map((tag) => {
-            const selected = isSelected(tag.selection);
+            const selected = isSelected(tag.id);
             return (
               <Pressable
-                key={tag.key}
-                onPress={() => toggleTag(tag)}
+                key={tag.id}
+                onPress={() => toggleTag(tag.id)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: selected }}
                 accessibilityLabel={
@@ -246,11 +232,11 @@ export function CategoriesScreen() {
                 }
                 hitSlop={CATEGORY_TAG_HIT_SLOP}
                 style={[styles.tag, selected ? styles.tagSelected : null]}
-                testID={`category-tag-${tag.key}`}
+                testID={`category-tag-${tag.id}`}
               >
                 <Text style={[styles.tagLabel, selected ? styles.tagLabelSelected : null]}>{tag.name}</Text>
                 {selected ? (
-                  <KodjoIcon name="state-selected" size={14} testID={`category-tag-selected-icon-${tag.key}`} />
+                  <KodjoIcon name="state-selected" size={14} testID={`category-tag-selected-icon-${tag.id}`} />
                 ) : null}
               </Pressable>
             );
@@ -258,7 +244,7 @@ export function CategoriesScreen() {
         </View>
 
         {isCreatingCategory ? (
-          <View style={styles.newCategoryRow} testID="categories-new-row">
+          <View style={styles.newCategoryContainer} testID="categories-new-row">
             <TextInput
               value={newCategoryName}
               onChangeText={setNewCategoryName}
@@ -270,24 +256,28 @@ export function CategoriesScreen() {
               style={styles.newCategoryInput}
               testID="categories-new-name-input"
             />
-            <Pressable
-              onPress={cancelCreateRow}
-              accessibilityRole="button"
-              accessibilityLabel={t.newCategory.cancelAccessibilityLabel}
-              style={styles.newCategoryCancelAction}
-            >
-              <Text style={styles.newCategoryCancelLabel}>{t.newCategory.cancelAccessibilityLabel}</Text>
-            </Pressable>
-            <Pressable
-              disabled={!canAddCategory}
-              onPress={handleAddCategory}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !canAddCategory }}
-              accessibilityLabel={t.newCategory.addAccessibilityLabel}
-              style={[styles.newCategoryAddAction, !canAddCategory ? styles.newCategoryAddActionDisabled : null]}
-            >
-              <Text style={styles.newCategoryAddLabel}>{t.newCategory.addAccessibilityLabel}</Text>
-            </Pressable>
+            <View style={styles.newCategoryActionsRow} testID="categories-new-actions-row">
+              <Pressable
+                onPress={cancelCreateRow}
+                accessibilityRole="button"
+                accessibilityLabel={t.newCategory.cancelAccessibilityLabel}
+                hitSlop={NEW_CATEGORY_ACTION_HIT_SLOP}
+                style={styles.newCategoryCancelAction}
+              >
+                <Text style={styles.newCategoryCancelLabel}>{t.newCategory.cancelAccessibilityLabel}</Text>
+              </Pressable>
+              <Pressable
+                disabled={!canAddCategory}
+                onPress={handleAddCategory}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !canAddCategory }}
+                accessibilityLabel={t.newCategory.addAccessibilityLabel}
+                hitSlop={NEW_CATEGORY_ACTION_HIT_SLOP}
+                style={[styles.newCategoryAddAction, !canAddCategory ? styles.newCategoryAddActionDisabled : null]}
+              >
+                <Text style={styles.newCategoryAddLabel}>{t.newCategory.addAccessibilityLabel}</Text>
+              </Pressable>
+            </View>
           </View>
         ) : (
           <Pressable
@@ -330,6 +320,20 @@ export function CategoriesScreen() {
 const CATEGORY_TAG_HIT_SLOP = Math.max(
   0,
   Math.ceil((minTouchTarget - dimensions.categoryTag.visualHeight) / 2),
+);
+
+/**
+ * Hauteur visuelle des actions `Annuler`/`Ajouter` de la ligne de création
+ * (correction VISUAL, point C) : identique à la pilule des tags de
+ * Catégorie/Zones corporelles (`dimensions.categoryTag.visualHeight`,
+ * elle-même déjà alignée sur `BodyZoneSelector`), extrémités en demi-cercle
+ * (`borderRadius = hauteur / 2`) — jamais une nouvelle géométrie locale.
+ * Cible tactile minimale préservée séparément via `hitSlop`.
+ */
+const NEW_CATEGORY_BUTTON_HEIGHT = dimensions.categoryTag.visualHeight;
+const NEW_CATEGORY_ACTION_HIT_SLOP = Math.max(
+  0,
+  Math.ceil((minTouchTarget - NEW_CATEGORY_BUTTON_HEIGHT) / 2),
 );
 
 const styles = StyleSheet.create({
@@ -396,36 +400,55 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.primary,
   },
-  newCategoryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
+  // Correction VISUAL, point C : le champ occupe désormais seul toute la
+  // largeur utile (`newCategoryContainer` remplace l'ancienne rangée
+  // horizontale unique champ+actions) ; `Annuler`/`Ajouter` forment une
+  // rangée distincte EN DESSOUS, centrée horizontalement
+  // (`newCategoryActionsRow`).
+  newCategoryContainer: {
+    gap: spacing[12],
   },
+  // Hauteur canonique d'un champ de saisie (`dimensions.exerciseTextField
+  // .height`, déjà réutilisée telle quelle ailleurs — jamais une valeur
+  // locale improvisée) ; police exactement celle des tags/pastilles de
+  // Zones corporelles existants (`type.body`, `BodyZoneSelector.tsx`).
   newCategoryInput: {
     ...type.body,
-    flex: 1,
+    width: "100%",
     color: colors.textPrimary,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: spacing[12],
-    height: 42,
+    borderRadius: dimensions.exerciseTextField.radius,
+    paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
+    height: dimensions.exerciseTextField.height,
   },
+  newCategoryActionsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing[12],
+  },
+  // `Annuler` gris (neutre) — réutilise les tokens déjà établis pour une
+  // action neutre (`DecisionDialog`/`AbandonCreationModal`), jamais une
+  // nouvelle couleur locale.
   newCategoryCancelAction: {
-    paddingHorizontal: spacing[8],
-    height: 42,
+    height: NEW_CATEGORY_BUTTON_HEIGHT,
+    borderRadius: NEW_CATEGORY_BUTTON_HEIGHT / 2,
+    paddingHorizontal: spacing[16],
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.dialogNeutralActionBackground,
   },
   newCategoryCancelLabel: {
     ...type.button,
-    color: colors.textSecondary,
+    color: colors.dialogNeutralActionText,
   },
+  // `Ajouter` conserve la couleur d'action principale.
   newCategoryAddAction: {
-    paddingHorizontal: spacing[12],
-    height: 42,
-    borderRadius: 8,
+    height: NEW_CATEGORY_BUTTON_HEIGHT,
+    borderRadius: NEW_CATEGORY_BUTTON_HEIGHT / 2,
+    paddingHorizontal: spacing[16],
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primary,

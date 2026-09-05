@@ -142,4 +142,21 @@ export type SessionSummary = {
   isEstimatedDurationApproximate: boolean;
   tourRepeatCount: 1;
   updatedAt: string;
+  /**
+   * Noms des Catégories associées (T01-S09, correction VISUAL — ligne
+   * manquante sous le nom de la Séance) — déjà ordonnés par le Repository
+   * (prédéfinies par `displayOrder`, puis personnalisées par `createdAt`,
+   * D-107). Tableau vide si aucune Catégorie n'est associée — jamais
+   * `null`, pour rester composable simplement avec `bodyZoneNames` par la
+   * présentation.
+   */
+  categoryNames: readonly string[];
+  /**
+   * Noms des Zones corporelles couvertes par la Séance (T01-S09) — union
+   * SANS PERTE de `bodyZoneIds` de TOUTES les Activités persistées de la
+   * Séance (jamais une seule Activité), dédupliquée et ordonnée selon le
+   * référentiel (`@/features/reference-data/bodyZones.ts`, `order`
+   * croissant) — jamais l'ordre d'insertion en base.
+   */
+  bodyZoneNames: readonly string[];
 };

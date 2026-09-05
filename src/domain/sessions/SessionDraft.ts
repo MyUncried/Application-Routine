@@ -3,8 +3,10 @@
  * incomplète, distincte de `CreateSessionInput`. « Le brouillon reste local
  * jusqu'à l'enregistrement final » — rien ici ne persiste quoi que ce soit,
  * y compris une Catégorie personnalisée créée depuis l'écran `Catégories de
- * la séance` (D-107) : elle reste une entrée `categorySelections` de kind
- * `"NEW"`, jamais persistée isolément avant `Enregistrer la séance`.
+ * la séance` (D-107) : elle reste une entrée `categoryDrafts`, jamais
+ * persistée isolément avant `Enregistrer la séance` — voir
+ * `SessionDraftCategoryDraft` pour la séparation explicite entre son
+ * existence dans le brouillon et son état sélectionné.
  *
  * `toCreateSessionInput` emploie le même contrat de résultat structuré que
  * le reste des validations du Domaine : succès avec un `CreateSessionInput`
@@ -71,18 +73,23 @@ export type SessionDraftExercise = {
 };
 
 /**
- * Sélection d'une Catégorie dans le brouillon (T01-S09, D-106/D-107) : soit
- * une Catégorie déjà connue (prédéfinie ou persistée lors d'une Séance
- * antérieure), identifiée par `categoryId` ; soit une Catégorie
- * personnalisée créée dans ce même parcours, portant un `id` LOCAL au
- * brouillon (jamais un identifiant de persistance — même convention que
- * `SessionDraftExercise.id`) et son nom déjà normalisé
- * (`normalizeCategoryName`, écran appelant) — elle n'existe dans aucune
- * table tant que `Enregistrer la séance` n'a pas réussi.
+ * Catégorie personnalisée créée dans le brouillon (T01-S09, D-106/D-107,
+ * correction du BLOCKING_POINT signalé au commentaire de revue 5551813745) :
+ * son EXISTENCE dans le brouillon est désormais explicitement séparée de son
+ * état SÉLECTIONNÉ (`SessionDraft.selectedCategoryIds`). Une Catégorie
+ * personnalisée créée puis désélectionnée reste ici, disponible pour être
+ * de nouveau sélectionnée sans jamais être recréée en double — seule sa
+ * présence dans `selectedCategoryIds` détermine si elle est actuellement
+ * associée à la Séance. `id` est LOCAL au brouillon (jamais un identifiant
+ * de persistance — même convention que `SessionDraftExercise.id`) ; `name`
+ * est déjà normalisé (`normalizeCategoryName`, écran appelant). Aucune
+ * Catégorie personnalisée n'existe dans aucune table tant que `Enregistrer
+ * la séance` n'a pas réussi.
  */
-export type SessionDraftCategorySelection =
-  | { readonly kind: "EXISTING"; readonly categoryId: string }
-  | { readonly kind: "NEW"; readonly id: string; readonly name: string };
+export type SessionDraftCategoryDraft = {
+  readonly id: string;
+  readonly name: string;
+};
 
 export type SessionDraft = {
   readonly name: string;
@@ -101,17 +108,27 @@ export type SessionDraft = {
    */
   readonly exercises: readonly SessionDraftExercise[];
   /**
-   * Sélection de Catégories (T01-S09) — zéro, une ou plusieurs (D-106).
-   * Aucun ordre propre significatif ici : l'ordre d'AFFICHAGE dans l'écran
-   * `Catégories de la séance` suit toujours le référentiel (prédéfinies par
-   * `displayOrder`, puis personnalisées par `createdAt`, D-107), jamais
-   * l'ordre de sélection — cette collection est un ENSEMBLE de sélections,
-   * pas une séquence à préserver.
+   * Catégories personnalisées créées dans ce même parcours (T01-S09) —
+   * existent indépendamment de leur sélection courante (voir
+   * `SessionDraftCategoryDraft`). Ensemble, pas une séquence à préserver :
+   * l'ordre d'AFFICHAGE dans l'écran `Catégories de la séance` suit toujours
+   * le référentiel (prédéfinies par `displayOrder`, puis personnalisées par
+   * `createdAt`, D-107), jamais l'ordre de création local.
    */
-  readonly categorySelections: readonly SessionDraftCategorySelection[];
+  readonly categoryDrafts: readonly SessionDraftCategoryDraft[];
+  /**
+   * Identifiants des Catégories actuellement sélectionnées pour cette
+   * Séance (T01-S09, D-106) — zéro, un ou plusieurs. Chaque identifiant
+   * référence soit une Catégorie déjà persistée (prédéfinie ou d'une Séance
+   * antérieure), soit une entrée de `categoryDrafts` (par son `id` local).
+   * Désélectionner une Catégorie personnalisée retire uniquement son `id`
+   * d'ici — elle reste dans `categoryDrafts`, donc toujours visible comme
+   * tag non sélectionné (correction du BLOCKING_POINT 5551813745).
+   */
+  readonly selectedCategoryIds: readonly string[];
 };
 
-/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Catégorie sélectionnée). */
+/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Catégorie créée ou sélectionnée). */
 export function createEmptyDraft(): SessionDraft {
   return {
     name: "",
@@ -119,7 +136,8 @@ export function createEmptyDraft(): SessionDraft {
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
     exercises: [],
-    categorySelections: [],
+    categoryDrafts: [],
+    selectedCategoryIds: [],
   };
 }
 
@@ -186,10 +204,11 @@ export function toSessionDraft(session: Session): SessionDraft {
       instruction: exercise.instruction,
       bodyZoneIds: exercise.bodyZoneIds,
     })),
-    categorySelections: session.categories.map((category) => ({
-      kind: "EXISTING" as const,
-      categoryId: category.id,
-    })),
+    // Toutes les Catégories déjà associées à une Séance persistée sont, par
+    // construction, déjà persistées elles-mêmes : aucune n'est un brouillon
+    // local (`categoryDrafts` reste vide), toutes sont sélectionnées.
+    categoryDrafts: [],
+    selectedCategoryIds: session.categories.map((category) => category.id),
   };
 }
 
@@ -248,35 +267,28 @@ function exercisesEqual(
   return a.every((exercise, index) => exerciseEquals(exercise, b[index]));
 }
 
-function categorySelectionEquals(
-  a: SessionDraftCategorySelection,
-  b: SessionDraftCategorySelection,
-): boolean {
-  if (a.kind !== b.kind) {
-    return false;
-  }
-  if (a.kind === "EXISTING" && b.kind === "EXISTING") {
-    return a.categoryId === b.categoryId;
-  }
-  if (a.kind === "NEW" && b.kind === "NEW") {
-    return a.id === b.id && a.name === b.name;
-  }
-  return false;
-}
-
 /**
- * Compare deux ensembles de sélections de Catégories — ordre indifférent
- * (`SessionDraft.categorySelections` est un ensemble, pas une séquence,
- * voir sa documentation), contenu déterminant.
+ * Compare deux ensembles de Catégories personnalisées créées dans le
+ * brouillon — ordre indifférent (`SessionDraft.categoryDrafts` est un
+ * ensemble, pas une séquence, voir sa documentation), contenu déterminant.
  */
-function categorySelectionsEqual(
-  a: readonly SessionDraftCategorySelection[],
-  b: readonly SessionDraftCategorySelection[],
+function categoryDraftsEqual(
+  a: readonly SessionDraftCategoryDraft[],
+  b: readonly SessionDraftCategoryDraft[],
 ): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  return a.every((selection) => b.some((other) => categorySelectionEquals(selection, other)));
+  return a.every((draft) => b.some((other) => other.id === draft.id && other.name === draft.name));
+}
+
+/** Compare deux ensembles d'identifiants de Catégories sélectionnées — ordre indifférent, contenu déterminant. */
+function selectedCategoryIdsEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const setA = new Set(a);
+  return b.every((id) => setA.has(id));
 }
 
 /**
@@ -293,14 +305,21 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
     draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
     draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
     !exercisesEqual(draft.exercises, initial.exercises) ||
-    !categorySelectionsEqual(draft.categorySelections, initial.categorySelections)
+    !categoryDraftsEqual(draft.categoryDrafts, initial.categoryDrafts) ||
+    !selectedCategoryIdsEqual(draft.selectedCategoryIds, initial.selectedCategoryIds)
   );
 }
 
 /**
  * Valide et convertit un brouillon vers un `CreateSessionInput` persistable
  * (T01-S09 : TOUTES les Activités de `draft.exercises`, dans l'ordre, et
- * TOUTES les sélections de `draft.categorySelections`).
+ * toutes les Catégories actuellement SÉLECTIONNÉES — `draft.selectedCategoryIds`
+ * — jamais une Catégorie personnalisée simplement créée puis désélectionnée).
+ *
+ * Chaque identifiant sélectionné est résolu : s'il correspond à l'`id` d'une
+ * entrée de `draft.categoryDrafts`, la Catégorie est une Catégorie
+ * personnalisée à créer (`kind: "NEW"`) ; sinon, il référence une Catégorie
+ * déjà persistée (`kind: "EXISTING"`).
  *
  * Assemble un candidat structurellement conforme directement depuis les
  * champs du brouillon — sans revalider aucune borne elle-même — puis
@@ -311,11 +330,12 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
  * à la première catégorie de défaut rencontrée. Ne lève jamais d'exception.
  */
 export function toCreateSessionInput(draft: SessionDraft): ValidationResult<CreateSessionInput> {
-  const categories: CreateSessionCategoryInput[] = draft.categorySelections.map((selection) =>
-    selection.kind === "EXISTING"
-      ? { kind: "EXISTING", categoryId: selection.categoryId }
-      : { kind: "NEW", name: selection.name },
-  );
+  const categories: CreateSessionCategoryInput[] = draft.selectedCategoryIds.map((id) => {
+    const localDraft = draft.categoryDrafts.find((entry) => entry.id === id);
+    return localDraft
+      ? { kind: "NEW" as const, name: localDraft.name }
+      : { kind: "EXISTING" as const, categoryId: id };
+  });
 
   return validateCreateSessionInput({
     name: draft.name,

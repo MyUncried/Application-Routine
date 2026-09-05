@@ -92,6 +92,13 @@ export const colors = {
   // contexte plein écran vs cadre compact de paramètres), jamais réutilisé
   // à tort l'un pour l'autre.
   exerciseContextBandBackground: "#F7F7FF",
+  // T01-S09 correction VISUAL (point D) — voile d'arrière-plan de la
+  // superposition plein écran, transversale à tout sélecteur numérique à
+  // roulette (`WheelPickerOverlay.tsx`) : approximation raisonnée à partir
+  // de `colors.textPrimary` (`#141414`) à `50%` d'opacité, en l'absence
+  // d'un accès Figma direct pour cette correction (disclosed, non vérifié
+  // visuellement — voir le rapport de mission).
+  overlayScrim: "rgba(20, 20, 20, 0.5)",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -205,6 +212,13 @@ export const dimensions = {
   activeDestination: { visualHeight: 56, radius: 28 },
   globalSearch: { visualDiameter: 58, radius: 29 },
   standardCard: { radius: 12 },
+  // T01-S09, correction VISUAL tentative 2 (point B, commentaire de revue
+  // 5551813745) : taille visuelle du chevron de `SessionCard` (Catalogue),
+  // égale à la taille native `KodjoIcon` de `control-chevron-down`
+  // (`24×24`) — plus aucun conteneur à bordure agrandi à `minTouchTarget`.
+  // La cible tactile `48×48` du contrat d'écran (CE-T01-03) reste servie
+  // séparément par `hitSlop`, calculé depuis ce token et `minTouchTarget`.
+  sessionCardChevron: { visualSize: 24 },
   // R4-02 (`Action / Back`, `2624:3105`) : cible tactile inchangée
   // (`minTouchTarget`), cercle visuel et chevron réduits — auparavant un
   // cercle unique confondu avec la cible tactile elle-même.

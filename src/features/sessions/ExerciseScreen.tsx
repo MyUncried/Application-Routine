@@ -29,6 +29,7 @@ import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfir
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
+import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import {
   WHEEL_EXERCISE_DURATION_SECONDS_MAX,
   WHEEL_PAUSE_SECONDS_MAX,
@@ -134,11 +135,18 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
  * primitive native, son contrat `onValidate`/`onCancel` (brouillon local
  * jusqu'à validation) et son comportement documenté restent strictement
  * intacts. `NumberWheelPicker.tsx` (primitive native également, corrigée
- * par la mission précédente REWORK12) n'est pas non plus modifié ici. Seul
- * l'ANCRAGE est partagé : un unique `PopoverAnchor`, commun aux quatre
- * sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
- * `pauseSeconds`/`seriesCount`) — position, style et interaction des
- * composants eux-mêmes inchangés.
+ * par la mission précédente REWORK12) n'est pas non plus modifié ici.
+ *
+ * **Correction VISUAL (T01-S09, correction tentative 2, point D)** : les
+ * quatre sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
+ * `pauseSeconds`/`seriesCount`) ne partagent plus un `PopoverAnchor` local
+ * ancré sous le cadre de Paramètres — ils s'ouvrent désormais dans
+ * `WheelPickerOverlay`, la même superposition plein écran TRANSVERSALE que
+ * `CompositionScreen.tsx` (position indépendante du déclencheur et du
+ * défilement, arrière-plan atténué, fermeture uniquement par Annuler/
+ * Confirmer). Position, style et interaction des composants
+ * `DurationWheelPicker`/`NumberWheelPicker` eux-mêmes restent inchangés —
+ * seul leur conteneur de positionnement change.
  */
 export function ExerciseScreen() {
   const router = useRouter();
@@ -248,15 +256,6 @@ export function ExerciseScreen() {
 
   const step1Valid = isStep1Valid(local);
   const t = strings.screens.exercise;
-  // REWORK09-B (même correction que `CompositionScreen.tsx`, REWORK08-B) :
-  // élève le `ScrollView` lui-même (frère direct réel du `backdrop` dédié
-  // ci-dessous), jamais seulement un conteneur imbriqué — un `zIndex` porté
-  // par un descendant du `ScrollView` ne se compare jamais au `backdrop`,
-  // qui vivrait alors à un niveau de l'arbre différent. Un seul indicateur
-  // suffit ici (contrairement à Composition, à deux lignes ancrées
-  // séparées) : les quatre sélecteurs de la rangée compacte partagent
-  // désormais un unique `PopoverAnchor` commun.
-  const bodyElevated = openOverlay !== null;
 
   const headerTitle = step === 1 ? (isEditingExisting ? t.titleEdit : t.titleAdd) : t.titleInformation;
 
@@ -302,7 +301,7 @@ export function ExerciseScreen() {
       ) : null}
 
       <ScrollView
-        style={[styles.body, bodyElevated ? styles.elevated : null]}
+        style={styles.body}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
         testID="exercise-body"
@@ -403,69 +402,6 @@ export function ExerciseScreen() {
                     onPress={() => toggleOverlay("seriesCount")}
                   />
                 </View>
-
-                {openOverlay !== null ? (
-                  <PopoverAnchor>
-                    {openOverlay === "duration" ? (
-                      <DurationWheelPicker
-                        totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
-                        onValidate={(totalSeconds) => {
-                          patchLocal({ durationSeconds: totalSeconds });
-                          closeOverlay();
-                        }}
-                        onCancel={closeOverlay}
-                        maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
-                        minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                        secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                      />
-                    ) : null}
-                    {openOverlay === "repetitionCount" ? (
-                      <NumberWheelPicker
-                        value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
-                        onValidate={(value) => {
-                          patchLocal({ repetitionCount: value });
-                          closeOverlay();
-                        }}
-                        onCancel={closeOverlay}
-                        accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
-                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                        testID="exercise-repetition-count-wheel"
-                      />
-                    ) : null}
-                    {openOverlay === "pauseSeconds" ? (
-                      <DurationWheelPicker
-                        totalSeconds={local.pauseSeconds}
-                        onValidate={(totalSeconds) => {
-                          patchLocal({ pauseSeconds: totalSeconds });
-                          closeOverlay();
-                        }}
-                        onCancel={closeOverlay}
-                        maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
-                        minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-                        secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                      />
-                    ) : null}
-                    {openOverlay === "seriesCount" ? (
-                      <NumberWheelPicker
-                        value={local.seriesCount}
-                        onValidate={(value) => {
-                          patchLocal({ seriesCount: value });
-                          closeOverlay();
-                        }}
-                        onCancel={closeOverlay}
-                        accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
-                        cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-                        validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-                        testID="exercise-series-count-wheel"
-                      />
-                    ) : null}
-                  </PopoverAnchor>
-                ) : null}
               </View>
             </View>
 
@@ -550,53 +486,82 @@ export function ExerciseScreen() {
       )}
 
       {/*
-       * Backdrop dédié (REWORK09, même mécanisme que `CompositionScreen
-       * .tsx`, CMP-01/D-03) — remplace l'ancien `Pressable` racine plein
-       * écran (`onPress={closeOverlay}` sur le conteneur entier), qui
-       * interceptait le geste avant même qu'il n'atteigne un contrôle
-       * imbriqué, y compris parfois le contrôle qu'on cherche justement à
-       * ouvrir (même défaut D-03 que Composition avant sa propre
-       * correction). Rendu uniquement quand un sélecteur est ouvert,
-       * dernier frère direct de `ScreenShell`, sans `zIndex` propre —
-       * reste donc sous le `ScrollView` `elevated` (`bodyElevated` ci-
-       * dessus) tant qu'un sélecteur y est ancré.
+       * T01-S09, correction VISUAL (point D) : les quatre sélecteurs de la
+       * rangée compacte partagent désormais un unique `WheelPickerOverlay`
+       * — superposition plein écran, frère direct de `ScreenShell`, jamais
+       * un descendant du `ScrollView` ni ancrée au cadre de Paramètres. Un
+       * seul peut être ouvert à la fois (`OverlayKind`), donc un seul bloc
+       * conditionnel suffit à l'intérieur. Son voile de fond n'est pas
+       * pressable — seules Annuler/Confirmer (dans le composant roulette
+       * lui-même) ferment désormais le sélecteur, remplaçant l'ancien
+       * `exercise-backdrop` dismissible au toucher (REWORK09/CMP-01/D-03,
+       * mécanisme retiré de cet écran par cette correction).
        */}
-      {openOverlay !== null ? (
-        <Pressable
-          onPress={closeOverlay}
-          accessible={false}
-          testID="exercise-backdrop"
-          style={styles.backdrop}
-        />
-      ) : null}
+      <WheelPickerOverlay visible={openOverlay !== null}>
+        {openOverlay === "duration" ? (
+          <DurationWheelPicker
+            totalSeconds={local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
+            onValidate={(totalSeconds) => {
+              patchLocal({ durationSeconds: totalSeconds });
+              closeOverlay();
+            }}
+            onCancel={closeOverlay}
+            maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
+            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+          />
+        ) : null}
+        {openOverlay === "repetitionCount" ? (
+          <NumberWheelPicker
+            value={local.repetitionCount ?? DEFAULT_REPETITION_COUNT}
+            onValidate={(value) => {
+              patchLocal({ repetitionCount: value });
+              closeOverlay();
+            }}
+            onCancel={closeOverlay}
+            accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+            testID="exercise-repetition-count-wheel"
+          />
+        ) : null}
+        {openOverlay === "pauseSeconds" ? (
+          <DurationWheelPicker
+            totalSeconds={local.pauseSeconds}
+            onValidate={(totalSeconds) => {
+              patchLocal({ pauseSeconds: totalSeconds });
+              closeOverlay();
+            }}
+            onCancel={closeOverlay}
+            maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
+            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+          />
+        ) : null}
+        {openOverlay === "seriesCount" ? (
+          <NumberWheelPicker
+            value={local.seriesCount}
+            onValidate={(value) => {
+              patchLocal({ seriesCount: value });
+              closeOverlay();
+            }}
+            onCancel={closeOverlay}
+            accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+            testID="exercise-series-count-wheel"
+          />
+        ) : null}
+      </WheelPickerOverlay>
 
       {isPendingExit ? (
         <ExerciseExitConfirmModal onCancel={cancelExit} onConfirm={confirmExit} />
       ) : null}
     </ScreenShell>
-  );
-}
-
-/**
- * Ancre de positionnement du sélecteur intégré (correction CE-T01-07/14,
- * AUD-05, patron déjà établi) : React Native positionne un enfant
- * `position: "absolute"` relativement à la boîte de son parent immédiat.
- *
- * **REWORK09** : un unique `PopoverAnchor`, désormais commun aux quatre
- * sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
- * `pauseSeconds`/`seriesCount`) — vérifié directement sur le nœud Figma
- * `1992:9430` : le sélecteur ouvert (`Durée — Roulette compacte 190`,
- * `330` de large) est positionné CENTRÉ sous `Cadre compact —
- * Paramètres` (`354` de large, `(354-330)/2 = 12` de marge de chaque
- * côté), jamais sous une seule colonne de `124`/`74`. Remplace les trois
- * `PopoverAnchor` séparés (un par ancienne ligne verticale), incompatibles
- * avec la rangée horizontale unique désormais requise.
- */
-function PopoverAnchor({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={styles.popoverAnchor} testID="exercise-popover-anchor">
-      {children}
-    </View>
   );
 }
 
@@ -707,9 +672,6 @@ const styles = StyleSheet.create({
   // finale restent hors de ce `ScrollView`, jamais recouverts.
   body: {
     flex: 1,
-  },
-  elevated: {
-    zIndex: 1,
   },
   // Complétion REWORK12 : `flexGrow: 1` rend effectif `recapSpacer`
   // ci-dessous (pousse le récapitulatif au bas du contenu lorsque celui-ci
@@ -880,19 +842,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  popoverAnchor: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    marginTop: spacing[4],
-    zIndex: 20,
-    elevation: 8,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-  },
   // Complétion REWORK12 : `flex: 1` — pousse `summaryCard` au bas du
   // contenu défilant lorsque celui-ci tient dans la hauteur visible
   // (rendu effectif par `bodyContent.flexGrow: 1`) ; s'efface (hauteur
@@ -922,19 +871,6 @@ const styles = StyleSheet.create({
   summaryText: {
     ...type.body,
     color: colors.exerciseParameterValueText,
-  },
-  // Backdrop dédié (REWORK09) — même mécanisme que `CompositionScreen
-  // .tsx` : couvre tout l'écran, rendu uniquement pendant qu'un sélecteur
-  // est ouvert, sans `zIndex` propre — reste donc peint sous le
-  // `ScrollView` `elevated` (`bodyElevated`) par cette seule valeur par
-  // défaut (0), tout en restant au-dessus des autres frères directs de
-  // `ScreenShell` du seul fait de son ordre de rendu (dernier frère).
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   primaryAction: {
     marginHorizontal: spacing[24],

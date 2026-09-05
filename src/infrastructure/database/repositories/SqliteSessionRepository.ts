@@ -26,6 +26,7 @@ import type {
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import { validateCreateSessionInput } from "@/domain/sessions/validation";
+import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import { mapCategoryRow } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
@@ -317,7 +318,19 @@ export class SqliteSessionRepository implements SessionRepository {
       [user.id],
     );
 
-    return rows.map(mapSummaryRow);
+    const sessionIds = rows.map((row) => row.id);
+    const [categoryNamesBySession, bodyZoneNamesBySession] = await Promise.all([
+      getCategoryNamesBySession(this.database, sessionIds),
+      getBodyZoneNamesBySession(this.database, sessionIds),
+    ]);
+
+    return rows.map((row) =>
+      mapSummaryRow(
+        row,
+        categoryNamesBySession.get(row.id) ?? [],
+        bodyZoneNamesBySession.get(row.id) ?? [],
+      ),
+    );
   }
 }
 
@@ -526,6 +539,91 @@ async function getBodyZonesForActivities(
     `SELECT activity_id, body_zone_id FROM activity_body_zones WHERE activity_id IN (${placeholders})`,
     activityIds,
   );
+}
+
+/**
+ * Noms de Catégories associées à chacune des Séances données (T01-S09,
+ * correction VISUAL tentative 2, point B — ligne manquante du contrat
+ * d'écran CE-T01-03 sous le nom de la Séance), déjà ordonnés par Séance
+ * (prédéfinies par `display_order`, puis personnalisées par `created_at`,
+ * D-107) — même ordre que `CATEGORIES_FOR_SESSION_QUERY`, jamais un ordre
+ * distinct recalculé côté application. Une seule requête groupée (jamais
+ * une requête par Séance) pour les identifiants demandés.
+ */
+async function getCategoryNamesBySession(
+  database: Database,
+  sessionIds: readonly string[],
+): Promise<ReadonlyMap<string, readonly string[]>> {
+  if (sessionIds.length === 0) {
+    return new Map();
+  }
+  // `sessionIds` provient toujours de lignes déjà relues depuis SQLite
+  // (jamais une saisie utilisateur directe) : la construction de la liste
+  // de paramètres liés ci-dessous reste sûre.
+  const placeholders = sessionIds.map(() => "?").join(", ");
+  const rows = await database.getAllAsync<{ session_id: string; name: string }>(
+    `SELECT session_categories.session_id AS session_id, categories.name AS name
+     FROM session_categories
+     JOIN categories ON categories.id = session_categories.category_id
+     WHERE session_categories.session_id IN (${placeholders})
+     ORDER BY
+       session_categories.session_id ASC,
+       categories.is_predefined DESC,
+       categories.display_order ASC,
+       categories.created_at ASC`,
+    sessionIds,
+  );
+
+  const namesBySession = new Map<string, string[]>();
+  for (const row of rows) {
+    const names = namesBySession.get(row.session_id) ?? [];
+    names.push(row.name);
+    namesBySession.set(row.session_id, names);
+  }
+  return namesBySession;
+}
+
+/**
+ * Noms des Zones corporelles couvertes par chacune des Séances données
+ * (T01-S09, correction VISUAL tentative 2, point B) — union SANS PERTE de
+ * `bodyZoneIds` de TOUTES les Activités persistées de chaque Séance (jamais
+ * une seule Activité), dédupliquée puis ordonnée selon le référentiel
+ * (`BODY_ZONES`, `order` croissant) — jamais l'ordre d'insertion en base.
+ */
+async function getBodyZoneNamesBySession(
+  database: Database,
+  sessionIds: readonly string[],
+): Promise<ReadonlyMap<string, readonly string[]>> {
+  if (sessionIds.length === 0) {
+    return new Map();
+  }
+  // `sessionIds` provient toujours de lignes déjà relues depuis SQLite
+  // (jamais une saisie utilisateur directe) : la construction de la liste
+  // de paramètres liés ci-dessous reste sûre.
+  const placeholders = sessionIds.map(() => "?").join(", ");
+  const rows = await database.getAllAsync<{ session_id: string; body_zone_id: string }>(
+    `SELECT DISTINCT activities.session_id AS session_id, activity_body_zones.body_zone_id AS body_zone_id
+     FROM activities
+     JOIN activity_body_zones ON activity_body_zones.activity_id = activities.id
+     WHERE activities.session_id IN (${placeholders})`,
+    sessionIds,
+  );
+
+  const idsBySession = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const ids = idsBySession.get(row.session_id) ?? new Set<string>();
+    ids.add(row.body_zone_id);
+    idsBySession.set(row.session_id, ids);
+  }
+
+  const namesBySession = new Map<string, readonly string[]>();
+  for (const [sessionId, ids] of idsBySession) {
+    const names = BODY_ZONES.filter((zone) => ids.has(zone.id))
+      .sort((a, b) => a.order - b.order)
+      .map((zone) => zone.name);
+    namesBySession.set(sessionId, names);
+  }
+  return namesBySession;
 }
 
 export function assembleSession(
