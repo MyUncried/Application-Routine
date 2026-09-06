@@ -49,11 +49,11 @@ jobs:
           if ($manifest -ne ".github/orchestration/slices/$slice.yml" -or !(Test-Path $manifest)) { throw 'Manifest mismatch' }
           $manifestRaw=Get-Content -Raw -LiteralPath $manifest
           $m=[pscustomobject]@{
-            schema=[regex]::Match($manifestRaw,'(?m)^schema:\s*([^\r\n]+)$').Groups[1].Value.Trim()
-            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)$').Groups[1].Value.Trim()
-            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)$').Groups[1].Value
-            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)$').Groups[1].Value.Trim()
-            baseline_head=[regex]::Match($manifestRaw,'(?m)^baseline_head:\s*([0-9a-f]{40})$').Groups[1].Value
+            schema=[regex]::Match($manifestRaw,'(?m)^schema:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)').Groups[1].Value
+            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            baseline_head=[regex]::Match($manifestRaw,'(?m)^baseline_head:\s*([0-9a-f]{40})').Groups[1].Value
           }
           if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice -or [int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Manifest identity mismatch' }
           if ([string]$m.baseline_head -ne $source) { throw 'Source differs from manifest baseline' }
