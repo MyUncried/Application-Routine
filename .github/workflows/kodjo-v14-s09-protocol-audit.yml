@@ -119,7 +119,9 @@ jobs:
           $err=Join-Path $env:RUNNER_TEMP 'audit-err.txt'
           $old=$ErrorActionPreference
           $ErrorActionPreference='Continue'
-          & $env:CLAUDE_PATH -p --output-format json $prompt 1> $out 2> $err
+          $promptPath=Join-Path $env:RUNNER_TEMP 'audit-prompt.txt'
+          [IO.File]::WriteAllText($promptPath,$prompt,(New-Object Text.UTF8Encoding($false)))
+          Get-Content $promptPath -Raw -Encoding UTF8 | & $env:CLAUDE_PATH -p --output-format json 1> $out 2> $err
           $exit=$LASTEXITCODE
           $ErrorActionPreference=$old
           $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}
