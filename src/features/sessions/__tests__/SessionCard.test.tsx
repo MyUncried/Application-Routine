@@ -107,15 +107,34 @@ describe("SessionCard", () => {
     expect(screen.getByTestId("session-card-tag-line").props.numberOfLines).toBe(1);
   });
 
-  it("T01-S09 correction VISUAL, 2e contre-recette (point B, commentaire de revue 5551083690) — reintroduces the chevron's visible DSF frame (canonical 28×28 square, radius 6, colors.tourSurface — same token shared with ExerciseScreen's parameterChevronBox), never a locally-invented geometry", () => {
+  it("T01-S09 correction VISUAL, 3e contre-recette — the chevron control is an instance of Controls / Disclosure — Source exact, State=Collapsed (2537:1033): canonical 28×28 frame, radius 6, colors.disclosureBackground, 1pt colors.disclosureBorderCollapsed border — never the earlier ad hoc colors.tourSurface/opacity borrowed from Forms / Select Field", () => {
     render(<SessionCard session={aSummary()} />);
 
-    const chevronBox = screen.getByTestId("session-card-chevron-box");
-    const flattened = StyleSheet.flatten(chevronBox.props.style);
+    const frame = screen.getByTestId("session-card-disclosure-frame");
+    const flattened = StyleSheet.flatten(frame.props.style);
     expect(flattened.width).toBe(28);
     expect(flattened.height).toBe(28);
     expect(flattened.borderRadius).toBe(6);
-    expect(flattened.backgroundColor).toBe(colors.tourSurface);
+    expect(flattened.backgroundColor).toBe(colors.disclosureBackground);
+    expect(flattened.borderWidth).toBe(1);
+    expect(flattened.borderColor).toBe(colors.disclosureBorderCollapsed);
+
+    const chevron = screen.getByTestId("session-card-disclosure-chevron");
+    expect(chevron.props.style.tintColor).toBe(colors.disclosureChevronCollapsed);
+  });
+
+  it("T01-S09 correction VISUAL, point B (commentaire de revue faisant suite à 1f28a09) — the colour bar and the Category segment both render the exact persisted Session colour, including the yellow of the palette (#F7D154), never a default fallback", () => {
+    render(
+      <SessionCard
+        session={aSummary({ color: "#F7D154", categoryNames: ["Cardio"], bodyZoneNames: [] })}
+      />,
+    );
+
+    const colorBar = screen.getByTestId("session-card-color-bar");
+    expect(StyleSheet.flatten(colorBar.props.style).backgroundColor).toBe("#F7D154");
+
+    const categoriesSegment = screen.getByTestId("session-card-tag-line-categories");
+    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#F7D154");
   });
 
   it("renders the chevron and the Démarrer button as visible but disabled, with no wired behaviour", () => {

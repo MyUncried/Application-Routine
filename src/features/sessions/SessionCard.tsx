@@ -9,22 +9,13 @@ import {
   formatTourCount,
 } from "@/features/sessions/formatSessionSummary";
 import { strings } from "@/shared/i18n";
+import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 export type SessionCardProps = {
   session: SessionSummary;
 };
-
-/**
- * Espace ajouté de chaque côté du cadre visible du chevron (T01-S09,
- * correction VISUAL, 2e contre-recette, point B, commentaire de revue
- * 5551083690) pour reconstituer la cible tactile `48 × 48` exigée par le
- * contrat d'écran (CE-T01-03, « Chevron | cible `48 × 48`, ancrée à droite
- * avant Démarrer ») SANS agrandir le cadre lui-même au-delà de sa géométrie
- * DSF canonique (`dimensions.exerciseParameterRow.chevronBox`).
- */
-const CHEVRON_HIT_SLOP = (minTouchTarget - dimensions.exerciseParameterRow.chevronBox) / 2;
 
 /**
  * Carte condensée d'une Séance active (T01-S06).
@@ -70,23 +61,22 @@ const CHEVRON_HIT_SLOP = (minTouchTarget - dimensions.exerciseParameterRow.chevr
  *   imbriqué (RN concatène nativement le texte annoncé à l'accessibilité,
  *   aucun `accessibilityLabel` dédié n'est donc nécessaire).
  *
- * Correction VISUAL, 2e contre-recette (T01-S09, point B, commentaire de
- * revue 5551083690) — réintègre un cadre visible autour du chevron
- * `Déployer`, retiré à tort par la tentative 1 (« carré à bordure non
- * voulu ») : la revue précise que le défaut réel n'était pas la présence
- * d'un cadre, mais l'usage d'une géométrie ad hoc (`borderWidth`/
- * `borderColor`/dimension forcée à `minTouchTarget`) au lieu du composant
- * DSF canonique. Réutilise donc, à l'identique, le carré canonique déjà
- * établi et partagé par `ExerciseScreen.tsx` (`parameterChevronBox`,
- * `dimensions.exerciseParameterRow.chevronBox`/`chevronBoxRadius` —
- * `28×28`, rayon `6`, fond `colors.tourSurface`), jamais une nouvelle
- * géométrie locale. Le glyphe reste `control-chevron-down` (famille
- * « Controls / Disclosure », déjà utilisée ici avant toute correction —
- * jamais substitué par `select-field-chevron`, glyphe `14×14` d'une famille
- * fonctionnelle distincte, « Forms / Select Field », réservée aux
- * sélecteurs de paramètres). La cible tactile `48 × 48` et l'état désactivé
- * restent inchangés (`hitSlop`/`accessibilityState`, non affectés par ce
- * changement de conteneur).
+ * Correction VISUAL, 3e contre-recette (T01-S09, point A, commentaire de
+ * revue faisant suite à `1f28a09`) — le chevron `Déployer` délègue désormais
+ * entièrement à `DisclosureControl` (`@/shared/ui/DisclosureControl`),
+ * l'instance partagée de `Controls / Disclosure — Source exact`
+ * (`12 – Architecture technique.md`, `2537:1033`/`2537:1038`). La 2e
+ * contre-recette avait réintégré un cadre visible, mais en réutilisant par
+ * analogie le token `exerciseParameterRow.chevronBox`/`colors.tourSurface`
+ * (« Forms / Select Field », fonction graphique distincte) et une opacité
+ * `0.45` — la revue signale que ni ce fond ni cette opacité ne sont
+ * documentés pour CE contrôle. `DisclosureControl` retire donc ces deux
+ * emprunts non sourcés au profit des quatre valeurs canoniques vérifiées
+ * (`colors.disclosureBackground`/`disclosureBorderCollapsed`/
+ * `disclosureBorderExpanded`/`disclosureChevronCollapsed`,
+ * `dimensions.catalogueDisclosure`). L'état initial condensé
+ * (`expanded={false}`), la cible tactile `48 × 48` et l'état désactivé
+ * restent inchangés — seuls conteneur et couleurs changent.
  *
  * Le corps de la carte n'est pas pressable : aucune route de modification
  * (`Composition d'une séance`) n'existe avant T01-S07.
@@ -103,7 +93,10 @@ export function SessionCard({ session }: SessionCardProps) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.colorBar, { backgroundColor: session.color }]} />
+      <View
+        style={[styles.colorBar, { backgroundColor: session.color }]}
+        testID="session-card-color-bar"
+      />
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={2}>
           {session.name}
@@ -125,18 +118,12 @@ export function SessionCard({ session }: SessionCardProps) {
         <Text style={styles.summary}>{summaryLine}</Text>
       </View>
       <View style={styles.actions}>
-        <Pressable
+        <DisclosureControl
+          expanded={false}
           disabled
-          accessibilityRole="button"
-          accessibilityState={{ disabled: true, expanded: false }}
           accessibilityLabel={strings.screens.sessions.card.expandAccessibilityLabel}
-          style={styles.chevronButton}
-          hitSlop={CHEVRON_HIT_SLOP}
-        >
-          <View style={styles.chevronBox} testID="session-card-chevron-box">
-            <KodjoIcon name="control-chevron-down" opacity={0.45} testID="session-card-chevron" />
-          </View>
-        </Pressable>
+          testID="session-card-disclosure"
+        />
         <Pressable
           disabled
           accessibilityRole="button"
@@ -198,27 +185,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing[8],
     paddingHorizontal: spacing[12],
-  },
-  // Zone pressable — ne porte plus aucune géométrie visuelle propre
-  // (déplacée sur `chevronBox` ci-dessous) ; la cible tactile `48×48` du
-  // contrat d'écran reste servie séparément par `hitSlop`
-  // (`CHEVRON_HIT_SLOP`), jamais par un agrandissement du cadre visible
-  // lui-même.
-  chevronButton: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // Correction VISUAL, 2e contre-recette (point B) : cadre canonique DSF
-  // réintégré — géométrie et fond identiques, au token près, à
-  // `ExerciseScreen.tsx`'s `parameterChevronBox` (`28×28`, rayon `6`, fond
-  // `colors.tourSurface`), jamais une nouvelle géométrie locale.
-  chevronBox: {
-    width: dimensions.exerciseParameterRow.chevronBox,
-    height: dimensions.exerciseParameterRow.chevronBox,
-    borderRadius: dimensions.exerciseParameterRow.chevronBoxRadius,
-    backgroundColor: colors.tourSurface,
-    alignItems: "center",
-    justifyContent: "center",
   },
   startButton: {
     minWidth: minTouchTarget,

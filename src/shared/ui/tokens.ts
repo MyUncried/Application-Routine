@@ -99,6 +99,19 @@ export const colors = {
   // d'un accès Figma direct pour cette correction (disclosed, non vérifié
   // visuellement — voir le rapport de mission).
   overlayScrim: "rgba(20, 20, 20, 0.5)",
+  // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
+  // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`
+  // (`12 – Architecture technique.md`, `2537:1033` `State=Collapsed` /
+  // `2537:1038` `State=Expanded`), quatre valeurs canoniques vérifiées
+  // directement sur ces nœuds, aucune ne coïncidant avec un token existant
+  // (notamment `#FBFCFF`, distinct d'un demi-point de `colors.background`,
+  // `#FFFFFF`) — remplace l'ancien cadre non sourcé de `SessionCard.tsx`
+  // (`colors.tourSurface`/opacité `0.45`, jamais documentés pour ce
+  // contrôle).
+  disclosureBackground: "#FBFCFF",
+  disclosureBorderCollapsed: "#D6D9E3",
+  disclosureBorderExpanded: "#8283F2",
+  disclosureChevronCollapsed: "#8282F2",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -212,6 +225,16 @@ export const dimensions = {
   activeDestination: { visualHeight: 56, radius: 28 },
   globalSearch: { visualDiameter: 58, radius: 29 },
   standardCard: { radius: 12 },
+  // T01-S09, correction VISUAL — `Controls / Disclosure — Source exact`
+  // (`12 – Architecture technique.md`, `2537:1033`/`2537:1038`) : cible
+  // tactile `48 × 48` (`minTouchTarget`, réutilisé — jamais dupliqué ici),
+  // cadre visible centré `28 × 28`, rayon `6`. `chevronDisplaySize` (`16`)
+  // dérive la taille d'affichage de `control-chevron-down`/`-up.svg`
+  // (`viewBox` `24 × 24`, tracé occupant `12 × 6` en son centre) nécessaire
+  // pour obtenir le chevron `8 × 4` exact documenté par le DSF : `16 = 24 ×
+  // (8 / 12)` — même asset SVG existant, jamais redessiné, recoloré via
+  // `tintColor` (`colors.disclosureChevronCollapsed`/`disclosureBorderExpanded`).
+  catalogueDisclosure: { frame: 28, radius: 6, chevronDisplaySize: 16 },
   // R4-02 (`Action / Back`, `2624:3105`) : cible tactile inchangée
   // (`minTouchTarget`), cercle visuel et chevron réduits — auparavant un
   // cercle unique confondu avec la cible tactile elle-même.

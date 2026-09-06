@@ -489,6 +489,45 @@ describe("SqliteSessionRepository", () => {
       expect(summaries.some((summary) => summary.id === archived.id)).toBe(false);
     });
 
+    // T01-S09, correction VISUAL (point B, commentaire de revue faisant
+    // suite à `1f28a09`) — le chevron/couleur des Catégories du Catalogue
+    // n'apparaissait pas jaune pour une Séance existante. Diagnostic mené
+    // sur toute la chaîne (schéma `sessions.color`, migration002 — n'altère
+    // jamais `sessions` —, requête `listActive()`, `mapSummaryRow()`,
+    // `SessionCard.tsx`) : `sessions.color` porte une contrainte `CHECK`
+    // exhaustive sur exactement les 12 valeurs de `SESSION_COLORS` (aucun
+    // défaut ni valeur nulle possible), `listActive()` sélectionne
+    // `sessions.color` sans transformation ni retombée sur une valeur par
+    // défaut, et `mapSummaryRow()` le recopie tel quel dans `SessionSummary
+    // .color` — aucun défaut de restitution démontré dans le code lu. Cette
+    // couverture verrouille néanmoins la chaîne complète pour la valeur
+    // jaune de la palette (`#F7D154`), jusqu'ici jamais assertée par aucun
+    // test de ce fichier.
+    it("restores the exact persisted colour, including the yellow of the palette (#F7D154), never a default fallback", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({ ...validInput(), color: "#F7D154" });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.color).toBe("#F7D154");
+    });
+
+    it("restores the yellow colour identically for a Session with no Category and no body zone (stand-in for data predating T01-S09's Category feature)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        color: "#F7D154",
+        categories: [],
+        exercises: [{ ...anExercise(), bodyZoneIds: [] }],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.color).toBe("#F7D154");
+      expect(summary?.categoryNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual([]);
+    });
+
     it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       await repository.create({
