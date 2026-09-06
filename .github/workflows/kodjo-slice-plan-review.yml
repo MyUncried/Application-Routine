@@ -46,7 +46,9 @@ jobs:
           if (!$slice -or !$manifest -or !$planId) { throw 'Missing immutable plan-review inputs' }
           if ($manifest -ne ".github/orchestration/slices/$slice.yml") { throw 'Manifest path mismatch' }
           if (!(Test-Path -LiteralPath $manifest)) { throw 'Manifest missing' }
-          $m=(Get-Content -Raw -LiteralPath $manifest | ConvertFrom-Yaml)
+          $manifestJson=ruby -ryaml -rjson -e "puts JSON.generate(YAML.safe_load(File.read(ARGV[0]), aliases: false))" $manifest
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest YAML invalid' }
+          $m=$manifestJson | ConvertFrom-Json
           if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
           if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
           if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
