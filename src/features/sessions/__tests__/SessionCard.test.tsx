@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { strings } from "@/shared/i18n";
+import { colors } from "@/shared/ui/tokens";
 
 // `SessionSummary.activityCount` et `.tourRepeatCount` sont typés comme le
 // littéral `1` pour T01 (une seule Activité, un seul Tour) : aucune valeur
@@ -50,7 +52,28 @@ describe("SessionCard", () => {
       />,
     );
 
-    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Cardio · Genoux, Dos");
+    // T01-S09 correction VISUAL, 2e contre-recette (point A, commentaire de
+    // revue 5551083690) : le séparateur entre les deux groupes est
+    // désormais " : " (auparavant " · ").
+    expect(screen.getByText("Cardio : Genoux, Dos")).toBeTruthy();
+  });
+
+  it("T01-S09 correction VISUAL, 2e contre-recette (point A) — the Category segment is rendered in the Session's own colour, never the body-zone segment nor the separator", () => {
+    render(
+      <SessionCard
+        session={aSummary({
+          color: "#00FF00",
+          categoryNames: ["Cardio"],
+          bodyZoneNames: ["Genoux"],
+        })}
+      />,
+    );
+
+    const categoriesSegment = screen.getByTestId("session-card-tag-line-categories");
+    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#00FF00");
+
+    const tagLine = screen.getByTestId("session-card-tag-line");
+    expect(StyleSheet.flatten(tagLine.props.style).color).not.toBe("#00FF00");
   });
 
   it("T01-S09 correction VISUAL (point B) — never renders the tag line at all when there is no Category and no body zone (empty state — never a visible empty line)", () => {
@@ -59,14 +82,16 @@ describe("SessionCard", () => {
     expect(screen.queryByTestId("session-card-tag-line")).toBeNull();
   });
 
-  it("T01-S09 correction VISUAL (point B) — renders only the Category group when there is no body zone", () => {
+  it("T01-S09 correction VISUAL (point B) — renders only the Category group when there is no body zone, with no separator", () => {
     render(<SessionCard session={aSummary({ categoryNames: ["Cardio"], bodyZoneNames: [] })} />);
-    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Cardio");
+    expect(screen.getByText("Cardio")).toBeTruthy();
+    expect(screen.queryByText(/:/)).toBeNull();
   });
 
-  it("T01-S09 correction VISUAL (point B) — renders only the body-zone group when there is no Category", () => {
+  it("T01-S09 correction VISUAL (point B) — renders only the body-zone group when there is no Category, with no separator and no colouring", () => {
     render(<SessionCard session={aSummary({ categoryNames: [], bodyZoneNames: ["Genoux"] })} />);
-    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Genoux");
+    expect(screen.getByText("Genoux")).toBeTruthy();
+    expect(screen.queryByTestId("session-card-tag-line-categories")).toBeNull();
   });
 
   it("T01-S09 correction VISUAL (point B) — truncates the tag line to a single line, never wrapping onto a second line", () => {
@@ -80,6 +105,17 @@ describe("SessionCard", () => {
     );
 
     expect(screen.getByTestId("session-card-tag-line").props.numberOfLines).toBe(1);
+  });
+
+  it("T01-S09 correction VISUAL, 2e contre-recette (point B, commentaire de revue 5551083690) — reintroduces the chevron's visible DSF frame (canonical 28×28 square, radius 6, colors.tourSurface — same token shared with ExerciseScreen's parameterChevronBox), never a locally-invented geometry", () => {
+    render(<SessionCard session={aSummary()} />);
+
+    const chevronBox = screen.getByTestId("session-card-chevron-box");
+    const flattened = StyleSheet.flatten(chevronBox.props.style);
+    expect(flattened.width).toBe(28);
+    expect(flattened.height).toBe(28);
+    expect(flattened.borderRadius).toBe(6);
+    expect(flattened.backgroundColor).toBe(colors.tourSurface);
   });
 
   it("renders the chevron and the Démarrer button as visible but disabled, with no wired behaviour", () => {
