@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { useCallback, useMemo, useState } from "react";
+import { StyleSheet } from "react-native";
 
 import type { Category } from "@/domain/categories/Category";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
@@ -11,6 +12,7 @@ import { SessionDraftContext, type SessionDraftContextValue } from "@/features/s
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { strings } from "@/shared/i18n";
+import { colors } from "@/shared/ui/tokens";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 const mockBack = jest.fn();
@@ -191,6 +193,15 @@ describe("CategoriesScreen — création inline (AC-04, D-106, CE-T01-12)", () =
     renderScreen();
     fireEvent.press(screen.getByLabelText(t.createAction));
     expect(screen.getByLabelText(t.newCategory.placeholder).props.maxLength).toBe(40);
+  });
+
+  it("T01-S09 correction VISUAL, 2e contre-recette (point C, commentaire de revue 5551083690) — Ajouter is blue, reusing the DSF primary action token, while enabled", () => {
+    renderScreen();
+    fireEvent.press(screen.getByLabelText(t.createAction));
+    fireEvent.changeText(screen.getByLabelText(t.newCategory.placeholder), "Yoga Doux");
+
+    const addAction = screen.getByLabelText(t.newCategory.addAccessibilityLabel);
+    expect(StyleSheet.flatten(addAction.props.style).backgroundColor).toBe(colors.primary);
   });
 
   it("adds a new valid category to the draft, selects it, and closes the row", async () => {
