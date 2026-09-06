@@ -1,0 +1,88 @@
+name: KODJO V1.4 S09 — Validate Integration
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  INTEGRATION_HEAD: 8381b124fe048c51cf2ee9b885652ba64688e873
+  DOCUMENT_BASE: b36873216ae33d85af88b6e78ddd680818a5087c
+  RECOVERY_HEAD: ce898eb623ea9c5db196100036e1a6016b9d79ff
+
+jobs:
+  validate:
+    if: github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] VALIDATE_INTEGRATION')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      TRIGGER_AUTHOR: ${{ github.event.comment.user.login }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.INTEGRATION_HEAD }}
+          fetch-depth: 0
+          clean: true
+
+      - name: Verify immutable integration inputs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:TRIGGER_AUTHOR -ne 'MyUncried') { throw 'VALIDATE_INTEGRATION must be user-authored' }
+          $match = [regex]::Match($env:TRIGGER_BODY, '(?m)^integration_head=([0-9a-f]{40})\s*$')
+          if (-not $match.Success) { throw 'integration_head missing' }
+          if ($match.Groups[1].Value -ne $env:INTEGRATION_HEAD) { throw 'Unexpected integration_head' }
+          if ((git rev-parse HEAD).Trim() -ne $env:INTEGRATION_HEAD) { throw 'Checked-out HEAD mismatch' }
+
+          $docs = @(
+            '.github/AI_ORCHESTRATION.md',
+            'docs/INDEX.md',
+            'docs/PRODUCT.md',
+            'docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md',
+            'docs/Specifications-fonctionnelles/05 – Versions du produit.md',
+            'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md',
+            'docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md',
+            'docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md',
+            'docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md',
+            'docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md',
+            'docs/Specifications-fonctionnelles/11 – API fonctionnelles.md',
+            'docs/Specifications-fonctionnelles/12 – Architecture technique.md',
+            'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md'
+          )
+          $source = @(
+            'src/features/sessions/CategoriesScreen.tsx',
+            'src/features/sessions/SessionCard.tsx',
+            'src/features/sessions/__tests__/CategoriesScreen.test.tsx',
+            'src/features/sessions/__tests__/SessionCard.test.tsx',
+            'src/features/sessions/__tests__/formatSessionSummary.test.ts',
+            'src/features/sessions/formatSessionSummary.ts',
+            'src/shared/ui/tokens.ts'
+          )
+          git diff --quiet $env:DOCUMENT_BASE -- $docs
+          if ($LASTEXITCODE -ne 0) { throw 'Documentation differs from authorized parent baseline' }
+          git diff --quiet $env:RECOVERY_HEAD -- $source
+          if ($LASTEXITCODE -ne 0) { throw 'Application files differ from preserved recovery' }
+          $registry = Get-Content $docs[6] -Raw -Encoding UTF8
+          if ($registry -match '(?m)^\|\s*D-(108|109|110|111)\s*\|') { throw 'Unauthorized D-108 to D-111 found' }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest
+        run: npm test -- --runInBand
+
+      - name: Run TypeScript
+        run: npx tsc --noEmit
+
+      - name: Publish validation result
+        if: success()
+        run: |
+          $body = "[KODJO_V14_S09] INTEGRATION_VALIDATED`nintegration_head=$env:INTEGRATION_HEAD`nJest=PASS`nTypeScript=PASS`nScope=PASS`nDocumentationBaseline=PASS"
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
+          Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body (@{ body = $body } | ConvertTo-Json) | Out-Null
