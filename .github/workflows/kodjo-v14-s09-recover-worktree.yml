@@ -11,7 +11,7 @@ concurrency:
 env:
   TARGET_BRANCH: feat/creation-seance-catalogue
   RECOVERY_BRANCH: recovery/t01-s09-attempt2
-  SOURCE_HEAD: 686da60aee7eb368722676ab5327960eef5691d8
+  SOURCE_HEAD: b36873216ae33d85af88b6e78ddd680818a5087c
   SESSION_ID: 28152cdd-c52e-4452-aed2-728d0439e401
   ATTEMPT: '2'
 
@@ -43,7 +43,24 @@ jobs:
           if(-not$hm.Success -or -not$sm.Success -or -not$am.Success -or -not$rm.Success){throw 'Recovery metadata missing'}
           $sourceHead=$hm.Groups[1].Value; $session=$sm.Groups[1].Value; $attempt=$am.Groups[1].Value; $failedRun=$rm.Groups[1].Value
           $head=(git rev-parse HEAD).Trim(); if($head -ne $sourceHead){throw "Retained worktree HEAD mismatch: $head"}
-          $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()})
+          function Get-GitRawPaths {
+            param([string]$Arguments)
+            $psi=New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName='git.exe'
+            $psi.Arguments=$Arguments
+            $psi.UseShellExecute=$false
+            $psi.RedirectStandardOutput=$true
+            $process=New-Object System.Diagnostics.Process
+            $process.StartInfo=$psi
+            [void]$process.Start()
+            $output=$process.StandardOutput.ReadToEnd()
+            $process.WaitForExit()
+            if($process.ExitCode -ne 0){throw "git $Arguments failed"}
+            return @($output -split "`0"|Where-Object{$_ -ne ''})
+          }
+          $tracked=@(Get-GitRawPaths 'diff --name-only -z HEAD')
+          $untracked=@(Get-GitRawPaths 'ls-files --others --exclude-standard -z')
+          $changed=@($tracked+$untracked|Sort-Object -Unique)
           if($changed.Count -eq 0){throw 'No retained changes to recover'}
           $applicationChanged=$false
           foreach($p in $changed){
@@ -134,7 +151,24 @@ jobs:
       - name: Validate repaired recovery
         run: |
           $ErrorActionPreference='Stop'
-          $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()})
+          function Get-GitRawPaths {
+            param([string]$Arguments)
+            $psi=New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName='git.exe'
+            $psi.Arguments=$Arguments
+            $psi.UseShellExecute=$false
+            $psi.RedirectStandardOutput=$true
+            $process=New-Object System.Diagnostics.Process
+            $process.StartInfo=$psi
+            [void]$process.Start()
+            $output=$process.StandardOutput.ReadToEnd()
+            $process.WaitForExit()
+            if($process.ExitCode -ne 0){throw "git $Arguments failed"}
+            return @($output -split "`0"|Where-Object{$_ -ne ''})
+          }
+          $tracked=@(Get-GitRawPaths 'diff --name-only -z HEAD')
+          $untracked=@(Get-GitRawPaths 'ls-files --others --exclude-standard -z')
+          $changed=@($tracked+$untracked|Sort-Object -Unique)
           foreach($p in $changed){
             $n=$p-replace '\\','/'
             if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
