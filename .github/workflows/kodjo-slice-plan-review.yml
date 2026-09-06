@@ -43,6 +43,7 @@ jobs:
           $slice=[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()
           $manifest=[regex]::Match($env:TRIGGER_BODY,'(?m)^manifest_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()
           $planId=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_plan_comment_id=([0-9]+)\s*$').Groups[1].Value
+          $reviewSession=[regex]::Match($env:TRIGGER_BODY,'(?m)^review_session_id=([0-9a-f-]{36})\s*$').Groups[1].Value
           if (!$slice -or !$manifest -or !$planId) { throw 'Missing immutable plan-review inputs' }
           if ($manifest -ne ".github/orchestration/slices/$slice.yml") { throw 'Manifest path mismatch' }
           if (!(Test-Path -LiteralPath $manifest)) { throw 'Manifest missing' }
@@ -71,6 +72,7 @@ jobs:
           "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
 
       - name: Checkout exact source
@@ -87,6 +89,7 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
@@ -97,12 +100,14 @@ jobs:
           "@
           $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
           $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
-          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $args=if($env:REVIEW_SESSION){@('-p','--resume',$env:REVIEW_SESSION,'--output-format','json','--dangerously-skip-permissions')}else{@('-p','--output-format','json','--dangerously-skip-permissions')}
+          & claude @args $prompt 1> $out 2> $err
           $code=$LASTEXITCODE
           if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
           $json=Get-Content -Raw $out | ConvertFrom-Json
           if (!$json.session_id) { throw 'Claude review session_id missing' }
           if (!$json.result) { throw 'Claude review result missing' }
+          if ($env:REVIEW_SESSION -and [string]$json.session_id -ne $env:REVIEW_SESSION) { throw 'Claude resumed a different review session' }
           if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
           $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
           "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
