@@ -869,8 +869,8 @@ Les **séances** référencent zéro, une ou plusieurs catégories.
 | Identifiant          | Identifiant unique            | Obligatoire | Stable pendant toute la durée de vie de la catégorie |
 | Utilisateur           | Propriétaire de la catégorie  | Obligatoire | Une catégorie appartient à un seul utilisateur              |
 | Nom                  | Libellé affiché               | Obligatoire | Non vide après trim ; maximum `40` caractères ; unique par utilisateur après normalisation canonique |
-| Icône                | Icône représentative          | Facultatif  | Choisie dans la bibliothèque de l'application        |
-| Couleur              | Couleur d'affichage           | Facultatif  | Choisie dans la palette de l'application             |
+| Icône                | Icône représentative          | Obligatoire | Icône KODJO attribuée automatiquement à une Catégorie personnalisée dans le MVP ; non modifiable par l’utilisateur |
+| Couleur              | Couleur d'affichage           | Obligatoire | `color.background` (`#FFFFFF`) attribué automatiquement à une Catégorie personnalisée dans le MVP ; non modifiable par l’utilisateur |
 | Ordre d'affichage    | Position dans les listes      | Obligatoire | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; non modifiable manuellement dans le MVP |
 | Date de création     | Date de création              | Obligatoire | Générée automatiquement                              |
 | Date de modification | Dernière modification         | Obligatoire | Mise à jour automatiquement                          |
@@ -958,6 +958,8 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute routine référence une seule séance.
 - Toute exécution de séance référence une seule séance.
 - Toute Catégorie personnalisée appartient à un seul Utilisateur.
+- Dans le MVP, toute Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. L’utilisateur ne peut modifier aucune de ces deux valeurs.
+- Aucune règle ne fait actuellement dériver la couleur d’une Séance de ses Catégories. Une telle dérivation reste une évolution future à définir, notamment pour les Séances associées à plusieurs Catégories.
 - Les Zones corporelles appartiennent au référentiel applicatif et ne sont pas rattachées à un Utilisateur.
 
 ### Cohérence des données
@@ -969,6 +971,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 ## Duplication d'une séance
 
 - Nouvelle séance avec un nouvel identifiant.
+- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
 - Copie de la couleur de la séance.
 - Copie du Cycle, du Tour, des Activités et des Catégories. Après le MVP, si un média est réutilisé, une nouvelle association Média pourra référencer le même fichier physique.
 - Les routines et les exécutions de séance ne sont jamais copiées.
@@ -976,8 +979,10 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 ## Duplication d'une activité
 
 - Nouvelle activité avec un nouvel identifiant.
+- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
 - Copie des propriétés et des Zones corporelles. Après le MVP, si un média existe, une nouvelle association Média pourra référencer le même fichier physique.
 - Si l'Exercice possède une Récupération après Série, une nouvelle activité Récupération associée est également créée avec un nouvel identifiant.
+- La copie est insérée immédiatement après la source dans la même zone structurelle (`Avant Tour`, `Dans Tour` ou `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucune Activité dans le catalogue.
 
 ## Suppression d’un média
 
@@ -1039,7 +1044,7 @@ Création → Édition → Active
 
 ## Cycle de vie d'une activité
 
-- Une activité appartient toujours à un seul Tour.
+- Une Activité de Séance appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
 - Sa copie crée une nouvelle activité indépendante.
 - Sa suppression peut être annulée via la snackbar.
 

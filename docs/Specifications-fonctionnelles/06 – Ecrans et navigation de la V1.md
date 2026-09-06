@@ -635,7 +635,7 @@ Format :
 
 - mode Durée : `N série(s) de X min Y s avec Z min Y s de pause par série` ;
 - mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série` ;
-- mode À l’échec : `N série(s) de {nom}, jusqu’à l’échec, avec Z s de pause entre les séries` ; la proposition relative à la pause est omise lorsque la pause vaut zéro.
+- mode À l’échec : `N série(s) jusqu’à l’échec, avec Z s de pause entre les séries` ; le nom, déjà affiché séparément sur la ligne, n’est pas répété. La proposition relative à la pause est omise lorsque la pause vaut zéro ou lorsqu’une seule Série ne crée aucun intervalle entre Séries.
 
 La clause de pause est entièrement omise lorsque la Pause après Série vaut `0 s`. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
 
@@ -643,7 +643,7 @@ Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries 
 
 ### Consultation et modification d’une Activité
 
-Toucher une carte Activité ouvre directement son parcours de modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`.
+Toucher une carte Activité ouvre directement son parcours de modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`. `Dupliquer` crée une Activité de Séance indépendante avec un nouvel identifiant, reprend tous les paramètres et associations média de la source, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucune Activité dans le catalogue.
 
 ### Réorganisation
 
@@ -899,7 +899,7 @@ En vue Jour, un glissement horizontal de la grille vers la gauche affiche le jou
 ### Comportement
 
 
-En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche.
+En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la même Séance et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
 
 L’état obtenu par glissement ne remplace pas la liste : il décale seulement la carte concernée pour révéler ses actions. Les autres jours et occurrences restent rendus à leur position chronologique. Dans l’exemple de référence, la section `Mardi 4 août` et `Mobilité du matin` restent donc visibles sous les cartes du lundi.
 

@@ -115,7 +115,7 @@ La duplication crée une nouvelle séance indépendante.
 
 La copie reprend :
 
-- le nom de la séance (avec un suffixe à définir) ;
+- le nom de la séance avec le suffixe disponible suivant : `(copie)`, puis `(copie 2)`, `(copie 3)`, etc. ;
 - la couleur ;
 - les catégories ;
 - l'ensemble de la composition ;
@@ -169,17 +169,19 @@ L'historique conserve notamment :
 
 L'historique n'est jamais modifié par les évolutions ultérieures de la séance.
 
-## 2.9 États d'une séance
+## 2.9 État persistant et qualificatifs d'une séance
 
-Une séance peut se trouver dans l'un des états suivants :
+Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 
-| État        | Description                                                                                          |
-| ----------- | ---------------------------------------------------------------------------------------------------- |
-| En création | La séance est en cours de définition et n'a pas encore été validée.                                  |
-| Disponible  | La séance est disponible dans le catalogue et peut être exécutée ou planifiée.                       |
-| Planifiée   | Une ou plusieurs routines utilisent cette séance.                                                    |
-| Exécutée    | Au moins une exécution existe dans le suivi.                                                         |
-| Supprimée   | La séance n'est plus disponible dans le catalogue. Les exécutions déjà réalisées restent conservées. |
+| Notion | Nature | Description |
+| --- | --- | --- |
+| En création | État temporaire du brouillon | La Séance n’est pas encore persistée. Ce n’est pas une valeur du statut de la Séance. |
+| Active | Statut persistant | La Séance est disponible dans le Catalogue et peut être exécutée ou planifiée. |
+| Archivée | Statut persistant | La Séance est retirée du Catalogue actif ; elle peut être restaurée ou supprimée définitivement depuis les archives. |
+| Planifiée | Qualificatif dérivé, non exclusif | Au moins une Routine active référence la Séance. |
+| Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
+
+Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
 # 3. Composition d'une séance
 
 ## 3.1 Principe général
@@ -232,7 +234,8 @@ Une activité de type Exercice correspond à une action réalisée par l'utilisa
 Elle peut être définie :
 
 - par une durée ;
-- par un nombre de répétitions.
+- par un nombre de répétitions ;
+- jusqu’à l’échec, sans durée ni nombre de répétitions cibles.
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
@@ -877,7 +880,7 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur. |
-| Activités | Cartes ordonnées ; toucher ouvre la modification ; glisser à gauche révèle `Dupliquer` et `Supprimer`. |
+| Activités | Cartes ordonnées ; toucher ouvre la modification ; glisser à gauche révèle `Dupliquer` et `Supprimer`. Dupliquer crée une copie indépendante, nommée avec le suffixe `(copie)` puis numéroté si nécessaire, et l’insère immédiatement après la source dans la même zone structurelle. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre et la durée portent exclusivement sur les Activités ; le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide (aucun Exercice défini), affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
@@ -908,6 +911,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
 | Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
 | Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant l’enregistrement final. |
+| Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
 | Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant la navigation Catégories ↔ Composition. |
 | Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
 | Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances. |

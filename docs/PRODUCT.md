@@ -313,8 +313,11 @@ Les versions futures pourront notamment introduire :
 - bibliothèque d’Activités persistantes, réutilisées par copie indépendante ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
 - Circuits persistants composés d’au moins deux Séances ordonnées, exécutables manuellement ; leur planification est reportée en V3 ;
+- planification périodique étendue, notamment mensuelle ;
+- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
+- suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.
 
-## 12. Évolution Activités, Catalogue et Circuits — décision du 6 septembre 2026
+## 11. Évolution Activités, Catalogue et Circuits — décision du 6 septembre 2026
 
 Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les anciens segments `Toutes`, `Planifiées` et `Archivées` ne sont plus une navigation principale : ces états deviennent des filtres dédiés.
 
@@ -323,11 +326,8 @@ Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni
 En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son type, son mode, ses paramètres et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
 
 Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées. Il référence les Séances existantes, autorise plusieurs occurrences d’une même Séance et ne possède pas de compteur de répétition d’étape. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance de ses étapes. La planification des Circuits relève de la V3.
-- planification périodique étendue, notamment mensuelle ;
-- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
-- suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.
 
-## 11. Gouvernance documentaire
+## 12. Gouvernance documentaire
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 

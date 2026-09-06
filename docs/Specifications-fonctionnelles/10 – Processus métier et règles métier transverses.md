@@ -33,10 +33,11 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter une activité`. |
 | RM-020 | La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Les suivantes sont insérées après la dernière Activité existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Tour. |
-| RM-021 | Toucher une carte d’Activité ouvre directement son édition. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. |
+| RM-021 | Toucher une carte d’Activité ouvre directement son édition. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucune Activité dans le catalogue. |
 | RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro, une ou plusieurs Catégories à la Séance. |
 | RM-023 | Une Catégorie personnalisée peut être créée depuis l’écran de sélection. À partir du MVP bis, une Catégorie supprimée est retirée des Séances concernées sans modifier les Instantanés historiques. |
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au Catalogue des séances. |
+| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. La couleur de la Séance reste choisie indépendamment de ses Catégories. |
 
 ## 3. Composition, Tour et Cycle technique
 
@@ -78,6 +79,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-048 | Une occurrence future peut être exécutée en avance depuis l’action contextuelle disponible sur sa carte. Elle n’est ensuite pas reproposée à son horaire initial. |
 | RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. |
 | RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni la Séance ni les Exécutions historiques. |
+| RM-123 | Depuis une occurrence du Calendrier, `Dupliquer` utilise la Routine sous-jacente comme source, crée un brouillon reprenant la même Séance et tous les paramètres de planification, puis ouvre ce brouillon en modification. La nouvelle Routine n’est persistée qu’après validation explicite. |
 
 ## 6. Notifications et rappels
 

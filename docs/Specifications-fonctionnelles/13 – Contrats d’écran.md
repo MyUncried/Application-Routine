@@ -392,7 +392,7 @@ Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`
 | Compte à rebours | Ouvre CE-T01-07. |
 | `x1` | Contrôle présent ; la modification du nombre de Tours appartient à T03 et ne doit pas être simulée dans la recette partielle T01. |
 | Fin de séance | Ouvre CE-T01-10. |
-| Action finale | Affichée désactivée tant que le nom et au moins un Exercice valide ne sont pas présents. Son libellé suit le composant Figma de l’état : `Enregistrer` avant validation complète, puis `Continuer` lorsque la Composition est valide. |
+| Action finale | Porte toujours le libellé `Continuer`, en création comme en modification. Elle est affichée désactivée tant que le nom et au moins un Exercice valide ne sont pas présents ; sa validation ouvre les Catégories. Son libellé ne varie jamais selon la validité de la Composition. |
 
 Tests bloquants : valeurs initiales exactes ; aucune Activité fictive ; aucune mention de Cycle ; bouton Ajouter avec l’icône vectorielle `action-add` ; action finale réellement désactivée ; clavier ne masquant ni le champ ni l’action ; conformité visuelle à `2028:11137` sur `402 × 874`.
 
@@ -537,6 +537,8 @@ L’en-tête fixe affiche Retour et `Catégories de la séance`. Le corps affich
 Les libellés visibles dans la frame sont des données du référentiel, pas une liste codée dans l’écran. Les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante. Une sélection ne change pas leur position et aucune réorganisation manuelle n’est disponible dans le MVP. Chaque tag est une instance du composant DSF `Selection / Category Tag` (`3302:4166`), variante `State=Unselected` ou `State=Selected`. Les tags passent automatiquement à la ligne dans la largeur utile avec `8` points d’écart horizontal. Leur pilule visuelle mesure `30` points de haut et est centrée dans une cible tactile de hauteur minimale `48`; deux rangées utilisent donc un pas vertical minimal de `48` et leurs cibles ne se chevauchent pas. L’état sélectionné combine le style du composant et un indicateur accessible ; il ne repose pas uniquement sur la couleur.
 
 Toucher un tag inverse uniquement son association temporaire. Zéro, une ou plusieurs Catégories sont autorisées. Une Catégorie `NEW` est sélectionnée automatiquement à sa création ; la désélection ne la supprime pas du brouillon, elle reste visible et peut être resélectionnée sans doublon. Retour ramène à la Composition en conservant séparément les Catégories temporaires existantes et les identifiants sélectionnés. `Créer une catégorie` ouvre CE-T01-12. `Enregistrer la séance` réalise une transaction unique comprenant la Séance, sa Composition, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis recharge CE-T01-03. Un double appui ne peut créer aucun doublon.
+
+Dans le MVP, une Catégorie personnalisée créée par CE-T01-12 reçoit automatiquement l’icône officielle KODJO et la couleur blanche via le token sémantique `color.background` (`#FFFFFF`) du Design System. Aucun contrôle de choix d’icône ou de couleur n’est affiché ; ces valeurs ne sont pas modifiables par l’utilisateur.
 
 En cas d’échec, aucune donnée partielle n’est conservée : l’écran reste affiché, le brouillon complet est conservé, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative réutilise exactement le même brouillon.
 

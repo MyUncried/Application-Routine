@@ -155,9 +155,9 @@ Cette séparation facilite :
 
 ### Principe
 
-Les données structurées du MVP sont persistées dans une **base SQLite locale**, via `expo-sqlite`.
+Les données structurées du MVP sont persistées dans une **base SQLite locale**, via un accès direct à `expo-sqlite` encapsulé derrière les Repositories.
 
-**Drizzle ORM** est utilisé pour la définition typée du schéma, les requêtes et la gestion des migrations, sous réserve de validation de sa compatibilité avec la version Expo retenue.
+Le spike RT-002 réalisé en T01-S01 a écarté Drizzle ORM en raison d’une compatibilité insuffisamment stable avec la version Expo retenue. Drizzle n’est donc ni une dépendance ni une option active du MVP. Le schéma, les requêtes et les migrations SQLite sont gérés directement par la couche de persistance, sans exposer `expo-sqlite` au domaine.
 
 Le stockage doit notamment permettre :
 - les relations entre les entités ;
@@ -570,7 +570,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Langage | **TypeScript strict** | Sécurise les contrats, les objets métier et facilite le développement assisté par IA |
 | Navigation | **Expo Router** | Navigation structurée et typée, compatible iOS/Android et préparant un Web futur |
 | Base locale | **SQLite via `expo-sqlite`** | Stockage relationnel, transactions, historique et migrations |
-| ORM | **Drizzle ORM**, sous réserve de validation de compatibilité stable | Schéma et requêtes TypeScript typés, migrations ; possibilité de revenir à `expo-sqlite` direct derrière les Repositories si nécessaire |
+| ORM | **Aucun** | RT-002 a écarté Drizzle ORM ; accès direct à `expo-sqlite` derrière les Repositories |
 | État UI temporaire | **React state / reducer / Context** | Suffisant au MVP ; évite une dépendance globale prématurée |
 | Moteur d’exécution | **Module TypeScript indépendant de React** | Fiabilité, testabilité et indépendance de l’interface |
 | Notifications | **`expo-notifications`** | Notifications locales cross-platform sans backend |
@@ -621,17 +621,11 @@ Il fournit :
 
 Les fichiers JSON ou un stockage de type préférences ne constituent pas un stockage métier principal adapté au modèle.
 
-### Drizzle ORM
+### Accès direct à `expo-sqlite`
 
-Drizzle ORM est retenu sous réserve de validation de compatibilité stable avec la version Expo utilisée au démarrage du développement.
+RT-002 a conclu que la combinaison Drizzle ORM / Expo n’était pas suffisamment stable. Le MVP utilise donc directement `expo-sqlite`, sans ORM. La couche Repository demeure la seule frontière d’accès à la persistance : elle protège le domaine d’une dépendance à SQLite et permet une évolution ultérieure de la source de données sans modifier les contrats métier.
 
-Son intérêt principal est de :
-- définir le schéma en TypeScript ;
-- disposer de requêtes typées ;
-- gérer les migrations ;
-- faciliter la correspondance entre le chapitre 09 et le schéma technique.
-
-La couche Repository protège néanmoins l’application contre une dépendance forte à cet ORM. En cas de difficulté de compatibilité, `expo-sqlite` peut être utilisé directement sans remettre en cause l’architecture métier.
+Le schéma, les requêtes, les transactions et les migrations sont définis et testés dans la couche de persistance. La décision historique d’évaluer puis d’écarter Drizzle est conservée dans D-043 et RT-002 ; elle ne constitue plus un choix ouvert.
 
 ### Gestion d’état
 
@@ -1091,14 +1085,9 @@ Ce point constitue le principal risque technique identifié du MVP et une condit
 
 ### RT-002 — Drizzle ORM / Expo
 
-Avant de figer la couche de persistance, la compatibilité entre :
-- la version stable d’Expo retenue ;
-- `expo-sqlite` ;
-- la version stable de Drizzle ORM ;
+**Statut : réalisé et clôturé en T01-S01.**
 
-doit être vérifiée.
-
-Si cette combinaison n’est pas suffisamment stable, le projet conserve SQLite et les Repositories mais utilise directement `expo-sqlite`.
+Le spike a évalué la compatibilité entre la version stable d’Expo retenue, `expo-sqlite` et Drizzle ORM. La combinaison Drizzle ORM / Expo a été jugée insuffisamment stable. Le repli prévu a été appliqué : SQLite et les Repositories sont conservés, avec accès direct à `expo-sqlite` et sans Drizzle ORM. Cette conclusion est normative et enregistrée par D-043.
 
 ### RT-003 — Comportement audio réel
 
