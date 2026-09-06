@@ -140,9 +140,14 @@ jobs:
           head -c 500000 /tmp/kodjo-slice-plan/evidence.txt >> /tmp/kodjo-slice-plan/prompt.txt
           printf '\nCODE EVIDENCE:\n' >> /tmp/kodjo-slice-plan/prompt.txt
           head -c 200000 /tmp/kodjo-slice-plan/code-evidence.txt >> /tmp/kodjo-slice-plan/prompt.txt
-          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-slice-plan/prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"medium"}}' > /tmp/kodjo-slice-plan/request.json
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-slice-plan/prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-slice-plan/request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-slice-plan/request.json -o /tmp/kodjo-slice-plan/response.json
-          test "$(jq -r '.status // empty' /tmp/kodjo-slice-plan/response.json)" = completed
+          RESPONSE_STATUS=$(jq -r '.status // "missing"' /tmp/kodjo-slice-plan/response.json)
+          if [ "$RESPONSE_STATUS" != completed ]; then
+            DETAILS=$(jq -c '{status:(.status // "missing"),incomplete_details:(.incomplete_details // null),error:(.error // null),usage:(.usage // null)}' /tmp/kodjo-slice-plan/response.json)
+            echo "OpenAI plan response incomplete: $DETAILS" >&2
+            exit 1
+          fi
           jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-slice-plan/response.json > /tmp/kodjo-slice-plan/plan.md
           test -s /tmp/kodjo-slice-plan/plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
