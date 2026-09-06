@@ -117,7 +117,26 @@ jobs:
           $rp=Join-Path $env:RUNNER_TEMP 'dev-result.txt'; [IO.File]::WriteAllText($rp,$resultText,(New-Object Text.UTF8Encoding($false))); "session=$($p.session_id)" >> $env:GITHUB_OUTPUT; "result=$rp" >> $env:GITHUB_OUTPUT
       - name: Enforce scope and deterministic checks
         run: |
-          $ErrorActionPreference='Stop'; $changed=@(git -c core.quotepath=false status --porcelain --untracked-files=all|ForEach-Object{$_.Substring(3).Trim()}); if($changed.Count -eq 0){throw 'No changes'}
+          $ErrorActionPreference='Stop'
+          function Get-GitRawPaths {
+            param([string]$Arguments)
+            $psi=New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName='git.exe'
+            $psi.Arguments=$Arguments
+            $psi.UseShellExecute=$false
+            $psi.RedirectStandardOutput=$true
+            $process=New-Object System.Diagnostics.Process
+            $process.StartInfo=$psi
+            [void]$process.Start()
+            $output=$process.StandardOutput.ReadToEnd()
+            $process.WaitForExit()
+            if($process.ExitCode -ne 0){throw "git $Arguments failed"}
+            return @($output -split "`0"|Where-Object{$_ -ne ''})
+          }
+          $tracked=@(Get-GitRawPaths 'diff --name-only -z HEAD')
+          $untracked=@(Get-GitRawPaths 'ls-files --others --exclude-standard -z')
+          $changed=@($tracked+$untracked|Sort-Object -Unique)
+          if($changed.Count -eq 0){throw 'No changes'}
           $applicationChanged=$false
           foreach($p in $changed){$n=$p-replace '\\','/'; if($n -eq 'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}; if($n.StartsWith('app/') -or $n.StartsWith('src/')){$applicationChanged=$true; continue}; if($n.StartsWith('docs/')){continue}; if($n.StartsWith('.github/orchestration/reports/') -and $n.EndsWith('.md')){continue}; throw "Unauthorized path: $n"}
           if(-not $applicationChanged){throw 'No application changes: report-only or documentation-only output cannot be published'}
