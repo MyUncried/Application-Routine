@@ -1,17 +1,17 @@
 schema: kodjo.slice.v1
 slice_id: T01-S10
 title: Réouverture et modification d'une séance existante
-status: WAITING_FOR_PREVIOUS_SLICE
+status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
-issue_number: null
+issue_number: 42
 target_branch: feat/creation-seance-catalogue
-baseline_head: null
+baseline_head: a4b194ce6f98fc3a1d82ab791a67aca777c40453
 
 previous_slice:
   slice_id: T01-S09
   issue_number: 17
   required_status: DONE
-  final_head: null
+  final_head: a4b194ce6f98fc3a1d82ab791a67aca777c40453
 
 sources:
   - docs/PRODUCT.md
@@ -27,7 +27,7 @@ sources:
   - Figma
 
 scope:
-  objective: À préciser depuis les sources actuelles après clôture de S09.
+  objective: Réouvrir une séance existante, hydrater intégralement son brouillon, permettre sa modification et enregistrer atomiquement les changements sans perte.
   in_scope:
     - Réouverture d'une séance existante.
     - Modification conforme aux contrats fonctionnels et visuels actuels.
@@ -36,7 +36,12 @@ scope:
     - Tout développement avant approbation du plan S10.
     - Toute anticipation non documentée des tranches suivantes.
   acceptance_criteria:
-    - À construire en lecture seule depuis l'Issue S10, le HEAD final S09 et les sources autoritatives.
+    - Le plan est construit en lecture seule depuis l'Issue 42, le HEAD final S09 et les sources autoritatives.
+    - Une séance existante peut être ouverte depuis le catalogue avec toutes ses données persistées et leur ordre.
+    - L'enregistrement d'une modification est atomique et ne perd aucune donnée héritée de S01 à S09.
+    - Un changement de couleur est propagé à la bande gauche et au texte des catégories du catalogue.
+    - Jest complet, TypeScript et les tests ciblés sont exigés avant toute livraison.
+    - Aucun développement ne commence avant revue indépendante et approbation utilisateur du plan.
 
 gates:
   plan_user_approval: false
