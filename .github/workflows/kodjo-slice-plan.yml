@@ -193,8 +193,16 @@ jobs:
           MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
           BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
         run: |
           set -euo pipefail
+          : "${PLAN_MODE:?PLAN_MODE missing}"
+          if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+            : "${SUPERSEDES_PLAN_ID:?SUPERSEDES_PLAN_ID missing}"
+            : "${SCOPE_CORRECTION_ID:?SCOPE_CORRECTION_ID missing}"
+          fi
           {
             echo '[KODJO_SLICE] PLAN_OUTPUT'
             echo "slice_id=$SLICE_ID"
