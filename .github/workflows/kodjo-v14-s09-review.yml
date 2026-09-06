@@ -77,7 +77,7 @@ jobs:
           $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}; Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
 
   implementation-openai-review:
-    if: github.event.issue.number == 17 && github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_S09_IMPLEMENTATION_OUTPUT]')
+    if: github.event.issue.number == 17 && (github.event.comment.user.login == 'github-actions[bot]' || github.event.comment.user.login == 'MyUncried') && contains(github.event.comment.body, '[KODJO_S09_IMPLEMENTATION_OUTPUT]')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
