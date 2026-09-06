@@ -16,7 +16,7 @@ env:
 
 jobs:
   implement:
-    if: github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION'))
+    if: github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT'))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
@@ -28,17 +28,40 @@ jobs:
       run:
         shell: powershell
     steps:
+      - name: Resolve durable source ref
+        id: source
+        run: |
+          $ErrorActionPreference='Stop'
+          $correct=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] CORRECT')
+          if($correct){
+            $bm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_branch=([^\r\n]+)\s*$')
+            $hm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_head=([0-9a-f]{40})\s*$')
+            if(-not $bm.Success -or -not $hm.Success){throw 'Durable correction source metadata missing'}
+            $branch=$bm.Groups[1].Value.Trim(); $head=$hm.Groups[1].Value
+            if($branch -notmatch '^(feat/creation-seance-catalogue|recovery/t01-s09-[A-Za-z0-9._/-]+)$'){throw 'Unauthorized correction source branch'}
+          } else {
+            $branch=$env:TARGET_BRANCH; $head=''
+          }
+          "branch=$branch" >> $env:GITHUB_OUTPUT
+          "expected_head=$head" >> $env:GITHUB_OUTPUT
       - uses: actions/checkout@v6
-        with: {ref: '${{ env.TARGET_BRANCH }}', fetch-depth: 0, persist-credentials: true}
+        with:
+          ref: '${{ steps.source.outputs.branch }}'
+          fetch-depth: 0
+          persist-credentials: true
       - name: Resolve approved plan and DEV authorization
         id: gate
+        env:
+          SOURCE_BRANCH: ${{ steps.source.outputs.branch }}
+          EXPECTED_SOURCE_HEAD: ${{ steps.source.outputs.expected_head }}
         run: |
           $ErrorActionPreference='Stop'
           if('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME){throw 'Unexpected runner'}
           if($env:GITHUB_REPOSITORY -ne 'MyUncried/Application-Routine'){throw 'Unexpected repository'}
-          if((git branch --show-current).Trim() -ne $env:TARGET_BRANCH){throw 'Unexpected branch'}
+          if((git branch --show-current).Trim() -ne $env:SOURCE_BRANCH){throw 'Unexpected source branch'}
           if(-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty worktree'}
           $head=(git rev-parse HEAD).Trim(); $claude=Get-Command claude.cmd -ErrorAction Stop
+          if(-not [string]::IsNullOrWhiteSpace($env:EXPECTED_SOURCE_HEAD) -and $head -ne $env:EXPECTED_SOURCE_HEAD){throw 'Durable source HEAD mismatch'}
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json; if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
           $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}
           $gate=Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_GATE_COMMENT_ID" -Headers $headers
@@ -46,9 +69,19 @@ jobs:
           $gm=[regex]::Match([string]$gate.body,'(?m)^source_plan_comment_id=(\d+)\s*$'); if(-not$gm.Success){throw 'Plan id missing'}; $planId=$gm.Groups[1].Value
           $gh=[regex]::Match([string]$gate.body,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$gh.Success){throw 'Plan head missing'}; $planHead=$gh.Groups[1].Value
           $plan=(Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" -Headers $headers).body; if($plan -notmatch 'plan_builder=OPENAI'){throw 'Approved plan is not OpenAI-built'}
-          $initial=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] PLAN_APPROVED'); $visual=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] VISUAL_CORRECTION')
-          if($initial){if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'PLAN_APPROVED must be user-authored'}; if($head -ne $planHead){throw 'HEAD changed since plan'}; $attempt=1; $session=''; $mode='INITIAL'}
-          else{$am=[regex]::Match($env:TRIGGER_BODY,'(?m)^attempt=(\d+)\s*$'); $sm=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$'); $hm=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_head=([0-9a-f]{40})\s*$'); if(-not$am.Success -or -not$sm.Success -or -not$hm.Success){throw 'Correction metadata missing'}; if($head -ne $hm.Groups[1].Value){throw 'Correction HEAD mismatch'}; $attempt=[int]$am.Groups[1].Value; $session=$sm.Groups[1].Value; if($session -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session forbidden'}; if($visual -and $env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'VISUAL_CORRECTION must be user-authored'}; $mode=if($visual){'VISUAL'}else{'REVISION'}}
+          $initial=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] PLAN_APPROVED'); $visual=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] VISUAL_CORRECTION'); $correct=$env:TRIGGER_BODY.Contains('[KODJO_V14_S09] CORRECT')
+          if($initial){
+            if($env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'PLAN_APPROVED must be user-authored'}
+            if($head -ne $planHead){throw 'HEAD changed since plan'}
+            $attempt=1; $session=''; $mode='INITIAL'
+          } else {
+            $am=[regex]::Match($env:TRIGGER_BODY,'(?m)^attempt=(\d+)\s*$'); $sm=[regex]::Match($env:TRIGGER_BODY,'(?m)^session_id=([0-9a-f-]{36})\s*$')
+            if(-not$am.Success -or -not$sm.Success){throw 'Correction metadata missing'}
+            $attempt=[int]$am.Groups[1].Value; $session=$sm.Groups[1].Value
+            if($session -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session forbidden'}
+            if(($visual -or $correct) -and $env:TRIGGER_AUTHOR -ne 'MyUncried'){throw 'Correction must be user-authored'}
+            $mode=if($correct){'CORRECT'}elseif($visual){'VISUAL'}else{'REVISION'}
+          }
           $pp=Join-Path $env:RUNNER_TEMP 'approved-plan.txt'; [IO.File]::WriteAllText($pp,[string]$plan,(New-Object Text.UTF8Encoding($false)))
           "head=$head" >> $env:GITHUB_OUTPUT; "claude=$($claude.Source)" >> $env:GITHUB_OUTPUT; "attempt=$attempt" >> $env:GITHUB_OUTPUT; "session=$session" >> $env:GITHUB_OUTPUT; "mode=$mode" >> $env:GITHUB_OUTPUT; "plan_id=$planId" >> $env:GITHUB_OUTPUT; "plan_path=$pp" >> $env:GITHUB_OUTPUT
       - name: Provision Node dependencies
@@ -68,12 +101,17 @@ jobs:
           PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
         run: |
           $ErrorActionPreference='Stop'; $plan=Get-Content $env:PLAN_PATH -Raw -Encoding UTF8
-          if($env:MODE -eq 'INITIAL'){$prompt="KODJO V1.4 DEV-S09. Démarre une NOUVELLE session opérationnelle dédiée à S09. Sources actuelles > mémoire agent. Baseline $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Implémente uniquement le plan approuvé ci-dessous. Ne modifie aucun workflow/.github/CLAUDE.md. migration001.ts immuable; migration additive seulement. Préserve T01-S01..S08. Exécute tests ciblés. Ne committe/pousse pas. Signale seulement vraie décision produit indéterminable.`n`nPLAN APPROUVÉ:`n$plan"; $args=@('-p','--permission-mode','acceptEdits','--output-format','json')}
-          else{$marker=if($env:MODE -eq 'VISUAL'){'VISUAL_FEEDBACK:'}else{'REVIEW_FEEDBACK:'}; $i=$env:TRIGGER_BODY.IndexOf($marker); if($i -lt 0){throw 'Feedback missing'}; $feedback=$env:TRIGGER_BODY.Substring($i+$marker.Length).Trim(); if([string]::IsNullOrWhiteSpace($feedback)){throw 'Feedback empty'}; $prompt="KODJO V1.4 DEV-S09 correction $env:MODE tentative $env:ATTEMPT. Continue exclusivement la session DEV-S09 $env:SESSION. IMPORTANT ETAT DE REPRISE : le runner vient d'effectuer un checkout propre de $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Toute modification non committee d'un run precedent a pu etre supprimee et NE DOIT PAS etre supposee presente parce que tu t'en souviens dans la session. Les fichiers actuellement sur disque et git status/git diff sont l'unique verite sur l'etat materiel. Relis donc les fichiers cibles dans le checkout actuel, revalide le plan et les sources, puis reapplique physiquement TOUTES les corrections du feedback qui ne sont pas deja presentes. Avant de conclure, execute git status --short et git diff --stat : si le worktree reste propre alors que le feedback exige des corrections, reouvre les fichiers concernes et reapplique les changements au lieu de conclure sur la base de ta memoire du run precedent. Exécute les tests cibles. Ne committe/pousse pas.`n`nFEEDBACK COMPLET:`n$feedback"; $args=@('-p','--resume',$env:SESSION,'--permission-mode','acceptEdits','--output-format','json')}
+          if($env:MODE -eq 'INITIAL'){
+            $prompt="KODJO V1.4 DEV-S09. Démarre une NOUVELLE session opérationnelle dédiée à S09. Sources actuelles > mémoire agent. Baseline $env:TARGET_BRANCH @ $env:SOURCE_HEAD. Implémente uniquement le plan approuvé ci-dessous. Ne modifie aucun workflow/.github/CLAUDE.md. migration001.ts immuable; migration additive seulement. Préserve T01-S01..S08. Exécute tests ciblés. Ne committe/pousse pas. Signale seulement vraie décision produit indéterminable.`n`nPLAN APPROUVÉ:`n$plan"; $args=@('-p','--permission-mode','acceptEdits','--output-format','json')
+          } else {
+            $marker=if($env:MODE -eq 'VISUAL'){'VISUAL_FEEDBACK:'}elseif($env:MODE -eq 'CORRECT'){'CORRECTION_FEEDBACK:'}else{'REVIEW_FEEDBACK:'}
+            $i=$env:TRIGGER_BODY.IndexOf($marker); if($i -lt 0){throw 'Feedback missing'}; $feedback=$env:TRIGGER_BODY.Substring($i+$marker.Length).Trim(); if([string]::IsNullOrWhiteSpace($feedback)){throw 'Feedback empty'}
+            $prompt="KODJO V1.4 DEV-S09 correction $env:MODE tentative $env:ATTEMPT. Continue exclusivement la session DEV-S09 $env:SESSION. SOURCE DE VERITE ABSOLUE : le checkout Git courant @ $env:SOURCE_HEAD. La mémoire de session apporte le contexte mais ne prouve jamais l'état du code. Relis les fichiers et les tests actuels. Pour cette correction, analyse chaque échec Jest : distingue test historique devenu obsolète d'une régression réelle. Mets à jour un test seulement si le comportement attendu a été explicitement remplacé par S09/les décisions approuvées ; sinon corrige le code. Préserve S01-S08 hors décisions explicitement supersédées. Exécute les tests ciblés. Ne committe/pousse pas.`n`nPLAN APPROUVÉ:`n$plan`n`nFEEDBACK COMPLET:`n$feedback"; $args=@('-p','--resume',$env:SESSION,'--permission-mode','acceptEdits','--output-format','json')
+          }
           $promptPath=Join-Path $env:RUNNER_TEMP 'claude-prompt.txt'; [IO.File]::WriteAllText($promptPath,$prompt,(New-Object Text.UTF8Encoding($false)))
           $out=Join-Path $env:RUNNER_TEMP 'dev-out.txt'; $err=Join-Path $env:RUNNER_TEMP 'dev-err.txt'; $old=$ErrorActionPreference; $ErrorActionPreference='Continue'; Get-Content $promptPath -Raw -Encoding UTF8 | & $env:CLAUDE_PATH @args 1> $out 2> $err; $exit=$LASTEXITCODE; $ErrorActionPreference=$old
           $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}; $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
-          if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.session_id) -or [string]::IsNullOrWhiteSpace([string]$p.result)){throw "Claude DEV technical failure: $stderr"}
+          if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.session_id) -or [string]::IsNullOrWhiteSpace([string]$p.result){throw "Claude DEV technical failure: $stderr"}
           if($p.session_id -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session reused'}; if($env:MODE -ne 'INITIAL' -and $p.session_id -ne $env:SESSION){throw 'DEV-S09 session continuity mismatch'}; if([string]$p.result -match 'session limit|rate limit'){throw 'Claude usage limit reached'}
           $resultText=[string]$p.result; if($resultText -match '(?i)ORCHESTRATION_FAILURE|CLARIFICATION_REQUIRED|state\s*=\s*ORCHESTRATION_FAILURE|waiting_for='){throw 'Claude reported blocking state; implementation cannot be published'}
           $rp=Join-Path $env:RUNNER_TEMP 'dev-result.txt'; [IO.File]::WriteAllText($rp,$resultText,(New-Object Text.UTF8Encoding($false))); "session=$($p.session_id)" >> $env:GITHUB_OUTPUT; "result=$rp" >> $env:GITHUB_OUTPUT
@@ -92,5 +130,15 @@ jobs:
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
           RESULT: ${{ steps.claude.outputs.result }}
         run: |
-          $ErrorActionPreference='Stop'; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'; git add -- app src docs .github/orchestration/reports; git commit -m "feat: implement T01-S09 attempt $env:ATTEMPT"; if($LASTEXITCODE -ne 0){throw 'Commit failed'}; $new=(git rev-parse HEAD).Trim(); git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Push failed'}
-          $summary=Get-Content $env:RESULT -Raw -Encoding UTF8; $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$new`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`nplan_comment_id=$env:PLAN_ID`ncontinuity_origin=DEV_S09_DEDICATED_SESSION`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`n$summary"; $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}; Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
+          $ErrorActionPreference='Stop'
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: implement T01-S09 attempt $env:ATTEMPT"; if($LASTEXITCODE -ne 0){throw 'Commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          git fetch origin $env:TARGET_BRANCH
+          $target=(git rev-parse "origin/$env:TARGET_BRANCH").Trim()
+          git merge-base --is-ancestor $target $new; if($LASTEXITCODE -ne 0){throw 'Candidate is not a fast-forward of target branch; promotion refused'}
+          git push origin "HEAD:$env:TARGET_BRANCH"; if($LASTEXITCODE -ne 0){throw 'Push failed'}
+          $summary=Get-Content $env:RESULT -Raw -Encoding UTF8
+          $body="[KODJO_S09_IMPLEMENTATION_OUTPUT]`nbase_head=$env:SOURCE_HEAD`nhead=$new`nsession_id=$env:SESSION_ID`nattempt=$env:ATTEMPT`nplan_comment_id=$env:PLAN_ID`ncontinuity_origin=DEV_S09_DEDICATED_SESSION`nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW`n`n$summary"
+          $h=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'}; Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/17/comments" -Headers $h -ContentType 'application/json; charset=utf-8' -Body (@{body=$body}|ConvertTo-Json) | Out-Null
