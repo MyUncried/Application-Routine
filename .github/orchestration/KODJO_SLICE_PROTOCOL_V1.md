@@ -49,6 +49,23 @@ Une tranche crée une session REVIEW et une session DEV distinctes. Les correcti
 
 Les limites d'usage, erreurs API, sorties invalides et erreurs de transport restent des états techniques ; elles ne deviennent jamais un verdict fonctionnel.
 
+## Budget Claude Code — règles normatives et permanentes
+
+La sécurité du protocole ne justifie jamais de retransmettre à Claude un contexte qu'une session conservée possède déjà. Ces règles s'appliquent à toutes les tranches et ne peuvent être contournées silencieusement.
+
+1. **Contexte complet une seule fois.** Le plan approuvé, sa revue, les sources documentaires et les instructions structurelles complètes ne sont transmis que lors de la création de la session Claude concernée.
+2. **Reprise strictement différentielle.** Tout appel `--resume` transmet uniquement : `slice_id`, `session_id`, HEAD exact, identifiants causaux et nouvelle instruction ou nouveau feedback. Il est interdit d'y recopier le plan, la revue, les décisions, les rapports ou les documents déjà présents dans la session.
+3. **Session obligatoire.** Une correction ou une continuation reprend la session existante de son activité. Aucun fallback vers une nouvelle session n'est autorisé. Si la session est indisponible, le protocole s'arrête et demande une décision explicite.
+4. **Sources à la demande.** Lors d'une reprise, Claude ne relit que les fichiers nommément nécessaires au delta. Il ne reconstruit pas l'ensemble du dépôt, de la documentation ou de l'historique.
+5. **Sortie différentielle.** Claude rapporte uniquement les changements, contrôles et nouveaux blocages du tour courant ; il ne répète pas les analyses et preuves déjà publiées.
+6. **Un appel par transition.** Aucun retry Claude automatique, aucun appel parallèle et aucun second appel pour reformuler une sortie exploitable. Les erreurs de transport utilisent les artefacts conservés.
+7. **Limite d'usage.** Un état `USAGE_LIMIT` arrête immédiatement la chaîne. Il n'entraîne aucun retry avant l'heure de réinitialisation annoncée et ne crée jamais une nouvelle session.
+8. **Découpage justifié.** Le fractionnement d'une implémentation doit répondre à une dépendance technique ou à un gate démontré ; il ne doit pas multiplier les appels Claude par commodité.
+9. **Garde-fou exécutable.** Les workflows de reprise doivent refuser un prompt contenant les marqueurs de paquet complet (`APPROVED PLAN:`, `INDEPENDENT REVIEW:` ou équivalent).
+10. **Traçabilité de consommation.** Chaque artefact de diagnostic conserve le mode `INITIAL` ou `RESUME_DELTA`, la session, le HEAD et la longueur du prompt, sans enregistrer de secret.
+
+OpenAI PLAN, les revues OpenAI, GitHub Actions, Git, Jest et TypeScript ne consomment pas le crédit Claude Code. Ils ne doivent pas être déplacés dans un appel Claude lorsqu'ils peuvent rester déterministes ou être exécutés séparément.
+
 ## Activation de T01-S10
 
 Le manifeste T01-S10 reste `WAITING_FOR_PREVIOUS_SLICE` tant que S09 n'a pas publié son checkpoint final. Après clôture de S09 seulement :
