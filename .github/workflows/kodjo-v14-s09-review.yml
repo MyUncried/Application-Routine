@@ -96,16 +96,6 @@ jobs:
             local reason="$1"
             printf '%s\n' '[KODJO_S09_ORCHESTRATION_FAILURE]' 'kind=IMPLEMENTATION_REVIEW' "source_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" 'STATUT : ORCHESTRATION_FAILURE' '' "$reason" > /tmp/out.md
             gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/out.md
-      - name: Preserve OpenAI review transport evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: s09-implementation-review-${{ github.run_id }}
-          path: |
-            /tmp/response.json
-            /tmp/review.json
-          if-no-files-found: warn
-          retention-days: 7
             exit 1
           }
           HEAD_SHA=$(git rev-parse HEAD); EXPECTED=$(printf '%s' "$SOURCE_BODY"|sed -n 's/^head=//p'|head -n1); test "$HEAD_SHA" = "$EXPECTED"
@@ -134,3 +124,13 @@ jobs:
           elif [ "$D" = REVISE ] && [ "$ATTEMPT" -lt 3 ]; then NEXT=$((ATTEMPT+1)); printf '%s\n' '[KODJO_V14_S09] IMPLEMENTATION_REVISION' "attempt=$NEXT" "session_id=$SESSION" "source_head=$HEAD_SHA" 'REVIEW_FEEDBACK:' "$F" > /tmp/out.md
           else printf '%s\n' '[KODJO_S09_CLARIFICATION_REQUIRED]' 'kind=IMPLEMENTATION' "source_comment_id=$SOURCE_COMMENT_ID" "head=$HEAD_SHA" "session_id=$SESSION" "attempt=$ATTEMPT" 'STATUT : CLARIFICATION_REQUIRED' '' "$S" '' 'Feedback:' "$F" > /tmp/out.md; fi
           gh issue comment 17 --repo "${{ github.repository }}" --body-file /tmp/out.md
+      - name: Preserve OpenAI review transport evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s09-implementation-review-${{ github.run_id }}
+          path: |
+            /tmp/response.json
+            /tmp/review.json
+          if-no-files-found: warn
+          retention-days: 7
