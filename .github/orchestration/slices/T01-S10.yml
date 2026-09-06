@@ -1,7 +1,7 @@
 schema: kodjo.slice.v1
 slice_id: T01-S10
 title: Modification bout en bout d’une séance et alignements MVP Catalogue/Activité
-status: IMPLEMENTING
+status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 42
 target_branch: feat/creation-seance-catalogue
@@ -61,7 +61,8 @@ scope:
     - Boutons de filtre/tri absents de Figma.
     - Suppression ou renommage d’une Catégorie personnalisée.
     - Suppression, archivage ou duplication d’une Séance au titre de S10.
-    - Moteur ou domaine d’Exécution, écrans/routes d’Exécution, tables d’Exécution/Instantanés/Résultats et adaptateurs natifs d’Exécution.\n    - Planification, nouveaux écrans de suivi et fonctionnalités S11 ou ultérieures.
+    - Moteur ou domaine d’Exécution, écrans/routes d’Exécution, tables d’Exécution/Instantanés/Résultats et adaptateurs natifs d’Exécution.
+    - Planification, nouveaux écrans de suivi et fonctionnalités S11 ou ultérieures.
     - Modification destructive de migration001.ts.
   acceptance_criteria:
     - "AC-01: la bonne Séance est ouverte par identifiant sans création ni brouillon étranger."
