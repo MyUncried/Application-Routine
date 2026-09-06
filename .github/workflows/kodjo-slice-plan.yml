@@ -83,12 +83,12 @@ jobs:
             printf '%s' "$SCOPE_CORRECTION_ID" | grep -Eq '^[0-9]+$'
             old_plan=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID" --jq '.body')
             scope_correction=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID" --jq '.body')
-            printf '%s\n' "$old_plan" | grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT'
-            printf '%s\n' "$old_plan" | grep -Fxq "slice_id=$SLICE_ID"
-            printf '%s\n' "$scope_correction" | grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION'
-            printf '%s\n' "$scope_correction" | grep -Fxq "slice_id=$SLICE_ID"
-            printf '%s\n' "$scope_correction" | grep -Fxq "source_head=$baseline_head"
-            printf '%s\n' "$scope_correction" | grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID"
+            grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT' <<< "$old_plan"
+            grep -Fxq "slice_id=$SLICE_ID" <<< "$old_plan"
+            grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION' <<< "$scope_correction"
+            grep -Fxq "slice_id=$SLICE_ID" <<< "$scope_correction"
+            grep -Fxq "source_head=$baseline_head" <<< "$scope_correction"
+            grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID" <<< "$scope_correction"
             implementation_count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '.[] | select(.body | contains("[KODJO_SLICE] IMPLEMENTATION_OUTPUT")) | select(.body | contains("head='"$baseline_head"'")) | .id' | wc -l | tr -d ' ')
             test "$implementation_count" = 1
           else
