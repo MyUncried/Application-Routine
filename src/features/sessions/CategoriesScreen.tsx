@@ -444,7 +444,11 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.dialogNeutralActionText,
   },
-  // `Ajouter` conserve la couleur d'action principale.
+  // `Ajouter` conserve la couleur d'action principale (`colors.primary`,
+  // bleu DSF) — reconfirmé explicitement par la correction VISUAL, 2e
+  // contre-recette (T01-S09, point C, commentaire de revue 5551083690) :
+  // déjà conforme, aucune modification de code nécessaire ici, seule la
+  // couverture de test dédiée (`CategoriesScreen.test.tsx`) était manquante.
   newCategoryAddAction: {
     height: NEW_CATEGORY_BUTTON_HEIGHT,
     borderRadius: NEW_CATEGORY_BUTTON_HEIGHT / 2,
