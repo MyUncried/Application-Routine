@@ -1,7 +1,7 @@
 schema: kodjo.slice.v1
 slice_id: T01-S10
-title: À spécifier par ChatGPT Développement
-status: AWAITING_SLICE_SPEC
+title: Réouverture et modification bout en bout d’une séance
+status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 42
 target_branch: feat/creation-seance-catalogue
@@ -27,10 +27,43 @@ sources:
   - Figma
 
 scope:
-  objective: À définir par ChatGPT Développement avec l'utilisateur.
-  in_scope: []
-  out_of_scope: []
-  acceptance_criteria: []
+  objective: >-
+    Rouvrir depuis le Catalogue une Séance persistée, réhydrater intégralement son
+    agrégat dans un brouillon local, modifier ses propriétés, son Activité et ses
+    Catégories, puis mettre à jour atomiquement la même Séance et revenir au
+    Catalogue rechargé, sans duplication ni perte de données.
+  in_scope:
+    - Ouverture en modification par identifiant persistant depuis le Catalogue.
+    - Réhydratation complète et sans écriture de l’agrégat existant.
+    - Modification locale des propriétés générales avec les composants T01 existants.
+    - Modification et remplacement de l’Activité existante sans duplication.
+    - Modification des associations de Catégories selon les règles S09.
+    - Abandon protégé du brouillon modifié avec le Decision Dialog existant.
+    - Mise à jour atomique de la Séance d’origine et rollback total en cas d’échec.
+    - Rechargement du Catalogue et réouverture fidèle après succès.
+    - Propagation de la couleur modifiée à la bande gauche et aux textes de Catégories de la carte existante.
+    - Gestion du chargement, des erreurs, du retry et du double appui.
+  out_of_scope:
+    - Suppression ou renommage d’une Catégorie personnalisée, réservées au MVP bis.
+    - Suppression, archivage ou duplication d’une Séance.
+    - Nouvelles structures ou frames Figma.
+    - Plusieurs Exercices ou types d’Activité non pris en charge par T01.
+    - Planification, exécution, suivi et fonctionnalités S11 ou ultérieures.
+    - Modification destructive de migration001.ts.
+    - Nouvelle règle de tri du Catalogue.
+  acceptance_criteria:
+    - "AC-01: la bonne Séance est ouverte par son identifiant sans création ni brouillon étranger."
+    - "AC-02: le brouillon initial restitue exactement l’agrégat persistant complet, sans valeur fictive ni écriture."
+    - "AC-03: les propriétés générales se modifient localement avec les contrôles et validations T01 existants."
+    - "AC-04: l’Activité modifiée conserve son identifiant, sa position et son conteneur, sans duplication."
+    - "AC-05: les Catégories respectent présélection, multisélection, zéro valeur, création locale, normalisation et limite 40."
+    - "AC-06: l’abandon ne s’affiche que pour un brouillon sale et ses actions sont non destructives pour le persistant."
+    - "AC-07: la sauvegarde met à jour l’identifiant d’origine dans une transaction unique, sans état partiel ni Catégorie orpheline."
+    - "AC-08: double appui, succès, échec, retry, reset et navigation respectent les contrats S10."
+    - "AC-09: le Catalogue recharge une carte unique avec toutes les valeurs calculées et persistées actualisées."
+    - "AC-10: une couleur modifiée actualise la bande gauche et le texte des Catégories, y compris pour une Séance historique et après rechargement."
+    - "AC-11: la réouverture restitue exactement la dernière version sauvegardée."
+    - "AC-12: tests Domaine, SQLite, Service, UI et navigation, Jest complet, TypeScript et contrôle de périmètre passent sans régression S01-S09 ni développement S11."
 
 gates:
   plan_user_approval: false
