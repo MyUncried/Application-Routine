@@ -5,7 +5,7 @@ status: IMPLEMENTING
 repository: MyUncried/Application-Routine
 issue_number: 42
 target_branch: feat/creation-seance-catalogue
-baseline_head: 65c80055bca840c2062dcb36625c92916b0eb861
+baseline_head: d59df7c4dea452d0e611940646466845cf3dfe5f
 application_baseline_head: a4b194ce6f98fc3a1d82ab791a67aca777c40453
 documentation_reference_message: "docs: resolve independent review findings C1-C9"
 
@@ -50,7 +50,7 @@ scope:
     - Nom de l’Activité en tête de zone bleue, sans contexte Séance.
     - Bouton + Ajouter un média visible mais désactivé et section Médias absente du MVP.
     - Trois modes Durée / Répétitions / À l’échec de même largeur.
-    - Mode À l’échec fonctionnel avec Suivant, synthèses, durée minimale, progression et résultats.
+    - Mode À l’échec comme variante de configuration d’Exercice : aucune cible, Séries/Pause conservées, synthèses, durée minimale ≥ et sémantique future Suivant identique à Répétitions.
     - Récupération toujours chronométrée.
     - Overlay centré et voile DSF sur toutes les roulettes ouvertes.
     - Types, enums, validations, mapping, persistance, migration additive et tests nécessaires.
@@ -61,7 +61,7 @@ scope:
     - Boutons de filtre/tri absents de Figma.
     - Suppression ou renommage d’une Catégorie personnalisée.
     - Suppression, archivage ou duplication d’une Séance au titre de S10.
-    - Planification, nouveaux écrans de suivi et fonctionnalités S11 ou ultérieures.
+    - Moteur ou domaine d’Exécution, écrans/routes d’Exécution, tables d’Exécution/Instantanés/Résultats et adaptateurs natifs d’Exécution.\n    - Planification, nouveaux écrans de suivi et fonctionnalités S11 ou ultérieures.
     - Modification destructive de migration001.ts.
   acceptance_criteria:
     - "AC-01: la bonne Séance est ouverte par identifiant sans création ni brouillon étranger."
@@ -80,9 +80,9 @@ scope:
     - "AC-14: le tri par défaut reste updatedAt DESC et aucune UI de filtre/tri n’est inventée."
     - "AC-15: le nom ouvre la zone bleue Activité, sans contexte Séance, avec bouton média désactivé et sans section Médias."
     - "AC-16: Durée / Répétitions / À l’échec sont trois options égales; Récupération reste chronométrée."
-    - "AC-17: À l’échec masque les cibles, utilise Suivant et met à jour durée minimale, progression et résultats."
+    - "AC-17: À l’échec masque les cibles, conserve Séries/Pause, produit les synthèses et la borne minimale ≥ ; sa sémantique future indique que Suivant terminera chaque Série comme pour Répétitions, sans développer le runtime S10."
     - "AC-18: les synthèses complète et compacte suivent exactement les patrons et masquent la pause sans intervalle."
-    - "AC-19: TO_FAILURE traverse toutes les couches avec migration additive, migration001.ts immuable et compatibilité historique."
+    - "AC-19: TO_FAILURE traverse les couches de configuration existantes — brouillon, domaine Séance, validation, repository, SQLite et réhydratation — avec migration additive, migration001.ts immuable et compatibilité historique ; aucune couche Exécution nouvelle."
     - "AC-20: toute roulette ouverte utilise l’overlay centré et le voile DSF bloquant."
     - "AC-21: tests ciblés et complets, Jest, TypeScript et contrôle de périmètre passent."
     - "AC-22: aucune fonctionnalité Activités/Circuits, média V2 ou S11 n’est développée."
@@ -95,4 +95,4 @@ gates:
 
 sessions:
   review: 0af6b50c-85e8-4cfc-9b34-cc5d7f71f53f
-  development: null
+  development: 49cfaec6-2523-47a9-9910-b1c275873e29
