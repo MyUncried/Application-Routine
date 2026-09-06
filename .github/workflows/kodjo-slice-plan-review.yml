@@ -126,7 +126,7 @@ jobs:
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
           $nl=[Environment]::NewLine
           $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
-          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-plan-review-comment.md",$header+$review,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
 
       - name: Preserve plan review evidence
