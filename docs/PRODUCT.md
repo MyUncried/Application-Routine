@@ -78,8 +78,7 @@ Chaque Exécution repose sur un instantané JSON immuable de la Séance au déma
 Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
-- associer zéro, une ou plusieurs Catégories ;
-- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
+- associer des catégories ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
@@ -312,8 +311,7 @@ Les versions futures pourront notamment introduire :
 - réglages sonores plus fins ;
 - association d’au plus un média par Activité ;
 - planification périodique étendue, notamment mensuelle ;
-- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
-- suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.
+- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
 
 ## 11. Gouvernance documentaire
 
