@@ -18,31 +18,68 @@ export const DEFAULT_SESSION_COLOR = "#3B82F6" as const;
 export type SessionColor = (typeof SESSION_COLORS)[number];
 
 /**
- * Activité persistée d'un Exercice (T01-S09, complétion REWORK12) : soit une
- * durée, soit un nombre de répétitions — jamais les deux (RM-034) — un
- * nombre de Séries et une pause après Série propres (D-092/RM-035/RM-037),
- * une Consigne optionnelle et une sélection de Zones corporelles (D-093).
- * Remplace `DurationExercise`, qui figeait `executionMode`/`seriesCount`/
- * `pauseSeconds` aux valeurs uniques du contrat T01-S01 : une Séance peut
- * désormais porter PLUSIEURS Activités de ce type, ordonnées par
- * `position` dans le Tour (`Session.cycle.tour.exercises`).
+ * Type d'une Activité (T01-S10, D-061/DM-001) : un Exercice (avec un mode
+ * d'exécution, des Séries, éventuellement des Zones corporelles) ou une
+ * Récupération (toujours chronométrée, sans mode d'Exercice, sans Séries,
+ * sans Zones — D-041). Le schéma SQLite (`migration001.ts`) portait déjà
+ * `type IN ('EXERCISE', 'RECOVERY')` ; seul le modèle Domaine restait figé
+ * à `EXERCISE`.
+ */
+export type ActivityType = "EXERCISE" | "RECOVERY";
+
+/**
+ * Position structurelle d'une Activité (T01-S10, D-061) : avant le Tour,
+ * dans le Tour, ou après le Tour. Le schéma SQLite portait déjà les trois
+ * valeurs. Les Activités hors Tour sont rattachées au Cycle, celles
+ * `IN_TOUR` au Tour.
+ */
+export type StructuralPosition = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
+
+/**
+ * Mode d'exécution d'un Exercice (T01-S10, D-111/RM-034) : une durée cible,
+ * un nombre de répétitions cible, ou « à l'échec » (aucune cible). `TO_FAILURE`
+ * partage l'exécution et le résultat de `REPETITIONS` (D-111) ; sa durée
+ * n'entre dans aucun calcul comme valeur exacte (borne minimale `≥`, D-112).
+ */
+export type ExerciseExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
+
+/**
+ * Activité persistée (T01-S09, complétion REWORK12 ; T01-S10 : Récupération,
+ * positions structurelles et mode `TO_FAILURE`).
+ *
+ * Un Exercice porte : soit une durée, soit un nombre de répétitions, soit
+ * aucune cible (`TO_FAILURE`) — jamais deux à la fois (RM-034) — un nombre
+ * de Séries et une pause après Série propres (D-092/RM-035/RM-037), une
+ * Consigne optionnelle et une sélection de Zones corporelles (D-093).
+ *
+ * Une Récupération (`type === "RECOVERY"`, T01-S10, D-041) est toujours
+ * chronométrée : `executionMode` et `seriesCount` valent `null`,
+ * `durationSeconds` est renseigné, `repetitionCount` vaut `null`,
+ * `pauseSeconds` vaut `0` et `bodyZoneIds` est vide.
+ *
+ * Historique : `Session.cycle.tour.exercises` reste la collection ordonnée
+ * des Activités `IN_TOUR` (T01-S09). Les Activités `BEFORE_TOUR`/`AFTER_TOUR`
+ * sont exposées par les champs `Session.cycle.beforeTour`/`afterTour`
+ * (T01-S10). `position` est un rang 0-indexé DANS la zone structurelle.
  */
 export type Activity = {
   id: string;
-  type: "EXERCISE";
-  executionMode: "DURATION" | "REPETITIONS";
-  structuralPosition: "IN_TOUR";
-  /** Rang 0-indexé de l'Activité dans le Tour — ordre d'exécution ET d'affichage, identique à `SessionDraft.exercises`. */
+  type: ActivityType;
+  /** `null` uniquement pour une Récupération (T01-S10). */
+  executionMode: ExerciseExecutionMode | null;
+  structuralPosition: StructuralPosition;
+  /** Rang 0-indexé de l'Activité dans sa zone structurelle — ordre d'exécution ET d'affichage. */
   position: number;
   name: string;
-  /** Non nul uniquement en mode `DURATION` (RM-034). */
+  /** Non nul en mode `DURATION` et pour toute Récupération ; nul sinon (RM-034). */
   durationSeconds: number | null;
   /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
   repetitionCount: number | null;
-  seriesCount: number;
+  /** `null` uniquement pour une Récupération (T01-S10) ; entier ≥ 1 sinon. */
+  seriesCount: number | null;
   pauseSeconds: number;
   instruction: string | null;
-  /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent. */
+  /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent ; toujours vide pour une Récupération. */
   bodyZoneIds: readonly string[];
 };
 
@@ -80,11 +117,21 @@ export type Session = {
   cycle: {
     id: string;
     position: 1;
+    /** Le Cycle technique reste unique et non répété (D-058). */
     repeatCount: 1;
+    /**
+     * T01-S10 (D-061) : Activités AVANT le Tour, rattachées au Cycle, dans
+     * l'ordre. Optionnel et absent tant que la persistance S10 (étape 2) ne
+     * les peuple pas — un consommateur lit `cycle.beforeTour ?? []`.
+     */
+    beforeTour?: readonly Activity[];
+    /** T01-S10 (D-061) : Activités APRÈS le Tour, rattachées au Cycle, dans l'ordre. Voir `beforeTour`. */
+    afterTour?: readonly Activity[];
     tour: {
       id: string;
       position: 1;
-      repeatCount: 1;
+      /** T01-S10 : répétition du Tour, entier `1..99` (D-058). Reste `1` pour toute Séance créée avant S10. */
+      repeatCount: number;
       /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Toujours au moins un élément (une Séance sans aucune Activité reste invalide, voir `toCreateSessionInput`). */
       exercises: readonly Activity[];
     };
@@ -95,7 +142,12 @@ export type Session = {
 
 export type CreateSessionExerciseInput = {
   name: string;
-  executionMode: "DURATION" | "REPETITIONS";
+  /**
+   * T01-S10 : `TO_FAILURE` accepté en plus de `DURATION`/`REPETITIONS`. Le
+   * parcours de création T01-S09 ne le produit pas encore (écran Activité),
+   * mais la validation Domaine le reconnaît déjà (aucune cible attendue).
+   */
+  executionMode: ExerciseExecutionMode;
   durationSeconds: number | null;
   repetitionCount: number | null;
   seriesCount: number;
@@ -126,6 +178,56 @@ export type CreateSessionInput = {
   categories: readonly CreateSessionCategoryInput[];
 };
 
+/**
+ * Une Activité d'un agrégat de MODIFICATION bout en bout (T01-S10, Q3-A —
+ * type distinct de `CreateSessionExerciseInput`, jamais fusionné avec lui).
+ *
+ * `id` : identifiant persistant d'une Activité existante à CONSERVER, ou
+ * identifiant frais d'une NOUVELLE Activité — le Repository fusionne par
+ * identifiant (`FORBIDDEN : régénérer l'identifiant d'une Activité
+ * inchangée`, plan §6.4). `position` est un rang 0-indexé DANS la zone
+ * structurelle `structuralPosition`.
+ *
+ * Récupération (`type === "RECOVERY"`) : `executionMode` et `seriesCount`
+ * valent `null`, `durationSeconds` est renseigné, `repetitionCount` vaut
+ * `null`, `pauseSeconds` vaut `0`, `bodyZoneIds` est vide (D-041).
+ */
+export type UpdateSessionActivityInput = {
+  readonly id: string;
+  readonly type: ActivityType;
+  readonly structuralPosition: StructuralPosition;
+  readonly position: number;
+  readonly name: string;
+  readonly executionMode: ExerciseExecutionMode | null;
+  readonly durationSeconds: number | null;
+  readonly repetitionCount: number | null;
+  readonly seriesCount: number | null;
+  readonly pauseSeconds: number;
+  readonly instruction?: string | null;
+  readonly bodyZoneIds: readonly string[];
+};
+
+/**
+ * Agrégat éditable complet d'une MODIFICATION bout en bout d'une Séance
+ * (T01-S10, plan §6.2). Distinct de `CreateSessionInput` : porte
+ * l'identifiant source, les identifiants et positions structurelles de
+ * TOUTES les Activités (toutes zones confondues) et la répétition du Tour.
+ * `create()` et `CreateSessionInput` restent inchangés (Q3-A).
+ */
+export type UpdateSessionInput = {
+  readonly sourceSessionId: string;
+  readonly name: string;
+  readonly color: SessionColor;
+  readonly initialCountdownSeconds: number;
+  readonly finalPhaseSeconds: number;
+  /** Répétition du Tour, entier `1..99` (D-058). */
+  readonly tourRepeatCount: number;
+  /** TOUTES les Activités de la Séance modifiée, dans l'ordre, toutes zones structurelles confondues — au moins une (une Séance sans Activité reste invalide). */
+  readonly activities: readonly UpdateSessionActivityInput[];
+  /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */
+  readonly categories: readonly CreateSessionCategoryInput[];
+};
+
 export type SessionSummary = {
   id: string;
   name: string;
@@ -140,7 +242,8 @@ export type SessionSummary = {
    * d'en tirer un préfixe `≥` plutôt que de le coder ici.
    */
   isEstimatedDurationApproximate: boolean;
-  tourRepeatCount: 1;
+  /** T01-S10 : répétition réelle du Tour (`1..99`, D-058). Reste `1` pour toute Séance créée avant S10. */
+  tourRepeatCount: number;
   updatedAt: string;
   /**
    * Noms des Catégories associées (T01-S09, correction VISUAL — ligne

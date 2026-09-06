@@ -1,10 +1,12 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
+import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
   normalizeName,
   validateCreateSessionInput,
+  validateExecutionMode,
   validateExerciseDurationSeconds,
   validateExerciseName,
   validateFinalPhaseSeconds,
@@ -15,6 +17,8 @@ import {
   validateSeriesCount,
   validateSessionColor,
   validateSessionName,
+  validateTourRepeatCount,
+  validateUpdateSessionInput,
 } from "@/domain/sessions/validation";
 
 describe("validateSessionName / validateExerciseName", () => {
@@ -485,6 +489,239 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         exercises: [
           { ...durationExercise(), name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
         ],
+        categories: [{ kind: "NEW", name: "" }],
+      }),
+    ).not.toThrow();
+  });
+});
+
+describe("validateTourRepeatCount (T01-S10, D-058)", () => {
+  it("accepts the bounds 1 and 99", () => {
+    expect(validateTourRepeatCount(1)).toEqual({ ok: true, value: 1 });
+    expect(validateTourRepeatCount(99)).toEqual({ ok: true, value: 99 });
+  });
+
+  it("rejects 0 and 100 with OUT_OF_RANGE on session.tourRepeatCount", () => {
+    expect(validateTourRepeatCount(0)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "session.tourRepeatCount", details: { min: 1, max: 99 } },
+      ],
+    });
+    expect(validateTourRepeatCount(100)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "session.tourRepeatCount", details: { min: 1, max: 99 } },
+      ],
+    });
+  });
+
+  it("rejects a non-integer with NOT_INTEGER", () => {
+    expect(validateTourRepeatCount(2.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "session.tourRepeatCount" }],
+    });
+  });
+});
+
+describe("validateExecutionMode (T01-S10, D-111)", () => {
+  it("accepts the three MVP modes", () => {
+    expect(validateExecutionMode("DURATION")).toEqual({ ok: true, value: "DURATION" });
+    expect(validateExecutionMode("REPETITIONS")).toEqual({ ok: true, value: "REPETITIONS" });
+    expect(validateExecutionMode("TO_FAILURE")).toEqual({ ok: true, value: "TO_FAILURE" });
+  });
+
+  it("rejects an unknown mode with UNRECOGNIZED", () => {
+    expect(validateExecutionMode("AMRAP")).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "exercise.executionMode" }],
+    });
+  });
+});
+
+describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () => {
+  function toFailureExercise() {
+    return {
+      name: "Tractions",
+      executionMode: "TO_FAILURE" as const,
+      durationSeconds: null,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 30,
+      instruction: null,
+      bodyZoneIds: [],
+    };
+  }
+
+  function validInput() {
+    return {
+      name: "Séance à l'échec",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercises: [toFailureExercise()],
+      categories: [],
+    };
+  }
+
+  it("accepts a TO_FAILURE exercise with no duration nor repetition target", () => {
+    expect(validateCreateSessionInput(validInput())).toEqual({
+      ok: true,
+      value: { ...validInput(), exercises: [toFailureExercise()] },
+    });
+  });
+
+  it("rejects a TO_FAILURE exercise carrying a duration or a repetition target (MUST_BE_ABSENT)", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [{ ...toFailureExercise(), durationSeconds: 30, repetitionCount: 12 }],
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toEqual([
+        { code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" },
+        { code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" },
+      ]);
+    }
+  });
+});
+
+describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
+  function exerciseActivity(
+    overrides: Partial<UpdateSessionActivityInput> = {},
+  ): UpdateSessionActivityInput {
+    return {
+      id: "act-1",
+      type: "EXERCISE",
+      structuralPosition: "IN_TOUR",
+      position: 0,
+      name: "Gainage",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+      instruction: null,
+      bodyZoneIds: [],
+      ...overrides,
+    };
+  }
+
+  function validInput(overrides: Partial<UpdateSessionInput> = {}): UpdateSessionInput {
+    return {
+      sourceSessionId: "session-1",
+      name: "Séance modifiée",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 2,
+      activities: [exerciseActivity()],
+      categories: [],
+      ...overrides,
+    };
+  }
+
+  it("accepts a well-formed edit aggregate and echoes it normalized", () => {
+    const result = validateUpdateSessionInput(validInput());
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.sourceSessionId).toBe("session-1");
+      expect(result.value.tourRepeatCount).toBe(2);
+      expect(result.value.activities).toHaveLength(1);
+    }
+  });
+
+  it("rejects a missing source session id", () => {
+    const result = validateUpdateSessionInput(validInput({ sourceSessionId: "  " }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({
+        code: "REQUIRED",
+        field: "session.sourceSessionId",
+      });
+    }
+  });
+
+  it("rejects duplicate Activity identifiers", () => {
+    const result = validateUpdateSessionInput(
+      validInput({
+        activities: [exerciseActivity({ id: "dup" }), exerciseActivity({ id: "dup", position: 1 })],
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({ code: "DUPLICATE", field: "activity.id" });
+    }
+  });
+
+  it("rejects an empty activity list (a Session without Activity stays invalid)", () => {
+    const result = validateUpdateSessionInput(validInput({ activities: [] }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({ code: "REQUIRED", field: "activity.id" });
+    }
+  });
+
+  it("validates a RECOVERY Activity as always-timed, with no mode / series / pause / body zones", () => {
+    const okResult = validateUpdateSessionInput(
+      validInput({
+        activities: [
+          exerciseActivity({
+            id: "rec-1",
+            type: "RECOVERY",
+            name: "Récupération",
+            executionMode: null,
+            durationSeconds: 60,
+            repetitionCount: null,
+            seriesCount: null,
+            pauseSeconds: 0,
+            bodyZoneIds: [],
+          }),
+        ],
+      }),
+    );
+    expect(okResult.ok).toBe(true);
+
+    const badResult = validateUpdateSessionInput(
+      validInput({
+        activities: [
+          exerciseActivity({
+            id: "rec-2",
+            type: "RECOVERY",
+            name: "Récupération",
+            executionMode: "DURATION",
+            durationSeconds: null,
+            seriesCount: 2,
+            pauseSeconds: 10,
+            bodyZoneIds: ["dos"],
+          }),
+        ],
+      }),
+    );
+    expect(badResult.ok).toBe(false);
+    if (!badResult.ok) {
+      expect(badResult.violations).toEqual(
+        expect.arrayContaining([
+          { code: "MUST_BE_ABSENT", field: "exercise.executionMode" },
+          { code: "MUST_BE_ABSENT", field: "exercise.seriesCount" },
+          { code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" },
+          { code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" },
+          { code: "REQUIRED", field: "recovery.durationSeconds" },
+        ]),
+      );
+    }
+  });
+
+  it("never throws on a fully invalid edit aggregate", () => {
+    expect(() =>
+      validateUpdateSessionInput({
+        sourceSessionId: "",
+        name: "",
+        color: "#000000" as never,
+        initialCountdownSeconds: -1,
+        finalPhaseSeconds: -1,
+        tourRepeatCount: 0,
+        activities: [],
         categories: [{ kind: "NEW", name: "" }],
       }),
     ).not.toThrow();

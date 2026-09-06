@@ -8,26 +8,32 @@ import {
   isSessionDraftDirty,
   toCreateSessionInput,
   toSessionDraft,
+  toUpdateSessionInput,
   type SessionDraft,
   type SessionDraftCategoryDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import {
+  DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXECUTION_MODE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
   DEFAULT_SERIES_COUNT,
+  DEFAULT_STRUCTURAL_POSITION,
+  DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
 
 describe("createEmptyDraft", () => {
   it("initializes every field from the canonical defaults, with no Activity and no Category yet", () => {
     expect(createEmptyDraft()).toEqual({
+      sourceSessionId: null,
       name: "",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
       finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
+      tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
       exercises: [],
       categoryDrafts: [],
       selectedCategoryIds: [],
@@ -39,6 +45,8 @@ describe("createExerciseDraft", () => {
   it("initializes an empty name, Duration mode, the canonical default duration, one Series without pause, no instruction, no body zone", () => {
     expect(createExerciseDraft("ex-1")).toEqual({
       id: "ex-1",
+      type: DEFAULT_ACTIVITY_TYPE,
+      structuralPosition: DEFAULT_STRUCTURAL_POSITION,
       name: "",
       executionMode: DEFAULT_EXECUTION_MODE,
       durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -102,16 +110,20 @@ describe("toSessionDraft", () => {
     };
   }
 
-  it("copies the editable fields exactly, without any identity or audit field beyond each Activity's own id", () => {
+  it("copies the editable fields exactly, keeping the source session id, tour repeat and each Activity's own id / type / structural position", () => {
     const session = aSession();
     expect(toSessionDraft(session)).toEqual({
+      sourceSessionId: "session-1",
       name: "Séance simple",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
       exercises: [
         {
           id: "activity-1",
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
           name: "Gainage",
           executionMode: "DURATION",
           durationSeconds: 30,
@@ -424,5 +436,134 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
 
   it("never throws, even on an entirely invalid draft", () => {
     expect(() => toCreateSessionInput(createEmptyDraft())).not.toThrow();
+  });
+});
+
+describe("toSessionDraft — Récupération, positions structurelles et répétition du Tour (T01-S10)", () => {
+  it("rehydrates a tour repeat count greater than 1, in reading order before / in / after the Tour", () => {
+    const session: Session = {
+      id: "session-1",
+      ownerId: "usr_test",
+      name: "Séance structurée",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      cycle: {
+        id: "cycle-1",
+        position: 1,
+        repeatCount: 1,
+        beforeTour: [anActivity({ id: "warmup", name: "Échauffement", structuralPosition: "BEFORE_TOUR", position: 0 })],
+        afterTour: [
+          anActivity({
+            id: "rec",
+            name: "Récupération",
+            type: "RECOVERY",
+            structuralPosition: "AFTER_TOUR",
+            position: 0,
+            executionMode: null,
+            durationSeconds: 45,
+            repetitionCount: null,
+            seriesCount: null,
+            pauseSeconds: 0,
+            bodyZoneIds: [],
+          }),
+        ],
+        tour: {
+          id: "tour-1",
+          position: 1,
+          repeatCount: 4,
+          exercises: [anActivity({ id: "core", name: "Gainage", position: 0 })],
+        },
+      },
+      categories: [],
+    };
+
+    const draft = toSessionDraft(session);
+    expect(draft.sourceSessionId).toBe("session-1");
+    expect(draft.tourRepeatCount).toBe(4);
+    expect(draft.exercises.map((exercise) => exercise.id)).toEqual(["warmup", "core", "rec"]);
+    expect(draft.exercises.map((exercise) => exercise.structuralPosition)).toEqual([
+      "BEFORE_TOUR",
+      "IN_TOUR",
+      "AFTER_TOUR",
+    ]);
+    expect(draft.exercises[2]).toMatchObject({ type: "RECOVERY", durationSeconds: 45 });
+  });
+});
+
+describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)", () => {
+  function editDraft(overrides: Partial<SessionDraft> = {}): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      sourceSessionId: "session-42",
+      name: "Séance à modifier",
+      tourRepeatCount: 3,
+      exercises: [
+        { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30 },
+      ],
+      ...overrides,
+    };
+  }
+
+  it("fails with REQUIRED session.sourceSessionId when the draft is a creation draft", () => {
+    const result = toUpdateSessionInput({ ...editDraft(), sourceSessionId: null });
+    expect(result).toEqual({
+      ok: false,
+      violations: [{ code: "REQUIRED", field: "session.sourceSessionId" }],
+    });
+  });
+
+  it("keeps each Activity id, carries the tour repeat count and re-indexes positions per structural zone", () => {
+    const result = toUpdateSessionInput(
+      editDraft({
+        exercises: [
+          { ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 },
+          { ...createExerciseDraft("keep-2"), name: "Squats", durationSeconds: 40, seriesCount: 3 },
+        ],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.sourceSessionId).toBe("session-42");
+      expect(result.value.tourRepeatCount).toBe(3);
+      expect(result.value.activities.map((activity) => activity.id)).toEqual(["keep-1", "keep-2"]);
+      expect(result.value.activities.map((activity) => activity.position)).toEqual([0, 1]);
+      expect(result.value.activities.every((activity) => activity.structuralPosition === "IN_TOUR")).toBe(
+        true,
+      );
+    }
+  });
+
+  it("emits a TO_FAILURE Activity without any duration or repetition target", () => {
+    const result = toUpdateSessionInput(
+      editDraft({
+        exercises: [
+          {
+            ...createExerciseDraft("fail-1"),
+            name: "Tractions",
+            executionMode: "TO_FAILURE",
+            durationSeconds: null,
+            repetitionCount: null,
+            seriesCount: 4,
+          },
+        ],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.activities[0]).toMatchObject({
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
+        seriesCount: 4,
+      });
+    }
+  });
+
+  it("never throws on an invalid edit draft", () => {
+    expect(() => toUpdateSessionInput(createEmptyDraft())).not.toThrow();
   });
 });

@@ -21,28 +21,39 @@
  */
 
 import type {
+  Activity,
+  ActivityType,
   CreateSessionCategoryInput,
   CreateSessionInput,
+  ExerciseExecutionMode,
   Session,
   SessionColor,
+  StructuralPosition,
+  UpdateSessionActivityInput,
+  UpdateSessionInput,
 } from "./Session";
 import { DEFAULT_SESSION_COLOR } from "./Session";
 import {
+  DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXECUTION_MODE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
   DEFAULT_SERIES_COUNT,
+  DEFAULT_STRUCTURAL_POSITION,
+  DEFAULT_TOUR_REPEAT_COUNT,
 } from "./defaults";
 import type { ValidationResult } from "./errors";
-import { validateCreateSessionInput } from "./validation";
+import { fail } from "./errors";
+import { validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
- * Mode d'exécution d'un Exercice (T01-S08, RM-034) : soit une durée, soit
- * un nombre de répétitions — jamais les deux à la fois.
+ * Mode d'exécution d'un Exercice dans un brouillon (T01-S08 ; T01-S10 :
+ * `TO_FAILURE` ajouté, D-111) : une durée cible, un nombre de répétitions
+ * cible, ou « à l'échec » (aucune cible).
  */
-export type SessionDraftExerciseExecutionMode = "DURATION" | "REPETITIONS";
+export type SessionDraftExerciseExecutionMode = ExerciseExecutionMode;
 
 export type SessionDraftExercise = {
   /**
@@ -57,9 +68,20 @@ export type SessionDraftExercise = {
    * utilisé ailleurs dans le projet pour les identifiants persistés).
    */
   readonly id: string;
+  /**
+   * T01-S10 (D-061) : type de l'Activité. Le parcours de création T01-S09
+   * ne produit que des Exercices (`"EXERCISE"`) ; la modification bout en
+   * bout d'une Séance persistée peut réhydrater une Récupération. Un
+   * brouillon de Récupération conserve `executionMode`/`seriesCount` à
+   * leurs valeurs par défaut mais elles sont ignorées à la conversion
+   * (`toUpdateSessionInput`).
+   */
+  readonly type: ActivityType;
+  /** T01-S10 (D-061) : position structurelle — avant, dans, ou après le Tour. Reste `"IN_TOUR"` pour tout brouillon créé avant S10. */
+  readonly structuralPosition: StructuralPosition;
   readonly name: string;
   readonly executionMode: SessionDraftExerciseExecutionMode;
-  /** Non nul uniquement en mode `DURATION` (RM-034). */
+  /** Non nul uniquement en mode `DURATION` — ou porte la durée d'une Récupération (RM-034 ; T01-S10). */
   readonly durationSeconds: number | null;
   /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
   readonly repetitionCount: number | null;
@@ -92,10 +114,24 @@ export type SessionDraftCategoryDraft = {
 };
 
 export type SessionDraft = {
+  /**
+   * T01-S10 : identifiant de la Séance persistée en cours de MODIFICATION,
+   * ou `null` pour une CRÉATION. Champ optionnel de transition (Q1-A,
+   * livraison séquencée) : les constructeurs du Domaine (`createEmptyDraft`,
+   * `toSessionDraft`) le renseignent toujours ; un consommateur externe
+   * lit `draft.sourceSessionId ?? null`.
+   */
+  readonly sourceSessionId?: string | null;
   readonly name: string;
   readonly color: SessionColor;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
+  /**
+   * T01-S10 (D-058) : répétition du Tour, entier `1..99`. Champ optionnel
+   * de transition — `createEmptyDraft` le fixe à `DEFAULT_TOUR_REPEAT_COUNT`
+   * ; un consommateur lit `draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT`.
+   */
+  readonly tourRepeatCount?: number;
   /**
    * Collection ORDONNÉE d'Activités (T01-S08, complétion REWORK12 — « La
    * transformation du brouillon actuel, limité à un champ `exercise`
@@ -131,10 +167,12 @@ export type SessionDraft = {
 /** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Catégorie créée ou sélectionnée). */
 export function createEmptyDraft(): SessionDraft {
   return {
+    sourceSessionId: null,
     name: "",
     color: DEFAULT_SESSION_COLOR,
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
+    tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
     exercises: [],
     categoryDrafts: [],
     selectedCategoryIds: [],
@@ -154,6 +192,8 @@ export function createEmptyDraft(): SessionDraft {
 export function createExerciseDraft(id: string): SessionDraftExercise {
   return {
     id,
+    type: DEFAULT_ACTIVITY_TYPE,
+    structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: "",
     executionMode: DEFAULT_EXECUTION_MODE,
     durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -188,27 +228,49 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
  * elle n'est appelée par aucun écran câblé avant cette tranche future.
  */
 export function toSessionDraft(session: Session): SessionDraft {
+  const structuralActivities: readonly Activity[] = [
+    ...(session.cycle.beforeTour ?? []),
+    ...session.cycle.tour.exercises,
+    ...(session.cycle.afterTour ?? []),
+  ];
+
   return {
+    sourceSessionId: session.id,
     name: session.name,
     color: session.color,
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
-    exercises: session.cycle.tour.exercises.map((exercise) => ({
-      id: exercise.id,
-      name: exercise.name,
-      executionMode: exercise.executionMode,
-      durationSeconds: exercise.durationSeconds,
-      repetitionCount: exercise.repetitionCount,
-      seriesCount: exercise.seriesCount,
-      pauseSeconds: exercise.pauseSeconds,
-      instruction: exercise.instruction,
-      bodyZoneIds: exercise.bodyZoneIds,
-    })),
+    tourRepeatCount: session.cycle.tour.repeatCount,
+    exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     // Toutes les Catégories déjà associées à une Séance persistée sont, par
     // construction, déjà persistées elles-mêmes : aucune n'est un brouillon
     // local (`categoryDrafts` reste vide), toutes sont sélectionnées.
     categoryDrafts: [],
     selectedCategoryIds: session.categories.map((category) => category.id),
+  };
+}
+
+/**
+ * Projette une `Activity` persistée vers un `SessionDraftExercise` (T01-S10).
+ * Une Récupération (`type === "RECOVERY"`) conserve son type et sa position
+ * mais reprend les valeurs par défaut d'Exercice pour `executionMode`/
+ * `seriesCount` (ignorées à la conversion `toUpdateSessionInput`, qui relit
+ * `type`). L'ordre d'affichage suit `structuralActivities` (avant, dans,
+ * après le Tour) — jamais `position` seul, qui n'est unique que par zone.
+ */
+function activityToDraftExercise(activity: Activity): SessionDraftExercise {
+  return {
+    id: activity.id,
+    type: activity.type,
+    structuralPosition: activity.structuralPosition,
+    name: activity.name,
+    executionMode: activity.executionMode ?? DEFAULT_EXECUTION_MODE,
+    durationSeconds: activity.durationSeconds,
+    repetitionCount: activity.repetitionCount,
+    seriesCount: activity.seriesCount ?? DEFAULT_SERIES_COUNT,
+    pauseSeconds: activity.pauseSeconds,
+    instruction: activity.instruction,
+    bodyZoneIds: activity.bodyZoneIds,
   };
 }
 
@@ -240,6 +302,8 @@ export function exerciseEquals(
   }
   return (
     a.id === b.id &&
+    a.type === b.type &&
+    a.structuralPosition === b.structuralPosition &&
     a.name === b.name &&
     a.executionMode === b.executionMode &&
     a.durationSeconds === b.durationSeconds &&
@@ -304,10 +368,22 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
     draft.color !== initial.color ||
     draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
     draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
+    (draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) !==
+      (initial.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ||
     !exercisesEqual(draft.exercises, initial.exercises) ||
     !categoryDraftsEqual(draft.categoryDrafts, initial.categoryDrafts) ||
     !selectedCategoryIdsEqual(draft.selectedCategoryIds, initial.selectedCategoryIds)
   );
+}
+
+/** Résout les Catégories sélectionnées d'un brouillon vers des `CreateSessionCategoryInput` (partagé par `toCreateSessionInput` et `toUpdateSessionInput`). */
+function resolveDraftCategories(draft: SessionDraft): CreateSessionCategoryInput[] {
+  return draft.selectedCategoryIds.map((id) => {
+    const localDraft = draft.categoryDrafts.find((entry) => entry.id === id);
+    return localDraft
+      ? { kind: "NEW" as const, name: localDraft.name }
+      : { kind: "EXISTING" as const, categoryId: id };
+  });
 }
 
 /**
@@ -330,13 +406,6 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
  * à la première catégorie de défaut rencontrée. Ne lève jamais d'exception.
  */
 export function toCreateSessionInput(draft: SessionDraft): ValidationResult<CreateSessionInput> {
-  const categories: CreateSessionCategoryInput[] = draft.selectedCategoryIds.map((id) => {
-    const localDraft = draft.categoryDrafts.find((entry) => entry.id === id);
-    return localDraft
-      ? { kind: "NEW" as const, name: localDraft.name }
-      : { kind: "EXISTING" as const, categoryId: id };
-  });
-
   return validateCreateSessionInput({
     name: draft.name,
     color: draft.color,
@@ -352,6 +421,81 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
       instruction: exercise.instruction,
       bodyZoneIds: exercise.bodyZoneIds,
     })),
-    categories,
+    categories: resolveDraftCategories(draft),
+  });
+}
+
+/**
+ * Valide et convertit un brouillon de MODIFICATION vers un `UpdateSessionInput`
+ * persistable (T01-S10, plan §6.2 ; Q3-A — jamais `toCreateSessionInput`).
+ *
+ * Exige `draft.sourceSessionId` (échec `REQUIRED` sur `session.sourceSessionId`
+ * sinon — un brouillon de création n'est jamais enregistré par cette voie).
+ * Chaque `SessionDraftExercise` devient une `UpdateSessionActivityInput` en
+ * conservant son `id` (identifiant persistant d'une Activité existante, ou
+ * identifiant frais d'une nouvelle Activité — le Repository fusionne par
+ * identifiant, plan §6.4). `position` est réattribué par zone structurelle
+ * dans l'ordre du brouillon. Une Récupération (`type === "RECOVERY"`) est
+ * émise sans mode d'Exercice, sans Séries, sans pause, sans Zones (D-041).
+ *
+ * Délègue l'intégralité de la validation à `validateUpdateSessionInput`.
+ * Ne lève jamais d'exception.
+ */
+export function toUpdateSessionInput(
+  draft: SessionDraft,
+): ValidationResult<UpdateSessionInput> {
+  const sourceSessionId = draft.sourceSessionId ?? null;
+  if (sourceSessionId === null || sourceSessionId.trim().length === 0) {
+    return fail([{ code: "REQUIRED", field: "session.sourceSessionId" }]);
+  }
+
+  const positionByZone = new Map<StructuralPosition, number>();
+  const activities: UpdateSessionActivityInput[] = draft.exercises.map((exercise) => {
+    const zone = exercise.structuralPosition;
+    const position = positionByZone.get(zone) ?? 0;
+    positionByZone.set(zone, position + 1);
+
+    if (exercise.type === "RECOVERY") {
+      return {
+        id: exercise.id,
+        type: "RECOVERY" as const,
+        structuralPosition: zone,
+        position,
+        name: exercise.name,
+        executionMode: null,
+        durationSeconds: exercise.durationSeconds,
+        repetitionCount: null,
+        seriesCount: null,
+        pauseSeconds: 0,
+        instruction: exercise.instruction,
+        bodyZoneIds: [],
+      };
+    }
+
+    return {
+      id: exercise.id,
+      type: "EXERCISE" as const,
+      structuralPosition: zone,
+      position,
+      name: exercise.name,
+      executionMode: exercise.executionMode,
+      durationSeconds: exercise.durationSeconds,
+      repetitionCount: exercise.repetitionCount,
+      seriesCount: exercise.seriesCount,
+      pauseSeconds: exercise.pauseSeconds,
+      instruction: exercise.instruction,
+      bodyZoneIds: exercise.bodyZoneIds,
+    };
+  });
+
+  return validateUpdateSessionInput({
+    sourceSessionId,
+    name: draft.name,
+    color: draft.color,
+    initialCountdownSeconds: draft.initialCountdownSeconds,
+    finalPhaseSeconds: draft.finalPhaseSeconds,
+    tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    activities,
+    categories: resolveDraftCategories(draft),
   });
 }

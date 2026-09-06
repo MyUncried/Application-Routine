@@ -12,10 +12,15 @@ import { validateCategoryName } from "@/domain/categories/validation";
 
 import {
   SESSION_COLORS,
+  type ActivityType,
   type CreateSessionCategoryInput,
   type CreateSessionExerciseInput,
   type CreateSessionInput,
+  type ExerciseExecutionMode,
   type SessionColor,
+  type StructuralPosition,
+  type UpdateSessionActivityInput,
+  type UpdateSessionInput,
 } from "./Session";
 import {
   fail,
@@ -40,6 +45,24 @@ const SERIES_COUNT_MAX = 99;
 /** Mêmes bornes que la durée d'Exercice (0–99 min 59 s, `08` l.925). */
 const PAUSE_SECONDS_MIN = 0;
 const PAUSE_SECONDS_MAX = 5999;
+/** T01-S10 : répétition du Tour, entier `1..99` (D-058, par cohérence avec `08` l.924). */
+const TOUR_REPEAT_COUNT_MIN = 1;
+const TOUR_REPEAT_COUNT_MAX = 99;
+/** T01-S10 : une Récupération est toujours chronométrée (D-041) — mêmes bornes qu'une durée d'Exercice. */
+const RECOVERY_DURATION_MIN_SECONDS = 1;
+const RECOVERY_DURATION_MAX_SECONDS = 5999;
+
+const EXERCISE_EXECUTION_MODES: readonly ExerciseExecutionMode[] = [
+  "DURATION",
+  "REPETITIONS",
+  "TO_FAILURE",
+];
+const ACTIVITY_TYPES: readonly ActivityType[] = ["EXERCISE", "RECOVERY"];
+const STRUCTURAL_POSITIONS: readonly StructuralPosition[] = [
+  "BEFORE_TOUR",
+  "IN_TOUR",
+  "AFTER_TOUR",
+];
 
 function codePointLength(value: string): number {
   return Array.from(value).length;
@@ -83,6 +106,11 @@ export function validateSessionName(raw: string): ValidationResult<string> {
 
 export function validateExerciseName(raw: string): ValidationResult<string> {
   return validateBoundedName(raw, "exercise.name");
+}
+
+/** T01-S10 : nom d'une Activité (Exercice ou Récupération) d'un agrégat de modification — mêmes bornes `1..80`. */
+export function validateActivityName(raw: string): ValidationResult<string> {
+  return validateBoundedName(raw, "activity.name");
 }
 
 export function validateSessionColor(raw: string): ValidationResult<SessionColor> {
@@ -159,6 +187,80 @@ export function validatePauseSeconds(raw: number): ValidationResult<number> {
   return ok(raw);
 }
 
+/** T01-S10 : répétition du Tour (`SessionDraft.tourRepeatCount` / `UpdateSessionInput.tourRepeatCount`). Entier de 1 à 99 (D-058). */
+export function validateTourRepeatCount(raw: number): ValidationResult<number> {
+  const field: ValidationField = "session.tourRepeatCount";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < TOUR_REPEAT_COUNT_MIN || raw > TOUR_REPEAT_COUNT_MAX) {
+    return fail([
+      {
+        code: "OUT_OF_RANGE",
+        field,
+        details: { min: TOUR_REPEAT_COUNT_MIN, max: TOUR_REPEAT_COUNT_MAX },
+      },
+    ]);
+  }
+  return ok(raw);
+}
+
+/** T01-S10 : durée d'une Récupération explicite (toujours chronométrée, D-041). Entier de 1 à 5999 secondes. */
+export function validateRecoveryDurationSeconds(raw: number): ValidationResult<number> {
+  const field: ValidationField = "recovery.durationSeconds";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < RECOVERY_DURATION_MIN_SECONDS || raw > RECOVERY_DURATION_MAX_SECONDS) {
+    return fail([
+      {
+        code: "OUT_OF_RANGE",
+        field,
+        details: { min: RECOVERY_DURATION_MIN_SECONDS, max: RECOVERY_DURATION_MAX_SECONDS },
+      },
+    ]);
+  }
+  return ok(raw);
+}
+
+/** T01-S10 : mode d'exécution reconnu (`DURATION` / `REPETITIONS` / `TO_FAILURE`, D-111). */
+export function validateExecutionMode(raw: string): ValidationResult<ExerciseExecutionMode> {
+  if (!EXERCISE_EXECUTION_MODES.includes(raw as ExerciseExecutionMode)) {
+    return fail([{ code: "UNRECOGNIZED", field: "exercise.executionMode" }]);
+  }
+  return ok(raw as ExerciseExecutionMode);
+}
+
+/** T01-S10 : type d'Activité reconnu (`EXERCISE` / `RECOVERY`, D-061). */
+export function validateActivityType(raw: string): ValidationResult<ActivityType> {
+  if (!ACTIVITY_TYPES.includes(raw as ActivityType)) {
+    return fail([{ code: "UNRECOGNIZED", field: "activity.type" }]);
+  }
+  return ok(raw as ActivityType);
+}
+
+/** T01-S10 : position structurelle reconnue (`BEFORE_TOUR` / `IN_TOUR` / `AFTER_TOUR`, D-061). */
+export function validateStructuralPosition(raw: string): ValidationResult<StructuralPosition> {
+  if (!STRUCTURAL_POSITIONS.includes(raw as StructuralPosition)) {
+    return fail([{ code: "UNRECOGNIZED", field: "activity.structuralPosition" }]);
+  }
+  return ok(raw as StructuralPosition);
+}
+
+/** T01-S10 : rang d'ordre d'une Activité dans sa zone structurelle — entier `≥ 0`. */
+export function validateActivityPosition(raw: number): ValidationResult<number> {
+  const field: ValidationField = "activity.position";
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < 0) {
+    return fail([{ code: "OUT_OF_RANGE", field, details: { min: 0 } }]);
+  }
+  return ok(raw);
+}
+
 function validateNonNegativeSeconds(
   raw: number,
   field: ValidationField,
@@ -219,21 +321,30 @@ function validateSessionExerciseInput(
 ): ValidationResult<CreateSessionExerciseInput> {
   const violations: ValidationViolation[] = [];
   const name = unwrap(validateExerciseName(exercise.name), violations);
+  const recognizedMode = unwrap(validateExecutionMode(exercise.executionMode), violations);
 
   let durationSeconds: number | null = null;
   let repetitionCount: number | null = null;
-  if (exercise.executionMode === "DURATION") {
+  if (recognizedMode === "DURATION") {
     if (exercise.durationSeconds === null) {
       violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
     } else {
       durationSeconds =
         unwrap(validateExerciseDurationSeconds(exercise.durationSeconds), violations) ?? null;
     }
-  } else {
+  } else if (recognizedMode === "REPETITIONS") {
     if (exercise.repetitionCount === null) {
       violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
     } else {
       repetitionCount = unwrap(validateRepetitionCount(exercise.repetitionCount), violations) ?? null;
+    }
+  } else if (recognizedMode === "TO_FAILURE") {
+    // « À l'échec » (D-111) : aucune cible de durée ni de répétitions.
+    if (exercise.durationSeconds !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" });
+    }
+    if (exercise.repetitionCount !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
     }
   }
 
@@ -247,7 +358,7 @@ function validateSessionExerciseInput(
 
   return ok({
     name: name as string,
-    executionMode: exercise.executionMode,
+    executionMode: recognizedMode as ExerciseExecutionMode,
     durationSeconds,
     repetitionCount,
     seriesCount: seriesCount as number,
@@ -334,17 +445,7 @@ export function validateCreateSessionInput(
     }
   }
 
-  const categories: CreateSessionCategoryInput[] = [];
-  for (const category of input.categories) {
-    if (category.kind === "EXISTING") {
-      categories.push(category);
-      continue;
-    }
-    const validatedName = validateSessionCategoryName(category.name, violations);
-    if (validatedName !== undefined) {
-      categories.push({ kind: "NEW", name: validatedName });
-    }
-  }
+  const categories = validateSessionCategoryInputs(input.categories, violations);
 
   if (violations.length > 0) {
     return fail(violations);
@@ -356,6 +457,203 @@ export function validateCreateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     exercises,
+    categories,
+  });
+}
+
+/** Boucle de validation des Catégories partagée par `validateCreateSessionInput` et `validateUpdateSessionInput` (T01-S10) — comportement inchangé (D-106/D-107). */
+function validateSessionCategoryInputs(
+  categories: readonly CreateSessionCategoryInput[],
+  violations: ValidationViolation[],
+): CreateSessionCategoryInput[] {
+  const validated: CreateSessionCategoryInput[] = [];
+  for (const category of categories) {
+    if (category.kind === "EXISTING") {
+      validated.push(category);
+      continue;
+    }
+    const validatedName = validateSessionCategoryName(category.name, violations);
+    if (validatedName !== undefined) {
+      validated.push({ kind: "NEW", name: validatedName });
+    }
+  }
+  return validated;
+}
+
+/**
+ * Valide et normalise une seule Activité d'un `UpdateSessionInput.activities`
+ * (T01-S10). Un Exercice suit les mêmes règles de mode que
+ * `validateSessionExerciseInput` (durée / répétitions / à l'échec) ; une
+ * Récupération est toujours chronométrée (D-041) et n'expose ni mode
+ * d'Exercice, ni Séries, ni pause, ni Zones corporelles.
+ */
+export function validateUpdateSessionActivityInput(
+  activity: UpdateSessionActivityInput,
+): ValidationResult<UpdateSessionActivityInput> {
+  const violations: ValidationViolation[] = [];
+
+  const trimmedId = activity.id.trim();
+  if (trimmedId.length === 0) {
+    violations.push({ code: "REQUIRED", field: "activity.id" });
+  }
+  const name = unwrap(validateActivityName(activity.name), violations);
+  const type = unwrap(validateActivityType(activity.type), violations);
+  const structuralPosition = unwrap(
+    validateStructuralPosition(activity.structuralPosition),
+    violations,
+  );
+  const position = unwrap(validateActivityPosition(activity.position), violations);
+  const instruction = unwrap(validateInstruction(activity.instruction ?? null), violations);
+
+  let executionMode: ExerciseExecutionMode | null = null;
+  let durationSeconds: number | null = null;
+  let repetitionCount: number | null = null;
+  let seriesCount: number | null = null;
+  let pauseSeconds = 0;
+  let bodyZoneIds: readonly string[] = [];
+
+  if (type === "RECOVERY") {
+    if (activity.executionMode !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.executionMode" });
+    }
+    if (activity.repetitionCount !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
+    }
+    if (activity.seriesCount !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.seriesCount" });
+    }
+    if (activity.pauseSeconds !== 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
+    }
+    if (activity.bodyZoneIds.length > 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
+    }
+    if (activity.durationSeconds === null) {
+      violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
+    } else {
+      durationSeconds =
+        unwrap(validateRecoveryDurationSeconds(activity.durationSeconds), violations) ?? null;
+    }
+  } else if (type === "EXERCISE") {
+    bodyZoneIds = activity.bodyZoneIds;
+    if (activity.executionMode === null) {
+      violations.push({ code: "REQUIRED", field: "exercise.executionMode" });
+    } else {
+      executionMode = unwrap(validateExecutionMode(activity.executionMode), violations) ?? null;
+    }
+    if (executionMode === "DURATION") {
+      if (activity.durationSeconds === null) {
+        violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
+      } else {
+        durationSeconds =
+          unwrap(validateExerciseDurationSeconds(activity.durationSeconds), violations) ?? null;
+      }
+    } else if (executionMode === "REPETITIONS") {
+      if (activity.repetitionCount === null) {
+        violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
+      } else {
+        repetitionCount =
+          unwrap(validateRepetitionCount(activity.repetitionCount), violations) ?? null;
+      }
+    } else if (executionMode === "TO_FAILURE") {
+      if (activity.durationSeconds !== null) {
+        violations.push({ code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" });
+      }
+      if (activity.repetitionCount !== null) {
+        violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
+      }
+    }
+    if (activity.seriesCount === null) {
+      violations.push({ code: "REQUIRED", field: "exercise.seriesCount" });
+    } else {
+      seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
+    }
+    pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
+  }
+
+  if (violations.length > 0) {
+    return fail(violations);
+  }
+
+  return ok({
+    id: trimmedId,
+    type: type as ActivityType,
+    structuralPosition: structuralPosition as StructuralPosition,
+    position: position as number,
+    name: name as string,
+    executionMode,
+    durationSeconds,
+    repetitionCount,
+    seriesCount,
+    pauseSeconds,
+    instruction: instruction === undefined ? null : instruction,
+    bodyZoneIds,
+  });
+}
+
+/**
+ * Valide et normalise un `UpdateSessionInput` complet (T01-S10, plan §6.2) :
+ * identifiant source, propriétés générales, répétition du Tour, TOUTES les
+ * Activités (toutes zones structurelles confondues) et Catégories. Agrège
+ * l'intégralité des violations (jamais seulement la première) et détecte les
+ * identifiants d'Activité en doublon. Un agrégat sans Activité échoue
+ * (`REQUIRED` sur `activity.id`) — une Séance sans Activité reste invalide.
+ * Ne lève jamais d'exception.
+ */
+export function validateUpdateSessionInput(
+  input: UpdateSessionInput,
+): ValidationResult<UpdateSessionInput> {
+  const violations: ValidationViolation[] = [];
+
+  if (input.sourceSessionId.trim().length === 0) {
+    violations.push({ code: "REQUIRED", field: "session.sourceSessionId" });
+  }
+  const name = unwrap(validateSessionName(input.name), violations);
+  const color = unwrap(validateSessionColor(input.color), violations);
+  const initialCountdownSeconds = unwrap(
+    validateInitialCountdownSeconds(input.initialCountdownSeconds),
+    violations,
+  );
+  const finalPhaseSeconds = unwrap(validateFinalPhaseSeconds(input.finalPhaseSeconds), violations);
+  const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
+
+  const activities: UpdateSessionActivityInput[] = [];
+  if (input.activities.length === 0) {
+    violations.push({ code: "REQUIRED", field: "activity.id" });
+  } else {
+    const seenIds = new Set<string>();
+    for (const activity of input.activities) {
+      const key = activity.id.trim();
+      if (key.length > 0) {
+        if (seenIds.has(key)) {
+          violations.push({ code: "DUPLICATE", field: "activity.id" });
+        } else {
+          seenIds.add(key);
+        }
+      }
+      const validated = validateUpdateSessionActivityInput(activity);
+      if (validated.ok) {
+        activities.push(validated.value);
+      } else {
+        violations.push(...validated.violations);
+      }
+    }
+  }
+
+  const categories = validateSessionCategoryInputs(input.categories, violations);
+
+  if (violations.length > 0) {
+    return fail(violations);
+  }
+
+  return ok({
+    sourceSessionId: input.sourceSessionId.trim(),
+    name: name as string,
+    color: color as SessionColor,
+    initialCountdownSeconds: initialCountdownSeconds as number,
+    finalPhaseSeconds: finalPhaseSeconds as number,
+    tourRepeatCount: tourRepeatCount as number,
+    activities,
     categories,
   });
 }

@@ -165,4 +165,45 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
     ]);
     expect(toEstimatedDurationFacts(session).isLowerBoundEstimate).toBe(true);
   });
+
+  it("treats a TO_FAILURE Activity like REPETITIONS: no nominal duration, still counts its pause, flags a lower bound (D-111/D-112)", () => {
+    const session = aSession([
+      anActivity({
+        id: "a1",
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 10,
+      }),
+    ]);
+    expect(toEstimatedDurationFacts(session)).toEqual({
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      activityDurationSeconds: 30,
+      isLowerBoundEstimate: true,
+    });
+  });
+
+  it("counts a RECOVERY Activity's own duration once, without series multiplication nor pause (D-041)", () => {
+    const session = aSession([
+      anActivity({ id: "a1", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 }),
+      anActivity({
+        id: "rec",
+        type: "RECOVERY",
+        name: "Récupération",
+        executionMode: null,
+        durationSeconds: 20,
+        repetitionCount: null,
+        seriesCount: null,
+        pauseSeconds: 0,
+        bodyZoneIds: [],
+      }),
+    ]);
+    // a1: 2×30 + 2×5 = 70 ; recovery: 20 ; total 90.
+    expect(toEstimatedDurationFacts(session)).toMatchObject({
+      activityDurationSeconds: 90,
+      isLowerBoundEstimate: false,
+    });
+  });
 });

@@ -29,6 +29,29 @@ export const DEFAULT_FINAL_PHASE_SECONDS = 5 as const;
 export const DEFAULT_EXERCISE_DURATION_SECONDS = 30 as const;
 
 /**
+ * T01-S10 : valeur de départ de la répétition du Tour dans un brouillon
+ * (`SessionDraft.tourRepeatCount`). Distincte de `FIXED_TOUR_REPEAT_COUNT`
+ * (garde-fou T01-S01 de la persistance, inchangé) — même valeur numérique,
+ * deux constantes distinctes : le Tour devient réglable `1..99` (D-058)
+ * sans toucher le garde-fou historique.
+ */
+export const DEFAULT_TOUR_REPEAT_COUNT = 1 as const;
+
+/**
+ * T01-S10 : durée de départ d'une Récupération explicite ajoutée dans un
+ * brouillon (D-041 — une Récupération est toujours chronométrée). Même
+ * valeur que la durée d'Exercice par défaut, constante distincte pour la
+ * même raison de découplage.
+ */
+export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
+
+/** T01-S10 : type d'Activité par défaut d'un nouveau brouillon (Exercice, D-061). */
+export const DEFAULT_ACTIVITY_TYPE = "EXERCISE" as const;
+
+/** T01-S10 : position structurelle par défaut d'un nouveau brouillon d'Activité (dans le Tour, D-061). */
+export const DEFAULT_STRUCTURAL_POSITION = "IN_TOUR" as const;
+
+/**
  * Valeurs par défaut du brouillon d'Exercice (T01-S08) — distinctes de
  * `FIXED_SERIES_COUNT`/`FIXED_PAUSE_SECONDS` ci-dessus, qui restent le
  * garde-fou T01-S01 de `SqliteSessionRepository.ts` (`assertT01S01Row`),

@@ -55,13 +55,24 @@ export function toEstimatedDurationFacts(session: Session): EstimatedDurationFac
   let activityDurationSeconds = 0;
   let isLowerBoundEstimate = false;
 
-  for (const exercise of session.cycle.tour.exercises) {
-    if (exercise.executionMode === "REPETITIONS") {
+  for (const activity of session.cycle.tour.exercises) {
+    // Une Récupération (T01-S10, D-041) est toujours chronométrée : elle
+    // contribue sa seule durée, jamais multipliée par des Séries, jamais
+    // suivie d'une pause après Série.
+    if (activity.type === "RECOVERY") {
+      activityDurationSeconds += activity.durationSeconds ?? 0;
+      continue;
+    }
+    const seriesCount = activity.seriesCount ?? 0;
+    // `REPETITIONS` comme `TO_FAILURE` (T01-S10, D-111/D-112) : aucune durée
+    // conventionnelle pour l'Exercice lui-même, mais la durée totale devient
+    // une borne minimale `≥` (jamais présentée comme exacte).
+    if (activity.executionMode === "REPETITIONS" || activity.executionMode === "TO_FAILURE") {
       isLowerBoundEstimate = true;
     } else {
-      activityDurationSeconds += exercise.seriesCount * (exercise.durationSeconds ?? 0);
+      activityDurationSeconds += seriesCount * (activity.durationSeconds ?? 0);
     }
-    activityDurationSeconds += exercise.seriesCount * exercise.pauseSeconds;
+    activityDurationSeconds += seriesCount * activity.pauseSeconds;
   }
 
   return {

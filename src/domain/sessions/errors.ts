@@ -17,19 +17,45 @@ export type ValidationErrorCode =
   | "TOO_LONG"
   | "OUT_OF_RANGE"
   | "NOT_INTEGER"
-  | "INVALID_COLOR";
+  | "INVALID_COLOR"
+  /** T01-S10 : valeur d'énumération non reconnue (mode d'exécution, type d'Activité, position structurelle). */
+  | "UNRECOGNIZED"
+  /** T01-S10 : champ qui doit rester absent pour le mode/type courant (une cible Durée ou Répétitions en `TO_FAILURE`, des Zones corporelles sur une Récupération). */
+  | "MUST_BE_ABSENT"
+  /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification. */
+  | "DUPLICATE";
 
 export type ValidationField =
   | "session.name"
   | "session.color"
   | "session.initialCountdownSeconds"
   | "session.finalPhaseSeconds"
+  /** T01-S10 : répétition du Tour (`1..99`, D-058). */
+  | "session.tourRepeatCount"
+  /** T01-S10 : identifiant source d'une modification bout en bout (`UpdateSessionInput.sourceSessionId`). */
+  | "session.sourceSessionId"
   | "exercise.name"
   | "exercise.durationSeconds"
   | "exercise.instruction"
   | "exercise.repetitionCount"
   | "exercise.seriesCount"
   | "exercise.pauseSeconds"
+  /** T01-S10 : mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS` / `TO_FAILURE`). */
+  | "exercise.executionMode"
+  /** T01-S10 : type d'une Activité (`EXERCISE` / `RECOVERY`). */
+  | "activity.type"
+  /** T01-S10 : position structurelle d'une Activité (`BEFORE_TOUR` / `IN_TOUR` / `AFTER_TOUR`). */
+  | "activity.structuralPosition"
+  /** T01-S10 : rang d'ordre d'une Activité dans sa zone structurelle. */
+  | "activity.position"
+  /** T01-S10 : identifiant d'une Activité transmise à la modification. */
+  | "activity.id"
+  /** T01-S10 : nom d'une Activité (Exercice ou Récupération) de l'agrégat de modification. */
+  | "activity.name"
+  /** T01-S10 : Zones corporelles d'une Activité — doivent rester absentes sur une Récupération. */
+  | "activity.bodyZoneIds"
+  /** T01-S10 : durée d'une Récupération (toujours chronométrée). */
+  | "recovery.durationSeconds"
   /**
    * T01-S09 : violation portée par une Catégorie personnalisée du brouillon
    * (`SessionDraft.categoryDrafts`) lors de l'assemblage
