@@ -63,7 +63,7 @@ Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. 
 
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
 
-En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents. Un ajustement cosmétique mineur explicitement validé peut toutefois être développé avant son report dans Figma ; il doit être tracé puis réaligné ultérieurement, sans devenir une règle fonctionnelle ni imposer une mise à jour préalable de Figma à chaque correction cosmétique.
+En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents.
 
 ## 5. Ordre de lecture recommandé
 
