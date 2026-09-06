@@ -109,12 +109,32 @@ jobs:
             $prompt="KODJO V1.4 DEV-S09 correction $env:MODE tentative $env:ATTEMPT. Continue exclusivement la session DEV-S09 $env:SESSION. SOURCE DE VERITE ABSOLUE : le checkout Git courant @ $env:SOURCE_HEAD. La mémoire de session apporte le contexte mais ne prouve jamais l'état du code. Relis les fichiers et les tests actuels. Pour cette correction, analyse chaque échec Jest : distingue test historique devenu obsolète d'une régression réelle. Mets à jour un test seulement si le comportement attendu a été explicitement remplacé par S09/les décisions approuvées ; sinon corrige le code. Préserve S01-S08 hors décisions explicitement supersédées. Exécute les tests ciblés. Ne committe/pousse pas.`n`nPLAN APPROUVÉ:`n$plan`n`nFEEDBACK COMPLET:`n$feedback"; $args=@('-p','--resume',$env:SESSION,'--permission-mode','acceptEdits','--output-format','json')
           }
           $promptPath=Join-Path $env:RUNNER_TEMP 'claude-prompt.txt'; [IO.File]::WriteAllText($promptPath,$prompt,(New-Object Text.UTF8Encoding($false)))
-          $out=Join-Path $env:RUNNER_TEMP 'dev-out.txt'; $err=Join-Path $env:RUNNER_TEMP 'dev-err.txt'; $old=$ErrorActionPreference; $ErrorActionPreference='Continue'; Get-Content $promptPath -Raw -Encoding UTF8 | & $env:CLAUDE_PATH @args 1> $out 2> $err; $exit=$LASTEXITCODE; $ErrorActionPreference=$old
-          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}; $p=$null; try{$p=$raw|ConvertFrom-Json}catch{}
-          if($exit -ne 0 -or $null -eq $p -or [string]::IsNullOrWhiteSpace([string]$p.session_id) -or [string]::IsNullOrWhiteSpace([string]$p.result)){throw "Claude DEV technical failure: $stderr"}
+          $out=Join-Path $env:RUNNER_TEMP 'dev-out.txt'; $err=Join-Path $env:RUNNER_TEMP 'dev-err.txt'; $diag=Join-Path $env:RUNNER_TEMP 'dev-diagnostic.json'
+          $old=$ErrorActionPreference; $ErrorActionPreference='Continue'; Get-Content $promptPath -Raw -Encoding UTF8 | & $env:CLAUDE_PATH @args 1> $out 2> $err; $exit=$LASTEXITCODE; $ErrorActionPreference=$old
+          $raw=if(Test-Path $out){Get-Content $out -Raw -Encoding UTF8}else{''}; $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding UTF8}else{''}
+          $p=$null; $parseError=''; try{$p=$raw|ConvertFrom-Json -ErrorAction Stop}catch{$parseError=$_.Exception.Message}
+          $diagnostic=[ordered]@{exit_code=$exit; stdout_present=(-not [string]::IsNullOrWhiteSpace($raw)); stdout_length=$raw.Length; stderr_present=(-not [string]::IsNullOrWhiteSpace($stderr)); stderr_length=$stderr.Length; json_valid=($null -ne $p); json_error=$parseError; session_id_present=($null -ne $p -and -not [string]::IsNullOrWhiteSpace([string]$p.session_id)); result_present=($null -ne $p -and -not [string]::IsNullOrWhiteSpace([string]$p.result)); expected_session=$env:SESSION; mode=$env:MODE}
+          [IO.File]::WriteAllText($diag,($diagnostic|ConvertTo-Json -Depth 4),(New-Object Text.UTF8Encoding($false)))
+          if($exit -ne 0){throw "Claude CLI exited with code $exit; diagnostic evidence preserved"}
+          if([string]::IsNullOrWhiteSpace($raw)){throw 'Claude CLI returned empty stdout; diagnostic evidence preserved'}
+          if($null -eq $p){throw "Claude CLI returned invalid JSON; diagnostic evidence preserved: $parseError"}
+          if([string]::IsNullOrWhiteSpace([string]$p.session_id)){throw 'Claude JSON missing session_id; diagnostic evidence preserved'}
+          if([string]::IsNullOrWhiteSpace([string]$p.result)){throw 'Claude JSON missing result; diagnostic evidence preserved'}
           if($p.session_id -eq $env:HISTORICAL_SESSION_ID){throw 'Historical session reused'}; if($env:MODE -ne 'INITIAL' -and $p.session_id -ne $env:SESSION){throw 'DEV-S09 session continuity mismatch'}; if([string]$p.result -match 'session limit|rate limit'){throw 'Claude usage limit reached'}
           $resultText=[string]$p.result; if($resultText -match '(?i)ORCHESTRATION_FAILURE|CLARIFICATION_REQUIRED|state\s*=\s*ORCHESTRATION_FAILURE|waiting_for='){throw 'Claude reported blocking state; implementation cannot be published'}
           $rp=Join-Path $env:RUNNER_TEMP 'dev-result.txt'; [IO.File]::WriteAllText($rp,$resultText,(New-Object Text.UTF8Encoding($false))); "session=$($p.session_id)" >> $env:GITHUB_OUTPUT; "result=$rp" >> $env:GITHUB_OUTPUT
+      - name: Preserve Claude diagnostic evidence
+        if: always() && steps.claude.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-dev-s09-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/dev-out.txt
+            ${{ runner.temp }}/dev-err.txt
+            ${{ runner.temp }}/dev-diagnostic.json
+            ${{ runner.temp }}/dev-result.txt
+          if-no-files-found: warn
+          retention-days: 7
       - name: Enforce scope and deterministic checks
         run: |
           $ErrorActionPreference='Stop'
