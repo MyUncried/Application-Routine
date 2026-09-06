@@ -856,7 +856,6 @@ Le suivi repose sur les principes suivants :
 | `Planifiées` | Affiche les Séances disposant d’au moins une Routine. |
 | `Archivées` | Affiche uniquement les Séances archivées. |
 | Zone principale de la carte | Ouvre directement la Séance en mode modification. |
-| Métadonnées | Sous le nom, affiche les Catégories associées puis, si présentes, les Zones corporelles dédupliquées de tous les Exercices ; séparateur ` : ` seulement lorsque les deux groupes existent ; une seule ligne tronquée si nécessaire. |
 | Chevron | Sert exclusivement au déploiement / repli de la carte. |
 | Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
@@ -906,8 +905,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | --- | --- |
 | Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
 | Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
-| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant l’enregistrement final. |
-| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant la navigation Catégories ↔ Composition. |
+| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle catégorie est ajoutée au brouillon et sélectionnée, sans persistance avant l’enregistrement final. |
 | Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
 | Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories du brouillon et leurs associations, puis ramène au Catalogue de séances. |
 | Échec d’enregistrement | Reste sur l’écran, conserve le brouillon complet, réactive l’action et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
