@@ -1,0 +1,91 @@
+name: KODJO — Generic Slice Finalize
+run-name: KODJO SLICE / FINALIZE / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-slice-finalize-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] VISUAL_APPROVED')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout protocol
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate visual and technical approval
+        id: gate
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+          $slice=[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()
+          $manifest=[regex]::Match($env:TRIGGER_BODY,'(?m)^manifest_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()
+          $reviewId=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_review_comment_id=([0-9]+)\s*$').Groups[1].Value
+          $head=[regex]::Match($env:TRIGGER_BODY,'(?m)^head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if(!$slice-or!$manifest-or!$reviewId-or!$head){throw 'Missing finalize inputs'}
+          if($manifest-ne".github/orchestration/slices/$slice.yml"-or!(Test-Path $manifest)){throw 'Manifest mismatch'}
+          $mj=ruby -ryaml -rjson -e "puts JSON.generate(YAML.safe_load(File.read(ARGV[0]), aliases: false))" $manifest
+          if($LASTEXITCODE-ne0){throw 'Manifest invalid'}
+          $m=$mj|ConvertFrom-Json
+          if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+          $review=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$reviewId"|ConvertFrom-Json
+          if($review.body-notmatch'(?m)^\[KODJO_SLICE\] IMPLEMENTATION_REVIEW_OUTPUT\s*$'-or$review.body-notmatch'(?m)^verdict=APPROVE\s*$'-or$review.body-notmatch'(?m)^STATUT : IMPLEMENTATION_REVIEW_APPROVED\s*$'){throw 'Technical approval missing'}
+          if($review.body-notmatch"(?m)^head=$head\s*$"){throw 'Visual and technical HEAD mismatch'}
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if(!$remote-or(($remote-split'\s+')[0])-ne$head){throw 'Target branch moved'}
+          "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "target_branch=$($m.target_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "head=$head"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "review_id=$reviewId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Checkout final HEAD
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Final deterministic checks
+        run: |
+          $ErrorActionPreference='Stop'
+          npm ci
+          if($LASTEXITCODE-ne0){throw 'npm ci failed'}
+          npm test -- --runInBand
+          if($LASTEXITCODE-ne0){throw 'Jest failed'}
+          npx tsc --noEmit
+          if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          if((git rev-parse HEAD).Trim()-ne'${{ steps.gate.outputs.head }}'){throw 'Final HEAD mismatch'}
+          if(-not[string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty final checkout'}
+
+      - name: Publish final checkpoint
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          TARGET_BRANCH: ${{ steps.gate.outputs.target_branch }}
+          HEAD: ${{ steps.gate.outputs.head }}
+          REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+        run: |
+          $nl=[Environment]::NewLine
+          $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'branch='+$env:TARGET_BRANCH+$nl+'final_head='+$env:HEAD+$nl+'implementation_review_comment_id='+$env:REVIEW_ID+$nl+'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+'STATUT : DONE'
+          $body|Out-File "$env:RUNNER_TEMP\final-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\final-comment.md"
