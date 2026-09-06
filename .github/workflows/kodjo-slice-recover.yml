@@ -90,5 +90,5 @@ jobs:
         run: |
           $nl=[Environment]::NewLine
           $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE+$nl+'head='+$env:HEAD+$nl+'session_id='+$env:SESSION+$nl+'plan_comment_id='+$env:PLAN+$nl+'continuity_origin=RECOVERED_DIRTY_WORKTREE'+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'
-          $body|Out-File "$env:RUNNER_TEMP\recovery-comment.md" -Encoding utf8
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\recovery-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\recovery-comment.md"
