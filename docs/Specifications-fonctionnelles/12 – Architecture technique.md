@@ -782,7 +782,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
 | Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
 | Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
-| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed/Expanded` |
+| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed` (`2537:1033`) / `State=Expanded` (`2537:1038`) |
 | Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
@@ -801,6 +801,8 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+
+Le contrôle `Controls / Disclosure — Source exact` est la référence normative de tout bouton de déploiement ou de repli utilisant cette famille. Chaque occurrence est une instance de la variante appropriée, sans copie graphique locale : cible tactile `48 × 48`, cadre visible centré `28 × 28`, rayon `6`, fond `#FBFCFF` et chevron `8 × 4` tracé en violet sur `2` points. La variante `State=Collapsed` (`2537:1033`) utilise une bordure grise `#D6D9E3` sur `1` point et un chevron bas `#8282F2`. La variante `State=Expanded` (`2537:1038`) utilise une bordure violette `#8283F2` sur `2` points et un chevron haut de même couleur. Les destinations et réactions de prototype restent définies par l’écran hôte ; elles ne sont pas héritées comme comportement métier du composant.
 
 ### Règles de réutilisation et de contrôle
 

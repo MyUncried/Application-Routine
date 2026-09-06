@@ -292,7 +292,7 @@ Le Header, le Context et la Bottom Navigation sont identiques au contrat CE-T01-
 | Durée estimée | Calcul métier de la durée déterminable | Toujours selon les règles fonctionnelles ; jamais une chaîne statique. |
 | Nombre de Tours | Composition calculée | Affiché selon le format défini ; accord singulier/pluriel. |
 | Prochaine occurrence | Calcul de planification | Uniquement si elle existe ; date et heure relatives selon le formateur commun. |
-| Chevron | Composant d’expansion | Toujours ; état condensé au premier affichage de la liste par défaut. |
+| Chevron | Instance de `Controls / Disclosure — Source exact` : `State=Collapsed` (`2537:1033`) ou `State=Expanded` (`2537:1038`) | Toujours ; état condensé au premier affichage de la liste par défaut. |
 | Démarrer | Composant d’action | Actif seulement si la Séance contient au moins un Exercice valide. |
 
 Les exemples Figma `Renforcement du genou`, `Dos et mobilité`, `Etirements`, leurs catégories, leurs métriques et `Demain à 18 h` ne sont jamais utilisés comme valeurs de production par défaut.
@@ -306,7 +306,7 @@ Les exemples Figma `Renforcement du genou`, `Dos et mobilité`, `Etirements`, le
 | Écart entre cartes | Le gabarit Figma illustre la composition ; la règle commune du chapitre 06 fixe l’écart à `8` | Utilise le token de liste compacte du Design System ; valeur identique entre toutes les cartes. |
 | Barre de couleur | largeur visuelle `4`, bord gauche | Suit la hauteur réelle de la carte et ne recouvre pas son contenu. |
 | Contenu textuel | marge gauche interne après la barre | Ne passe jamais sous les actions ancrées à droite. |
-| Chevron | cible `48 × 48`, ancrée à droite avant Démarrer ; cadre visuel DSF `28 × 28` conservé | Zone indépendante de la zone principale et de Démarrer. |
+| Chevron | instance DSF `Controls / Disclosure — Source exact`, cible `48 × 48`, ancrée à droite avant Démarrer ; cadre visible centré `28 × 28`, rayon `6`, fond `#FBFCFF` ; fermé : bordure `#D6D9E3` sur `1` point et chevron bas `#8282F2` ; ouvert : bordure `#8283F2` sur `2` points et chevron haut `#8283F2` | Zone indépendante de la zone principale et de Démarrer. Aucune copie graphique locale n’est admise. |
 | Démarrer | cible `48 × 48`, ancrée au bord droit | Zone indépendante ; icône centrée dans sa cible. |
 | Fin de liste | au-dessus de la Bottom Navigation | Espace final d’au moins `16` points, en plus de l’inset applicable. |
 
