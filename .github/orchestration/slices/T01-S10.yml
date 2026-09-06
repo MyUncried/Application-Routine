@@ -1,7 +1,7 @@
 schema: kodjo.slice.v1
 slice_id: T01-S10
 title: Modification bout en bout d’une séance et alignements MVP Catalogue/Activité
-status: SPEC_PREPARED
+status: IMPLEMENTING
 repository: MyUncried/Application-Routine
 issue_number: 42
 target_branch: feat/creation-seance-catalogue
@@ -88,11 +88,11 @@ scope:
     - "AC-22: aucune fonctionnalité Activités/Circuits, média V2 ou S11 n’est développée."
 
 gates:
-  plan_user_approval: false
+  plan_user_approval: true
   technical_review: false
   visual_user_approval: false
   final_checks: false
 
 sessions:
-  review: null
+  review: 0af6b50c-85e8-4cfc-9b34-cc5d7f71f53f
   development: null
