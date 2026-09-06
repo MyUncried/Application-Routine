@@ -52,29 +52,62 @@ export function formatEstimatedDuration(seconds: number, isApproximate = false):
 }
 
 /**
+ * Segment Catégories de la ligne de synthèse sous le nom de la Séance
+ * (T01-S09, correction VISUAL tentative 2, point B ; séparation en segment
+ * dédié introduite par la correction VISUAL point A, commentaire de revue
+ * 5551083690, pour permettre son rendu dans la couleur propre de la
+ * Séance — `SessionCard.tsx` colore ce seul segment, jamais le segment Zones
+ * corporelles ni le séparateur). Liste jointe par `", "`, dans l'ordre déjà
+ * déterminé par `SessionSummary.categoryNames` (Repository, D-107) — jamais
+ * réordonné ici. `null` si aucune Catégorie n'est associée.
+ */
+export function formatCategoryNamesSegment(categoryNames: readonly string[]): string | null {
+  return categoryNames.length > 0 ? categoryNames.join(", ") : null;
+}
+
+/**
+ * Segment Zones corporelles de la ligne de synthèse — même patron que
+ * `formatCategoryNamesSegment`, ordre déjà déterminé par
+ * `SessionSummary.bodyZoneNames` (référentiel, jamais réordonné ici). `null`
+ * si aucune Zone corporelle n'est couverte.
+ */
+export function formatBodyZoneNamesSegment(bodyZoneNames: readonly string[]): string | null {
+  return bodyZoneNames.length > 0 ? bodyZoneNames.join(", ") : null;
+}
+
+/**
  * Ligne de synthèse Catégories + Zones corporelles affichée sous le nom de
  * la Séance sur la carte condensée (T01-S09, correction VISUAL tentative 2,
  * point B — ligne manquante du contrat d'écran CE-T01-03 : `Catégories |
  * Associations de Catégories | Si présentes ; ordre et présentation
  * conformes au composant`).
  *
- * Réutilise le séparateur `" · "` déjà établi par `summaryLine`
- * (`SessionCard.tsx`) pour composer des segments hétérogènes sur une même
- * ligne, plutôt qu'un nouveau séparateur local. Chaque groupe (Catégories,
- * puis Zones corporelles) est lui-même une liste jointe par `", "`, dans
- * l'ordre déjà déterminé par `SessionSummary.categoryNames`/`bodyZoneNames`
- * (Repository, D-107) — jamais réordonné ici.
+ * Correction VISUAL point A (commentaire de revue 5551083690, 2e
+ * contre-recette) : le séparateur entre le groupe Catégories et le groupe
+ * Zones corporelles devient `" : "` (auparavant `" · "`, point médian —
+ * défaut visuel signalé, le rendu attendu est par exemple
+ * « Cardio : Genoux, Dos »). Un groupe vide est omis entièrement (jamais un
+ * séparateur adjacent à un segment vide). `null` si aucun des deux groupes
+ * n'a de valeur — état vide, l'appelant ne rend alors aucune ligne (jamais
+ * une ligne visible vide).
  *
- * Un groupe vide est omis entièrement (jamais un segment vide entre deux
- * `" · "`). `null` si aucun des deux groupes n'a de valeur — état vide,
- * l'appelant ne rend alors aucune ligne (jamais une ligne visible vide).
+ * Assemblée à partir des mêmes segments que `SessionCard.tsx` utilise pour
+ * le rendu coloré (`formatCategoryNamesSegment`/`formatBodyZoneNamesSegment`)
+ * — une seule définition de la règle de séparation, jamais dupliquée entre
+ * cette forme texte brut et le rendu à deux couleurs.
  */
 export function formatSessionTagLine(
   categoryNames: readonly string[],
   bodyZoneNames: readonly string[],
 ): string | null {
-  const segments = [categoryNames, bodyZoneNames]
-    .filter((group) => group.length > 0)
-    .map((group) => group.join(", "));
-  return segments.length > 0 ? segments.join(" · ") : null;
+  const categoriesSegment = formatCategoryNamesSegment(categoryNames);
+  const zonesSegment = formatBodyZoneNamesSegment(bodyZoneNames);
+
+  if (categoriesSegment === null) {
+    return zonesSegment;
+  }
+  if (zonesSegment === null) {
+    return categoriesSegment;
+  }
+  return `${categoriesSegment} : ${zonesSegment}`;
 }

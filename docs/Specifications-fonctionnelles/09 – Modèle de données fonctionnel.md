@@ -850,7 +850,7 @@ Les **séances** référencent zéro, une ou plusieurs catégories.
 - Le nom d'une catégorie est limité à `40` caractères après trim et est unique pour un même utilisateur après normalisation canonique de comparaison.
 - Une tentative de création avec un nom normalisé déjà existant ne crée pas de doublon : elle réutilise et sélectionne la Catégorie existante.
 - Les Catégories prédéfinies sont affichées selon leur `displayOrder`. Les Catégories personnalisées viennent ensuite, par date de création croissante. La sélection ou l’utilisation d’une Catégorie ne change pas sa position et aucune réorganisation manuelle n’est disponible dans le MVP.
-- Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste une donnée du brouillon jusqu’à l’enregistrement final. Son existence temporaire est distincte de sa sélection : la désélection ne la supprime pas du brouillon et elle peut être resélectionnée sans doublon. Les allers-retours entre Composition et Catégories conservent ces deux états séparément. Elle n’acquiert une identité persistante que dans la transaction finale, uniquement si elle est sélectionnée.
+- Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste une donnée du brouillon jusqu’à l’enregistrement final. Elle n’acquiert une identité persistante que dans la transaction qui crée la Séance et son association.
 - L’abandon du parcours ou l’échec de cette transaction ne laisse aucune Catégorie personnalisée orpheline dans le référentiel persistant.
 - Une catégorie peut être utilisée par zéro, une ou plusieurs séances.
 - Une Catégorie peut être supprimée, qu’elle soit utilisée ou non.

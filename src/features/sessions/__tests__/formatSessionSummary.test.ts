@@ -2,6 +2,8 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   formatActivityCount,
+  formatBodyZoneNamesSegment,
+  formatCategoryNamesSegment,
   formatEstimatedDuration,
   formatSessionTagLine,
   formatTourCount,
@@ -64,7 +66,27 @@ describe("formatEstimatedDuration", () => {
   });
 });
 
-describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B)", () => {
+describe("formatCategoryNamesSegment (T01-S09, correction VISUAL, 2e contre-recette, point A)", () => {
+  it("returns null when there is no Category (empty state)", () => {
+    expect(formatCategoryNamesSegment([])).toBeNull();
+  });
+
+  it("joins several Category names with ', ', in the given order", () => {
+    expect(formatCategoryNamesSegment(["Cardio", "Renforcement"])).toBe("Cardio, Renforcement");
+  });
+});
+
+describe("formatBodyZoneNamesSegment (T01-S09, correction VISUAL, 2e contre-recette, point A)", () => {
+  it("returns null when there is no body zone (empty state)", () => {
+    expect(formatBodyZoneNamesSegment([])).toBeNull();
+  });
+
+  it("joins several body-zone names with ', ', in the given order", () => {
+    expect(formatBodyZoneNamesSegment(["Genoux", "Dos"])).toBe("Genoux, Dos");
+  });
+});
+
+describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B — separator updated to ' : ' by the 2e contre-recette, point A, commentaire de revue 5551083690)", () => {
   it("returns null when both groups are empty (empty state — never a visible empty line)", () => {
     expect(formatSessionTagLine([], [])).toBeNull();
   });
@@ -77,15 +99,19 @@ describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B)
     expect(formatSessionTagLine([], ["Genoux"])).toBe("Genoux");
   });
 
-  it("joins several names within a group with ', ', and the two groups with ' · '", () => {
+  it("joins several names within a group with ', ', and the two groups with ' : ' (previously ' · ', superseded)", () => {
     expect(formatSessionTagLine(["Cardio", "Renforcement"], ["Genoux", "Dos"])).toBe(
-      "Cardio, Renforcement · Genoux, Dos",
+      "Cardio, Renforcement : Genoux, Dos",
     );
+  });
+
+  it("matches the exact example given by the review: 'Cardio : Genoux, Dos'", () => {
+    expect(formatSessionTagLine(["Cardio"], ["Genoux", "Dos"])).toBe("Cardio : Genoux, Dos");
   });
 
   it("never reorders either group — the Repository's own order (D-107 / referential order) is preserved exactly", () => {
     expect(formatSessionTagLine(["Zzz personnalisée", "Renforcement"], ["Chevilles et pieds", "Cou"])).toBe(
-      "Zzz personnalisée, Renforcement · Chevilles et pieds, Cou",
+      "Zzz personnalisée, Renforcement : Chevilles et pieds, Cou",
     );
   });
 });

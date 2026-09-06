@@ -64,10 +64,6 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ---
 
-## MVP bis – Compléments immédiats
-
-- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
-
 ## V2 – Réutilisation avancée des séances
 
 ### Objectif
