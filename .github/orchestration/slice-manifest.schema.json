@@ -9,7 +9,7 @@
     "schema": {"const": "kodjo.slice.v1"},
     "slice_id": {"type": "string", "pattern": "^T[0-9]{2}-S[0-9]{2}$"},
     "title": {"type": "string", "minLength": 1},
-    "status": {"enum": ["WAITING_FOR_PREVIOUS_SLICE", "SPEC_PREPARED", "PLAN_BUILDING", "PLAN_REVIEW", "PLAN_USER_GATE", "IMPLEMENTING", "IMPLEMENTATION_REVIEW", "VISUAL_USER_GATE", "FINALIZING", "CLARIFICATION_REQUIRED", "USAGE_LIMIT", "ORCHESTRATION_FAILURE", "DONE"]},
+    "status": {"enum": ["WAITING_FOR_PREVIOUS_SLICE", "AWAITING_SLICE_SPEC", "SPEC_PREPARED", "PLAN_BUILDING", "PLAN_REVIEW", "PLAN_USER_GATE", "IMPLEMENTING", "IMPLEMENTATION_REVIEW", "VISUAL_USER_GATE", "FINALIZING", "CLARIFICATION_REQUIRED", "USAGE_LIMIT", "ORCHESTRATION_FAILURE", "DONE"]},
     "repository": {"const": "MyUncried/Application-Routine"},
     "issue_number": {"type": ["integer", "null"], "minimum": 1},
     "target_branch": {"type": "string", "minLength": 1},
