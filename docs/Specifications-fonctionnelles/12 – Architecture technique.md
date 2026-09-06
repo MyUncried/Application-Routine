@@ -35,7 +35,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Hors MVP ; extension future limitée à un média par Activité |
+| Médias | Hors MVP ; V2 avec `0..n` photos ou vidéos ordonnées par Activité |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -350,7 +350,7 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
 - 30 minutes après la fin théorique d’une Activité chronométrée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions.
+- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -382,15 +382,15 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Activités dans cette version.
 
-L’architecture doit néanmoins permettre une évolution limitée à un média maximum par Activité. Lors de cette évolution, la duplication d’une Activité ou d’une Séance ne devra pas nécessairement dupliquer le fichier physique : plusieurs associations Média pourront référencer le même fichier local.
+L’architecture doit permettre `0..n` associations média ordonnées par Activité en V2. La copie d’une Activité ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
-Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les médias ne seront pas intégrés aux Instantanés historiques.
+Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
 
 Le schéma MVP peut réserver l’extension future sans imposer de table ou de fichier Média tant que la fonctionnalité n’est pas développée.
 
 Les fichiers binaires volumineux ne sont pas stockés directement dans les entités métier.
 
-Les futurs médias ne seront pas copiés dans les Instantanés d’Exécution.
+Les futurs fichiers médias ne seront pas copiés dans les Instantanés d’Exécution ; les associations ordonnées et références stables nécessaires à l’historique y seront conservées.
 
 La suppression ou la modification ultérieure d’un média ne doit pas compromettre la lisibilité fonctionnelle de l’historique.
 
@@ -405,7 +405,7 @@ Cet Instantané est :
 - indépendant des modifications futures de la Séance ;
 - suffisamment complet pour restituer l’historique ;
 - volontairement léger ;
-- dépourvu de copie des médias.
+- dépourvu de copie physique des fichiers médias, tout en conservant leurs références stables après leur introduction.
 
 Le format physique de stockage doit permettre de relire les anciens Instantanés même après une évolution du modèle de données.
 
@@ -783,7 +783,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
 | Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
 | Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed` (`2537:1033`) / `State=Expanded` (`2537:1038`) |
-| Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
+| Segmented | `Controls / Segmented` (`2586:2759`) | nombre d’items et position sélectionnée ; trois options égales pour `Durée / Répétitions / À l’échec` |
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
 | Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
@@ -795,7 +795,12 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Composition | `Composition / Activity Row` | contenu d’instance ; position avant/dans/après Tour hors état du composant |
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des activités et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
-| Activité | `Activity / Parameter Row — Source exact` | `Mode=Duration/Repetitions/Recovery` |
+| Activité | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
+| Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure/Recovery` ; `ToFailure` masque la cible Durée/Répétitions sans déplacer Pause et Séries |
+| Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 |
+| Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
+| Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
+| Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
 | Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
 | Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
@@ -849,6 +854,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
 | `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
+| `color.mediaSurface` | `#F6F6FF` | Surface des aperçus Média ; variable sémantique Figma `color/media/surface`, alias exact de la primitive `color/media/surface-F6F6FF` |
+| `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
+| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile bloquant des roulettes ouvertes ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -1232,3 +1240,35 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 ## 12.33 Réconciliation après interruption technique
 
 Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la Synthèse.
+
+## 12.34 Architecture cible — Activités, Médias et Circuits
+
+SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Circuits, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
+
+Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
+
+Le schéma d’Activité ajoute `TO_FAILURE` à l’énumération. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias V2 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+
+### Sources de données du Catalogue
+
+| Segment | MVP | V2 |
+|---|---|---|
+| Activités | désactivé, aucune requête | `ActivityDefinitionRepository` |
+| Séances | `SessionRepository` | `SessionRepository` |
+| Circuits | désactivé, aucune requête | `CircuitRepository` |
+
+Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
+
+### Composants et tokens Figma
+
+Les composants `Activity / Name Field — Source exact` (`3382:4303`), `Action / Add Media — Source exact` (`3382:60`), `Media / Preview` (`3382:59`), `Media / Gallery — Source exact` (`3382:64`), `Media / Section — Source exact` (`3382:71`) et `Controls / Segmented` (`2586:2759`) constituent la cible.
+
+Les alias Figma sont bijectifs et explicites :
+
+| Primitive Figma | Token sémantique Figma | Rôle |
+| --- | --- | --- |
+| `color/media/surface-F6F6FF` | `color/media/surface` | Surface Média |
+| `color/media/border-CDCEFA` | `color/media/border` | Bordure Média |
+| `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile bloquant des roulettes ouvertes |
+
+Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.

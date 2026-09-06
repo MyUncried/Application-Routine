@@ -49,7 +49,7 @@ Les API fonctionnelles respectent les principes suivants :
 | API-SEA-05 | Dupliquer une séance          | ID Séance source                                  | Nouvelle Séance indépendante                    | Nouveaux identifiants pour les objets dupliqués ; aucune Routine ni Exécution n’est dupliquée                                                 | Séance, Cycle, Tour, Activités                              |
 | API-SEA-06 | Archiver une séance           | ID Séance, confirmation                           | Séance archivée ; Routines associées supprimées | Les occurrences futures cessent d'être calculées ; occurrences historisées et Exécutions conservées                                           | Séance, Routine                                             |
 | API-SEA-07 | Restaurer une séance archivée | ID Séance                                         | Séance au statut `Active`                       | Aucune ancienne Routine n'est restaurée ; toute nouvelle planification nécessite une nouvelle Routine                                         | Séance                                                      |
-| API-SEA-08 | Supprimer une séance archivée | ID Séance, confirmation                           | Séance supprimée                                | La Séance doit être archivée ; aucune suppression directe depuis `Toutes` ou `Planifiées` ; Exécutions historiques conservées                 | Séance                                                      |
+| API-SEA-08 | Supprimer une séance archivée | ID Séance, confirmation                           | Séance supprimée                                | La Séance doit être archivée ; aucune suppression directe d’une Séance active ; Exécutions historiques conservées                              | Séance                                                      |
 ## 11.3 API Composition d'une séance
 
 | ID         | Opération                              | Entrées principales                                             | Résultat                           | Règles / validations                                                                           | Objets impactés     |
@@ -66,10 +66,10 @@ Les API fonctionnelles respectent les principes suivants :
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
-|API-ACT-01|Paramétrer un Exercice|Nom, mode d’exécution, durée ou répétitions, nombre de Séries, pause éventuelle, consigne, zones corporelles|Exercice créé ou mis à jour|Mode `Durée` ou `Répétition` ; valeur obligatoire selon le mode ; nombre de Séries entier ≥ 1 ; aucun média dans le MVP|Activité|
+|API-ACT-01|Paramétrer un Exercice|Nom, mode d’exécution, durée ou répétitions éventuelles, nombre de Séries, pause éventuelle, consigne, zones corporelles|Exercice créé ou mis à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; valeur obligatoire uniquement selon le mode ; nombre de Séries entier ≥ 1 ; aucun média fonctionnel dans le MVP|Activité|
 |API-ACT-02|Paramétrer une Récupération|Nom éventuel, durée|Récupération créée ou mise à jour|Type toujours `Récupération` ; nom par défaut `Récupération` ; exécution chronométrée à fin automatique ; durée conforme aux contraintes|Activité|
 |API-ACT-03|Définir une pause après Série|ID Exercice, durée ou suppression de la pause|Création, modification ou suppression de la Récupération associée|Un Exercice possède au maximum une Récupération liée pour sa pause ; le plan l’insère après chaque Série et l’omet après la dernière si l’étape suivante est une Récupération explicite|Exercice, Récupération|
-|API-ACT-04|Associer un média|—|—|Hors MVP ; future évolution limitée à un média maximum par Activité|—|
+|API-ACT-04|Associer un média|—|—|Hors MVP ; V2 autorise `0..n` associations ordonnées par Activité|—|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Disponible uniquement pour un Exercice|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier ≥ 1 ; valeur par défaut 1 à la création ; paramètre propre à l'Exercice ; ne crée aucune entité Série autonome|Activité|
 ## 11.5 API Routines et Planification
@@ -107,10 +107,10 @@ Une même Séance peut être associée à plusieurs Routines afin de permettre p
 | API-EXE-02 | Mettre en pause                   | ID Exécution                     | Exécution suspendue                                                       | Exécution en cours requise                                                                                                                          | Exécution                        |
 | API-EXE-03 | Reprendre                         | ID Exécution                     | Exécution reprise                                                         | Exécution suspendue requise                                                                                                                         | Exécution                        |
 | API-EXE-04 | Réinitialiser l’activité courante | ID Exécution, confirmation       | Activité courante recommencée                                             | Confirmation obligatoire ; uniquement l’Activité courante ; aucun retour arrière                                                                    | Exécution                        |
-| API-EXE-05 | Passer à l’activité suivante      | ID Exécution, confirmation éventuelle | Activité courante clôturée, suivante activée                              | Destination imposée par l’ordre d’exécution ; pour une Activité chronométrée passée avant son terme, confirmation obligatoire et résultat `Partielle` ; pour un Exercice en mode Répétition, `Activité suivante` constitue une fin normale sans confirmation ; aucun retour à une étape précédente | Exécution |
+| API-EXE-05 | Actionner `Suivant` | ID Exécution, confirmation éventuelle | Série courante ou Activité courante clôturée, suite activée | Destination imposée par l’ordre d’exécution ; pour une Activité chronométrée passée avant son terme, confirmation obligatoire et résultat `Partielle` ; pour un Exercice en mode Répétitions ou À l’échec, `Suivant` termine normalement la Série sans confirmation ; aucun retour à une étape précédente | Exécution |
 | API-EXE-06 | Arrêter l’exécution               | ID Exécution, confirmation       | Exécution clôturée                                                        | Arrêt disponible depuis l’état Pause ; après confirmation, l’Exécution est clôturée avec le statut `Interrompue` et la Synthèse est ouverte                                                          | Exécution                        |
 | API-EXE-07 | Terminer l’exécution              | ID Exécution                     | Exécution terminée et résultats enregistrés                               | La Fin de séance a été atteinte selon le plan d’exécution                                                                                           | Exécution, Occurrence éventuelle |
-| API-EXE-08 | Obtenir l’état courant            | ID Exécution                     | Étape courante, progression, état temporel courant, prochaine étape | L’état temporel fournit le temps restant pour une Activité chronométrée et le temps écoulé pour un Exercice en mode Répétition ; valeurs calculées à partir de l’état courant de l’Exécution                                                                                         | Exécution, lecture               |
+| API-EXE-08 | Obtenir l’état courant            | ID Exécution                     | Étape courante, progression, état temporel courant, prochaine étape | L’état temporel fournit le temps restant pour une Activité chronométrée et le temps écoulé pour un Exercice en mode Répétitions ou À l’échec ; valeurs calculées à partir de l’état courant de l’Exécution | Exécution, lecture |
 | API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 minutes consécutives en pause, l’application demande si l’utilisateur souhaite reprendre ; si oui, reprise à l’activité interrompue ; en l’absence de réponse, clôture automatique au statut `Interrompue` | Exécution |
 | API-EXE-10 | Réconcilier une Exécution après interruption technique | ID Exécution, choix `Reprendre` ou `Arrêter` | Exécution reprise ou clôturée `Interrompue` | Aucune nouvelle Exécution tant que la réconciliation n’est pas faite | Exécution |
 | API-EXE-11 | Enregistrer la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée et données de Synthèse enregistrées | Ressenti obligatoire si Synthèse présentée ; Commentaire ≤ 200 caractères | Exécution |
@@ -146,7 +146,7 @@ Le MVP expose la liste chronologique des Séances/Exécutions et leur détail. L
 
 Les modifications ultérieures d’une Séance ou d’une Routine ne doivent pas rendre illisibles les Exécutions et occurrences déjà historisées.
 
-Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée, sans dupliquer les médias.
+Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée et, en V2, les associations et références média stables, sans dupliquer les fichiers physiques.
 
 Le choix du format et du mode de persistance de cet instantané relève du chapitre `12 – Architecture technique`.
 
@@ -247,4 +247,19 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 - Une Exécution lancée depuis une occurrence planifiée conserve le lien avec cette occurrence et la date/heure initialement prévues.
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
-- Les API Média sont hors MVP ; leur future introduction sera limitée à un média par Activité.
+- Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Activité.
+
+## 11.13 API Activités, Médias et Circuits
+
+| API | Version | Entrée principale | Résultat / règle |
+|---|---|---|---|
+| `API-ACT-REF-01..05` | V2 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
+| `API-ACT-COPY-01` | V2 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
+| `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
+| `API-CAT-01` | MVP/V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; en V2, `ACTIVITY` et `CIRCUIT`. Défaut : non archivés, dernière modification décroissante. |
+| `API-CIR-01..06` | V2 | Circuit et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Circuit. |
+| `API-CIR-EXE-01` | V2 | ID Circuit | Fige l’instantané et crée l’Exécution globale. |
+| `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
+| `API-CIR-EXE-03` | V2 | ID Exécution, confirmation | Interrompt le Circuit et l’étape courante ; conserve les résultats existants. |
+
+`API-EXE-05` couvre aussi `TO_FAILURE` : comme pour `REPETITIONS`, `Suivant` constitue une fin normale de Série sans confirmation. Les DTO d’Activité acceptent `DURATION`, `REPETITIONS`, `TO_FAILURE` et appliquent les contraintes d’exclusivité du chapitre 09.

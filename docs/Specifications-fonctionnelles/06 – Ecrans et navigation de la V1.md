@@ -84,14 +84,14 @@ Le contenu central ne doit jamais passer sous la navigation ou l’action finale
 
 À la référence Figma `402 × 874`, ces zones sont matérialisées par les Screen Shells suivants :
 
-| Shell | Variante | Zones de référence |
-| --- | --- | --- |
-| `Shell / Screen` | `Context=On, Bottom=Navigation` | Header `0–92` ; Context `92–207` ; Body `207–797` ; Bottom Navigation `797–874` |
-| `Shell / Screen` | `Context=Off, Bottom=Navigation` | Header `0–92` ; Body `92–797` ; Bottom Navigation `797–874` |
-| `Shell / Screen` | `Context=On, Bottom=Action` | Header `0–92` ; Context `92–207` ; Body `207–790` ; Bottom Action `790–874` |
-| `Shell / Screen` | `Context=Off, Bottom=Action` | Header `0–92` ; Body `92–790` ; Bottom Action `790–874` |
-| `Shell / Execution` | `Mode=Run` | Header `0–92` ; Content `92–782` ; Footer `782–874` |
-| `Shell / Execution` | `Mode=Summary` | Header `0–92` ; Content `92–874` |
+| Shell               | Variante                         | Zones de référence                                                              |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------------------- |
+| `Shell / Screen`    | `Context=On, Bottom=Navigation`  | Header `0–92` ; Context `92–207` ; Body `207–797` ; Bottom Navigation `797–874` |
+| `Shell / Screen`    | `Context=Off, Bottom=Navigation` | Header `0–92` ; Body `92–797` ; Bottom Navigation `797–874`                     |
+| `Shell / Screen`    | `Context=On, Bottom=Action`      | Header `0–92` ; Context `92–207` ; Body `207–790` ; Bottom Action `790–874`     |
+| `Shell / Screen`    | `Context=Off, Bottom=Action`     | Header `0–92` ; Body `92–790` ; Bottom Action `790–874`                         |
+| `Shell / Execution` | `Mode=Run`                       | Header `0–92` ; Content `92–782` ; Footer `782–874`                             |
+| `Shell / Execution` | `Mode=Summary`                   | Header `0–92` ; Content `92–874`                                                |
 
 Le `Shell / Modal Fullscreen`, utilisé par le parcours de planification, possède un gabarit interne `378 × 822` : Header `0–60`, Content `60–752`, Bottom Action `752–822`. Ces coordonnées décrivent la composition de référence dans Figma ; l’implémentation adapte les insets et la hauteur disponible au système sans déformer ni redimensionner proportionnellement le gabarit.
 
@@ -177,7 +177,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Activité, Catégories, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Activité | Les contrôles `Type d’activité` et `Mode d’exécution` utilisent deux segments strictement égaux. La rangée `Durée / Pause / Séries` s’adapte à la largeur utile et le récapitulatif occupe cette même largeur. |
+| Activité | `Type d’activité` utilise deux segments égaux ; `Mode d’exécution` utilise trois segments égaux `Durée / Répétitions / À l’échec`. La rangée de paramètres conserve ses emplacements et le récapitulatif occupe la largeur utile. |
 | Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -195,7 +195,7 @@ Ces règles communes prévalent sur les coordonnées des captures. Une exception
 
 ![[images/splash-kodjo.png|260]]
 
-Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances` avec une transition `DISSOLVE` de 0,3 seconde. Le Catalogue présente l’état vide lorsqu’aucune Séance correspondant à la vue `Toutes` n’existe ; sinon, il présente la liste par défaut alimentée par les données locales.
+Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances` avec une transition `DISSOLVE` de 0,3 seconde. Le type `Séances` est sélectionné ; le Catalogue présente l’état vide lorsqu’aucune Séance non archivée n’existe, sinon la liste par défaut alimentée par les données locales.
 
 ### Navigation principale
 
@@ -419,10 +419,7 @@ Cet écran constitue l’accueil de l’application.
 ### Recherche et filtres
 
 
-Le MVP comporte :
-
-- une action de recherche globale ;
-- le sélecteur `Toutes`, `Planifiées` et `Archivées`.
+Le MVP comporte une action de recherche globale et le sélecteur de type `Activités / Séances / Circuits`, avec seule la vue Séances active. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` sont portés par le futur bouton Filtrer et ne sont plus des segments.
 
 La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
 
@@ -442,7 +439,7 @@ Chaque carte affiche notamment :
 - la prochaine occurrence planifiée lorsqu’elle existe ;
 - un chevron de déploiement ;
 
-Les Séances sont présentées par défaut selon leur dernière utilisation, de la plus récente à la plus ancienne. Pour une Séance jamais exécutée, la date de dernière modification est utilisée.
+Les Séances sont présentées par défaut selon leur date de dernière modification, de la plus récente à la plus ancienne. Une exécution ne modifie pas cet ordre.
 
 ### Actions sur une carte
 
@@ -484,15 +481,15 @@ Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur 
 
 Sur une Séance active, un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. La carte reste immobile : les boutons d’action apparaissent en superposition sur sa partie droite, conformément au prototype. Ces actions ne sont pas généralisées aux autres contextes.
 
-Depuis `Archivées`, `Restaurer` affiche un snackbar `Séance restaurée` avec l’action `Annuler`.
+Depuis le résultat du filtre `Archivées`, `Restaurer` affiche un snackbar `Séance restaurée` avec l’action `Annuler`.
 
 ### Suppression d’une Séance
 
-Une Séance ne peut pas être supprimée depuis `Toutes` ou `Planifiées`. Elle doit d’abord être archivée.
+Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord être archivée.
 
-Depuis `Archivées`, un glissement gauche superpose l’action `Supprimer` à la carte, sans déplacer celle-ci. L’action ouvre une modale de confirmation sur le fond de la liste archivée laissant l’option `Supprimer` visible.
+Depuis le résultat du filtre `Archivées`, un glissement gauche superpose l’action `Supprimer` à la carte, sans déplacer celle-ci. L’action ouvre une modale de confirmation sur le fond de la liste archivée laissant l’option `Supprimer` visible.
 
-La suppression demande toujours une confirmation explicite. Dans le prototype MVP, seul `Annuler` est relié et revient à la liste `Archivées` ; le bouton de confirmation ne possède pas de lien tant qu’un état actualisé de la liste n’est pas représenté.
+La suppression demande toujours une confirmation explicite. Dans le prototype MVP, seul `Annuler` est relié et revient au résultat du filtre `Archivées` ; le bouton de confirmation ne possède pas de lien tant qu’un état actualisé de la liste n’est pas représenté.
 
 Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
 
@@ -511,7 +508,7 @@ Si la Séance est utilisée par une ou plusieurs Routines, celles-ci sont suppri
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
-Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Elle peut être restaurée ou supprimée selon les interactions propres à la vue `Archivées`.
+Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Elle peut être restaurée ou supprimée depuis le résultat du filtre `Archivées`.
 
 ### Séance vide
 
@@ -630,14 +627,15 @@ Si deux Exercices s’enchaînent sans pause après Série ni Activité de type 
 La ligne d’une Activité de type Exercice dans la Composition affiche :
 
 - le nom de l’Exercice ;
-- un résumé compact de sa configuration essentielle (nombre de Séries, Durée ou Répétitions, Pause après Série).
+- un résumé compact de sa configuration essentielle (nombre de Séries, Durée, Répétitions ou À l’échec, Pause après Série).
 
 La Consigne et les Zones corporelles ne figurent jamais dans ce résumé.
 
 Format :
 
 - mode Durée : `N série(s) de X min Y s avec Z min Y s de pause par série` ;
-- mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série`.
+- mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série` ;
+- mode À l’échec : `N série(s) de {nom}, jusqu’à l’échec, avec Z s de pause entre les séries` ; la proposition relative à la pause est omise lorsque la pause vaut zéro.
 
 La clause de pause est entièrement omise lorsque la Pause après Série vaut `0 s`. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
 
@@ -674,11 +672,14 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 ![[images/creation-activite-exercice.png|260]]
 
+Cette capture reflète le rendu MVP : le bouton `+ Ajouter un média` est visible mais désactivé et la section Médias n’est pas rendue. Les composants Média du DSF documentent séparément la cible V2.
+
 ### États Figma de référence
 
 | État | Capture | Règle matérialisée |
 | --- | --- | --- |
 | Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions |
+| Mode À l’échec | ![[images/creation-activite-a-l-echec.png\|220]] | Aucun objectif de durée ou de répétitions ; Pause et Séries conservent leurs positions |
 | Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite |
 | Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série avec validation explicite |
 | Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
@@ -706,14 +707,12 @@ Le retour ramène à la Composition.
 
 L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en création et `Modifier une activité` en modification. Le nom de la Séance n’est pas utilisé comme titre d’écran.
 
-Sous l’en-tête, un bandeau contextuel bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
+Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
-- `Séance · {nom de la séance}`, en Inter Regular `14/17` ;
-- le champ du nom de l’Activité, de fond transparent et entouré d’un liseré blanc intérieur de `1` point ; sa valeur utilise le token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance`.
+- le champ `Nom de l’activité`, placé à `12` points du haut, de même hauteur et au même alignement que le champ `Nom de la séance` de la Composition ;
+- le bouton centré `+ Ajouter un média`, visible mais désactivé dans le MVP.
 
-Le bandeau applique explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la fin de la zone bleue. Cet espace est une propriété du shell : il ne dépend ni de la hauteur de ligne du contexte ni d’une coordonnée absolue. Il constitue aussi la valeur canonique à employer sous les actions contextuelles `+ Créer` et `+ Ajouter une activité`.
-
-Le contexte est placé à `12` points du haut du bandeau. L’espacement vertical entre le contexte et le champ est `spacing/24`. Le reste du formulaire affiche ensuite, dans cet ordre :
+Le nom ou le contexte de la Séance n’est jamais affiché dans ce bandeau. Le reste du formulaire affiche ensuite, dans cet ordre :
 
 - `Type d’activité`, avec les choix `Exercice / Récupération` ;
 - `Mode d’exécution` ;
@@ -723,7 +722,7 @@ Le contexte est placé à `12` points du haut du bandeau. L’espacement vertica
 
 Le nom est obligatoire.
 
-Les contrôles `Exercice / Récupération` et `Durée / Répétition` partagent chacun leur largeur intérieure en deux zones égales. Le texte de chaque option reste centré dans sa zone, quel que soit le palier de largeur. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe un cadre de largeur utile complète et reste à `spacing/24` au-dessus du bouton final. Il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
+Le contrôle `Exercice / Récupération` partage sa largeur en deux zones égales. Le contrôle `Durée / Répétitions / À l’échec` la partage en trois zones égales. Le texte de chaque option reste centré. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe un cadre de largeur utile complète et reste à `spacing/24` au-dessus du bouton final. Il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
 
 La synthèse ne préfixe jamais la phrase par le type d’Activité ni par le mode d’exécution. Elle suit les formes suivantes :
 
@@ -739,7 +738,8 @@ La synthèse ne préfixe jamais la phrase par le type d’Activité ni par le mo
 L’utilisateur choisit entre :
 
 - `Durée` ;
-- `Répétition`.
+- `Répétitions` ;
+- `À l’échec`.
 
 En mode `Durée`, la section `Paramètres de l’activité` comporte des roulettes de sélection pour :
 
@@ -750,9 +750,11 @@ En mode `Durée`, la section `Paramètres de l’activité` comporte des roulett
 
 En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Le Nombre de répétitions, la Pause et le Nombre de Séries sont sélectionnés par roulettes. La Pause et le Nombre de Séries restent disponibles.
 
+En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. Les contrôles Pause et Nombre de Séries restent à leurs emplacements canoniques, sans se décaler vers la gauche.
+
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
-Une Série correspond à l’Exécution de la durée ou du nombre de répétitions défini pour l’Exercice, suivie de sa pause éventuelle.
+Une Série correspond à l’Exécution de la durée cible, du nombre de répétitions cible ou jusqu’à l’échec selon le mode, suivie de sa pause éventuelle.
 
 La pause est exécutée après chaque Série. Après la dernière Série, elle est omise lorsque l’étape suivante du plan d’Exécution est une Récupération explicite.
 
@@ -998,7 +1000,7 @@ Les occurrences futures sont recalculées à partir de la nouvelle planification
 
 Guider l’utilisateur pendant l’Exécution avec une hiérarchie visuelle adaptée à une lecture rapide et à distance.
 
-Un seul layout standard est utilisé pour les Activités en Durée, en Répétition et pour les Récupérations. Le comportement temporel s’adapte au type d’Activité sans changer la structure générale de l’écran ni les commandes principales.
+Un seul layout standard est utilisé pour les Activités en Durée, en Répétitions, À l’échec et pour les Récupérations. Le comportement temporel s’adapte au type d’Activité sans changer la structure générale de l’écran ni les commandes principales.
 
 ### Entrée dans l’écran et démarrage
 
@@ -1028,7 +1030,7 @@ L’écran affiche, de haut en bas :
 - une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
 - les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
-- le temps total écoulé et la durée estimée de la Séance ; si le plan contient au moins un Exercice en mode Répétition, la durée estimée est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
+- le temps total écoulé et la durée estimée de la Séance ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
 - une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée`.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
@@ -1061,14 +1063,14 @@ Un bip est émis à chaque minute écoulée. Dans le MVP, ce bip est fixe et non
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
-L’utilisateur termine normalement l’Exercice avec `Activité suivante`. Cette action ne crée pas une Activité Partielle : elle valide la fin normale de l’Exercice en mode Répétition.
+L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action ne crée pas une Activité Partielle : elle valide la fin normale de la Série en mode Répétitions ou À l’échec.
 
 ### Séries
 
 Lorsqu’un Exercice possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
-- chaque Série exécute la durée ou les répétitions de l’Exercice ;
+- chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
 - la pause après Série est appliquée selon la définition de l’Exercice ;
 - après la dernière Série, la pause technique est omise si l’élément suivant est déjà une Récupération explicite.
 
@@ -1098,7 +1100,7 @@ Après confirmation :
 
 - la Série / Activité courante recommence depuis son état initial ;
 - pour une Activité chronométrée, le compte à rebours retrouve sa durée initiale ;
-- pour une Activité en Répétition, le chronomètre d’Activité revient à `00:00` ;
+- pour une Activité en Répétitions ou À l’échec, le chronomètre d’Activité revient à `00:00` ;
 - la cible de répétitions n’est pas modifiée ;
 - le temps total déjà écoulé dans la Séance reste conservé ;
 - le Tour et le Cycle courants restent inchangés.
@@ -1130,7 +1132,7 @@ Il n’existe pas de commande directe d’arrêt depuis l’écran principal d�
 
 Le comportement dépend du type d’Activité :
 
-- **Exercice en Répétition** : termine normalement l’Exercice et passe à la suite ;
+- **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Activité suivante selon le plan ;
 - **Activité chronométrée avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Activité est enregistrée avec le statut `Partielle`, puis l’Exécution continue ;
 - **Activité chronométrée arrivée à zéro** : la transition est automatique.
 
@@ -1146,7 +1148,7 @@ Au début d’une Activité, son nom peut être annoncé vocalement selon les Pr
 
 Pour les Activités chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
-Pour un Exercice en Répétition, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
+Pour un Exercice en Répétitions ou À l’échec, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
 
 ### Arrière-plan et verrouillage
 
@@ -1160,7 +1162,7 @@ Si l’application passe en arrière-plan ou si l’écran se verrouille :
 Une mise en pause de sécurité est appliquée en cas d’inactivité prolongée :
 
 - pour une Activité chronométrée, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
-- pour un Exercice en Répétitions, après 2 heures sans interaction depuis son démarrage.
+- pour un Exercice en Répétitions ou À l’échec, après 2 heures sans interaction depuis son démarrage.
 
 Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
 
@@ -1379,11 +1381,11 @@ La référence de production est la frame Figma `3224:4082`, `Modal — Abandonn
 
 ![[images/catalogue-archivees-actions.png|260]]
 
-L’action `Supprimer` est révélée par glissement gauche dans la liste `Archivées`. Elle se superpose à la carte sans déplacer celle-ci.
+L’action `Supprimer` est révélée par glissement gauche dans le résultat du filtre `Archivées`. Elle se superpose à la carte sans déplacer celle-ci.
 
 ![[images/suppression-seance-archivee.png|260]]
 
-Le dialogue flottant centré demande une confirmation explicite. L’arrière-plan conserve la liste des Séances archivées et l’option `Supprimer` visible. `Annuler` ferme le dialogue et revient à la liste `Archivées`.
+Le dialogue flottant centré demande une confirmation explicite. L’arrière-plan conserve la liste des Séances archivées et l’option `Supprimer` visible. `Annuler` ferme le dialogue et revient au résultat du filtre `Archivées`.
 
 Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
@@ -1434,7 +1436,7 @@ Après confirmation :
 
 - l’Activité / Série courante reste l’Activité courante ;
 - une Activité chronométrée retrouve sa durée initiale ;
-- un Exercice en Répétition retrouve un chronomètre d’Activité à `00:00` ;
+- un Exercice en Répétitions ou À l’échec retrouve un chronomètre d’Activité à `00:00` ;
 - la cible de répétitions reste inchangée ;
 - le temps global déjà écoulé dans la Séance est conservé ;
 - le Tour et le Cycle restent inchangés ;
@@ -1458,7 +1460,7 @@ Confirmer l’interruption anticipée d’une Activité chronométrée.
 
 Cette modale s’affiche lorsque l’utilisateur appuie sur `Activité suivante` avant la fin d’une Activité chronométrée.
 
-Elle ne s’affiche pas pour un Exercice en mode Répétition : dans ce cas, `Activité suivante` constitue la validation normale de la fin de l’Exercice.
+Elle ne s’affiche pas pour un Exercice en mode Répétitions ou À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
 
 #### Contenu
 
@@ -1532,7 +1534,7 @@ Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`.
 Ferme la modale et reprend l’Activité à l’état exact où elle a été suspendue.
 
 Pour une Activité chronométrée, le compte à rebours reprend.  
-Pour un Exercice en Répétition, le chronomètre croissant reprend.
+Pour un Exercice en Répétitions ou À l’échec, le chronomètre croissant reprend.
 
 #### Arrêter la séance
 
@@ -1588,3 +1590,11 @@ Aucune frame de premier niveau du `Prototype MVP` n’est exclue. Les éléments
 ### Règle de maintenance
 
 Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit inscrite dans le tableau d’exclusion avec une justification explicite. Une variante ne peut plus être omise silencieusement.
+
+## Mise à jour des écrans Activité et Catalogue — 6 septembre 2026
+
+Le contrôle supérieur du Catalogue contient `Activités / Séances / Circuits`, avec `Séances` sélectionné. Dans le MVP, les deux autres options sont visibles mais désactivées. Les filtres `Toutes`, `Planifiées`, `Non planifiées`, `Archivées` et les tris `Dernière modification` ou `Nom` seront portés par des boutons dédiés à ajouter dans Figma ; les anciens segments ne doivent pas être réimplémentés.
+
+Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Le segment Exercice contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans toutes les frames MVP, `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. Les composants Média du DSF constituent la référence V2.
+
+La frame `3369:4236` documente l’état À l’échec : Durée absente, positions de Pause et Séries conservées, synthèse `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`. Toutes les roulettes ouvertes utilisent le voile grisé commun.

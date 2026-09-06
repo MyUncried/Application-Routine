@@ -105,7 +105,7 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée ou Répétitions, valeur d'exécution, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
+Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée, Répétitions ou À l’échec, valeur d'exécution lorsqu’elle existe, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
 
 `Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
 ### 2. Réorganiser une séance
@@ -226,9 +226,9 @@ Les exécutions déjà réalisées sont conservées.
 
 # Parcours complémentaire 3 — Archiver puis supprimer une Séance
 
-1. Depuis `Toutes` ou `Planifiées`, révéler les actions d’une Séance active par glissement gauche.
+1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
-3. Ouvrir `Archivées`.
+3. Activer le filtre `Archivées` depuis le futur bouton Filtrer.
 4. Glisser la carte vers la gauche : l’action `Supprimer` se superpose à la carte sans la déplacer.
 5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
 
@@ -363,3 +363,30 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - comparer les performances entre différentes séances ;
 - produire des tableaux de bord personnalisés ;
 - partager certaines statistiques avec un professionnel.
+
+# Parcours validés — bibliothèque d’Activités et Circuits
+
+## Utiliser une Activité de référence — V2
+
+1. Ouvrir `Activités` dans le Catalogue.
+2. Créer une référence Exercice ou Récupération, non exécutable seule.
+3. Depuis une Composition, choisir une référence existante.
+4. L’application copie ses données et ses associations média dans la Séance.
+5. Modifier librement la copie sans modifier la référence ni les autres copies.
+
+Une Activité créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes activités` est reportée au-delà de la première version de la bibliothèque.
+
+## Exécuter un Exercice À l’échec — MVP
+
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La pause configurée s’exécute avant la Série suivante ; après la dernière Série, `Suivant` ouvre l’Activité suivante.
+
+## Créer et exécuter un Circuit — V2
+
+1. Renseigner un nom et une couleur.
+2. Ajouter au moins deux étapes, chacune référençant une Séance ; une même Séance peut être ajoutée plusieurs fois.
+3. Choisir une transition manuelle ou automatique ; l’automatique utilise une durée commune, `30 s` par défaut.
+4. Lancer manuellement le Circuit. Le lancement fige un instantané.
+5. Après chaque Séance intermédiaire, remplacer son écran de fin par l’écran de transition ; conserver ensuite le compte à rebours initial de la Séance suivante.
+6. Après la dernière Séance, afficher la fin du Circuit et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
+
+En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.

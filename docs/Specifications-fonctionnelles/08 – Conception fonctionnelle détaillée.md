@@ -216,7 +216,7 @@ Une activité possède notamment :
 
 - un type ;
 - un nom ;
-- une durée ou un nombre de répétitions ;
+- une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause après Série** facultative, appliquée après chaque Série de l’Exercice selon les règles définies pour ce paramètre ;
 - des informations complémentaires (consigne et zones corporelles). Aucun média n’est proposé dans le MVP.
 
@@ -313,10 +313,10 @@ Le calcul tient compte :
 - des répétitions du Cycle ;
 - de la position structurelle de chaque Activité dans la Séance.
 
-Un Exercice en mode Répétition ne reçoit **aucune durée conventionnelle** dans ce calcul.
+Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée conventionnelle** dans ce calcul.
 
 - Si toutes les durées sont déterminables, la durée est affichée normalement, par exemple `18 min`.
-- Si au moins un Exercice est en mode Répétition, la somme des durées connues constitue une **borne minimale** et l'interface affiche le signe `≥`, par exemple `≥ 18 min`.
+- Si au moins un Exercice est en mode Répétitions ou À l’échec, la somme des durées connues constitue une **borne minimale** et l’interface affiche le signe `≥`, par exemple `≥ 18 min`.
 
 ### Nombre d'Activités de la Composition
 
@@ -380,7 +380,7 @@ Pendant l'Exécution, l'écran affiche principalement :
 
 - le nom de l'Activité en cours ;
 - la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
-- le temps de l'Activité : compte à rebours pour une Activité chronométrée, chronomètre croissant pour un Exercice en Répétition ;
+- le temps de l’Activité : compte à rebours pour une Activité chronométrée, chronomètre croissant pour un Exercice en Répétitions ou À l’échec ;
 - la Série et le Tour en cours ; le Cycle n’est jamais affiché ;
 - l'Activité suivante et sa durée lorsqu'elle est connue ;
 - les commandes Réinitialiser, Pause et Activité suivante ;
@@ -394,7 +394,7 @@ Le **temps total écoulé** correspond au temps actif réellement passé dans l'
 
 Il inclut notamment :
 
-- le temps réellement passé dans les Exercices en mode Répétition ;
+- le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;
 - les Activités chronométrées ;
 - les Récupérations explicites ;
 - les Récupérations techniques liées aux Pauses après Série ;
@@ -409,10 +409,10 @@ La progression mathématique de la barre est continue. Sa piste est toutefois st
 Son calcul s'appuie cependant sur les occurrences d'Activités du plan d'Exécution :
 
 - `N` = nombre total d'Activités à exécuter dans le plan ;
-- `R` = nombre d'occurrences d'Exercices en mode Répétition ;
+- `R` = nombre d’occurrences d’Exercices sans durée cible, en mode Répétitions ou À l’échec ;
 - `T` = somme des durées des occurrences d'Activités chronométrées du plan.
 
-Chaque occurrence d'Exercice en mode Répétition reçoit un poids de `1 / N` dans la barre.
+Chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids de `1 / N` dans la barre.
 
 La part restante, `1 - R / N`, est répartie entre les occurrences d'Activités chronométrées proportionnellement à leur durée. Pour une Activité chronométrée de durée `d`, son poids est donc :
 
@@ -423,14 +423,14 @@ Cas particuliers :
 - si `R = 0`, la barre est entièrement proportionnelle aux durées ;
 - si `R = N`, chaque Activité reçoit un poids de `1 / N` ;
 - une Activité chronométrée en cours remplit progressivement sa part selon le temps écoulé sur sa durée cible ;
-- un Exercice en mode Répétition conserve sa part non remplie pendant son exécution puis la remplit entièrement lorsque l'utilisateur valide sa fin avec `Activité suivante` ;
+- un Exercice en mode Répétitions ou À l’échec conserve sa part non remplie pendant la Série puis la remplit entièrement lorsque l’utilisateur valide sa fin avec `Suivant` ;
 - une Activité chronométrée passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
 - `Pause` suspend la progression de la part courante ;
 - `Réinitialiser` remet à zéro la progression interne de l'Activité courante sans modifier les parts déjà franchies.
 
 La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée.
 
-Pour un Exercice en Répétition, le cercle effectue une rotation complète par minute. Le chronomètre continue à croître au-delà d'une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
+Pour un Exercice en mode Répétitions ou À l’échec, le cercle effectue une rotation complète par minute. Le chronomètre continue à croître au-delà d’une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
 
 ## 4.5 Actions disponibles
 
@@ -460,7 +460,7 @@ Si l'utilisateur annule, la séance reprend exactement à l'état où elle se tr
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
 - **Réinitialiser** → confirmation, afin d'éviter une perte involontaire de progression sur l'Activité ;
-- **Activité suivante** → pour une Activité chronométrée avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétition, fin normale sans confirmation ;
+- **Suivant** → pour une Activité chronométrée avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétitions ou À l’échec, fin normale de la Série sans confirmation ;
 - **Pause** → aucune confirmation, l'action étant réversible ;
 - **Arrêter la séance** → confirmation via le modal de pause.
 
@@ -468,10 +468,10 @@ Les confirmations protègent ainsi les actions ayant un impact irréversible sur
 
 ## 4.7 Passage à l'activité suivante
 
-L'action **Activité suivante** a deux comportements selon le mode de l'Activité :
+L’action **Suivant** a deux comportements selon le mode de l’Activité :
 
 - pour une Activité chronométrée utilisée avant son terme, une confirmation est demandée ; après confirmation, l'Activité est enregistrée avec le statut **Partielle** ;
-- pour un Exercice en mode Répétition, l'action constitue la fin normale de l'Exercice et ne crée pas de statut Partielle.
+- pour un Exercice en mode Répétitions ou À l’échec, l’action constitue la fin normale de la Série courante et ne crée pas de statut Partielle.
 
 Dans les deux cas, l'Exécution poursuit ensuite le plan normal.
 
@@ -506,7 +506,7 @@ Le passage en arrière-plan ou le verrouillage de l’écran ne constitue pas un
 Une pause de sécurité est appliquée si aucune interaction n’a eu lieu :
 
 - 30 minutes après la fin théorique d’une Activité chronométrée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions.
+- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
 
 La pause de sécurité conserve l’état recalculé au moment de son déclenchement et demande à l’utilisateur de reprendre ou d’arrêter la Séance.
 
@@ -562,7 +562,7 @@ Chaque exécution enregistre notamment :
 - l’instantané fonctionnel de la séance ;
 - les informations propres à chaque activité exécutée.
 
-Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. Aucun média n’est disponible dans le MVP ; lorsqu’un média sera introduit après le MVP, il ne sera pas copié dans l’Instantané.
+Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. En V2, il conserve les associations média ordonnées et leurs références stables sans dupliquer les fichiers physiques.
 
 Une exécution n'est jamais modifiée après son enregistrement.
 
@@ -834,6 +834,7 @@ Le suivi repose sur les principes suivants :
 | Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |
 | Filtre `Toutes` | Filtre | Toujours | Affiche toutes les Séances actives, planifiées ou non ; exclut les archivées | Filtrer |
 | Filtre `Planifiées` | Filtre | Toujours | Séances ayant au moins une Routine | Filtrer |
+| Filtre `Non planifiées` | Filtre | Toujours | Séances actives ne possédant aucune Routine | Filtrer |
 | Filtre `Archivées` | Filtre | Toujours | Séances archivées uniquement | Filtrer |
 | Carte Séance | Carte | 1 par Séance | Condensée ou déployée | Zone principale : ouvrir la Séance en modification |
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
@@ -922,10 +923,10 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
-| Contexte de Séance        | Texte             | Étape 1                            | Oui         | `Séance · {nom de la séance}` | Inter Regular `14/17`                          | Séance  | Aucune         | Placé dans le bandeau bleu de `115` points, au-dessus du champ Nom ; padding inférieur du bandeau `spacing/16`, indépendant de l’interligne |
-| Nom                       | Champ texte       | Étape 1                            | Oui         | Vide                           | 1 à 80 caractères ; fond transparent ; liseré blanc `1` | Activité | Saisie         | Valeur en `KODJO / Screen title` (`20/24`, Semi Bold), comme `Nom de la séance` ; pré-rempli pour Récupération |
+| Nom                       | Champ texte       | Étape 1                            | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition ; pré-rempli pour Récupération |
+| Ajouter un média          | Bouton            | Étape 1                            | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif en V2 | Statique | Ajouter | Placé sous Nom ; aucune section Médias n’est affichée dans le MVP |
 | Type d'activité           | Segmented Control | Étape 1                            | Oui         | Exercice                       | Exercice / Récupération                        | Activité | Sélection      | Change le parcours et les champs affichés |
-| Mode d'exécution          | Segmented Control | Étape 1, Exercice uniquement       | Oui         | Durée                          | Durée / Répétition                             | Activité | Sélection      | Change la première roulette des paramètres |
+| Mode d'exécution          | Segmented Control | Étape 1, Exercice uniquement       | Oui         | Durée                          | Durée / Répétitions / À l’échec                | Activité | Sélection      | Adapte les paramètres visibles au mode |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 30 s                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `136 × 190`, Annuler/Confirmer |
 | Pause après Série         | Roulette durée    | Étape 1, Exercice uniquement       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Appliquée après chaque Série ; la pause finale est omise si l'étape suivante du plan est une Récupération explicite |
@@ -936,22 +937,23 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une Récupération utilisent le composant compact canonique : `190` points de haut, barre supérieure Annuler/Confirmer de `40` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Les roulettes `Nombre de répétitions` et `Nombre de Séries` réutilisent le même component set dans sa variante `Type=Numeric wheel` (`3210:49`) : une colonne, largeur minimale `136`, même hauteur `190` et mêmes actions. Le brouillon reste local jusqu’à Confirmer ; Annuler restaure la valeur précédemment enregistrée. L’état ouvert de la Récupération ne contient qu’une seule instance canonique, directement sous le contrôle Durée, sans duplication de barre d’actions ni de roulette.
 | Consigne                  | Texte multiligne  | Étape 2                            | Non         | Vide                           | 1000 caractères max                            | Activité | Saisie         | Écran Informations complémentaires |
 | Zones corporelles         | Tags              | Étape 2, Exercice uniquement       | Non         | Aucune                         | Plusieurs zones autorisées                     | Activité | Sélection      | Référentiel prédéfini ; écran Informations complémentaires |
-| Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom + durée/répétitions obligatoires           | Statique | Enregistrer    |                                                                                                                                                                                                                                        |
+| Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | |
 ### Règles fonctionnelles
 
 | Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Type Exercice     | Autorise les modes Durée et Répétitions.                                                                                                                                                                                                                                                                                                                                                   |
+| Type Exercice     | Autorise les modes Durée, Répétitions et À l’échec.                                                                                                                                                                                                                                                                                                                                        |
 | Type Récupération | Nom pré-rempli "Récupération". Le mode d'exécution est masqué.                                                                                                                                                                                                                                                                                                                             |
 | Mode Durée        | Affiche le sélecteur de durée.                                                                                                                                                                                                                                                                                                                                                             |
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
-| Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). Une Série répète la durée ou le nombre de répétitions défini pour l'Exercice puis sa pause éventuelle.                                                                                                                                                                                                              |
+| Mode À l’échec    | N’affiche ni Durée ni Nombre de répétitions ; conserve Pause et Séries à leurs positions. |
+| Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). Une Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode, puis applique sa pause éventuelle. |
 | Pause après Série | Disponible uniquement pour les Exercices. Lorsqu’une durée est renseignée, l’application crée techniquement une activité de type `Récupération`, liée à l’Exercice et utilisée après chaque Série. Après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. Cette activité technique reste masquée dans l’interface de composition. |
 | Zones corporelles | Disponibles uniquement pour une activité de type Exercice ; sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP.                                                                                                                                                                                  |
 | Récupération      | La section Zones corporelles est masquée.                                                                                                                                                                                                                                                                                                                                                  |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
-| Synthèse          | Cadre de largeur utile, placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète ni `Exercice`/`Récupération` ni `Mode Durée`/`Mode Répétition`. La clause de pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. |
+| Synthèse          | Cadre de largeur utile, placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le type ou le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. |
 ## Exécution d'une séance
 
 ### Éléments affichés
@@ -966,8 +968,8 @@ Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une R�
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
 | À suivre | Texte | Sauf dernière Activité | Non | Nom + durée/reps de l’Activité suivante | Plan d’Exécution | Aucune | |
 | Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Activité courante |
-| Pause | Bouton | Pendant Exécution | Oui | Actif | Statique | Suspendre | Suspend aussi le chrono croissant en Répétition |
-| Activité suivante | Bouton | Pendant Exécution | Oui | Actif | Statique | Passer à la suite | Fin normale en Répétition ; confirmation avant terme pour une Activité chronométrée |
+| Pause | Bouton | Pendant Exécution | Oui | Actif | Statique | Suspendre | Suspend aussi le chrono croissant en Répétitions ou À l’échec |
+| Suivant | Bouton | Pendant Exécution | Oui | Actif | Statique | Terminer la Série ou passer à la suite | Fin normale en Répétitions/À l’échec ; confirmation avant terme pour une Activité chronométrée |
 | Temps total | Texte + barre | Toujours | Oui | Temps écoulé / estimé | Exécution | Aucune | |
 | Bips / annonces | Icônes / états | Toujours | Oui | Selon Préférences | Préférences | Activer / désactiver | |
 
@@ -977,7 +979,7 @@ Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une R�
 | --- | --- |
 | Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement la première Activité. |
 | Exercice chronométré | Compte à rebours. `Activité suivante` avant zéro demande confirmation et enregistre l’Activité comme `Partielle`. |
-| Exercice en Répétition | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Activité suivante` termine normalement l’Exercice. |
+| Exercice en Répétitions ou À l’échec | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Suivant` termine normalement la Série. |
 | Réinitialisation | Demande confirmation et remet l’Activité courante à son état initial sans revenir à une Activité antérieure. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
 | Navigation | L’utilisateur ne revient pas à une Activité déjà exécutée. |
@@ -987,7 +989,7 @@ Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une R�
 
 - bip pendant les trois dernières secondes d’une Activité chronométrée selon les règles audio ;
 - annonce vocale du nom de l’Activité au démarrage ;
-- pour un Exercice en Répétition, bip fixe à chaque minute écoulée dans le MVP.
+- pour un Exercice en Répétitions ou À l’échec, bip fixe à chaque minute écoulée dans le MVP.
 
 ## Synthèse de séance
 
@@ -1096,7 +1098,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 
 | Action                                           | Confirmation      | Boutons                 | Conséquence                                                            |
 | ------------------------------------------------ | ----------------- | ----------------------- | ---------------------------------------------------------------------- |
-| Supprimer une séance archivée                    | Oui               | Annuler / Confirmer | Dialogue centré ; disponible uniquement depuis `Archivées` ; conserve les Exécutions |
+| Supprimer une séance archivée                    | Oui               | Annuler / Confirmer | Dialogue centré ; disponible uniquement via le filtre `Archivées` ; conserve les Exécutions |
 | Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
 | Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
@@ -1106,3 +1108,36 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Quitter la création d'une séance non enregistrée | Oui               | Annuler / Confirmer | Dialogue centré ; `Confirmer` abandonne la création |
 
 Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:2961`) : largeur `354`, rayon `18`, centrage dans l’écran et voile bloquant. Le dernier paragraphe est séparé de la première ligne d’actions par `spacing/16`. Avec deux choix, les boutons `147 × 48` sont alignés ; avec trois choix, `Seulement cette occurrence` et `Toutes les occurrences à venir` sont les deux actions destructives de la première ligne, puis `Annuler` occupe la seconde ligne en pleine largeur `306 × 48`. Les textes sont centrés horizontalement et verticalement.
+
+## Catalogue multi-type
+
+Le contrôle segmenté sélectionne un type de contenu : `Activités`, `Séances`, `Circuits`. `Séances` est le défaut et le seul type actif dans le MVP. `Activités` et `Circuits` sont visibles mais désactivés jusqu’à la V2.
+
+La vue Séances charge toutes les Séances non archivées et les trie par dernière modification décroissante. Les boutons Filtrer et Trier seront ajoutés ultérieurement dans Figma. Le filtre propose exclusivement `Toutes`, `Planifiées`, `Non planifiées`, `Archivées`. Le tri propose dernière modification croissante/décroissante ou nom A–Z/Z–A.
+
+## Activité — contrat révisé
+
+| Zone | Règle |
+|---|---|
+| Bandeau bleu | Champ Nom en premier, aligné sur celui de Composition ; aucune mention de la Séance. |
+| Média MVP | Bouton `+ Ajouter un média` visible mais désactivé ; section Médias absente. |
+| Média V2 | Bouton actif ; galerie horizontale `0..n`, ordonnée, avec aperçu suivant tronqué. |
+| Type | Exercice ou Récupération. |
+| Mode Exercice | Trois segments égaux : Durée, Répétitions, À l’échec. |
+| Mode Récupération | Segment Mode masqué ; durée obligatoire. |
+| À l’échec | Aucun contrôle Durée ou Répétitions ; Pause et Séries conservent leur emplacement. |
+| Synthèse | `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`, avec les règles communes de pluriel et d’omission d’une pause nulle. |
+
+## Bibliothèque d’Activités — V2
+
+Une Activité de catalogue est persistante et non exécutable seule. L’ajout dans une Séance crée une copie indépendante de toutes ses propriétés et associations média. La position structurelle appartient à la copie. Modifier ou supprimer la référence ne modifie aucune copie. La première version ne propose pas d’enregistrer dans la bibliothèque une Activité créée dans une Séance.
+
+## Médias — V2
+
+L’utilisateur capture ou choisit dans la photothèque une photo ou une vidéo. Le fichier est copié dans le stockage interne et reste accessible hors ligne. Une vidéo ne démarre jamais automatiquement. Les associations sont ordonnées et réorganisables ; plusieurs associations peuvent partager un fichier immuable sans le dupliquer.
+
+## Circuits — V2
+
+Le formulaire exige nom, couleur et au moins deux étapes. Chaque étape référence une Séance existante et une même Séance peut apparaître plusieurs fois. La transition globale est manuelle ou automatique ; en automatique, la durée commune vaut `30 s` par défaut. L’écran de transition est toujours visible, puis le compte à rebours initial de la Séance suivante est exécuté.
+
+Le lancement crée un instantané. Une Exécution de Circuit relie les Exécutions de Séance des étapes commencées. Les fins intermédiaires sont remplacées par l’écran de transition ; la fin globale apparaît après la dernière étape. L’arrêt confirmé conserve les résultats produits et marque l’ensemble interrompu.

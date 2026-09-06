@@ -39,13 +39,13 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 ### Activité
 
-Une Activité est un élément exécutable de la Séance.
+Une Activité est une définition d'Exercice ou de Récupération. Dans le MVP, elle existe comme copie intégrée à une Séance. En V2, elle peut aussi exister comme référence persistante autonome dans le catalogue Activités ; son ajout à une Séance crée une copie indépendante.
 
 Le MVP distingue :
 - Exercice ;
 - Récupération.
 
-Un Exercice est défini soit par une Durée, soit par un Nombre de répétitions. Une Récupération est chronométrée.
+Un Exercice utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Une Récupération est chronométrée.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -100,7 +100,7 @@ Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
 Aucune Récupération n’est ajoutée implicitement entre deux Activités, hors Récupérations techniques explicitement générées par une Pause après Série configurée.
 
-Une Activité ne possède aucun média dans le MVP. Le modèle et l’architecture doivent permettre d’ajouter au plus un média par Activité dans une version ultérieure.
+Une Activité ne possède aucun média fonctionnel dans le MVP. Le bouton `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2, une Activité peut associer `0..n` photos ou vidéos ordonnées.
 
 ### Exécution d’une Séance
 
@@ -117,7 +117,7 @@ Le MVP permet de :
 
 Pour une Activité chronométrée passée avant son terme, une confirmation est demandée et le Résultat d’Activité est enregistré `Partielle` si le passage est confirmé.
 
-Pour un Exercice en mode Répétition, `Activité suivante` constitue la fin normale de l’Activité et ne demande pas de confirmation.
+Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
 Un arrêt volontaire confirmé produit une Exécution `Interrompue` et ouvre la Synthèse. Une interruption technique ou système peut produire une Exécution `Interrompue` sans affichage de la Synthèse et donc sans Ressenti.
 
@@ -127,7 +127,7 @@ Aucun retour à l’Activité précédente n’est inclus dans le MVP.
 
 La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution.
 
-Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétition. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`.
+Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`.
 
 Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
 
@@ -138,7 +138,7 @@ Trois indicateurs d’Activités sont distingués :
 
 La barre de progression utilise une pondération hybride :
 - les Activités chronométrées sont pondérées proportionnellement à leur durée ;
-- chaque occurrence d’Exercice en mode Répétition reçoit un poids `1/N`, où `N` est le Nombre total d’Activités à exécuter ;
+- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Activités à exécuter ;
 - la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée.
 
 La barre est visuellement continue, sans frontière de segment visible.
@@ -156,7 +156,7 @@ Le guidage comprend :
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
-En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
+En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
 
 ### Planification et Calendrier
 
@@ -310,7 +310,19 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
-- association d’au plus un média par Activité ;
+- bibliothèque d’Activités persistantes, réutilisées par copie indépendante ;
+- association de `0..n` photos ou vidéos ordonnées par Activité ;
+- Circuits persistants composés d’au moins deux Séances ordonnées, exécutables manuellement ; leur planification est reportée en V3 ;
+
+## 12. Évolution Activités, Catalogue et Circuits — décision du 6 septembre 2026
+
+Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les anciens segments `Toutes`, `Planifiées` et `Archivées` ne sont plus une navigation principale : ces états deviennent des filtres dédiés.
+
+Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni durée ni répétitions cibles et utilise exactement le mécanisme du mode Répétitions : l’utilisateur termine chaque Série avec `Suivant`. La durée affichée est une borne minimale fondée sur les seuls temps connus.
+
+En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son type, son mode, ses paramètres et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
+
+Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées. Il référence les Séances existantes, autorise plusieurs occurrences d’une même Séance et ne possède pas de compteur de répétition d’étape. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance de ses étapes. La planification des Circuits relève de la V3.
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
 - suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.

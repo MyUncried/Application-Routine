@@ -14,7 +14,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-004 | Toucher le corps d’une carte de Séance active ouvre cette Séance en mode modification. |
 | RM-005 | Le glissement sur une Séance active expose uniquement les actions prévues pour ce contexte : `Planifier`, `Dupliquer` et `Archiver`. |
 | RM-006 | La duplication crée une copie indépendante de la Séance et de sa Composition. Elle ne crée ni Routine ni Exécution. |
-| RM-007 | Une Séance active ne peut pas être supprimée depuis les vues `Toutes` ou `Planifiées`. Elle doit d’abord être archivée. |
+| RM-007 | Une Séance active ne peut pas être supprimée. Elle doit d’abord être archivée, puis supprimée depuis le résultat du filtre `Archivées`. |
 | RM-008 | L’archivage supprime les Routines futures associées à la Séance, mais conserve les Exécutions et leurs Instantanés historiques. |
 | RM-009 | Une Séance archivée peut être restaurée. La restauration ne recrée aucune ancienne Routine. |
 | RM-010 | Après restauration, un message `Séance restaurée` propose temporairement `Annuler`. |
@@ -56,14 +56,14 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 | --- | --- |
 | RM-033 | Une Activité est de type `Exercice` ou `Récupération`. |
-| RM-034 | Un Exercice est défini soit par une durée, soit par un nombre de Répétitions. |
+| RM-034 | Un Exercice utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
 | RM-035 | Tout Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série correspond à l’exécution de la durée ou des Répétitions de l’Exercice, suivie de sa Pause après Série éventuelle. Elle n’est pas une entité métier autonome. |
+| RM-036 | Une Série correspond à l’exécution de la durée cible, des Répétitions cibles ou jusqu’à l’échec selon le mode, suivie de sa Pause après Série éventuelle. Elle n’est pas une entité métier autonome. |
 | RM-037 | Lorsqu’une Pause après Série est configurée, une Récupération technique est générée après chaque Série. Après la dernière Série, elle est omise si l’étape suivante est déjà une Récupération explicite. |
 | RM-038 | Une Récupération explicite est toujours chronométrée, reçoit initialement le nom `Récupération` et se termine automatiquement à zéro. |
 | RM-039 | Un Exercice peut être associé à zéro, une ou plusieurs Zones corporelles. Une Récupération ne possède aucune Zone corporelle. |
 | RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
-| RM-041 | Une Activité ne possède aucun média dans le MVP. Le modèle prévoit au plus un média par Activité après le MVP. |
+| RM-041 | Une Activité ne possède aucun média fonctionnel dans le MVP. Le modèle prévoit `0..n` médias ordonnés par Activité en V2. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
 
 ## 5. Planification et Calendrier
@@ -96,8 +96,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-055 | Chaque démarrage crée une Exécution distincte fondée sur un Instantané immuable de la Séance. |
 | RM-056 | L’entrée dans l’Exécution ne démarre pas immédiatement le décompte. L’utilisateur déclenche explicitement le démarrage. |
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |
-| RM-058 | Pour un Exercice en Répétitions, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
-| RM-059 | `Activité suivante` termine normalement un Exercice en Répétitions sans confirmation. |
+| RM-058 | Pour un Exercice en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
+| RM-059 | `Suivant` termine normalement la Série courante d’un Exercice en Répétitions ou À l’échec sans confirmation. |
 | RM-060 | Pour une Activité chronométrée non arrivée à zéro, `Activité suivante` demande confirmation. Si elle est confirmée, le Résultat d’Activité est `Partielle` et l’Exécution continue. |
 | RM-061 | Une Activité chronométrée arrivée à zéro se termine automatiquement. |
 | RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante ; les positions de Tour et de Cycle technique restent inchangées. |
@@ -112,7 +112,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-066 | Une Exécution chronométrée ne se fige pas lorsque l’application passe en arrière-plan ou que l’écran se verrouille. |
 | RM-067 | L’état temporel est fondé sur des horodatages de référence ; au retour, l’application recalcule la position qui aurait dû être atteinte. |
 | RM-068 | Sans interaction, une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée. |
-| RM-069 | Pour un Exercice en Répétitions, une pause de sécurité intervient après 2 heures sans interaction depuis son démarrage. |
+| RM-069 | Pour un Exercice en Répétitions ou À l’échec, une pause de sécurité intervient après 2 heures sans interaction depuis son démarrage. |
 | RM-070 | Les limites des mécanismes natifs en arrière-plan doivent être validées sur appareils iOS et Android réels conformément au chapitre 12. |
 
 ## 9. Calculs et progression
@@ -120,12 +120,12 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 | --- | --- |
 | RM-071 | La durée estimée est la somme des durées déterminables du plan développé : Compte à rebours initial, Fin de séance, Activités chronométrées et Récupérations techniques générées. |
-| RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions. S’il en existe au moins un, la durée estimée est une borne minimale précédée de `≥`. |
+| RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions ou À l’échec. S’il en existe au moins un, la durée estimée est une borne minimale précédée de `≥`. |
 | RM-073 | Le temps total écoulé et la durée réelle excluent les Pauses déclenchées par l’utilisateur et incluent le temps réellement exécuté dans les autres phases. |
 | RM-074 | Le Nombre d’Activités de la Composition compte les Activités définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Récupérations techniques. |
 | RM-075 | Le Nombre total d’Activités à exécuter compte les occurrences du plan développé après Séries et Tours, y compris les Récupérations techniques effectivement générées, mais exclut le Compte à rebours initial et la Fin de séance. |
 | RM-076 | Le Nombre d’Activités exécutées correspond aux Résultats d’Activité créés. Une Activité `Partielle` compte ; une Activité jamais atteinte ne compte pas. |
-| RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
+| RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions ou À l’échec pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
 | RM-101 | La durée estimée (RM-071), exprimée en secondes, est convertie en minutes pour son affichage à l’utilisateur (Catalogue, Composition) par arrondi à la minute supérieure, afin de ne jamais sous-estimer la durée réelle (D-090). |
 
 ## 10. Synthèse, Suivi et historique
@@ -172,3 +172,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-106 | Les Catégories prédéfinies suivent leur `displayOrder`; les Catégories personnalisées sont affichées ensuite par date de création croissante. Une sélection ne change pas cet ordre et aucune réorganisation manuelle n’est proposée dans le MVP. |
 | RM-107 | Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste dans le brouillon. Son existence temporaire est distincte de sa sélection : elle est sélectionnée automatiquement à la création, demeure visible après désélection et peut être resélectionnée sans doublon. La navigation Catégories ↔ Composition conserve les deux états. `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations ; un abandon ou un échec ne crée aucune Catégorie orpheline. |
 | RM-108 | En cas d’échec de l’enregistrement final, l’écran Catégories reste affiché, le brouillon complet est conservé, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative est possible et aucune donnée partielle n’est conservée. |
+| RM-109 | Le Catalogue sélectionne `Activités`, `Séances` ou `Circuits`; seul `Séances` est actif dans le MVP. |
+| RM-110 | Sans filtre, toutes les Séances non archivées sont triées par dernière modification décroissante. Les filtres sont Toutes, Planifiées, Non planifiées, Archivées ; les tris initiaux portent uniquement sur dernière modification et nom. |
+| RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
+| RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
+| RM-113 | Une référence d’Activité V2 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
+| RM-114 | Le MVP affiche `+ Ajouter un média` désactivé et masque la section Médias. La V2 autorise `0..n` photos ou vidéos ordonnées. |
+| RM-115 | Une association média est copiée indépendamment mais partage un fichier immuable ; le fichier n’est supprimé que sans aucune référence. |
+| RM-116 | Un Circuit validé exige nom, couleur et au moins deux étapes. Une Séance peut apparaître plusieurs fois ; aucune répétition d’étape n’est définie. |
+| RM-117 | L’écran de transition d’un Circuit est obligatoire. Il attend l’utilisateur en manuel ou passe automatiquement après la durée globale, `30 s` par défaut. |
+| RM-118 | Chaque Séance conserve son compte à rebours initial. Une fin intermédiaire est remplacée par la transition et seule la dernière étape ouvre la fin du Circuit. |
+| RM-119 | L’Exécution de Circuit et ses Exécutions de Séance liées utilisent un instantané immuable ; un arrêt confirmé conserve l’exécution partielle et ne crée rien pour les étapes futures. |
+| RM-120 | Activités, Séances et Circuits peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |

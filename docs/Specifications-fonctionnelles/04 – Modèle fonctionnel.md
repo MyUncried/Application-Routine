@@ -75,17 +75,17 @@ Il existe deux types d'activités :
 
 Une activité de type **Exercice** possède un nombre de **Séries** propre, supérieur ou égal à 1.
 
-Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution (**Durée** ou **Répétitions**), suivie de sa pause éventuelle. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution (**Durée**, **Répétitions** ou **À l’échec**), suivie de sa pause éventuelle. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
 
 Chaque activité possède notamment :
 - un nom ;
 - un mode d'exécution ;
-- une durée ou un nombre de répétitions selon le mode ;
+- une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une pause facultative appliquée après chaque Série ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
-- aucun média dans le MVP ; le modèle reste extensible afin d’autoriser au plus un média par Activité dans une version ultérieure.
+- aucun média fonctionnel dans le MVP ; le modèle autorise `0..n` médias ordonnés par Activité en V2.
 
 Après la dernière Série, la pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
 ## Routine
@@ -289,3 +289,13 @@ Ne sont pas inclus dans le MVP :
 - exceptions de planification ;
 - notifications avancées ;
 - intelligence artificielle.
+
+# 4.9 Extension validée du modèle
+
+L’Activité possède deux formes distinctes : la **référence autonome** de V2 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier et ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
+
+Un Exercice accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. Récupération reste chronométrée et n’expose pas ce segment.
+
+Le Média est un actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations peuvent référencer le même fichier sans duplication physique. Une suppression d’association ou de référence ne supprime le fichier que lorsqu’aucune entité ni aucun instantané ne le référence.
+
+Le Circuit est une racine persistante V2 possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Circuit. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Le Circuit reflète les modifications de ses Séances jusqu’au lancement, puis l’Exécution de Circuit utilise un instantané immuable.

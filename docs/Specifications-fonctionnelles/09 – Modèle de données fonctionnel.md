@@ -70,7 +70,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
-| DM-012 | Un Cycle, un Tour et une Activité appartiennent à une seule Séance ; ils ne sont pas partagés ni référencés par plusieurs Séances.                                                                           | V1 / Évolution |
+| DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` V2 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP / V2 |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | La pause est appliquée après chaque Série ; après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. | V1 |
 
@@ -195,7 +195,7 @@ Elle ne contient pas directement :
 | Date de dernière exécution              | Date de la dernière exécution de séance                                   |          Facultatif          | Sert notamment au classement du Catalogue de séances                                                                                                                                                                                                   |
 | Date d’archivage                        | Date de passage au statut archivé                                         |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                                                                                                                                                                        |
 | Structure                               | Organisation complète de la séance                                        | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice                                                                                                                                                   |
-| Durée estimée                           | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétition, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥`                                                       |
+| Durée estimée                           | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétitions ou À l’échec, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥`                                                       |
 | Nombre d’Activités de la Composition    | Nombre d’Exercices et de Récupérations définis dans la Composition        |           Calculé            | Ne multiplie pas les Activités par les Séries, Tours ou Cycles et exclut les pauses intermédiaires techniques                                                                                                                                           |
 | Nombre total d’Activités à exécuter     | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Tour et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première activité                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
@@ -493,7 +493,7 @@ Une Occurrence planifiée possède directement :
 
 Une **Activité** est la plus petite unité exécutable d'une séance.
 
-Elle appartient à une seule Séance et est de type **Exercice** ou **Récupération**. Dans le MVP, sa position détermine son ordre à l’intérieur du Tour visible.
+Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. En V2, une `ActivityDefinition` autonome de type **Exercice** ou **Récupération** peut être copiée dans plusieurs Séances sans lien de propagation.
 
 Une activité de type Récupération peut être créée explicitement par l'utilisateur ou être générée à partir du paramètre de pause d'un Exercice. Dans ce second cas, elle reste masquée comme activité autonome dans l'interface de composition et sert au plan d'exécution après les Séries de l'Exercice.
 
@@ -506,12 +506,12 @@ Une activité possède directement :
 - son nom ;
 - sa consigne ;
 - son mode d'exécution ;
-- sa durée ou son nombre de répétitions ;
+- sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée en mode À l’échec ;
 - son nombre de Séries, lorsqu'elle est de type Exercice ;
 - sa Récupération après Série éventuelle, lorsqu'elle est de type Exercice ;
 - le lien vers l'Exercice d'origine lorsqu'elle est une Récupération générée par une pause après Série ;
 - ses zones corporelles ;
-- aucun média dans le MVP ; une association optionnelle sera ajoutée après le MVP ;
+- aucun média fonctionnel dans le MVP ; `0..n` associations ordonnées seront disponibles en V2 ;
 - sa position structurelle dans la Séance et son ordre au sein de cette position.
 
 Elle ne contient pas directement :
@@ -532,20 +532,20 @@ Elle ne contient pas directement :
 | Type                       | Exercice ou Récupération                        |        Obligatoire        |                                                                               |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Consigne                   | Instructions                                    |        Facultatif         |                                                                               |
-| Mode d'exécution           | Durée ou Répétitions                            | Obligatoire pour Exercice |                                                                               |
+| Mode d'exécution           | Durée, Répétitions ou À l’échec                 | Obligatoire pour Exercice | À l’échec n’a ni durée ni répétitions cibles                                  |
 | Durée                      | Durée                                           |       Conditionnel        | Activité chronométrée                                                         |
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Exercice en mode Répétition                                                   |
 | Nombre de Séries           | Entier                                          | Obligatoire pour Exercice | Valeur ≥ 1 ; paramètre propre à l'Activité                                     |
 | Récupération après Série   | Activité Récupération liée à l'Exercice        |        Facultatif         | Exercice uniquement ; référence zéro ou une activité Récupération associée    |
 | Exercice d'origine         | Exercice ayant généré cette Récupération        |       Conditionnel        | Renseigné uniquement pour une Récupération créée via « Pause après Série » |
 | Zones corporelles          | Zones sollicitées                               |        Facultatif         | Exercice uniquement                                                           |
-| Média                      | Photo ou vidéo                                  |        Hors MVP           | Évolution prévue : zéro ou un média                                           |
+| Médias                     | Photos ou vidéos ordonnées                      |        Hors MVP           | Évolution V2 : zéro à plusieurs médias                                        |
 
 ## Règles métier
 
-- Une Activité appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Seules les Activités `Dans Tour` référencent le Tour.
+- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` V2 est autonome et ne porte aucune position de Séance.
 - Une activité est de type Exercice ou Récupération.
-- Une activité Exercice peut être exécutée selon une durée ou un nombre de répétitions.
+- Une activité Exercice peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une activité Récupération est toujours chronométrée.
 - Une activité Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Une Série correspond à une exécution de l'Exercice selon son mode, suivie de la récupération associée lorsqu'elle existe.
@@ -569,7 +569,7 @@ Un **Média** est une ressource visuelle qui pourra être associée à une Activ
 
 ## Périmètre
 
-Un média possède son identité, ses informations techniques et la référence vers l'activité à laquelle il est associé.
+Un `MediaAsset` possède son identité et ses informations techniques. Les liens vers les Activités sont portés par des associations `ActivityMedia` ordonnées.
 
 ## Attributs fonctionnels
 
@@ -586,11 +586,11 @@ Un média possède son identité, ses informations techniques et la référence 
 
 ## Règles métier
 
-- Un média appartient à une seule activité.
+- Un fichier média peut être référencé par plusieurs associations appartenant chacune à une Activité.
 - Une activité peut ne posséder aucun média.
-- Une activité possède au maximum un média.
+- Une activité possède zéro à plusieurs associations média ordonnées.
 - La duplication d’une Activité ou d’une Séance crée une nouvelle association/entité Média pour l’Activité dupliquée ; cette association peut référencer le même fichier physique local.
-- La suppression d’un média est toujours autorisée, même s’il est référencé par plusieurs associations : le fichier physique est supprimé et toutes ses associations sont retirées. Les Activités concernées restent valides et deviennent sans média.
+- Retirer un média d’une Activité supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucune Activité ni aucun instantané ne le référence.
 
 
 # 09.7 Entité Exécution de séance
@@ -623,7 +623,7 @@ Une exécution possède directement :
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
-| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut les périodes de Pause utilisateur ; inclut le temps réellement passé dans les Exercices en Répétition et toutes les phases/Activités effectivement exécutées |
+| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut les périodes de Pause utilisateur ; inclut le temps réellement passé dans les Exercices en Répétitions ou À l’échec et toutes les phases/Activités effectivement exécutées |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
@@ -649,13 +649,13 @@ Il ne contient pas de copie physique des médias associés aux Activités.
 | Compte à rebours initial | Durée, texte vocal                                                                                             |
 | Cycle                    | Identifiant, position, nombre de répétitions                                                                   |
 | Tour                      | Identifiant, position, nombre de répétitions                                                                   |
-| Exercice                 | Identifiant source, nom, mode d’exécution, durée ou répétitions, nombre de Séries, consigne, zones corporelles |
+| Exercice                 | Identifiant source, nom, mode d’exécution, durée ou répétitions cibles lorsqu’elles existent, nombre de Séries, consigne, zones corporelles, associations média ordonnées et références stables en V2 |
 | Récupération             | Identifiant source, nom éventuel, durée                                                                        |
 | Pause après Série        | Représentée par la Récupération correspondante et la règle d'insertion dans le plan d'exécution                |
 | Fin de séance            | Durée, texte vocal                                                                                             |
 | Structure                | Ordre exact des éléments et relations nécessaires au plan d’exécution                                          |
 
-Les médias ne sont pas dupliqués dans l’Instantané. Leur modification ou suppression ultérieure ne remet pas en cause la lisibilité fonctionnelle de l’historique.
+Les fichiers médias ne sont pas dupliqués physiquement dans l’Instantané. Celui-ci conserve toutefois les associations ordonnées et les références stables ; un fichier reste conservé tant qu’un instantané le référence.
 
 L’Instantané est persisté sous forme de **JSON immuable**. Les champs nécessaires à la consultation chronologique du Suivi MVP sont conservés sous une forme permettant un accès efficace sans dépendre de la Séance courante. Les index spécifiques à la recherche, au tri et aux filtres avancés ne sont pas requis par l’interface MVP et pourront être ajoutés lors de l’activation de ces fonctions.
 
@@ -678,11 +678,42 @@ Contient notamment :
 - L’Instantané est immuable après sa création.
 - Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur l’Instantané.
 - L’Exécution conserve la référence à la Séance source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
-- Les médias ne sont pas copiés dans l’Instantané.
+- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la Synthèse.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
+
+# 09.14 Extension du modèle — Activités, Médias et Circuits
+
+## Racines et associations
+
+| Objet | Version | Rôle et relations |
+|---|---|---|
+| `ActivityDefinition` | V2 | Référence persistante autonome, Exercice ou Récupération, non exécutable seule. |
+| `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
+| `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
+| `ActivityMedia` | V2 | Association ordonnée entre une activité et un `MediaAsset`. |
+| `Circuit` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
+| `CircuitSession` | V2 | Étape ordonnée référençant une Séance ; plusieurs lignes peuvent viser la même Séance. |
+| `CircuitExecution` | V2 | Exécution globale et instantané immuable du Circuit. |
+| `CircuitSessionExecution` | V2 | Lien ordonné entre l’Exécution de Circuit et chaque Exécution de Séance commencée. |
+
+## Contraintes d’Activité
+
+`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` pour un Exercice. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause et nombre de Séries restent disponibles. Une Récupération conserve sa durée et n’utilise pas ce segment visible.
+
+L’ajout d’une définition copie nom, type, mode, durée ou répétitions, Séries, pause et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
+
+## Contraintes Média
+
+Une Activité possède `0..n` lignes `ActivityMedia`, chacune avec une position unique dans son activité. Un nouvel élément reçoit la dernière position et la réorganisation ne touche que cette association. Les fichiers ne sont jamais stockés dans SQLite ; `MediaAsset` contient une URI interne stable, type photo/vidéo, miniature éventuelle et métadonnées. La suppression physique n’est autorisée que lorsque le nombre de références actives, copies et instantanés est nul.
+
+## Contraintes Circuit
+
+Un Circuit validé possède au moins deux `CircuitSession`. Il n’existe aucun compteur de répétition d’étape. `transitionMode ∈ {MANUAL, AUTOMATIC}` ; `transitionDurationSeconds` est absent en manuel, obligatoire en automatique et vaut `30` par défaut. Une Séance archivée demeure valable dans un Circuit existant mais n’est plus proposée ; sa suppression définitive est bloquée tant qu’un Circuit la référence.
+
+Au lancement, l’instantané contient le Circuit ordonné et l’instantané de chaque Séance. Une Exécution interrompue conserve les étapes terminées, l’étape courante interrompue et aucune ligne d’Exécution de Séance pour les étapes non commencées.
 
 
 # 09.7.1 Résultat d’Activité exécutée
@@ -697,7 +728,7 @@ Chaque occurrence d’Activité parcourue pendant une Exécution produit un **R�
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
-| Durée réelle | Temps réellement passé sur l’Activité | Obligatoire | Chronométré pour les modes Durée et Répétition |
+| Durée réelle | Temps réellement passé sur l’Activité | Obligatoire | Chronométré pour les modes Durée, Répétitions et À l’échec |
 
 Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Activités exécutées** et les indicateurs de Suivi.
 
@@ -921,7 +952,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 ### Cohérence des relations
 
-- Toute Activité appartient à une seule Séance et occupe une seule position structurelle ; seules les Activités `Dans Tour` appartiennent au Tour pour l’exécution structurelle.
+- Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies `Dans Tour` appartiennent au Tour pour l’exécution structurelle. Une `ActivityDefinition` V2 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
@@ -953,10 +984,9 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’introduction des médias :
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Activité.
-- La suppression explicite d’un média/fichier par l’utilisateur reste autorisée même si ce fichier est référencé par plusieurs entités Média.
-- La suppression retire toutes les associations Média qui référencent ce fichier et supprime le fichier physique local correspondant.
-- Les Activités et Séances concernées restent valides et deviennent simplement sans média.
-- Les Instantanés historiques, qui ne contiennent pas les médias, restent fonctionnellement lisibles.
+- Le retrait d’un média depuis une Activité supprime uniquement l’association ciblée.
+- Le fichier physique local n’est supprimé que lorsqu’aucune Activité, copie de Séance ni aucun Instantané ne le référence.
+- Les autres Activités, Séances et Instantanés conservent leurs associations et restent inchangés.
 
 ## Archivage et suppression
 

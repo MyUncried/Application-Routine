@@ -183,8 +183,8 @@ Sur une hauteur plus courte, les espaces flexibles diminuent avant la taille du 
 | Frame Figma | `2117:86` — `Catalogue des séances — État vide` |
 | Surface de référence | `402 × 874` |
 | Screen Shell | `Shell / Screen`, `Context=On`, `Bottom=Navigation` |
-| Condition | Vue `Toutes` sélectionnée et aucune Séance non archivée |
-| Entrées principales | Fin du splash ; retour d’un parcours ; sélection du filtre `Toutes` |
+| Condition | Type `Séances` sélectionné et aucune Séance non archivée |
+| Entrées principales | Fin du splash ; retour d’un parcours ; filtre `Toutes` par défaut |
 | Sortie principale | `Composition d’une séance — création` |
 
 #### Structure et éléments obligatoires
@@ -192,10 +192,10 @@ Sur une hauteur plus courte, les espaces flexibles diminuent avant la taille du 
 | Zone | Élément | Valeur ou composant | Visibilité |
 | --- | --- | --- | --- |
 | Header fixe `0–92` sur la référence | Titre | `Catalogue des séances`, token `type.screenTitle` | Toujours |
-| Context `92–207` | Contrôle segmenté | `Toutes`, `Planifiées`, `Archivées` | Toujours |
+| Context `92–207` | Contrôle segmenté | `Activités`, `Séances`, `Circuits` | Toujours ; options latérales désactivées dans le MVP |
 | Context | Action contextuelle | Icône `+` et libellé `Créer` | Toujours |
 | Body `207–797` | Cadre d’état vide | Composant d’état vide, largeur utile | Lorsque le résultat du filtre est vide |
-| Body | Message | `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` | État vide de `Toutes` |
+| Body | Message | `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` | Type Séances sans résultat non archivé |
 | Bottom Navigation fixe `797–874` | Navigation principale | `Séances`, `Calendrier`, `Suivi`, `Profil` et recherche distincte | Toujours |
 | Bottom Navigation | Onglet actif | Icône et libellé `Séances` dans la capsule active | Toujours sur cet écran |
 
@@ -216,10 +216,10 @@ Seule la zone Body peut défiler lorsque la hauteur ou l’agrandissement du tex
 
 #### Données et conditions d’état
 
-- La sélection initiale est `Toutes`.
-- `Toutes` interroge les Séances non archivées.
+- La sélection initiale du type est `Séances` et le filtre implicite est `Toutes`.
+- La requête interroge les Séances non archivées.
 - L’état vide est produit par un résultat réellement vide du stockage local ; il n’est pas commandé par un booléen de démonstration indépendant des données.
-- Une Séance archivée n’empêche pas l’état vide de `Toutes`.
+- Une Séance archivée n’empêche pas l’état vide du type Séances avec filtre `Toutes`.
 - Au retour d’une création enregistrée, la requête est réexécutée et l’écran devient la liste par défaut.
 - Au retour d’une création abandonnée, l’état vide reste affiché.
 
@@ -227,9 +227,9 @@ Seule la zone Body peut défiler lorsque la hauteur ou l’agrandissement du tex
 
 | Contrôle | État | Action attendue |
 | --- | --- | --- |
-| `Toutes` | Sélectionné | Recharge les Séances non archivées. |
-| `Planifiées` | Disponible | Affiche les Séances ayant au moins une Routine ; utilise son état vide si le résultat est vide. |
-| `Archivées` | Disponible | Affiche uniquement les Séances archivées ; utilise son état vide si le résultat est vide. |
+| `Activités` | Visible, désactivé en MVP | Devient actif avec la bibliothèque V2. |
+| `Séances` | Sélectionné | Recharge les Séances non archivées. |
+| `Circuits` | Visible, désactivé en MVP | Devient actif avec les Circuits V2. |
 | `Créer` | Disponible | Ouvre `Composition d’une séance` en mode création, sans ID de Séance existante. |
 | `Séances` | Actif | Conserve le Catalogue et son état courant. |
 | `Calendrier` | Présent mais désactivé dans la livraison partielle T01 | Ne produit aucune navigation ; porte l’état désactivé du composant et l’état d’accessibilité correspondant. Devient actif dans la tranche qui livre le Calendrier. |
@@ -243,23 +243,23 @@ La désactivation ci-dessus est un état transitoire de recette de T01, pas le c
 
 | Test | Précondition et action | Résultat attendu |
 | --- | --- | --- |
-| CAT-V-T01 | Stockage sans Séance non archivée | Titre, trois filtres, `Créer`, message et navigation complète présents. |
+| CAT-V-T01 | Stockage sans Séance non archivée | Titre, trois types, `Créer`, message et navigation complète présents. |
 | CAT-V-T02 | Toucher `Créer` | Ouverture du parcours de création ; aucun bouton factice. |
 | CAT-V-T03 | Enregistrer la première Séance puis revenir | Disparition du message et affichage d’une carte alimentée par les données enregistrées. |
 | CAT-V-T04 | Abandonner la première création | Retour à l’état vide sans carte fictive. |
-| CAT-V-T05 | Stockage contenant seulement une Séance archivée | `Toutes` reste vide ; `Archivées` contient la Séance. |
+| CAT-V-T05 | Stockage contenant seulement une Séance archivée | Le résultat par défaut reste vide ; le filtre `Archivées` contient la Séance. |
 | CAT-V-T06 | Comparer à `2117:86` sur `402 × 874` | Titre, cadres, contrôles, icônes, alignements et zones fixes conformes. |
 | CAT-V-T07 | Tester `360`, `402`, `440` et texte agrandi | Aucun chevauchement ; message complet ; navigation et action atteignables. |
 
 #### Non-conformités bloquantes spécifiques
 
 - titre absent, dupliqué ou placé dans le Body ;
-- filtre affiché sans changer la requête ;
+- changement visuel de filtre sans mise à jour de la requête ;
 - `Créer` inactif ou sans icône `+` ;
 - message différent, tronqué ou remplacé par des cartes de démonstration ;
 - navigation basse ou icône de recherche manquante ;
 - élément du Body masqué par la navigation fixe ;
-- état vide affiché alors que la requête `Toutes` retourne une Séance active.
+- état vide affiché alors que la requête par défaut retourne une Séance active.
 
 ---
 
@@ -272,9 +272,9 @@ La désactivation ci-dessus est un état transitoire de recette de T01, pas le c
 | Frame Figma | `1992:9910` — `Catalogue des séances — Liste par défaut` |
 | Surface de référence | `402 × 874` |
 | Screen Shell | `Shell / Screen`, `Context=On`, `Bottom=Navigation` |
-| Condition | Vue `Toutes` sélectionnée et au moins une Séance non archivée |
+| Condition | Type `Séances` sélectionné et au moins une Séance non archivée |
 | État initial des cartes | Condensé |
-| Tri | Dernière utilisation décroissante ; dernière modification pour une Séance jamais exécutée |
+| Tri | Dernière modification décroissante ; une exécution ne modifie pas cet ordre |
 
 #### Structure commune obligatoire
 
@@ -330,7 +330,7 @@ Dans T01, une action secondaire qui n’est pas encore livrée ne doit pas appar
 1. À l’ouverture, la liste interroge le stockage local et affiche les Séances non archivées.
 2. Le tri est appliqué aux données, pas à l’ordre des exemples Figma.
 3. Au retour d’une création ou d’une modification enregistrée, la requête et les calculs de cartes sont réexécutés.
-4. Si la dernière Séance active disparaît de `Toutes`, le Body bascule vers CE-T01-02.
+4. Si la dernière Séance active disparaît du résultat par défaut, le Body bascule vers CE-T01-02.
 5. Une Séance sans Exercice peut être ouverte et modifiée, mais son action Démarrer est désactivée selon le composant prévu ; aucune navigation d’Exécution n’est produite.
 6. Le défilement reste utilisable quel que soit le nombre de cartes.
 7. Aucune donnée fictive n’est injectée pour remplir visuellement la liste.
@@ -359,7 +359,7 @@ Dans T01, une action secondaire qui n’est pas encore livrée ne doit pas appar
 - titre ou Context qui défile avec la liste ;
 - carte, texte ou action recouvert par une autre zone ;
 - dernière carte inaccessible sous la navigation ;
-- données archivées visibles dans `Toutes` ;
+- données archivées visibles dans le résultat par défaut ;
 - différences de structure entre l’état vide et la liste hors contenu du Body.
 
 ### CE-T01-04 — Nouvelle séance — État initial
@@ -575,19 +575,19 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 | Type initial | `Exercice` |
 | Mode initial T01 | `Durée` |
 
-L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, affiche `Séance · {nom de la séance}` en Inter Regular `14/17` puis, à `spacing/24`, le champ Nom transparent à liseré blanc. La valeur du champ adopte le token canonique `KODJO / Screen title` (`20/24`, Semi Bold), exactement comme `Nom de la séance`. Le shell porte explicitement un padding inférieur `spacing/16` (`16` points) entre le bas du champ et la limite du bandeau ; cette marge ne doit jamais être obtenue indirectement par l’interligne.
+L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, place le champ `Nom de l’activité` en premier, à `12` points du haut, avec la même hauteur et le même alignement que le champ `Nom de la séance` de la Composition. Aucun contexte ni nom de Séance n’est affiché. Le bouton centré `+ Ajouter un média` apparaît sous le champ ; il est désactivé dans le MVP. La section Médias est masquée dans le MVP.
 
-Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétition` ; titre `Paramètres de l’activité` ; contrôles `Durée`, `Pause`, `Séries` ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
+Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétitions / À l’échec` ; titre `Paramètres de l’activité` ; paramètres adaptés au mode ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
 
 Les deux contrôles segmentés divisent strictement leur largeur intérieure en deux parts égales. La rangée des trois paramètres reste lisible ; en largeur compacte elle peut se réorganiser sans réduire les cibles sous `48 × 48`. Le récapitulatif occupe la largeur utile, possède des marges internes, grandit avec le texte et reste à `spacing/24` au-dessus de l’action finale.
 
-En T01, seul le parcours Exercice en mode Durée est requis de bout en bout. Les choix Récupération et Répétition restent visibles selon la frame mais doivent porter un état explicitement désactivé jusqu’aux tranches qui livrent leurs contrats ; ils ne peuvent ouvrir un écran partiel. `Séries` reste fixé à `1` pour la séance simple T01. Le nom et une durée strictement positive sont obligatoires. La Pause peut valoir `0 s`.
+Le MVP exige les parcours Exercice en modes Durée, Répétitions et À l’échec. Récupération reste chronométrée. `Séries` vaut au moins `1`; le nom est obligatoire, ainsi que la durée ou les répétitions uniquement lorsque le mode l’exige. La Pause peut valoir `0 s`.
 
 `Durée` ouvre CE-T01-14. Les contrôles Pause et Séries n’ouvrent pas de sélecteur non livré dans T01. `Valider` reste désactivé tant que l’Exercice est invalide ; lorsqu’il est valide, il ouvre CE-T01-15 en conservant les paramètres dans le brouillon d’Activité.
 
-Le récapitulatif est calculé et suit les valeurs confirmées ; le texte de la frame n’est jamais statique. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le type d’Activité ni par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. Si la pause est non nulle, ajouter `, avec {pause} de pause`, puis ` entre les séries` seulement si `N > 1`. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
+Le récapitulatif est calculé et suit les valeurs confirmées ; le texte de la frame n’est jamais statique. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le type d’Activité ni par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. À l’échec : `{N} série(s) de {activité}, jusqu’à l’échec`. Si la pause est non nulle, ajouter `, avec {pause} de pause`, puis ` entre les séries` seulement si `N > 1`. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
 
-Tests bloquants : titre fonctionnel ; contexte de Séance présent dans le bandeau ; champ Nom transparent et typographie conforme ; segments égaux et états accessibles ; synthèse calculée et ancrée en bas ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
+Tests bloquants : titre fonctionnel ; aucun contexte ni nom de Séance dans le bandeau ; champ Nom placé en premier et typographie conforme ; bouton `+ Ajouter un média` visible mais désactivé dans le MVP ; section Médias masquée ; trois segments égaux et états accessibles ; synthèse calculée et ancrée en bas ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
 
 ---
 
@@ -871,3 +871,25 @@ Tests bloquants : aucune fausse donnée après échec de lecture ; brouillon con
 | CE-T01-S10-07 | Action existante `Enregistrer la séance` | Mise à jour atomique au lieu d’une création | Non |
 | CE-T01-S10-08 | `1992:9910` | Carte existante actualisée, sans duplication | Non |
 | CE-T01-S10-09 | Règles communes d’erreur | Conservation du brouillon et nouvelle tentative | Non |
+
+## 8. Contrats révisés — Catalogue et Activité
+
+### Catalogue des Séances
+
+Les frames Catalogue conservent leurs identifiants. Leur segment affiche `Activités / Séances / Circuits`, avec `Séances` sélectionné. Dans le MVP, les options latérales sont visibles mais désactivées. Les anciens libellés `Toutes / Planifiées / Archivées` sont interdits dans ce composant.
+
+La requête par défaut retourne les Séances non archivées, triées par `updatedAt DESC`. Les futurs boutons dédiés exposent les filtres `Toutes`, `Planifiées`, `Non planifiées`, `Archivées` et les tris dernière modification ou nom ; leur absence graphique actuelle n’autorise pas le retour aux anciens segments.
+
+### Activité — Durée, Répétitions et À l’échec
+
+Le bandeau commence par `Nom de l’activité`, sans contexte de Séance. Les trois options du Mode ont la même largeur. Le mode À l’échec (`3369:4236`) masque Durée/Répétitions cible, conserve Pause et Séries à leurs positions et utilise `Suivant` pendant l’Exécution. Sa synthèse suit : `{N} série(s) de {nom}, jusqu’à l’échec[, avec {pause} de pause entre les séries]`.
+
+Dans le MVP, `+ Ajouter un média` est visible mais désactivé et la section Médias est masquée dans toutes les frames Activité. Le composant `Media / Gallery` du DSF documente la cible V2 : médias ordonnés et défilement horizontal signalé par l’aperçu suivant tronqué.
+
+### Captures et références
+
+Les captures `catalogue-*.png` et `creation-activite-*.png` ont été réexportées depuis les frames Figma courantes. `creation-activite-a-l-echec.png` correspond à `3369:4236`. Les variantes de roulette ouverte doivent présenter le voile grisé couvrant intégralement le fond.
+
+## 9. Contrat fonctionnel futur — Circuit V2
+
+Le Circuit requiert nom, couleur et au moins deux étapes référençant des Séances. L’écran de transition apparaît entre toutes les étapes, attend l’utilisateur en manuel ou décompte la durée globale en automatique (`30 s` par défaut), puis laisse s’exécuter le compte à rebours initial de la Séance suivante. Aucun contrat de planification de Circuit n’est actif avant la V3.

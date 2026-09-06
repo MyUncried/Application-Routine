@@ -19,13 +19,13 @@ Synthèse du produit, du périmètre du MVP, des concepts structurants, des prin
 
 Ce document permet de comprendre rapidement ce qui doit être développé, mais ne remplace pas les spécifications détaillées.
 
-### [README.md](../README.md)
+### [README.md](./README.md)
 
 Présentation générale du dépôt et indications de démarrage du projet.
 
 ### Revue Claude
 
-Les documents de travail relatifs aux revues de Claude sont regroupés dans le dossier [`Revue-claude`](./Revue-claude/).
+Les documents de travail relatifs aux revues de Claude sont normalement regroupés dans un dossier `Revue-claude`. Ce dossier n’est pas inclus dans la présente archive documentaire.
 
 Ils constituent un historique et un registre de travail des remarques traitées. Ils ne constituent pas des spécifications de référence.
 
@@ -129,10 +129,10 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 Les contre-revues et revues transverses fonctionnelles et techniques ont été intégrées dans la documentation de référence.
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétition ;
+- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Activités de la Composition, Nombre total d’Activités à exécuter et Nombre d’Activités exécutées ;
-- progression hybride des Activités chronométrées et des Exercices en Répétition ;
+- progression hybride des Activités chronométrées et des Exercices en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
 Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète progressivement cette baseline par des contrats d’écran opérationnels, rédigés et validés selon les tranches verticales de la roadmap. Les quinze frames dont la construction principale est affectée à T01 possèdent un contrat complet. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
@@ -140,3 +140,7 @@ Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP*
 Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
 
 Toute modification fonctionnelle ultérieure doit être traitée comme une évolution explicite de cette baseline et répercutée conformément à la section 7.
+
+## 9. État de référence après décisions Activités, Médias et Circuits
+
+La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 13 : troisième mode `À l’échec` dans le MVP ; contrôle de Catalogue `Activités / Séances / Circuits` avec seule la vue Séances active dans le MVP ; bibliothèque d’Activités, médias multiples et Circuits en V2 ; planification des Circuits en V3. Les captures Catalogue et Activité ont été réexportées depuis les frames Figma courantes. La capture `creation-activite-a-l-echec.png` complète la couverture existante.
