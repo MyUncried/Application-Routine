@@ -40,9 +40,150 @@ jobs:
           $protocol=Join-Path $env:RUNNER_TEMP 'kodjo-recovery-protocol'
           if(Test-Path $protocol){Remove-Item $protocol -Recurse -Force}
           git clone --no-checkout "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" $protocol
-          $mj=ruby -ryaml -rjson -e "puts JSON.generate(YAML.safe_load(File.read(ARGV[0]), aliases: false))" (Join-Path $protocol $manifest)
-          if($LASTEXITCODE-ne0){throw 'Manifest invalid'}
-          $m=$mj|ConvertFrom-Json
+          $manifestRaw=Get-Content -Raw -LiteralPath (Join-Path $protocol $manifest)
+          $m=[pscustomobject]@{
+            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)          if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+          $root=(git rev-parse --show-toplevel).Trim()
+          $head=(git -C $root rev-parse HEAD).Trim()
+          if($head-ne$source){throw 'Dirty worktree source mismatch'}
+          $changed=@(git -C $root status --porcelain --untracked-files=all)
+          if($changed.Count-eq0){throw 'No dirty worktree to recover'}
+          foreach($line in $changed){
+            $p=$line.Substring(3).Trim('"')-replace'\\','/'
+            if($p-eq'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
+            if($p.StartsWith('app/')-or$p.StartsWith('src/')-or$p.StartsWith('docs/')-or($p.StartsWith('.github/orchestration/reports/')-and$p.EndsWith('.md'))){continue}
+            throw "Unauthorized recovery path: $p"
+          }
+          Push-Location $root
+          npm test -- --runInBand
+          if($LASTEXITCODE-ne0){throw 'Jest failed'}
+          npx tsc --noEmit
+          if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: recover $slice implementation"
+          if($LASTEXITCODE-ne0){throw 'Recovery commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if(!$remote-or(($remote-split'\s+')[0])-ne$source){throw 'Target branch moved; recovery not pushed'}
+          git push origin "HEAD:$($m.target_branch)"
+          if($LASTEXITCODE-ne0){throw 'Recovery push failed'}
+          Pop-Location
+          "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "head=$new"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source=$source"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "session=$session"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan=$plan"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish recovered implementation
+        env:
+          SLICE_ID: ${{ steps.recover.outputs.slice_id }}
+          HEAD: ${{ steps.recover.outputs.head }}
+          SOURCE: ${{ steps.recover.outputs.source }}
+          SESSION: ${{ steps.recover.outputs.session }}
+          PLAN: ${{ steps.recover.outputs.plan }}
+        run: |
+          $nl=[Environment]::NewLine
+          $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE+$nl+'head='+$env:HEAD+$nl+'session_id='+$env:SESSION+$nl+'plan_comment_id='+$env:PLAN+$nl+'continuity_origin=RECOVERED_DIRTY_WORKTREE'+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'
+          $body|Out-File "$env:RUNNER_TEMP\recovery-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\recovery-comment.md"
+).Groups[1].Value.Trim()
+            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)          if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+          $root=(git rev-parse --show-toplevel).Trim()
+          $head=(git -C $root rev-parse HEAD).Trim()
+          if($head-ne$source){throw 'Dirty worktree source mismatch'}
+          $changed=@(git -C $root status --porcelain --untracked-files=all)
+          if($changed.Count-eq0){throw 'No dirty worktree to recover'}
+          foreach($line in $changed){
+            $p=$line.Substring(3).Trim('"')-replace'\\','/'
+            if($p-eq'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
+            if($p.StartsWith('app/')-or$p.StartsWith('src/')-or$p.StartsWith('docs/')-or($p.StartsWith('.github/orchestration/reports/')-and$p.EndsWith('.md'))){continue}
+            throw "Unauthorized recovery path: $p"
+          }
+          Push-Location $root
+          npm test -- --runInBand
+          if($LASTEXITCODE-ne0){throw 'Jest failed'}
+          npx tsc --noEmit
+          if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: recover $slice implementation"
+          if($LASTEXITCODE-ne0){throw 'Recovery commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if(!$remote-or(($remote-split'\s+')[0])-ne$source){throw 'Target branch moved; recovery not pushed'}
+          git push origin "HEAD:$($m.target_branch)"
+          if($LASTEXITCODE-ne0){throw 'Recovery push failed'}
+          Pop-Location
+          "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "head=$new"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source=$source"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "session=$session"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan=$plan"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish recovered implementation
+        env:
+          SLICE_ID: ${{ steps.recover.outputs.slice_id }}
+          HEAD: ${{ steps.recover.outputs.head }}
+          SOURCE: ${{ steps.recover.outputs.source }}
+          SESSION: ${{ steps.recover.outputs.session }}
+          PLAN: ${{ steps.recover.outputs.plan }}
+        run: |
+          $nl=[Environment]::NewLine
+          $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE+$nl+'head='+$env:HEAD+$nl+'session_id='+$env:SESSION+$nl+'plan_comment_id='+$env:PLAN+$nl+'continuity_origin=RECOVERED_DIRTY_WORKTREE'+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'
+          $body|Out-File "$env:RUNNER_TEMP\recovery-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\recovery-comment.md"
+).Groups[1].Value
+            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)          if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+          $root=(git rev-parse --show-toplevel).Trim()
+          $head=(git -C $root rev-parse HEAD).Trim()
+          if($head-ne$source){throw 'Dirty worktree source mismatch'}
+          $changed=@(git -C $root status --porcelain --untracked-files=all)
+          if($changed.Count-eq0){throw 'No dirty worktree to recover'}
+          foreach($line in $changed){
+            $p=$line.Substring(3).Trim('"')-replace'\\','/'
+            if($p-eq'src/infrastructure/database/migrations/migration001.ts'){throw 'migration001 immutable'}
+            if($p.StartsWith('app/')-or$p.StartsWith('src/')-or$p.StartsWith('docs/')-or($p.StartsWith('.github/orchestration/reports/')-and$p.EndsWith('.md'))){continue}
+            throw "Unauthorized recovery path: $p"
+          }
+          Push-Location $root
+          npm test -- --runInBand
+          if($LASTEXITCODE-ne0){throw 'Jest failed'}
+          npx tsc --noEmit
+          if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- app src docs .github/orchestration/reports
+          git commit -m "feat: recover $slice implementation"
+          if($LASTEXITCODE-ne0){throw 'Recovery commit failed'}
+          $new=(git rev-parse HEAD).Trim()
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if(!$remote-or(($remote-split'\s+')[0])-ne$source){throw 'Target branch moved; recovery not pushed'}
+          git push origin "HEAD:$($m.target_branch)"
+          if($LASTEXITCODE-ne0){throw 'Recovery push failed'}
+          Pop-Location
+          "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "head=$new"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source=$source"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "session=$session"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan=$plan"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish recovered implementation
+        env:
+          SLICE_ID: ${{ steps.recover.outputs.slice_id }}
+          HEAD: ${{ steps.recover.outputs.head }}
+          SOURCE: ${{ steps.recover.outputs.source }}
+          SESSION: ${{ steps.recover.outputs.session }}
+          PLAN: ${{ steps.recover.outputs.plan }}
+        run: |
+          $nl=[Environment]::NewLine
+          $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE+$nl+'head='+$env:HEAD+$nl+'session_id='+$env:SESSION+$nl+'plan_comment_id='+$env:PLAN+$nl+'continuity_origin=RECOVERED_DIRTY_WORKTREE'+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'
+          $body|Out-File "$env:RUNNER_TEMP\recovery-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\recovery-comment.md"
+).Groups[1].Value.Trim()
+          }
           if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
           $root=(git rev-parse --show-toplevel).Trim()
           $head=(git -C $root rev-parse HEAD).Trim()
