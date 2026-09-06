@@ -350,4 +350,28 @@ describe("CategoriesScreen — enregistrement (AC-05..AC-08, D-107)", () => {
       resolveCreate({ ok: true, value: {} });
     });
   });
+
+  it("shows the loading (saving) state — Enregistrer visually and semantically disabled — while createSession is pending, and re-enables it only once settled", async () => {
+    let resolveCreate: (value: { ok: true; value: unknown }) => void = () => {};
+    const pending = new Promise<{ ok: true; value: unknown }>((resolve) => {
+      resolveCreate = resolve;
+    });
+    const createSession = jest.fn(() => pending);
+    renderScreen({ createSession: createSession as never });
+
+    const saveAction = screen.getByLabelText(t.saveAction);
+    act(() => {
+      fireEvent.press(saveAction);
+    });
+
+    expect(screen.getByLabelText(t.saveAction).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+
+    await act(async () => {
+      resolveCreate({ ok: true, value: {} });
+    });
+
+    expect(mockDismissTo).toHaveBeenCalledWith("/");
+  });
 });

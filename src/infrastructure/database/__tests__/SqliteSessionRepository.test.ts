@@ -415,6 +415,25 @@ describe("SqliteSessionRepository", () => {
       expect(row?.count).toBe(1);
     });
 
+    it("never creates a duplicate category across diacritics specifically (é/e), reusing the existing predefined Category — repository-level proof that canonicalCategoryKey's diacritic-stripping (unit-tested in domain/categories/__tests__/validation.test.ts) is actually applied end to end at the SQL layer", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        categories: [{ kind: "NEW", name: "etirements" }], // matches the predefined "Étirements" once diacritics are ignored.
+      });
+
+      expect(created.categories).toHaveLength(1);
+      expect(created.categories[0]?.id).toBe("etirements");
+      expect(created.categories[0]?.name).toBe("Étirements"); // the predefined label, never re-created.
+      expect(created.categories[0]?.isPredefined).toBe(true);
+
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories WHERE canonical_key = ?",
+        ["etirements"],
+      );
+      expect(count?.count).toBe(1);
+    });
+
     it("succeeds with zero categories (D-106: never required)", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({ ...validInput(), categories: [] });
@@ -523,6 +542,67 @@ describe("SqliteSessionRepository", () => {
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.color).toBe("#F7D154");
+      expect(summary?.categoryNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual([]);
+    });
+
+    // Correction REVISION tentative 3 (feedback : « le test actuel via
+    // repository.create() ne reproduit pas ce cas ») : `repository.create()`
+    // rejoue systématiquement le code applicatif actuel — il ne peut donc
+    // jamais matérialiser une ligne réellement antérieure à un correctif ou
+    // à l'existence même du code qui l'écrit. Ce test insère la Séance
+    // directement au niveau SQL (`sessions`/`cycles`/`tours`/`activities`),
+    // en contournant entièrement `SqliteSessionRepository`, exactement comme
+    // le ferait une ligne déjà présente en base avant toute exécution du
+    // code applicatif de ce dépôt — sans association `session_categories`/
+    // `activity_body_zones`, ces deux tables (migration002, T01-S09)
+    // n'existant fonctionnellement pas encore pour une telle donnée.
+    it("restores the exact persisted yellow colour for a Session inserted directly at the SQL layer, bypassing SqliteSessionRepository entirely (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
+      const owner = await database.getFirstAsync<{ id: string }>(
+        "SELECT id FROM users WHERE singleton_key = 1",
+      );
+      if (!owner) {
+        throw new Error("Expected the local user to already be seeded by migrateDatabase().");
+      }
+
+      const sessionId = "historical-session-1";
+      const cycleId = "historical-cycle-1";
+      const tourId = "historical-tour-1";
+      const activityId = "historical-activity-1";
+      const timestamp = "2025-01-01T00:00:00.000Z";
+
+      await database.runAsync(
+        `INSERT INTO sessions (
+          id, owner_id, name, color, status,
+          initial_countdown_seconds, final_phase_seconds,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, '#F7D154', 'ACTIVE', 10, 5, ?, ?)`,
+        [sessionId, owner.id, "Séance historique", timestamp, timestamp],
+      );
+      await database.runAsync(
+        `INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, 1, 1)`,
+        [cycleId, sessionId],
+      );
+      await database.runAsync(
+        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, ?, ?, 1, 1)`,
+        [tourId, cycleId, sessionId],
+      );
+      await database.runAsync(
+        `INSERT INTO activities (
+          id, session_id, cycle_id, tour_id, type, structural_position,
+          position, name, execution_mode, duration_seconds,
+          repetition_count, series_count, pause_seconds, instruction,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?)`,
+        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp],
+      );
+
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === sessionId);
+
+      expect(summary).toBeDefined();
       expect(summary?.color).toBe("#F7D154");
       expect(summary?.categoryNames).toEqual([]);
       expect(summary?.bodyZoneNames).toEqual([]);
