@@ -567,6 +567,96 @@ describe("SqliteSessionRepository", () => {
         sessionOldest.id,
       ]);
     });
+
+    // T01-S09, correction VISUAL tentative 2 (point B) : `categoryNames`/
+    // `bodyZoneNames`, restaurés sur `SessionSummary` pour la ligne manquante
+    // sous le nom de la Séance (CE-T01-03).
+    it("exposes an empty categoryNames and an empty bodyZoneNames when the Session has neither (zero value)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({ ...validInput(), categories: [] });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.categoryNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual([]);
+    });
+
+    it("exposes exactly one categoryName and one bodyZoneName (one value)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["genoux"] }],
+        categories: [{ kind: "EXISTING", categoryId: "cardio" }],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.categoryNames).toEqual(["Cardio"]);
+      expect(summary?.bodyZoneNames).toEqual(["Genoux"]);
+    });
+
+    it("orders categoryNames predefined-first by displayOrder, then custom by createdAt — same order as create() (D-107, many values)", async () => {
+      const clock = fixedClock([
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:00:01.000Z",
+        "2026-01-01T00:00:02.000Z",
+      ]);
+      const repository = new SqliteSessionRepository(database, uuidFactory(), clock);
+      const created = await repository.create({
+        ...validInput(),
+        categories: [
+          { kind: "NEW", name: "Zzz personnalisée" },
+          { kind: "EXISTING", categoryId: "cardio" }, // displayOrder 1
+          { kind: "EXISTING", categoryId: "renforcement" }, // displayOrder 0
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      expect(summary?.categoryNames).toEqual(["Renforcement", "Cardio", "Zzz personnalisée"]);
+    });
+
+    it("unions bodyZoneNames WITHOUT LOSS across ALL persisted Activities of the Session, deduplicated and ordered by the referential (never insertion order, many values)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          { ...anExercise(), name: "Un", bodyZoneIds: ["genoux", "dos"] },
+          { ...anExercise(), name: "Deux", bodyZoneIds: ["dos", "cou"] },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      // Référentiel : cou (order 0), dos (order 4), genoux (order 7) —
+      // jamais l'ordre d'insertion ("genoux" avant "dos" dans la première
+      // Activité), jamais de doublon pour "dos" partagé par les deux.
+      expect(summary?.bodyZoneNames).toEqual(["Cou", "Dos", "Genoux"]);
+    });
+
+    it("scopes categoryNames/bodyZoneNames per Session — never leaks another Session's values (multiple Sessions in the same listActive() call)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const first = await repository.create({
+        ...validInput(),
+        name: "Première",
+        exercises: [{ ...anExercise(), bodyZoneIds: ["genoux"] }],
+        categories: [{ kind: "EXISTING", categoryId: "cardio" }],
+      });
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const second = await secondRepository.create({
+        ...validInput(),
+        name: "Deuxième",
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+        categories: [{ kind: "EXISTING", categoryId: "mobilite" }],
+      });
+
+      const summaries = await repository.listActive();
+      expect(summaries.find((item) => item.id === first.id)?.categoryNames).toEqual(["Cardio"]);
+      expect(summaries.find((item) => item.id === first.id)?.bodyZoneNames).toEqual(["Genoux"]);
+      expect(summaries.find((item) => item.id === second.id)?.categoryNames).toEqual(["Mobilité"]);
+      expect(summaries.find((item) => item.id === second.id)?.bodyZoneNames).toEqual(["Dos"]);
+    });
   });
 
   describe("update (generalized contract, out of the T01-S09 functional scope — T01-S10 will define real reopen UX)", () => {

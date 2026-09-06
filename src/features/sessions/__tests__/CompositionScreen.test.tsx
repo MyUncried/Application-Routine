@@ -88,7 +88,8 @@ function StatefulDraftWrapper({
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
     exercises: initialExercises,
-    categorySelections: [],
+    categoryDrafts: [],
+    selectedCategoryIds: [],
   }));
   const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -100,7 +101,8 @@ function StatefulDraftWrapper({
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [],
-      categorySelections: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
     });
   }, []);
   const value = useMemo<SessionDraftContextValue>(
@@ -238,36 +240,31 @@ describe("CompositionScreen — état initial", () => {
     expect(iconSlotStyleAfter).toEqual(iconSlotStyleBefore);
   });
 
-  it("anchors the open picker as a superposed popover (position: absolute), never pushing the layout below (CE-T01-06/07, AUD-05)", () => {
+  it("T01-S09 correction VISUAL (point D) — opens the countdown picker inside the shared full-screen WheelPickerOverlay, centered with a dimmed background — supersedes the former position:absolute popover anchor (CE-T01-06/07, AUD-05)", () => {
     renderScreen();
+
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    const anchor = screen.getByTestId("composition-popover-anchor");
-    const flattened = StyleSheet.flatten(anchor.props.style);
-    expect(flattened.position).toBe("absolute");
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+    const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
+    expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
   });
 
-  it("elevates the open row's zIndex above its siblings, so the following row cannot paint over its popover (UI-CTRL-002, root cause UI-CTRL-001)", () => {
-    // Preuve du défaut réel constaté sur iPhone (« ouvre mais ne peut pas
-    // sélectionner ») : le popover (≈136px) déborde largement de l'écart
-    // jusqu'à la ligne suivante (≈20px). Sans `zIndex` différencié entre
-    // lignes frères, React Native peint la ligne suivante — montée après —
-    // par-dessus le popover ouvert, qui capte alors le geste à sa place.
+  it("T01-S09 correction VISUAL (point D) — supersedes the former popover zIndex elevation (UI-CTRL-002): Boundary Activity rows never carry an ad hoc zIndex, open or closed, now that wheel pickers render in a structurally separate overlay layer, never anchored to their triggering row", () => {
     renderScreen();
 
-    // Fermé : aucune ligne n'a besoin d'être élevée au-dessus de ses frères.
-    const closedCountdown = screen.getByTestId("composition-anchored-row-countdown");
+    const closedCountdown = screen.getByLabelText(composition.countdown.label);
     expect(StyleSheet.flatten(closedCountdown.props.style).zIndex).toBeUndefined();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    const openCountdown = screen.getByTestId("composition-anchored-row-countdown");
-    expect(StyleSheet.flatten(openCountdown.props.style).zIndex).toBe(1);
+    const openCountdown = screen.getByLabelText(composition.countdown.label);
+    expect(StyleSheet.flatten(openCountdown.props.style).zIndex).toBeUndefined();
 
-    // Le sélecteur voisin (Fin de séance), lui, reste au niveau par défaut :
-    // seule la ligne réellement ouverte doit être élevée.
-    const finalPhase = screen.getByTestId("composition-anchored-row-finalPhase");
+    const finalPhase = screen.getByLabelText(composition.finalPhase.label);
     expect(StyleSheet.flatten(finalPhase.props.style).zIndex).toBeUndefined();
   });
 
@@ -415,7 +412,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
   });
 
-  it("REWORK08-B — no chain of native selection-change events, however many, ever closes the picker — only Annuler/Valider do (root cause: composition-backdrop previously intercepted the very first touch on the wheel before it reached the native Host view)", () => {
+  it("REWORK08-B, superseded by the correction VISUAL point D overlay — no chain of native selection-change events, however many, ever closes the picker — only Annuler/Valider do (root cause of the historical defect: the previous popover anchor intercepted the very first touch on the wheel before it reached the native Host view; the current WheelPickerOverlay backdrop is not pressable at all, see WheelPickerOverlay.test.tsx)", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
@@ -427,11 +424,11 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 5);
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
 
-    // Le sélecteur — et le body élevé qui le porte — restent montés après
-    // toute cette séquence, jamais fermés par un simple changement de
-    // sélection.
+    // Le sélecteur — porté par la superposition plein écran dédiée — reste
+    // monté après toute cette séquence, jamais fermé par un simple
+    // changement de sélection.
     expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-    expect(StyleSheet.flatten(screen.getByTestId("composition-body").props.style).zIndex).toBe(1);
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
 
     // Seul Valider ferme (et commit) — la fermeture explicite reste
     // possible et fonctionne normalement après cette séquence.
@@ -1215,7 +1212,7 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(bottomAfter).toEqual(bottomBefore);
   });
 
-  it("REWORK08-B — elevates the scrollable body itself (composition-body) above the backdrop while a duration picker is anchored inside it — the AnchoredRow's own zIndex alone is scoped to its siblings inside the ScrollView, never reaching a non-sibling backdrop rendered at the ScreenShell level", () => {
+  it("T01-S09 correction VISUAL (point D) — supersedes REWORK08-B's ScrollView elevation: composition-body never carries an ad hoc zIndex for a duration picker any more, open or closed, now that it renders in WheelPickerOverlay (a structurally separate layer, independent of the ScrollView and its own former zIndex scoping issue)", () => {
     renderScreen();
 
     const bodyClosed = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
@@ -1223,19 +1220,17 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     const bodyOpenCountdown = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyOpenCountdown.zIndex).toBe(1);
+    expect(bodyOpenCountdown.zIndex).toBeUndefined();
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
 
-    // Fermeture par Annuler (jamais le backdrop lui-même, pour isoler la
-    // preuve de retour à l'état non élevé, indépendamment du mécanisme de
-    // fermeture) : le body redescend à son zIndex par défaut.
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
     const bodyClosedAgain = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
     expect(bodyClosedAgain.zIndex).toBeUndefined();
 
-    // Même élévation pour l'autre sélecteur de durée ancré dans le body.
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
     const bodyOpenFinalPhase = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyOpenFinalPhase.zIndex).toBe(1);
+    expect(bodyOpenFinalPhase.zIndex).toBeUndefined();
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
   });
 
   it("REWORK08-B — never elevates the scrollable body for the colour palette (ContextBand is already a direct sibling of the backdrop and carries its own correct elevation — no need to also elevate the unrelated ScrollView)", () => {
@@ -1268,16 +1263,19 @@ describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdro
     expect(screen.queryByTestId("composition-backdrop")).toBeNull();
   });
 
-  it("renders a dedicated backdrop while a selector is open, and pressing it closes the selector", () => {
+  it("T01-S09 correction VISUAL (point D) — opening a duration picker never renders composition-backdrop any more (it now opens in WheelPickerOverlay, whose own backdrop is not dismissible by touch — see WheelPickerOverlay.test.tsx)", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-    expect(screen.getByTestId("composition-backdrop")).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("composition-backdrop"));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
     expect(screen.queryByTestId("composition-backdrop")).toBeNull();
+    expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
+
+    // Seul Annuler ferme désormais le sélecteur (jamais un toucher en
+    // dehors) — comportement déjà couvert par les tests d'exclusivité
+    // ci-dessus, revérifié ici dans le contexte de cette section.
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
   });
 
   it("pressing the backdrop while the colour palette is open closes it too (same single-overlay mechanism)", () => {

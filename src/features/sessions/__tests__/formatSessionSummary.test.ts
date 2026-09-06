@@ -3,6 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import {
   formatActivityCount,
   formatEstimatedDuration,
+  formatSessionTagLine,
   formatTourCount,
 } from "@/features/sessions/formatSessionSummary";
 
@@ -60,5 +61,31 @@ describe("formatEstimatedDuration", () => {
 
   it("defaults isApproximate to false when omitted", () => {
     expect(formatEstimatedDuration(1080)).toBe("18 min");
+  });
+});
+
+describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B)", () => {
+  it("returns null when both groups are empty (empty state — never a visible empty line)", () => {
+    expect(formatSessionTagLine([], [])).toBeNull();
+  });
+
+  it("joins a single Category name alone when there is no body zone", () => {
+    expect(formatSessionTagLine(["Cardio"], [])).toBe("Cardio");
+  });
+
+  it("joins a single body-zone name alone when there is no Category", () => {
+    expect(formatSessionTagLine([], ["Genoux"])).toBe("Genoux");
+  });
+
+  it("joins several names within a group with ', ', and the two groups with ' · '", () => {
+    expect(formatSessionTagLine(["Cardio", "Renforcement"], ["Genoux", "Dos"])).toBe(
+      "Cardio, Renforcement · Genoux, Dos",
+    );
+  });
+
+  it("never reorders either group — the Repository's own order (D-107 / referential order) is preserved exactly", () => {
+    expect(formatSessionTagLine(["Zzz personnalisée", "Renforcement"], ["Chevilles et pieds", "Cou"])).toBe(
+      "Zzz personnalisée, Renforcement · Chevilles et pieds, Cou",
+    );
   });
 });

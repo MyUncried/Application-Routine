@@ -681,18 +681,22 @@ export function mapSessionRow(row: SessionAggregateRow): Session {
   return assembleSession([row], new Map(), []);
 }
 
-function mapSummaryRow(row: {
-  id: string;
-  name: string;
-  color: string;
-  activity_count: number;
-  initial_countdown_seconds: number;
-  final_phase_seconds: number;
-  activity_duration_seconds: number;
-  has_repetition_activity: 0 | 1;
-  tour_repeat_count: number;
-  updated_at: string;
-}): SessionSummary {
+function mapSummaryRow(
+  row: {
+    id: string;
+    name: string;
+    color: string;
+    activity_count: number;
+    initial_countdown_seconds: number;
+    final_phase_seconds: number;
+    activity_duration_seconds: number;
+    has_repetition_activity: 0 | 1;
+    tour_repeat_count: number;
+    updated_at: string;
+  },
+  categoryNames: readonly string[],
+  bodyZoneNames: readonly string[],
+): SessionSummary {
   if (row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT) {
     throw new Error("T01 summaries require exactly one Tour repetition.");
   }
@@ -717,6 +721,8 @@ function mapSummaryRow(row: {
     isEstimatedDurationApproximate: row.has_repetition_activity === 1,
     tourRepeatCount: 1,
     updatedAt: row.updated_at,
+    categoryNames,
+    bodyZoneNames,
   };
 }
 

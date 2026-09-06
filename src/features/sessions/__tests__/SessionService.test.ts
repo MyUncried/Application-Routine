@@ -169,10 +169,8 @@ describe("SessionService.createSession", () => {
         { ...createExerciseDraft("ex-1"), name: "Gainage" },
         { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
       ],
-      categorySelections: [
-        { kind: "EXISTING", categoryId: "cardio" },
-        { kind: "NEW", id: "local-1", name: "Ma catégorie" },
-      ],
+      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
+      selectedCategoryIds: ["cardio", "local-1"],
     };
 
     await service.createSession(draft);
@@ -340,6 +338,8 @@ describe("SessionService.listActiveSessions", () => {
         isEstimatedDurationApproximate: false,
         tourRepeatCount: 1,
         updatedAt: "2026-01-01T00:00:00.000Z",
+        categoryNames: [],
+        bodyZoneNames: [],
       },
     ];
     repository.listActive.mockResolvedValue(summaries);

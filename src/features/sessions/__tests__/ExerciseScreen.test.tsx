@@ -61,7 +61,8 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: draftExercise ? [draftExercise] : [],
-      categorySelections: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
     },
     updateDraft,
     resetDraft: jest.fn(),
@@ -146,7 +147,8 @@ describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/sépar
               initialCountdownSeconds: 10,
               finalPhaseSeconds: 5,
               exercises: [],
-              categorySelections: [],
+              categoryDrafts: [],
+      selectedCategoryIds: [],
             },
             updateDraft: jest.fn(),
             resetDraft: jest.fn(),
@@ -446,18 +448,21 @@ describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (poin
   });
 });
 
-describe("ExerciseScreen — REWORK09 — sélections et ancrage du popover unique (roulette gelée, adaptation d'ancrage uniquement)", () => {
-  it("opens the Durée picker on its control's press, anchored as a superposed popover (position: absolute) shared by the whole parameter row, never pushing the layout below", () => {
+describe("ExerciseScreen — T01-S09 correction VISUAL (point D) — roulettes dans WheelPickerOverlay (roulette gelée, adaptation de conteneur uniquement)", () => {
+  it("opens the Durée picker inside the shared full-screen WheelPickerOverlay, centered with a dimmed background, never pushing the layout below — supersedes the former REWORK09 position:absolute popover anchor shared by the whole parameter row", () => {
     renderScreen(null);
+
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
 
-    const anchor = screen.getByTestId("exercise-popover-anchor");
-    expect(StyleSheet.flatten(anchor.props.style).position).toBe("absolute");
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+    const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
+    expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  it("elevates the scrollable body (exercise-body) itself above the backdrop while any of the four parameter selectors is open — the same REWORK08-B fix already applied to Composition's ScrollView, adapted here since all four selectors now share one anchor", () => {
+  it("supersedes the former REWORK08-B ScrollView elevation: exercise-body never carries an ad hoc zIndex for a parameter selector any more, open or closed, now that it renders in WheelPickerOverlay (a structurally separate layer, independent of the ScrollView)", () => {
     renderScreen(null);
 
     const bodyClosed = StyleSheet.flatten(screen.getByTestId("exercise-body").props.style);
@@ -465,19 +470,20 @@ describe("ExerciseScreen — REWORK09 — sélections et ancrage du popover uniq
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     const bodyOpen = StyleSheet.flatten(screen.getByTestId("exercise-body").props.style);
-    expect(bodyOpen.zIndex).toBe(1);
+    expect(bodyOpen.zIndex).toBeUndefined();
   });
 
-  it("renders a dedicated backdrop only while a selector is open, and pressing it closes the selector — replaces the previous full-screen root Pressable (same D-03 correction already applied to Composition)", () => {
+  it("never renders exercise-backdrop any more for a parameter selector (it now opens in WheelPickerOverlay, whose own backdrop is not dismissible by touch — see WheelPickerOverlay.test.tsx) — supersedes the former D-03 full-screen root Pressable correction", () => {
     renderScreen(null);
     expect(screen.queryByTestId("exercise-backdrop")).toBeNull();
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
-    expect(screen.getByTestId("exercise-backdrop")).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("exercise-backdrop"));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
     expect(screen.queryByTestId("exercise-backdrop")).toBeNull();
+    expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
+
+    // Seul Annuler ferme désormais le sélecteur (jamais un toucher en dehors).
+    fireEvent.press(screen.getByLabelText(t.wheelPicker.cancelAccessibilityLabel));
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
   });
 
   it("opening Pause closes an already-open Durée picker (single overlay at a time, shared anchor)", () => {
@@ -557,7 +563,7 @@ describe("ExerciseScreen — REWORK09 — verrou de non-régression de la roulet
     // (deux boutons distincts, même libellé) — `within` désambiguïse sans
     // toucher au code applicatif.
     fireEvent.press(
-      within(screen.getByTestId("exercise-popover-anchor")).getByLabelText(
+      within(screen.getByTestId("wheel-picker-overlay")).getByLabelText(
         t.wheelPicker.validateAccessibilityLabel,
       ),
     );
@@ -631,7 +637,7 @@ describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformu
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
     fireEvent.press(
-      within(screen.getByTestId("exercise-popover-anchor")).getByLabelText(
+      within(screen.getByTestId("wheel-picker-overlay")).getByLabelText(
         t.wheelPicker.validateAccessibilityLabel,
       ),
     );
@@ -771,7 +777,8 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
               initialCountdownSeconds: 10,
               finalPhaseSeconds: 5,
               exercises: [existing],
-              categorySelections: [],
+              categoryDrafts: [],
+      selectedCategoryIds: [],
             },
             updateDraft,
             resetDraft: jest.fn(),

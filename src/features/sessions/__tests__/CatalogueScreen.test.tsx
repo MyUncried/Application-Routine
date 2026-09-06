@@ -64,6 +64,8 @@ function aSummary(id: string): SessionSummary {
     isEstimatedDurationApproximate: false,
     tourRepeatCount: 1,
     updatedAt: "2026-01-01T00:00:00.000Z",
+    categoryNames: [],
+    bodyZoneNames: [],
   };
 }
 

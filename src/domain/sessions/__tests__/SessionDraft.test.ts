@@ -9,7 +9,7 @@ import {
   toCreateSessionInput,
   toSessionDraft,
   type SessionDraft,
-  type SessionDraftCategorySelection,
+  type SessionDraftCategoryDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import {
@@ -29,7 +29,8 @@ describe("createEmptyDraft", () => {
       initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
       finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
       exercises: [],
-      categorySelections: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
     });
   });
 });
@@ -121,7 +122,8 @@ describe("toSessionDraft", () => {
           bodyZoneIds: [],
         },
       ],
-      categorySelections: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
     });
   });
 
@@ -181,17 +183,16 @@ describe("toSessionDraft", () => {
     expect(toSessionDraft(session).exercises[0]?.instruction).toBeNull();
   });
 
-  it("maps every associated Category to an EXISTING selection by id", () => {
+  it("maps every associated Category to a selected id, never as a local draft (T01-S09)", () => {
     const session = aSession({
       categories: [
         { id: "cardio", name: "Cardio", canonicalKey: "cardio", isPredefined: true, displayOrder: 1, createdAt: "2026-01-01T00:00:00.000Z" },
         { id: "custom-1", name: "Ma catégorie", canonicalKey: "ma categorie", isPredefined: false, displayOrder: null, createdAt: "2026-01-02T00:00:00.000Z" },
       ],
     });
-    expect(toSessionDraft(session).categorySelections).toEqual([
-      { kind: "EXISTING", categoryId: "cardio" },
-      { kind: "EXISTING", categoryId: "custom-1" },
-    ]);
+    const draft = toSessionDraft(session);
+    expect(draft.categoryDrafts).toEqual([]);
+    expect(draft.selectedCategoryIds).toEqual(["cardio", "custom-1"]);
   });
 
   it("round-trips through toCreateSessionInput to reproduce the original editable fields", () => {
@@ -240,52 +241,48 @@ describe("isSessionDraftDirty", () => {
     expect(isSessionDraftDirty({ ...createEmptyDraft(), exercises: [b, a] })).toBe(true);
   });
 
-  it("is true as soon as one Category selection is present (empty draft has categorySelections: [])", () => {
-    const selection: SessionDraftCategorySelection = { kind: "EXISTING", categoryId: "cardio" };
+  it("is true as soon as one Category is selected (empty draft has selectedCategoryIds: [])", () => {
     expect(
-      isSessionDraftDirty({ ...createEmptyDraft(), categorySelections: [selection] }),
+      isSessionDraftDirty({ ...createEmptyDraft(), selectedCategoryIds: ["cardio"] }),
     ).toBe(true);
   });
 
-  it("is order-INsensitive for category selections (a set, not a sequence)", () => {
-    const a: SessionDraftCategorySelection = { kind: "EXISTING", categoryId: "cardio" };
-    const b: SessionDraftCategorySelection = { kind: "EXISTING", categoryId: "mobilite" };
-    const forward = { ...createEmptyDraft(), categorySelections: [a, b] };
-    const backward = { ...createEmptyDraft(), categorySelections: [b, a] };
+  it("is order-INsensitive for selected category ids (a set, not a sequence)", () => {
+    const forward = { ...createEmptyDraft(), selectedCategoryIds: ["cardio", "mobilite"] };
+    const backward = { ...createEmptyDraft(), selectedCategoryIds: ["mobilite", "cardio"] };
     expect(isSessionDraftDirty(forward)).toBe(true);
     // The two orderings represent the exact same set of selections: neither
     // is "dirtier" than the other relative to createEmptyDraft(), and they
     // must compare as identical to each other (order truly indifferent).
     expect(isSessionDraftDirty(backward)).toBe(true);
-    expect(forward.categorySelections).not.toEqual(backward.categorySelections);
+    expect(forward.selectedCategoryIds).not.toEqual(backward.selectedCategoryIds);
   });
 
-  it("is false again once categorySelections is explicitly reset to [], matching the empty draft exactly", () => {
+  it("is false again once selectedCategoryIds is explicitly reset to [], matching the empty draft exactly", () => {
     const withSelection: SessionDraft = {
       ...createEmptyDraft(),
-      categorySelections: [{ kind: "EXISTING", categoryId: "cardio" }],
+      selectedCategoryIds: ["cardio"],
     };
-    expect(isSessionDraftDirty({ ...withSelection, categorySelections: [] })).toBe(false);
+    expect(isSessionDraftDirty({ ...withSelection, selectedCategoryIds: [] })).toBe(false);
   });
 
-  it("distinguishes a NEW category selection by id and by name", () => {
+  it("is true as soon as one local Category draft exists, even if not selected (T01-S09, point A: existence survives deselection)", () => {
+    const draft: SessionDraftCategoryDraft = { id: "local-1", name: "Ma catégorie" };
+    expect(
+      isSessionDraftDirty({ ...createEmptyDraft(), categoryDrafts: [draft], selectedCategoryIds: [] }),
+    ).toBe(true);
+  });
+
+  it("distinguishes a local Category draft by id and by name", () => {
     const initial: SessionDraft = {
       ...createEmptyDraft(),
-      categorySelections: [{ kind: "NEW", id: "local-1", name: "Ma catégorie" }],
+      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
+      selectedCategoryIds: ["local-1"],
     };
-    expect(
-      isSessionDraftDirty({
-        ...createEmptyDraft(),
-        categorySelections: [{ kind: "NEW", id: "local-1", name: "Ma catégorie" }],
-      }),
-    ).toBe(true); // dirty relative to the EMPTY draft, obviously.
-    // Two structurally-identical NEW selections must compare as equal to
-    // each other (round-trip through the same empty-draft baseline stays
-    // false only when truly unchanged) — proven indirectly via dirtiness
-    // against a mutated copy below.
+    expect(isSessionDraftDirty(initial)).toBe(true); // dirty relative to the EMPTY draft, obviously.
     const differentName: SessionDraft = {
       ...initial,
-      categorySelections: [{ kind: "NEW", id: "local-1", name: "Autre" }],
+      categoryDrafts: [{ id: "local-1", name: "Autre" }],
     };
     expect(isSessionDraftDirty(differentName)).toBe(true);
   });
@@ -325,7 +322,8 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 }],
-      categorySelections: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
     };
   }
 
@@ -384,13 +382,11 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
     }
   });
 
-  it("converts EXISTING and NEW category selections to their CreateSessionCategoryInput equivalent", () => {
+  it("resolves each selected id against categoryDrafts to produce EXISTING or NEW, in selection order", () => {
     const draft: SessionDraft = {
       ...completeDraft(),
-      categorySelections: [
-        { kind: "EXISTING", categoryId: "cardio" },
-        { kind: "NEW", id: "local-1", name: "Ma catégorie" },
-      ],
+      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
+      selectedCategoryIds: ["cardio", "local-1"],
     };
     const result = toCreateSessionInput(draft);
     expect(result.ok).toBe(true);
@@ -399,6 +395,22 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
         { kind: "EXISTING", categoryId: "cardio" },
         { kind: "NEW", name: "Ma catégorie" },
       ]);
+    }
+  });
+
+  it("never persists a local Category draft that is not currently selected (T01-S09, point A)", () => {
+    const draft: SessionDraft = {
+      ...completeDraft(),
+      categoryDrafts: [
+        { id: "local-1", name: "Sélectionnée" },
+        { id: "local-2", name: "Désélectionnée" },
+      ],
+      selectedCategoryIds: ["local-1"],
+    };
+    const result = toCreateSessionInput(draft);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.categories).toEqual([{ kind: "NEW", name: "Sélectionnée" }]);
     }
   });
 

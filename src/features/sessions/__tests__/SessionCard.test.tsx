@@ -21,6 +21,8 @@ function aSummary(overrides: Partial<SessionSummary> = {}): SessionSummary {
     isEstimatedDurationApproximate: false,
     tourRepeatCount: 1,
     updatedAt: "2026-01-01T00:00:00.000Z",
+    categoryNames: [],
+    bodyZoneNames: [],
     ...overrides,
   };
 }
@@ -33,12 +35,51 @@ describe("SessionCard", () => {
     expect(screen.getByText("1 activité · 18 min · 1 tour")).toBeTruthy();
   });
 
-  it("never displays fictional data for categories, planning, last execution, or activity detail", () => {
+  it("never displays fictional data for planning, last execution, or activity detail — only the exact summary line, name, and (T01-S09) a tag line strictly reflecting the real categoryNames/bodyZoneNames provided", () => {
     render(<SessionCard session={aSummary()} />);
 
     // Only the exact summary line is present — nothing else is rendered
     // beyond the name and it.
     expect(screen.queryByText(/·.*·.*·/)).toBeNull();
+  });
+
+  it("T01-S09 correction VISUAL (point B) — restores the missing Category/body-zone line under the Session name when at least one is present, without inventing any value beyond the props", () => {
+    render(
+      <SessionCard
+        session={aSummary({ categoryNames: ["Cardio"], bodyZoneNames: ["Genoux", "Dos"] })}
+      />,
+    );
+
+    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Cardio · Genoux, Dos");
+  });
+
+  it("T01-S09 correction VISUAL (point B) — never renders the tag line at all when there is no Category and no body zone (empty state — never a visible empty line)", () => {
+    render(<SessionCard session={aSummary()} />);
+
+    expect(screen.queryByTestId("session-card-tag-line")).toBeNull();
+  });
+
+  it("T01-S09 correction VISUAL (point B) — renders only the Category group when there is no body zone", () => {
+    render(<SessionCard session={aSummary({ categoryNames: ["Cardio"], bodyZoneNames: [] })} />);
+    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Cardio");
+  });
+
+  it("T01-S09 correction VISUAL (point B) — renders only the body-zone group when there is no Category", () => {
+    render(<SessionCard session={aSummary({ categoryNames: [], bodyZoneNames: ["Genoux"] })} />);
+    expect(screen.getByTestId("session-card-tag-line").props.children).toBe("Genoux");
+  });
+
+  it("T01-S09 correction VISUAL (point B) — truncates the tag line to a single line, never wrapping onto a second line", () => {
+    render(
+      <SessionCard
+        session={aSummary({
+          categoryNames: ["Cardio", "Renforcement", "Mobilité"],
+          bodyZoneNames: ["Genoux", "Dos", "Épaules", "Chevilles et pieds"],
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("session-card-tag-line").props.numberOfLines).toBe(1);
   });
 
   it("renders the chevron and the Démarrer button as visible but disabled, with no wired behaviour", () => {
