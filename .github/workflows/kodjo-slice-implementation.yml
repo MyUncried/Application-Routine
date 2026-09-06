@@ -124,6 +124,7 @@ jobs:
             $feedback=$env:TRIGGER_BODY.Substring($i+$feedbackMarker.Length).Trim()
             if(!$feedback){throw 'Correction feedback empty'}
             $prompt="KODJO differential resume for $env:SLICE_ID. Resume only session $env:SESSION; its existing plan, review, decisions and prior work remain authoritative and MUST NOT be reconstructed or reread unless the delta explicitly requires one named file. Current immutable checkout: $env:SOURCE_HEAD. Approved plan comment: $env:PLAN_ID. Approved review comment: $env:REVIEW_ID. Causal comment: $env:CAUSAL_COMMENT_ID. Apply only the delta below, preserve all previously approved behavior, run only tests relevant to this delta, and do not commit or push. Do not repeat prior analysis in the result. Begin the result with exactly KODJO_STATUS: IMPLEMENTED when application changes are complete. If a genuinely new arbitration is required, do not change application files and begin the result with exactly KODJO_STATUS: CLARIFICATION_REQUIRED, followed only by the new blocking question and evidence."+[Environment]::NewLine+[Environment]::NewLine+"CONTEXT DELTA ONLY:"+[Environment]::NewLine+$feedback
+            if($prompt -match '(?im)^APPROVED PLAN:|^INDEPENDENT REVIEW:'){throw 'Claude budget guard: full context forbidden on resume'}
             $args=@('-p','--resume',$env:SESSION,'--permission-mode','acceptEdits','--output-format','json')
           }
           $promptPath="$env:RUNNER_TEMP\claude-prompt.txt"
@@ -136,7 +137,7 @@ jobs:
           $stderr=if(Test-Path $err){Get-Content $err -Raw -Encoding utf8}else{''}
           $parsed=$null; $parseError=''
           try{$parsed=$raw|ConvertFrom-Json -ErrorAction Stop}catch{$parseError=$_.Exception.Message}
-          [ordered]@{exit_code=$exit;stdout_length=$raw.Length;stderr_length=$stderr.Length;json_valid=($null-ne$parsed);json_error=$parseError;session_id=if($parsed){$parsed.session_id}else{$null};result_present=($null-ne$parsed-and![string]::IsNullOrWhiteSpace([string]$parsed.result))}|ConvertTo-Json|Out-File $diag -Encoding utf8
+          [ordered]@{call_mode=if($env:MODE -eq 'INITIAL'){'INITIAL'}else{'RESUME_DELTA'};prompt_length=$prompt.Length;source_head=$env:SOURCE_HEAD;exit_code=$exit;stdout_length=$raw.Length;stderr_length=$stderr.Length;json_valid=($null-ne$parsed);json_error=$parseError;session_id=if($parsed){$parsed.session_id}else{$null};result_present=($null-ne$parsed-and![string]::IsNullOrWhiteSpace([string]$parsed.result))}|ConvertTo-Json|Out-File $diag -Encoding utf8
           if($parsed -and [string]$parsed.result -match 'session limit|rate.limit|429'){throw "Claude usage limit: $($parsed.result)"}
           if($exit -ne 0){throw "Claude CLI exit $exit; see diagnostic artifact"}
           if(!$parsed){throw "Claude JSON invalid: $parseError"}
