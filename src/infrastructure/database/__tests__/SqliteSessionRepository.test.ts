@@ -1,9 +1,12 @@
+import { render, screen as rnScreen } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import * as Crypto from "expo-crypto";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { createElement } from "react";
+import { StyleSheet } from "react-native";
 
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
@@ -19,6 +22,17 @@ import {
 } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import type { SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
+// Exceptionnellement, ce fichier d'infrastructure importe un composant de
+// présentation (`SessionCard`) — voir la note de tête du test « propagates
+// the exact persisted yellow colour... » ci-dessous (correction REVISION
+// tentative 4, commentaire de revue 5559366973, point 1) : la revue exige
+// explicitement une preuve de propagation ininterrompue repository → modèle
+// de Catalogue → composant, jamais deux tests disjoints reliés par la seule
+// coïncidence d'un littéral de couleur partagé. Fichier `.ts` (pas `.tsx`) :
+// le rendu passe donc par `createElement` plutôt que la syntaxe JSX, non
+// transformée dans un fichier `.ts` — même patron déjà établi par
+// `useSessionCatalogue.test.ts`.
+import { SessionCard } from "@/features/sessions/SessionCard";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn() }));
 
@@ -552,13 +566,22 @@ describe("SqliteSessionRepository", () => {
     // rejoue systématiquement le code applicatif actuel — il ne peut donc
     // jamais matérialiser une ligne réellement antérieure à un correctif ou
     // à l'existence même du code qui l'écrit. Ce test insère la Séance
-    // directement au niveau SQL (`sessions`/`cycles`/`tours`/`activities`),
-    // en contournant entièrement `SqliteSessionRepository`, exactement comme
-    // le ferait une ligne déjà présente en base avant toute exécution du
-    // code applicatif de ce dépôt — sans association `session_categories`/
-    // `activity_body_zones`, ces deux tables (migration002, T01-S09)
-    // n'existant fonctionnellement pas encore pour une telle donnée.
-    it("restores the exact persisted yellow colour for a Session inserted directly at the SQL layer, bypassing SqliteSessionRepository entirely (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
+    // directement au niveau SQL (`sessions`/`cycles`/`tours`/`activities`,
+    // puis `session_categories`), en contournant entièrement
+    // `SqliteSessionRepository`, exactement comme le ferait une ligne déjà
+    // présente en base avant toute exécution du code applicatif de ce
+    // dépôt.
+    //
+    // Correction REVISION tentative 4 (commentaire de revue 5559366973,
+    // point 1) : complété pour prouver la propagation ININTERROMPUE
+    // repository → `SessionSummary` (modèle de Catalogue) → composant
+    // `SessionCard` — jamais deux preuves disjointes reliées par la seule
+    // coïncidence d'un littéral `#F7D154` partagé. La Séance historique
+    // reçoit ici une association `session_categories` vers la Catégorie
+    // prédéfinie `cardio` (déjà semée par `migration002`), afin que
+    // l'assertion sur le texte des Catégories soit réellement significative
+    // (une Séance sans aucune Catégorie ne rendrait aucun texte à vérifier).
+    it("propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to SessionCard's rendered colour bar and Category text (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
       const owner = await database.getFirstAsync<{ id: string }>(
         "SELECT id FROM users WHERE singleton_key = 1",
       );
@@ -597,15 +620,33 @@ describe("SqliteSessionRepository", () => {
         ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?)`,
         [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp],
       );
+      await database.runAsync(
+        "INSERT INTO session_categories (session_id, category_id) VALUES (?, ?)",
+        [sessionId, "cardio"],
+      );
 
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === sessionId);
 
+      // Étape 1 : repository → modèle de Catalogue (`SessionSummary`).
       expect(summary).toBeDefined();
       expect(summary?.color).toBe("#F7D154");
-      expect(summary?.categoryNames).toEqual([]);
+      expect(summary?.categoryNames).toEqual(["Cardio"]);
       expect(summary?.bodyZoneNames).toEqual([]);
+
+      // Étape 2 : modèle de Catalogue → composant `SessionCard` — même
+      // objet `summary` que ci-dessus, sans reconstruction ni littéral
+      // dupliqué, transmis tel quel au composant réellement utilisé par
+      // l'écran Catalogue.
+      render(createElement(SessionCard, { session: summary! }));
+
+      const colorBar = rnScreen.getByTestId("session-card-color-bar");
+      expect(StyleSheet.flatten(colorBar.props.style).backgroundColor).toBe("#F7D154");
+
+      const categoriesSegment = rnScreen.getByTestId("session-card-tag-line-categories");
+      expect(categoriesSegment.props.children).toBe("Cardio");
+      expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#F7D154");
     });
 
     it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {

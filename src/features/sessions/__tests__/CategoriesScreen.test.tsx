@@ -351,10 +351,23 @@ describe("CategoriesScreen — enregistrement (AC-05..AC-08, D-107)", () => {
     });
   });
 
-  it("shows the loading (saving) state — Enregistrer visually and semantically disabled — while createSession is pending, and re-enables it only once settled", async () => {
-    let resolveCreate: (value: { ok: true; value: unknown }) => void = () => {};
-    const pending = new Promise<{ ok: true; value: unknown }>((resolve) => {
-      resolveCreate = resolve;
+  // Correction REVISION tentative 4 (commentaire de revue 5559366973, point
+  // 2) : le scénario de succès (test précédent) enchaîne sur
+  // `router.dismissTo("/")`, qui démonte l'écran — `disabled: false` n'y
+  // serait donc jamais réellement observable après résolution, seulement
+  // déduit. Ce test utilise à la place un rejet technique (jamais de
+  // navigation, `mockDismissTo` non appelé — même chemin que le test
+  // « shows the exact failure message... » ci-dessus), qui laisse l'écran
+  // monté : `disabled=true` pendant l'attente puis `disabled=false` après
+  // résolution sont donc tous deux directement observés sur le même
+  // composant, sans hypothèse. La protection anti-double-submit pendant
+  // cette même fenêtre `pending` est couverte séparément par le test
+  // « prevents a double-submit » ci-dessus (référencé ici plutôt que
+  // dupliqué).
+  it("shows the loading (saving) state — Enregistrer disabled=true while createSession is pending — then disabled=false once settled, observed on the same still-mounted screen (technical failure path, which never navigates away)", async () => {
+    let rejectCreate: (error: Error) => void = () => {};
+    const pending = new Promise<{ ok: true; value: unknown }>((_resolve, reject) => {
+      rejectCreate = reject;
     });
     const createSession = jest.fn(() => pending);
     renderScreen({ createSession: createSession as never });
@@ -369,9 +382,14 @@ describe("CategoriesScreen — enregistrement (AC-05..AC-08, D-107)", () => {
     });
 
     await act(async () => {
-      resolveCreate({ ok: true, value: {} });
+      rejectCreate(new Error("technical failure"));
     });
 
-    expect(mockDismissTo).toHaveBeenCalledWith("/");
+    // Toujours monté (aucune navigation sur échec) : `disabled: false` est
+    // donc une observation directe du même composant, pas une déduction.
+    expect(mockDismissTo).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(t.saveAction).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
   });
 });
