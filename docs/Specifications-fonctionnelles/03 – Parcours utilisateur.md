@@ -59,13 +59,13 @@ Les référentiels utilisés dans le MVP sont de deux natures :
 ## Gestion des catégories
 
 Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
-Une séance peut appartenir à zéro, une ou plusieurs catégories.
+Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
 
 L'utilisateur peut :
 - consulter les catégories existantes ;
 - créer une nouvelle catégorie ;
 - modifier son nom ;
-- supprimer une catégorie.
+- supprimer une catégorie dans la gestion dédiée, à partir du MVP bis.
 
 Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
 
@@ -73,7 +73,7 @@ Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle e
 
 1. Ouvrir la gestion ou la sélection des catégories.
 2. Consulter les catégories existantes.
-3. Créer, modifier ou supprimer une catégorie selon le besoin.
+3. Créer une Catégorie ; sa modification et sa suppression relèvent de la gestion dédiée disponible à partir du MVP bis.
 4. Les modifications sont immédiatement disponibles dans l'ensemble de l'application, sans modification des Instantanés historiques.
 
 ## Référentiel des zones corporelles

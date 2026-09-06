@@ -786,10 +786,10 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Segmented | `Controls / Segmented` | nombre d’items et position sélectionnée ; libellés d’instance |
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
-| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat |
+| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
 | Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
-| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` |
+| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
 | Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
 | Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
 | Composition | `Composition / Activity Row` | contenu d’instance ; position avant/dans/après Tour hors état du composant |
@@ -978,8 +978,8 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
-| Roulette compacte à deux colonnes | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptée au conteneur (`330` en Activité, environ `310` en Planification) |
-| Roulette numérique compacte à une colonne | `136 × 190` ; largeur minimale déterminée par deux cibles tactiles `48 × 48` et une colonne sélectionnée `56 × 34` centrée |
+| Roulette compacte à deux colonnes | Hauteur `190` = barre d’actions `40` + contenu natif `150` ; largeur adaptée au contenu (`330` en Activité, environ `310` en Planification) ; overlay centré dans la zone utile, indépendant du déclencheur et du défilement |
+| Roulette numérique compacte à une colonne | `136 × 190` ; largeur minimale déterminée par deux cibles tactiles `48 × 48` et une colonne sélectionnée `56 × 34` centrée ; même overlay d’écran bloquant |
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `28 × 28` ; Annuler à gauche et Confirmer à droite dans la barre supérieure |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
