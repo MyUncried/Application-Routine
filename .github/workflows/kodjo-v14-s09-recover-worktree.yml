@@ -104,21 +104,21 @@ jobs:
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json
           if([int64]$cred.claudeAiOauth.expiresAt -le [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()){throw 'Claude token expired'}
           $prompt=@"
-KODJO V1.4 DEV-S09 — réparation de la récupération préservée.
-Tu reprends exclusivement la session $env:SESSION_ID, attempt=$env:ATTEMPT. Le checkout est la branche $env:RECOVERY_BRANCH, qui contient le travail S09 réel préservé au commit 3615ebf202f80c130ee90ef6ef4a8e4d2bad2435. Ne reset/clean/checkout rien.
-
-Le dernier Jest a donné 7 suites/58 tests en échec, 36 suites/571 tests réussis. Analyse les échecs et corrige le CODE et/ou les TESTS selon la règle réellement validée, sans masquer de régression.
-
-Règles impératives :
-- SessionDraft S09 sépare l'existence des catégories NEW (`categoryDrafts`) de leur sélection (`selectedCategoryIds`). Les anciennes fixtures/tests encore fondés sur `categorySelections` sont obsolètes et doivent être migrés vers ce contrat. `createEmptyDraft()` doit fournir les deux tableaux vides. `toCreateSessionInput` ne doit persister que les IDs sélectionnés, en résolvant les IDs locaux dans `categoryDrafts`.
-- Ne mets pas un fallback aveugle qui ferait disparaître une sélection valide ; corrige les fixtures et les constructions de SessionDraft pour respecter le type actuel. Si une compatibilité défensive est nécessaire à une frontière runtime, justifie-la et teste-la.
-- La roulette numérique S09 est désormais un overlay centré avec fond atténué, indépendant du déclencheur et du scroll. Les tests exigeant l'ancien `position:absolute` ancré au contenu sont supersédés et doivent être adaptés à la règle overlay, pas l'inverse.
-- Catégorie NEW : création => sélection automatique ; désélection => reste visible ; resélection => aucun doublon ; jamais persistée avant l'enregistrement final.
-- Vérifie aussi CategoriesScreen, SessionCard/CatalogueScreen/formatSessionSummary, SessionService et toute autre suite en échec. Corrige le code si le test exprime encore une règle valide.
-- Préserve S01-S08, migration001.ts immuable, aucun S10, aucun workflow/.github modifié.
-- Lance d'abord les tests ciblés, puis `npm test -- --runInBand` et `npx tsc --noEmit`. Continue jusqu'à ce que les deux soient verts ou jusqu'à une vraie ambiguïté produit non résoluble.
-- Ne committe et ne pousse pas : laisse les modifications dans le worktree pour l'étape suivante.
-"@
+          KODJO V1.4 DEV-S09 — réparation de la récupération préservée.
+          Tu reprends exclusivement la session $env:SESSION_ID, attempt=$env:ATTEMPT. Le checkout est la branche $env:RECOVERY_BRANCH, qui contient le travail S09 réel préservé au commit 3615ebf202f80c130ee90ef6ef4a8e4d2bad2435. Ne reset/clean/checkout rien.
+          
+          Le dernier Jest a donné 7 suites/58 tests en échec, 36 suites/571 tests réussis. Analyse les échecs et corrige le CODE et/ou les TESTS selon la règle réellement validée, sans masquer de régression.
+          
+          Règles impératives :
+          - SessionDraft S09 sépare l'existence des catégories NEW (categoryDrafts) de leur sélection (selectedCategoryIds). Les anciennes fixtures/tests encore fondés sur categorySelections sont obsolètes et doivent être migrés vers ce contrat. createEmptyDraft() doit fournir les deux tableaux vides. toCreateSessionInput ne doit persister que les IDs sélectionnés, en résolvant les IDs locaux dans categoryDrafts.
+          - Ne mets pas un fallback aveugle qui ferait disparaître une sélection valide ; corrige les fixtures et les constructions de SessionDraft pour respecter le type actuel. Si une compatibilité défensive est nécessaire à une frontière runtime, justifie-la et teste-la.
+          - La roulette numérique S09 est désormais un overlay centré avec fond atténué, indépendant du déclencheur et du scroll. Les tests exigeant l'ancien position:absolute ancré au contenu sont supersédés et doivent être adaptés à la règle overlay, pas l'inverse.
+          - Catégorie NEW : création => sélection automatique ; désélection => reste visible ; resélection => aucun doublon ; jamais persistée avant l'enregistrement final.
+          - Vérifie aussi CategoriesScreen, SessionCard/CatalogueScreen/formatSessionSummary, SessionService et toute autre suite en échec. Corrige le code si le test exprime encore une règle valide.
+          - Préserve S01-S08, migration001.ts immuable, aucun S10, aucun workflow/.github modifié.
+          - Lance d'abord les tests ciblés, puis npm test -- --runInBand et npx tsc --noEmit. Continue jusqu'à ce que les deux soient verts ou jusqu'à une vraie ambiguïté produit non résoluble.
+          - Ne committe et ne pousse pas : laisse les modifications dans le worktree pour l'étape suivante.
+          "@
           $pfile=Join-Path $env:RUNNER_TEMP 's09-repair.txt'; [IO.File]::WriteAllText($pfile,$prompt,(New-Object Text.UTF8Encoding($false)))
           $out=Join-Path $env:RUNNER_TEMP 's09-repair-out.txt'; $err=Join-Path $env:RUNNER_TEMP 's09-repair-err.txt'
           $old=$ErrorActionPreference; $ErrorActionPreference='Continue'
