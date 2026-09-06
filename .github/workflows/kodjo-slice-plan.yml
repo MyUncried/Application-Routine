@@ -38,8 +38,12 @@ jobs:
           test "$GITHUB_REPOSITORY" = 'MyUncried/Application-Routine'
           SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
           MANIFEST_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^manifest_path=//p' | head -n1)
+          SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          SUPERSEDES_PLAN_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^supersedes_plan_comment_id=//p' | head -n1)
+          SCOPE_CORRECTION_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^scope_correction_comment_id=//p' | head -n1)
           test -n "$SLICE_ID"
           test -n "$MANIFEST_PATH"
+          test "$SOURCE_HEAD" != "" && printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
           test "$MANIFEST_PATH" = ".github/orchestration/slices/$SLICE_ID.yml"
           test -f "$MANIFEST_PATH"
           export SLICE_ID MANIFEST_PATH ISSUE_NUMBER
@@ -70,17 +74,35 @@ jobs:
           git show-ref --verify --quiet "refs/remotes/origin/$target_branch"
           ACTUAL=$(git rev-parse "origin/$target_branch")
           test "$ACTUAL" = "$baseline_head"
+          test "$SOURCE_HEAD" = "$baseline_head"
           git merge-base --is-ancestor "$previous_head" "$baseline_head"
-          git diff --name-only -z "$previous_head..$baseline_head" > /tmp/pre-plan-delta.z
-          while IFS= read -r -d '' path; do
-            case "$path" in
-              docs/*) ;;
-              Revue-claude/*.md) ;;
-              .github/orchestration/reports/*.md) ;;
-              *) echo "Unauthorized pre-plan delta: $path" >&2; exit 1 ;;
-            esac
-          done < /tmp/pre-plan-delta.z
-          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\nissue_number=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          PLAN_MODE=INITIAL
+          if [ -n "$SUPERSEDES_PLAN_ID" ] || [ -n "$SCOPE_CORRECTION_ID" ]; then
+            PLAN_MODE=REPLAN_AFTER_IMPLEMENTATION
+            printf '%s' "$SUPERSEDES_PLAN_ID" | grep -Eq '^[0-9]+$'
+            printf '%s' "$SCOPE_CORRECTION_ID" | grep -Eq '^[0-9]+$'
+            old_plan=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID" --jq '.body')
+            scope_correction=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID" --jq '.body')
+            printf '%s\n' "$old_plan" | grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT'
+            printf '%s\n' "$old_plan" | grep -Fxq "slice_id=$SLICE_ID"
+            printf '%s\n' "$scope_correction" | grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION'
+            printf '%s\n' "$scope_correction" | grep -Fxq "slice_id=$SLICE_ID"
+            printf '%s\n' "$scope_correction" | grep -Fxq "source_head=$baseline_head"
+            printf '%s\n' "$scope_correction" | grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID"
+            implementation_count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '.[] | select(.body | contains("[KODJO_SLICE] IMPLEMENTATION_OUTPUT")) | select(.body | contains("head='"$baseline_head"'")) | .id' | wc -l | tr -d ' ')
+            test "$implementation_count" = 1
+          else
+            git diff --name-only -z "$previous_head..$baseline_head" > /tmp/pre-plan-delta.z
+            while IFS= read -r -d '' path; do
+              case "$path" in
+                docs/*) ;;
+                Revue-claude/*.md) ;;
+                .github/orchestration/reports/*.md) ;;
+                *) echo "Unauthorized initial pre-plan delta: $path" >&2; exit 1 ;;
+              esac
+            done < /tmp/pre-plan-delta.z
+          fi
+          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\nissue_number=%s\nplan_mode=%s\nsupersedes_plan_id=%s\nscope_correction_id=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$ISSUE_NUMBER" "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" >> "$GITHUB_OUTPUT"
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
@@ -93,6 +115,9 @@ jobs:
           TARGET_BRANCH: ${{ steps.gate.outputs.target_branch }}
           BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-slice-plan
@@ -121,6 +146,9 @@ jobs:
           MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
           BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
@@ -130,6 +158,11 @@ jobs:
           Cover scope, source traceability, data model and migrations, navigation and UI, transaction boundaries, backward compatibility, files to modify/not modify, acceptance criteria, tests, risks and non-regression. Preserve all prior slice behavior. Mark CLARIFICATION_REQUIRED only for a genuine product decision not resolvable from supplied evidence.
           The plan must end with: PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW or PLAN_STATUS: CLARIFICATION_REQUIRED.
           EOF
+          if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+            cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          This is a controlled replan after a completed implementation increment. Preserve the application code already present at the baseline. The prior plan comment $SUPERSEDES_PLAN_ID is superseded only as stated by scope-correction comment $SCOPE_CORRECTION_ID. Plan only the remaining scope; do not re-plan completed work and do not restore excluded scope.
+          EOF
+          fi
           printf '\nSLICE MANIFEST:\n' >> /tmp/kodjo-slice-plan/prompt.txt
           cat /tmp/kodjo-slice-plan/manifest.yml >> /tmp/kodjo-slice-plan/prompt.txt
           printf '\nISSUE #%s:\n' "$ISSUE_NUMBER" >> /tmp/kodjo-slice-plan/prompt.txt
@@ -169,6 +202,11 @@ jobs:
             echo "source_head=$BASELINE_HEAD"
             echo 'plan_builder=OPENAI'
             echo 'attempt=1'
+            echo "plan_mode=$PLAN_MODE"
+            if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+              echo "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID"
+              echo "scope_correction_comment_id=$SCOPE_CORRECTION_ID"
+            fi
             echo "source_start_comment_id=$SOURCE_COMMENT_ID"
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
             echo
