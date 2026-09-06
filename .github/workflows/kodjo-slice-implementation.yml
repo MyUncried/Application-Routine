@@ -107,11 +107,14 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           MODE: ${{ steps.gate.outputs.mode }}
           SESSION: ${{ steps.gate.outputs.session }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+          CAUSAL_COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           $ErrorActionPreference='Stop'
-          $plan=Get-Content "$env:RUNNER_TEMP\kodjo-approved-plan.md" -Raw -Encoding utf8
-          $review=Get-Content "$env:RUNNER_TEMP\kodjo-plan-review.md" -Raw -Encoding utf8
           if($env:MODE -eq 'INITIAL'){
+            $plan=Get-Content "$env:RUNNER_TEMP\kodjo-approved-plan.md" -Raw -Encoding utf8
+            $review=Get-Content "$env:RUNNER_TEMP\kodjo-plan-review.md" -Raw -Encoding utf8
             $prompt="KODJO generic DEV for $env:SLICE_ID. Start one dedicated development session. The current checkout at $env:SOURCE_HEAD is authoritative. Implement only the approved plan below. Reuse all established behavior and controls from prior slices. Do not modify .github workflows, protocol files, CLAUDE.md, or immutable migration001.ts. Add migrations only. Run targeted tests. Do not commit or push. Begin the result with exactly KODJO_STATUS: IMPLEMENTED when application changes are complete. If implementation cannot safely proceed because an arbitration, clarification, scope decision, device proof, or architecture decision is required, do not change application files and begin the result with exactly KODJO_STATUS: CLARIFICATION_REQUIRED, followed by the blocking questions and evidence."+[Environment]::NewLine+[Environment]::NewLine+"APPROVED PLAN:"+[Environment]::NewLine+$plan+[Environment]::NewLine+[Environment]::NewLine+"INDEPENDENT REVIEW:"+[Environment]::NewLine+$review
             $args=@('-p','--permission-mode','acceptEdits','--output-format','json')
           } else {
@@ -120,7 +123,7 @@ jobs:
             if($i -lt 0){throw 'Correction feedback missing'}
             $feedback=$env:TRIGGER_BODY.Substring($i+$feedbackMarker.Length).Trim()
             if(!$feedback){throw 'Correction feedback empty'}
-            $prompt="KODJO correction for $env:SLICE_ID. Resume only session $env:SESSION. The current checkout at $env:SOURCE_HEAD is authoritative. Apply only the supplied feedback, preserve all approved behavior, rerun targeted tests, and do not commit or push. Begin the result with exactly KODJO_STATUS: IMPLEMENTED when application changes are complete. If implementation cannot safely proceed because an arbitration, clarification, scope decision, device proof, or architecture decision is required, do not change application files and begin the result with exactly KODJO_STATUS: CLARIFICATION_REQUIRED, followed by the blocking questions and evidence."+[Environment]::NewLine+[Environment]::NewLine+"APPROVED PLAN:"+[Environment]::NewLine+$plan+[Environment]::NewLine+[Environment]::NewLine+"FEEDBACK:"+[Environment]::NewLine+$feedback
+            $prompt="KODJO differential resume for $env:SLICE_ID. Resume only session $env:SESSION; its existing plan, review, decisions and prior work remain authoritative and MUST NOT be reconstructed or reread unless the delta explicitly requires one named file. Current immutable checkout: $env:SOURCE_HEAD. Approved plan comment: $env:PLAN_ID. Approved review comment: $env:REVIEW_ID. Causal comment: $env:CAUSAL_COMMENT_ID. Apply only the delta below, preserve all previously approved behavior, run only tests relevant to this delta, and do not commit or push. Do not repeat prior analysis in the result. Begin the result with exactly KODJO_STATUS: IMPLEMENTED when application changes are complete. If a genuinely new arbitration is required, do not change application files and begin the result with exactly KODJO_STATUS: CLARIFICATION_REQUIRED, followed only by the new blocking question and evidence."+[Environment]::NewLine+[Environment]::NewLine+"CONTEXT DELTA ONLY:"+[Environment]::NewLine+$feedback
             $args=@('-p','--resume',$env:SESSION,'--permission-mode','acceptEdits','--output-format','json')
           }
           $promptPath="$env:RUNNER_TEMP\claude-prompt.txt"
