@@ -42,31 +42,46 @@ jobs:
           test -n "$MANIFEST_PATH"
           test "$MANIFEST_PATH" = ".github/orchestration/slices/$SLICE_ID.yml"
           test -f "$MANIFEST_PATH"
+          export SLICE_ID MANIFEST_PATH ISSUE_NUMBER
           ruby -e '
             require "yaml"
             m=YAML.safe_load(File.read(ARGV[0]), aliases: false)
+            sha=/\A[0-9a-f]{40}\z/
             abort "schema" unless m["schema"]=="kodjo.slice.v1"
             abort "slice" unless m["slice_id"]==ENV["SLICE_ID"]
             abort "status" unless m["status"]=="SPEC_PREPARED"
             abort "repo" unless m["repository"]==ENV["GITHUB_REPOSITORY"]
             abort "issue" unless m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i
             abort "branch" if m["target_branch"].to_s.empty?
-            abort "baseline" unless m["baseline_head"].to_s.match?(/\A[0-9a-f]{40}\z/)
+            abort "baseline" unless m["baseline_head"].to_s.match?(sha)
             p=m["previous_slice"] || {}
             abort "previous status" unless p["required_status"]=="DONE"
-            abort "previous head" unless p["final_head"]==m["baseline_head"]
+            abort "previous head" unless p["final_head"].to_s.match?(sha)
+            if m.key?("application_baseline_head")
+              abort "application baseline" unless m["application_baseline_head"]==p["final_head"]
+            end
             abort "sources" unless m["sources"].is_a?(Array) && !m["sources"].empty?
             abort "scope" unless m.dig("scope","acceptance_criteria").is_a?(Array) && !m.dig("scope","acceptance_criteria").empty?
             puts "target_branch=#{m["target_branch"]}"
             puts "baseline_head=#{m["baseline_head"]}"
+            puts "previous_head=#{p["final_head"]}"
           ' "$MANIFEST_PATH" > /tmp/manifest.env
           source /tmp/manifest.env
           git fetch origin "$target_branch"
           ACTUAL=$(git rev-parse "origin/$target_branch")
           test "$ACTUAL" = "$baseline_head"
-          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nissue_number=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          git merge-base --is-ancestor "$previous_head" "$baseline_head"
+          git diff --name-only -z "$previous_head..$baseline_head" > /tmp/pre-plan-delta.z
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              docs/*) ;;
+              Revue-claude/*.md) ;;
+              .github/orchestration/reports/*.md) ;;
+              *) echo "Unauthorized pre-plan delta: $path" >&2; exit 1 ;;
+            esac
+          done < /tmp/pre-plan-delta.z
+          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\nissue_number=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
         env:
-          SLICE_ID: ${{ github.event.comment.body && '' }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Build authoritative planning packet
