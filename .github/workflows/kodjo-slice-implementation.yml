@@ -60,8 +60,9 @@ jobs:
           $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId"|ConvertFrom-Json
           $review=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$reviewId"|ConvertFrom-Json
           if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$' -or $plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Invalid plan' }
-          if ($review.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_REVIEW_OUTPUT\s*$' -or $review.body -notmatch '(?m)^verdict=APPROVE\s*$' -or $review.body -notmatch '(?m)^STATUT : PLAN_REVIEW_APPROVED\s*$') { throw 'Independent plan approval missing' }
-          if ($review.body -notmatch "(?m)^source_plan_comment_id=$planId\s*$") { throw 'Review does not bind approved plan' }
+          $reviewBody=([string]$review.body).TrimStart([char]0xFEFF)
+          if ($reviewBody -notmatch '(?m)^\[KODJO_SLICE\] PLAN_REVIEW_OUTPUT\s*$' -or $reviewBody -notmatch '(?m)^verdict=APPROVE\s*$' -or $reviewBody -notmatch '(?m)^STATUT : PLAN_REVIEW_APPROVED\s*$') { throw 'Independent plan approval missing' }
+          if ($reviewBody -notmatch "(?m)^source_plan_comment_id=$planId\s*$") { throw 'Review does not bind approved plan' }
           $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
           if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
           $cred=Get-Content (Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json') -Raw|ConvertFrom-Json
@@ -196,5 +197,5 @@ jobs:
           $summary=Get-Content "$env:RUNNER_TEMP\dev-result.txt" -Raw -Encoding utf8
           $nl=[Environment]::NewLine
           $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE_HEAD+$nl+'head='+$new+$nl+'session_id='+$env:SESSION_ID+$nl+'plan_comment_id='+$env:PLAN_ID+$nl+'plan_review_comment_id='+$env:REVIEW_ID+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'+$nl+$nl+$summary
-          $body|Out-File "$env:RUNNER_TEMP\implementation-comment.md" -Encoding utf8
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\implementation-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\implementation-comment.md"
