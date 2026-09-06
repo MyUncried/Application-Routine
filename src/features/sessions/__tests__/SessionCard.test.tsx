@@ -62,7 +62,7 @@ describe("SessionCard", () => {
     render(
       <SessionCard
         session={aSummary({
-          color: "#00FF00",
+          color: "#2E9B62",
           categoryNames: ["Cardio"],
           bodyZoneNames: ["Genoux"],
         })}
@@ -70,10 +70,10 @@ describe("SessionCard", () => {
     );
 
     const categoriesSegment = screen.getByTestId("session-card-tag-line-categories");
-    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#00FF00");
+    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#2E9B62");
 
     const tagLine = screen.getByTestId("session-card-tag-line");
-    expect(StyleSheet.flatten(tagLine.props.style).color).not.toBe("#00FF00");
+    expect(StyleSheet.flatten(tagLine.props.style).color).not.toBe("#2E9B62");
   });
 
   it("T01-S09 correction VISUAL (point B) — never renders the tag line at all when there is no Category and no body zone (empty state — never a visible empty line)", () => {
