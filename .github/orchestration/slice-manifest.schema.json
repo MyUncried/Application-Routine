@@ -14,6 +14,8 @@
     "issue_number": {"type": ["integer", "null"], "minimum": 1},
     "target_branch": {"type": "string", "minLength": 1},
     "baseline_head": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "application_baseline_head": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "documentation_reference_message": {"type": ["string", "null"]},
     "previous_slice": {
       "type": "object",
       "additionalProperties": false,
