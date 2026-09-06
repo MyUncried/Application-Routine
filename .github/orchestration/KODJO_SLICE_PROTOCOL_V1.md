@@ -22,7 +22,7 @@ Le manifeste contient les paramètres variables : identifiant, Issue, branche, b
 
 ## États
 
-`SPEC_PREPARED` → `PLAN_BUILDING` → `PLAN_REVIEW` → `PLAN_USER_GATE` → `IMPLEMENTING` → `IMPLEMENTATION_REVIEW` → `VISUAL_USER_GATE` → `FINALIZING` → `DONE`.
+`AWAITING_SLICE_SPEC` → `SPEC_PREPARED` → `PLAN_BUILDING` → `PLAN_REVIEW` → `PLAN_USER_GATE` → `IMPLEMENTING` → `IMPLEMENTATION_REVIEW` → `VISUAL_USER_GATE` → `FINALIZING` → `DONE`.
 
 États techniques d'arrêt : `WAITING_FOR_PREVIOUS_SLICE`, `CLARIFICATION_REQUIRED`, `USAGE_LIMIT`, `ORCHESTRATION_FAILURE`.
 
@@ -54,9 +54,10 @@ Les limites d'usage, erreurs API, sorties invalides et erreurs de transport rest
 Le manifeste T01-S10 reste `WAITING_FOR_PREVIOUS_SLICE` tant que S09 n'a pas publié son checkpoint final. Après clôture de S09 seulement :
 
 1. créer l'Issue S10 ;
-2. inscrire son numéro et le HEAD final S09 dans le manifeste ;
-3. passer le manifeste à `SPEC_PREPARED` ;
-4. contrôler le manifeste et les workflows génériques ;
-5. autoriser `START_PLAN` en lecture seule.
+2. inscrire son numéro et le HEAD final S09 dans le manifeste, avec l'état `AWAITING_SLICE_SPEC` ;
+3. ChatGPT Développement construit avec l'utilisateur le contenu fonctionnel de l'Issue et du manifeste ;
+4. après inscription de l'objectif, du périmètre et des critères d'acceptation, passer le manifeste à `SPEC_PREPARED` ;
+5. contrôler le manifeste et les workflows génériques ;
+6. autoriser `START_PLAN` en lecture seule.
 
 Le développement S10 reste interdit avant le Gate plan utilisateur.
