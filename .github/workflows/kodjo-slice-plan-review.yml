@@ -46,9 +46,501 @@ jobs:
           if (!$slice -or !$manifest -or !$planId) { throw 'Missing immutable plan-review inputs' }
           if ($manifest -ne ".github/orchestration/slices/$slice.yml") { throw 'Manifest path mismatch' }
           if (!(Test-Path -LiteralPath $manifest)) { throw 'Manifest missing' }
-          $manifestJson=ruby -ryaml -rjson -e "puts JSON.generate(YAML.safe_load(File.read(ARGV[0]), aliases: false))" $manifest
-          if ($LASTEXITCODE -ne 0) { throw 'Manifest YAML invalid' }
-          $m=$manifestJson | ConvertFrom-Json
+          $manifestRaw=Get-Content -Raw -LiteralPath $manifest
+          $m=[pscustomobject]@{
+            schema=[regex]::Match($manifestRaw,'(?m)^schema:\s*([^\r\n]+)          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value.Trim()
+            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value.Trim()
+            status=[regex]::Match($manifestRaw,'(?m)^status:\s*([^\r\n]+)          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value.Trim()
+            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value
+            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value.Trim()
+            baseline_head=[regex]::Match($manifestRaw,'(?m)^baseline_head:\s*([0-9a-f]{40})          if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
+          if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
+          if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$m.baseline_head) { throw 'Plan source differs from manifest baseline' }
+          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+          if (!$remote -or (($remote -split '\s+')[0]) -ne $source) { throw 'Target branch moved' }
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_path=$manifest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Review plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
+          Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-plan-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-plan-review.err.txt"
+          & claude -p $prompt --output-format json --dangerously-skip-permissions 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw $out | ConvertFrom-Json
+          if (!$json.session_id) { throw 'Claude review session_id missing' }
+          if (!$json.result) { throw 'Claude review result missing' }
+          if ($code -ne 0) { throw "Claude review failed; exit=$code; result=$($json.result)" }
+          $json.result | Out-File "$env:RUNNER_TEMP\kodjo-plan-review.md" -Encoding utf8
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-plan-review.md"
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $nl=[Environment]::NewLine
+          $header='[KODJO_SLICE] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'manifest_path='+$env:MANIFEST_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header+$review | Out-File "$env:RUNNER_TEMP\kodjo-plan-review-comment.md" -Encoding utf8
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-plan-review-comment.md"
+
+      - name: Preserve plan review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-plan.md
+            ${{ runner.temp }}\kodjo-plan-review.json
+            ${{ runner.temp }}\kodjo-plan-review.err.txt
+            ${{ runner.temp }}\kodjo-plan-review.md
+          if-no-files-found: warn
+          retention-days: 7
+).Groups[1].Value
+          }
           if ($m.schema -ne 'kodjo.slice.v1' -or $m.slice_id -ne $slice) { throw 'Manifest identity mismatch' }
           if ([int]$m.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'Issue mismatch' }
           if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
