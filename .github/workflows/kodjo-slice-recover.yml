@@ -42,9 +42,9 @@ jobs:
           git clone --no-checkout "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" $protocol
           $manifestRaw=Get-Content -Raw -LiteralPath (Join-Path $protocol $manifest)
           $m=[pscustomobject]@{
-            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)$').Groups[1].Value.Trim()
-            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)$').Groups[1].Value
-            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)$').Groups[1].Value.Trim()
+            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)').Groups[1].Value
+            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)').Groups[1].Value.Trim()
           }
           if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
           $root=(git rev-parse --show-toplevel).Trim()
