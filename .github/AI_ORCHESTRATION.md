@@ -35,8 +35,6 @@ V1.3 conserve explicitement les barrières V1.2 : revue indépendante ChatGPT av
 4. Registre des décisions = arbitrages explicitement validés.
 5. GitHub = état traçable de la tâche, branche, commits, PR, commentaires et preuves d’orchestration.
 
-Un ajustement cosmétique mineur explicitement validé peut précéder son réalignement Figma. L’écart est alors tracé et Figma est mis à jour ultérieurement ; cette souplesse de séquence ne constitue pas une règle fonctionnelle et ne supprime aucune validation UX.
-
 Ne jamais inventer une règle. Une ambiguïté nécessaire non résolue par les sources déclenche `CLARIFICATION_REQUIRED`. Une inconnue non nécessaire à la tranche est reportée sans décision implicite.
 Ne pas anticiper une tranche ultérieure. Modifier uniquement ce qui est nécessaire à la tranche approuvée.
 
