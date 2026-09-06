@@ -1,0 +1,49 @@
+schema: kodjo.slice.v1
+slice_id: T01-S10
+title: Réouverture et modification d'une séance existante
+status: WAITING_FOR_PREVIOUS_SLICE
+repository: MyUncried/Application-Routine
+issue_number: null
+target_branch: feat/creation-seance-catalogue
+baseline_head: null
+
+previous_slice:
+  slice_id: T01-S09
+  issue_number: 17
+  required_status: DONE
+  final_head: null
+
+sources:
+  - docs/PRODUCT.md
+  - docs/INDEX.md
+  - docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
+  - docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+  - docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
+  - docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+  - docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+  - docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
+  - docs/Specifications-fonctionnelles/12 – Architecture technique.md
+  - docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+  - Figma
+
+scope:
+  objective: À préciser depuis les sources actuelles après clôture de S09.
+  in_scope:
+    - Réouverture d'une séance existante.
+    - Modification conforme aux contrats fonctionnels et visuels actuels.
+    - Vérification de la propagation d'un changement de couleur vers la bande gauche et le texte du catalogue.
+  out_of_scope:
+    - Tout développement avant approbation du plan S10.
+    - Toute anticipation non documentée des tranches suivantes.
+  acceptance_criteria:
+    - À construire en lecture seule depuis l'Issue S10, le HEAD final S09 et les sources autoritatives.
+
+gates:
+  plan_user_approval: false
+  technical_review: false
+  visual_user_approval: false
+  final_checks: false
+
+sessions:
+  review: null
+  development: null
