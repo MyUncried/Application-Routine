@@ -50,6 +50,7 @@ jobs:
             $psi.Arguments=$Arguments
             $psi.UseShellExecute=$false
             $psi.RedirectStandardOutput=$true
+            $psi.StandardOutputEncoding=[Text.Encoding]::UTF8
             $process=New-Object System.Diagnostics.Process
             $process.StartInfo=$psi
             [void]$process.Start()
@@ -158,6 +159,7 @@ jobs:
             $psi.Arguments=$Arguments
             $psi.UseShellExecute=$false
             $psi.RedirectStandardOutput=$true
+            $psi.StandardOutputEncoding=[Text.Encoding]::UTF8
             $process=New-Object System.Diagnostics.Process
             $process.StartInfo=$psi
             [void]$process.Start()
