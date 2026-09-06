@@ -287,7 +287,7 @@ Le Header, le Context et la Bottom Navigation sont identiques au contrat CE-T01-
 | Identifiant de carte | `Séance.id` | Utilisé pour toutes les actions ; jamais déduit de l’index visuel. |
 | Barre latérale | `Séance.couleur` | Toujours ; couleur réelle enregistrée. |
 | Nom | `Séance.nom` | Toujours ; une ou deux lignes, puis ellipse si nécessaire. |
-| Métadonnées Catégories/Zones | Associations de Catégories et Zones corporelles des Exercices | Une seule ligne sous le nom. Catégories dans la couleur de la Séance ; union dédupliquée des Zones de tous les Exercices ; ` : ` entre les groupes seulement s’ils existent tous les deux ; ellipse si le contenu dépasse. |
+| Catégories | Associations de Catégories | Si présentes ; ordre et présentation conformes au composant. |
 | Nombre d’Activités | Composition calculée | Toujours ; accord singulier/pluriel. |
 | Durée estimée | Calcul métier de la durée déterminable | Toujours selon les règles fonctionnelles ; jamais une chaîne statique. |
 | Nombre de Tours | Composition calculée | Affiché selon le format défini ; accord singulier/pluriel. |
@@ -306,7 +306,7 @@ Les exemples Figma `Renforcement du genou`, `Dos et mobilité`, `Etirements`, le
 | Écart entre cartes | Le gabarit Figma illustre la composition ; la règle commune du chapitre 06 fixe l’écart à `8` | Utilise le token de liste compacte du Design System ; valeur identique entre toutes les cartes. |
 | Barre de couleur | largeur visuelle `4`, bord gauche | Suit la hauteur réelle de la carte et ne recouvre pas son contenu. |
 | Contenu textuel | marge gauche interne après la barre | Ne passe jamais sous les actions ancrées à droite. |
-| Chevron | cible `48 × 48`, ancrée à droite avant Démarrer ; cadre visuel DSF `28 × 28` conservé | Zone indépendante de la zone principale et de Démarrer. |
+| Chevron | cible `48 × 48`, ancrée à droite avant Démarrer | Zone indépendante de la zone principale et de Démarrer. |
 | Démarrer | cible `48 × 48`, ancrée au bord droit | Zone indépendante ; icône centrée dans sa cible. |
 | Fin de liste | au-dessus de la Bottom Navigation | Espace final d’au moins `16` points, en plus de l’inset applicable. |
 
@@ -448,7 +448,7 @@ Le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`253
 
 Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Confirmer. La confirmation actualise uniquement la carte `Compte à rebours initial` : elle ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours`. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
 
-Toucher un chiffre ou la zone sélectionnée ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. L’ouverture d’un autre sélecteur ferme celui-ci sans confirmer son brouillon. Le contrôle est rendu dans un overlay centré dans la zone utile, indépendamment du déclencheur et de la position de défilement. Le voile atténue et bloque le fond, y compris son défilement, et la roulette ne peut pas être masquée par l’action finale.
+Toucher un chiffre ou la zone sélectionnée ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. L’ouverture d’un autre sélecteur ferme celui-ci sans confirmer son brouillon. Le contrôle se repositionne au-dessus de son déclencheur si l’espace disponible l’impose et ne peut pas être masqué par l’action finale.
 
 Tests bloquants : deux roulettes fonctionnelles ; bornes et pas conformes aux règles métier ; retour haptique une fois par cran ; conservation de `0 s` ; fermeture et réouverture sur la dernière valeur ; conformité à `2028:11375`.
 
@@ -513,7 +513,7 @@ Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; auc
 | Nature | Contrôle intégré, malgré le nom historique de la frame |
 | Déclencheur | Appui sur `Fin de séance` |
 
-Le composant et les règles sont identiques à CE-T01-07. La variante `Type=Duration` mesure `330 × 190` et sélectionne initialement `00 min 05 s`. Elle est rendue dans le même overlay centré et bloquant que CE-T01-07, indépendamment de la ligne Fin de séance et du défilement.
+Le composant et les règles sont identiques à CE-T01-07. La variante `Type=Duration` mesure `330 × 190` et sélectionne initialement `00 min 05 s`. Elle doit être ancrée à la ligne Fin de séance, puis repositionnée au-dessus lorsque la hauteur sûre ou l’action fixe l’exige.
 
 La valeur est stockée séparément du Compte à rebours initial. `0 s` rend la phase instantanée mais ne supprime ni la ligne ni l’élément du Plan d’Exécution. Une modification de ce contrôle ne change aucune Activité et ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours` ; seule la carte `Fin de séance` est actualisée.
 
@@ -536,7 +536,7 @@ L’en-tête fixe affiche Retour et `Catégories de la séance`. Le corps affich
 
 Les libellés visibles dans la frame sont des données du référentiel, pas une liste codée dans l’écran. Les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante. Une sélection ne change pas leur position et aucune réorganisation manuelle n’est disponible dans le MVP. Chaque tag est une instance du composant DSF `Selection / Category Tag` (`3302:4166`), variante `State=Unselected` ou `State=Selected`. Les tags passent automatiquement à la ligne dans la largeur utile avec `8` points d’écart horizontal. Leur pilule visuelle mesure `30` points de haut et est centrée dans une cible tactile de hauteur minimale `48`; deux rangées utilisent donc un pas vertical minimal de `48` et leurs cibles ne se chevauchent pas. L’état sélectionné combine le style du composant et un indicateur accessible ; il ne repose pas uniquement sur la couleur.
 
-Toucher un tag inverse uniquement son association temporaire. Zéro, une ou plusieurs Catégories sont autorisées. Une Catégorie `NEW` est sélectionnée automatiquement à sa création ; la désélection ne la supprime pas du brouillon, elle reste visible et peut être resélectionnée sans doublon. Retour ramène à la Composition en conservant séparément les Catégories temporaires existantes et les identifiants sélectionnés. `Créer une catégorie` ouvre CE-T01-12. `Enregistrer la séance` réalise une transaction unique comprenant la Séance, sa Composition, les nouvelles Catégories du brouillon et toutes leurs associations, puis recharge CE-T01-03. Un double appui ne peut créer aucun doublon.
+Toucher un tag inverse uniquement son association temporaire. Zéro, une ou plusieurs Catégories sont autorisées. Retour ramène à la Composition avec les sélections temporaires conservées dans le brouillon. `Créer une catégorie` ouvre CE-T01-12. `Enregistrer la séance` réalise une transaction unique comprenant la Séance, sa Composition, les nouvelles Catégories du brouillon et toutes leurs associations, puis recharge CE-T01-03. Un double appui ne peut créer aucun doublon.
 
 En cas d’échec, aucune donnée partielle n’est conservée : l’écran reste affiché, le brouillon complet est conservé, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative réutilise exactement le même brouillon.
 
@@ -556,7 +556,7 @@ Tests bloquants : multisélection réelle ; ordre prédéfini puis personnalisé
 
 L’action de création est remplacée à son emplacement par une ligne contenant le champ `Nom de la catégorie`, `Annuler` et `Ajouter`. Le champ reçoit immédiatement le focus et le clavier ne masque ni la ligne ni `Enregistrer la séance`.
 
-`Annuler` ferme la ligne sans créer de donnée ni modifier les sélections. `Ajouter` reste désactivé pour une valeur vide ou composée d’espaces et la saisie est limitée à `40` caractères après trim. Après normalisation canonique de comparaison, un nom déjà existant ne crée pas de doublon : la Catégorie existante est sélectionnée et la ligne se ferme. Un nom valide et nouveau ajoute une Catégorie personnalisée `NEW` au brouillon, la place après les Catégories prédéfinies et après les personnalisées plus anciennes, la sélectionne pour la Séance et ferme la ligne. Sa désélection ultérieure ne la supprime pas : elle reste visible et resélectionnable. Aucune Catégorie nouvelle n’est persistée avant `Enregistrer la séance` ; seules les nouvelles Catégories sélectionnées participent à la transaction finale.
+`Annuler` ferme la ligne sans créer de donnée ni modifier les sélections. `Ajouter` reste désactivé pour une valeur vide ou composée d’espaces et la saisie est limitée à `40` caractères après trim. Après normalisation canonique de comparaison, un nom déjà existant ne crée pas de doublon : la Catégorie existante est sélectionnée et la ligne se ferme. Un nom valide et nouveau ajoute une Catégorie personnalisée au brouillon, la place après les Catégories prédéfinies et après les personnalisées plus anciennes, la sélectionne pour la Séance et ferme la ligne. Aucune Catégorie nouvelle n’est persistée avant `Enregistrer la séance`.
 
 Retour système avec le clavier ouvert ferme d’abord le clavier ; un second Retour suit CE-T01-11. Les erreurs restent attachées au champ et ne déplacent pas les tags par position absolue.
 
@@ -601,13 +601,13 @@ Tests bloquants : titre fonctionnel ; contexte de Séance présent dans le bande
 | Déclencheur | Appui sur `Durée` dans CE-T01-13 |
 | Composant | `Picker / Popover — Source exact`, `Type=Duration` (`2537:1110`), `330 × 190` |
 
-Le sélecteur est rendu dans un overlay centré et bloquant, indépendant du contrôle Durée et du défilement, et présente une seule instance canonique. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
+Le sélecteur est ancré au contrôle Durée et présente une seule instance canonique. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
 
 Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La durée sélectionnée reste locale pendant le défilement ; le contrôle et le récapitulatif ne sont actualisés qu’après Confirmer. Une durée totale de `0 s` laisse la validation de l’Activité désactivée après application.
 
 Toucher une valeur ou le cadre sélectionné ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer applique la valeur puis ferme. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
 
-Tests bloquants : overlay centré et fond bloqué, roulettes et unités corrects ; mise à jour du récapitulatif ; validation impossible à `0 s` ; haptique une fois par cran ; absence de modification de Pause ou Séries ; conformité à `1992:9430`.
+Tests bloquants : ancrage, roulettes et unités corrects ; mise à jour du récapitulatif ; validation impossible à `0 s` ; haptique une fois par cran ; absence de modification de Pause ou Séries ; conformité à `1992:9430`.
 
 ### Contrat transverse — Sélections numériques compactes
 
