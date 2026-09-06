@@ -154,7 +154,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles.
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
-- Une roulette est ancrée au contrôle déclencheur sans dépasser les Safe Areas. S’il n’existe pas assez d’espace, elle est repositionnée au-dessus ou transformée en présentation basse défilante.
+- Toute roulette numérique ouverte est rendue dans une couche d’overlay centrée dans la zone utile de l’écran, indépendante de la position du déclencheur et du défilement du contenu. Un voile atténue le fond et bloque ses interactions ainsi que son défilement jusqu’à Annuler ou Confirmer.
 - La roulette compacte de durée ou d’heure mesure `190` points de haut : barre d’actions supérieure de `40` points et zone de roulette native de `150` points. Sa largeur reste celle du contrôle ou du panneau hôte (`330` points dans les formulaires d’Activité et environ `310` points en Planification).
 - La barre d’actions place Annuler à gauche et Confirmer à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `28 × 28`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Confirmer. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
@@ -435,7 +435,7 @@ Le filtre `Toutes` affiche toutes les Séances actives, qu’elles soient planif
 Chaque carte affiche notamment :
 
 - le nom de la Séance ;
-- sa Catégorie lorsqu’elle existe ;
+- ses Catégories lorsqu’elles existent, suivies de ` : ` puis de l’union dédupliquée des Zones corporelles de tous ses Exercices lorsqu’au moins une zone existe ; si un seul groupe existe, aucun séparateur n’est affiché ;
 - le nombre d’Activités ;
 - sa durée estimée ;
 - le nombre de répétitions du Tour (`xN`) ;
@@ -839,8 +839,9 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante ; leur sélection ne change pas leur position et aucune réorganisation manuelle n’est proposée dans le MVP ;
 - la sélection est multiple ;
 - aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; une nouvelle Catégorie reste dans le brouillon jusqu’à l’enregistrement final ;
-- `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories et leurs associations, puis ramène directement au `Catalogue des séances` ;
+- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
+- Retour vers la Composition puis retour aux Catégories conserve séparément les Catégories temporaires existantes et les identifiants sélectionnés ; aucune Catégorie nouvelle n’est persistée avant l’enregistrement final ;
+- `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations, puis ramène directement au `Catalogue des séances` ;
 - en cas d’échec, aucune donnée partielle n’est conservée, le brouillon reste intact, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
 
 ## Écran 7 – Calendrier
