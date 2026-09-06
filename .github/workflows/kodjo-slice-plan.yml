@@ -67,7 +67,7 @@ jobs:
             puts "previous_head=#{p["final_head"]}"
           ' "$MANIFEST_PATH" > /tmp/manifest.env
           source /tmp/manifest.env
-          git fetch origin "$target_branch"
+          git show-ref --verify --quiet "refs/remotes/origin/$target_branch"
           ACTUAL=$(git rev-parse "origin/$target_branch")
           test "$ACTUAL" = "$baseline_head"
           git merge-base --is-ancestor "$previous_head" "$baseline_head"
