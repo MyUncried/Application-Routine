@@ -40,21 +40,9 @@ jobs:
           if ($match.Groups[1].Value -ne $env:INTEGRATION_HEAD) { throw 'Unexpected integration_head' }
           if ((git rev-parse HEAD).Trim() -ne $env:INTEGRATION_HEAD) { throw 'Checked-out HEAD mismatch' }
 
-          $docs = @(
-            '.github/AI_ORCHESTRATION.md',
-            'docs/INDEX.md',
-            'docs/PRODUCT.md',
-            'docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md',
-            'docs/Specifications-fonctionnelles/05 – Versions du produit.md',
-            'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md',
-            'docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md',
-            'docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md',
-            'docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md',
-            'docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md',
-            'docs/Specifications-fonctionnelles/11 – API fonctionnelles.md',
-            'docs/Specifications-fonctionnelles/12 – Architecture technique.md',
-            'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md'
-          )
+          git diff --quiet $env:DOCUMENT_BASE -- .github/AI_ORCHESTRATION.md docs
+          if ($LASTEXITCODE -ne 0) { throw 'Documentation differs from authorized parent baseline' }
+
           $source = @(
             'src/features/sessions/CategoriesScreen.tsx',
             'src/features/sessions/SessionCard.tsx',
@@ -64,12 +52,12 @@ jobs:
             'src/features/sessions/formatSessionSummary.ts',
             'src/shared/ui/tokens.ts'
           )
-          git diff --quiet $env:DOCUMENT_BASE -- $docs
-          if ($LASTEXITCODE -ne 0) { throw 'Documentation differs from authorized parent baseline' }
           git diff --quiet $env:RECOVERY_HEAD -- $source
           if ($LASTEXITCODE -ne 0) { throw 'Application files differ from preserved recovery' }
-          $registry = Get-Content $docs[6] -Raw -Encoding UTF8
-          if ($registry -match '(?m)^\|\s*D-(108|109|110|111)\s*\|') { throw 'Unauthorized D-108 to D-111 found' }
+
+          git grep -E '^\|[[:space:]]*D-(108|109|110|111)[[:space:]]*\|' -- docs
+          if ($LASTEXITCODE -eq 0) { throw 'Unauthorized D-108 to D-111 found' }
+          if ($LASTEXITCODE -gt 1) { throw 'Decision registry scan failed' }
 
       - name: Install dependencies
         run: npm ci
