@@ -1,11 +1,13 @@
 schema: kodjo.slice.v1
 slice_id: T01-S10
-title: Réouverture et modification bout en bout d’une séance
+title: Modification bout en bout d’une séance et alignements MVP Catalogue/Activité
 status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 42
 target_branch: feat/creation-seance-catalogue
-baseline_head: a4b194ce6f98fc3a1d82ab791a67aca777c40453
+baseline_head: 65c80055bca840c2062dcb36625c92916b0eb861
+application_baseline_head: a4b194ce6f98fc3a1d82ab791a67aca777c40453
+documentation_reference_message: "docs: resolve independent review findings C1-C9"
 
 previous_slice:
   slice_id: T01-S09
@@ -16,6 +18,12 @@ previous_slice:
 sources:
   - docs/PRODUCT.md
   - docs/INDEX.md
+  - docs/Specifications-fonctionnelles/00 – Glossaire.md
+  - docs/Specifications-fonctionnelles/01 – Vision Générale.md
+  - docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
+  - docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
+  - docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
+  - docs/Specifications-fonctionnelles/05 – Versions du produit.md
   - docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
   - docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
   - docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
@@ -28,42 +36,56 @@ sources:
 
 scope:
   objective: >-
-    Rouvrir depuis le Catalogue une Séance persistée, réhydrater intégralement son
-    agrégat dans un brouillon local, modifier ses propriétés, son Activité et ses
-    Catégories, puis mettre à jour atomiquement la même Séance et revenir au
-    Catalogue rechargé, sans duplication ni perte de données.
+    Modifier bout en bout une Séance persistée et aligner les écrans Catalogue
+    et Activité du MVP sur les contrats actualisés, notamment le sélecteur de
+    type et le mode À l’échec, sans développer les catalogues Activités/Circuits
+    ni les médias V2.
   in_scope:
-    - Ouverture en modification par identifiant persistant depuis le Catalogue.
-    - Réhydratation complète et sans écriture de l’agrégat existant.
-    - Modification locale des propriétés générales avec les composants T01 existants.
-    - Modification et remplacement de l’Activité existante sans duplication.
-    - Modification des associations de Catégories selon les règles S09.
-    - Abandon protégé du brouillon modifié avec le Decision Dialog existant.
-    - Mise à jour atomique de la Séance d’origine et rollback total en cas d’échec.
-    - Rechargement du Catalogue et réouverture fidèle après succès.
-    - Propagation de la couleur modifiée à la bande gauche et aux textes de Catégories de la carte existante.
-    - Gestion du chargement, des erreurs, du retry et du double appui.
+    - Ouverture, réhydratation complète et modification atomique d’une Séance existante.
+    - Modification sans duplication de l’Activité et des associations de Catégories.
+    - Abandon protégé, erreurs, retry, double appui, reload et propagation de couleur.
+    - Catalogue avec Activités / Séances / Circuits, Séances sélectionné et options latérales désactivées.
+    - Préservation de la source Séances, du tri updatedAt DESC et des futures capacités de filtre/tri sans UI inventée.
+    - Alignement des variantes vide, liste, déployée, recherche, swipe et archives.
+    - Nom de l’Activité en tête de zone bleue, sans contexte Séance.
+    - Bouton + Ajouter un média visible mais désactivé et section Médias absente du MVP.
+    - Trois modes Durée / Répétitions / À l’échec de même largeur.
+    - Mode À l’échec fonctionnel avec Suivant, synthèses, durée minimale, progression et résultats.
+    - Récupération toujours chronométrée.
+    - Overlay centré et voile DSF sur toutes les roulettes ouvertes.
+    - Types, enums, validations, mapping, persistance, migration additive et tests nécessaires.
   out_of_scope:
-    - Suppression ou renommage d’une Catégorie personnalisée, réservées au MVP bis.
-    - Suppression, archivage ou duplication d’une Séance.
-    - Nouvelles structures ou frames Figma.
-    - Plusieurs Exercices ou types d’Activité non pris en charge par T01.
-    - Planification, exécution, suivi et fonctionnalités S11 ou ultérieures.
+    - Catalogue fonctionnel d’Activités ou de Circuits et navigation associée.
+    - Import, capture, galerie, lecture ou stockage des médias.
+    - Section Médias V2 et node 3417:4341.
+    - Boutons de filtre/tri absents de Figma.
+    - Suppression ou renommage d’une Catégorie personnalisée.
+    - Suppression, archivage ou duplication d’une Séance au titre de S10.
+    - Planification, nouveaux écrans de suivi et fonctionnalités S11 ou ultérieures.
     - Modification destructive de migration001.ts.
-    - Nouvelle règle de tri du Catalogue.
   acceptance_criteria:
-    - "AC-01: la bonne Séance est ouverte par son identifiant sans création ni brouillon étranger."
-    - "AC-02: le brouillon initial restitue exactement l’agrégat persistant complet, sans valeur fictive ni écriture."
-    - "AC-03: les propriétés générales se modifient localement avec les contrôles et validations T01 existants."
-    - "AC-04: l’Activité modifiée conserve son identifiant, sa position et son conteneur, sans duplication."
-    - "AC-05: les Catégories respectent présélection, multisélection, zéro valeur, création locale, normalisation et limite 40."
-    - "AC-06: l’abandon ne s’affiche que pour un brouillon sale et ses actions sont non destructives pour le persistant."
-    - "AC-07: la sauvegarde met à jour l’identifiant d’origine dans une transaction unique, sans état partiel ni Catégorie orpheline."
-    - "AC-08: double appui, succès, échec, retry, reset et navigation respectent les contrats S10."
-    - "AC-09: le Catalogue recharge une carte unique avec toutes les valeurs calculées et persistées actualisées."
-    - "AC-10: une couleur modifiée actualise la bande gauche et le texte des Catégories, y compris pour une Séance historique et après rechargement."
-    - "AC-11: la réouverture restitue exactement la dernière version sauvegardée."
-    - "AC-12: tests Domaine, SQLite, Service, UI et navigation, Jest complet, TypeScript et contrôle de périmètre passent sans régression S01-S09 ni développement S11."
+    - "AC-01: la bonne Séance est ouverte par identifiant sans création ni brouillon étranger."
+    - "AC-02: le brouillon restitue exactement l’agrégat persistant complet, sans valeur fictive ni écriture."
+    - "AC-03: les propriétés générales restent locales jusqu’à la sauvegarde finale."
+    - "AC-04: l’Activité modifiée conserve identifiant, position et conteneur, sans duplication."
+    - "AC-05: les Catégories conservent toutes les règles S09."
+    - "AC-06: l’abandon protège le brouillon et ne modifie jamais le persistant."
+    - "AC-07: la sauvegarde est une mise à jour atomique de l’identifiant d’origine."
+    - "AC-08: double appui, loading, échec, retry, reset et navigation respectent les contrats."
+    - "AC-09: le Catalogue recharge une carte unique et la réouverture restitue la dernière version."
+    - "AC-10: la couleur modifiée atteint bande et textes de Catégories, données historiques incluses."
+    - "AC-11: Activités / Séances / Circuits est rendu, Séances sélectionné, options latérales désactivées."
+    - "AC-12: le nouveau segment ne filtre jamais les Séances et les anciens segments de statut sont retirés."
+    - "AC-13: toutes les variantes Catalogue conservent actions, données et layout contractuels."
+    - "AC-14: le tri par défaut reste updatedAt DESC et aucune UI de filtre/tri n’est inventée."
+    - "AC-15: le nom ouvre la zone bleue Activité, sans contexte Séance, avec bouton média désactivé et sans section Médias."
+    - "AC-16: Durée / Répétitions / À l’échec sont trois options égales; Récupération reste chronométrée."
+    - "AC-17: À l’échec masque les cibles, utilise Suivant et met à jour durée minimale, progression et résultats."
+    - "AC-18: les synthèses complète et compacte suivent exactement les patrons et masquent la pause sans intervalle."
+    - "AC-19: TO_FAILURE traverse toutes les couches avec migration additive, migration001.ts immuable et compatibilité historique."
+    - "AC-20: toute roulette ouverte utilise l’overlay centré et le voile DSF bloquant."
+    - "AC-21: tests ciblés et complets, Jest, TypeScript et contrôle de périmètre passent."
+    - "AC-22: aucune fonctionnalité Activités/Circuits, média V2 ou S11 n’est développée."
 
 gates:
   plan_user_approval: false
