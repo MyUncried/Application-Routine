@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   review:
-    if: (github.event_name == 'issue_comment' && ((github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_OUTPUT')) || (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] START_IMPLEMENTATION_REVIEW')))) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready')
+    if: (github.event_name == 'issue_comment' && ((github.event.comment.user.login == 'github-actions[bot]' && startsWith(format('{0}\n', github.event.comment.body), '[KODJO_SLICE] IMPLEMENTATION_OUTPUT\n')) || (github.event.comment.user.login == 'MyUncried' && startsWith(format('{0}\n', github.event.comment.body), '[KODJO_SLICE] START_IMPLEMENTATION_REVIEW\n')))) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -40,32 +40,51 @@ jobs:
           set -euo pipefail
           source_body="$SOURCE_BODY"
           source_comment_id="$SOURCE_COMMENT_ID"
-          if printf '%s\n' "$source_body"|grep -q '^\[KODJO_SLICE\] START_IMPLEMENTATION_REVIEW$'; then
-            source_comment_id=$(printf '%s\n' "$source_body"|sed -n 's/^source_implementation_comment_id=//p'|head -n1)
-            [[ "$source_comment_id" =~ ^[0-9]+$ ]] || { echo 'Invalid recovery source comment id' >&2; exit 1; }
-            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$source_comment_id" --jq .body)
-          elif [ -z "$source_body" ]; then
-            [[ "$source_comment_id" =~ ^[0-9]+$ ]] || { echo 'Invalid dispatched source comment id' >&2; exit 1; }
-            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$source_comment_id" --jq .body)
+          first_line() {
+            local line="${1%%$'\n'*}"
+            printf '%s' "${line%$'\r'}"
+          }
+          trigger_marker=$(first_line "$source_body")
+          if [ "$trigger_marker" = '[KODJO_SLICE] START_IMPLEMENTATION_REVIEW' ]; then
+            mapfile -t recovery_ids < <(sed -n 's/^source_implementation_comment_id=\([0-9][0-9]*\)\r\{0,1\}$/\1/p' <<<"$source_body")
+            [ "${#recovery_ids[@]}" -eq 1 ] || { echo 'Recovery trigger must contain exactly one valid source comment id' >&2; exit 1; }
+            source_comment_id="${recovery_ids[0]}"
+          elif [ -n "$source_body" ] && [ "$trigger_marker" != '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' ]; then
+            echo 'Invalid implementation review trigger marker' >&2
+            exit 1
           fi
-          printf '%s\n' "$source_body"|grep -q '^\[KODJO_SLICE\] IMPLEMENTATION_OUTPUT$'
-          slice=$(printf '%s\n' "$source_body"|sed -n 's/^slice_id=//p'|head -n1)
-          head=$(printf '%s\n' "$source_body"|sed -n 's/^head=//p'|head -n1)
-          base=$(printf '%s\n' "$source_body"|sed -n 's/^base_head=//p'|head -n1)
-          session=$(printf '%s\n' "$source_body"|sed -n 's/^session_id=//p'|head -n1)
-          plan=$(printf '%s\n' "$source_body"|sed -n 's/^plan_comment_id=//p'|head -n1)
-          test -n "$slice" && test -n "$session" && test -n "$plan"
+          [[ "$source_comment_id" =~ ^[0-9]+$ ]] || { echo 'Invalid source implementation comment id' >&2; exit 1; }
+          source_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$source_comment_id")
+          jq -e --arg issue "$ISSUE_NUMBER" '
+            .user.login == "github-actions[bot]"
+            and (.issue_url | endswith("/issues/" + $issue))
+            and (.body | type == "string")
+          ' <<<"$source_json" >/dev/null
+          source_body=$(jq -r '.body' <<<"$source_json")
+          [ "$(first_line "$source_body")" = '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' ] || { echo 'Source comment is not an exact implementation output' >&2; exit 1; }
+          slice=$(sed -n 's/^slice_id=//p' <<<"$source_body"|head -n1)
+          head=$(sed -n 's/^head=//p' <<<"$source_body"|head -n1)
+          base=$(sed -n 's/^base_head=//p' <<<"$source_body"|head -n1)
+          session=$(sed -n 's/^session_id=//p' <<<"$source_body"|head -n1)
+          plan=$(sed -n 's/^plan_comment_id=//p' <<<"$source_body"|head -n1)
+          test -n "$slice" && [[ "$session" =~ ^[0-9a-f-]{36}$ ]] && [[ "$plan" =~ ^[0-9]+$ ]]
           [[ "$head" =~ ^[0-9a-f]{40}$ ]] && [[ "$base" =~ ^[0-9a-f]{40}$ ]]
           manifest=".github/orchestration/slices/$slice.yml"
           test -f "$manifest"
-          export ISSUE_NUMBER slice head
-          ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;abort "branch" if m["target_branch"].to_s.empty?;puts m["target_branch"]' "$manifest" > /tmp/target-branch
+          export ISSUE_NUMBER slice head base
+          ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;abort "baseline" unless m["baseline_head"]==ENV["base"];abort "branch" if m["target_branch"].to_s.empty?;puts m["target_branch"]' "$manifest" > /tmp/target-branch
           branch=$(cat /tmp/target-branch)
           remote=$(git ls-remote origin "refs/heads/$branch"|awk '{print $1}')
           test "$remote" = "$head"
           git merge-base --is-ancestor "$base" "$head"
-          plan_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan" --jq .body)
-          printf '%s' "$plan_body"|grep -q '^\[KODJO_SLICE\] PLAN_OUTPUT$'
+          plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
+          jq -e --arg issue "$ISSUE_NUMBER" '
+            .user.login == "github-actions[bot]"
+            and (.issue_url | endswith("/issues/" + $issue))
+            and (.body | type == "string")
+          ' <<<"$plan_json" >/dev/null
+          plan_body=$(jq -r '.body' <<<"$plan_json")
+          [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
           printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
 
