@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   implement:
-    if: github.event.comment.user.login == 'MyUncried' && (startsWith(format('{0}\n', github.event.comment.body), '[KODJO_SLICE] START_IMPLEMENTATION\n') || startsWith(format('{0}\n', github.event.comment.body), '[KODJO_SLICE] IMPLEMENTATION_REVISION\n') || startsWith(format('{0}\n', github.event.comment.body), '[KODJO_SLICE] VISUAL_CORRECTION\n'))
+    if: github.event.comment.user.login == 'MyUncried' && (startsWith(github.event.comment.body, format('[KODJO_SLICE] START_IMPLEMENTATION{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('[KODJO_SLICE] IMPLEMENTATION_REVISION{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('[KODJO_SLICE] VISUAL_CORRECTION{0}', fromJSON('"\n"'))))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
