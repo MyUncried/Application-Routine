@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **2.0.0**
+- Version du registre : **2.1.0**
 - Date : **2026-09-07**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1.2, V1.3, V1.4/S09, protocole générique S10
@@ -70,6 +70,7 @@
 | INC-046 | 2026-09-05 | V1.4 S09 | INCIDENT_TECHNIQUE | Permissions Claude CLI | Prompts interactifs/permissions pouvaient bloquer le runner | Mode de permission et commande non stabilisés | Historique mentionne politique de commandes ; preuve précise absente | Mode non interactif explicite, aucune saisie utilisateur | Aucun appel Claude de workflow ne requiert une saisie humaine | Commande Claude sans prompt interactif | NON VÉRIFIABLE | Local Claude | OUVERT | — | Cause/logs à retrouver |
 | INC-047 | 2026-09-01/06 | V1.3/V1.4 | INCIDENT_TECHNIQUE | CLAUDE_CONFIG_DIR | Session/auth dépend du répertoire de configuration | Configuration éphémère ou mauvais profil possible | Documents SessionStore/local ; workflow fixe `C:\\Users\\hadjo\\.claude` | Répertoire exact vérifié avant Claude | Authentification et session utilisent le CLAUDE_CONFIG_DIR autoritatif | Credentials/session disponibles dans le même config dir | PARTIEL / NON RETESTÉ | Local Claude | OUVERT test | — | Ne pas confondre avec stockage de transcript Cloud |
 | INC-048 | 2026-09-04/06 | V1.4 S09 | INCIDENT_TECHNIQUE | Runs sans job | Plusieurs PLAN/REVIEW affichent « No jobs were run » | NON DÉMONTRÉE pour chaque run | Notifications commits `bb8be6f`, `faee60e`, `e570b68`, `1e20295`, `af59d25`, `72cf4a9`, `8606959` | Aucun correctif unique attribuable | Tout no-job exige audit exact de `on` et `if` | Replay payload de chaque run | NON VÉRIFIABLE | Toutes | OUVERT | certains cas reliés INC-015/020/030 | Ne pas fusionner sans logs |
+| INC-049 | 2026-09-07 | Générique S10 | DÉFAUT_CONCEPTION | Revue incrémentale après correction | Le gate s'arrête sur `baseline` avant Jest, TypeScript et OpenAI pour le commentaire `5569391862` | Le workflow imposait `manifest.baseline_head == IMPLEMENTATION_OUTPUT.base_head`, alors que la baseline du plan `d59df7c…` est immuable et que la correction publiée part du HEAD causal `ed223ca…` | Run `KODJO SLICE / IMPLEMENTATION-REVIEW / 5569391862 #33`; log `baseline`; manifeste `T01-S10.yml`; commentaires `5569247304` et `5568944376` | `445153ff` remplace l'égalité par deux contrôles d'ascendance via API GitHub ; `a0fbcdd9` ajoute la matrice ; `21286e60` rend la règle normative | La baseline de tranche doit être ancêtre ou égale à la base immédiate ; le HEAD publié doit en descendre strictement et égaler le HEAD distant | Cas réel `d59df7c… → ed223ca… → b21fb817…`, égalité initiale, divergence, retour arrière, HEAD identique/divergent, SHA invalide, YAML et Bash | NON RETESTÉ | Générique multi-lots | OUVERT | répète INC-040 | Micro-tests sans IA : PASS ; chemin GitHub réel volontairement non relancé ; OpenAI/Claude non appelés, lot 3 non lancé |
 
 ## Répétitions qui auraient dû être évitées
 
@@ -85,6 +86,7 @@
 | INC-024 : mode strict et codes attendus | INC-031 | La famille des différences d'interprétation shell/moteur n'a pas été couverte transversalement. |
 | INC-034 : dépendances/capacités runner non inventoriées | INC-041 | Une option `gh` a été supposée disponible. |
 | INC-029 : dispatch ajouté | INC-042 | L'appel a été testé syntaxiquement sans vérifier sa permission effective. |
+| INC-040 : baseline et HEAD causal séparés | INC-049 | L'invariant existant n'avait pas été appliqué au gate de revue incrémentale ni couvert par son test permanent. |
 
 ## Tests et preuves encore à construire
 
@@ -101,6 +103,7 @@
 11. Test d'indépendance des sessions PLAN-review et DEV.
 12. Contrôle préventif âge/taille de session et interdiction des sessions historiques > seuil.
 13. Test de réveil ChatGPT Work sans action technique demandée à l'utilisateur.
+14. Exécution réelle du gate de revue incrémentale corrigé sur `5569247304`, déclenchée exclusivement par ChatGPT Développement.
 
 ## État GitHub vérifié au 2026-09-07
 
@@ -119,3 +122,4 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 |---|---|---|
 | 1.0.0 | 2026-09-07 | Première reconstruction partielle, IDs KIP ; supersédée. |
 | 2.0.0 | 2026-09-07 | Schéma INC à 15 champs, classifications, V1.2/V1.3/V1.4/S10, répétitions, preuves non vérifiables et dette explicite. |
+| 2.1.0 | 2026-09-07 | INC-049 : confusion baseline globale/base incrémentale, répétition d'INC-040 et matrice de non-régression. |
