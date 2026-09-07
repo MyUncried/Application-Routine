@@ -9,7 +9,7 @@ mapfile -t ids < <(sed -n 's/^| \(INC-[0-9][0-9][0-9]\) |.*$/\1/p' "$register")
 [ "$(printf '%s\n' "${ids[@]}" | sort -u | wc -l)" -eq "${#ids[@]}" ] || { echo 'duplicate incident id' >&2; exit 1; }
 
 for id in "${ids[@]}"; do
-  row=$(grep -F "| $id |" "$register")
+  row=$(sed -n "/^| $id |/p" "$register")
   [ "$(awk -F'|' '{print NF}' <<<"$row")" -eq 18 ] || { echo "malformed row or missing requested field: $id" >&2; exit 1; }
   grep -Eq 'PASS|FAIL|NON RETESTÉ|NON VÉRIFIABLE' <<<"$row" || { echo "controlled result missing: $id" >&2; exit 1; }
   grep -Eq 'OUVERT|CORRIGÉ|SUPERSÉDÉ' <<<"$row" || { echo "incident status missing: $id" >&2; exit 1; }
