@@ -82,6 +82,15 @@ Lorsqu'un plan approuvé est découpé en plusieurs lots, le lot autorisé est u
 7. **Verdict hors périmètre.** Un verdict construit sans lot causal valide, ou bloqué uniquement par un lot ultérieur, est une sortie d'orchestration non exploitable. Il ne peut déclencher ni correction Claude, ni gate utilisateur, ni lot suivant.
 8. **Test de non-régression.** Toute modification de la chaîne incrémentale doit tester sans IA au minimum : propagation nominale, reprise historique explicitement liée, champ absent, dupliqué ou mal formé, bornes invalides, incohérences de causalité, et présence des garde-fous de périmètre dans le prompt final.
 
+## Publication et reprise après commit — règles normatives et permanentes
+
+1. **Transport compatible.** Les workflows ne doivent employer que des options dont la disponibilité a été vérifiée sur la version réelle du CLI du runner. Pour publier un commentaire et récupérer son identifiant, la voie canonique est l'API GitHub authentifiée (`gh api --method POST`) avec un payload JSON, et non une option propre à une version récente de `gh issue comment`.
+2. **Test de capacité.** Le test permanent du bridge interdit les commandes connues incompatibles, notamment `gh issue comment --json`, et vérifie la présence du transport API canonique.
+3. **Commit sans sortie.** Si le commit est poussé mais que la publication échoue, le développement est matériellement terminé. Il est interdit de rappeler Claude ou de recréer le commit pour réparer un défaut de transport.
+4. **Récupération déterministe.** L'événement exact `RECOVER_IMPLEMENTATION_PUBLICATION` relit le déclencheur d'implémentation autoritatif, contrôle l'Issue, le manifeste, la branche, le parent direct et le HEAD distant, puis réexécute Jest et TypeScript avant de publier la sortie manquante.
+5. **Pas de verdict implicite.** La récupération ne modifie aucun fichier applicatif et ne vaut pas revue. Elle publie uniquement l'état transporté, puis déclenche la revue indépendante normale par `repository_dispatch`.
+6. **Idempotence causale.** Toute sortie récupérée porte le même `increment`, la même session, le même plan et le même `source_implementation_trigger_comment_id` que l'exécution originale.
+
 ## Gates permanents
 
 1. Gate d'entrée : manifeste valide, tranche précédente `DONE`, Issue/branche/baseline exactes.
