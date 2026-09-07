@@ -1,10 +1,22 @@
+import type {
+  ActivityType,
+  ExerciseExecutionMode,
+  StructuralPosition,
+} from "@/domain/sessions/Session";
+
 /**
- * Une ligne par Activité (T01-S09) : la jointure `sessions ⋈ cycles ⋈ tours
- * ⋈ activities` produit désormais, par construction, AUTANT de lignes que
- * d'Activités dans le Tour — les champs `session_*`/`cycle_*`/`tour_*` sont
- * répétés à l'identique sur chaque ligne d'une même Séance ; seuls les
- * champs `activity_*` varient. `SqliteSessionRepository` regroupe ces
- * lignes par `session_id` avant de les assembler en `Session`.
+ * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles) :
+ * la jointure `sessions ⋈ cycles ⋈ tours ⋈ activities` produit AUTANT de
+ * lignes que d'Activités de la Séance (avant, dans et après le Tour
+ * confondus) — les champs `session_*`/`cycle_*`/`tour_*` sont répétés à
+ * l'identique sur chaque ligne d'une même Séance ; seuls les champs
+ * `activity_*` varient. `SqliteSessionRepository` regroupe ces lignes par
+ * `session_id` puis les partitionne par `structural_position` avant de les
+ * assembler en `Session`.
+ *
+ * `execution_mode` est TOUJOURS renseigné en base (colonne `NOT NULL`) —
+ * pour une Récupération il vaut `'DURATION'` par contrainte SQL, mais le
+ * Domaine expose `null` (voir `assembleSession`).
  */
 export type SessionAggregateRow = {
   session_id: string;
@@ -21,15 +33,21 @@ export type SessionAggregateRow = {
   cycle_repeat_count: 1;
   tour_id: string;
   tour_position: 1;
-  tour_repeat_count: 1;
+  /** T01-S10 : `1..99` (D-058). */
+  tour_repeat_count: number;
   activity_id: string;
+  /** T01-S10 : `'EXERCISE'` ou `'RECOVERY'` (D-061). */
+  activity_type: ActivityType;
   activity_name: string;
-  structural_position: "IN_TOUR";
+  /** T01-S10 : `'BEFORE_TOUR'` / `'IN_TOUR'` / `'AFTER_TOUR'` (D-061). */
+  structural_position: StructuralPosition;
   activity_position: number;
-  execution_mode: "DURATION" | "REPETITIONS";
+  /** T01-S10 : `'DURATION'` / `'REPETITIONS'` / `'TO_FAILURE'` — jamais `null` en base. */
+  execution_mode: ExerciseExecutionMode;
   duration_seconds: number | null;
   repetition_count: number | null;
-  series_count: number;
+  /** `null` pour une Récupération (T01-S10). */
+  series_count: number | null;
   pause_seconds: number;
   instruction: string | null;
 };

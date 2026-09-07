@@ -178,13 +178,22 @@ export function CategoriesScreen() {
     setSaveState({ status: "saving" });
 
     try {
-      const result = await sessionService.createSession(draft);
-      if (!result.ok) {
-        // Défense de dernier recours : le brouillon devrait déjà être
-        // valide à ce stade (Composition n'autorise `Continuer` que pour un
-        // brouillon valide) — un échec de validation ici ne peut provenir
-        // que d'un état incohérent imprévu, traité comme tout autre échec
-        // d'enregistrement (D-107, même message).
+      // T01-S10, plan §7.3 : `updateSession` sur l'identifiant source quand
+      // le brouillon provient d'une Séance persistée (`sourceSessionId`) —
+      // jamais `createSession` (aucune seconde Séance créée). Sinon, parcours
+      // de création inchangé.
+      const sourceSessionId = draft.sourceSessionId ?? null;
+      const saved =
+        sourceSessionId !== null
+          ? (await sessionService.updateSession(sourceSessionId, draft)).status === "UPDATED"
+          : (await sessionService.createSession(draft)).ok;
+      if (!saved) {
+        // Défense de dernier recours : le brouillon devrait déjà être valide
+        // à ce stade (Composition n'autorise `Continuer` que pour un
+        // brouillon valide). Tout échec (validation résiduelle, `NOT_FOUND`,
+        // `ARCHIVED`, technique) est traité de façon identique : brouillon
+        // conservé, écran affiché, action réactivée, nouvelle tentative
+        // possible (D-107 / CE-T01-S10-09).
         isSavingRef.current = false;
         setSaveState({ status: "error" });
         return;

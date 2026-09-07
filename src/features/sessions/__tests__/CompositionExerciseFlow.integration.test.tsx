@@ -53,6 +53,9 @@ class NoopSessionRepository implements SessionRepository {
   findById(): Promise<Session | null> {
     return Promise.resolve(null);
   }
+  findSessionStatus(): Promise<"ACTIVE" | "ARCHIVED" | null> {
+    return Promise.resolve(null);
+  }
   listActive(): Promise<readonly SessionSummary[]> {
     return Promise.resolve([]);
   }

@@ -20,12 +20,17 @@ import {
   type Session,
   type SessionColor,
   type SessionSummary,
+  type UpdateSessionActivityInput,
+  type UpdateSessionInput,
 } from "@/domain/sessions/Session";
 import type {
   SessionRepository,
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
-import { validateCreateSessionInput } from "@/domain/sessions/validation";
+import {
+  validateCreateSessionInput,
+  validateUpdateSessionInput,
+} from "@/domain/sessions/validation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
@@ -40,12 +45,25 @@ type LocalUserRow = { id: string };
 type CategoryIdRow = { id: string };
 type UuidFactory = () => string;
 
+/** Ordre canonique de restitution des zones structurelles (D-061). */
+const STRUCTURAL_ORDER_SQL = `
+  CASE activities.structural_position
+    WHEN 'BEFORE_TOUR' THEN 0
+    WHEN 'IN_TOUR' THEN 1
+    WHEN 'AFTER_TOUR' THEN 2
+    ELSE 3
+  END
+`;
+
 /**
- * Une ligne par Activité (T01-S09, voir `DatabaseRows.ts`) — regroupées par
- * `SqliteSessionRepository` avant assemblage, jamais consommées une par une
- * par l'appelant. Ordonnée par `activities.position` : cet ordre EST celui
- * restitué dans `Session.cycle.tour.exercises` (même contrat que
- * `SessionDraft.exercises`).
+ * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles,
+ * voir `DatabaseRows.ts`) — regroupées par `SqliteSessionRepository` avant
+ * assemblage, jamais consommées une par une par l'appelant. La jointure
+ * `activities` porte uniquement sur `session_id`/`cycle_id` (jamais
+ * `tour_id`, `NULL` pour les Activités hors Tour). Ordre : zone structurelle
+ * (avant → dans → après le Tour) puis `activities.position` — cet ordre EST
+ * celui restitué dans `Session.cycle.beforeTour` / `cycle.tour.exercises` /
+ * `cycle.afterTour`.
  */
 const AGGREGATE_QUERY = `
 SELECT
@@ -65,6 +83,7 @@ SELECT
   tours.position AS tour_position,
   tours.repeat_count AS tour_repeat_count,
   activities.id AS activity_id,
+  activities.type AS activity_type,
   activities.name AS activity_name,
   activities.structural_position,
   activities.position AS activity_position,
@@ -80,9 +99,8 @@ JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
 JOIN activities
   ON activities.session_id = sessions.id
   AND activities.cycle_id = cycles.id
-  AND activities.tour_id = tours.id
 WHERE sessions.id = ? AND sessions.owner_id = ?
-ORDER BY activities.position ASC
+ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
 `;
 
 const CATEGORIES_FOR_SESSION_QUERY = `
@@ -183,20 +201,23 @@ export class SqliteSessionRepository implements SessionRepository {
   }
 
   /**
-   * Réouverture/modification bout en bout d'une Séance existante restent
-   * hors périmètre fonctionnel T01-S09 (T01-S10, Issue #17 « Hors
-   * périmètre ») — aucun écran n'appelle cette méthode à ce stade. Elle est
-   * néanmoins généralisée ici pour rester compatible avec le contrat
-   * `CreateSessionInput` multi-Activités/Catégories désormais partagé par
-   * `create()` : implémentation par REMPLACEMENT complet des Activités, de
-   * leurs Zones et des associations de Catégories de la Séance (nouveaux
-   * identifiants d'Activité à chaque appel) plutôt qu'une fusion fine par
-   * identifiant — un raffinement explicitement laissé à T01-S10, qui devra
-   * définir la véritable UX de modification (quelles Activités sont
-   * réellement "les mêmes" d'un enregistrement à l'autre).
+   * Modification bout en bout d'une Séance persistée (T01-S10, plan §5.2 ;
+   * Q3-A — `UpdateSessionInput` distinct de `CreateSessionInput`, `create()`
+   * jamais appelé). Réutilise la MÊME transaction exclusive et les mêmes
+   * issues métier `UPDATED` / `NOT_FOUND` / `ARCHIVED`.
+   *
+   * Les Activités sont **fusionnées par identité** (§6.4 « FORBIDDEN :
+   * régénérer l'identifiant d'une Activité inchangée ») : une Activité déjà
+   * présente est mise à jour en place (son `id` et son `created_at` sont
+   * conservés), une nouvelle Activité est insérée avec l'identifiant fourni
+   * par le brouillon, une Activité retirée est supprimée (ses Zones partent
+   * en cascade). Les positions structurelles, le mode `TO_FAILURE`, les
+   * Récupérations, `tour.repeatCount`, les Zones corporelles et les
+   * Catégories sont persistés dans la même transaction ; toute erreur annule
+   * l'intégralité de l'écriture.
    */
-  async update(sessionId: string, input: CreateSessionInput): Promise<UpdateSessionOutcome> {
-    const validated = validateCreateSessionInput(input);
+  async update(sessionId: string, input: UpdateSessionInput): Promise<UpdateSessionOutcome> {
+    const validated = validateUpdateSessionInput(input);
     if (!validated.ok) {
       throw new SessionValidationError(validated.violations);
     }
@@ -239,21 +260,22 @@ export class SqliteSessionRepository implements SessionRepository {
         throw new Error("Expected exactly one session row to be updated.");
       }
 
-      const activityIds = existingRows.map((row) => row.activity_id);
-      await deleteActivityBodyZones(transaction, activityIds);
-      await transaction.runAsync(`DELETE FROM activities WHERE session_id = ?`, [sessionId]);
-      await transaction.runAsync(`DELETE FROM session_categories WHERE session_id = ?`, [sessionId]);
+      await transaction.runAsync(
+        `UPDATE tours SET repeat_count = ? WHERE id = ? AND session_id = ?`,
+        [normalized.tourRepeatCount, existingRow.tour_id, sessionId],
+      );
 
-      await insertActivities(
+      await mergeActivities(
         transaction,
         sessionId,
         existingRow.cycle_id,
         existingRow.tour_id,
-        normalized.exercises,
-        this.uuidFactory,
+        existingRows.map((row) => row.activity_id),
+        normalized.activities,
         timestamp,
       );
 
+      await transaction.runAsync(`DELETE FROM session_categories WHERE session_id = ?`, [sessionId]);
       const categoryIds = await resolveCategoryIds(
         transaction,
         normalized.categories,
@@ -275,6 +297,15 @@ export class SqliteSessionRepository implements SessionRepository {
   async findById(sessionId: string): Promise<Session | null> {
     const user = await getLocalUser(this.database);
     return readSession(this.database, sessionId, user.id);
+  }
+
+  async findSessionStatus(sessionId: string): Promise<"ACTIVE" | "ARCHIVED" | null> {
+    const user = await getLocalUser(this.database);
+    const row = await this.database.getFirstAsync<{ status: "ACTIVE" | "ARCHIVED" }>(
+      "SELECT status FROM sessions WHERE id = ? AND owner_id = ?",
+      [sessionId, user.id],
+    );
+    return row?.status ?? null;
   }
 
   async listActive(): Promise<readonly SessionSummary[]> {
@@ -299,10 +330,20 @@ export class SqliteSessionRepository implements SessionRepository {
         sessions.initial_countdown_seconds,
         sessions.final_phase_seconds,
         SUM(
-          activities.series_count * COALESCE(activities.duration_seconds, 0)
-          + activities.series_count * activities.pause_seconds
+          CASE
+            WHEN activities.type = 'RECOVERY'
+              THEN COALESCE(activities.duration_seconds, 0)
+            ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
+               + COALESCE(activities.series_count, 0) * activities.pause_seconds
+          END
         ) AS activity_duration_seconds,
-        MAX(CASE WHEN activities.execution_mode = 'REPETITIONS' THEN 1 ELSE 0 END) AS has_repetition_activity,
+        MAX(
+          CASE
+            WHEN activities.type = 'EXERCISE'
+              AND activities.execution_mode IN ('REPETITIONS', 'TO_FAILURE')
+            THEN 1 ELSE 0
+          END
+        ) AS has_repetition_activity,
         tours.repeat_count AS tour_repeat_count,
         sessions.updated_at
       FROM sessions
@@ -311,10 +352,9 @@ export class SqliteSessionRepository implements SessionRepository {
       JOIN activities
         ON activities.session_id = sessions.id
         AND activities.cycle_id = cycles.id
-        AND activities.tour_id = tours.id
       WHERE sessions.owner_id = ? AND sessions.status = 'ACTIVE'
       GROUP BY sessions.id, tours.id
-      ORDER BY COALESCE(sessions.last_executed_at, sessions.updated_at) DESC`,
+      ORDER BY sessions.updated_at DESC`,
       [user.id],
     );
 
@@ -403,14 +443,156 @@ async function insertActivities(
   }
 }
 
-async function deleteActivityBodyZones(
+const ACTIVITY_ROW_COLUMNS = `
+  id, session_id, cycle_id, tour_id, type, structural_position,
+  position, name, execution_mode, duration_seconds,
+  repetition_count, series_count, pause_seconds, instruction,
+  created_at, updated_at
+`;
+
+/** Colonne SQL `tour_id` d'une Activité selon sa zone (T01-S10) : le Tour pour `IN_TOUR`, `NULL` sinon (contrainte `migration001`). */
+function activityTourIdFor(structuralPosition: string, tourId: string): string | null {
+  return structuralPosition === "IN_TOUR" ? tourId : null;
+}
+
+/**
+ * Valeurs SQL d'une `UpdateSessionActivityInput` (T01-S10). `execution_mode`
+ * est une colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé
+ * par le `CHECK` de `migration001`), tandis que le Domaine réexpose `null`.
+ * Une Récupération n'a ni Séries, ni pause, ni Zones corporelles (D-041).
+ */
+function toActivitySqlValues(activity: UpdateSessionActivityInput): {
+  executionMode: string;
+  seriesCount: number | null;
+  pauseSeconds: number;
+  bodyZoneIds: readonly string[];
+} {
+  const isRecovery = activity.type === "RECOVERY";
+  return {
+    executionMode: isRecovery ? "DURATION" : (activity.executionMode ?? "DURATION"),
+    seriesCount: isRecovery ? null : activity.seriesCount,
+    pauseSeconds: isRecovery ? 0 : activity.pauseSeconds,
+    bodyZoneIds: isRecovery ? [] : activity.bodyZoneIds,
+  };
+}
+
+/**
+ * Fusionne les Activités d'un `UpdateSessionInput` avec celles déjà
+ * persistées (T01-S10, plan §5.2 étapes 6–10). Fusion PAR IDENTITÉ :
+ * - une Activité retirée est supprimée (Zones en cascade) ;
+ * - une Activité conservée est mise à jour EN PLACE (identifiant et
+ *   `created_at` inchangés) ;
+ * - une nouvelle Activité est insérée avec l'identifiant fourni.
+ *
+ * Les positions des Activités conservées sont d'abord écartées vers une
+ * plage haute avant réécriture des positions finales, pour ne jamais violer
+ * `UNIQUE(session_id, structural_position, position)` pendant une
+ * réorganisation. Les positions finales sont recalculées par zone dans
+ * l'ordre du brouillon.
+ */
+async function mergeActivities(
   transaction: Database,
-  activityIds: readonly string[],
+  sessionId: string,
+  cycleId: string,
+  tourId: string,
+  existingActivityIds: readonly string[],
+  activities: readonly UpdateSessionActivityInput[],
+  timestamp: string,
 ): Promise<void> {
-  for (const activityId of activityIds) {
-    await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [
-      activityId,
-    ]);
+  const existing = new Set(existingActivityIds);
+  const incoming = new Set(activities.map((activity) => activity.id));
+
+  for (const id of existingActivityIds) {
+    if (!incoming.has(id)) {
+      await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [id]);
+      await transaction.runAsync(`DELETE FROM activities WHERE id = ? AND session_id = ?`, [
+        id,
+        sessionId,
+      ]);
+    }
+  }
+
+  let stagingPosition = 1_000_000;
+  for (const id of existingActivityIds) {
+    if (incoming.has(id)) {
+      await transaction.runAsync(
+        `UPDATE activities SET position = ? WHERE id = ? AND session_id = ?`,
+        [stagingPosition, id, sessionId],
+      );
+      stagingPosition += 1;
+    }
+  }
+
+  const positionByZone = new Map<string, number>();
+  for (const activity of activities) {
+    const zone = activity.structuralPosition;
+    const position = positionByZone.get(zone) ?? 0;
+    positionByZone.set(zone, position + 1);
+
+    const activityTourId = activityTourIdFor(zone, tourId);
+    const { executionMode, seriesCount, pauseSeconds, bodyZoneIds } = toActivitySqlValues(activity);
+    const instruction = activity.instruction ?? null;
+
+    if (existing.has(activity.id)) {
+      await transaction.runAsync(
+        `UPDATE activities SET
+           type = ?, structural_position = ?, position = ?, name = ?,
+           execution_mode = ?, duration_seconds = ?, repetition_count = ?,
+           series_count = ?, pause_seconds = ?, instruction = ?,
+           tour_id = ?, cycle_id = ?, updated_at = ?
+         WHERE id = ? AND session_id = ?`,
+        [
+          activity.type,
+          zone,
+          position,
+          activity.name,
+          executionMode,
+          activity.durationSeconds,
+          activity.repetitionCount,
+          seriesCount,
+          pauseSeconds,
+          instruction,
+          activityTourId,
+          cycleId,
+          timestamp,
+          activity.id,
+          sessionId,
+        ],
+      );
+      await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [
+        activity.id,
+      ]);
+    } else {
+      await transaction.runAsync(
+        `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          activity.id,
+          sessionId,
+          cycleId,
+          activityTourId,
+          activity.type,
+          zone,
+          position,
+          activity.name,
+          executionMode,
+          activity.durationSeconds,
+          activity.repetitionCount,
+          seriesCount,
+          pauseSeconds,
+          instruction,
+          timestamp,
+          timestamp,
+        ],
+      );
+    }
+
+    for (const bodyZoneId of bodyZoneIds) {
+      await transaction.runAsync(
+        `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)`,
+        [activity.id, bodyZoneId],
+      );
+    }
   }
 }
 
@@ -626,6 +808,29 @@ async function getBodyZoneNamesBySession(
   return namesBySession;
 }
 
+function toActivity(
+  row: SessionAggregateRow,
+  bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
+): Activity {
+  const isRecovery = row.activity_type === "RECOVERY";
+  return {
+    id: row.activity_id,
+    type: row.activity_type,
+    // Une Récupération stocke `execution_mode = 'DURATION'` en base
+    // (contrainte SQL) mais n'expose aucun mode d'Exercice (T01-S10, D-041).
+    executionMode: isRecovery ? null : row.execution_mode,
+    structuralPosition: row.structural_position,
+    position: row.activity_position,
+    name: row.activity_name,
+    durationSeconds: row.duration_seconds,
+    repetitionCount: row.repetition_count,
+    seriesCount: isRecovery ? null : row.series_count,
+    pauseSeconds: row.pause_seconds,
+    instruction: row.instruction,
+    bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
+  };
+}
+
 export function assembleSession(
   rows: readonly SessionAggregateRow[],
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
@@ -636,20 +841,19 @@ export function assembleSession(
   }
   const first = rows[0]!;
 
-  const exercises: Activity[] = rows.map((row) => ({
-    id: row.activity_id,
-    type: "EXERCISE",
-    executionMode: row.execution_mode,
-    structuralPosition: "IN_TOUR",
-    position: row.activity_position,
-    name: row.activity_name,
-    durationSeconds: row.duration_seconds,
-    repetitionCount: row.repetition_count,
-    seriesCount: row.series_count,
-    pauseSeconds: row.pause_seconds,
-    instruction: row.instruction,
-    bodyZoneIds: bodyZonesByActivity.get(row.activity_id) ?? [],
-  }));
+  const beforeTour: Activity[] = [];
+  const inTour: Activity[] = [];
+  const afterTour: Activity[] = [];
+  for (const row of rows) {
+    const activity = toActivity(row, bodyZonesByActivity);
+    if (activity.structuralPosition === "BEFORE_TOUR") {
+      beforeTour.push(activity);
+    } else if (activity.structuralPosition === "AFTER_TOUR") {
+      afterTour.push(activity);
+    } else {
+      inTour.push(activity);
+    }
+  }
 
   return {
     id: first.session_id,
@@ -665,11 +869,15 @@ export function assembleSession(
       id: first.cycle_id,
       position: 1,
       repeatCount: 1,
+      // Champs optionnels (T01-S10) : absents quand la zone est vide, pour
+      // rester identiques à une Séance S01–S09 (Tour uniquement).
+      ...(beforeTour.length > 0 ? { beforeTour } : {}),
+      ...(afterTour.length > 0 ? { afterTour } : {}),
       tour: {
         id: first.tour_id,
         position: 1,
-        repeatCount: 1,
-        exercises,
+        repeatCount: first.tour_repeat_count,
+        exercises: inTour,
       },
     },
     categories,
@@ -697,10 +905,6 @@ function mapSummaryRow(
   categoryNames: readonly string[],
   bodyZoneNames: readonly string[],
 ): SessionSummary {
-  if (row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT) {
-    throw new Error("T01 summaries require exactly one Tour repetition.");
-  }
-
   const activityCount = computeActivityCount({
     compositionActivityCount: row.activity_count,
     tourRepeatCount: row.tour_repeat_count,
@@ -719,13 +923,22 @@ function mapSummaryRow(
     activityCount,
     estimatedDurationSeconds,
     isEstimatedDurationApproximate: row.has_repetition_activity === 1,
-    tourRepeatCount: 1,
+    tourRepeatCount: row.tour_repeat_count,
     updatedAt: row.updated_at,
     categoryNames,
     bodyZoneNames,
   };
 }
 
+const STRUCTURAL_POSITIONS: readonly string[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
+
+/**
+ * Défense en profondeur au ré-assemblage (T01-S10) : reflète les `CHECK` de
+ * `migration001`/`migration003`. Le Cycle reste unique (`position`/
+ * `repeat_count` = 1) ; le Tour est `1..99` ; la position structurelle est
+ * l'une des trois ; un Exercice porte une cible cohérente avec son mode
+ * (aucune en `TO_FAILURE`) ; une Récupération est chronométrée, sans Séries.
+ */
 function assertSessionAggregateRow(row: SessionAggregateRow): void {
   if (!SESSION_COLORS.includes(row.color as SessionColor)) {
     throw new Error("Persisted session color is invalid.");
@@ -735,20 +948,40 @@ function assertSessionAggregateRow(row: SessionAggregateRow): void {
     row.cycle_position !== 1 ||
     row.cycle_repeat_count !== FIXED_CYCLE_REPEAT_COUNT ||
     row.tour_position !== 1 ||
-    row.tour_repeat_count !== FIXED_TOUR_REPEAT_COUNT ||
-    row.structural_position !== FIXED_ACTIVITY_STRUCTURAL_POSITION
+    row.tour_repeat_count < 1 ||
+    row.tour_repeat_count > 99 ||
+    !STRUCTURAL_POSITIONS.includes(row.structural_position)
   ) {
-    throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+
+  if (row.activity_type === "RECOVERY") {
+    if (
+      row.duration_seconds === null ||
+      row.repetition_count !== null ||
+      row.series_count !== null
+    ) {
+      throw new Error("Persisted session does not satisfy the aggregate contract.");
+    }
+    return;
+  }
+
+  if (row.series_count === null || row.series_count < 1) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
   if (row.execution_mode === "DURATION") {
     if (row.duration_seconds === null || row.repetition_count !== null) {
-      throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+      throw new Error("Persisted session does not satisfy the aggregate contract.");
     }
   } else if (row.execution_mode === "REPETITIONS") {
     if (row.repetition_count === null || row.duration_seconds !== null) {
-      throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+      throw new Error("Persisted session does not satisfy the aggregate contract.");
+    }
+  } else if (row.execution_mode === "TO_FAILURE") {
+    if (row.duration_seconds !== null || row.repetition_count !== null) {
+      throw new Error("Persisted session does not satisfy the aggregate contract.");
     }
   } else {
-    throw new Error("Persisted session does not satisfy the T01 aggregate contract.");
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
 }

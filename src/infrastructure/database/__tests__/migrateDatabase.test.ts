@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
+import { MIGRATION_001 } from "@/infrastructure/database/migrations/migration001";
+import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 describe("migrateDatabase", () => {
@@ -181,6 +183,154 @@ describe("migrateDatabase", () => {
         )`,
       ),
     ).rejects.toThrow();
+  });
+
+  describe("migration003 — mode TO_FAILURE (T01-S10, D-111)", () => {
+    it("brings a version-2 database to version 3 and then accepts a TO_FAILURE Exercise (no target)", async () => {
+      // Base réelle en version 2 : migration 001 + 002 uniquement, comme une
+      // installation antérieure à T01-S10.
+      await database.execAsync(MIGRATION_001);
+      await database.runAsync(
+        `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
+         VALUES (1, 'usr_' || lower(hex(randomblob(16))), '2026-01-01T00:00:00.000Z')`,
+      );
+      await database.execAsync(MIGRATION_002);
+      await database.execAsync("PRAGMA user_version = 2");
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "old-duration",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+      await database.runAsync(
+        "INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)",
+        ["old-duration", "dos"],
+      );
+
+      await migrateDatabase(database);
+
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(3);
+
+      // La contrainte historique DURATION+repetition reste rejetée.
+      await expect(
+        insertActivity(database, {
+          id: "still-invalid",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: 10,
+        }),
+      ).rejects.toThrow();
+
+      // TO_FAILURE : aucune cible, series_count requis.
+      await database.runAsync(
+        `INSERT INTO activities (
+          id, session_id, cycle_id, tour_id, type, structural_position,
+          position, name, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, instruction, created_at, updated_at
+        ) VALUES (
+          'to-failure', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+          1, 'Tractions', 'TO_FAILURE', NULL, NULL, 3, 0, NULL, 'now', 'now'
+        )`,
+      );
+      const failRow = await database.getFirstAsync<{ execution_mode: string; series_count: number }>(
+        "SELECT execution_mode, series_count FROM activities WHERE id = 'to-failure'",
+      );
+      expect(failRow).toEqual({ execution_mode: "TO_FAILURE", series_count: 3 });
+
+      // TO_FAILURE portant une cible est rejeté.
+      await expect(
+        database.runAsync(
+          `INSERT INTO activities (
+            id, session_id, cycle_id, tour_id, type, structural_position,
+            position, name, execution_mode, duration_seconds, repetition_count,
+            series_count, pause_seconds, instruction, created_at, updated_at
+          ) VALUES (
+            'to-failure-bad', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+            2, 'Bad', 'TO_FAILURE', 30, NULL, 3, 0, NULL, 'now', 'now'
+          )`,
+        ),
+      ).rejects.toThrow();
+    });
+
+    it("preserves existing rows, ids, dependent activity_body_zones and the position uniqueness index through the rebuild", async () => {
+      await database.execAsync(MIGRATION_001);
+      await database.runAsync(
+        `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
+         VALUES (1, 'usr_' || lower(hex(randomblob(16))), '2026-01-01T00:00:00.000Z')`,
+      );
+      await database.execAsync(MIGRATION_002);
+      await database.execAsync("PRAGMA user_version = 2");
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "kept-1",
+        executionMode: "REPETITIONS",
+        durationSeconds: null,
+        repetitionCount: 12,
+      });
+      await database.runAsync(
+        "INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?), (?, ?)",
+        ["kept-1", "dos", "kept-1", "epaules"],
+      );
+
+      await migrateDatabase(database);
+
+      const activity = await database.getFirstAsync<{
+        id: string;
+        execution_mode: string;
+        repetition_count: number;
+      }>("SELECT id, execution_mode, repetition_count FROM activities WHERE id = 'kept-1'");
+      expect(activity).toEqual({ id: "kept-1", execution_mode: "REPETITIONS", repetition_count: 12 });
+
+      const zones = await database.getAllAsync<{ body_zone_id: string }>(
+        "SELECT body_zone_id FROM activity_body_zones WHERE activity_id = 'kept-1' ORDER BY body_zone_id",
+      );
+      expect(zones.map((z) => z.body_zone_id)).toEqual(["dos", "epaules"]);
+
+      // UNIQUE(session_id, structural_position, position) reconstruit.
+      await expect(
+        insertActivity(database, {
+          id: "position-clash",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: null,
+        }),
+      ).rejects.toThrow();
+
+      // Deuxième migrateDatabase() : no-op idempotent.
+      await migrateDatabase(database);
+      const stillThere = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activities WHERE id = 'kept-1'",
+      );
+      expect(stillThere?.count).toBe(1);
+      const backupGone = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'activity_body_zones_backup'",
+      );
+      expect(backupGone?.count).toBe(0);
+    });
+
+    it("a fresh database reaches version 3 directly and accepts TO_FAILURE", async () => {
+      await migrateDatabase(database);
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(3);
+
+      await seedStructure(database);
+      await database.runAsync(
+        `INSERT INTO activities (
+          id, session_id, cycle_id, tour_id, type, structural_position,
+          position, name, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, instruction, created_at, updated_at
+        ) VALUES (
+          'fresh-fail', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+          0, 'Tractions', 'TO_FAILURE', NULL, NULL, 2, 0, NULL, 'now', 'now'
+        )`,
+      );
+      const row = await database.getFirstAsync<{ id: string }>(
+        "SELECT id FROM activities WHERE id = 'fresh-fail'",
+      );
+      expect(row?.id).toBe("fresh-fail");
+    });
   });
 });
 

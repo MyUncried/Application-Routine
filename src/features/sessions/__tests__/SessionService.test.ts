@@ -2,7 +2,13 @@ import { describe, expect, it, jest } from "@jest/globals";
 
 import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
-import type { Activity, CreateSessionInput, Session, SessionSummary } from "@/domain/sessions/Session";
+import type {
+  Activity,
+  CreateSessionInput,
+  Session,
+  SessionSummary,
+  UpdateSessionInput,
+} from "@/domain/sessions/Session";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
@@ -17,6 +23,7 @@ import {
 import { SessionValidationError } from "@/domain/sessions/errors";
 import type {
   SessionRepository,
+  SessionStatus,
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 
@@ -27,9 +34,10 @@ import { SessionService } from "@/features/sessions/SessionService";
 class FakeSessionRepository implements SessionRepository {
   create = jest.fn<(input: CreateSessionInput) => Promise<Session>>();
   findById = jest.fn<(sessionId: string) => Promise<Session | null>>();
+  findSessionStatus = jest.fn<(sessionId: string) => Promise<SessionStatus | null>>();
   listActive = jest.fn<() => Promise<readonly SessionSummary[]>>();
   update =
-    jest.fn<(sessionId: string, input: CreateSessionInput) => Promise<UpdateSessionOutcome>>();
+    jest.fn<(sessionId: string, input: UpdateSessionInput) => Promise<UpdateSessionOutcome>>();
 }
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -229,7 +237,15 @@ describe("SessionService.createSession", () => {
   });
 });
 
-describe("SessionService.updateSession", () => {
+function anEditDraft(): SessionDraft {
+  return {
+    ...aValidDraft(),
+    sourceSessionId: "session-1",
+    name: "Séance à modifier",
+  };
+}
+
+describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)", () => {
   it("does not call the repository for an invalid draft", async () => {
     const repository = new FakeSessionRepository();
     const service = new SessionService(repository);
@@ -239,7 +255,7 @@ describe("SessionService.updateSession", () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 
-  it("returns INVALID for an invalid draft, without capturing violations from anywhere else", async () => {
+  it("returns INVALID for an invalid draft (no Activity, missing name), without capturing violations from anywhere else", async () => {
     const repository = new FakeSessionRepository();
     const service = new SessionService(repository);
 
@@ -249,13 +265,12 @@ describe("SessionService.updateSession", () => {
       status: "INVALID",
       violations: [
         { code: "REQUIRED", field: "session.name" },
-        { code: "REQUIRED", field: "exercise.name" },
-        { code: "REQUIRED", field: "exercise.durationSeconds" },
+        { code: "REQUIRED", field: "activity.id" },
       ],
     });
   });
 
-  it("calls the repository exactly once with the normalized input for a valid draft, and returns UPDATED unchanged", async () => {
+  it("forces the passed sessionId as sourceSessionId and calls the repository once with the normalized UpdateSessionInput, then returns UPDATED unchanged", async () => {
     const repository = new FakeSessionRepository();
     const updated = aSession({ name: "Nom modifié" });
     const outcome: UpdateSessionOutcome = { status: "UPDATED", session: updated };
@@ -263,20 +278,38 @@ describe("SessionService.updateSession", () => {
     const service = new SessionService(repository);
 
     const draft: SessionDraft = {
-      ...aValidDraft(),
+      ...anEditDraft(),
+      sourceSessionId: "stale-id",
       name: "  Nom modifié  ",
-      exercises: [{ ...createExerciseDraft("ex-1"), name: "  Gainage  " }],
+      exercises: [{ ...createExerciseDraft("act-1"), name: "  Gainage  " }],
     };
 
     const result = await service.updateSession("session-1", draft);
 
     expect(repository.update).toHaveBeenCalledTimes(1);
     expect(repository.update).toHaveBeenCalledWith("session-1", {
+      sourceSessionId: "session-1",
       name: "Nom modifié",
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercises: [normalizedExercise()],
+      tourRepeatCount: 1,
+      activities: [
+        {
+          id: "act-1",
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
+          position: 0,
+          name: "Gainage",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: null,
+          seriesCount: 1,
+          pauseSeconds: 0,
+          instruction: null,
+          bodyZoneIds: [],
+        },
+      ],
       categories: [],
     });
     expect(result).toEqual(outcome);
@@ -287,7 +320,7 @@ describe("SessionService.updateSession", () => {
     repository.update.mockResolvedValue({ status: "NOT_FOUND" });
     const service = new SessionService(repository);
 
-    const result = await service.updateSession("session-1", aValidDraft());
+    const result = await service.updateSession("session-1", anEditDraft());
 
     expect(result).toEqual({ status: "NOT_FOUND" });
   });
@@ -297,7 +330,7 @@ describe("SessionService.updateSession", () => {
     repository.update.mockResolvedValue({ status: "ARCHIVED" });
     const service = new SessionService(repository);
 
-    const result = await service.updateSession("session-1", aValidDraft());
+    const result = await service.updateSession("session-1", anEditDraft());
 
     expect(result).toEqual({ status: "ARCHIVED" });
   });
@@ -310,7 +343,7 @@ describe("SessionService.updateSession", () => {
     repository.update.mockRejectedValue(repositoryValidationError);
     const service = new SessionService(repository);
 
-    await expect(service.updateSession("session-1", aValidDraft())).rejects.toBe(
+    await expect(service.updateSession("session-1", anEditDraft())).rejects.toBe(
       repositoryValidationError,
     );
   });
@@ -321,7 +354,53 @@ describe("SessionService.updateSession", () => {
     repository.update.mockRejectedValue(technicalError);
     const service = new SessionService(repository);
 
-    await expect(service.updateSession("session-1", aValidDraft())).rejects.toBe(technicalError);
+    await expect(service.updateSession("session-1", anEditDraft())).rejects.toBe(technicalError);
+  });
+});
+
+describe("SessionService.getSessionForEdit (T01-S10, CE-T01-S10-01/02)", () => {
+  it("returns OK with the session for an active id, reading it only after checking the status", async () => {
+    const repository = new FakeSessionRepository();
+    const session = aSession();
+    repository.findSessionStatus.mockResolvedValue("ACTIVE");
+    repository.findById.mockResolvedValue(session);
+    const service = new SessionService(repository);
+
+    const result = await service.getSessionForEdit("session-1");
+
+    expect(result).toEqual({ status: "OK", session });
+    expect(repository.findSessionStatus).toHaveBeenCalledWith("session-1");
+  });
+
+  it("returns NOT_FOUND for an unknown id, without ever calling findById", async () => {
+    const repository = new FakeSessionRepository();
+    repository.findSessionStatus.mockResolvedValue(null);
+    const service = new SessionService(repository);
+
+    const result = await service.getSessionForEdit("nope");
+
+    expect(result).toEqual({ status: "NOT_FOUND" });
+    expect(repository.findById).not.toHaveBeenCalled();
+  });
+
+  it("returns ARCHIVED for an archived session, without ever calling findById", async () => {
+    const repository = new FakeSessionRepository();
+    repository.findSessionStatus.mockResolvedValue("ARCHIVED");
+    const service = new SessionService(repository);
+
+    const result = await service.getSessionForEdit("archived-1");
+
+    expect(result).toEqual({ status: "ARCHIVED" });
+    expect(repository.findById).not.toHaveBeenCalled();
+  });
+
+  it("propagates a technical error from the repository unchanged", async () => {
+    const repository = new FakeSessionRepository();
+    const technicalError = new Error("db down");
+    repository.findSessionStatus.mockRejectedValue(technicalError);
+    const service = new SessionService(repository);
+
+    await expect(service.getSessionForEdit("session-1")).rejects.toBe(technicalError);
   });
 });
 

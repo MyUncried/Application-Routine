@@ -2,6 +2,7 @@ import { DATABASE_VERSION, LOCAL_USER_SINGLETON_KEY } from "./constants";
 import type { Database } from "./Database";
 import { MIGRATION_001 } from "./migrations/migration001";
 import { MIGRATION_002 } from "./migrations/migration002";
+import { MIGRATION_003 } from "./migrations/migration003";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -9,11 +10,16 @@ type CountRow = { count: number };
 /**
  * Applique séquentiellement chaque migration additive manquante, jamais en
  * bloc : une base à la version 1 (T01-S01…S08) ne rejoue jamais
- * `MIGRATION_001` (déjà appliquée, immuable — « Conservation des acquis »)
- * et n'exécute que `MIGRATION_002` (T01-S09). Une base neuve (version 0)
- * traverse les deux à la suite, dans le même ordre. `migration001.ts` n'est
- * jamais modifié pour ajouter cette étape : chaque migration reste un
- * fichier indépendant, exécuté une fois, jamais réécrit.
+ * `MIGRATION_001` (déjà appliquée, immuable — « Conservation des acquis »).
+ * `MIGRATION_002` (T01-S09) porte à la version 2, `MIGRATION_003` (T01-S10,
+ * mode `TO_FAILURE` — reconstruction additive de `activities`) à la version
+ * 3. Une base neuve (version 0) les traverse toutes à la suite, dans le
+ * même ordre. `migration001.ts` n'est jamais modifié : chaque migration
+ * reste un fichier indépendant, exécuté une fois, jamais réécrit.
+ *
+ * `PRAGMA foreign_keys` étant un no-op dans une transaction (SQLite),
+ * `MIGRATION_003` s'appuie sur `PRAGMA defer_foreign_keys=ON` dans cette
+ * même transaction partagée (Q2-A) — le runner n'est pas restructuré.
  */
 export async function migrateDatabase(database: Database): Promise<void> {
   const versionRow = await database.getFirstAsync<UserVersionRow>("PRAGMA user_version");
@@ -45,6 +51,11 @@ export async function migrateDatabase(database: Database): Promise<void> {
     if (version === 1) {
       await transaction.execAsync(MIGRATION_002);
       version = 2;
+    }
+
+    if (version === 2) {
+      await transaction.execAsync(MIGRATION_003);
+      version = 3;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

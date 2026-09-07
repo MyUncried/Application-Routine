@@ -13,6 +13,8 @@ import {
   DEFAULT_SESSION_COLOR,
   type CreateSessionInput,
   type CreateSessionExerciseInput,
+  type UpdateSessionActivityInput,
+  type UpdateSessionInput,
 } from "@/domain/sessions/Session";
 import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -681,48 +683,34 @@ describe("SqliteSessionRepository", () => {
       expect(summary?.activityCount).toBe(2);
     });
 
-    it("sorts by COALESCE(last_executed_at, updated_at) DESC independently of insertion order", async () => {
+    // T01-S10, plan §7.2 / D-110 / RM-110 / AC-14 : le tri par défaut est
+    // `updated_at DESC` — jamais `COALESCE(last_executed_at, updated_at)`.
+    // Une Exécution (qui alimenterait `last_executed_at`) ne modifie pas
+    // l'ordre du Catalogue. Ré-écriture du test `COALESCE` historique.
+    it("sorts by updated_at DESC, and a later last_executed_at never changes the order (D-110)", async () => {
       const clockOldest = fixedClock(["2026-01-01T00:00:00.000Z"]);
       const repositoryOldest = new SqliteSessionRepository(database, uuidFactory(), clockOldest);
-      const sessionOldest = await repositoryOldest.create({
-        ...validInput(),
-        name: "Jamais exécutée",
-      });
+      const sessionOldest = await repositoryOldest.create({ ...validInput(), name: "Créée en premier" });
 
-      const clockMostRecent = fixedClock(["2026-01-02T00:00:00.000Z"]);
-      const repositoryMostRecent = new SqliteSessionRepository(
-        database,
-        secondUuidFactory(),
-        clockMostRecent,
-      );
-      const sessionMostRecent = await repositoryMostRecent.create({
-        ...validInput(),
-        name: "Exécutée très récemment",
-      });
-      await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
-        "2026-01-30T00:00:00.000Z",
-        sessionMostRecent.id,
-      ]);
+      const clockMiddle = fixedClock(["2026-01-02T00:00:00.000Z"]);
+      const repositoryMiddle = new SqliteSessionRepository(database, secondUuidFactory(), clockMiddle);
+      const sessionMiddle = await repositoryMiddle.create({ ...validInput(), name: "Créée ensuite" });
 
-      const clockMiddle = fixedClock(["2026-01-03T00:00:00.000Z"]);
-      const repositoryMiddle = new SqliteSessionRepository(
-        database,
-        thirdUuidFactory(),
-        clockMiddle,
-      );
-      const sessionMiddle = await repositoryMiddle.create({
-        ...validInput(),
-        name: "Exécutée il y a deux semaines",
-      });
+      const clockNewest = fixedClock(["2026-01-03T00:00:00.000Z"]);
+      const repositoryNewest = new SqliteSessionRepository(database, thirdUuidFactory(), clockNewest);
+      const sessionNewest = await repositoryNewest.create({ ...validInput(), name: "Créée en dernier" });
+
+      // `last_executed_at` renseigné à l'inverse de `updated_at` : il ne doit
+      // rien changer à l'ordre.
       await database.runAsync("UPDATE sessions SET last_executed_at = ? WHERE id = ?", [
-        "2026-01-15T00:00:00.000Z",
-        sessionMiddle.id,
+        "2026-02-01T00:00:00.000Z",
+        sessionOldest.id,
       ]);
 
       const summaries = await repositoryOldest.listActive();
 
       expect(summaries.map((summary) => summary.id)).toEqual([
-        sessionMostRecent.id,
+        sessionNewest.id,
         sessionMiddle.id,
         sessionOldest.id,
       ]);
@@ -819,38 +807,251 @@ describe("SqliteSessionRepository", () => {
     });
   });
 
-  describe("update (generalized contract, out of the T01-S09 functional scope — T01-S10 will define real reopen UX)", () => {
-    it("replaces the Activity collection and preserves session/cycle/tour identifiers", async () => {
+  describe("update — modification bout en bout par identité (T01-S10, plan §5.2)", () => {
+    it("updates a kept Activity in place: same identifier, session/cycle/tour identifiers preserved", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
 
-      const outcome = await repository.update(created.id, {
-        ...validInput(),
-        name: "Nom modifié",
-        exercises: [
-          { ...anExercise(), name: "Nouveau 1" },
-          { ...anExercise(), name: "Nouveau 2" },
-        ],
-      });
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          name: "Nom modifié",
+          activities: [anUpdateActivity({ id: keptId, name: "Gainage renforcé", durationSeconds: 45 })],
+        }),
+      );
 
       expect(outcome.status).toBe("UPDATED");
-      if (outcome.status !== "UPDATED") {
-        throw new Error("expected update() to report UPDATED");
-      }
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
       expect(outcome.session.id).toBe(created.id);
       expect(outcome.session.cycle.id).toBe(created.cycle.id);
       expect(outcome.session.cycle.tour.id).toBe(created.cycle.tour.id);
       expect(outcome.session.name).toBe("Nom modifié");
+      expect(outcome.session.cycle.tour.exercises).toHaveLength(1);
+      expect(outcome.session.cycle.tour.exercises[0]).toMatchObject({
+        id: keptId,
+        name: "Gainage renforcé",
+        durationSeconds: 45,
+      });
+
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises[0]?.id).toBe(keptId);
+    });
+
+    it("adds a new Activity, removes a dropped one, keeps the survivor's id", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          { ...anExercise(), name: "À garder" },
+          { ...anExercise(), name: "À supprimer" },
+        ],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({ id: keptId, name: "À garder", position: 0 }),
+            anUpdateActivity({ id: "brand-new-activity", name: "Nouvelle", position: 1 }),
+          ],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
       expect(outcome.session.cycle.tour.exercises.map((exercise) => exercise.name)).toEqual([
-        "Nouveau 1",
-        "Nouveau 2",
+        "À garder",
+        "Nouvelle",
       ]);
+      expect(outcome.session.cycle.tour.exercises.map((exercise) => exercise.id)).toEqual([
+        keptId,
+        "brand-new-activity",
+      ]);
+    });
+
+    it("persists tour.repeatCount and rereads it (aggregate + catalogue summary)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          tourRepeatCount: 7,
+          activities: [anUpdateActivity({ id: keptId })],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      expect(outcome.session.cycle.tour.repeatCount).toBe(7);
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.repeatCount).toBe(7);
+      const summaries = await repository.listActive();
+      expect(summaries.find((s) => s.id === created.id)?.tourRepeatCount).toBe(7);
+    });
+
+    it("persists a RECOVERY Activity (always timed, no mode / series / body zones) and rereads it", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({ id: keptId, name: "Exercice", position: 0 }),
+            {
+              id: "recovery-1",
+              type: "RECOVERY",
+              structuralPosition: "IN_TOUR",
+              position: 1,
+              name: "Récupération",
+              executionMode: null,
+              durationSeconds: 45,
+              repetitionCount: null,
+              seriesCount: null,
+              pauseSeconds: 0,
+              instruction: null,
+              bodyZoneIds: [],
+            },
+          ],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      const reopened = await repository.findById(created.id);
+      const recovery = reopened?.cycle.tour.exercises.find((e) => e.id === "recovery-1");
+      expect(recovery).toMatchObject({
+        type: "RECOVERY",
+        executionMode: null,
+        durationSeconds: 45,
+        seriesCount: null,
+        repetitionCount: null,
+        pauseSeconds: 0,
+        bodyZoneIds: [],
+      });
+    });
+
+    it("persists a TO_FAILURE Activity (no target) and rereads it; the estimate becomes a lower bound", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({
+              id: keptId,
+              name: "Tractions",
+              executionMode: "TO_FAILURE",
+              durationSeconds: null,
+              repetitionCount: null,
+              seriesCount: 4,
+            }),
+          ],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises[0]).toMatchObject({
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
+        seriesCount: 4,
+      });
+      const summaries = await repository.listActive();
+      expect(summaries.find((s) => s.id === created.id)?.isEstimatedDurationApproximate).toBe(true);
+    });
+
+    it("rehydrates Activities before / in / after the Tour, in reading order", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({ id: "after-1", name: "Après", structuralPosition: "AFTER_TOUR", position: 0 }),
+            anUpdateActivity({ id: keptId, name: "Dans", structuralPosition: "IN_TOUR", position: 0 }),
+            anUpdateActivity({ id: "before-1", name: "Avant", structuralPosition: "BEFORE_TOUR", position: 0 }),
+          ],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.beforeTour?.map((a) => a.name)).toEqual(["Avant"]);
+      expect(reopened?.cycle.tour.exercises.map((a) => a.name)).toEqual(["Dans"]);
+      expect(reopened?.cycle.afterTour?.map((a) => a.name)).toEqual(["Après"]);
+    });
+
+    it("preserves an Activity's body zones through an in-place update (replace, no loss)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [anUpdateActivity({ id: keptId, bodyZoneIds: ["dos", "epaules"] })],
+        }),
+      );
+
+      const reopened = await repository.findById(created.id);
+      expect([...(reopened?.cycle.tour.exercises[0]?.bodyZoneIds ?? [])].sort()).toEqual([
+        "dos",
+        "epaules",
+      ]);
+    });
+
+    it("replaces category associations atomically", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        categories: [{ kind: "EXISTING", categoryId: "cardio" }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [anUpdateActivity({ id: keptId })],
+          categories: [{ kind: "EXISTING", categoryId: "mobilite" }],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      expect(outcome.session.categories.map((c) => c.id)).toEqual(["mobilite"]);
     });
 
     it("returns NOT_FOUND and performs no write for an unknown id", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
 
-      const outcome = await repository.update("00000000-0000-4000-8000-000000000099", validInput());
+      const outcome = await repository.update(
+        "00000000-0000-4000-8000-000000000099",
+        anUpdateInput({ sourceSessionId: "00000000-0000-4000-8000-000000000099" }),
+      );
 
       expect(outcome).toEqual({ status: "NOT_FOUND" });
       const count = await database.getFirstAsync<{ count: number }>(
@@ -862,16 +1063,21 @@ describe("SqliteSessionRepository", () => {
     it("returns ARCHIVED and performs no write for a session archived via direct SQL", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
 
       await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [
         "2026-01-02T00:00:00.000Z",
         created.id,
       ]);
 
-      const outcome = await repository.update(created.id, {
-        ...validInput(),
-        name: "Tentative de modification",
-      });
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          name: "Tentative de modification",
+          activities: [anUpdateActivity({ id: keptId })],
+        }),
+      );
 
       expect(outcome).toEqual({ status: "ARCHIVED" });
       const row = await database.getFirstAsync<{ name: string; updated_at: string }>(
@@ -887,7 +1093,7 @@ describe("SqliteSessionRepository", () => {
       const created = await repository.create(validInput());
 
       await expect(
-        repository.update(created.id, { ...validInput(), name: "   " }),
+        repository.update(created.id, anUpdateInput({ sourceSessionId: created.id, name: "   " })),
       ).rejects.toBeInstanceOf(SessionValidationError);
 
       const row = await database.getFirstAsync<{ name: string; updated_at: string }>(
@@ -896,6 +1102,24 @@ describe("SqliteSessionRepository", () => {
       );
       expect(row?.name).toBe("Séance simple");
       expect(row?.updated_at).toBe(created.updatedAt);
+    });
+  });
+
+  describe("findSessionStatus (T01-S10)", () => {
+    it("returns ACTIVE for an active session, ARCHIVED for an archived one, null for an unknown id", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const active = await repository.create(validInput());
+
+      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const archived = await secondRepository.create({ ...validInput(), name: "Archivée" });
+      await database.runAsync(
+        "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
+        ["2026-01-02T00:00:00.000Z", archived.id],
+      );
+
+      expect(await repository.findSessionStatus(active.id)).toBe("ACTIVE");
+      expect(await repository.findSessionStatus(archived.id)).toBe("ARCHIVED");
+      expect(await repository.findSessionStatus("nope")).toBeNull();
     });
   });
 });
@@ -921,6 +1145,41 @@ function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): Create
     pauseSeconds: 0,
     instruction: null,
     bodyZoneIds: [],
+    ...overrides,
+  };
+}
+
+/** Activité d'un `UpdateSessionInput` (T01-S10) — Exercice Durée par défaut, `id` explicite (fusion par identité). */
+function anUpdateActivity(
+  overrides: Partial<UpdateSessionActivityInput> = {},
+): UpdateSessionActivityInput {
+  return {
+    id: "act-1",
+    type: "EXERCISE",
+    structuralPosition: "IN_TOUR",
+    position: 0,
+    name: "Gainage",
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 1,
+    pauseSeconds: 0,
+    instruction: null,
+    bodyZoneIds: [],
+    ...overrides,
+  };
+}
+
+function anUpdateInput(overrides: Partial<UpdateSessionInput> = {}): UpdateSessionInput {
+  return {
+    sourceSessionId: "placeholder",
+    name: "Séance simple",
+    color: DEFAULT_SESSION_COLOR,
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    tourRepeatCount: 1,
+    activities: [anUpdateActivity()],
+    categories: [],
     ...overrides,
   };
 }
@@ -1041,6 +1300,7 @@ function validRow(): SessionAggregateRow {
     tour_position: 1,
     tour_repeat_count: 1,
     activity_id: IDS[3]!,
+    activity_type: "EXERCISE",
     activity_name: "Gainage",
     structural_position: "IN_TOUR",
     activity_position: 0,
