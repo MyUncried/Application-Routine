@@ -88,4 +88,15 @@ grep -Fq 'MUST NOT be reported as a defect' "$review_workflow"
 grep -Fq 'has already completed npm test and TypeScript successfully' "$review_workflow"
 grep -Fq 'cat /tmp/implementation-output.md' "$review_workflow"
 
-echo 'increment review gate self-test: PASS'
+implementation_workflow='.github/workflows/kodjo-slice-implementation.yml'
+! grep -Fq -- 'gh issue comment' "$implementation_workflow"
+! grep -Fq -- '--json id' "$implementation_workflow"
+grep -Fq -- 'gh api --method POST' "$implementation_workflow"
+
+recovery_workflow='.github/workflows/kodjo-slice-implementation-publication-recovery.yml'
+grep -Fq 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
+grep -Fq 'No implementation or AI call was repeated' "$recovery_workflow"
+grep -Fq 'npm test -- --runInBand' "$recovery_workflow"
+grep -Fq 'npx tsc --noEmit' "$recovery_workflow"
+
+echo 'increment review and publication transport self-test: PASS'
