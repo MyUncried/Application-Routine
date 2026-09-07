@@ -123,10 +123,13 @@ jobs:
       - name: Revalidate exact HEAD and dependencies
         env:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          RECOVERED_STASH: ${{ steps.partial.outputs.stash_ref }}
         run: |
           $ErrorActionPreference='Stop'
           if ((git rev-parse HEAD).Trim() -ne $env:SOURCE_HEAD) { throw 'Checkout HEAD moved' }
-          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'Dirty worktree before Claude' }
+          $dirty=-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))
+          if($dirty -and [string]::IsNullOrWhiteSpace($env:RECOVERED_STASH)){throw 'Dirty worktree before Claude without authorized recovery'}
+          if(!$dirty -and -not [string]::IsNullOrWhiteSpace($env:RECOVERED_STASH)){throw 'Authorized partial recovery restored no changes'}
           npm ci
           if($LASTEXITCODE -ne 0){throw 'npm ci failed'}
           if(-not (Test-Path 'node_modules/.bin/jest.cmd')){throw 'Jest unavailable'}
