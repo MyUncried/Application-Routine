@@ -69,6 +69,19 @@ La matrice minimale comprend :
 
 Un test de fonction isolée ou une reproduction simplifiée ne suffit pas. Le correctif ne peut être déclaré vérifié qu'après réussite du gate complet avec les payloads autoritatifs réels et des cas négatifs représentatifs. Le résultat des contrôles et leurs limites d'environnement doivent être rapportés explicitement.
 
+## Périmètre incrémental — règles normatives et permanentes
+
+Lorsqu'un plan approuvé est découpé en plusieurs lots, le lot autorisé est une donnée causale structurée et non une indication narrative.
+
+1. **Identifiant obligatoire.** Chaque déclencheur d'implémentation, sortie d'implémentation et sortie de revue porte exactement un champ `increment=LOT_<n>_OF_<total>`, avec `1 <= n <= total`.
+2. **Propagation sans perte.** La sortie d'implémentation recopie l'incrément du déclencheur autorisé et son identifiant `source_implementation_trigger_comment_id`. La revue relit ce déclencheur autoritatif et refuse toute absence, duplication ou incohérence de tranche, Issue, plan, revue de plan, session ou HEAD.
+3. **Reprise historique explicite.** Une ancienne sortie ne portant pas ces champs ne peut être récupérée que si le déclencheur de reprise fournit explicitement `source_implementation_trigger_comment_id`. Il est interdit d'inférer le lot depuis une phrase libre du rapport.
+4. **Revue bornée.** Une revue intermédiaire évalue uniquement les exigences que le plan approuvé alloue au lot indiqué. L'absence d'éléments affectés à un lot ultérieur est différée et ne peut constituer ni défaut, ni périmètre incomplet, ni preuve manquante.
+5. **Contexte obligatoire.** Le prompt de revue contient l'identifiant du lot, la sortie d'implémentation autoritative, le plan approuvé, les fichiers modifiés et le diff. Il indique explicitement la frontière du lot et les éléments différés.
+6. **Preuves déterministes.** Le résultat des gates Jest et TypeScript exécutés immédiatement avant la revue fait autorité. La revue peut critiquer un échec réel ou une couverture insuffisante dans le lot courant, mais ne peut déclarer ces contrôles non exécutés.
+7. **Verdict hors périmètre.** Un verdict construit sans lot causal valide, ou bloqué uniquement par un lot ultérieur, est une sortie d'orchestration non exploitable. Il ne peut déclencher ni correction Claude, ni gate utilisateur, ni lot suivant.
+8. **Test de non-régression.** Toute modification de la chaîne incrémentale doit tester sans IA au minimum : propagation nominale, reprise historique explicitement liée, champ absent, dupliqué ou mal formé, bornes invalides, incohérences de causalité, et présence des garde-fous de périmètre dans le prompt final.
+
 ## Gates permanents
 
 1. Gate d'entrée : manifeste valide, tranche précédente `DONE`, Issue/branche/baseline exactes.
