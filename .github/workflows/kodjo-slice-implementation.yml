@@ -236,4 +236,9 @@ jobs:
           $nl=[Environment]::NewLine
           $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'base_head='+$env:SOURCE_HEAD+$nl+'head='+$new+$nl+'session_id='+$env:SESSION_ID+$nl+'plan_comment_id='+$env:PLAN_ID+$nl+'plan_review_comment_id='+$env:REVIEW_ID+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'+$nl+$nl+$summary
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\implementation-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
-          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\implementation-comment.md"
+          $posted=gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\implementation-comment.md" --json id | ConvertFrom-Json
+          if(!$posted.id){throw 'Implementation output publication failed'}
+          $dispatch=@{event_type='kodjo_implementation_ready';client_payload=@{issue_number=[string]$env:ISSUE_NUMBER;source_comment_id=[string]$posted.id}}|ConvertTo-Json -Depth 4
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\review-dispatch.json",$dispatch,(New-Object Text.UTF8Encoding($false)))
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/dispatches" --input "$env:RUNNER_TEMP\review-dispatch.json"
+          if($LASTEXITCODE -ne 0){throw 'Implementation review dispatch failed'}
