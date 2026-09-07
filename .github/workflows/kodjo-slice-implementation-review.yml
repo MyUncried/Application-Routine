@@ -40,6 +40,7 @@ jobs:
           set -euo pipefail
           source_body=$(jq -Rnr --arg body "$SOURCE_BODY" '$body | gsub("\\r"; "")')
           source_comment_id="$SOURCE_COMMENT_ID"
+          recovery_trigger_comment_id=""
           first_line() {
             local line="${1%%$'\n'*}"
             printf '%s' "${line%$'\r'}"
@@ -49,6 +50,9 @@ jobs:
             mapfile -t recovery_ids < <(sed -n 's/^source_implementation_comment_id=\([0-9][0-9]*\)\r\{0,1\}$/\1/p' <<<"$source_body")
             [ "${#recovery_ids[@]}" -eq 1 ] || { echo 'Recovery trigger must contain exactly one valid source comment id' >&2; exit 1; }
             source_comment_id="${recovery_ids[0]}"
+            mapfile -t recovery_trigger_ids < <(sed -n 's/^source_implementation_trigger_comment_id=\([0-9][0-9]*\)$/\1/p' <<<"$source_body")
+            [ "${#recovery_trigger_ids[@]}" -le 1 ] || { echo 'Recovery trigger contains duplicate implementation trigger ids' >&2; exit 1; }
+            if [ "${#recovery_trigger_ids[@]}" -eq 1 ]; then recovery_trigger_comment_id="${recovery_trigger_ids[0]}"; fi
           elif [ -n "$source_body" ] && [ "$trigger_marker" != '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' ]; then
             echo 'Invalid implementation review trigger marker' >&2
             exit 1
@@ -67,8 +71,40 @@ jobs:
           base=$(sed -n 's/^base_head=//p' <<<"$source_body"|head -n1)
           session=$(sed -n 's/^session_id=//p' <<<"$source_body"|head -n1)
           plan=$(sed -n 's/^plan_comment_id=//p' <<<"$source_body"|head -n1)
-          test -n "$slice" && [[ "$session" =~ ^[0-9a-f-]{36}$ ]] && [[ "$plan" =~ ^[0-9]+$ ]]
+          plan_review=$(sed -n 's/^plan_review_comment_id=//p' <<<"$source_body"|head -n1)
+          mapfile -t increments < <(sed -n 's/^increment=\(LOT_[1-9][0-9]*_OF_[1-9][0-9]*\)$/\1/p' <<<"$source_body")
+          mapfile -t output_trigger_ids < <(sed -n 's/^source_implementation_trigger_comment_id=\([0-9][0-9]*\)$/\1/p' <<<"$source_body")
+          [ "${#increments[@]}" -le 1 ] && [ "${#output_trigger_ids[@]}" -le 1 ] || { echo 'Duplicate increment causality fields' >&2; exit 1; }
+          if [ "${#increments[@]}" -eq 1 ] && [ "${#output_trigger_ids[@]}" -eq 1 ]; then
+            increment="${increments[0]}"
+            implementation_trigger_comment_id="${output_trigger_ids[0]}"
+            if [ -n "$recovery_trigger_comment_id" ] && [ "$recovery_trigger_comment_id" != "$implementation_trigger_comment_id" ]; then echo 'Recovery trigger causality mismatch' >&2; exit 1; fi
+          elif [ "${#increments[@]}" -eq 0 ] && [ "${#output_trigger_ids[@]}" -eq 0 ] && [ -n "$recovery_trigger_comment_id" ]; then
+            implementation_trigger_comment_id="$recovery_trigger_comment_id"
+          else
+            echo 'Implementation output lacks complete increment causality' >&2; exit 1
+          fi
+          test -n "$slice" && [[ "$session" =~ ^[0-9a-f-]{36}$ ]] && [[ "$plan" =~ ^[0-9]+$ ]] && [[ "$plan_review" =~ ^[0-9]+$ ]]
           [[ "$head" =~ ^[0-9a-f]{40}$ ]] && [[ "$base" =~ ^[0-9a-f]{40}$ ]]
+          trigger_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$implementation_trigger_comment_id")
+          jq -e --arg issue "$ISSUE_NUMBER" '.user.login == "MyUncried" and (.issue_url | endswith("/issues/" + $issue)) and (.body | type == "string")' <<<"$trigger_json" >/dev/null
+          trigger_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$trigger_json")
+          trigger_marker=$(first_line "$trigger_body")
+          case "$trigger_marker" in
+            '[KODJO_SLICE] START_IMPLEMENTATION'|'[KODJO_SLICE] IMPLEMENTATION_REVISION'|'[KODJO_SLICE] VISUAL_CORRECTION') ;;
+            *) echo 'Invalid source implementation trigger marker' >&2; exit 1 ;;
+          esac
+          trigger_slice=$(sed -n 's/^slice_id=//p' <<<"$trigger_body")
+          trigger_source=$(sed -n 's/^source_head=//p' <<<"$trigger_body")
+          trigger_plan=$(sed -n 's/^source_plan_comment_id=//p' <<<"$trigger_body")
+          trigger_review=$(sed -n 's/^source_review_comment_id=//p' <<<"$trigger_body")
+          trigger_session=$(sed -n 's/^session_id=//p' <<<"$trigger_body")
+          mapfile -t trigger_increments < <(sed -n 's/^increment=\(LOT_[1-9][0-9]*_OF_[1-9][0-9]*\)$/\1/p' <<<"$trigger_body")
+          [ "${#trigger_increments[@]}" -eq 1 ] || { echo 'Source trigger must contain exactly one valid increment' >&2; exit 1; }
+          if [ -z "${increment:-}" ]; then increment="${trigger_increments[0]}"; fi
+          [[ "$increment" =~ ^LOT_([1-9][0-9]*)_OF_([1-9][0-9]*)$ ]] && [ "${BASH_REMATCH[1]}" -le "${BASH_REMATCH[2]}" ] || { echo 'Invalid increment bounds' >&2; exit 1; }
+          [ "$increment" = "${trigger_increments[0]}" ] && [ "$trigger_slice" = "$slice" ] && [ "$trigger_source" = "$base" ] && [ "$trigger_plan" = "$plan" ] && [ "$trigger_review" = "$plan_review" ] || { echo 'Implementation trigger causality mismatch' >&2; exit 1; }
+          if [ -n "$trigger_session" ] && [ "$trigger_session" != "$session" ]; then echo 'Implementation session causality mismatch' >&2; exit 1; fi
           manifest=".github/orchestration/slices/$slice.yml"
           test -f "$manifest"
           export ISSUE_NUMBER slice head base
@@ -85,8 +121,9 @@ jobs:
           ' <<<"$plan_json" >/dev/null
           plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
           [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
-          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
+          printf '%s' "$source_body" > /tmp/implementation-output.md
 
       - name: Checkout implementation HEAD
         uses: actions/checkout@v6
@@ -113,15 +150,20 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           HEAD: ${{ steps.gate.outputs.head }}
           BASE: ${{ steps.gate.outputs.base }}
+          INCREMENT: ${{ steps.gate.outputs.increment }}
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           git diff --stat "$BASE..$HEAD" > /tmp/diff-stat.txt
           git diff "$BASE..$HEAD" > /tmp/diff.patch
           {
-            echo "You are the independent KODJO implementation reviewer for $SLICE_ID."
-            echo "Review exact commit $HEAD against the approved plan and repository sources. Reuse the validated S09 review criteria: scope, correctness, persistence atomicity, migrations, backward compatibility, tests, Unicode, UI contracts, non-regression, and evidence integrity."
-            echo "Do not modify files. End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, list only demonstrated blocking points and a precise REVIEW_FEEDBACK section."
+            echo "You are the independent KODJO implementation reviewer for $SLICE_ID, increment $INCREMENT only."
+            echo "Review exact commit $HEAD only against the requirements explicitly allocated to $INCREMENT in the approved plan, using the implementation output as the authoritative statement of the delivered increment. Requirements allocated to later increments are deferred: their absence MUST NOT be reported as a defect, missing scope, missing wiring, or missing test."
+            echo "Apply the validated S09 criteria only where they are applicable to $INCREMENT: scope, correctness, persistence atomicity, migrations, backward compatibility, tests, Unicode, UI contracts, non-regression, and evidence integrity. The deterministic gate immediately preceding this review has already completed npm test and TypeScript successfully; do not claim those checks were not run. You may report only a demonstrated defect in their actual results or coverage within $INCREMENT."
+            echo "Do not modify files. End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, list only demonstrated blocking points inside $INCREMENT and a precise REVIEW_FEEDBACK section."
+            echo
+            echo "IMPLEMENTATION OUTPUT:"
+            cat /tmp/implementation-output.md
             echo
             echo "APPROVED PLAN:"
             cat /tmp/approved-plan.md
@@ -148,6 +190,8 @@ jobs:
           SESSION: ${{ steps.gate.outputs.session }}
           PLAN: ${{ steps.gate.outputs.plan }}
           SOURCE_COMMENT_ID: ${{ steps.gate.outputs.source_comment_id }}
+          INCREMENT: ${{ steps.gate.outputs.increment }}
+          IMPLEMENTATION_TRIGGER_COMMENT_ID: ${{ steps.gate.outputs.implementation_trigger_comment_id }}
         run: |
           set -euo pipefail
           verdict=$(sed -n 's/^VERDICT: //p' /tmp/review.md|tail -n1)
@@ -155,11 +199,13 @@ jobs:
           {
             echo '[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT'
             echo "slice_id=$SLICE_ID"
+            echo "increment=$INCREMENT"
             echo "base_head=$BASE"
             echo "head=$HEAD"
             echo "session_id=$SESSION"
             echo "plan_comment_id=$PLAN"
             echo "source_implementation_comment_id=$SOURCE_COMMENT_ID"
+            echo "source_implementation_trigger_comment_id=$IMPLEMENTATION_TRIGGER_COMMENT_ID"
             echo "verdict=$verdict"
             echo "STATUT : $status"
             echo
