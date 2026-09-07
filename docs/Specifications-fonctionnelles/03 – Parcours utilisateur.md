@@ -116,7 +116,7 @@ Il peut notamment :
 - ajouter une activité ;
 - supprimer une activité ;
 - modifier une activité ;
-- déplacer une activité ;
+- déplacer une activité par appui long sur sa carte, puis glissement vers la position cible ;
 - modifier le nombre de répétitions du Tour ;
 - modifier les paramètres généraux de la séance.
 

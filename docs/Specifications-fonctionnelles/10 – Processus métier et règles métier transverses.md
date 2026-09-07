@@ -33,7 +33,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter une activité`. |
 | RM-020 | La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Les suivantes sont insérées après la dernière Activité existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Tour. |
-| RM-021 | Toucher une carte d’Activité ouvre directement son édition. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucune Activité dans le catalogue. |
+| RM-021 | Toucher brièvement une carte d’Activité ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucune Activité dans le catalogue. |
 | RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro, une ou plusieurs Catégories à la Séance. |
 | RM-023 | Une Catégorie personnalisée peut être créée depuis l’écran de sélection. À partir du MVP bis, une Catégorie supprimée est retirée des Séances concernées sans modifier les Instantanés historiques. |
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au Catalogue des séances. |
@@ -45,7 +45,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-025 | Une Séance contient exactement un Tour visible et un Cycle technique. |
 | RM-026 | Le Tour est un conteneur ordonné d’Activités exécuté intégralement de 1 à 99 fois ; sa valeur initiale est 1. |
-| RM-027 | Le nombre de Tours est modifié avec un contrôle compact `xN` ouvrant un sélecteur. Les boutons `+ / −` ne font pas partie de l’UX de référence. |
+| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Activité. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. |
 | RM-028 | Le Cycle est conservé pour l’évolutivité du modèle. Dans le MVP, son nombre de répétitions vaut toujours 1, n’est pas modifiable et n’est jamais affiché. |
 | RM-029 | Des Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. Leur ordre est persistant. |
 | RM-030 | Le Compte à rebours initial et la Fin de séance sont structurellement présents. Une valeur de 0 seconde rend la phase instantanée sans la supprimer. |

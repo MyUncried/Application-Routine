@@ -14,7 +14,7 @@ Un contrat d’écran ne remplace ni Figma ni les autres chapitres. Il précise,
 - les chevauchements, troncatures et contenus masqués ;
 - une navigation ou un état de données différent de celui spécifié.
 
-Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les seize frames dont la construction principale est affectée à T01 ainsi que les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10. Ces contrats S10 réutilisent les frames T01 existantes et ne créent aucune représentation Figma supplémentaire.
+Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les seize frames dont la construction principale est affectée à T01, le nouvel état transitoire de déplacement affecté à T02, ainsi que les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10. Les contrats S10 réutilisent les frames T01 existantes ; l’état T02 possède sa propre représentation Figma.
 
 ## 2. Sources et ordre d’application
 
@@ -379,7 +379,7 @@ L’écran affiche, dans cet ordre : en-tête fixe avec Retour et `Composition d
 
 Dans tous les états de cet écran, l’icône du conteneur Tour est une instance de `Icon / Tour` (`3066:4685`), issue de la référence validée `Nouvelle séance — Nom renseigné` (`2028:12003`, ancien nœud source `2028:12040`). L’actif de développement unique est `assets/icons/icon-tour.svg`, clé `icon.tour` ; aucune copie vectorielle locale n’est admise.
 
-Les valeurs `10 s`, `x1` et `5 s` sont les valeurs initiales métier. Le nom est vide. Le champ `Nom de la séance` réutilise `Session / Name Field — Source exact` (`2537:1480`) : `354 × 42`, fond transparent laissant apparaître la couleur de séance et liseré blanc intérieur `1` lié à `color/session-name-border`. La couleur proposée par défaut est une vraie valeur du brouillon et non un simple décor. Le Cycle technique reste invisible.
+Les valeurs `10 s`, `1` et `5 s` sont les valeurs initiales métier. Le nom est vide. Le champ `Nom de la séance` réutilise `Session / Name Field — Source exact` (`2537:1480`) : `354 × 42`, fond transparent laissant apparaître la couleur de séance et liseré blanc intérieur `1` lié à `color/session-name-border`. La couleur proposée par défaut est une vraie valeur du brouillon et non un simple décor. Le Cycle technique reste invisible.
 
 Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`, le contexte `154–207`, le corps commence à `207` et l’action finale occupe `790–874`. L’en-tête et l’action finale restent fixes ; le corps défile. Les lignes structurelles ont une hauteur visuelle de `60`, le Tour est contenu dans le cadre prévu par le Design System et le résumé reste intégré sous `Nombre de tours`.
 
@@ -390,7 +390,7 @@ Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`
 | Couleur | Ouvre CE-T01-06, sans navigation. |
 | `Ajouter une activité` | Ouvre CE-T01-13 en création d’un Exercice par défaut. |
 | Compte à rebours | Ouvre CE-T01-07. |
-| Valeur du Tour | En T01, le contrôle reste à `1`. T02-S01 rend sa modification fonctionnelle de `1` à `99` selon CE-T02-01. |
+| Valeur du Tour | Contrôle présent, aligné à droite sur le bord des cartes et affiché sans `x` ni `×`. En T01, le contrôle reste à `1` et sa modification ne doit pas être simulée dans la recette partielle T01. T02-S01 rend sa modification fonctionnelle de `1` à `99` selon CE-T02-01. |
 | Fin de séance | Ouvre CE-T01-10. |
 | Action finale | Porte toujours le libellé `Continuer`, en création comme en modification. Elle est affichée désactivée tant que le nom et au moins un Exercice valide ne sont pas présents ; sa validation ouvre les Catégories. Son libellé ne varie jamais selon la validité de la Composition. |
 
@@ -491,15 +491,110 @@ Tests bloquants : quatre libellés exacts ; fond réellement bloqué ; aucune su
 | Condition | Nom, couleur et au moins un Exercice valide |
 | Hérite de | CE-T01-04 à 07 |
 
-La Composition affiche les données réelles dans l’ordre enregistré : Compte à rebours ; Activités avant le Tour ; Tour ; Activités du Tour ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible et vaut toujours `1`. Dans T01, le Tour reste `x1` dans les données de recette même si la frame illustre `x3`.
+La Composition affiche les données réelles dans l’ordre enregistré : Compte à rebours ; Activités avant le Tour ; Tour ; Activités du Tour ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible et vaut toujours `1`. Dans T01, le Tour reste `1` dans les données de recette même si la frame illustre `3`. L’interface n’ajoute jamais de préfixe `x` ni de signe `×`.
 
-Chaque ligne d’Exercice affiche son nom et le résumé défini par D-095. La Consigne et les Zones corporelles n’y figurent pas. La ligne utilise le composant `Composition / Activity Row` ; son slot structurel gauche `28 × 28` contient exclusivement une instance de `Icon / Structure / Movable` (`3066:4676`) : actif `assets/icons/composition-reorder.svg`, dessin `20 × 20`, opacité `50 %`, couleur `color.iconNeutral`. Le token `icon.compact = 16 × 16` et toute copie locale historique `icon/réorganiser` sont interdits pour cette poignée. Toucher le corps de la ligne ouvre l’Activité en modification. Les actions par glissement non livrées en T01 ne doivent pas apparaître actives.
+Chaque ligne d’Exercice mesure `354 × 69` et affiche, dans cet ordre, son nom, ses Zones corporelles, puis le résumé défini par D-095. La ligne des Zones est distincte du résumé, ne contient jamais les Catégories de la Séance, utilise un texte secondaire monochrome et sépare plusieurs valeurs par ` · `. La Consigne n’y figure pas. Une Récupération n’affiche aucune ligne de Zone corporelle. La ligne utilise le composant `Composition / Activity Row` (`2588:2679`) ; son slot structurel gauche `28 × 28` contient exclusivement une instance de `Icon / Structure / Movable` (`3066:4676`) : actif `assets/icons/composition-reorder.svg`, dessin `20 × 20`, opacité `50 %`, couleur `color.iconNeutral`. Le token `icon.compact = 16 × 16` et toute copie locale historique `icon/réorganiser` sont interdits pour cette poignée. Toucher le corps de la ligne ouvre l’Activité en modification.
+
+Un appui long sur la carte amorce sa réorganisation et affiche l’état transitoire `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`). La carte active (`3518:4621`) mesure `362 × 71`, est centrée à `x = 6`, utilise le fond `#F7F7FF` visible derrière tout le contenu grâce au fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `8` et une ombre périphérique `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`). Les autres cartes conservent `354 × 69`. Le toucher court continue d’ouvrir la modification ; aucune position n’est persistée avant une dépose valide.
+
+Dans l’état `Composition d’une séance — actions glissées` (`2028:11808`), l’ensemble du contenu commence à `y = 92`, sous l’en-tête fixe. Le glissement gauche ne déplace pas la carte : il superpose sur sa partie droite un groupe de `144 × 69`, composé de `Dupliquer` et `Supprimer`, chacun `72 × 69`. Les deux libellés sont centrés horizontalement et verticalement. Aucun autre élément de la Composition ne change de position.
 
 Le bouton `Ajouter une activité` reste unique et placé au-dessus de la structure. Une nouvelle Activité est insérée après le Compte à rebours, avant le Tour, puis peut être déplacée. Les éléments structurels ne sont ni déplaçables ni supprimables. Deux Exercices successifs sans pause produisent l’avertissement non bloquant prévu.
 
-Le résumé intégré au conteneur Tour est calculé exclusivement depuis les Activités ; `5 activités · 19 min` est un exemple. Il exclut toujours la durée du Compte à rebours initial et celle de la Fin de séance, éléments structurels hors Tour. Il est placé sous `Nombre de tours`, au format du sous-libellé des cartes (`11/13`, gris secondaire, écart `4`). Le groupe de textes est centré verticalement avec le sélecteur `66 × 34`. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucun élément ne passe sous l’action.
+Le résumé intégré au conteneur Tour est calculé exclusivement depuis les Activités ; `5 activités · 19 min` est un exemple. Il exclut toujours la durée du Compte à rebours initial et celle de la Fin de séance, éléments structurels hors Tour. Il est placé sous `Nombre de tours`, au format du sous-libellé des cartes (`11/13`, gris secondaire, écart `4`). Le groupe de textes est centré verticalement avec le sélecteur `66 × 34`, dont le bord droit est aligné avec celui des cartes. Le sélecteur affiche uniquement le nombre, utilise pour son icône la couleur `#CDCEFA` de la référence `2028:12051` et n’affiche aucun chevron de repli. `Continuer` est actif et ouvre CE-T01-11 sans enregistrer de données fictives. La liste centrale défile entre l’en-tête et l’action fixe ; aucun élément ne passe sous l’action.
 
-Tests bloquants : ordre et calculs issus du brouillon ; Tour `x1` pour T01 ; aucune ligne Cycle ; ajout, ouverture et réorganisation avec le bon ID ; chaque carte d’Activité utilise `Icon / Structure / Movable` (`3066:4676`) en `20 × 20` dans un slot `28 × 28`, sans icône locale `16 × 16` ; résumés et accords exacts ; activation conditionnelle de Continuer ; conformité à `2028:11700`.
+Tests bloquants : ordre et calculs issus du brouillon ; Tour `1` pour T01, sans `x` ni `×`, contrôle aligné à droite, icône `#CDCEFA` et aucun chevron de repli ; aucune ligne Cycle ; ajout et ouverture avec le bon ID ; carte au repos `354 × 69` ; présence des seules Zones corporelles entre le nom et le résumé, sans Catégorie ni couleur ; chaque carte d’Activité utilise `Icon / Structure / Movable` (`3066:4676`) en `20 × 20` dans un slot `28 × 28`, sans icône locale `16 × 16` ; résumés et accords exacts ; activation conditionnelle de Continuer ; variante glissée à `y = 92` avec deux actions `72 × 69` ; conformité à `2028:11700` et `2028:11808`. La manipulation complète des Activités relève de CE-T02-01 et l’état d’appui long de CE-T02-02.
+
+---
+
+### CE-T02-01 — Composition complète : réorganisation, duplication, suppression et nombre de Tours
+
+#### Identification et périmètre
+
+| Propriété | Valeur |
+| --- | --- |
+| Tranche | `T02-S01` |
+| Frame principale | `2028:11700` — `Composition d’une séance — sans Cycle` |
+| État actions | `2028:11808` — `Composition d’une séance — actions glissées` |
+| État déplacement | `3518:4576` — `Composition d'une séance — Appui long — carte soulevée`, détaillé par CE-T02-02 |
+| Hérite de | CE-T01-04 à CE-T01-10, dont CE-T01-09 pour la structure, les données et la validation |
+| Structure | Compte à rebours ; Activités avant le Tour ; Tour et Activités du Tour ; Activités après le Tour ; Fin de séance |
+| Périmètre T02 | Nombre de Tours, calculs, déplacement, duplication et suppression des Activités |
+
+La Composition restitue le brouillon réel dans l’ordre : Compte à rebours initial ; Activités avant le Tour ; Tour et ses Activités ; Activités après le Tour ; Fin de séance. Le Cycle technique reste invisible. Les éléments structurels sont fixes : seuls les objets Activité sont déplaçables, duplicables ou supprimables.
+
+Le Compte à rebours initial, le Tour et la Fin de séance restent fixes : ils ne sont ni déplaçables, ni duplicables, ni supprimables. Le Cycle technique reste fixé à `1`, invisible et non modifiable.
+
+#### Gestes d’une carte Activité
+
+| Geste | Résultat |
+| --- | --- |
+| Appui court | Ouvre l’Activité touchée en modification. |
+| Appui long sur l’ensemble de la carte | Engage la réorganisation sans ouvrir la modification. |
+| Déplacement après appui long | Change l’ordre dans une zone ou déplace l’Activité entre `BEFORE_TOUR`, `IN_TOUR` et `AFTER_TOUR`. |
+| Glissement gauche | Révèle `Dupliquer` et `Supprimer` conformément à la frame de référence. |
+
+La poignée `Icon / Structure / Movable` reste visible comme affordance de déplacement. Elle ne constitue pas la seule zone tactile autorisée : l’appui long sur tout le corps de la carte est le déclencheur contractuel. Les cibles tactiles, dimensions, couleurs, espacements et actions révélées proviennent exclusivement du DSF.
+
+Un toucher court sur une carte ouvre sa modification. Un appui long amorce son déplacement conformément à CE-T02-02. La dépose peut conserver ou changer la zone `Avant Tour`, `Dans Tour` ou `Après Tour`; elle produit des positions uniques et persiste le nouvel ordre par `API-COM-06`. Une annulation du geste ne modifie pas le brouillon.
+
+Après un déplacement, l’identifiant et tous les paramètres de l’Activité sont conservés, son `structuralPosition` reflète sa nouvelle zone et les positions sont renumérotées continûment dans chaque zone. Aucun déplacement ne crée, ne duplique ou ne perd une Activité. L’ordre du brouillon devient immédiatement l’ordre affiché, sans écriture persistante avant l’enregistrement final.
+
+#### Duplication et suppression
+
+Un glissement gauche révèle `Dupliquer` et `Supprimer` sans déplacer la carte. Dans `2028:11808`, le groupe superposé mesure `144 × 69`; chaque action mesure `72 × 69`.
+
+`Dupliquer` crée immédiatement après la source, dans la même zone structurelle, une Activité indépendante possédant un nouvel identifiant. Tous les paramètres et associations média de la source sont copiés. Le nom est `{nom} (copie)`, puis `{nom} (copie 2)`, `{nom} (copie 3)`, etc., sans collision. La source reste inchangée et aucune entrée n’est créée dans le futur catalogue d’Activités.
+
+`Supprimer` retire uniquement l’Activité visée du brouillon et renumérote sa zone. Pour une Séance existante, la suppression n’est persistée qu’avec l’enregistrement final. L’abandon restitue intégralement la version persistée. Les validations existantes continuent d’empêcher l’enregistrement si aucun Exercice valide ne subsiste ; supprimer le dernier Exercice rend `Continuer` indisponible. Aucun dialogue supplémentaire n’est inventé en l’absence de contrat Figma.
+
+Chaque opération actualise l’ordre, le nombre d’Activités, la durée et la validité de la Composition.
+
+#### Nombre de Tours
+
+Toucher le contrôle `Nombre de tours` ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`), dans l’overlay centré et bloquant du DSF.
+
+- domaine autorisé : entiers de `1` à `99` ;
+- valeur initiale et valeur par défaut historique : `1` ;
+- `Annuler` ferme sans modifier le brouillon ;
+- `Confirmer` applique exactement la valeur centrée ;
+- aucune valeur invalide ne peut être enregistrée ;
+- la valeur confirmée est restituée après enregistrement et réouverture.
+
+Le sélecteur du nombre de Tours affiche uniquement le nombre sans `x` ni `×`, mesure `66 × 34` et aligne son bord droit sur celui des cartes. Son icône utilise `#CDCEFA`, conformément au vecteur de référence `2028:12051`; aucun chevron de repli n’est visible. Une valeur n’est appliquée qu’après confirmation explicite de la roulette. Sa modification recalcule immédiatement, après confirmation, les occurrences du Tour et les synthèses concernées.
+
+#### Calculs
+
+Le nombre et la durée estimée de la Composition appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. Les Séries, Pauses et Récupérations suivent les règles existantes. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée. Le Compte à rebours initial et la Fin de séance contribuent à la durée globale lorsqu’ils sont non nuls, mais jamais au nombre d’Activités ni à la synthèse interne du Tour.
+
+La synthèse intégrée sous `Nombre de tours` affiche `N activité(s) · durée`. Elle compte exclusivement les Activités de la Composition et exclut toujours le Compte à rebours initial et la Fin de séance. La durée développe les Séries, les pauses et les répétitions du Tour ; en présence d’un mode Répétitions ou À l’échec, elle reste une borne minimale préfixée par `≥`. L’accord singulier/pluriel et l’arrondi à la minute supérieure suivent D-081, D-090, D-091, D-100 et D-112.
+
+#### Persistance et garde d’abandon
+
+L’enregistrement final est atomique et conserve le nombre de Tours, les trois zones structurelles, l’ordre, les identifiants et tous les paramètres. En cas d’échec, aucune structure partielle n’est persistée et le brouillon reste récupérable. Les Séances T01 restent lisibles et modifiables ; en l’absence de valeur historique explicite, le Tour vaut `1`.
+
+Tests bloquants : chargement de l’ordre réel ; distinction appui court, appui long et glissement gauche ; déclenchement du déplacement depuis toute la carte ; aucune activation du déplacement sur les éléments structurels ; déplacements intra-zone et inter-zones sans perte, duplication ni changement d’identifiant ; dépôt entre les trois zones ; annulation sans écriture ; duplication indépendante, complète, suffixée sans collision et adjacente ; suppression ciblée et abandon réversible ; recalcul et validité après chaque opération ; valeur Tour `1–99` confirmée explicitement, bornes `1` et `99`, rejet de `0`, `100` et des non-entiers ; contrôle aligné et sans préfixe ; Annuler/Confirmer et voile DSF ; calculs structurels exacts et exclusion des deux éléments structurels ; enregistrement atomique ; réouverture fidèle ; compatibilité T01 ; conformité à `2028:11700` et `2028:11808`, renvoi à CE-T02-02 pour `3518:4576` ; validation des gestes sur appareil réel.
+
+---
+
+### CE-T02-02 — Activité en cours de déplacement
+
+#### Identification
+
+| Propriété | Valeur |
+| --- | --- |
+| Frame Figma | `3518:4576` — `Composition d'une séance — Appui long — carte soulevée` |
+| Hérite de | CE-T02-01 |
+| Déclencheur | Appui long sur une carte d’Activité déplaçable |
+| Nature | État transitoire avant et pendant le déplacement |
+
+L’Activité active conserve son contenu et son identifiant. Sa carte passe de `354 × 69` à `362 × 71`, reste centrée dans la section à `x = 6`, reçoit le fond `#F7F7FF` repris du bandeau supérieur, un contour `1` point `#D1D1D6`, un rayon `8` et une ombre périphérique `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Le fond interne `Informations` est transparent : le bleu reste donc visible derrière le nom, les Zones corporelles et la synthèse, ce qui atténue visuellement le contenu sans réduire séparément l’opacité de ses textes. Les autres cartes, le Tour et les éléments structurels ne changent ni de taille ni de position au déclenchement.
+
+La poignée `Icon / Structure / Movable` reste visible, mais l’appui long porte sur toute la carte. Un toucher court ouvre toujours la modification. L’entrée dans cet état ne persiste rien ; seule une dépose dans une destination valide appelle `API-COM-06`. Une annulation du geste restitue la carte au format `354 × 69` sans modifier l’ordre.
+
+Dans le même écran, le sélecteur du nombre de Tours reste `66 × 34`, aligné sur le bord droit des cartes. Il affiche seulement `3`, sans `x` ni `×`, reprend la couleur d’icône `#CDCEFA` de `2028:12051` et ne montre aucun chevron de repli.
+
+Tests bloquants : distinction toucher court/appui long ; état visuel exact `362 × 71` ; bleu `#F7F7FF` visible derrière l’intégralité du contenu ; fond interne transparent sans opacité textuelle locale ; contour, rayon et ombre conformes ; éléments structurels fixes ; aucun changement de données avant dépose ; retour au repos après annulation ; appel de réordonnancement uniquement après dépose valide ; sélecteur de Tours aligné et affichant `3` sans préfixe ; conformité visuelle à `3518:4576` sur `402 × 874`.
 
 ---
 
@@ -577,39 +672,42 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 | Type initial | `Exercice` |
 | Mode initial T01 | `Durée` |
 
-L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, place le champ `Nom de l’activité` en premier, à `12` points du haut, avec la même hauteur et le même alignement que le champ `Nom de la séance` de la Composition. Aucun contexte ni nom de Séance n’est affiché. Le bouton centré `+ Ajouter un média` apparaît sous le champ ; il est désactivé dans le MVP. La section Médias est masquée dans le MVP.
+L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, place le champ `Nom de l’activité` en premier, à `12` points du haut, avec la même hauteur et le même alignement que le champ `Nom de la séance` de la Composition. Aucun contexte ni nom de Séance n’est affiché. Le bouton centré `Ajouter un média` réutilise l’instance `Action / Add Media — Source exact` (`3382:60`) : le signe plus est le vecteur DSF `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère typographique `+`. Le bouton est visible mais désactivé dans le MVP. La section Médias est masquée dans le MVP.
 
-Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétitions / À l’échec` ; titre `Paramètres de l’activité` ; paramètres adaptés au mode ; cadre récapitulatif ancré en bas. L’action finale fixe suit le libellé Figma `Valider`.
+Le reste du corps affiche, dans cet ordre : titre `Type d’activité` et segment `Exercice / Récupération` ; titre `Mode d’exécution` et segment `Durée / Répétitions / À l’échec` ; titre `Paramètres de l’activité` ; paramètres adaptés au mode ; cadre récapitulatif ancré en bas. Dans la rangée `Paramètres de l’activité`, l’ordre horizontal est invariant : `Séries` à gauche ; cible d’exécution au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`) ; `Pause` à droite. L’action finale fixe suit le libellé Figma `Valider`.
 
-Les deux contrôles segmentés divisent strictement leur largeur intérieure en deux parts égales. La rangée des trois paramètres reste lisible ; en largeur compacte elle peut se réorganiser sans réduire les cibles sous `48 × 48`. Le récapitulatif occupe la largeur utile, possède des marges internes, grandit avec le texte et reste à `spacing/24` au-dessus de l’action finale.
+Le contrôle de Type divise strictement sa largeur intérieure en deux parts égales. Le contrôle de Mode la divise en trois parts égales. La rangée des trois paramètres conserve l’ordre `Séries` → cible → `Pause` dans tous les modes et tous les états de roulette ; aucun champ ne se décale lorsqu’un autre s’ouvre. Le récapitulatif occupe la largeur utile, possède des marges internes, grandit avec le texte et reste à `spacing/24` au-dessus de l’action finale.
 
 Le MVP exige les parcours Exercice en modes Durée, Répétitions et À l’échec. Récupération reste chronométrée. `Séries` vaut au moins `1`; le nom est obligatoire, ainsi que la durée ou les répétitions uniquement lorsque le mode l’exige. La Pause peut valoir `0 s`.
 
-`Durée` ouvre CE-T01-14. Les contrôles Pause et Séries n’ouvrent pas de sélecteur non livré dans T01. `Valider` reste désactivé tant que l’Exercice est invalide ; lorsqu’il est valide, il ouvre CE-T01-15 en conservant les paramètres dans le brouillon d’Activité.
+Les contrôles `Séries`, `Durée`, `Répétitions` et `Pause` ouvrent les variantes définies par CE-T01-14. `Valider` reste désactivé tant que l’Exercice est invalide ; lorsqu’il est valide, il ouvre CE-T01-15 en conservant les paramètres dans le brouillon d’Activité.
 
 Le récapitulatif est calculé et suit les valeurs confirmées ; le texte de la frame n’est jamais statique. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le type d’Activité ni par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. À l’échec : `{N} série(s) de {activité}, jusqu’à l’échec`. Si la pause est non nulle, ajouter `, avec {pause} de pause`, puis ` entre les séries` seulement si `N > 1`. Retour avec modifications non enregistrées ouvre CE-T01-16 ; aucune donnée ne peut être supprimée silencieusement.
 
-Tests bloquants : titre fonctionnel ; aucun contexte ni nom de Séance dans le bandeau ; champ Nom placé en premier et typographie conforme ; bouton `+ Ajouter un média` visible mais désactivé dans le MVP ; section Médias masquée ; trois segments égaux et états accessibles ; synthèse calculée et ancrée en bas ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`.
+Tests bloquants : titre fonctionnel ; aucun contexte ni nom de Séance dans le bandeau ; champ Nom placé en premier et typographie conforme ; bouton `Ajouter un média` visible mais désactivé, avec le vecteur DSF `3382:61` et aucun caractère `+` ; section Médias masquée ; contrôle Mode en trois segments égaux ; ordre invariant `Séries` → cible → `Pause` en Durée, Répétitions et À l’échec ; synthèse calculée et ancrée en bas ; aucune valeur Figma statique ; `Séries=1` pour T01 ; validation conditionnelle ; brouillon transmis à l’étape 2 ; conformité à `1992:9132`, `1992:9212` et `3369:4236`.
 
 ---
 
-### CE-T01-14 — Création d’un Exercice — Durée ouverte
+### CE-T01-14 — Création d’un Exercice — Sélecteurs de paramètres ouverts
 
 #### Identification
 
 | Propriété | Valeur |
 | --- | --- |
-| Frame Figma | `1992:9430` — `Création activité — Durée — sélecteur ouvert` |
-| Déclencheur | Appui sur `Durée` dans CE-T01-13 |
-| Composant | `Picker / Popover — Source exact`, `Type=Duration` (`2537:1110`), `330 × 190` |
+| Frame Durée | `1992:9430` — `Création activité — Durée — sélecteur ouvert` |
+| Frame Pause | `1992:9524` — `Création activité — Pause — sélecteur ouvert` |
+| Frame Séries | `1992:9618` — `Création activité — Séries — roulette compacte ouverte` |
+| Frame Répétitions | `1992:9709` — `Création activité — Répétitions — roulette compacte ouverte` |
+| Déclencheur | Appui sur le contrôle `Séries`, `Durée`, `Répétitions` ou `Pause` dans CE-T01-13 |
+| Composants | `Picker / Popover — Source exact` : `Type=Duration` (`2537:1110`, `330 × 190`) ou `Type=Numeric wheel` (`3210:49`, `136 × 190`) |
 
-Le sélecteur est rendu dans un overlay centré et bloquant, indépendant du contrôle Durée et du défilement, et présente une seule instance canonique. Il présente les deux roulettes, unités et cinq valeurs visibles selon le même contrat que CE-T01-07. La valeur centrale de la frame est `1 min 30 s`, donnée d’illustration et non valeur initiale imposée. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
+Le sélecteur est rendu dans un overlay centré et bloquant, indépendant du contrôle déclencheur et du défilement, et présente une seule instance canonique. `Durée` et `Pause` utilisent deux roulettes minutes/secondes, leurs unités et cinq valeurs visibles selon le même contrat que CE-T01-07. `Séries` et `Répétitions` utilisent une roulette numérique compacte à une colonne. Les valeurs visibles dans les frames sont des données d’illustration et non des valeurs initiales imposées. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
 
-Pendant l’ouverture, les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La durée sélectionnée reste locale pendant le défilement ; le contrôle et le récapitulatif ne sont actualisés qu’après Confirmer. Une durée totale de `0 s` laisse la validation de l’Activité désactivée après application.
+Pendant l’ouverture, la rangée visible derrière l’overlay conserve strictement l’ordre `Séries` à gauche, cible `Durée` ou `Répétitions` au centre, puis `Pause` à droite. L’ouverture d’une roulette ne déplace, ne permute et ne redimensionne aucun de ces trois contrôles. Les autres paramètres et segments utilisent l’état visuel non prioritaire prévu par Figma et ne déclenchent aucune action concurrente. Chaque cran effectif produit un retour haptique léger unique. La valeur sélectionnée reste locale pendant le défilement ; le contrôle et le récapitulatif ne sont actualisés qu’après Confirmer. Une Durée cible totale de `0 s` laisse la validation de l’Activité désactivée après application ; une Pause de `0 s` reste valide.
 
 Toucher une valeur ou le cadre sélectionné ne ferme pas le sélecteur. Annuler ferme sans enregistrer ; Confirmer applique la valeur puis ferme. Le clavier est fermé avant l’ouverture. Le sélecteur reste dans les zones sûres et au-dessus de l’action finale.
 
-Tests bloquants : overlay centré et fond bloqué, roulettes et unités corrects ; mise à jour du récapitulatif ; validation impossible à `0 s` ; haptique une fois par cran ; absence de modification de Pause ou Séries ; conformité à `1992:9430`.
+Tests bloquants : quatre déclencheurs et quatre frames exactes ; ordre sous-jacent invariant `Séries` → cible → `Pause` ; overlay centré et fond bloqué ; variante Durée correcte pour Durée et Pause ; variante numérique correcte pour Séries et Répétitions ; bornes conformes ; mise à jour du seul paramètre confirmé et du récapitulatif ; Durée cible invalide à `0 s`, Pause valide à `0 s` ; haptique une fois par cran ; conformité à `1992:9430`, `1992:9524`, `1992:9618` et `1992:9709`.
 
 ### Contrat transverse — Sélections numériques compactes
 
@@ -693,11 +791,18 @@ Tests bloquants : ouverture uniquement en présence d’un brouillon modifié ; 
 | CE-T01-11 | `2028:11204` | Oui | Catégories et associations | Tags, créer, enregistrer | Oui | Tags et Retour DS | Obligatoire |
 | CE-T01-12 | `2028:11248` | Oui | Nouvelle catégorie | Champ, Annuler, Ajouter | Oui | Champs et boutons DS | Obligatoire |
 | CE-T01-13 | `1992:9132` | Oui | Brouillon Exercice | Segments, champs, paramètres, Valider | Oui | Contrôles DS | Obligatoire |
-| CE-T01-14 | `1992:9430` | Oui | Durée Exercice | Roulettes min/s | Oui | Picker DS | Obligatoire |
+| CE-T01-14 | `1992:9430`, `1992:9524`, `1992:9618`, `1992:9709` | Oui | Paramètre Exercice en cours d’édition | Roulettes Durée, Pause, Séries et Répétitions | Oui | Pickers DS | Obligatoire |
 | CE-T01-15 | `1992:9292` | Oui | Consigne, zones, Activité | Champ, tags, Terminer | Oui | Tags et contrôles DS | Obligatoire |
 | CE-T01-16 | `3224:4082` | Oui | Brouillon local d’Activité | Annuler, Confirmer | Oui | Decision Dialog DS | Obligatoire |
 
 Les seize frames dont la construction principale est affectée à T01 possèdent désormais un contrat. Les états repris ultérieurement restent soumis à une revalidation fonctionnelle, technique ou de layout dans leur tranche d’affectation.
+
+## 6 bis. Matrice de couverture T02 — Composition
+
+| Contrat | Frames | Périmètre fonctionnel | Données et calculs | Gestes et contrôles | Comparaison visuelle |
+| --- | --- | --- | --- | --- | --- |
+| CE-T02-01 | `2028:11700`, `2028:11808` | Composition complète ; déplacement, duplication, suppression et nombre de Tours | Ordre réel, positions avant/dans/après Tour, synthèse et validité recalculées | Toucher court, appui long, glissement gauche, sélecteur de Tours | Obligatoire |
+| CE-T02-02 | `3518:4576` | État transitoire d’une Activité soulevée | Aucune persistance avant une dépose valide | Carte agrandie, ombre, fond bleu, dépôt ou annulation | Obligatoire |
 
 ## 7. Contrats T01-S10 — Réouverture et modification bout en bout
 
@@ -884,9 +989,9 @@ La requête par défaut retourne les Séances non archivées, triées par `updat
 
 ### Activité — Durée, Répétitions et À l’échec
 
-Le bandeau commence par `Nom de l’activité`, sans contexte de Séance. Les trois options du Mode ont la même largeur. Le mode À l’échec (`3369:4236`) masque Durée/Répétitions cible, conserve Pause et Séries à leurs positions et utilise `Suivant` pendant l’Exécution. Sa synthèse suit : `{N} série(s) de {nom}, jusqu’à l’échec[, avec {pause} de pause entre les séries]`.
+Le bandeau commence par `Nom de l’activité`, sans contexte de Séance. Les trois options du Mode ont la même largeur. Le mode À l’échec (`3369:4236`) remplace la cible chiffrée par le cadre informatif `à l’échec` et conserve l’ordre `Séries` → cible → `Pause`. Il utilise `Suivant` pendant l’Exécution. Sa synthèse suit : `{N} série(s) de {nom}, jusqu’à l’échec[, avec {pause} de pause entre les séries]`.
 
-Dans le MVP, `+ Ajouter un média` est visible mais désactivé et la section Médias est masquée dans toutes les frames Activité. Le composant `Media / Gallery` du DSF documente la cible V2 : médias ordonnés et défilement horizontal signalé par l’aperçu suivant tronqué.
+Dans le MVP, `Ajouter un média` est visible mais désactivé et la section Médias est masquée dans toutes les frames Activité. L’action utilise le composant `3382:60` et son icône vectorielle `3382:61`, jamais un caractère `+`. Le composant `Media / Gallery` du DSF documente la cible V2 : médias ordonnés et défilement horizontal signalé par l’aperçu suivant tronqué.
 
 ### Captures et références
 
@@ -895,59 +1000,4 @@ Les captures `catalogue-*.png` et `creation-activite-*.png` ont été réexport�
 ## 9. Contrat fonctionnel futur — Circuit V2
 
 Le Circuit requiert nom, couleur et au moins deux étapes référençant des Séances. L’écran de transition apparaît entre toutes les étapes, attend l’utilisateur en manuel ou décompte la durée globale en automatique (`30 s` par défaut), puis laisse s’exécuter le compte à rebours initial de la Séance suivante. Aucun contrat de planification de Circuit n’est actif avant la V3.
-
----
-
-### CE-T02-01 — Composition complète : réorganisation, duplication, suppression et nombre de Tours
-
-#### Identification et héritage
-
-| Propriété | Valeur |
-| --- | --- |
-| Tranche | `T02-S01` |
-| Frame principale | `2028:11808` — `Composition d’une séance — actions glissées` |
-| Hérite de | CE-T01-04 à CE-T01-10 |
-| Structure | Compte à rebours ; Activités avant le Tour ; Tour et Activités du Tour ; Activités après le Tour ; Fin de séance |
-
-Le Compte à rebours initial, le Tour et la Fin de séance restent fixes : ils ne sont ni déplaçables, ni duplicables, ni supprimables. Le Cycle technique reste fixé à `1`, invisible et non modifiable.
-
-#### Gestes d’une carte Activité
-
-| Geste | Résultat |
-| --- | --- |
-| Appui court | Ouvre l’Activité touchée en modification. |
-| Appui long sur l’ensemble de la carte | Engage la réorganisation sans ouvrir la modification. |
-| Déplacement après appui long | Change l’ordre dans une zone ou déplace l’Activité entre `BEFORE_TOUR`, `IN_TOUR` et `AFTER_TOUR`. |
-| Glissement gauche | Révèle `Dupliquer` et `Supprimer` conformément à la frame de référence. |
-
-La poignée `Icon / Structure / Movable` reste visible comme affordance de déplacement. Elle ne constitue pas la seule zone tactile autorisée : l’appui long sur tout le corps de la carte est le déclencheur contractuel. Les cibles tactiles, dimensions, couleurs, espacements et actions révélées proviennent exclusivement du DSF.
-
-Après un déplacement, l’identifiant et tous les paramètres de l’Activité sont conservés, son `structuralPosition` reflète sa nouvelle zone et les positions sont renumérotées continûment dans chaque zone. Aucun déplacement ne crée, ne duplique ou ne perd une Activité. L’ordre du brouillon devient immédiatement l’ordre affiché, sans écriture persistante avant l’enregistrement final.
-
-#### Duplication et suppression
-
-`Dupliquer` crée immédiatement après la source, dans la même zone structurelle, une Activité indépendante possédant un nouvel identifiant. Tous les paramètres de la source sont copiés. Le nom est `{nom} (copie)`, puis `{nom} (copie 2)`, `{nom} (copie 3)`, etc., sans collision. La source reste inchangée et aucune entrée n’est créée dans le futur catalogue d’Activités.
-
-`Supprimer` retire uniquement l’Activité visée du brouillon et renumérote sa zone. Pour une Séance existante, la suppression n’est persistée qu’avec l’enregistrement final. L’abandon restitue intégralement la version persistée. Les validations existantes continuent d’empêcher l’enregistrement si aucun Exercice valide ne subsiste. Aucun dialogue supplémentaire n’est inventé en l’absence de contrat Figma.
-
-#### Nombre de Tours
-
-Toucher le contrôle `Nombre de tours` ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`), dans l’overlay centré et bloquant du DSF.
-
-- domaine autorisé : entiers de `1` à `99` ;
-- valeur initiale et valeur par défaut historique : `1` ;
-- `Annuler` ferme sans modifier le brouillon ;
-- `Confirmer` applique exactement la valeur centrée ;
-- aucune valeur invalide ne peut être enregistrée ;
-- la valeur confirmée est restituée après enregistrement et réouverture.
-
-#### Calculs
-
-Le nombre et la durée estimée de la Composition appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. Les Séries, Pauses et Récupérations suivent les règles existantes. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée. Le Compte à rebours initial et la Fin de séance contribuent à la durée globale lorsqu’ils sont non nuls, mais jamais au nombre d’Activités ni à la synthèse interne du Tour.
-
-#### Persistance et garde d’abandon
-
-L’enregistrement final est atomique et conserve le nombre de Tours, les trois zones structurelles, l’ordre, les identifiants et tous les paramètres. En cas d’échec, aucune structure partielle n’est persistée et le brouillon reste récupérable. Les Séances T01 restent lisibles et modifiables ; en l’absence de valeur historique explicite, le Tour vaut `1`.
-
-Tests bloquants : distinction appui court/appui long ; déclenchement depuis toute la carte ; aucune activation du déplacement sur les éléments structurels ; déplacements intra-zone et inter-zones sans perte, duplication ni changement d’identifiant ; duplication complète et suffixes sans collision ; suppression ciblée et abandon réversible ; bornes `1` et `99`, rejet de `0`, `100` et des non-entiers ; Annuler/Confirmer et voile DSF ; calculs structurels ; enregistrement atomique ; réouverture fidèle ; compatibilité T01 ; validation des gestes sur appareil réel.
 

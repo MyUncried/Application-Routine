@@ -551,6 +551,7 @@ L’état révélant les actions d’une Activité est illustré par :
 | Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires |
 | Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires |
 | Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
+| Appui long — carte soulevée | ![[images/composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité |
 ### Objectif
 
 Permettre à l’utilisateur de définir la structure et l’ordre d’Exécution d’une Séance.
@@ -593,7 +594,7 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface, le nombre est affiché sans signe `×`, dans un contrôle compact placé à droite du bloc de textes. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. Cette synthèse compte uniquement les Activités et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas.
+Dans l’interface, le nombre est affiché sans préfixe `x` ni signe `×`, dans un contrôle compact placé à droite du bloc de textes. Le bord droit du contrôle est aligné avec le bord droit des cartes d’Activité. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. Cette synthèse compte uniquement les Activités et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas. L’icône du sélecteur reprend strictement la couleur de la référence `Nouvelle séance — Nom renseigné` (`2028:12003`, vecteur `2028:12051`, `#CDCEFA`). Aucun chevron de repli pointant vers le haut n’est affiché dans cet en-tête.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Activités ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement la carte structurelle concernée et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Tour dans ses états fermé et déployé.
 
@@ -627,9 +628,10 @@ Si deux Exercices s’enchaînent sans pause après Série ni Activité de type 
 La ligne d’une Activité de type Exercice dans la Composition affiche :
 
 - le nom de l’Exercice ;
+- ses Zones corporelles, sur une ligne dédiée, sans Catégorie et sans couleur ; les valeurs sont séparées par ` · ` ;
 - un résumé compact de sa configuration essentielle (nombre de Séries, Durée, Répétitions ou À l’échec, Pause après Série).
 
-La Consigne et les Zones corporelles ne figurent jamais dans ce résumé.
+La Consigne ne figure jamais dans la ligne. Les Zones corporelles ne sont pas intégrées au résumé de configuration : elles sont affichées séparément entre le nom et ce résumé. Une Récupération, qui ne possède aucune Zone corporelle, n’affiche pas cette ligne.
 
 Format :
 
@@ -645,9 +647,15 @@ Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries 
 
 Un appui court sur une carte Activité ouvre directement son parcours de modification. Un appui long sur l’ensemble de la carte déclenche sa réorganisation sans ouvrir la modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`. `Dupliquer` crée une Activité de Séance indépendante avec un nouvel identifiant, reprend tous les paramètres de la source, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucune Activité dans le catalogue. `Supprimer` retire uniquement l’Activité du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
+Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), le contenu utile commence sous l’en-tête fixe, à `y = 92`. Une carte d’Activité mesure `354 × 69`. Les actions se superposent à sa partie droite sans déplacer la carte : le groupe mesure `144 × 69`, avec `Dupliquer` et `Supprimer` en deux zones contiguës de `72 × 69`, libellés centrés.
+
 ### Réorganisation
 
-Les Activités peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le déplacement conserve l’identifiant et tous les paramètres de l’Activité, met à jour sa position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Activités peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur la carte de l’Activité ; la carte passe alors dans l’état soulevé, puis suit le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres de l’Activité, met à jour sa position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+
+L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. La carte active passe de `354 × 69` à `362 × 71`, reste centrée dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu interne transparent, un contour `1` point `#D1D1D6`, un rayon `8` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. Les autres cartes et éléments structurels restent inchangés.
+
+La poignée `Icon / Structure / Movable` reste l’indice visuel du caractère déplaçable, mais le geste d’activation porte sur la carte. L’état soulevé est uniquement transitoire : il ne modifie ni l’ordre ni la position structurelle avant la dépose.
 
 Le Tour, le Compte à rebours initial et la Fin de séance restent des éléments structurels fixes dans le MVP.
 
@@ -672,14 +680,14 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 ![[images/creation-activite-exercice.png|260]]
 
-Cette capture reflète le rendu MVP : le bouton `+ Ajouter un média` est visible mais désactivé et la section Médias n’est pas rendue. Les composants Média du DSF documentent séparément la cible V2.
+Cette capture reflète le rendu MVP : le bouton `Ajouter un média` est visible mais désactivé et la section Médias n’est pas rendue. Le bouton réutilise `Action / Add Media — Source exact` (`3382:60`) et son icône vectorielle DSF `icon/ajouter` (`3382:61`) en `16 × 16` ; aucun caractère typographique `+` n’est utilisé. Les composants Média du DSF documentent séparément la cible V2.
 
 ### États Figma de référence
 
 | État | Capture | Règle matérialisée |
 | --- | --- | --- |
 | Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions |
-| Mode À l’échec | ![[images/creation-activite-a-l-echec.png\|220]] | Aucun objectif de durée ou de répétitions ; Pause et Séries conservent leurs positions |
+| Mode À l’échec | ![[images/creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; ordre `Séries` → cadre `à l’échec` → `Pause` |
 | Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite |
 | Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la pause après Série avec validation explicite |
 | Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
@@ -710,7 +718,7 @@ L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en créat
 Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
 - le champ `Nom de l’activité`, placé à `12` points du haut, de même hauteur et au même alignement que le champ `Nom de la séance` de la Composition ;
-- le bouton centré `+ Ajouter un média`, visible mais désactivé dans le MVP.
+- le bouton centré `Ajouter un média`, visible mais désactivé dans le MVP, avec l’icône vectorielle DSF `3382:61` en `16 × 16` et jamais un caractère `+`.
 
 Le nom ou le contexte de la Séance n’est jamais affiché dans ce bandeau. Le reste du formulaire affiche ensuite, dans cet ordre :
 
@@ -723,6 +731,8 @@ Le nom ou le contexte de la Séance n’est jamais affiché dans ce bandeau. Le 
 Le nom est obligatoire.
 
 Le contrôle `Exercice / Récupération` partage sa largeur en deux zones égales. Le contrôle `Durée / Répétitions / À l’échec` la partage en trois zones égales. Le texte de chaque option reste centré. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe un cadre de largeur utile complète et reste à `spacing/24` au-dessus du bouton final. Il conserve ses marges internes et le cadre grandit verticalement si le texte occupe plusieurs lignes.
+
+Dans `Paramètres de l’activité`, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte.
 
 La synthèse ne préfixe jamais la phrase par le type d’Activité ni par le mode d’exécution. Elle suit les formes suivantes :
 
@@ -750,7 +760,7 @@ En mode `Durée`, la section `Paramètres de l’activité` comporte des roulett
 
 En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Le Nombre de répétitions, la Pause et le Nombre de Séries sont sélectionnés par roulettes. La Pause et le Nombre de Séries restent disponibles.
 
-En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. Les contrôles Pause et Nombre de Séries restent à leurs emplacements canoniques, sans se décaler vers la gauche.
+En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. La rangée conserve trois emplacements : `Séries` à gauche, cadre informatif transparent bordé portant `à l’échec` au centre, puis `Pause` à droite.
 
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
@@ -1595,6 +1605,6 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 Le contrôle supérieur du Catalogue contient `Activités / Séances / Circuits`, avec `Séances` sélectionné. Dans le MVP, les deux autres options sont visibles mais désactivées. Les filtres `Toutes`, `Planifiées`, `Non planifiées`, `Archivées` et les tris `Dernière modification` ou `Nom` seront portés par des boutons dédiés à ajouter dans Figma ; les anciens segments ne doivent pas être réimplémentés.
 
-Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Le segment Exercice contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans toutes les frames MVP, `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. Les composants Média du DSF constituent la référence V2.
+Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Le segment Exercice contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans toutes les frames MVP, `Ajouter un média` reste visible mais désactivé, utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`; la section Médias est masquée. Les composants Média du DSF constituent la référence V2.
 
-La frame `3369:4236` documente l’état À l’échec : Durée absente, positions de Pause et Séries conservées, synthèse `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`. Toutes les roulettes ouvertes utilisent le voile grisé commun.
+La frame `3369:4236` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, sans cible chiffrée, et synthèse `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`. Toutes les roulettes ouvertes conservent cet ordre et utilisent le voile grisé commun.

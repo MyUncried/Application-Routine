@@ -214,6 +214,8 @@ Exécuter une fois le Cycle technique :
 
 Cette organisation permet de construire des séances simples comme des séances complexes tout en conservant un nombre limité de concepts métier.
 
+Dans l’interface de Composition, un appui long sur la carte d’une Activité amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Activité en modification.
+
 # 4.5 Déroulement d'une séance
 
 Lorsqu'une séance est démarrée :
