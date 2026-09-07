@@ -10,9 +10,9 @@ mapfile -t ids < <(sed -n 's/^| \(INC-[0-9][0-9][0-9]\) |.*$/\1/p' "$register")
 
 for id in "${ids[@]}"; do
   row=$(grep -F "| $id |" "$register")
-  [ "$(awk -F'|' '{print NF}' <<<"$row")" -ge 9 ] || { echo "malformed row: $id" >&2; exit 1; }
+  [ "$(awk -F'|' '{print NF}' <<<"$row")" -eq 18 ] || { echo "malformed row or missing requested field: $id" >&2; exit 1; }
   grep -Eq 'PASS|FAIL|NON RETESTÉ|NON VÉRIFIABLE' <<<"$row" || { echo "controlled result missing: $id" >&2; exit 1; }
-  grep -Eq 'OUVERT|CORRIGÉ|SUPERSÉDÉ|SUPERSEDÉ' <<<"$row" || { echo "incident status missing: $id" >&2; exit 1; }
+  grep -Eq 'OUVERT|CORRIGÉ|SUPERSÉDÉ' <<<"$row" || { echo "incident status missing: $id" >&2; exit 1; }
 done
 
 for section in   '## Règle de tenue'   '## Incidents capitalisés'   '## Preuves de runs historiques dont la cause détaillée reste à compléter'   '## Couverture permanente actuellement disponible'   '## Dette de qualification explicite'   '## Historique du registre'; do
