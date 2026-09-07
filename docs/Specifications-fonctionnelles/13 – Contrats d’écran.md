@@ -390,7 +390,7 @@ Sur la référence, l’en-tête occupe `0–92`, le bloc nom/couleur `92–154`
 | Couleur | Ouvre CE-T01-06, sans navigation. |
 | `Ajouter une activité` | Ouvre CE-T01-13 en création d’un Exercice par défaut. |
 | Compte à rebours | Ouvre CE-T01-07. |
-| `x1` | Contrôle présent ; la modification du nombre de Tours appartient à T03 et ne doit pas être simulée dans la recette partielle T01. |
+| Valeur du Tour | En T01, le contrôle reste à `1`. T02-S01 rend sa modification fonctionnelle de `1` à `99` selon CE-T02-01. |
 | Fin de séance | Ouvre CE-T01-10. |
 | Action finale | Porte toujours le libellé `Continuer`, en création comme en modification. Elle est affichée désactivée tant que le nom et au moins un Exercice valide ne sont pas présents ; sa validation ouvre les Catégories. Son libellé ne varie jamais selon la validité de la Composition. |
 
@@ -895,3 +895,59 @@ Les captures `catalogue-*.png` et `creation-activite-*.png` ont été réexport�
 ## 9. Contrat fonctionnel futur — Circuit V2
 
 Le Circuit requiert nom, couleur et au moins deux étapes référençant des Séances. L’écran de transition apparaît entre toutes les étapes, attend l’utilisateur en manuel ou décompte la durée globale en automatique (`30 s` par défaut), puis laisse s’exécuter le compte à rebours initial de la Séance suivante. Aucun contrat de planification de Circuit n’est actif avant la V3.
+
+---
+
+### CE-T02-01 — Composition complète : réorganisation, duplication, suppression et nombre de Tours
+
+#### Identification et héritage
+
+| Propriété | Valeur |
+| --- | --- |
+| Tranche | `T02-S01` |
+| Frame principale | `2028:11808` — `Composition d’une séance — actions glissées` |
+| Hérite de | CE-T01-04 à CE-T01-10 |
+| Structure | Compte à rebours ; Activités avant le Tour ; Tour et Activités du Tour ; Activités après le Tour ; Fin de séance |
+
+Le Compte à rebours initial, le Tour et la Fin de séance restent fixes : ils ne sont ni déplaçables, ni duplicables, ni supprimables. Le Cycle technique reste fixé à `1`, invisible et non modifiable.
+
+#### Gestes d’une carte Activité
+
+| Geste | Résultat |
+| --- | --- |
+| Appui court | Ouvre l’Activité touchée en modification. |
+| Appui long sur l’ensemble de la carte | Engage la réorganisation sans ouvrir la modification. |
+| Déplacement après appui long | Change l’ordre dans une zone ou déplace l’Activité entre `BEFORE_TOUR`, `IN_TOUR` et `AFTER_TOUR`. |
+| Glissement gauche | Révèle `Dupliquer` et `Supprimer` conformément à la frame de référence. |
+
+La poignée `Icon / Structure / Movable` reste visible comme affordance de déplacement. Elle ne constitue pas la seule zone tactile autorisée : l’appui long sur tout le corps de la carte est le déclencheur contractuel. Les cibles tactiles, dimensions, couleurs, espacements et actions révélées proviennent exclusivement du DSF.
+
+Après un déplacement, l’identifiant et tous les paramètres de l’Activité sont conservés, son `structuralPosition` reflète sa nouvelle zone et les positions sont renumérotées continûment dans chaque zone. Aucun déplacement ne crée, ne duplique ou ne perd une Activité. L’ordre du brouillon devient immédiatement l’ordre affiché, sans écriture persistante avant l’enregistrement final.
+
+#### Duplication et suppression
+
+`Dupliquer` crée immédiatement après la source, dans la même zone structurelle, une Activité indépendante possédant un nouvel identifiant. Tous les paramètres de la source sont copiés. Le nom est `{nom} (copie)`, puis `{nom} (copie 2)`, `{nom} (copie 3)`, etc., sans collision. La source reste inchangée et aucune entrée n’est créée dans le futur catalogue d’Activités.
+
+`Supprimer` retire uniquement l’Activité visée du brouillon et renumérote sa zone. Pour une Séance existante, la suppression n’est persistée qu’avec l’enregistrement final. L’abandon restitue intégralement la version persistée. Les validations existantes continuent d’empêcher l’enregistrement si aucun Exercice valide ne subsiste. Aucun dialogue supplémentaire n’est inventé en l’absence de contrat Figma.
+
+#### Nombre de Tours
+
+Toucher le contrôle `Nombre de tours` ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`), dans l’overlay centré et bloquant du DSF.
+
+- domaine autorisé : entiers de `1` à `99` ;
+- valeur initiale et valeur par défaut historique : `1` ;
+- `Annuler` ferme sans modifier le brouillon ;
+- `Confirmer` applique exactement la valeur centrée ;
+- aucune valeur invalide ne peut être enregistrée ;
+- la valeur confirmée est restituée après enregistrement et réouverture.
+
+#### Calculs
+
+Le nombre et la durée estimée de la Composition appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. Les Séries, Pauses et Récupérations suivent les règles existantes. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée. Le Compte à rebours initial et la Fin de séance contribuent à la durée globale lorsqu’ils sont non nuls, mais jamais au nombre d’Activités ni à la synthèse interne du Tour.
+
+#### Persistance et garde d’abandon
+
+L’enregistrement final est atomique et conserve le nombre de Tours, les trois zones structurelles, l’ordre, les identifiants et tous les paramètres. En cas d’échec, aucune structure partielle n’est persistée et le brouillon reste récupérable. Les Séances T01 restent lisibles et modifiables ; en l’absence de valeur historique explicite, le Tour vaut `1`.
+
+Tests bloquants : distinction appui court/appui long ; déclenchement depuis toute la carte ; aucune activation du déplacement sur les éléments structurels ; déplacements intra-zone et inter-zones sans perte, duplication ni changement d’identifiant ; duplication complète et suffixes sans collision ; suppression ciblée et abandon réversible ; bornes `1` et `99`, rejet de `0`, `100` et des non-entiers ; Annuler/Confirmer et voile DSF ; calculs structurels ; enregistrement atomique ; réouverture fidèle ; compatibilité T01 ; validation des gestes sur appareil réel.
+
