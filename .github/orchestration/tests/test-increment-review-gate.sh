@@ -103,7 +103,7 @@ grep -Fq '  issues: write' "$recovery_workflow"
 grep -Fq 'gh api --paginate' "$recovery_workflow"
 grep -Fq 'duplicate recovered implementation outputs' "$recovery_workflow"
 
-for dispatch_workflow in $(grep -Rl 'repos/\$GITHUB_REPOSITORY/dispatches' .github/workflows --include='*.yml'); do
+for dispatch_workflow in $(grep -Rl '/dispatches' .github/workflows --include='*.yml'); do
   grep -Fq '  contents: write' "$dispatch_workflow" || { echo "repository_dispatch without contents: write: $dispatch_workflow" >&2; exit 1; }
 done
 
