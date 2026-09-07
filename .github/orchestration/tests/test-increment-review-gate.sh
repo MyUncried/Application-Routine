@@ -133,6 +133,14 @@ implementation_workflow='.github/workflows/kodjo-slice-implementation.yml'
 forbid_contains incompatible_issue_comment 'gh issue comment' "$implementation_workflow"
 forbid_contains incompatible_json_flag '--json id' "$implementation_workflow"
 require_contains canonical_comment_api 'gh api --method POST' "$implementation_workflow"
+require_contains partial_recovery_field 'recover_partial_run_id=' "$implementation_workflow"
+require_contains partial_recovery_stash 'git stash push --include-untracked' "$implementation_workflow"
+require_contains partial_recovery_restore 'git stash apply $env:STASH_REF' "$implementation_workflow"
+require_contains partial_recovery_causal_head 'Partial recovery HEAD mismatch' "$implementation_workflow"
+require_contains usage_limit_output '"usage_limit=true"' "$implementation_workflow"
+require_contains usage_limit_comment "'[KODJO_SLICE] USAGE_LIMIT'" "$implementation_workflow"
+require_contains usage_limit_no_retry "'retry=FORBIDDEN_BEFORE_RESET'" "$implementation_workflow"
+require_contains recovered_dirty_authorization 'Dirty worktree before Claude without authorized recovery' "$implementation_workflow"
 
 recovery_workflow='.github/workflows/kodjo-slice-implementation-publication-recovery.yml'
 require_contains exact_recovery_marker 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
