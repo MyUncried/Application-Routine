@@ -74,7 +74,7 @@ jobs:
           export ISSUE_NUMBER slice head base
           ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;abort "baseline" unless m["baseline_head"]==ENV["base"];abort "branch" if m["target_branch"].to_s.empty?;puts m["target_branch"]' "$manifest" > /tmp/target-branch
           branch=$(cat /tmp/target-branch)
-          remote=$(git ls-remote origin "refs/heads/$branch"|awk '{print $1}')
+          remote=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha')
           test "$remote" = "$head"
           git merge-base --is-ancestor "$base" "$head"
           plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
