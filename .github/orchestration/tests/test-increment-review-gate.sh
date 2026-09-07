@@ -123,6 +123,9 @@ require_contains baseline_api_ancestry 'compare/$baseline...$base' "$review_work
 require_contains implementation_api_ancestry 'compare/$base...$head' "$review_workflow"
 require_contains baseline_statuses 'case "$baseline_status" in identical|ahead)' "$review_workflow"
 require_contains strict_head_descendant '[ "$implementation_status" = ahead ]' "$review_workflow"
+require_contains manifest_sha_bash_validation '[[ "$baseline" =~ ^[0-9a-f]{40}$ ]]' "$review_workflow"
+require_contains manifest_sha_named_diagnostic 'Invalid manifest baseline SHA' "$review_workflow"
+forbid_contains ruby_cross_language_sha_regex 'baseline.match?' "$review_workflow"
 forbid_contains baseline_equality 'm["baseline_head"]==ENV["base"]' "$review_workflow"
 forbid_contains unauthenticated_local_ancestry 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
 
