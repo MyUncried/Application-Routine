@@ -34,6 +34,38 @@ Activités : `START_PLAN`, `PLAN_REVISE`, `PLAN_APPROVE`, `IMPLEMENTATION_REVISE
 
 Une commande sans manifeste actif, sur une autre Issue, une autre branche ou un autre HEAD est rejetée avant tout appel IA.
 
+## Parsing des événements GitHub — règles normatives et permanentes
+
+Ces règles s'appliquent à tout workflow qui lit un commentaire, un corps d'événement, une sortie d'étape ou un contenu récupéré par l'API GitHub.
+
+1. **Normalisation avant parsing.** Tout corps entrant doit être converti dans une représentation canonique avant la première extraction ou validation : fins de ligne CRLF et CR normalisées en LF, ou suppression explicite de tout caractère CR sur chaque valeur extraite. Aucun contrôle typé ne peut porter sur une valeur contenant encore un caractère CR.
+2. **Marqueur exact.** Le marqueur de commande ou de sortie est la première ligne normalisée complète. Il doit être comparé exactement à un marqueur canonique. Les recherches par sous-chaîne et les correspondances de préfixe ambiguës sont interdites.
+3. **Séparation routage/parsing.** La condition GitHub Actions ne sert qu'à router un événement non ambigu. Le gate relit et valide ensuite le marqueur exact, l'auteur, l'Issue, le commentaire source et les références causales avant tout appel IA.
+4. **Source autoritative relue.** Lorsqu'un événement désigne un commentaire source, le workflow doit relire ce commentaire par son identifiant via l'API GitHub, vérifier qu'il appartient à l'Issue attendue et qu'il provient de l'auteur autorisé, puis parser le corps relu après normalisation.
+5. **Extraction déterministe.** Chaque champ obligatoire doit être présent une seule fois, extrait après normalisation et validé selon son type exact. Un champ absent, dupliqué, vide, suffixé par CR ou mal formé arrête le gate.
+6. **Compatibilité Bash.** Avec `set -o pipefail`, une validation ne doit pas utiliser un producteur potentiellement long relié à `grep -q` ou à un consommateur qui ferme le tube prématurément. Les commentaires longs doivent être matérialisés ou comparés sans risque de `SIGPIPE`.
+7. **Compatibilité GitHub Expressions.** Dans une expression GitHub Actions, `\n` écrit dans un littéral entre apostrophes représente les caractères antislash et `n`, pas un saut de ligne. Toute construction nécessitant un saut de ligne doit employer une valeur réellement évaluée, par exemple `fromJSON('"\n"')`, et être vérifiée avec le moteur ou le comportement GitHub attendu.
+8. **Frontière IA.** Toute erreur de routage, de normalisation, de récupération ou de parsing est un `ORCHESTRATION_FAILURE`. Elle doit arrêter le workflow avant OpenAI ou Claude et ne constitue jamais un verdict fonctionnel ou technique sur le lot.
+
+### Contrôles obligatoires avant modification d'un bridge
+
+Toute création ou modification d'un workflow de bridge doit être contrôlée sans IA sur la totalité du chemin déterministe, depuis l'événement jusqu'au dernier gate précédant l'appel IA.
+
+La matrice minimale comprend :
+
+- le corps GitHub autoritatif réel concerné par la reprise ;
+- LF, CRLF et fins de ligne mixtes ;
+- commentaire court et commentaire long ;
+- marqueur valide, marqueur voisin, suffixé ou seulement préfixé ;
+- champ obligatoire absent, vide, dupliqué, mal formé ou terminé par CR ;
+- auteur incorrect, autre Issue, commentaire source inexistant ou de mauvais type ;
+- HEAD, branche, baseline, manifeste et références causales conformes et non conformes ;
+- Bash avec `pipefail` lorsque le workflow l'utilise ;
+- PowerShell lorsque le workflow l'utilise ;
+- validation syntaxique YAML du fichier final.
+
+Un test de fonction isolée ou une reproduction simplifiée ne suffit pas. Le correctif ne peut être déclaré vérifié qu'après réussite du gate complet avec les payloads autoritatifs réels et des cas négatifs représentatifs. Le résultat des contrôles et leurs limites d'environnement doivent être rapportés explicitement.
+
 ## Gates permanents
 
 1. Gate d'entrée : manifeste valide, tranche précédente `DONE`, Issue/branche/baseline exactes.
