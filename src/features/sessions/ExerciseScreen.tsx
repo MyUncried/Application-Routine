@@ -274,11 +274,44 @@ export function ExerciseScreen() {
 
   const headerTitle = step === 1 ? (isEditingExisting ? t.titleEdit : t.titleAdd) : t.titleInformation;
 
+  /**
+   * **Correction compacte LOT_3_OF_3 — Retour de l'étape Zones corporelles.**
+   *
+   * L'étape 2 (`Informations complémentaires` : Consigne + Zones corporelles)
+   * est une étape INTERNE de cet écran, pas un écran distinct : elle n'a
+   * jamais sa propre entrée de pile de navigation (`setStep(2)`, un simple
+   * état local — voir `Valider`). Router `back()` depuis cette étape faisait
+   * donc quitter l'écran Activité ENTIER vers la Composition, ce que la garde
+   * de sortie interprétait correctement comme un abandon (brouillon local
+   * sale dès la première Zone cochée) : la modale d'abandon s'ouvrait alors
+   * qu'aucune sortie réelle n'était demandée, et confirmer perdait tout le
+   * travail de l'étape 1.
+   *
+   * Le Retour revient désormais D'ABORD à l'étape 1, sans navigation, donc
+   * sans interception par la garde et sans modale. La copie de travail locale
+   * (`local`) n'est jamais démontée entre les deux étapes : Consigne et Zones
+   * sélectionnées restent intactes dans le brouillon local et réapparaissent
+   * telles quelles si l'utilisateur revient dans l'étape.
+   *
+   * La modale d'abandon reste, elle, strictement inchangée pour une SORTIE
+   * RÉELLE de l'écran Activité vers la Composition avec un brouillon sale
+   * (Retour depuis l'étape 1, geste système) — c'est `useCompositionExitGuard`
+   * qui l'assure, et il n'est pas touché ici : seule la destination du bouton
+   * Retour à l'étape 2 change.
+   */
+  function handleBack() {
+    if (step === 2) {
+      setStep(1);
+      return;
+    }
+    router.back();
+  }
+
   return (
     <ScreenShell>
       <FixedHeader
         title={headerTitle}
-        onBack={() => router.back()}
+        onBack={handleBack}
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
       <HeaderSeparator />
@@ -289,10 +322,15 @@ export function ExerciseScreen() {
        * contexte de Séance ») : accolée sans espace au séparateur de
        * l'en-tête, fixe (frère du `ScrollView`, jamais son descendant),
        * visible uniquement à l'étape 1 (absente de `1992:9292`, étape 2).
-       * Contient EXCLUSIVEMENT le champ `Nom de l'activité` en tête — plus
-       * aucun rappel du nom de la Séance (T01-S10). Le champ conserve sa
-       * géométrie/anatomie (`dimensions.exerciseTextField`, fond
-       * transparent, liseré blanc `colors.sessionNameBorder`).
+       * Commence par le champ `Nom de l'activité` — plus aucun rappel du nom
+       * de la Séance (T01-S10). Le champ conserve sa géométrie/anatomie
+       * (`dimensions.exerciseTextField`, fond transparent, liseré blanc
+       * `colors.sessionNameBorder`).
+       *
+       * **Correction compacte LOT_3_OF_3** : le bandeau porte désormais un
+       * SECOND élément, `+ Ajouter un média` (désactivé), immédiatement sous
+       * le Nom — voir ci-dessous. L'ordre `Nom` puis `média` est structurel :
+       * le Nom reste le premier élément du bandeau.
        */}
       {step === 1 ? (
         <View style={styles.contextBand} testID="exercise-context-band">
@@ -307,6 +345,34 @@ export function ExerciseScreen() {
             style={styles.nameInput}
             testID="exercise-name-input"
           />
+
+          {/*
+           * **Correction compacte LOT_3_OF_3 — `+ Ajouter un média` dans la
+           * zone bleue.** Le bouton était rendu dans le corps défilant, après
+           * le cadre `Paramètres de l'activité` ; il est DÉPLACÉ ici, dans le
+           * bandeau contextuel fixe, immédiatement sous le champ `Nom de
+           * l'activité` — qui reste le premier élément du bandeau. Il redonne
+           * au bandeau la substance qu'il avait perdue quand T01-S10 en a
+           * retiré la ligne `Séance · {nom}` (voir `contextBand` dans les
+           * styles pour la hauteur dérivée et la traçabilité du `115`
+           * documentaire).
+           *
+           * Le bouton reste VISIBLE mais DÉSACTIVÉ (`disabled`) : aucun
+           * `onPress`, aucune navigation, aucune section Médias, aucun import/
+           * galerie/lecture/stockage — Médias V2 reste hors périmètre. Seul
+           * son emplacement change ; son anatomie, son `testID` et son état
+           * désactivé sont repris à l'identique.
+           */}
+          <Pressable
+            disabled
+            accessibilityRole="button"
+            accessibilityState={{ disabled: true }}
+            accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
+            style={styles.addMediaButton}
+            testID="exercise-add-media"
+          >
+            <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -425,24 +491,6 @@ export function ExerciseScreen() {
                 </View>
               </View>
             </View>
-
-            {/*
-             * `+ Ajouter un média` (T01-S10, doc13 §8, frame `1992:9132`) :
-             * bouton centré VISIBLE mais DÉSACTIVÉ dans le MVP — aucune
-             * section Médias n'est rendue, aucun import/galerie/lecture/
-             * stockage (Médias V2 hors périmètre). `disabled` : ni `onPress`,
-             * ni navigation.
-             */}
-            <Pressable
-              disabled
-              accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
-              style={styles.addMediaButton}
-              testID="exercise-add-media"
-            >
-              <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
-            </Pressable>
 
             {/*
              * Espace flexible (complétion REWORK12, vérifié directement sur
@@ -740,6 +788,30 @@ const styles = StyleSheet.create({
   // par construction de `paddingTop + gap + hauteur du champ +
   // paddingBottom` (voir `dimensions.exerciseContextBand` et le
   // commentaire associé dans `tokens.ts`).
+  //
+  // **Correction compacte LOT_3_OF_3 — contenu restauré, hauteur redérivée.**
+  // Le bandeau contient de nouveau DEUX éléments : `Nom de l'activité` en
+  // premier, puis `+ Ajouter un média` (désactivé) immédiatement sous lui.
+  // Aucun token de ce bandeau n'est modifié — mêmes `paddingTop: 12`,
+  // `paddingBottom: 16`, `gap: 24`, `paddingHorizontal: spacing/24`, même
+  // fond `colors.exerciseContextBandBackground`, même position (frère fixe du
+  // `ScrollView`, accolé au séparateur) : le contrat de Shell/DSF du bandeau
+  // est conservé tel quel, seul son contenu change.
+  //
+  // Traçabilité du `115` documentaire : cette valeur (`3261:4151`) était la
+  // hauteur DÉRIVÉE d'un contenu qui n'existe plus — `12 + 17 (ligne
+  // « Séance · {nom} ») + 24 + 46 (champ) + 16 = 115`. T01-S10 (doc13 §8) a
+  // supprimé cette ligne de contexte de `17`, ramenant le bandeau à
+  // `12 + 46 + 16 = 74` ; la présente correction lui substitue le bouton
+  // média (`32`, `dimensions.compactSecondaryButton.visualHeight`), portant
+  // la hauteur dérivée à `12 + 46 + 24 + 32 + 16 = 130`. Le `115` n'est donc
+  // PLUS AUTORITATIF pour ce bandeau : il décrivait une composition
+  // différente, et aucune combinaison de tokens DSF canoniques ne le
+  // reproduit avec le contenu actuel (il exigerait un `gap` de `9`, qui
+  // n'est pas un token). Conformément au principe déjà appliqué ici et à
+  // `exerciseSummaryCard`/`decisionDialog`, la hauteur reste DÉRIVÉE par
+  // construction et n'est jamais codée en dur — écart explicitement disclosé
+  // dans le rapport de mission.
   contextBand: {
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
@@ -890,6 +962,13 @@ const styles = StyleSheet.create({
   // (Médias V2 hors périmètre). Anatomie du bouton secondaire compact DSF
   // (`dimensions.compactSecondaryButton`, `colors.primary` en liseré),
   // texte atténué pour signaler l'indisponibilité.
+  //
+  // Correction compacte LOT_3_OF_3 : ce bouton est désormais rendu DANS la
+  // zone bleue, immédiatement sous le champ `Nom de l'activité` (auparavant
+  // dans le corps défilant, après le cadre Paramètres). Aucune propriété de
+  // ce style n'est modifiée — le fond blanc explicite reste nécessaire, la
+  // zone bleue étant teintée, exactement comme `addActivityAction` sur la
+  // bande Context de `CompositionScreen.tsx`.
   addMediaButton: {
     alignSelf: "center",
     flexDirection: "row",

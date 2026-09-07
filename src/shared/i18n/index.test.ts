@@ -158,7 +158,7 @@ describe("strings", () => {
     expect(strings.screens.exercise.executionMode).toEqual({
       label: "Mode d’exécution",
       duration: "Durée",
-      repetitions: "Répétition",
+      repetitions: "Répétitions",
       toFailure: "À l’échec",
     });
     expect(strings.screens.exercise.wheelPicker).toEqual({

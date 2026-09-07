@@ -208,7 +208,18 @@ export const fr = {
       executionMode: {
         label: "Mode d’exécution",
         duration: "Durée",
-        repetitions: "Répétition",
+        // Correction compacte LOT_3_OF_3 (demande utilisateur directe) :
+        // « Répétition » → « Répétitions », au PLURIEL, dans le segment
+        // « Durée / Répétitions / À l'échec ». Aligne ce libellé de mode sur
+        // `repetitionCount.compactLabel` (« Répétitions », déjà au pluriel
+        // depuis REWORK09) : le mode désigne un NOMBRE de répétitions, jamais
+        // une répétition unique. Les deux chaînes deviennent identiques mais
+        // restent deux clés distinctes (onglet de mode / libellé de colonne
+        // compacte), exactement comme « Durée » l'est déjà des deux côtés —
+        // leurs noms accessibles, eux, restent distincts
+        // (`repetitionCount.accessibilityLabel` = « Nombre de répétitions »),
+        // aucune requête d'accessibilité ne devient donc ambiguë.
+        repetitions: "Répétitions",
         // T01-S10 (D-111, frame `3369:4236`) : troisième option de mode
         // d'Exercice, de même largeur — masque Durée et Répétitions cibles.
         toFailure: "À l’échec",

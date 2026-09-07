@@ -1,4 +1,5 @@
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -75,7 +76,7 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   const formattedDuration = formatEstimatedDuration(activitiesAndPauseSeconds);
   const durationLabel = isLowerBoundEstimate ? `≥ ${formattedDuration}` : formattedDuration;
 
-  return `${formatActivityCount(facts.exercises.length)} · ${durationLabel}`;
+  return `${formatActivityCount(facts.exercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
 
 /**
@@ -251,4 +252,44 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   const pauseSuffix = facts.seriesCount > 1 ? ` ${exercise.recap.pauseSuffix}` : "";
 
   return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}.`;
+}
+
+/**
+ * Séparateur canonique des listes compactes de cette famille d'écrans —
+ * exactement celui déjà employé par `formatCompositionSummary` ci-dessus
+ * (`N activités · durée`), extrait ici en constante partagée pour garantir
+ * la cohérence demandée entre la synthèse d'une ligne Activité et sa ligne
+ * de Zones corporelles, plutôt que deux littéraux pouvant diverger.
+ */
+export const COMPACT_LIST_SEPARATOR = " · ";
+
+/**
+ * Zones corporelles d'UNE Activité, pour la ligne dédiée de sa carte dans
+ * Composition (correction compacte LOT_3_OF_3, demande utilisateur directe
+ * — autorisée bien qu'absente de Figma ; elle ne crée aucune nouvelle
+ * persistance : `bodyZoneIds` existe déjà sur `SessionDraftExercise` depuis
+ * T01-S08, seule sa RESTITUTION est ajoutée).
+ *
+ * Contrat :
+ * - restitue EXCLUSIVEMENT les Zones corporelles de l'Activité — jamais une
+ *   Catégorie de Séance (celles-ci n'appartiennent pas à l'Activité et ne
+ *   figurent que sur la carte du Catalogue, `SessionCard.tsx`) ;
+ * - ordre du référentiel (`BODY_ZONES`, `order` croissant), jamais l'ordre
+ *   de sélection de l'utilisateur — même règle que `SessionSummary
+ *   .bodyZoneNames` (T01-S09), pour que deux Activités portant les mêmes
+ *   Zones s'affichent toujours identiquement ;
+ * - un identifiant inconnu du référentiel est ignoré silencieusement (jamais
+ *   affiché brut) ; les doublons éventuels sont dédupliqués par construction
+ *   (le référentiel est parcouru une fois, jamais la sélection) ;
+ * - `null` — jamais une chaîne vide — lorsqu'aucune Zone connue ne subsiste :
+ *   l'appelant omet alors entièrement la ligne plutôt que de rendre un
+ *   `Text` vide qui occuperait quand même sa hauteur de ligne.
+ */
+export function formatExerciseBodyZones(bodyZoneIds: readonly string[]): string | null {
+  if (bodyZoneIds.length === 0) {
+    return null;
+  }
+  const selected = new Set(bodyZoneIds);
+  const names = BODY_ZONES.filter((zone) => selected.has(zone.id)).map((zone) => zone.name);
+  return names.length === 0 ? null : names.join(COMPACT_LIST_SEPARATOR);
 }

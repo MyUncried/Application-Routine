@@ -429,7 +429,197 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
     expect(() => fireEvent.press(mediaButton)).not.toThrow();
     expect(mockBack).not.toHaveBeenCalled();
   });
+
+  /**
+   * **Correction compacte LOT_3_OF_3 — zone bleue restaurée.** Le bouton était
+   * rendu dans le corps défilant, après le cadre `Paramètres de l'activité` ;
+   * il vit désormais dans le bandeau bleu fixe, immédiatement sous le champ
+   * `Nom de l'activité` — qui reste le premier élément du bandeau. Il reste
+   * strictement désactivé : aucune section Médias, aucun import/galerie/
+   * stockage (Médias V2 hors périmètre).
+   */
+  it("renders that button INSIDE the blue context band, immediately under the Nom de l'activité field — never in the scrollable body any more", () => {
+    renderScreen(null);
+
+    const band = screen.getByTestId("exercise-context-band");
+    expect(within(band).getByTestId("exercise-add-media")).toBeTruthy();
+
+    // Plus jamais dans le corps défilant, et une seule occurrence en tout.
+    const body = screen.getByTestId("exercise-body");
+    expect(within(body).queryByTestId("exercise-add-media")).toBeNull();
+    expect(screen.getAllByTestId("exercise-add-media")).toHaveLength(1);
+  });
+
+  it("keeps Nom de l'activité FIRST in the band, with the media button immediately after it", () => {
+    renderScreen(null);
+
+    const band = screen.getByTestId("exercise-context-band");
+    expect(band).toBeTruthy();
+    const order = testIdOrder(screen.toJSON(), ["exercise-name-input", "exercise-add-media"]);
+    expect(order).toEqual(["exercise-name-input", "exercise-add-media"]);
+  });
+
+  it("stays disabled inside the band — pressing it changes nothing, and no Media section is ever rendered", () => {
+    renderScreen(null);
+
+    const band = screen.getByTestId("exercise-context-band");
+    const mediaButton = within(band).getByTestId("exercise-add-media");
+    expect(mediaButton.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(mediaButton.props.accessibilityLabel).toBe(t.addMediaUnavailableAccessibilityLabel);
+    expect(mediaButton.props.onPress).toBeUndefined();
+
+    fireEvent.press(mediaButton);
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Médias/u)).toBeNull();
+  });
+
+  it("hides the band — and therefore the media button — at step 2, exactly as before", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+    fireEvent.press(screen.getByLabelText(t.validateAction));
+
+    expect(screen.queryByTestId("exercise-context-band")).toBeNull();
+    expect(screen.queryByTestId("exercise-add-media")).toBeNull();
+  });
 });
+
+/**
+ * **Correction compacte LOT_3_OF_3 — libellé du mode d'exécution.**
+ * « Répétition » → « Répétitions », au pluriel, dans le segment
+ * `Durée / Répétitions / À l'échec`.
+ */
+describe("ExerciseScreen — libellé « Répétitions » du segment Mode d'exécution (correction compacte LOT_3_OF_3)", () => {
+  it("shows the plural 'Répétitions' as the mode segment's visible label and accessible name — never the singular 'Répétition'", () => {
+    renderScreen(null);
+
+    expect(t.executionMode.repetitions).toBe("Répétitions");
+
+    const segment = screen.getByLabelText(t.executionMode.repetitions);
+    expect(segment.props.accessibilityRole).toBe("tab");
+    expect(within(segment).getByText("Répétitions")).toBeTruthy();
+
+    // Le singulier ne subsiste nulle part dans le segment Mode d'exécution.
+    const modeGroup = screen.getByLabelText(t.executionMode.label);
+    expect(within(modeGroup).queryByText("Répétition")).toBeNull();
+  });
+
+  it("keeps the mode segment selectable and still distinct from the compact parameter column's own accessible name", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
+    expect(
+      screen.getByLabelText(t.executionMode.repetitions).props.accessibilityState,
+    ).toMatchObject({ selected: true });
+
+    // La colonne compacte porte le même texte visible mais un nom accessible
+    // distinct — aucune requête d'accessibilité ne devient ambiguë.
+    expect(t.repetitionCount.accessibilityLabel).toBe("Nombre de répétitions");
+    expect(screen.getByLabelText(t.repetitionCount.accessibilityLabel)).toBeTruthy();
+  });
+});
+
+/**
+ * **Correction compacte LOT_3_OF_3 — Retour depuis l'étape Zones corporelles.**
+ *
+ * L'étape 2 est une étape INTERNE (`setStep`, aucun écran ni entrée de pile
+ * propre) : son Retour doit ramener à l'écran principal de l'Activité, sans
+ * modale d'abandon, sans retour à la Composition et sans perte du travail en
+ * cours. La modale reste en revanche STRICTEMENT maintenue pour une sortie
+ * réelle de l'écran Activité vers la Composition avec un brouillon sale.
+ */
+describe("ExerciseScreen — Retour depuis l'étape Zones corporelles (correction compacte LOT_3_OF_3)", () => {
+  function goToStep2(name = "Pompes") {
+    fireEvent.changeText(screen.getByLabelText(t.name), name);
+    fireEvent.press(screen.getByLabelText(t.validateAction));
+    expect(screen.getByLabelText(t.instruction.label)).toBeTruthy();
+  }
+
+  it("returns straight to the Activity's main screen — never navigates back to the Composition", () => {
+    renderScreen(null);
+    goToStep2();
+
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+
+    // Étape 1 de nouveau : bandeau, segments et action Valider sont revenus.
+    expect(within(screen.getByTestId("screen-header")).getByText(t.titleAdd)).toBeTruthy();
+    expect(screen.getByTestId("exercise-context-band")).toBeTruthy();
+    expect(screen.getByLabelText(t.executionMode.label)).toBeTruthy();
+    expect(screen.getByLabelText(t.validateAction)).toBeTruthy();
+    // Aucune navigation : l'écran Activité n'est jamais quitté.
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it("never opens the abandon modal on that internal Retour, even with a dirty local draft (instruction + selected zones)", () => {
+    renderScreen(null);
+    goToStep2();
+
+    fireEvent.changeText(screen.getByLabelText(t.instruction.label), "Ne pas creuser le dos");
+    fireEvent.press(screen.getByLabelText("Dos"));
+
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+
+    expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it("keeps the instruction and the selected body zones in the local draft — they reappear unchanged when the user re-enters the step", () => {
+    renderScreen(null);
+    goToStep2();
+
+    fireEvent.changeText(screen.getByLabelText(t.instruction.label), "Ne pas creuser le dos");
+    fireEvent.press(screen.getByLabelText("Dos"));
+    fireEvent.press(screen.getByLabelText("Épaules"));
+
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    // Le Nom saisi à l'étape 1 est lui aussi intact.
+    expect(screen.getByLabelText(t.name).props.value).toBe("Pompes");
+
+    // Retour dans l'étape : rien n'a été perdu.
+    fireEvent.press(screen.getByLabelText(t.validateAction));
+    expect(screen.getByLabelText(t.instruction.label).props.value).toBe("Ne pas creuser le dos");
+    expect(screen.getByLabelText("Dos").props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+    expect(screen.getByLabelText("Épaules").props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+  });
+
+  it("still routes the Retour of step 1 to a REAL exit (router.back()), which the exit guard keeps intercepting for a dirty draft", () => {
+    renderScreen(null);
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+    // Brouillon local sale ⟹ la garde est bien armée.
+    expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
+
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the abandon modal for a real dirty exit — the internal step Retour is never confused with leaving the screen", () => {
+    const cancelExit = jest.fn();
+    const confirmExit = jest.fn();
+    mockExitGuard.mockReturnValue({ isPendingExit: true, cancelExit, confirmExit });
+
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+
+    expect(screen.getByText("Abandonner les modifications ?")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(t.exitConfirmModal.abandon));
+    expect(confirmExit).toHaveBeenCalledTimes(1);
+  });
+});
+
+/** Ordre de première apparition (parcours préfixe) des `testID` demandés dans l arbre rendu, `root`. */
+function testIdOrder(tree: ReturnType<typeof screen.toJSON>, ids: string[]): string[] {
+  const found: string[] = [];
+  walk(tree, (node) => {
+    if (node?.props?.testID && ids.includes(node.props.testID)) {
+      found.push(node.props.testID as string);
+    }
+  });
+  return found;
+}
 
 describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (point 6/7, Activity / Parameter Row — Source exact)", () => {
   it("shows the Paramètres de l'activité section title, and a SINGLE horizontal row (338×66 inside its 354-wide card) containing exactly the three parameter fields — never three separate vertical lines", () => {

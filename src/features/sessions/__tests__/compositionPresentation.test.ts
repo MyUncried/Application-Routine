@@ -2,8 +2,10 @@ import { describe, expect, it } from "@jest/globals";
 
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
+  COMPACT_LIST_SEPARATOR,
   formatCompositionSummary,
   formatDurationRowValue,
+  formatExerciseBodyZones,
   formatExerciseRecap,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
@@ -670,5 +672,64 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
         }),
       ).toBe("1 série de tractions, jusqu’à l’échec.");
     });
+  });
+});
+
+/**
+ * **Correction compacte LOT_3_OF_3 — Zones corporelles d'une Activité.**
+ * Demande utilisateur directe, autorisée bien qu'absente de Figma ; aucune
+ * nouvelle persistance (`bodyZoneIds` existe depuis T01-S08 — seule sa
+ * RESTITUTION est ajoutée).
+ */
+describe("formatExerciseBodyZones", () => {
+  it("returns null when the Activity has no body zone — never an empty string (the caller omits the line entirely)", () => {
+    expect(formatExerciseBodyZones([])).toBeNull();
+  });
+
+  it("returns the single zone's name when exactly one is selected", () => {
+    expect(formatExerciseBodyZones(["dos"])).toBe("Dos");
+  });
+
+  it("orders the names by the referential order, never by the user's selection order", () => {
+    // `epaules` (order 1) précède `dos` (order 4) et `genoux` (order 7),
+    // quelle que soit la façon dont l'utilisateur les a cochées.
+    expect(formatExerciseBodyZones(["genoux", "dos", "epaules"])).toBe(
+      "Épaules · Dos · Genoux",
+    );
+    expect(formatExerciseBodyZones(["dos", "epaules"])).toBe("Épaules · Dos");
+  });
+
+  it("joins the names with the canonical separator shared with the Composition summary", () => {
+    expect(COMPACT_LIST_SEPARATOR).toBe(" · ");
+    expect(formatExerciseBodyZones(["cou", "bras"])).toBe(
+      `Cou${COMPACT_LIST_SEPARATOR}Bras`,
+    );
+  });
+
+  it("silently ignores an identifier unknown to the referential — never renders a raw id", () => {
+    expect(formatExerciseBodyZones(["dos", "zone-inconnue"])).toBe("Dos");
+    expect(formatExerciseBodyZones(["zone-inconnue"])).toBeNull();
+  });
+
+  it("deduplicates repeated identifiers by construction (the referential is walked once, never the selection)", () => {
+    expect(formatExerciseBodyZones(["dos", "dos", "epaules"])).toBe("Épaules · Dos");
+  });
+
+  it("renders every zone of the MVP referential when all ten are selected", () => {
+    const all = [
+      "chevilles-pieds",
+      "jambes",
+      "genoux",
+      "cuisses",
+      "hanches-bassin",
+      "dos",
+      "poignets-mains",
+      "bras",
+      "epaules",
+      "cou",
+    ];
+    expect(formatExerciseBodyZones(all)).toBe(
+      "Cou · Épaules · Bras · Poignets et mains · Dos · Hanches et bassin · Cuisses · Genoux · Jambes · Chevilles et pieds",
+    );
   });
 });

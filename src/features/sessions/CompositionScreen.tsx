@@ -24,6 +24,7 @@ import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
   formatCompositionSummary,
   formatDurationRowValue,
+  formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
@@ -36,6 +37,28 @@ import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "color" | "countdown" | "finalPhase";
+
+export type CompositionScreenProps = {
+  /**
+   * Identifiant de la Séance ouverte en MODIFICATION, tel que porté par la
+   * route (`app/(creation)/composition.tsx`, paramètre `sessionId`) —
+   * `null`/omis en création.
+   *
+   * **Correction non-flash (LOT_3_OF_3)** : cette information doit être
+   * connue de l'écran DÈS SON PREMIER RENDU, donc passée en prop par la
+   * route plutôt que déduite de `editStatus`. La réhydratation est
+   * déclenchée par un `useEffect` (elle ne peut pas l'être autrement :
+   * c'est une lecture asynchrone), et un effet s'exécute APRÈS le premier
+   * commit — `editStatus` valait donc encore `"creating"` pendant ce
+   * premier rendu, qui affichait le formulaire de création et ses valeurs
+   * par défaut (nom vide, `00 min 10 s`/`00 min 05 s`, `0 activité · 0
+   * min`) le temps d'une frame, avant d'être remplacé par l'état de
+   * chargement. La présence de `sessionId` suffit à exclure
+   * SYNCHRONIQUEMENT ce rendu (voir `editState` ci-dessous) — aucun effet,
+   * aucun état intermédiaire, aucune frame de création possible.
+   */
+  readonly sessionId?: string | null;
+};
 
 /**
  * Écran `Composition d'une séance` (T01-S07, docs §06 Écran 3 ; corrections
@@ -100,7 +123,7 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
  * interceptée par `useCompositionExitGuard` exactement comme le geste
  * système.
  */
-export function CompositionScreen() {
+export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
@@ -158,7 +181,19 @@ export function CompositionScreen() {
   // — jamais le formulaire avec des valeurs par défaut de création
   // (CE-T01-S10-09 : « un échec de chargement ne présente jamais les valeurs
   // par défaut d'une nouvelle Séance »). Placé après tous les hooks.
-  const editState = editStatus ?? "creating";
+  //
+  // **Correction non-flash (LOT_3_OF_3)** : `sessionId` non nul signifie
+  // MODIFICATION. Tant que la réhydratation n'a pas produit son propre
+  // statut, `editStatus` vaut encore `"creating"` (valeur initiale du
+  // provider, l'effet de réhydratation ne s'exécutant qu'après le premier
+  // commit) — cet état est ici requalifié `"loading"` de façon purement
+  // SYNCHRONE et dérivée (aucun `useState`/`useEffect` supplémentaire, donc
+  // aucune frame intermédiaire possible) : avec un `sessionId`, le
+  // formulaire de création et ses valeurs par défaut ne peuvent
+  // structurellement jamais être rendus avant résolution.
+  const resolvedStatus = editStatus ?? "creating";
+  const editState =
+    sessionId !== null && resolvedStatus === "creating" ? "loading" : resolvedStatus;
   if (editState !== "creating" && editState !== "ready") {
     return (
       <CompositionEditState
@@ -314,18 +349,42 @@ export function CompositionScreen() {
          * liste. Le déplacement réel reste hors périmètre de S08 (poignée
          * indicative uniquement, COMP-01/S09).
          */}
-        {draft.exercises.map((exercise) => (
-          <BoundaryActivityRow
-            key={exercise.id}
-            testID={`composition-exercise-row-${exercise.id}`}
-            icon={null}
-            label={exercise.name}
-            value={formatExerciseRowSummary(exercise)}
-            isOpen={false}
-            onPress={() => router.push({ pathname: "/exercise", params: { exerciseId: exercise.id } })}
-            accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
-          />
-        ))}
+        {/*
+         * **Correction compacte LOT_3_OF_3 — espacement Activité/Activité**
+         * : les Activités sont regroupées dans un conteneur dédié portant
+         * son PROPRE `gap` (`8`, `spacing/8`), au lieu d'hériter du `gap`
+         * uniforme de `bodyContent` (`16`). Seul l'écart entre DEUX cartes
+         * Activité consécutives est ainsi réduit : ce groupe reste un
+         * unique enfant de `bodyContent`, dont le `gap: 16` continue donc
+         * de séparer, INCHANGÉS, `Compte à rebours initial` → première
+         * Activité, dernière Activité → `Tour`, et `Tour` → `Fin de
+         * séance` (espacements structurels expressément à conserver) —
+         * jamais un `gap` global indistinct qui les aurait tous réduits.
+         *
+         * Rendu UNIQUEMENT s'il existe au moins une Activité : un conteneur
+         * vide resterait un enfant de `bodyContent` et ajouterait un second
+         * `gap: 16`, doublant à `32` l'écart `Compte à rebours` → `Tour`
+         * de l'état vide.
+         */}
+        {draft.exercises.length > 0 ? (
+          <View style={styles.exerciseList} testID="composition-exercise-list">
+            {draft.exercises.map((exercise) => (
+              <BoundaryActivityRow
+                key={exercise.id}
+                testID={`composition-exercise-row-${exercise.id}`}
+                icon={null}
+                label={exercise.name}
+                bodyZones={formatExerciseBodyZones(exercise.bodyZoneIds)}
+                value={formatExerciseRowSummary(exercise)}
+                isOpen={false}
+                onPress={() =>
+                  router.push({ pathname: "/exercise", params: { exerciseId: exercise.id } })
+                }
+                accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
+              />
+            ))}
+          </View>
+        ) : null}
 
         <TourCard label={composition.tour.label} summary={compositionSummary} />
 
@@ -511,6 +570,7 @@ export function CompositionScreen() {
 function BoundaryActivityRow({
   icon,
   label,
+  bodyZones = null,
   value,
   isOpen,
   onPress,
@@ -521,6 +581,14 @@ function BoundaryActivityRow({
   /** `null` omet entièrement le troisième slot (droite) — anatomie exacte de `Composition / Activity Row`, qui n'en a jamais. */
   icon: KodjoIconName | null;
   label: string;
+  /**
+   * Correction compacte LOT_3_OF_3 : Zones corporelles de l'Activité déjà
+   * formatées (`formatExerciseBodyZones`), insérées ENTRE le titre et la
+   * synthèse. `null` (défaut) omet entièrement la ligne — les deux cartes
+   * limites (`Compte à rebours initial`/`Fin de séance`) n'ont pas de Zones
+   * et restent donc rigoureusement inchangées.
+   */
+  bodyZones?: string | null;
   value: string;
   isOpen: boolean;
   onPress: () => void;
@@ -547,6 +615,26 @@ function BoundaryActivityRow({
         <Text style={styles.rowLabel} numberOfLines={1}>
           {label}
         </Text>
+        {/*
+         * Correction compacte LOT_3_OF_3 — Zones corporelles de l'ACTIVITÉ
+         * uniquement (jamais une Catégorie de Séance, qui n'appartient pas
+         * à l'Activité), placées entre le titre et la synthèse. Style
+         * `boundaryRowSecondaryLine` RÉUTILISÉ TEL QUEL — donc exactement la
+         * même taille et la même couleur neutre (`type.caption` 11/14,
+         * `colors.textSecondary`) que la synthèse juste en dessous, par
+         * construction plutôt que par ressemblance. `numberOfLines={1}` :
+         * une seule ligne, tronquée si nécessaire. Séparateur ` · `
+         * (`COMPACT_LIST_SEPARATOR`, partagé avec la synthèse).
+         */}
+        {bodyZones !== null ? (
+          <Text
+            style={styles.boundaryRowSecondaryLine}
+            numberOfLines={1}
+            testID="composition-exercise-body-zones"
+          >
+            {bodyZones}
+          </Text>
+        ) : null}
         <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
           {value}
         </Text>
@@ -928,6 +1016,15 @@ const styles = StyleSheet.create({
   boundaryRowTitleSlot: {
     flex: 1,
     gap: spacing[2],
+  },
+  // Correction compacte LOT_3_OF_3 : écart RÉDUIT (`8`, token DSF
+  // `spacing/8`) entre deux cartes Activité consécutives UNIQUEMENT. Ce
+  // conteneur est lui-même un enfant unique de `bodyContent` : les
+  // espacements structurels portés par le `gap: 16` de ce dernier
+  // (`Compte à rebours initial` → groupe, groupe → `Tour`, `Tour` → `Fin
+  // de séance`) restent inchangés par construction.
+  exerciseList: {
+    gap: spacing[8],
   },
   // R4-03 (`KODJO / Card / Supporting`, `11/14`) : auparavant
   // `type.supporting` (`12/16`), non conforme au style DSF partagé.

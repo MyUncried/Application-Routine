@@ -23,5 +23,11 @@ export default function CompositionRoute() {
     hydrateFromSession?.(sessionId);
   }, [sessionId, hydrateFromSession]);
 
-  return <CompositionScreen />;
+  // Correction non-flash (LOT_3_OF_3) : `sessionId` est désormais transmis
+  // EN PROP, et pas seulement via l'effet de réhydratation ci-dessus. Cet
+  // effet ne s'exécute qu'APRÈS le premier commit ; sans cette prop, ce
+  // premier rendu affichait le formulaire de création et ses valeurs par
+  // défaut le temps d'une frame, avant que `editStatus` ne passe à
+  // `"loading"`. Voir `CompositionScreenProps.sessionId`.
+  return <CompositionScreen sessionId={sessionId} />;
 }

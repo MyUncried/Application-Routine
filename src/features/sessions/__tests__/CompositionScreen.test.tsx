@@ -77,9 +77,12 @@ function renderScreen() {
  */
 function StatefulDraftWrapper({
   initialExercises,
+  draftOverrides,
   children,
 }: {
   initialExercises: readonly SessionDraftExercise[];
+  /** Correction compacte LOT_3_OF_3 : surcharges du brouillon (Catégories notamment) — omises par défaut, aucun test préexistant n'en fournit. */
+  draftOverrides?: Partial<SessionDraftContextValue["draft"]>;
   children: React.ReactNode;
 }) {
   const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() => ({
@@ -90,6 +93,7 @@ function StatefulDraftWrapper({
     exercises: initialExercises,
     categoryDrafts: [],
     selectedCategoryIds: [],
+    ...draftOverrides,
   }));
   const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -112,10 +116,13 @@ function StatefulDraftWrapper({
   return <SessionDraftContext.Provider value={value}>{children}</SessionDraftContext.Provider>;
 }
 
-function renderScreenWithDraft(exercises: readonly SessionDraftExercise[]) {
+function renderScreenWithDraft(
+  exercises: readonly SessionDraftExercise[],
+  draftOverrides?: Partial<SessionDraftContextValue["draft"]>,
+) {
   return render(
     <TestSafeAreaProvider>
-      <StatefulDraftWrapper initialExercises={exercises}>
+      <StatefulDraftWrapper initialExercises={exercises} draftOverrides={draftOverrides}>
         <CompositionScreen />
       </StatefulDraftWrapper>
     </TestSafeAreaProvider>,
@@ -1355,6 +1362,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
   function renderWithEditStatus(
     editStatus: NonNullable<SessionDraftContextValue["editStatus"]>,
     extra: Partial<SessionDraftContextValue> = {},
+    sessionId: string | null = null,
   ) {
     const retryHydration = jest.fn();
     const value: SessionDraftContextValue = {
@@ -1368,7 +1376,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     render(
       <TestSafeAreaProvider>
         <SessionDraftContext.Provider value={value}>
-          <CompositionScreen />
+          <CompositionScreen sessionId={sessionId} />
         </SessionDraftContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -1432,5 +1440,229 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     renderWithEditStatus("ready", { draft: rehydrated, hydratedBaseline: rehydrated });
 
     expect(mockExitGuard).toHaveBeenLastCalledWith(false, expect.any(Function));
+  });
+
+  /**
+   * **Correction compacte LOT_3_OF_3 — non-flash de création avant
+   * hydratation.**
+   *
+   * `editStatus === "creating"` AVEC un `sessionId` est EXACTEMENT l'état du
+   * tout premier rendu d'une ouverture en modification : le provider
+   * s'initialise à `"creating"`, et l'effet de réhydratation
+   * (`app/(creation)/composition.tsx`) ne s'exécute qu'après ce premier
+   * commit. Reproduire cet état précis est la seule façon DÉTERMINISTE de
+   * verrouiller la correction : une frame transitoire n'est pas observable
+   * après coup dans un rendu de test (les effets sont vidés par `act()`
+   * avant toute assertion), alors que cet état-ci l'est directement.
+   *
+   * Sans la garde synchrone, ce rendu produisait le formulaire de création et
+   * ses valeurs par défaut.
+   */
+  describe("non-flash de création avant hydratation", () => {
+    it("with a sessionId, renders the loading state instead of the creation form while editStatus is still 'creating' (the exact state of the first render, before the hydration effect runs)", () => {
+      renderWithEditStatus("creating", {}, "session-42");
+
+      expect(screen.getByTestId("composition-edit-state")).toBeTruthy();
+      expect(screen.getByLabelText(t.loadingAccessibilityLabel)).toBeTruthy();
+    });
+
+    it("with a sessionId, NONE of the creation form's default values can be rendered before resolution (name field, default countdown/final phase, empty summary, Continuer)", () => {
+      renderWithEditStatus("creating", {}, "session-42");
+
+      expect(screen.queryByLabelText(composition.name)).toBeNull();
+      expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+      expect(screen.queryByLabelText(composition.continueAction)).toBeNull();
+      // Valeurs par défaut EXACTES du parcours de création — aucune ne doit
+      // apparaître ne serait-ce qu'un rendu.
+      expect(screen.queryByText("00 min 10 s")).toBeNull();
+      expect(screen.queryByText("00 min 05 s")).toBeNull();
+      expect(screen.queryByText(composition.summary.empty)).toBeNull();
+    });
+
+    it("without a sessionId, 'creating' still renders the creation form — the creation path is strictly unchanged", () => {
+      renderWithEditStatus("creating", {}, null);
+
+      expect(screen.getByLabelText(composition.name)).toBeTruthy();
+      expect(screen.getByText(composition.summary.empty)).toBeTruthy();
+      expect(screen.queryByTestId("composition-edit-state")).toBeNull();
+    });
+
+    it("with a sessionId, a resolved status always wins over the guard — 'ready' renders the rehydrated form, 'not-found' renders its own state", () => {
+      const rehydrated = {
+        ...emptyEditDraft(),
+        name: "Séance persistée",
+        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+      };
+      renderWithEditStatus("ready", { draft: rehydrated }, "session-42");
+
+      expect(screen.getByLabelText(composition.name).props.value).toBe("Séance persistée");
+      expect(screen.queryByTestId("composition-edit-state")).toBeNull();
+
+      screen.unmount();
+      renderWithEditStatus("not-found", {}, "session-42");
+
+      expect(screen.getByText(t.notFoundMessage)).toBeTruthy();
+      expect(screen.queryByLabelText(composition.name)).toBeNull();
+    });
+  });
+});
+
+/**
+ * **Correction compacte LOT_3_OF_3 — espacement des cartes.** L'écart entre
+ * DEUX cartes Activité consécutives passe à `8` ; tous les espacements
+ * structurels (`Compte à rebours initial` ↔ Activité, Activité ↔ `Tour`,
+ * `Tour` ↔ `Fin de séance`) restent à `16`. La preuve est STRUCTURELLE : le
+ * groupe d'Activités est un enfant UNIQUE du contenu défilant, dont le `gap`
+ * uniforme de `16` reste inchangé et continue donc de porter, seul, tous les
+ * interstices structurels.
+ */
+describe("CompositionScreen — espacement Activité/Activité (correction compacte LOT_3_OF_3)", () => {
+  const twoActivities = [
+    { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+    { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+  ];
+
+  it("reduces the gap between two consecutive Activity cards to 8pt, carried by their own dedicated container", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const list = screen.getByTestId("composition-exercise-list");
+    expect(StyleSheet.flatten(list.props.style).gap).toBe(8);
+    expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
+    expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+  });
+
+  it("keeps the structural 16pt gap of the scrollable content untouched — never a global, indistinct gap reduction", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const content = StyleSheet.flatten(
+      screen.getByTestId("composition-body").props.contentContainerStyle,
+    );
+    expect(content.gap).toBe(16);
+  });
+
+  it("keeps Compte à rebours initial, the Tour section and Fin de séance OUTSIDE the reduced-gap container — their structural spacing is therefore still the body's 16pt, by construction", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const list = screen.getByTestId("composition-exercise-list");
+    expect(within(list).queryByLabelText(composition.countdown.label)).toBeNull();
+    expect(within(list).queryByLabelText(composition.finalPhase.label)).toBeNull();
+    expect(within(list).queryByTestId("composition-tour-section")).toBeNull();
+
+    // Ces trois éléments restent bien des enfants directs du contenu défilant.
+    const body = screen.getByTestId("composition-body");
+    expect(within(body).getByLabelText(composition.countdown.label)).toBeTruthy();
+    expect(within(body).getByTestId("composition-tour-section")).toBeTruthy();
+    expect(within(body).getByLabelText(composition.finalPhase.label)).toBeTruthy();
+  });
+
+  it("never renders the Activity container while the Composition has no Activity — an empty container would add a second 16pt gap, doubling the Compte à rebours → Tour spacing of the empty state", () => {
+    renderScreenWithDraft([]);
+    expect(screen.queryByTestId("composition-exercise-list")).toBeNull();
+  });
+
+  it("keeps the display order of the Activities unchanged inside the reduced-gap container", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const order = testIdOrder(screen.toJSON(), [
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-row-ex-1",
+      "composition-exercise-row-ex-2",
+      "composition-row-icon-composition-end-session",
+    ]);
+    expect(order).toEqual([
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-row-ex-1",
+      "composition-exercise-row-ex-2",
+      "composition-row-icon-composition-end-session",
+    ]);
+  });
+});
+
+/**
+ * **Correction compacte LOT_3_OF_3 — Zones corporelles de l'Activité.**
+ * Demande utilisateur directe, explicitement autorisée bien qu'absente de
+ * Figma ; elle ne crée aucune nouvelle persistance (`bodyZoneIds` existe déjà
+ * sur `SessionDraftExercise` depuis T01-S08 — seule sa RESTITUTION est
+ * ajoutée).
+ */
+describe("CompositionScreen — Zones corporelles de la ligne Activité (correction compacte LOT_3_OF_3)", () => {
+  const activityWithZones = {
+    ...createExerciseDraft("ex-1"),
+    name: "Gainage",
+    durationSeconds: 90,
+    seriesCount: 3,
+    pauseSeconds: 15,
+    // Ordre de SÉLECTION volontairement inverse de l'ordre du référentiel
+    // (`epaules` order 1, `dos` order 4) — prouve que l'affichage suit le
+    // référentiel, jamais l'ordre de sélection de l'utilisateur.
+    bodyZoneIds: ["dos", "epaules"],
+  };
+  const summaryText = "3 séries de 1 min 30 s avec 15 s de pause par série";
+
+  it("shows the Activity's own body zones on a single line, in referential order, with the canonical ' · ' separator", () => {
+    renderScreenWithDraft([activityWithZones]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    const zones = within(row).getByTestId("composition-exercise-body-zones");
+    expect(zones.props.children).toBe("Épaules · Dos");
+    // Une seule ligne, tronquée si nécessaire.
+    expect(zones.props.numberOfLines).toBe(1);
+  });
+
+  it("places that line BETWEEN the Activity title and its summary", () => {
+    renderScreenWithDraft([activityWithZones]);
+
+    const order = textOrder(screen.toJSON(), ["Gainage", "Épaules · Dos", summaryText]);
+    expect(order).toEqual(["Gainage", "Épaules · Dos", summaryText]);
+  });
+
+  it("uses exactly the same style as the summary (same size, same neutral colour) — the shared style is reused as-is, never a lookalike", () => {
+    renderScreenWithDraft([activityWithZones]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    const zones = within(row).getByTestId("composition-exercise-body-zones");
+    const summary = within(row).getByText(summaryText);
+    expect(StyleSheet.flatten(zones.props.style)).toEqual(
+      StyleSheet.flatten(summary.props.style),
+    );
+    // Taille de la synthèse (KODJO / Card / Supporting, 11/14) et couleur neutre.
+    const flattened = StyleSheet.flatten(zones.props.style);
+    expect(flattened.fontSize).toBe(11);
+    expect(flattened.lineHeight).toBe(14);
+    expect(flattened.color).toBe(colors.textSecondary);
+  });
+
+  it("shows ONLY the Activity's body zones — never a Session category, even when the draft carries selected categories", () => {
+    renderScreenWithDraft([activityWithZones], {
+      categoryDrafts: [{ id: "cat-1", name: "Renforcement" }],
+      selectedCategoryIds: ["cat-1"],
+    });
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    expect(within(row).getByTestId("composition-exercise-body-zones").props.children).toBe(
+      "Épaules · Dos",
+    );
+    expect(screen.queryByText("Renforcement")).toBeNull();
+    expect(within(row).queryByText(/Renforcement/u)).toBeNull();
+  });
+
+  it("omits the line entirely when the Activity has no body zone — never an empty Text still taking its line height", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+    ]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
+  });
+
+  it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", () => {
+    renderScreenWithDraft([activityWithZones]);
+
+    const countdown = screen.getByLabelText(composition.countdown.label);
+    const finalPhase = screen.getByLabelText(composition.finalPhase.label);
+    expect(within(countdown).queryByTestId("composition-exercise-body-zones")).toBeNull();
+    expect(within(finalPhase).queryByTestId("composition-exercise-body-zones")).toBeNull();
+    // Une seule occurrence dans tout l'écran : celle de l'Activité.
+    expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(1);
   });
 });
