@@ -310,6 +310,52 @@ describe("migrateDatabase", () => {
       expect(backupGone?.count).toBe(0);
     });
 
+    it("preserves the exact created_at and updated_at of pre-existing activity rows through the rebuild (before/after)", async () => {
+      await database.execAsync(MIGRATION_001);
+      await database.runAsync(
+        `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
+         VALUES (1, 'usr_' || lower(hex(randomblob(16))), '2026-01-01T00:00:00.000Z')`,
+      );
+      await database.execAsync(MIGRATION_002);
+      await database.execAsync("PRAGMA user_version = 2");
+      await seedStructure(database);
+
+      // Deux Activités aux horodatages DISTINCTS et connus — jamais 'now'.
+      const createdAtA = "2025-03-04T08:15:42.123Z";
+      const updatedAtA = "2025-11-30T21:07:00.500Z";
+      const createdAtB = "2024-01-01T00:00:00.000Z";
+      const updatedAtB = "2026-02-14T14:14:14.999Z";
+      await database.runAsync(
+        `INSERT INTO activities (
+          id, session_id, cycle_id, tour_id, type, structural_position,
+          position, name, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, instruction, created_at, updated_at
+        ) VALUES
+          ('ts-a', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR', 0, 'A', 'DURATION', 30, NULL, 1, 0, NULL, ?, ?),
+          ('ts-b', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR', 1, 'B', 'REPETITIONS', NULL, 12, 2, 5, NULL, ?, ?)`,
+        [createdAtA, updatedAtA, createdAtB, updatedAtB],
+      );
+
+      const before = await database.getAllAsync<{
+        id: string;
+        created_at: string;
+        updated_at: string;
+      }>("SELECT id, created_at, updated_at FROM activities ORDER BY id");
+      expect(before).toEqual([
+        { id: "ts-a", created_at: createdAtA, updated_at: updatedAtA },
+        { id: "ts-b", created_at: createdAtB, updated_at: updatedAtB },
+      ]);
+
+      await migrateDatabase(database);
+
+      const after = await database.getAllAsync<{
+        id: string;
+        created_at: string;
+        updated_at: string;
+      }>("SELECT id, created_at, updated_at FROM activities ORDER BY id");
+      expect(after).toEqual(before);
+    });
+
     it("a fresh database reaches version 3 directly and accepts TO_FAILURE", async () => {
       await migrateDatabase(database);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");

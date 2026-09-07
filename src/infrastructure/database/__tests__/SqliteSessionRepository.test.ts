@@ -1103,6 +1103,168 @@ describe("SqliteSessionRepository", () => {
       expect(row?.name).toBe("Séance simple");
       expect(row?.updated_at).toBe(created.updatedAt);
     });
+
+    // Revue indépendante LOT 2 (commentaire 5567655287, lacune 1) : preuve
+    // déterministe du rollback INTÉGRAL sur une défaillance survenant AU
+    // MILIEU de la transaction (dernière écriture — `INSERT INTO
+    // session_categories` — après mise à jour de la Séance, du Tour, fusion
+    // des Activités, remplacement des Zones, suppression des associations et
+    // création spéculative d'une Catégorie temporaire).
+    it("rolls back EVERY change when a mid-transaction step fails: session fields, updated_at, tour repeat, Activities + ids + positions, body zones, category associations and the speculatively-created temporary category", async () => {
+      const repository = new SqliteSessionRepository(
+        database,
+        uuidFactory(),
+        fixedClock(["2026-01-01T00:00:00.000Z"]),
+      );
+      const created = await repository.create({
+        ...validInput(),
+        name: "Séance simple",
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+        exercises: [
+          { ...anExercise(), name: "Gainage", durationSeconds: 30, bodyZoneIds: ["dos"] },
+          { ...anExercise(), name: "Squats", durationSeconds: 40 },
+        ],
+        categories: [{ kind: "EXISTING", categoryId: "cardio" }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      const droppedId = created.cycle.tour.exercises[1]!.id;
+
+      // Snapshots AVANT — agrégat assemblé + lignes brutes.
+      const before = await repository.findById(created.id);
+      const beforeSessionRow = await database.getFirstAsync(
+        `SELECT name, color, initial_countdown_seconds, final_phase_seconds, created_at, updated_at
+         FROM sessions WHERE id = ?`,
+        [created.id],
+      );
+      const beforeTourRow = await database.getFirstAsync(
+        "SELECT repeat_count FROM tours WHERE session_id = ?",
+        [created.id],
+      );
+      const beforeActivityRows = await database.getAllAsync(
+        `SELECT id, name, type, structural_position, position, execution_mode,
+                duration_seconds, repetition_count, series_count, pause_seconds,
+                created_at, updated_at
+         FROM activities WHERE session_id = ? ORDER BY position ASC`,
+        [created.id],
+      );
+      const beforeZoneRows = await database.getAllAsync(
+        `SELECT activity_id, body_zone_id FROM activity_body_zones
+         WHERE activity_id IN (?, ?) ORDER BY activity_id, body_zone_id`,
+        [keptId, droppedId],
+      );
+      const beforeAssocRows = await database.getAllAsync(
+        "SELECT category_id FROM session_categories WHERE session_id = ? ORDER BY category_id",
+        [created.id],
+      );
+      const beforeCategoryCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories",
+      );
+
+      // update() qui échoue à la dernière écriture, avec une horloge
+      // DIFFÉRENTE (jamais rejouée si le rollback est intégral).
+      const failingRepository = new SqliteSessionRepository(
+        new FailingSessionCategoryInsertDatabase(database),
+        secondUuidFactory(),
+        fixedClock(["2026-06-15T12:00:00.000Z"]),
+      );
+
+      await expect(
+        failingRepository.update(
+          created.id,
+          anUpdateInput({
+            sourceSessionId: created.id,
+            name: "Nom modifié",
+            color: "#E5484D",
+            initialCountdownSeconds: 20,
+            finalPhaseSeconds: 15,
+            tourRepeatCount: 5,
+            activities: [
+              anUpdateActivity({
+                id: keptId,
+                name: "Gainage renforcé",
+                durationSeconds: 45,
+                position: 0,
+                bodyZoneIds: ["epaules"],
+              }),
+              anUpdateActivity({ id: "brand-new-activity", name: "Fentes", position: 1 }),
+            ],
+            categories: [{ kind: "NEW", name: "Temporaire" }],
+          }),
+        ),
+      ).rejects.toThrow("forced session_categories failure");
+
+      // Snapshots APRÈS — strictement identiques.
+      expect(await repository.findById(created.id)).toEqual(before);
+
+      expect(
+        await database.getFirstAsync(
+          `SELECT name, color, initial_countdown_seconds, final_phase_seconds, created_at, updated_at
+           FROM sessions WHERE id = ?`,
+          [created.id],
+        ),
+      ).toEqual(beforeSessionRow);
+      expect((beforeSessionRow as { updated_at: string }).updated_at).toBe(
+        "2026-01-01T00:00:00.000Z",
+      );
+
+      expect(
+        await database.getFirstAsync("SELECT repeat_count FROM tours WHERE session_id = ?", [
+          created.id,
+        ]),
+      ).toEqual(beforeTourRow);
+      expect((beforeTourRow as { repeat_count: number }).repeat_count).toBe(1);
+
+      expect(
+        await database.getAllAsync(
+          `SELECT id, name, type, structural_position, position, execution_mode,
+                  duration_seconds, repetition_count, series_count, pause_seconds,
+                  created_at, updated_at
+           FROM activities WHERE session_id = ? ORDER BY position ASC`,
+          [created.id],
+        ),
+      ).toEqual(beforeActivityRows);
+      const afterActivityIds = (
+        await database.getAllAsync<{ id: string }>(
+          "SELECT id FROM activities WHERE session_id = ?",
+          [created.id],
+        )
+      ).map((row) => row.id);
+      expect(afterActivityIds.sort()).toEqual([keptId, droppedId].sort());
+      expect(afterActivityIds).not.toContain("brand-new-activity");
+
+      expect(
+        await database.getAllAsync(
+          `SELECT activity_id, body_zone_id FROM activity_body_zones
+           WHERE activity_id IN (?, ?) ORDER BY activity_id, body_zone_id`,
+          [keptId, droppedId],
+        ),
+      ).toEqual(beforeZoneRows);
+      expect((beforeZoneRows as { body_zone_id: string }[]).map((z) => z.body_zone_id)).toEqual([
+        "dos",
+      ]);
+
+      expect(
+        await database.getAllAsync(
+          "SELECT category_id FROM session_categories WHERE session_id = ? ORDER BY category_id",
+          [created.id],
+        ),
+      ).toEqual(beforeAssocRows);
+      expect((beforeAssocRows as { category_id: string }[]).map((a) => a.category_id)).toEqual([
+        "cardio",
+      ]);
+
+      // La Catégorie temporaire créée spéculativement dans la transaction est
+      // annulée elle aussi.
+      expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM categories")).toEqual(
+        beforeCategoryCount,
+      );
+      const temp = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM categories WHERE canonical_key = ?",
+        ["temporaire"],
+      );
+      expect(temp?.count).toBe(0);
+    });
   });
 
   describe("findSessionStatus (T01-S10)", () => {
