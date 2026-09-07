@@ -49,25 +49,25 @@ expect_fail() { if validate_increment_chain "$@"; then echo 'expected rejection'
 
 base_trigger='[KODJO_SLICE] IMPLEMENTATION_REVISION
 slice_id=T01-S10
-source_head=d59df7c4dea452d0e611940646466845cf3dfe5f
+source_head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
 source_plan_comment_id=5562076836
 source_review_comment_id=5562116730
 increment=LOT_2_OF_3'
 
 legacy_output='[KODJO_SLICE] IMPLEMENTATION_OUTPUT
 slice_id=T01-S10
-base_head=d59df7c4dea452d0e611940646466845cf3dfe5f
-head=ed223ca1ca8570fbebb335495472af0ba4b078eb
+base_head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
+head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
 session_id=49cfaec6-2523-47a9-9910-b1c275873e29
 plan_comment_id=5562076836
 plan_review_comment_id=5562116730'
 
 future_output="$legacy_output
 increment=LOT_2_OF_3
-source_implementation_trigger_comment_id=5565880326"
+source_implementation_trigger_comment_id=5568944376"
 
 expect_pass "$future_output" "$base_trigger"
-expect_pass "$legacy_output" "$base_trigger" 5565880326
+expect_pass "$legacy_output" "$base_trigger" 5568944376
 expect_pass "${future_output//$'\n'/$'\r\n'}" "${base_trigger//$'\n'/$'\r\n'}"
 long_suffix=$(printf 'x%.0s' {1..200000})
 expect_pass "$future_output
@@ -81,12 +81,41 @@ expect_fail "${future_output/LOT_2_OF_3/LOT_4_OF_3}" "${base_trigger/LOT_2_OF_3/
 expect_fail "$future_output" "${base_trigger/LOT_2_OF_3/LOT_3_OF_3}"
 expect_fail "$future_output" "${base_trigger/IMPLEMENTATION_REVISION/IMPLEMENTATION_REVISION_EXTRA}"
 
+validate_manifest_ancestry() {
+  local baseline="$1" base="$2" head="$3" baseline_status="$4" implementation_status="$5"
+  [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || return 30
+  [[ "$base" =~ ^[0-9a-f]{40}$ ]] || return 31
+  [[ "$head" =~ ^[0-9a-f]{40}$ ]] || return 32
+  case "$baseline_status" in identical|ahead) ;; *) return 33 ;; esac
+  [ "$implementation_status" = ahead ] || return 34
+}
+
+expect_ancestry_pass() { validate_manifest_ancestry "$@"; }
+expect_ancestry_fail() { if validate_manifest_ancestry "$@"; then echo 'expected ancestry rejection' >&2; return 1; fi; }
+
+manifest_baseline=d59df7c4dea452d0e611940646466845cf3dfe5f
+increment_base=ed223ca1ca8570fbebb335495472af0ba4b078eb
+increment_head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
+expect_ancestry_pass "$manifest_baseline" "$increment_base" "$increment_head" ahead ahead
+expect_ancestry_pass "$manifest_baseline" "$manifest_baseline" "$increment_base" identical ahead
+expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" diverged ahead
+expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" behind ahead
+expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" ahead identical
+expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" ahead diverged
+expect_ancestry_fail bad-sha "$increment_base" "$increment_head" ahead ahead
+
 review_workflow=".github/workflows/kodjo-slice-implementation-review.yml"
 grep -Fq 'increment $INCREMENT only' "$review_workflow"
 grep -Fq 'Requirements allocated to later increments are deferred' "$review_workflow"
 grep -Fq 'MUST NOT be reported as a defect' "$review_workflow"
 grep -Fq 'has already completed npm test and TypeScript successfully' "$review_workflow"
 grep -Fq 'cat /tmp/implementation-output.md' "$review_workflow"
+grep -Fq 'compare/$baseline...$base' "$review_workflow"
+grep -Fq 'compare/$base...$head' "$review_workflow"
+grep -Fq "case \"\$baseline_status\" in identical|ahead)" "$review_workflow"
+grep -Fq '[ "\$implementation_status" = ahead ]' "$review_workflow"
+! grep -Fq 'm["baseline_head"]==ENV["base"]' "$review_workflow"
+! grep -Fq 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
 
 implementation_workflow='.github/workflows/kodjo-slice-implementation.yml'
 ! grep -Fq -- 'gh issue comment' "$implementation_workflow"
