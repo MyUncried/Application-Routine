@@ -4,8 +4,8 @@ set -euo pipefail
 register='.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
 test -s "$register"
 
-mapfile -t ids < <(sed -n 's/^| \(KIP-[0-9][0-9][0-9]\) |.*$/\1/p' "$register")
-[ "${#ids[@]}" -ge 38 ] || { echo "incident register unexpectedly incomplete: ${#ids[@]}" >&2; exit 1; }
+mapfile -t ids < <(sed -n 's/^| \(INC-[0-9][0-9][0-9]\) |.*$/\1/p' "$register")
+[ "${#ids[@]}" -ge 48 ] || { echo "incident register unexpectedly incomplete: ${#ids[@]}" >&2; exit 1; }
 [ "$(printf '%s\n' "${ids[@]}" | sort -u | wc -l)" -eq "${#ids[@]}" ] || { echo 'duplicate incident id' >&2; exit 1; }
 
 for id in "${ids[@]}"; do
@@ -18,5 +18,8 @@ for section in   '## Règle de tenue'   '## Incidents capitalisés'   '## Preuve
   grep -Fq "$section" "$register" || { echo "missing section: $section" >&2; exit 1; }
 done
 
-grep -Fq '| 1.0.0 | 2026-09-07 |' "$register"
-echo "incident register validation: PASS (${#ids[@]} incidents)"
+grep -Fq '| 2.0.0 | 2026-09-07 |' "$register"
+grep -Fq '## Répétitions qui auraient dû être évitées' "$register"
+grep -Fq '## État GitHub vérifié au 2026-09-07' "$register"
+grep -Fq 'NON VÉRIFIABLE' "$register"
+echo "incident register v2 validation: PASS (${#ids[@]} incidents)"
