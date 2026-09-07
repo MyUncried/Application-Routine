@@ -107,4 +107,6 @@ for dispatch_workflow in $(grep -Rl '/dispatches' .github/workflows --include='*
   grep -Fq '  contents: write' "$dispatch_workflow" || { echo "repository_dispatch without contents: write: $dispatch_workflow" >&2; exit 1; }
 done
 
-echo 'increment review, publication transport and permission self-test: PASS'
+bash .github/orchestration/tests/test-incident-register.sh
+
+echo 'increment review, publication transport, permission and registry self-test: PASS'
