@@ -5,7 +5,7 @@ register='.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
 test -s "$register"
 
 mapfile -t ids < <(sed -n 's/^| \(INC-[0-9][0-9][0-9]\) |.*$/\1/p' "$register")
-[ "${#ids[@]}" -eq 77 ] || { echo "incident register unexpectedly incomplete: ${#ids[@]}" >&2; exit 1; }
+[ "${#ids[@]}" -eq 78 ] || { echo "incident register unexpectedly incomplete: ${#ids[@]}" >&2; exit 1; }
 [ "$(printf '%s\n' "${ids[@]}" | sort -u | wc -l)" -eq "${#ids[@]}" ] || { echo 'duplicate incident id' >&2; exit 1; }
 
 for id in "${ids[@]}"; do
@@ -24,14 +24,16 @@ grep -Fq '| 2.1.0 | 2026-09-07 |' "$register"
 grep -Fq '| 3.0.0 | 2026-09-07 |' "$register"
 grep -Fq '| 3.1.0 | 2026-09-07 |' "$register"
 grep -Fq '| 3.2.0 | 2026-09-07 |' "$register"
+grep -Fq '| 3.3.0 | 2026-09-07 |' "$register"
 grep -Fq '| INC-075 |' "$register"
 grep -Fq '| INC-076 |' "$register"
 grep -Fq '| INC-077 |' "$register"
+grep -Fq '| INC-078 |' "$register"
 [ "$(grep -Ec '^\| XLS03-INC-[0-9]{3} \|' "$register")" -eq 51 ] || { echo 'invalid XLS03 alias count' >&2; exit 1; }
-[ "$(grep -Ec '^\| T-[0-9]{3} \|' "$register")" -eq 50 ] || { echo 'invalid protocol test count' >&2; exit 1; }
+[ "$(grep -Ec '^\| T-[0-9]{3} \|' "$register")" -eq 51 ] || { echo 'invalid protocol test count' >&2; exit 1; }
 [ "$(grep -Ec '^\| INV-[0-9]{3} \|' "$register")" -eq 24 ] || { echo 'invalid invariant count' >&2; exit 1; }
 grep -Fq '## Couverture du protocole générique actuel' "$register"
-for n in $(seq -f "%03g" 1 77); do grep -Fq "INC-$n" <<<"${ids[*]}" || { echo "missing sequential incident INC-$n" >&2; exit 1; }; done
+for n in $(seq -f "%03g" 1 78); do grep -Fq "INC-$n" <<<"${ids[*]}" || { echo "missing sequential incident INC-$n" >&2; exit 1; }; done
 grep -Fq '## Répétitions qui auraient dû être évitées' "$register"
 grep -Fq '## État GitHub vérifié au 2026-09-07' "$register"
 grep -Fq 'NON VÉRIFIABLE' "$register"
