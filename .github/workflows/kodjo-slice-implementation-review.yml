@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          source_body="$SOURCE_BODY"
+          source_body=$(jq -Rnr --arg body "$SOURCE_BODY" '$body | gsub("\\r"; "")')
           source_comment_id="$SOURCE_COMMENT_ID"
           first_line() {
             local line="${1%%$'\n'*}"
@@ -60,7 +60,7 @@ jobs:
             and (.issue_url | endswith("/issues/" + $issue))
             and (.body | type == "string")
           ' <<<"$source_json" >/dev/null
-          source_body=$(jq -r '.body' <<<"$source_json")
+          source_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$source_json")
           [ "$(first_line "$source_body")" = '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' ] || { echo 'Source comment is not an exact implementation output' >&2; exit 1; }
           slice=$(sed -n 's/^slice_id=//p' <<<"$source_body"|head -n1)
           head=$(sed -n 's/^head=//p' <<<"$source_body"|head -n1)
@@ -83,7 +83,7 @@ jobs:
             and (.issue_url | endswith("/issues/" + $issue))
             and (.body | type == "string")
           ' <<<"$plan_json" >/dev/null
-          plan_body=$(jq -r '.body' <<<"$plan_json")
+          plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
           [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
           printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
