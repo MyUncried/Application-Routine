@@ -120,11 +120,12 @@ jobs:
           manifest=".github/orchestration/slices/$slice.yml"
           test -f "$manifest"
           export ISSUE_NUMBER slice
-          ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;baseline=m["baseline_head"].to_s;branch=m["target_branch"].to_s;abort "baseline" unless baseline.match?(/\\A[0-9a-f]{40}\\z/);abort "branch" if branch.empty?;puts branch;puts baseline' "$manifest" > /tmp/manifest-gate
+          ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;baseline=m["baseline_head"].to_s;branch=m["target_branch"].to_s;abort "baseline" if baseline.empty?;abort "branch" if branch.empty?;puts branch;puts baseline' "$manifest" > /tmp/manifest-gate
           mapfile -t manifest_gate < /tmp/manifest-gate
           [ "${#manifest_gate[@]}" -eq 2 ] || { echo 'Invalid manifest gate output' >&2; exit 1; }
           branch="${manifest_gate[0]}"
           baseline="${manifest_gate[1]}"
+          [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid manifest baseline SHA' >&2; exit 1; }
           remote=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha')
           test "$remote" = "$head"
           baseline_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$baseline...$base" --jq '.status')
