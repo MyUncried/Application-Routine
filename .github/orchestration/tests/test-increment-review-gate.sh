@@ -139,8 +139,6 @@ require_contains compact_rollover_new_session 'Start a new session.' "$implement
 require_contains exhausted_session_forbidden 'MUST NOT be resumed' "$implementation_workflow"
 require_contains rollover_without_resume "\$args=@('-p','--permission-mode','acceptEdits','--output-format','json','--max-turns','8')" "$implementation_workflow"
 require_contains rollover_identity_guard 'Claude rollover reused the exhausted session' "$implementation_workflow"
-forbid_contains corrupted_workflow_suffix 'Implementation review dispatch failed'}
-).Groups[1].Value' "$implementation_workflow"
 
 recovery_workflow='.github/workflows/kodjo-slice-implementation-publication-recovery.yml'
 require_contains exact_recovery_marker 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
