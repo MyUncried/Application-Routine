@@ -1,121 +1,121 @@
-# KODJO — Registre versionné des incidents de protocole
+# KODJO — Registre versionné des incidents et tests du protocole
 
-- Version : **1.0.0**
-- Date d'établissement : **2026-09-07**
-- Périmètre : protocoles KODJO S09, transition générique S10 et reprises associées
-- Source de vérité : GitHub (`MyUncried/Application-Routine`)
-- Statuts de preuve : `CONFIRMÉ`, `PARTIEL`, `À COMPLÉTER`
-- Statuts de test : `PERMANENT`, `HISTORIQUE`, `MANQUANT`
+- Version du registre : **2.0.0**
+- Date : **2026-09-07**
+- Dépôt autoritatif : `MyUncried/Application-Routine`
+- Périmètre reconstruit : V1.2, V1.3, V1.4/S09, protocole générique S10
+- Issues principales : **#17 (S09)** et **#42 (S10)**
+- Résultats autorisés : `PASS`, `FAIL`, `NON RETESTÉ`, `NON VÉRIFIABLE`
+- Statuts autorisés : `OUVERT`, `CORRIGÉ`, `SUPERSÉDÉ`
+- Classes : `INCIDENT_TECHNIQUE`, `DÉFAUT_CONCEPTION`, `LIMITATION_EXTERNE`, `MAUVAISE_ARCHITECTURE`, `HORS_PROTOCOLE`
 
-## Règle de tenue
+## Règles de preuve
 
-Chaque incident reçoit un identifiant stable. Une correction de protocole ne clôt un incident que si :
+- `CORRIGÉ` signifie que le correctif est démontré par une évidence vérifiable.
+- Un invariant n'est validé que si son test associé est `PASS`.
+- Sans preuve suffisante, le résultat est `NON VÉRIFIABLE`, jamais `PASS`.
+- Un ancien run attesté sans logs exploitables reste inventorié, avec cause racine `NON DÉMONTRÉE`.
+- GitHub prévaut sur la mémoire conversationnelle.
+- La version 1.0.0 utilisait des IDs `KIP-xxx`. Elle est supersédée par les IDs stables `INC-xxx` ci-dessous ; la correspondance est conservée en fin de document.
 
-1. la cause est reliée à une preuve GitHub ou documentaire ;
-2. l'invariant permanent est formulé ;
-3. un test reproductible est identifié ;
-4. le statut du test indique honnêtement s'il est encore exécuté ;
-5. toute nouvelle occurrence met à jour la ligne existante ou crée un nouvel identifiant ;
-6. les runs dont seule l'existence est connue restent dans l'inventaire des preuves incomplètes.
+## Registre
 
-Le registre ne transforme jamais un souvenir de conversation en fait confirmé sans preuve GitHub correspondante.
+| ID | Date/période | Version | Classe | Phase/test | Symptôme | Cause racine démontrée | Évidence vérifiable | Correctif appliqué | Invariant résultant | Test de non-régression | Résultat | S'applique à | Statut | Supersession | Remarques |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| INC-001 | avant 2026-08-29 | V1.2 | DÉFAUT_CONCEPTION | Orchestration | État et décisions difficiles à reconstruire hors conversation | État durable insuffisamment centré sur GitHub | Ancien protocole V1.2 mentionné ; preuves détaillées non retrouvées | V1.3 reconstruit l'état depuis GitHub | GitHub porte états, décisions, événements et preuves | Reconstruction V1.3 depuis GitHub | PASS | V1.3+ | SUPERSÉDÉ | → INC-002 | Cause détaillée V1.2 partiellement vérifiable |
+| INC-002 | 2026-08-29 | V1.3 | DÉFAUT_CONCEPTION | T1→T9 | Besoin de démontrer la chaîne multi-acteurs sans écrire le métier | Architecture antérieure insuffisamment testée E2E | Archive V1.3, PR #30, commit documentaire `640f2c91` | T1→T9 CLOUD_READ_ONLY, single-writer et décisions A/B/C | Toute version doit être testée E2E sans écriture métier avant activation | T1→T9 réel GitHub↔Claude Cloud↔Work | PASS | V1.3 | SUPERSÉDÉ | remplace INC-001 ; architecture locale ensuite | 1 permission refusée et lectures répétées observées |
+| INC-003 | 2026-08-29 | V1.3 | INCIDENT_TECHNIQUE | Réveil Work | Commentaire `github-actions[bot]` seul ne réveille pas Work | Récursivité/protection `GITHUB_TOKEN` | Micro-test causal SHA `b9fe7fa6…`, délai ~32 s | Réveil par `pull_request:synchronize` après commit/update | Un signal bot doit utiliser un événement réveillant réellement Work | Commit/update → PR synchronize → Work | PASS | V1.3 | SUPERSEDÉ | → INC-029/INC-038 | Sans PAT, usurpation ni commentaire humain |
+| INC-004 | 2026-08-29 | V1.3 | INCIDENT_TECHNIQUE | allowed_bots/identité | Identité bot et identité utilisateur ne sont pas interchangeables | Filtrage d'auteur dépendant du transport | Tests T1→T9 et relais bot/utilisateur | Auteur, Issue et événement vérifiés séparément | Chaque route déclare les identités autorisées ; aucune confiance par contenu seul | Bot autorisé, utilisateur autorisé, auteur tiers rejeté | PASS | V1.3 | SUPERSEDÉ | → INC-030 | Couverture exacte du mécanisme historique limitée |
+| INC-005 | 2026-08-29 | V1.3 | INCIDENT_TECHNIQUE | Anti-double-exécution | Signaux répétés pouvaient rejouer une transition | Déduplication non garantie initialement | Archive V1.3 : claims atomiques T1→T9 | Single-writer et déduplication des signaux | Une transition causale n'est consommée qu'une fois | Duplicata événement/claim | PASS | V1.3 | SUPERSEDÉ | → INC-039 | Le test générique actuel couvre surtout les sorties récupérées |
+| INC-006 | 2026-08-29 | V1.3 | INCIDENT_TECHNIQUE | Arbitrage T8 | Reprise d'arbitrage T8 échouée sur un run | Cause détaillée non retrouvée | Notification : `resume-from-work-arbitration` FAIL 56 s ; autres T8 PASS choix A | Reprise T8 corrigée dans la suite T1→T9 | Une décision A/B/C doit être causale et reconstructible | T8 choix A puis reprise Claude Cloud | PASS pour chemin final | V1.3 | CORRIGÉ | — | Le run échoué isolé reste NON VÉRIFIABLE |
+| INC-007 | 2026-08-31 | V1.3 | LIMITATION_EXTERNE | Claude Cloud BASE→RESUME | BASE crée une session ; RESUME séparé : `No conversation found with session ID` | Continuité native non portable entre exécutions Cloud | Rapport SESSION-RESUME-01 ; compteur 2/2 | Aucun fallback/3e appel ; décision de ne pas considérer la continuité démontrée | Une session n'est réutilisable que si son stockage est effectivement persistant | BASE puis RESUME distinct, même session_id, fork=false | FAIL | V1.3 Cloud | CORRIGÉ comme diagnostic | → INC-008/INC-012 | Continuité Claude Cloud = NON DÉMONTRÉE |
+| INC-008 | 2026-08-31/09-02 | V1.3 | MAUVAISE_ARCHITECTURE | SessionStore S3/OIDC | Besoin de persister le transcript Claude entre runs | Session Cloud absente du run suivant | Rapport SESSION-STORE-RESUME-02 | Architecture S3 privé/OIDC préparée, non lancée | Ne pas déclarer une persistance distante validée sans WRITE/READ réel inter-run | SDK/imports/compilation/S3 émulé | PASS local ; NON VÉRIFIABLE réel | V1.3 expérimental | OUVERT puis abandonné | supersède piste INC-007 ; remplacé par INC-012 | AWS réel absent ; aucun Claude appelé |
+| INC-009 | 2026-08-31/09-02 | V1.3/local | INCIDENT_TECHNIQUE | Claude local BASE→RESUME | Plusieurs BASE/RESUME locaux échouent ou jobs opposés ignorés | Préflights PC/runner non démontrés au moment du test | Notifications Local Resume 01/02 ; compteur initial 0/2 | Préconditions runner local formalisées | Aucun BASE avant runner ONLINE, labels, Claude auth et filesystem stable | Préflight runner + BASE→RESUME | FAIL / NON RETESTÉ | V1.3 local | OUVERT historique | → INC-010/INC-012 | Causes détaillées de chaque run à relire |
+| INC-010 | 2026-09-01/02 | V1.3/local | DÉFAUT_CONCEPTION | Runner self-hosted Windows | Dépendance au PC, labels, workspace et authentification | Architecture locale introduite sans qualification complète | Documents d'architecture locale | Préconditions explicites, aucun fallback Cloud | Runner exact, labels, filesystem et auth doivent être vérifiés avant IA | Matrice préflight réelle Windows | NON VÉRIFIABLE globalement | V1.3+ local | OUVERT | — | Test permanent complet encore manquant |
+| INC-011 | 2026-09-03/05 | V1.4 | LIMITATION_EXTERNE | Sessions longues/quota | Consommation concentrée sur sessions >8 h et >150k ; transcript ~55 Mo | Session historique infinie et contexte massif | Métriques Claude rapportées dans décision d'architecture | Fin du modèle de session infinie | Une tranche = une session opérationnelle compacte | Contrôle âge/taille/contexte avant reprise | NON RETESTÉ | V1.4+ | CORRIGÉ par architecture | → INC-012/INC-028 | 100 % consommation récente >8 h, 98 % >150k selon métriques rapportées |
+| INC-012 | 2026-09-05/06 | V1.4 cible | MAUVAISE_ARCHITECTURE | Continuité Claude | Session historique `99404ae0-19e3-4004-8dde-cd670588afb5` devenue coûteuse | Continuité inter-tranches confondue avec continuité de session | Décision d'architecture ; session historique identifiée | Une tranche = nouvelle session Claude ; contexte inter-tranches explicite depuis sources | Session historique archivée, jamais reprise automatiquement | Nouvelle tranche avec nouvelle session et paquet compact | NON RETESTÉ globalement | V1.4+ | CORRIGÉ comme règle | supersède INC-007/008/011 | Session historique consultable uniquement |
+| INC-013 | 2026-09-04/05 | V1.4 S09 | INCIDENT_TECHNIQUE | PLAN structured output | PLAN ~31 kB incomplet/contradictoire malgré sa longueur | Budget/sortie structurée et qualité non garantis | Issue #17, commentaire `5548060521` ; commits `6a09f195`, `f03efb7` | Budget REVIEW 1800→4000 et validation terminale | Longueur ≠ qualité ; 5 critères avant Gate 1 | Plan long, marqueur final, couverture/traçabilité/exécutabilité/testabilité | PARTIEL / NON RETESTÉ complet | V1.4+ | OUVERT historique | — | Plan initial non approuvé |
+| INC-014 | 2026-09-04/05 | V1.4 S09 | INCIDENT_TECHNIQUE | CLARIFY | `blocking_points` perdus, faux READY possible | Publication partielle du structured output | Commit `11f3c73f`, puis `0874fbb5` | Transport intégral des blocages ; faux READY interdit | CLARIFY transporte tous les blocages et arrête le gate | Plusieurs blocages + marqueur tardif | PASS historique | V1.4+ | CORRIGÉ | apprentissage non appliqué à plusieurs transports ultérieurs | Répétition de la famille « métadonnée perdue » |
+| INC-015 | 2026-09-05 | V1.4 S09 | INCIDENT_TECHNIQUE | Prompt PowerShell/UTF-8 | ParserError avant Claude et texte corrompu | Here-string/quoting et encodage PowerShell | Correctifs `f76880f9`, `43a55c35`; run `33959400196` sans job | Prompt UTF-8 temporaire/stdin, YAML correctement indenté | Tout script PowerShell est parsé dans son shell réel ; prompts longs par stdin | PowerShell 5.1, Unicode, guillemets, here-string | PASS ponctuel ; NON RETESTÉ permanent | V1.4+ Windows | CORRIGÉ | → INC-021/INC-035 | Aurait dû prévenir la corruption YAML ultérieure |
+| INC-016 | 2026-09-05 | V1.4 S09 | INCIDENT_TECHNIQUE | Feedback/READY | Feedback complet perdu ou mauvais statut READY | Extraction/transport incomplet | `0874fbb5` | Conserver feedback intégral, bloquer sortie ambiguë | Aucune sortie ambiguë ne franchit le gate | Feedback long et clarification tardive | PASS historique | V1.4+ | CORRIGÉ | — | — |
+| INC-017 | 2026-09-05/06 | V1.4 S09 | INCIDENT_TECHNIQUE | Chemins Git | Fichiers accentués rejetés ou mal décodés | Git quoting + encodage UTF-8 console | `a3280705`, `bb3e6ae9`, `50f417c4`, `38993131`, `e19f188e`, `fc35b641` | Chemins bruts UTF-8 et normalisation | Aucun parsing de scope sur chemin Git quoté implicitement | Accents, espaces, scope positif/négatif | PASS historique | V1.4+ | CORRIGÉ | — | Multiples correctifs successifs de même famille |
+| INC-018 | 2026-09-05/06 | V1.4 S09 | DÉFAUT_CONCEPTION | Worktree/checkpoint | Travail Claude perdu après transport | Checkpoint durable absent avant étape fragile | `4ac56941`, `9b0f1d77`, `8606959a`, `70cffd2f` | Checkpoint Git récupérable avant transport | Aucun second appel IA pour récupérer un travail déjà matérialisé | Échec après travail puis récupération | PASS historique partiel | V1.4+ | CORRIGÉ | → INC-037 | Aurait dû guider dès l'origine la récupération post-push S10 |
+| INC-019 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | Workflow PowerShell | Erreur de parseur dans implementation | Syntaxe non testée sur PowerShell cible | `8634387d` | Réparation du parseur | Parse PowerShell réel obligatoire | Analyse syntaxique Windows | PASS ponctuel ; NON RETESTÉ permanent | V1.4+ Windows | CORRIGÉ | relié INC-015 | Dette persistante |
+| INC-020 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | YAML | Workflow audit sans job | Here-string mal indenté / structure YAML cassée | `30416fbf`, `ada7150f` | Structure restaurée | Parser le YAML complet relu depuis GitHub | YAML + inventaire jobs/steps | PASS | Toutes | CORRIGÉ | → INC-035 | Incident répété ultérieurement |
+| INC-021 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | Prompt CLI | Prompt trop volumineux passé en argument | Limites/quoting de ligne de commande | `03dbcd5d` | Streaming via stdin | Prompt long jamais passé comme argument non borné | Prompt Unicode long par stdin | PASS historique | V1.4+ | CORRIGÉ | — | — |
+| INC-022 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | Recovery | Repair workflow non exécutable | Chemin secondaire non testé E2E | `d99f4f43` | Workflow rendu exécutable | Chaque recovery doit être testé jusqu'à son dernier effet | Événement→gate→publication | NON RETESTÉ permanent | V1.4+ | CORRIGÉ ponctuellement | → INC-038 | Même faiblesse répétée |
+| INC-023 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | REVIEW_BRIDGE | Sortie bot ne déclenche pas review | Protection anti-récursion `GITHUB_TOKEN` | `7a9c8346` | Relais utilisateur autorisé | Un bridge bot doit avoir transport explicite testé | Bot seul/relais utilisateur | PASS historique | V1.4 | CORRIGÉ | → INC-029 | INC-003 aurait dû prévenir cet incident |
+| INC-024 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | grep/mode strict | Scan vide considéré FAIL | Code 1 attendu sous mode strict | `b4a1744a` | Absence attendue normalisée | Résultat vide attendu = succès explicite | 0/1/n résultats | PASS historique | Toutes shells strictes | CORRIGÉ | → INC-031 | Famille pipefail |
+| INC-025 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | OpenAI review | API/transport et structure review fragiles | Statut/texte/verdict insuffisamment validés | `95e1a053`, `ada7150f` | Validation API + structure | completed + texte + verdict exact avant publication | completed/incomplete/error/texte vide | PARTIEL | V1.4+ | CORRIGÉ partiel | — | — |
+| INC-026 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | Diagnostics | stdout/stderr Claude perdus sur échec | Artefacts seulement sur succès ; particularités PowerShell 5.1 | `bf0f0b5d` | `if: always()`, fichiers stdout/stderr/diagnostic | Toute erreur Claude garde une preuve non secrète | CLI exit non nul + artefacts | PASS historique | V1.4+ local | CORRIGÉ | — | stdout/stderr PowerShell 5.1 à retester systématiquement |
+| INC-027 | 2026-09-06 | V1.4 S09 | LIMITATION_EXTERNE | OAuth/quota Claude | JSON 429 classé comme erreur CLI ; reset 14:30 | Classification après le code CLI | Run `34031596134`, session `28152cdd-…`; `7ac45d7` | Détecter 429/limit avant erreur générique | USAGE_LIMIT stoppe sans retry/new session | Réponse 429 JSON + exit variés | PASS syntaxe ; NON RETESTÉ réel | V1.4+ | CORRIGÉ | relié INC-011 | `expiresAt` distinct : voir INC-028 |
+| INC-028 | 2026-09-06 | V1.4/générique | INCIDENT_TECHNIQUE | OAuth expiresAt | Token Claude potentiellement expiré avant appel | Préflight OAuth nécessaire | Workflow vérifie `claudeAiOauth.expiresAt` | Stop avant Claude si expiration | Aucun crédit consommé avec token expiré | expiresAt passé/futur | NON RETESTÉ réel | Local Claude | OUVERT test | — | Règle présente, preuve E2E absente |
+| INC-029 | 2026-09-06/07 | Générique S10 | INCIDENT_TECHNIQUE | repository_dispatch | Output bot ne lançait pas review | Anti-récursion et dispatch absent | `bc0de083`, `ec72a4bf`, `c6459bd2` | Dispatch explicite + reprise d'output | Toute transition bot→workflow a un transport explicite | Dispatch nominal + recovery | PARTIEL | Générique | CORRIGÉ | supersède INC-003/023 | Permission du dispatch échouera encore : INC-044 |
+| INC-030 | 2026-09-06/07 | Générique S10 | INCIDENT_TECHNIQUE | Event routing | `START_IMPLEMENTATION_REVIEW` lançait aussi implementation | `contains`/préfixe ambigu | Runs `34094043696`, `34094043707`; `76548134`, `8bcfa404` | Marqueur = première ligne exacte | Tous marqueurs voisins et suffixés rejetés | Matrice exacte/voisine | PASS | Générique | CORRIGÉ | apprentissage INC-004 non généralisé | Aucun Claude sur run parasite |
+| INC-031 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | GitHub expression | `\\n` littéral empêchait le job | Mauvaise sémantique GitHub Expressions | Run `34095983755`; `391f1e70`, `726894c8` | Newline réel via `fromJSON` | Expression testée selon moteur GitHub | vrai newline/faux `\\n` | PASS statique | Générique | CORRIGÉ | — | — |
+| INC-032 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Parsing CRLF | `session_id` et autres gardent `\\r` | Normalisation limitée à première ligne | Run `34096598591`; `1c0ea389`, `cdfa6519` | Normaliser le corps entier en LF avant extraction | LF/CRLF/mixte, champ unique exact | PASS | Générique | CORRIGÉ | INC-017/020 auraient dû pousser un parseur commun | — |
+| INC-033 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Auth dépôt privé | `git ls-remote` après suppression credential | `persist-credentials:false` puis lecture Git réseau | Run `34097406368`; `57db2c28`, `e65764d5` | Ref privée via API authentifiée | Aucun réseau privé sans token effectif | Ref correcte/fausse, token présent/absent | PARTIEL | Générique | CORRIGÉ | — | — |
+| INC-034 | 2026-09-06 | Générique S10 | INCIDENT_TECHNIQUE | Manifest parser | Outil YAML absent sur quatre runners/workflows | Dépendance non déclarée | `ca995389`, `85ca1408`, `f210539f`, `dc8d9214` | Aucun binaire supposé sans inventaire | Matrice commandes/version par runner | NON RETESTÉ globalement | Générique | CORRIGÉ ponctuel | — | Aurait dû prévenir INC-041 |
+| INC-035 | 2026-09-06/07 | Générique S10 | INCIDENT_TECHNIQUE | YAML/édition | Parser manifeste cassé puis corruption YAML transitoire `3e2ce3e5` | Correctif textuel non relu depuis GitHub ; expansion `$` | `9d7d9699`…`5a07ee8d`; réparation `553399e6` | Refetch + parse complet avant activation | YAML relu depuis main, jobs/steps, scripts | PASS après réparation | Toutes | CORRIGÉ | répétition INC-020 | — |
+| INC-036 | 2026-09-06 | Générique S10 | INCIDENT_TECHNIQUE | BOM | Marqueur invalide malgré texte visible | UTF-8 BOM PowerShell | `5de0120d`, `0e7414cd`, `ebc7768e`, `fb89e4f` | Sorties UTF-8 sans BOM, lecture historique normalisée | BOM/non-BOM première ligne | PARTIEL | Générique | CORRIGÉ | — | — |
+| INC-037 | 2026-09-07 | Générique S10 | DÉFAUT_CONCEPTION | Revue incrémentale | Lot 2 jugé contre lot 3 | `increment` perdu dans output/prompt | Commentaire `5567353795`; `97e91de6`, `553399e6`, `f3be11ce` | Incrément structuré propagé bout en bout | nominal, legacy lié, absent, dupliqué, bounds, mismatch | PASS | Générique multi-lots | CORRIGÉ | famille INC-014/016 | Ancien apprentissage métadonnées perdues non généralisé |
+| INC-038 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Publication post-push | Commit `b21fb817` poussé, output absent | `gh issue comment --json` non supporté | Capture/run ; `c36b0bff`, `e76a3a74`, output `5569247304` | API canonique + recovery sans IA | Push→échec publication→recovery idempotent | PASS sur cas réel | Générique | CORRIGÉ | répète INC-018/022 | Aucun redéveloppement |
+| INC-039 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Idempotence recovery | Une reprise pouvait republier la même sortie | Recherche de sortie existante absente | `48ac7d03`, `ed5eecd3` | Même HEAD+trigger = sortie unique réutilisée | 0/1/2 sorties | PASS statique | Générique | CORRIGÉ | prolonge INC-005 | — |
+| INC-040 | 2026-09-06 | Générique S10 | INCIDENT_TECHNIQUE | Replan/resume | Replan après incrément et HEAD descendant refusés | Baseline manifeste confondue avec HEAD causal | `4956b26e`, `5ba1a530`, `b5466160` | Resume accepte descendant autorisé et contrôle ascendance | baseline, descendant, divergence | PARTIEL | Générique | CORRIGÉ | — | — |
+| INC-041 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | CLI runner Windows | `gh issue comment --json id` inconnu | Version réelle de `gh` non inventoriée/testée | Échec après push ; `c36b0bff` | Capacité CLI vérifiée ; publication par REST stable | Interdiction option + test version/capacité | PASS statique ; matrice NON RETESTÉE | Tous runners | CORRIGÉ partiel | INC-034 aurait dû éviter | — |
+| INC-042 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | repository_dispatch permission | HTTP 403 `Resource not accessible by integration` | `contents: read` au lieu de `contents: write` | Output `5569247304`; `48ac7d03`, `13dfe4bf`, `cf2f2adf` | Tout caller `/dispatches` a `contents: write` | Scan transversal des workflows | PASS statique | Générique | CORRIGÉ | INC-029 incomplet | Permission réelle à confirmer au prochain dispatch |
+| INC-043 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | FINALIZE | `jest not recognized` après checkout propre | `npm ci` absent | `fab95d69`; reprise S09 réussie rapportée | Installer lockfile avant Jest/TS | Checkout sans node_modules → npm ci → Jest → TS | PASS sur reprise rapportée | Toutes | CORRIGÉ | — | — |
+| INC-044 | 2026-09-06 | V1.4 S09 | INCIDENT_TECHNIQUE | Claude quota | Run 429 n'a produit ni travail ni commit | Limite Claude Pro externe | Run `34031596134` | Arrêt USAGE_LIMIT, aucun retry | Aucun contournement de quota | 429 réel | PASS comme arrêt | Toutes Claude | CORRIGÉ | relié INC-027 | Distinct de token expiré |
+| INC-045 | 2026-09-05 | V1.4 S09 | HORS_PROTOCOLE | Interface utilisateur | Nombreux copier-coller/retry manuels pour relancer | Bridges non autonomes, mais symptôme côté interface | Conversations utilisateur et succession de triggers | Réduire relais manuels ; événements causaux automatiques | Aucun paramétrage runner/Claude demandé à l'utilisateur | Test E2E sans action utilisateur technique | NON RETESTÉ | Générique | OUVERT | — | Classé hors protocole fonctionnel mais conséquence d'orchestration |
+| INC-046 | 2026-09-05 | V1.4 S09 | INCIDENT_TECHNIQUE | Permissions Claude CLI | Prompts interactifs/permissions pouvaient bloquer le runner | Mode de permission et commande non stabilisés | Historique mentionne politique de commandes ; preuve précise absente | Mode non interactif explicite, aucune saisie utilisateur | Commande Claude sans prompt interactif | NON VÉRIFIABLE | Local Claude | OUVERT | — | Cause/logs à retrouver |
+| INC-047 | 2026-09-01/06 | V1.3/V1.4 | INCIDENT_TECHNIQUE | CLAUDE_CONFIG_DIR | Session/auth dépend du répertoire de configuration | Configuration éphémère ou mauvais profil possible | Documents SessionStore/local ; workflow fixe `C:\\Users\\hadjo\\.claude` | Répertoire exact vérifié avant Claude | Credentials/session disponibles dans le même config dir | PARTIEL / NON RETESTÉ | Local Claude | OUVERT test | — | Ne pas confondre avec stockage de transcript Cloud |
+| INC-048 | 2026-09-04/06 | V1.4 S09 | INCIDENT_TECHNIQUE | Runs sans job | Plusieurs PLAN/REVIEW affichent « No jobs were run » | NON DÉMONTRÉE pour chaque run | Notifications commits `bb8be6f`, `faee60e`, `e570b68`, `1e20295`, `af59d25`, `72cf4a9`, `8606959` | Aucun correctif unique attribuable | Tout no-job exige audit exact de `on` et `if` | Replay payload de chaque run | NON VÉRIFIABLE | Toutes | OUVERT | certains cas reliés INC-015/020/030 | Ne pas fusionner sans logs |
 
-## Incidents capitalisés
+## Répétitions qui auraient dû être évitées
 
-| ID | Phase | Incident et preuve | Cause | Invariant permanent | Test associé | Statut |
-|---|---|---|---|---|---|---|
-| KIP-001 | S09 Plan | Plan complet tronqué ou réponse incomplète ; correctifs `6a09f195`, `f03efb7` (1800→4000 tokens) | Budget de sortie insuffisant pour une revue/plan volumineux | Toute sortie structurante doit disposer d'un budget compatible et être refusée si son marqueur terminal manque | Fixture longue ; vérification du marqueur final et du statut API | HISTORIQUE / PARTIEL |
-| KIP-002 | S09 Plan | `CLARIFY` pouvait perdre les points bloquants ; `11f3c73f` | Publication partielle d'une réponse de clarification | Un état de clarification transporte obligatoirement tous les `blocking_points` et ne peut devenir READY | Cas CLARIFY avec plusieurs blocages ; rejet d'un faux READY | HISTORIQUE |
-| KIP-003 | S09 Review | Conflit d'architecture traité comme perte de contexte (`ARBITRATION_CONTEXT_LOST`) | Contexte arbitral non transporté ou sortie non classifiée | Une décision manquante est un gate explicite ; aucune réinvention silencieuse | Fixture de conflit et attente d'un statut de clarification | HISTORIQUE / PARTIEL |
-| KIP-004 | S09 Claude | RESUME dans un autre environnement : « No conversation found with session ID » ; rapport SESSION-RESUME-02 | Session locale non portable entre runners/environnements | Une reprise doit utiliser la session et le runner qui la possèdent ; aucun fallback INITIAL | Test BASE/RESUME sur même stockage ; rejet sur stockage absent | HISTORIQUE ; test permanent MANQUANT |
-| KIP-005 | S09 Impl. | Feedback tronqué et faux état READY ; `0874fbb5` | Extraction/transport incomplet du feedback Claude | Le feedback est conservé intégralement et toute sortie ambiguë bloque READY | Feedback long + marqueur de clarification tardif | HISTORIQUE |
-| KIP-006 | S09 Impl. | Chemins Git Unicode mal décodés ou cités ; `a3280705`, `bb3e6ae9`, `50f417c4`, `38993131`, `e19f188e`, `fc35b641` | `core.quotePath`, encodage console et parsing des chemins incompatibles | Les chemins sont lus sous forme brute UTF-8 et comparés après normalisation contrôlée | Fichiers avec accents/espaces ; scope positif et négatif | HISTORIQUE |
-| KIP-007 | S09 Impl. | Travail Claude perdu après défaut de transport ; `4ac56941`, `9b0f1d77`, `8606959a`, `70cffd2f` | Worktree non durable avant validation/promotion | Tout travail coûteux doit être matérialisé dans un checkpoint récupérable avant une étape de transport fragile | Simulation d'échec après travail ; récupération depuis checkpoint sans nouvel appel IA | HISTORIQUE / PARTIEL |
-| KIP-008 | S09 Workflow | Erreur de parseur PowerShell ; `8634387d` | Script PowerShell non analysé dans son shell réel | Toute étape PowerShell modifiée doit être parsée/exécutée sur le runner Windows cible avant activation | Analyse syntaxique PowerShell et micro-payload réel | HISTORIQUE ; test permanent MANQUANT |
-| KIP-009 | S09 Workflow | Indentation YAML cassée ; `30416fbf`, puis structure review restaurée par `ada7150f` | Modification textuelle sans validation du document complet | Chaque workflow final est parsé comme YAML et sa structure jobs/steps est contrôlée | Parse YAML complet + inventaire des jobs/steps | PERMANENT pour workflows génériques |
-| KIP-010 | S09 Claude | Prompt volumineux passé comme argument ; `03dbcd5d` | Limite/quoting de ligne de commande | Les prompts longs sont transmis par fichier ou stdin, jamais comme argument non borné | Prompt long, Unicode, guillemets et retours ligne via stdin | HISTORIQUE / PARTIEL |
-| KIP-011 | S09 Recovery | Workflow de réparation non exécutable ; `d99f4f43` | Chemin secondaire créé sans test de déclenchement complet | Tout chemin de récupération est testé de l'événement jusqu'au dernier gate | Déclencheur exact + job présent + gate complet sans IA | HISTORIQUE ; couverture générique PARTIELLE |
-| KIP-012 | S09 Review | Sortie bot impossible à relayer vers la revue ; `7a9c8346` | GitHub bloque les récursions provoquées par `GITHUB_TOKEN` | Une transition automatique possède un `repository_dispatch` explicite ou un relais utilisateur autorisé et vérifié | Commentaire bot seul, relais utilisateur exact, dispatch explicite | HISTORIQUE puis PERMANENT générique |
-| KIP-013 | S09 Integration | Scan vide considéré comme échec ; `b4a1744a` | Code retour non nul attendu de `grep` sous mode strict | L'absence attendue d'un motif est un succès explicitement codé | Scan vide, un résultat autorisé, un résultat interdit | HISTORIQUE |
-| KIP-014 | S09 OpenAI | Transport OpenAI fragile et workflow review structurellement cassé ; `95e1a053`, `ada7150f` | Réponse API et structure YAML insuffisamment validées | Statut API, texte non vide et verdict terminal exact sont obligatoires avant publication | Réponses completed/incomplete/error, texte vide, verdict absent/dupliqué | PARTIEL |
-| KIP-015 | S09 Claude | Diagnostic perdu lors d'un échec DEV ; `bf0f0b5d` | Artefacts publiés seulement sur succès | stdout, stderr et diagnostic non secret sont conservés avec `if: always()` | Échec CLI simulé et présence des artefacts | HISTORIQUE / intégré aux workflows |
-| KIP-016 | S09 Claude | Limite d'usage classée comme simple erreur CLI ; `7ac45d7a` | Ordre de classification incorrect | Les limites/rate limits deviennent `USAGE_LIMIT` avant l'erreur transport et interdisent les retries | Réponse 429/limit avec codes CLI variés | HISTORIQUE / PARTIEL |
-| KIP-017 | S09 Finalize | Dépendances absentes pendant les contrôles finaux ; `fab95d69` | Jest/TypeScript exécutés avant `npm ci` | Tout gate Node installe depuis le lockfile avant Jest/TypeScript | Checkout propre sans `node_modules`, puis `npm ci`, Jest, TS | HISTORIQUE / intégré |
-| KIP-018 | Générique S10 | Dépendance YAML non déclarée sur quatre workflows ; `ca995389`, `85ca1408`, `f210539f`, `dc8d9214` | Parser supposé disponible sur tous les runners | Aucune commande ne dépend d'un outil non déclaré ; utiliser un runtime garanti ou tester sa présence | Matrice Ubuntu/Windows des exécutables requis | HISTORIQUE ; matrice permanente MANQUANTE |
-| KIP-019 | Générique S10 | Parser de manifeste supprimé/cassé sur quatre workflows ; `9d7d9699`, `4fffddb3`, `27490d9a`, `5a07ee8d` | Correctif mécanique non vérifié transversalement | Tous les consommateurs du manifeste partagent les mêmes contrôles d'identité, baseline et branche | Fixture manifeste valide + champs absents/mal formés sur chaque workflow | PARTIEL |
-| KIP-020 | Générique S10 | CRLF rejeté dans quatre manifests ; `d61e276f`, `a24fcecc`, `ed1bb852`, `b25c0494` | Expressions de ligne limitées à LF | Tout corps/manifeste est normalisé en LF avant extraction | LF, CRLF, CR et fins mixtes | PERMANENT pour commentaires ; manifeste PARTIEL |
-| KIP-021 | Générique S10 | `START_PLAN` intercepté par le mauvais job ; `f80f2889` | Routage ambigu entre plan et plan-review | Chaque événement possède un marqueur exact et un seul consommateur | Matrice de tous les marqueurs voisins et préfixes | PERMANENT |
-| KIP-022 | Générique S10 | Session de revue de plan non préservée ; `f3e943bd` | Identifiant de session omis lors de la transition | Toute correction reprend la session de son activité ; aucune session croisée | Sortie/reprise même session ; rejet d'une autre session | PARTIEL |
-| KIP-023 | Générique S10 | BOM UTF-8 dans review/status ; `5de0120d`, `0e7414cd`, `ebc7768e`, `fb89e4f` | Écriture PowerShell UTF-8 avec BOM et comparaison du premier caractère | Les sorties protocolaires sont UTF-8 sans BOM ; les anciennes sources tolérées sont normalisées | BOM/non-BOM sur première ligne, publication puis récupération | PARTIEL |
-| KIP-024 | Générique S10 | Clarification Claude non routée vers Développement ; `724b3deb` | Aucun événement de réveil après `CLARIFICATION_REQUIRED` | Toute clarification publie sa causalité et réveille ChatGPT Développement sans second appel IA | Sortie clarification et présence de l'événement de reprise | PARTIEL |
-| KIP-025 | Générique S10 | Replanification après implémentation non supportée ; `c97e6bd8`, `e066e412`, `4956b26e`, `5ba1a530` | Machine d'état supposait un plan unique | Toute replanification est explicitement liée au plan, HEAD et incrément qu'elle remplace | Replan autorisé, métadonnées manquantes, plan précédent non remplacé | PARTIEL |
-| KIP-026 | Générique S10 | Faux échec `pipefail` pendant replan ; `79dcecf8` | Producteur long relié à un consommateur fermant tôt | Sous `pipefail`, aucun `grep -q`/`head` précoce sur un producteur long | Commentaire court et 200 kB ; aucun SIGPIPE | PERMANENT |
-| KIP-027 | Générique S10 | Reprises Claude retransmettant le contexte complet ; `4920ee3f`, `63811444`, `c8aac044` | Reprise reconstruite au lieu d'être différentielle | `--resume` reçoit seulement le delta, les identifiants causaux et le HEAD ; plan/revue complets interdits | Garde-fou sur marqueurs de paquet complet et longueur du prompt | INTÉGRÉ / PARTIEL |
-| KIP-028 | Générique S10 | Sortie d'implémentation bot ne déclenchant pas la revue ; `bc0de083`, `ec72a4bf`, `c6459bd2` | Protection anti-récursion GitHub et absence de reprise | Dispatch explicite et récupération depuis un `IMPLEMENTATION_OUTPUT` existant | Dispatch nominal + reprise manuelle liée au commentaire source | PERMANENT / PARTIEL |
-| KIP-029 | Générique S10 | `START_IMPLEMENTATION_REVIEW` déclenchait aussi l'implémentation ; runs `34094043696`, `34094043707`; `76548134`, `8bcfa404` | Recherche par sous-chaîne/préfixe ambigu | Première ligne exacte ; aucun marqueur ne peut être préfixe fonctionnel d'un autre | Marqueur exact, voisin, suffixé, seulement préfixé | PERMANENT |
-| KIP-030 | Générique S10 | Saut de ligne écrit comme `\\n` littéral dans expression GitHub ; run `34095983755`; `391f1e70`, `726894c8` | Sémantique des littéraux GitHub Actions mal interprétée | Utiliser une vraie valeur newline, par ex. `fromJSON('"\\n"')` | Évaluation des deux marqueurs avec newline réel et faux `\\n` | PERMANENT statique |
-| KIP-031 | Générique S10 | Métadonnées CRLF conservant un `\\r` final ; run `34096598591`; `1c0ea389`, `cdfa6519` | Seule la première ligne était normalisée | Normaliser le corps entier avant tout parsing, puis exiger une occurrence exacte par champ | Payload autoritatif LF/CRLF/mixte, doublons et champs mal formés | PERMANENT |
-| KIP-032 | Générique S10 | `git ls-remote` après `persist-credentials:false` sur dépôt privé ; run `34097406368`; `57db2c28`, `e65764d5` | Credential supprimé avant lecture Git distante | Les refs privées sont lues via API GitHub authentifiée avec permission minimale vérifiée | Ref correcte/fausse via API ; interdiction statique de lecture Git non authentifiée | PARTIEL |
-| KIP-033 | Générique S10 | Revue du lot 2 contre le plan S10 complet ; commentaire `5567353795`; `97e91de6`, `553399e6`, `f3be11ce` | `increment` perdu entre trigger, output et prompt | L'incrément structuré est propagé et la revue ignore les lots ultérieurs | Nominal, historique lié, absent, dupliqué, bornes invalides, mismatch, prompt borné | PERMANENT |
-| KIP-034 | Générique S10 | Corruption YAML transitoire lors de l'édition `3e2ce3e5`, réparée par `553399e6` | Substitution textuelle interprétant les séquences `$` | Toute édition est suivie d'un refetch depuis GitHub et d'un parse YAML avant activation | Parse du fichier relu depuis `main`, pas seulement du buffer local | HISTORIQUE ; automatisation PARTIELLE |
-| KIP-035 | Générique S10 | Reprise d'implémentation refusant un HEAD descendant ; `b5466160` | Baseline du manifeste confondue avec le HEAD causal de l'incrément | Un resume vérifié accepte un descendant autorisé tout en contrôlant l'ascendance et le HEAD distant | Baseline exacte, descendant valide, branche divergente | PARTIEL |
-| KIP-036 | Générique S10 | `gh issue comment --json id` inconnu après push de `b21fb817`; `c36b0bff` | Option non disponible dans la version réelle de `gh` du runner Windows | Publication canonique par `gh api --method POST`, puis lecture de `.id` | Interdiction statique de la commande, présence du transport API | PERMANENT |
-| KIP-037 | Générique S10 | Commit poussé sans `IMPLEMENTATION_OUTPUT` ; `e76a3a74`, `f4076cec`; output récupéré `5569247304` | Publication fragile exécutée après le push sans chemin idempotent | Aucun redéveloppement après push ; récupération déterministe puis revue normale | Parent direct, HEAD distant, causalité, Jest, TS, sortie unique | PERMANENT / chemin réel validé |
-| KIP-038 | Générique S10 | `repository_dispatch` refusé HTTP 403 après output `5569247304`; `48ac7d03`, `ed5eecd3`, `13dfe4bf`, `cf2f2adf` | `contents: read` au lieu de `contents: write` | Tout appel `/dispatches` déclare `contents: write` et la reprise réutilise une sortie existante | Scan transversal de tous les callers, idempotence, détection de doublons | PERMANENT |
+| Apprentissage antérieur | Incident ultérieur | Constat |
+|---|---|---|
+| INC-003 : commentaire bot non récursif | INC-023 puis INC-029 | Le transport d'événement n'a pas été généralisé aux nouveaux bridges. |
+| INC-004 : identité auteur/événement séparée | INC-030 | Le routage par sous-chaîne a réintroduit une ambiguïté connue. |
+| INC-014/016 : métadonnées et blocages perdus | INC-037 | `increment` n'a pas été propagé comme champ causal. |
+| INC-015/019/020 : PowerShell et YAML réels | INC-035 | Les modifications ont encore été validées hors du document/shell final. |
+| INC-017 : Unicode et normalisation | INC-032/036 | La normalisation n'a pas été centralisée pour tous les contenus. |
+| INC-018 : checkpoint avant transport fragile | INC-038 | Le push et la publication n'avaient pas de reprise idempotente dès l'origine. |
+| INC-022 : recovery non testé E2E | INC-038/042 | Les chemins de reprise ont encore été activés avant leur dernier effet réel. |
+| INC-024 : mode strict et codes attendus | INC-031 | La famille des différences d'interprétation shell/moteur n'a pas été couverte transversalement. |
+| INC-034 : dépendances/capacités runner non inventoriées | INC-041 | Une option `gh` a été supposée disponible. |
+| INC-029 : dispatch ajouté | INC-042 | L'appel a été testé syntaxiquement sans vérifier sa permission effective. |
 
-## Preuves de runs historiques dont la cause détaillée reste à compléter
+## Tests et preuves encore à construire
 
-Ces échecs sont attestés par les notifications GitHub retrouvées, mais les extraits disponibles ne suffisent pas à attribuer une cause sans relire les logs. Ils ne doivent pas être fusionnés arbitrairement avec les incidents ci-dessus.
+1. Replay sans IA des payloads complets V1.2/V1.3/V1.4 retrouvables.
+2. Relire les logs exacts de tous les runs `INC-048`.
+3. Matrice réelle Windows/Ubuntu : PowerShell 5.1, Bash, `gh --version` et capacités, Git, Node, Ruby, jq, Claude CLI.
+4. E2E bot→événement→Work et bot→`repository_dispatch` avec permissions réelles.
+5. BASE→RESUME local sur le même runner et le même `CLAUDE_CONFIG_DIR`, sans fallback.
+6. Test du token OAuth expiré via `expiresAt`, sans appel Claude.
+7. Test des prompts Claude non interactifs et des permissions.
+8. Test de limite/quota simulée et preuve d'absence de retry.
+9. Validation structurée OpenAI : output tronqué, token limit, texte vide, verdict dupliqué.
+10. Test intégral PLAN→REVIEW→Gate 1→IMPLEMENTATION→REVIEW_BRIDGE→Gate 2→FINALIZE sans écriture métier.
+11. Test d'indépendance des sessions PLAN-review et DEV.
+12. Contrôle préventif âge/taille de session et interdiction des sessions historiques > seuil.
+13. Test de réveil ChatGPT Work sans action technique demandée à l'utilisateur.
 
-| Référence | Date | Workflow / preuve | État du registre |
-|---|---|---|---|
-| S09-H01 | 2026-09-04 | Plan Local, événements `5547350464`, `5547363159`, `5547713050` ; commits `bb8be6f`, `faee60e`, `e570b68` | Cause à relire dans les logs |
-| S09-H02 | 2026-09-04 | Automated Review, événements `5547492341`, `5547581747` ; commits `0f28b63`, `d0ec155` | Cause à relire |
-| S09-H03 | 2026-09-05 | Plan Local « No jobs were run » ; commits `1e20295`, `af59d25`, `6c6b9b9` | Routage probable, non confirmé |
-| S09-H04 | 2026-09-05 | Review « No jobs were run » ; commits `72cf4a9`, `8606959` | Routage probable, non confirmé |
-| S09-H05 | 2026-09-05 | Independent Plan Review ; commits `5b242dd`, `6456cfa`, plusieurs tentatives | Cause à relire |
-| S09-H06 | 2026-09-05 | Implementation Local ; commits `a328070`, `0874fbb`, `0d6c6d0` | Plusieurs causes possibles ; ne pas déduire |
-| S09-H07 | 2026-09-05/06 | Recover Worktree ; commits `4ac5694`, `8606959` | Cause à relire |
-| S09-H08 | 2026-09-06 | Independent Review, job `implementation-openai-review` échoué, `plan-claude-review` ignoré | Cause à relire |
-| S09-H09 | 2026-09-06 | Validate Integration ; commits `eac289e`, `fc35b64` | Probablement relié à KIP-006/KIP-013, à confirmer |
-| S09-H10 | 2026-09-06 | Implementation Local, commit `7a9c834`, 13 min 15 s | Cause à relire |
-| S09-H11 | 2026-09-06 | Finalize, job échoué en 52 s | Probablement relié à KIP-017, à confirmer |
+## État GitHub vérifié au 2026-09-07
 
-## Couverture permanente actuellement disponible
+- L'archive `.github/orchestration/archive/KODJO_V14_S09_PROTOCOL_2026-09-05_LEGACY.md` **n'existe pas** sur `main` (404 vérifié).
+- L'ancien fichier `.github/orchestration/KODJO_V14_S09_PROTOCOL.md` existe encore, blob `513ede99843bcdfad0da94453a609cb61d7bbc14`.
+- Le registre ne prétend donc pas que l'archivage S09 est terminé.
+- Le protocole générique S10 est déjà installé et a évolué au-delà de l'état historique du prompt ; aucune régression vers cet ancien état ne doit être faite sans nouvelle vérification.
 
-- `.github/orchestration/tests/test-increment-review-gate.sh`
-  - parsing LF/CRLF ;
-  - commentaires longs ;
-  - marqueurs exacts ;
-  - champs absents, dupliqués et incohérents ;
-  - bornes d'incrément ;
-  - périmètre de revue ;
-  - transport de publication par API ;
-  - récupération sans IA ;
-  - permissions de tous les appels `repository_dispatch` ;
-  - idempotence et doublons de sorties récupérées.
-- Gates intégrés aux workflows :
-  - identité Issue/manifeste/branche/HEAD ;
-  - auteur et commentaire source ;
-  - ascendance Git ;
-  - Jest complet et TypeScript ;
-  - migration001 immuable ;
-  - diagnostics Claude conservés.
+## Correspondance avec la version 1.0.0
 
-## Dette de qualification explicite
+Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrées `INC-013` à `INC-044` et par les entrées historiques V1.2/V1.3 ajoutées ici. Git conserve la version 1.0.0 au commit `07d99314a3ee688c589c053b2ec571e3cc5598d8`.
 
-Les tests suivants restent à créer ou centraliser ; leur absence ne doit plus être masquée :
-
-1. analyse PowerShell réelle sur le runner Windows ;
-2. matrice des versions et capacités de `gh`, Git, Node, Claude CLI, Ruby et jq ;
-3. replay sans IA de tous les anciens payloads S09 conservés ;
-4. test bout en bout de chaque événement jusqu'à la publication et au dispatch, avec API GitHub simulée ;
-5. test de portabilité/absence des sessions Claude entre stockages ;
-6. validation automatique des budgets et marqueurs terminaux des réponses OpenAI ;
-7. association des logs aux preuves historiques S09-H01 à S09-H11.
-
-## Historique du registre
+## Historique
 
 | Version | Date | Changement |
 |---|---|---|
-| 1.0.0 | 2026-09-07 | Reconstruction initiale S09→S10 depuis historique GitHub, commentaires, documents et contexte inter-conversations ; 38 incidents et 11 groupes de runs à instruire. |
+| 1.0.0 | 2026-09-07 | Première reconstruction partielle, IDs KIP ; supersédée. |
+| 2.0.0 | 2026-09-07 | Schéma INC à 15 champs, classifications, V1.2/V1.3/V1.4/S10, répétitions, preuves non vérifiables et dette explicite. |
