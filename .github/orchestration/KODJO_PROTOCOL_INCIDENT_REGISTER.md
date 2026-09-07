@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.1.0**
+- Version du registre : **3.2.0**
 - Date : **2026-09-07**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
@@ -101,6 +101,8 @@
 | INC-075 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Auto-test du bridge de revue | Le run `34118257325`, job `101730030858`, s'arrête dans `Test incremental review bridge invariants` avant tout gate et toute IA | Une substitution globale sur `head=` avait aussi modifié `source_head=` et `base_head=` ; une assertion cherchait littéralement `\\$implementation_status` ; seul un préfixe du test avait été exécuté localement | Logs du job `101730030858`; version fautive au commit `03c473fa`; reproduction complète locale | `ad97adac` corrige les fixtures et assertions, ajoute des messages nominatifs et exécute le script final complet ; `63db95d3` rend la règle normative | Une modification structurée cible des lignes/blocs exacts ; le fichier de test final complet est exécuté dans son arbre réel et chaque assertion indique son nom | Script final complet : causalité, ascendance, marqueurs, publication, recovery, permissions et registre | PASS | Toutes | CORRIGÉ | répète INC-035 et prolonge INC-049 | Aucun OpenAI/Claude appelé ; lot 3 non lancé |
 
 | INC-076 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Gate manifeste de revue | Le run #35 déclenché par le commentaire 5570228108 s'arrête sur `baseline` dans `Validate implementation output and manifest`, avant OpenAI | La regex Ruby du SHA a traversé YAML/Bash avec un échappement doublé : `/\\\\A…\\\\z/` recherche des antislashs littéraux au lieu des ancres Ruby | Run #35 visible dans GitHub Actions ; workflow fautif blob `e30d3e6c` ; SHA manifeste valide `d59df7c4dea452d0e611940646466845cf3dfe5f` | Commit `05535069` retire la regex Ruby et valide le SHA nativement en Bash ; `76fef730` interdit la régression ; `9db5caeb` inscrit la frontière de langages et le déblocage contrôlé | Une donnée typée est validée dans le langage consommateur ; aucune regex ne traverse plusieurs interpréteurs si un contrôle mono-langage existe | T-049 : SHA valide accepté, SHA invalide rejeté, absence de `baseline.match?`, diagnostic nominatif présent | PASS statique ; E2E NON RETESTÉ | Toutes chaînes YAML/shell/interpréteur | CORRIGÉ statiquement | répète INC-015/019/020/024/035/075 | Aucun OpenAI/Claude appelé ; l'échec du bridge ne doit plus bloquer la revue directe contrôlée |
+
+| INC-077 | 2026-09-07 | Générique S10 | LIMITATION_EXTERNE | Correction Claude LOT_3_OF_3 | Le run `34124398356`, job `101749543088`, échoue dans `Run Claude implementation` après environ 5 minutes | L'API Claude renvoie HTTP 429 : limite de session atteinte, reset annoncé à 19 h 20 Europe/Paris ; aucune erreur de gate, syntaxe ou permission | Logs du job ; artefact `10019700444` : mode RESUME_DELTA, session `49cfaec6-…`, 4 tours, `api_error_status=429`, aucun stderr | Commits `ea718bc4` et `cabee03d` préservent puis restaurent, sur reprise explicitement causale, l'éventuel worktree partiel avant tout checkout ; `c7d5c8ad` teste le dispositif ; `c4efc72f` le rend normatif | Une limite après un appel Claude préserve tout travail partiel avant checkout, publie USAGE_LIMIT et interdit le retry avant reset ; même session et même HEAD seulement | T-050 : présence du stash incluant les fichiers non suivis, restauration, contrôle causal du HEAD, refus d'un worktree sale non autorisé et publication sans retry | PASS statique ; récupération réelle NON RETESTÉE | Claude local et runner persistant | CORRIGÉ statiquement | renforce INC-007/011/027/072 | Aucun commit applicatif ni output final ; travail partiel possible mais non démontré |
 
 ## Répétitions qui auraient dû être évitées
 
@@ -231,6 +233,8 @@ Les IDs du classeur ne sont pas renumérotés silencieusement. Ils deviennent de
 
 | T-049 | V1.4/S10 | Frontière YAML/Bash/Ruby du SHA manifeste | Parsing multi-langage | Exercer un SHA hexadécimal de 40 caractères et un SHA invalide dans le validateur Bash final ; scanner l'absence de regex Ruby transportée | Valide accepté, invalide rejeté, diagnostic `Invalid manifest baseline SHA`, aucune occurrence `baseline.match?` | PASS statique ; E2E NON RETESTÉ | commits 05535069, 76fef730 |
 
+| T-050 | V1.4/S10 | Reprise après limite Claude | Recovery | Sur une reprise portant `recover_partial_run_id`, préserver le worktree sale à HEAD exact avec fichiers suivis/non suivis, checkout, restauration, même session ; rejeter HEAD divergent ou worktree sale sans causalité | Stash durable et restauré ; publication USAGE_LIMIT ; aucun retry avant reset | PASS statique ; E2E NON RETESTÉ | commits ea718bc4, cabee03d, c7d5c8ad |
+
 ## Catalogue des invariants consolidés
 
 | ID | Famille | Invariant | Introduit / renforcé | Références source XLS03 |
@@ -329,3 +333,4 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | 2.1.0 | 2026-09-07 | INC-049 : confusion baseline globale/base incrémentale, répétition d'INC-040 et matrice de non-régression. |
 | 3.0.0 | 2026-09-07 | Consolidation du classeur v0.3 : 75 incidents canoniques, 51 aliases XLS03, 48 tests, 24 invariants et matrice de couverture du protocole actif. |
 | 3.1.0 | 2026-09-07 | INC-076/T-049 : défaut d'échappement YAML–Bash–Ruby, validation mono-langage et chemin de déblocage contrôlé. |
+| 3.2.0 | 2026-09-07 | INC-077/T-050 : limite Claude après travail possible, conservation causale du worktree et interdiction de retry avant reset. |
