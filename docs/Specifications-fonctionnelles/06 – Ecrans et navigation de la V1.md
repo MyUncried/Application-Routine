@@ -612,7 +612,7 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Act
 
 Un appui sur `＋` ouvre l’écran de création d’Activité, dans lequel l’utilisateur choisit le type `Exercice` ou `Récupération`.
 
-La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour, au moyen de la poignée de glisser-déposer.
+La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -643,11 +643,11 @@ Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries 
 
 ### Consultation et modification d’une Activité
 
-Toucher une carte Activité ouvre directement son parcours de modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`. `Dupliquer` crée une Activité de Séance indépendante avec un nouvel identifiant, reprend tous les paramètres et associations média de la source, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucune Activité dans le catalogue.
+Un appui court sur une carte Activité ouvre directement son parcours de modification. Un appui long sur l’ensemble de la carte déclenche sa réorganisation sans ouvrir la modification. Un glissement gauche révèle les actions `Dupliquer` et `Supprimer`. `Dupliquer` crée une Activité de Séance indépendante avec un nouvel identifiant, reprend tous les paramètres de la source, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucune Activité dans le catalogue. `Supprimer` retire uniquement l’Activité du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
 ### Réorganisation
 
-Les Activités peuvent être réorganisées par glisser-déposer avant le Tour, dans le Tour ou après le Tour.
+Les Activités peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le déplacement conserve l’identifiant et tous les paramètres de l’Activité, met à jour sa position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 Le Tour, le Compte à rebours initial et la Fin de séance restent des éléments structurels fixes dans le MVP.
 
