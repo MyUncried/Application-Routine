@@ -49,14 +49,14 @@ expect_fail() { if validate_increment_chain "$@"; then echo 'expected rejection'
 
 base_trigger='[KODJO_SLICE] IMPLEMENTATION_REVISION
 slice_id=T01-S10
-source_head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
+source_head=ed223ca1ca8570fbebb335495472af0ba4b078eb
 source_plan_comment_id=5562076836
 source_review_comment_id=5562116730
 increment=LOT_2_OF_3'
 
 legacy_output='[KODJO_SLICE] IMPLEMENTATION_OUTPUT
 slice_id=T01-S10
-base_head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
+base_head=ed223ca1ca8570fbebb335495472af0ba4b078eb
 head=b21fb817a3f7448f8ec9c5e6cd5f8bd1ad0382ac
 session_id=49cfaec6-2523-47a9-9910-b1c275873e29
 plan_comment_id=5562076836
@@ -104,38 +104,46 @@ expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" ah
 expect_ancestry_fail "$manifest_baseline" "$increment_base" "$increment_head" ahead diverged
 expect_ancestry_fail bad-sha "$increment_base" "$increment_head" ahead ahead
 
+require_contains() {
+  local label="$1" needle="$2" file="$3"
+  grep -Fq -- "$needle" "$file" || { echo "missing invariant [$label] in $file" >&2; return 1; }
+}
+forbid_contains() {
+  local label="$1" needle="$2" file="$3"
+  if grep -Fq -- "$needle" "$file"; then echo "forbidden pattern [$label] in $file" >&2; return 1; fi
+}
+
 review_workflow=".github/workflows/kodjo-slice-implementation-review.yml"
-grep -Fq 'increment $INCREMENT only' "$review_workflow"
-grep -Fq 'Requirements allocated to later increments are deferred' "$review_workflow"
-grep -Fq 'MUST NOT be reported as a defect' "$review_workflow"
-grep -Fq 'has already completed npm test and TypeScript successfully' "$review_workflow"
-grep -Fq 'cat /tmp/implementation-output.md' "$review_workflow"
-grep -Fq 'compare/$baseline...$base' "$review_workflow"
-grep -Fq 'compare/$base...$head' "$review_workflow"
-grep -Fq "case \"\$baseline_status\" in identical|ahead)" "$review_workflow"
-grep -Fq '[ "\$implementation_status" = ahead ]' "$review_workflow"
-! grep -Fq 'm["baseline_head"]==ENV["base"]' "$review_workflow"
-! grep -Fq 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
+require_contains review_increment_prompt 'increment $INCREMENT only' "$review_workflow"
+require_contains deferred_scope_prompt 'Requirements allocated to later increments are deferred' "$review_workflow"
+require_contains no_future_increment_defect 'MUST NOT be reported as a defect' "$review_workflow"
+require_contains deterministic_gate_evidence 'has already completed npm test and TypeScript successfully' "$review_workflow"
+require_contains implementation_output_context 'cat /tmp/implementation-output.md' "$review_workflow"
+require_contains baseline_api_ancestry 'compare/$baseline...$base' "$review_workflow"
+require_contains implementation_api_ancestry 'compare/$base...$head' "$review_workflow"
+require_contains baseline_statuses 'case "$baseline_status" in identical|ahead)' "$review_workflow"
+require_contains strict_head_descendant '[ "$implementation_status" = ahead ]' "$review_workflow"
+forbid_contains baseline_equality 'm["baseline_head"]==ENV["base"]' "$review_workflow"
+forbid_contains unauthenticated_local_ancestry 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
 
 implementation_workflow='.github/workflows/kodjo-slice-implementation.yml'
-! grep -Fq -- 'gh issue comment' "$implementation_workflow"
-! grep -Fq -- '--json id' "$implementation_workflow"
-grep -Fq -- 'gh api --method POST' "$implementation_workflow"
+forbid_contains incompatible_issue_comment 'gh issue comment' "$implementation_workflow"
+forbid_contains incompatible_json_flag '--json id' "$implementation_workflow"
+require_contains canonical_comment_api 'gh api --method POST' "$implementation_workflow"
 
 recovery_workflow='.github/workflows/kodjo-slice-implementation-publication-recovery.yml'
-grep -Fq 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
-grep -Fq 'No implementation or AI call was repeated' "$recovery_workflow"
-grep -Fq 'npm test -- --runInBand' "$recovery_workflow"
-grep -Fq 'npx tsc --noEmit' "$recovery_workflow"
-grep -Fq '  contents: write' "$recovery_workflow"
-grep -Fq '  issues: write' "$recovery_workflow"
-grep -Fq 'gh api --paginate' "$recovery_workflow"
-grep -Fq 'duplicate recovered implementation outputs' "$recovery_workflow"
+require_contains exact_recovery_marker 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
+require_contains no_repeated_ai 'No implementation or AI call was repeated' "$recovery_workflow"
+require_contains recovery_jest 'npm test -- --runInBand' "$recovery_workflow"
+require_contains recovery_typescript 'npx tsc --noEmit' "$recovery_workflow"
+require_contains dispatch_contents_write '  contents: write' "$recovery_workflow"
+require_contains recovery_issues_write '  issues: write' "$recovery_workflow"
+require_contains paginated_recovery_search 'gh api --paginate' "$recovery_workflow"
+require_contains duplicate_output_guard 'duplicate recovered implementation outputs' "$recovery_workflow"
 
-for dispatch_workflow in $(grep -Rl '/dispatches' .github/workflows --include='*.yml'); do
-  grep -Fq '  contents: write' "$dispatch_workflow" || { echo "repository_dispatch without contents: write: $dispatch_workflow" >&2; exit 1; }
-done
-
+while IFS= read -r dispatch_workflow; do
+  [ -z "$dispatch_workflow" ] || require_contains "repository_dispatch permission" '  contents: write' "$dispatch_workflow"
+done < <(grep -Rl '/dispatches' .github/workflows --include='*.yml')
 bash .github/orchestration/tests/test-incident-register.sh
 
 echo 'increment review, publication transport, permission and registry self-test: PASS'
