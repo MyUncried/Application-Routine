@@ -15,7 +15,7 @@ for id in "${ids[@]}"; do
   grep -Eq 'OUVERT|CORRIGÉ|SUPERSÉDÉ' <<<"$row" || { echo "incident status missing: $id" >&2; exit 1; }
 done
 
-for section in   '## Règle de tenue'   '## Incidents capitalisés'   '## Preuves de runs historiques dont la cause détaillée reste à compléter'   '## Couverture permanente actuellement disponible'   '## Dette de qualification explicite'   '## Historique du registre'; do
+for section in '## Règles de preuve' '## Registre' '## Répétitions qui auraient dû être évitées' '## Tests et preuves encore à construire' '## État GitHub vérifié au 2026-09-07' '## Historique'; do
   grep -Fq "$section" "$register" || { echo "missing section: $section" >&2; exit 1; }
 done
 
