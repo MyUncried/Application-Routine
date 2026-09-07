@@ -255,7 +255,10 @@ jobs:
           $nl=[Environment]::NewLine
           $body='[KODJO_SLICE] IMPLEMENTATION_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'increment='+$env:INCREMENT+$nl+'base_head='+$env:SOURCE_HEAD+$nl+'head='+$new+$nl+'session_id='+$env:SESSION_ID+$nl+'plan_comment_id='+$env:PLAN_ID+$nl+'plan_review_comment_id='+$env:REVIEW_ID+$nl+'source_implementation_trigger_comment_id='+$env:SOURCE_TRIGGER_COMMENT_ID+$nl+'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'+$nl+$nl+$summary
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\implementation-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
-          $posted=gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\implementation-comment.md" --json id | ConvertFrom-Json
+          $payload=@{body=$body}|ConvertTo-Json -Depth 4
+          $payloadPath="$env:RUNNER_TEMP\implementation-payload.json"
+          [IO.File]::WriteAllText($payloadPath,$payload,(New-Object Text.UTF8Encoding($false)))
+          $posted=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath | ConvertFrom-Json
           if(!$posted.id){throw 'Implementation output publication failed'}
           $dispatch=@{event_type='kodjo_implementation_ready';client_payload=@{issue_number=[string]$env:ISSUE_NUMBER;source_comment_id=[string]$posted.id}}|ConvertTo-Json -Depth 4
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\review-dispatch.json",$dispatch,(New-Object Text.UTF8Encoding($false)))
