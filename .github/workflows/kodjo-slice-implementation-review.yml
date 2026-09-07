@@ -1,9 +1,11 @@
 name: KODJO — Generic Slice Implementation Review
-run-name: KODJO SLICE / IMPLEMENTATION-REVIEW / ${{ github.event.comment.id }}
+run-name: KODJO SLICE / IMPLEMENTATION-REVIEW / ${{ github.event.comment.id || github.event.client_payload.source_comment_id }}
 
 on:
   issue_comment:
     types: [created]
+  repository_dispatch:
+    types: [kodjo_implementation_ready]
 
 permissions:
   contents: read
@@ -15,14 +17,14 @@ concurrency:
 
 jobs:
   review:
-    if: github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_OUTPUT')
+    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_OUTPUT')) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      SOURCE_BODY: ${{ github.event.comment.body }}
-      SOURCE_COMMENT_ID: ${{ github.event.comment.id }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      SOURCE_BODY: ${{ github.event.comment.body || '' }}
+      SOURCE_COMMENT_ID: ${{ github.event.comment.id || github.event.client_payload.source_comment_id }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || github.event.client_payload.issue_number }}
     steps:
       - name: Checkout protocol
         uses: actions/checkout@v6
@@ -36,11 +38,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          slice=$(printf '%s\n' "$SOURCE_BODY"|sed -n 's/^slice_id=//p'|head -n1)
-          head=$(printf '%s\n' "$SOURCE_BODY"|sed -n 's/^head=//p'|head -n1)
-          base=$(printf '%s\n' "$SOURCE_BODY"|sed -n 's/^base_head=//p'|head -n1)
-          session=$(printf '%s\n' "$SOURCE_BODY"|sed -n 's/^session_id=//p'|head -n1)
-          plan=$(printf '%s\n' "$SOURCE_BODY"|sed -n 's/^plan_comment_id=//p'|head -n1)
+          source_body="$SOURCE_BODY"
+          if [ -z "$source_body" ]; then
+            [[ "$SOURCE_COMMENT_ID" =~ ^[0-9]+$ ]] || { echo 'Invalid dispatched source comment id' >&2; exit 1; }
+            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SOURCE_COMMENT_ID" --jq .body)
+          fi
+          printf '%s\n' "$source_body"|grep -q '^\[KODJO_SLICE\] IMPLEMENTATION_OUTPUT$'
+          slice=$(printf '%s\n' "$source_body"|sed -n 's/^slice_id=//p'|head -n1)
+          head=$(printf '%s\n' "$source_body"|sed -n 's/^head=//p'|head -n1)
+          base=$(printf '%s\n' "$source_body"|sed -n 's/^base_head=//p'|head -n1)
+          session=$(printf '%s\n' "$source_body"|sed -n 's/^session_id=//p'|head -n1)
+          plan=$(printf '%s\n' "$source_body"|sed -n 's/^plan_comment_id=//p'|head -n1)
           test -n "$slice" && test -n "$session" && test -n "$plan"
           [[ "$head" =~ ^[0-9a-f]{40}$ ]] && [[ "$base" =~ ^[0-9a-f]{40}$ ]]
           manifest=".github/orchestration/slices/$slice.yml"
