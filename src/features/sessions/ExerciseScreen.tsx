@@ -784,40 +784,22 @@ const styles = StyleSheet.create({
   // Complétion REWORK12 (D-105, `3261:4151`) : « Zone bleue — Contexte
   // séance et nom de l'activité » — fixe, sous l'en-tête, accolée sans
   // espace au séparateur (`marginTop`/`padding` de l'en-tête déjà nuls,
-  // aucun ajustement local nécessaire). Hauteur non figée en dur — dérivée
-  // par construction de `paddingTop + gap + hauteur du champ +
-  // paddingBottom` (voir `dimensions.exerciseContextBand` et le
-  // commentaire associé dans `tokens.ts`).
+  // aucun ajustement local nécessaire). Hauteur DSF fixe de 115 pt
+  // (voir `dimensions.exerciseContextBand`).
   //
-  // **Correction compacte LOT_3_OF_3 — contenu restauré, hauteur redérivée.**
+  // **Correction compacte LOT_3_OF_3 — contenu restauré.**
   // Le bandeau contient de nouveau DEUX éléments : `Nom de l'activité` en
   // premier, puis `+ Ajouter un média` (désactivé) immédiatement sous lui.
-  // Aucun token de ce bandeau n'est modifié — mêmes `paddingTop: 12`,
-  // `paddingBottom: 16`, `gap: 24`, `paddingHorizontal: spacing/24`, même
-  // fond `colors.exerciseContextBandBackground`, même position (frère fixe du
-  // `ScrollView`, accolé au séparateur) : le contrat de Shell/DSF du bandeau
-  // est conservé tel quel, seul son contenu change.
-  //
-  // Traçabilité du `115` documentaire : cette valeur (`3261:4151`) était la
-  // hauteur DÉRIVÉE d'un contenu qui n'existe plus — `12 + 17 (ligne
-  // « Séance · {nom} ») + 24 + 46 (champ) + 16 = 115`. T01-S10 (doc13 §8) a
-  // supprimé cette ligne de contexte de `17`, ramenant le bandeau à
-  // `12 + 46 + 16 = 74` ; la présente correction lui substitue le bouton
-  // média (`32`, `dimensions.compactSecondaryButton.visualHeight`), portant
-  // la hauteur dérivée à `12 + 46 + 24 + 32 + 16 = 130`. Le `115` n'est donc
-  // PLUS AUTORITATIF pour ce bandeau : il décrivait une composition
-  // différente, et aucune combinaison de tokens DSF canoniques ne le
-  // reproduit avec le contenu actuel (il exigerait un `gap` de `9`, qui
-  // n'est pas un token). Conformément au principe déjà appliqué ici et à
-  // `exerciseSummaryCard`/`decisionDialog`, la hauteur reste DÉRIVÉE par
-  // construction et n'est jamais codée en dur — écart explicitement disclosé
-  // dans le rapport de mission.
+  // Le champ et le bouton sont distribués dans les 115 pt par
+  // `justifyContent: "space-between"` : aucun `gap` local non documenté n'est
+  // inventé. Les paddings, le fond et la position du Shell restent inchangés.
   contextBand: {
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
+    height: dimensions.exerciseContextBand.height,
     paddingTop: dimensions.exerciseContextBand.paddingTop,
     paddingBottom: dimensions.exerciseContextBand.paddingBottom,
-    gap: dimensions.exerciseContextBand.gap,
+    justifyContent: "space-between",
   },
   // Complétion REWORK12 : même géométrie que la précédente implémentation
   // (`dimensions.exerciseTextField`, `46/8/14`, inchangée — REWORK09) mais

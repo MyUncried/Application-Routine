@@ -353,17 +353,15 @@ export const dimensions = {
     actionGap: 12,
   },
   // REWORK12-bis — « Zone bleue — Contexte séance et nom de l'activité »
-  // (`3261:4151`), vérifié directement : `402 × 115` (hauteur non figée en
-  // dur — dérivée par construction de `paddingTop + ligne de contexte +
-  // gap + hauteur du champ + paddingBottom`, `12 + 17 + 24 + 46 + 16 = 115`,
-  // exactement la valeur illustrée par Figma sans jamais la coder en dur —
-  // même principe que `exerciseSummaryCard`/`decisionDialog` ci-dessus).
+  // (`3261:4151`), vérifié directement : `402 × 115`. La hauteur est un
+  // contrat DSF explicite, commun aux écrans Activité ; le contenu interne
+  // s'y distribue sans introduire de valeur d'espacement locale.
   // `paddingHorizontal` réutilise `spacing/24`, déjà la valeur canonique
   // partagée par tous les corps d'écran de ce projet.
   exerciseContextBand: {
+    height: 115,
     paddingTop: 12,
     paddingBottom: 16,
-    gap: 24,
   },
   // T01-S09 — `Selection / Category Tag` (`3302:4166`, CE-T01-11) : pilule
   // visuelle `30` de haut, centrée dans une cible tactile de hauteur

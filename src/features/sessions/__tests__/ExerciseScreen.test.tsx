@@ -450,6 +450,14 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
     expect(screen.getAllByTestId("exercise-add-media")).toHaveLength(1);
   });
 
+  it("keeps the blue context band at the canonical DSF height of 115pt", () => {
+    renderScreen(null);
+
+    const bandStyle = StyleSheet.flatten(screen.getByTestId("exercise-context-band").props.style);
+    expect(bandStyle.height).toBe(115);
+    expect(bandStyle.justifyContent).toBe("space-between");
+  });
+
   it("keeps Nom de l'activité FIRST in the band, with the media button immediately after it", () => {
     renderScreen(null);
 
