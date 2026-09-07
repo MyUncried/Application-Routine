@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   review:
-    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_OUTPUT')) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready')
+    if: (github.event_name == 'issue_comment' && ((github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_OUTPUT')) || (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] START_IMPLEMENTATION_REVIEW')))) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -39,9 +39,14 @@ jobs:
         run: |
           set -euo pipefail
           source_body="$SOURCE_BODY"
-          if [ -z "$source_body" ]; then
-            [[ "$SOURCE_COMMENT_ID" =~ ^[0-9]+$ ]] || { echo 'Invalid dispatched source comment id' >&2; exit 1; }
-            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SOURCE_COMMENT_ID" --jq .body)
+          source_comment_id="$SOURCE_COMMENT_ID"
+          if printf '%s\n' "$source_body"|grep -q '^\[KODJO_SLICE\] START_IMPLEMENTATION_REVIEW$'; then
+            source_comment_id=$(printf '%s\n' "$source_body"|sed -n 's/^source_implementation_comment_id=//p'|head -n1)
+            [[ "$source_comment_id" =~ ^[0-9]+$ ]] || { echo 'Invalid recovery source comment id' >&2; exit 1; }
+            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$source_comment_id" --jq .body)
+          elif [ -z "$source_body" ]; then
+            [[ "$source_comment_id" =~ ^[0-9]+$ ]] || { echo 'Invalid dispatched source comment id' >&2; exit 1; }
+            source_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$source_comment_id" --jq .body)
           fi
           printf '%s\n' "$source_body"|grep -q '^\[KODJO_SLICE\] IMPLEMENTATION_OUTPUT$'
           slice=$(printf '%s\n' "$source_body"|sed -n 's/^slice_id=//p'|head -n1)
@@ -61,7 +66,7 @@ jobs:
           git merge-base --is-ancestor "$base" "$head"
           plan_body=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan" --jq .body)
           printf '%s' "$plan_body"|grep -q '^\[KODJO_SLICE\] PLAN_OUTPUT$'
-          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
 
       - name: Checkout implementation HEAD
@@ -123,6 +128,7 @@ jobs:
           BASE: ${{ steps.gate.outputs.base }}
           SESSION: ${{ steps.gate.outputs.session }}
           PLAN: ${{ steps.gate.outputs.plan }}
+          SOURCE_COMMENT_ID: ${{ steps.gate.outputs.source_comment_id }}
         run: |
           set -euo pipefail
           verdict=$(sed -n 's/^VERDICT: //p' /tmp/review.md|tail -n1)
