@@ -69,6 +69,10 @@ La matrice minimale comprend :
 
 Un test de fonction isolée ou une reproduction simplifiée ne suffit pas. Le correctif ne peut être déclaré vérifié qu'après réussite du gate complet avec les payloads autoritatifs réels et des cas négatifs représentatifs. Le résultat des contrôles et leurs limites d'environnement doivent être rapportés explicitement.
 
+Les modifications de fixtures, marqueurs et champs structurés doivent cibler une ligne ou un bloc exact. Les remplacements globaux par sous-chaîne sont interdits lorsqu'une clé peut être suffixe d'une autre clé (par exemple `head`, `base_head`, `source_head`). Après modification, chaque champ causal de la fixture autoritative doit être asserté séparément.
+
+Le fichier de test final doit être exécuté intégralement, depuis un arbre contenant tous les fichiers qu'il inspecte. Exécuter seulement un préfixe, une fonction isolée ou la partie sémantique ne qualifie pas le test final. Toute assertion statique doit produire un libellé d'échec nominatif ; un arrêt silencieux par `set -e` est interdit pour les contrôles permanents.
+
 ## Périmètre incrémental — règles normatives et permanentes
 
 Lorsqu'un plan approuvé est découpé en plusieurs lots, le lot autorisé est une donnée causale structurée et non une indication narrative.
