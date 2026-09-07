@@ -80,7 +80,7 @@ export function HeaderSeparator() {
   return <View testID="screen-header-separator" style={styles.separator} />;
 }
 
-/** Bande Context (bleu très pâle, `colors.selectionSurface`) — même fond, même géométrie pour tous les écrans consommateurs. */
+/** Bande Context canonique — même fond, hauteur et géométrie pour tous les écrans consommateurs. */
 export function ContextBand({
   children,
   elevated = false,
@@ -133,8 +133,10 @@ const styles = StyleSheet.create({
   contextBand: {
     backgroundColor: colors.selectionSurface,
     paddingHorizontal: spacing[24],
-    paddingVertical: spacing[16],
-    gap: spacing[16],
+    height: dimensions.contextBand.height,
+    paddingTop: dimensions.contextBand.paddingTop,
+    paddingBottom: dimensions.contextBand.paddingBottom,
+    justifyContent: "space-between",
   },
   elevated: {
     zIndex: 1,

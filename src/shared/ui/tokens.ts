@@ -352,13 +352,12 @@ export const dimensions = {
     actionRadius: 24,
     actionGap: 12,
   },
-  // REWORK12-bis — « Zone bleue — Contexte séance et nom de l'activité »
-  // (`3261:4151`), vérifié directement : `402 × 115`. La hauteur est un
-  // contrat DSF explicite, commun aux écrans Activité ; le contenu interne
-  // s'y distribue sans introduire de valeur d'espacement locale.
+  // Bandeau contextuel canonique des écrans Catalogue, Composition et
+  // Activité (`3261:4151`) : `402 × 115`, accolé au séparateur d'en-tête.
+  // Le contenu interne s'y distribue sans espacement local par écran.
   // `paddingHorizontal` réutilise `spacing/24`, déjà la valeur canonique
   // partagée par tous les corps d'écran de ce projet.
-  exerciseContextBand: {
+  contextBand: {
     height: 115,
     paddingTop: 12,
     paddingBottom: 16,

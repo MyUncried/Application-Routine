@@ -100,6 +100,10 @@ describe("ContextBand", () => {
     const band = screen.getByTestId("screen-context-band");
     const flattened = StyleSheet.flatten(band.props.style);
     expect(flattened.backgroundColor).toBe(colors.selectionSurface);
+    expect(flattened.height).toBe(115);
+    expect(flattened.paddingTop).toBe(12);
+    expect(flattened.paddingBottom).toBe(16);
+    expect(flattened.justifyContent).toBe("space-between");
     expect(flattened.zIndex).toBeUndefined();
     expect(screen.getByText("filtre")).toBeTruthy();
   });

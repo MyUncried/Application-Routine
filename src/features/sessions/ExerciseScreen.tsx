@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   // séance et nom de l'activité » — fixe, sous l'en-tête, accolée sans
   // espace au séparateur (`marginTop`/`padding` de l'en-tête déjà nuls,
   // aucun ajustement local nécessaire). Hauteur DSF fixe de 115 pt
-  // (voir `dimensions.exerciseContextBand`).
+  // (voir `dimensions.contextBand`, partagé avec Catalogue et Composition).
   //
   // **Correction compacte LOT_3_OF_3 — contenu restauré.**
   // Le bandeau contient de nouveau DEUX éléments : `Nom de l'activité` en
@@ -796,9 +796,9 @@ const styles = StyleSheet.create({
   contextBand: {
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
-    height: dimensions.exerciseContextBand.height,
-    paddingTop: dimensions.exerciseContextBand.paddingTop,
-    paddingBottom: dimensions.exerciseContextBand.paddingBottom,
+    height: dimensions.contextBand.height,
+    paddingTop: dimensions.contextBand.paddingTop,
+    paddingBottom: dimensions.contextBand.paddingBottom,
     justifyContent: "space-between",
   },
   // Complétion REWORK12 : même géométrie que la précédente implémentation

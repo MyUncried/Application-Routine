@@ -455,6 +455,7 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
 
     const bandStyle = StyleSheet.flatten(screen.getByTestId("exercise-context-band").props.style);
     expect(bandStyle.height).toBe(115);
+    expect(bandStyle.paddingTop).toBe(12);
     expect(bandStyle.justifyContent).toBe("space-between");
   });
 
