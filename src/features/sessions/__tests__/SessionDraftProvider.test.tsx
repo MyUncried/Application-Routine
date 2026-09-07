@@ -216,6 +216,9 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
     expect(captured.draft.tourRepeatCount).toBe(3);
     expect(captured.draft.exercises.map((e) => e.id)).toEqual(["act-1"]);
     expect(getSessionForEdit).toHaveBeenCalledWith("session-42");
+    // T01-S10 (CE-T01-S10-06) : le brouillon réhydraté sert de référence à
+    // la garde de sortie.
+    expect(captured.hydratedBaseline).toEqual(captured.draft);
   });
 
   it("reports NOT_FOUND for an unknown id and never leaves a demo draft", async () => {

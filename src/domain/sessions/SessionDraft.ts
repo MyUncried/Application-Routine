@@ -362,17 +362,30 @@ function selectedCategoryIdsEqual(a: readonly string[], b: readonly string[]): b
  * Fonction pure, aucune dépendance React/navigation.
  */
 export function isSessionDraftDirty(draft: SessionDraft): boolean {
-  const initial = createEmptyDraft();
+  return !sessionDraftsEqual(draft, createEmptyDraft());
+}
+
+/**
+ * Compare champ à champ deux brouillons sur leurs propriétés FONCTIONNELLES
+ * (nom, couleur, phases, répétition du Tour, Activités dans l'ordre,
+ * Catégories créées et sélectionnées) — `sourceSessionId` est un champ
+ * d'IDENTITÉ, jamais comparé. T01-S10 : la garde de sortie en MODIFICATION
+ * compare le brouillon courant à son état RÉHYDRATÉ (CE-T01-S10-06 — le
+ * dialogue d'abandon n'apparaît que si quelque chose a réellement changé) ;
+ * en CRÉATION, `isSessionDraftDirty` compare au brouillon vide. Fonction
+ * pure, aucune dépendance React/navigation.
+ */
+export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
   return (
-    draft.name !== initial.name ||
-    draft.color !== initial.color ||
-    draft.initialCountdownSeconds !== initial.initialCountdownSeconds ||
-    draft.finalPhaseSeconds !== initial.finalPhaseSeconds ||
-    (draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) !==
-      (initial.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ||
-    !exercisesEqual(draft.exercises, initial.exercises) ||
-    !categoryDraftsEqual(draft.categoryDrafts, initial.categoryDrafts) ||
-    !selectedCategoryIdsEqual(draft.selectedCategoryIds, initial.selectedCategoryIds)
+    a.name === b.name &&
+    a.color === b.color &&
+    a.initialCountdownSeconds === b.initialCountdownSeconds &&
+    a.finalPhaseSeconds === b.finalPhaseSeconds &&
+    (a.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ===
+      (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
+    exercisesEqual(a.exercises, b.exercises) &&
+    categoryDraftsEqual(a.categoryDrafts, b.categoryDrafts) &&
+    selectedCategoryIdsEqual(a.selectedCategoryIds, b.selectedCategoryIds)
   );
 }
 

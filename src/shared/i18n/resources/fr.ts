@@ -37,6 +37,23 @@ export const fr = {
     },
     sessions: {
       title: "Catalogue des séances",
+      // T01-S10 (D-108, doc13 §8) : le contrôle principal du Catalogue est
+      // désormais un sélecteur de TYPE de contenu — `Séances` seul actif,
+      // `Activités`/`Circuits` visibles mais désactivés. Il ne filtre jamais
+      // les Séances.
+      contentTypes: {
+        activities: "Activités",
+        sessions: "Séances",
+        circuits: "Circuits",
+        // Nom accessible des segments désactivés — annonce explicitement
+        // l'indisponibilité MVP (D-108).
+        activitiesUnavailableAccessibilityLabel: "Activités — indisponible",
+        circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
+      },
+      // T01-S10 (D-109) : `Toutes`/`Planifiées`/`Archivées` restent des
+      // filtres de domaine FUTURS — jamais rendus comme contrôle principal
+      // (les anciens libellés sont interdits à cet emplacement, doc13 §8).
+      // Conservés ici pour l'ajout ultérieur, sans bouton nouveau.
       filters: {
         all: "Toutes",
         scheduled: "Planifiées",
@@ -62,6 +79,10 @@ export const fr = {
         durationUnit: "min",
         expandAccessibilityLabel: "Déployer la séance",
         startAccessibilityLabel: "Démarrer la séance",
+        // T01-S10 (CE-T01-S10-01) : la zone principale de la carte ouvre
+        // `Composition d'une séance` en MODIFICATION (transmet uniquement
+        // `sessionId`).
+        openAccessibilityLabel: "Modifier la séance",
       },
     },
     composition: {
@@ -78,6 +99,17 @@ export const fr = {
       },
       finalPhase: {
         label: "Fin de séance",
+      },
+      // T01-S10 (CE-T01-S10-01/02/09) : états de la réhydratation d'une
+      // Séance existante ouverte en MODIFICATION. Le Catalogue reste la
+      // destination sûre en cas d'échec — aucune mutation de données.
+      editStates: {
+        loadingAccessibilityLabel: "Chargement de la séance en cours",
+        errorMessage: "Impossible de charger cette séance.",
+        retry: "Réessayer",
+        notFoundMessage: "Cette séance est introuvable.",
+        archivedMessage: "Cette séance est archivée et ne peut pas être modifiée.",
+        backToCatalogue: "Revenir au catalogue",
       },
       tour: {
         // T-03 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
@@ -123,6 +155,8 @@ export const fr = {
         of: "de",
         withPause: "avec",
         pauseSuffix: "de pause par série",
+        // T01-S10 (D-111) : fragment des synthèses du mode « À l'échec ».
+        toFailure: "jusqu’à l’échec",
       },
     },
     exercise: {
@@ -152,6 +186,10 @@ export const fr = {
       // de l'activité » (`3261:4151`/`3261:4160`) — `prefix` compose
       // `"${prefix} · ${nom de la séance}"`, jamais un littéral local dans
       // `ExerciseScreen.tsx`.
+      // T01-S10 (doc13 §8) : le bandeau bleu ne rappelle plus le nom de la
+      // Séance — `context.prefix` n'a plus de consommateur dans
+      // `ExerciseScreen.tsx`. Clé conservée (aucun renommage/suppression
+      // demandé) mais RETIRÉE de l'écran.
       context: {
         prefix: "Séance",
       },
@@ -171,6 +209,9 @@ export const fr = {
         label: "Mode d’exécution",
         duration: "Durée",
         repetitions: "Répétition",
+        // T01-S10 (D-111, frame `3369:4236`) : troisième option de mode
+        // d'Exercice, de même largeur — masque Durée et Répétitions cibles.
+        toFailure: "À l’échec",
       },
       parametersTitle: "Paramètres de l’activité",
       duration: {
@@ -244,6 +285,11 @@ export const fr = {
         label: "Zones corporelles",
         accessibilityLabel: "Zones corporelles",
       },
+      // T01-S10 (doc13 §8, frame `1992:9132`) : bouton centré, VISIBLE mais
+      // DÉSACTIVÉ dans le MVP — aucune section Médias, aucun import/galerie/
+      // lecture/stockage (Médias V2 hors périmètre).
+      addMedia: "+ Ajouter un média",
+      addMediaUnavailableAccessibilityLabel: "Ajouter un média — indisponible",
       validateAction: "Valider",
       finishAction: "Terminer",
       exitConfirmModal: {

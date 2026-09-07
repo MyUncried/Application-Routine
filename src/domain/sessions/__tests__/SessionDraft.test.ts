@@ -6,6 +6,7 @@ import {
   createExerciseDraft,
   exerciseEquals,
   isSessionDraftDirty,
+  sessionDraftsEqual,
   toCreateSessionInput,
   toSessionDraft,
   toUpdateSessionInput,
@@ -232,6 +233,48 @@ describe("toSessionDraft", () => {
         categories: [],
       },
     });
+  });
+});
+
+describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modification)", () => {
+  function aDraft(overrides: Partial<SessionDraft> = {}): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      name: "Séance",
+      tourRepeatCount: 2,
+      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+      selectedCategoryIds: ["cardio"],
+      ...overrides,
+    };
+  }
+
+  it("is true for two functionally identical drafts, even with different sourceSessionId (identity field, never compared)", () => {
+    expect(
+      sessionDraftsEqual(
+        { ...aDraft(), sourceSessionId: "s-1" },
+        { ...aDraft(), sourceSessionId: "s-2" },
+      ),
+    ).toBe(true);
+  });
+
+  it("is false as soon as any functional field differs (name, tour repeat, an Activity field, a selected Category)", () => {
+    expect(sessionDraftsEqual(aDraft(), aDraft({ name: "Autre" }))).toBe(false);
+    expect(sessionDraftsEqual(aDraft(), aDraft({ tourRepeatCount: 5 }))).toBe(false);
+    expect(
+      sessionDraftsEqual(aDraft(), aDraft({ exercises: [{ ...createExerciseDraft("keep-1"), name: "X", durationSeconds: 30 }] })),
+    ).toBe(false);
+    expect(sessionDraftsEqual(aDraft(), aDraft({ selectedCategoryIds: ["cardio", "mobilite"] }))).toBe(
+      false,
+    );
+  });
+
+  it("selected category ids are compared as a set (order indifferent)", () => {
+    expect(
+      sessionDraftsEqual(
+        aDraft({ selectedCategoryIds: ["cardio", "mobilite"] }),
+        aDraft({ selectedCategoryIds: ["mobilite", "cardio"] }),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -143,12 +143,24 @@ function formatCountWithUnit(count: number, singular: string, plural: string): s
  */
 export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
+  const recap = strings.screens.exercise.recap;
 
   const seriesLabel = formatCountWithUnit(
     facts.seriesCount,
     exerciseRow.seriesSingular,
     exerciseRow.seriesPlural,
   );
+
+  // T01-S10 (D-111/D-112) : mode « À l'échec » — aucune cible ; le nom n'est
+  // jamais répété dans la synthèse compacte. Clause de pause omise à `0 s` ou
+  // lorsqu'une seule Série ne crée aucun intervalle.
+  if (facts.executionMode === "TO_FAILURE") {
+    const base = `${seriesLabel} ${exerciseRow.toFailure}`;
+    if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
+      return base;
+    }
+    return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${recap.pauseLabel} ${recap.pauseSuffix}`;
+  }
 
   const activityLabel =
     facts.executionMode === "DURATION"
@@ -212,6 +224,18 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
     exerciseRow.seriesSingular,
     exerciseRow.seriesPlural,
   );
+
+  // T01-S10 (D-111/D-112) : synthèse complète du mode « À l'échec » —
+  // `{N} série(s) de {nom}, jusqu'à l'échec[, avec {pause} de pause entre les
+  // séries].` La clause de pause est omise à `0 s` ou lorsqu'une seule Série
+  // ne crée aucun intervalle.
+  if (facts.executionMode === "TO_FAILURE") {
+    const failureBase = `${seriesLabel} ${exerciseRow.of} ${facts.name}, ${exerciseRow.toFailure}`;
+    if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
+      return `${failureBase}.`;
+    }
+    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}.`;
+  }
 
   const activityLabel =
     facts.executionMode === "DURATION"

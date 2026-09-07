@@ -49,6 +49,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
 
   const [draft, setDraft] = useState<SessionDraft>(() => createEmptyDraft());
   const [editStatus, setEditStatusState] = useState<SessionDraftEditStatus>("creating");
+  const [hydratedBaseline, setHydratedBaseline] = useState<SessionDraft | null>(null);
 
   // Numéro de requête monotone : seule la réponse de la requête la plus
   // récente est appliquée (garde anti-brouillon-contaminé).
@@ -69,6 +70,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     requestSeq.current += 1;
     currentSessionId.current = null;
     setDraft(createEmptyDraft());
+    setHydratedBaseline(null);
     setEditStatus("creating");
   }, [setEditStatus]);
 
@@ -97,7 +99,9 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
             setEditStatus("archived");
             return;
           }
-          setDraft(toSessionDraft(result.session));
+          const hydrated = toSessionDraft(result.session);
+          setDraft(hydrated);
+          setHydratedBaseline(hydrated);
           setEditStatus("ready");
         })
         .catch(() => {
@@ -128,6 +132,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       currentSessionId.current = sessionId;
       // Aucun brouillon obsolète affiché pendant le chargement.
       setDraft(createEmptyDraft());
+      setHydratedBaseline(null);
       runHydration(sessionId);
     },
     [resetDraft, runHydration],
@@ -147,8 +152,17 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       editStatus,
       hydrateFromSession,
       retryHydration,
+      hydratedBaseline,
     }),
-    [draft, updateDraft, resetDraft, editStatus, hydrateFromSession, retryHydration],
+    [
+      draft,
+      updateDraft,
+      resetDraft,
+      editStatus,
+      hydrateFromSession,
+      retryHydration,
+      hydratedBaseline,
+    ],
   );
 
   return <SessionDraftContext.Provider value={value}>{children}</SessionDraftContext.Provider>;

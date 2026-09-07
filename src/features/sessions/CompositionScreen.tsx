@@ -1,11 +1,24 @@
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { FIXED_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
-import { isSessionDraftDirty, toCreateSessionInput } from "@/domain/sessions/SessionDraft";
+import {
+  isSessionDraftDirty,
+  sessionDraftsEqual,
+  toCreateSessionInput,
+} from "@/domain/sessions/SessionDraft";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
@@ -90,10 +103,16 @@ type OverlayKind = "color" | "countdown" | "finalPhase";
 export function CompositionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { draft, updateDraft, resetDraft } = useSessionDraft();
+  const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
+    useSessionDraft();
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
 
-  const shouldBlockExit = isSessionDraftDirty(draft);
+  // T01-S10 (CE-T01-S10-06) : en MODIFICATION, la garde de sortie compare le
+  // brouillon à son état RÉHYDRATÉ (le dialogue d'abandon n'apparaît que si
+  // quelque chose a changé) ; en création, elle compare au brouillon vide.
+  const shouldBlockExit = hydratedBaseline
+    ? !sessionDraftsEqual(draft, hydratedBaseline)
+    : isSessionDraftDirty(draft);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
@@ -131,6 +150,24 @@ export function CompositionScreen() {
   // résultat : D-106 n'exige jamais de Catégorie). Un brouillon invalide ne
   // peut donc jamais être poursuivi ni, a fortiori, persisté.
   const isCompositionValid = toCreateSessionInput(draft).ok;
+
+  // T01-S10 (CE-T01-S10-01/02/09) : en MODIFICATION, la réhydratation d'une
+  // Séance existante passe par des états intermédiaires. Le formulaire n'est
+  // rendu qu'une fois le brouillon prêt (`"creating"` = création classique,
+  // `"ready"` = brouillon réhydraté). Les autres états rendent un écran dédié
+  // — jamais le formulaire avec des valeurs par défaut de création
+  // (CE-T01-S10-09 : « un échec de chargement ne présente jamais les valeurs
+  // par défaut d'une nouvelle Séance »). Placé après tous les hooks.
+  const editState = editStatus ?? "creating";
+  if (editState !== "creating" && editState !== "ready") {
+    return (
+      <CompositionEditState
+        status={editState}
+        onRetry={() => retryHydration?.()}
+        onBackToCatalogue={() => router.dismissTo("/")}
+      />
+    );
+  }
 
   return (
     <ScreenShell>
@@ -682,7 +719,109 @@ function TourCard({ label, summary }: { label: string; summary: string }) {
   );
 }
 
+/**
+ * Écran d'état de la réhydratation en MODIFICATION (T01-S10,
+ * CE-T01-S10-01/02/09). Conserve le Shell (en-tête + titre `Composition
+ * d'une séance` inchangé) ; le corps varie : indicateur de chargement, ou
+ * message + actions (Réessayer sur erreur technique, Revenir au catalogue
+ * dans tous les cas — destination sûre, aucune mutation).
+ */
+function CompositionEditState({
+  status,
+  onRetry,
+  onBackToCatalogue,
+}: {
+  status: "loading" | "not-found" | "archived" | "error";
+  onRetry: () => void;
+  onBackToCatalogue: () => void;
+}) {
+  const composition = strings.screens.composition;
+  const t = composition.editStates;
+
+  return (
+    <ScreenShell>
+      <FixedHeader
+        title={composition.title}
+        onBack={onBackToCatalogue}
+        backAccessibilityLabel={composition.backAccessibilityLabel}
+      />
+      <HeaderSeparator />
+      <View style={styles.editStateBody} testID="composition-edit-state">
+        {status === "loading" ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            accessibilityLabel={t.loadingAccessibilityLabel}
+          />
+        ) : (
+          <>
+            <Text style={styles.editStateMessage}>
+              {status === "not-found"
+                ? t.notFoundMessage
+                : status === "archived"
+                  ? t.archivedMessage
+                  : t.errorMessage}
+            </Text>
+            {status === "error" ? (
+              <Pressable
+                onPress={onRetry}
+                accessibilityRole="button"
+                accessibilityLabel={t.retry}
+                style={styles.editStatePrimaryAction}
+              >
+                <Text style={styles.editStatePrimaryLabel}>{t.retry}</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              onPress={onBackToCatalogue}
+              accessibilityRole="button"
+              accessibilityLabel={t.backToCatalogue}
+              style={styles.editStateSecondaryAction}
+            >
+              <Text style={styles.editStateSecondaryLabel}>{t.backToCatalogue}</Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+    </ScreenShell>
+  );
+}
+
 const styles = StyleSheet.create({
+  // T01-S10 : corps des états de réhydratation en modification.
+  editStateBody: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing[24],
+    gap: spacing[16],
+  },
+  editStateMessage: {
+    ...type.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  editStatePrimaryAction: {
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+  },
+  editStatePrimaryLabel: {
+    ...type.button,
+    color: colors.background,
+  },
+  editStateSecondaryAction: {
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  editStateSecondaryLabel: {
+    ...type.button,
+    color: colors.primary,
+  },
   // A-01 (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
   // CORRECTION`, 2026-09-03) : `flex: 1` — le corps occupe tout l'espace
   // vertical restant entre la bande Context et `bottomAction`, poussant

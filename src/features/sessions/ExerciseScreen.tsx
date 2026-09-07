@@ -41,10 +41,17 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "duration" | "repetitionCount" | "pauseSeconds" | "seriesCount";
 
-/** Étape 1 valide ⇔ Nom + (Durée ou Répétitions selon le mode) valides — Étape 2 est entièrement facultative (plan T01-S08). */
+/**
+ * Étape 1 valide ⇔ Nom + cible du mode (Durée / Répétitions) valides. Le
+ * mode « À l'échec » (T01-S10, D-111) n'a AUCUNE cible : le seul Nom suffit.
+ * L'étape 2 reste entièrement facultative (plan T01-S08).
+ */
 function isStep1Valid(exercise: SessionDraftExercise): boolean {
   if (!validateExerciseName(exercise.name).ok) {
     return false;
+  }
+  if (exercise.executionMode === "TO_FAILURE") {
+    return true;
   }
   if (exercise.executionMode === "DURATION") {
     return (
@@ -216,11 +223,19 @@ export function ExerciseScreen() {
         durationSeconds: local.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS,
         repetitionCount: null,
       });
-    } else {
+    } else if (mode === "REPETITIONS") {
       patchLocal({
         executionMode: "REPETITIONS",
         repetitionCount: local.repetitionCount ?? DEFAULT_REPETITION_COUNT,
         durationSeconds: null,
+      });
+    } else {
+      // « À l'échec » (T01-S10, D-111) : aucune cible de durée ni de
+      // répétitions ; Séries et Pause sont conservées telles quelles.
+      patchLocal({
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
       });
     }
   }
@@ -269,23 +284,18 @@ export function ExerciseScreen() {
       <HeaderSeparator />
 
       {/*
-       * Zone bleue contextuelle (complétion REWORK12, D-105) — vérifiée
-       * directement sur `3261:4151`/`3261:4160` : accolée sans espace au
-       * séparateur de l'en-tête, fixe (frère du `ScrollView`, jamais son
-       * descendant — même patron shell que `CompositionScreen.tsx`),
+       * Zone bleue contextuelle (complétion REWORK12, D-105 ; T01-S10,
+       * doc13 §8 « Le bandeau commence par `Nom de l'activité`, sans
+       * contexte de Séance ») : accolée sans espace au séparateur de
+       * l'en-tête, fixe (frère du `ScrollView`, jamais son descendant),
        * visible uniquement à l'étape 1 (absente de `1992:9292`, étape 2).
-       * Contient `Séance · {nom}` puis, à `spacing/24`, le champ Nom de
-       * l'Activité (fond transparent, liseré blanc — réutilise
-       * `colors.sessionNameBorder`, même token que `Nom de la séance` dans
-       * Composition — et la géométrie déjà établie de `dimensions
-       * .exerciseTextField`, `46/8/14`, inchangée depuis REWORK09 : seuls
-       * le conteneur/les couleurs/la typographie de la VALEUR changent).
+       * Contient EXCLUSIVEMENT le champ `Nom de l'activité` en tête — plus
+       * aucun rappel du nom de la Séance (T01-S10). Le champ conserve sa
+       * géométrie/anatomie (`dimensions.exerciseTextField`, fond
+       * transparent, liseré blanc `colors.sessionNameBorder`).
        */}
       {step === 1 ? (
         <View style={styles.contextBand} testID="exercise-context-band">
-          <Text style={styles.contextLine} numberOfLines={1}>
-            {t.context.prefix} · {draft.name}
-          </Text>
           <TextInput
             value={local.name}
             onChangeText={(text) => patchLocal({ name: text })}
@@ -346,6 +356,11 @@ export function ExerciseScreen() {
                   selected={local.executionMode === "REPETITIONS"}
                   onPress={() => handleExecutionModeChange("REPETITIONS")}
                 />
+                <SegmentButton
+                  label={t.executionMode.toFailure}
+                  selected={local.executionMode === "TO_FAILURE"}
+                  onPress={() => handleExecutionModeChange("TO_FAILURE")}
+                />
               </View>
             </View>
 
@@ -372,7 +387,8 @@ export function ExerciseScreen() {
                       isOpen={openOverlay === "duration"}
                       onPress={() => toggleOverlay("duration")}
                     />
-                  ) : (
+                  ) : null}
+                  {local.executionMode === "REPETITIONS" ? (
                     <ParameterField
                       testID="exercise-field-repetitionCount"
                       width={dimensions.exerciseParameterRow.wideColumnWidth}
@@ -382,7 +398,12 @@ export function ExerciseScreen() {
                       isOpen={openOverlay === "repetitionCount"}
                       onPress={() => toggleOverlay("repetitionCount")}
                     />
-                  )}
+                  ) : null}
+                  {/*
+                   * Mode « À l'échec » (T01-S10, D-111) : ni Durée cible ni
+                   * Répétitions cible — Pause et Séries restent aux positions
+                   * canoniques.
+                   */}
                   <ParameterField
                     testID="exercise-field-pauseSeconds"
                     width={dimensions.exerciseParameterRow.wideColumnWidth}
@@ -404,6 +425,24 @@ export function ExerciseScreen() {
                 </View>
               </View>
             </View>
+
+            {/*
+             * `+ Ajouter un média` (T01-S10, doc13 §8, frame `1992:9132`) :
+             * bouton centré VISIBLE mais DÉSACTIVÉ dans le MVP — aucune
+             * section Médias n'est rendue, aucun import/galerie/lecture/
+             * stockage (Médias V2 hors périmètre). `disabled` : ni `onPress`,
+             * ni navigation.
+             */}
+            <Pressable
+              disabled
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
+              style={styles.addMediaButton}
+              testID="exercise-add-media"
+            >
+              <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
+            </Pressable>
 
             {/*
              * Espace flexible (complétion REWORK12, vérifié directement sur
@@ -708,12 +747,6 @@ const styles = StyleSheet.create({
     paddingBottom: dimensions.exerciseContextBand.paddingBottom,
     gap: dimensions.exerciseContextBand.gap,
   },
-  // `Contexte — Nom de la séance` (`3261:4152`) : `Séance · {nom}`, vérifié
-  // directement `14/17` Regular — token dédié `type.contextLine`.
-  contextLine: {
-    ...type.contextLine,
-    color: colors.textPrimary,
-  },
   // Complétion REWORK12 : même géométrie que la précédente implémentation
   // (`dimensions.exerciseTextField`, `46/8/14`, inchangée — REWORK09) mais
   // fond transparent et liseré blanc intérieur (`colors.sessionNameBorder`,
@@ -764,10 +797,11 @@ const styles = StyleSheet.create({
     padding: dimensions.segmentedControl.padding,
     gap: dimensions.segmentedControl.gap,
   },
-  // `flex: 1` distribue exactement 166pt à chacun des deux segments dans
-  // ce conteneur (354 - 2×4 padding - 14 gap = 332, /2 = 166) — dérivé par
-  // construction plutôt qu'une largeur codée en dur, mêmes proportions
-  // exactes que la source Figma.
+  // `flex: 1` distribue une largeur EXACTEMENT ÉGALE à chaque segment du
+  // conteneur (deux pour `Type d'activité`, trois pour `Mode d'exécution`
+  // depuis T01-S10 : `Durée / Répétitions / À l'échec`) — dérivé par
+  // construction plutôt qu'une largeur codée en dur, mêmes proportions que
+  // la source Figma.
   segment: {
     flex: 1,
     height: dimensions.segmentedControl.segmentHeight,
@@ -851,6 +885,26 @@ const styles = StyleSheet.create({
   // bas »).
   recapSpacer: {
     flex: 1,
+  },
+  // T01-S10 (doc13 §8) : `+ Ajouter un média` — bouton centré, désactivé
+  // (Médias V2 hors périmètre). Anatomie du bouton secondaire compact DSF
+  // (`dimensions.compactSecondaryButton`, `colors.primary` en liseré),
+  // texte atténué pour signaler l'indisponibilité.
+  addMediaButton: {
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: dimensions.compactSecondaryButton.visualHeight,
+    borderRadius: dimensions.compactSecondaryButton.radius,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing[16],
+  },
+  addMediaLabel: {
+    ...type.button,
+    color: colors.textSecondary,
   },
   // Point 8 (REWORK09) : largeur utile complète, liseré `colors.tourSurface`
   // (même valeur que la source Figma, `#CDCEFA`, déjà réutilisée pour le

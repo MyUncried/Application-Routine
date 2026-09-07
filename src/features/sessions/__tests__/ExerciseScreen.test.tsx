@@ -120,12 +120,14 @@ describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/sépar
     expect(screen.queryByText(t.titleAdd)).toBeNull();
   });
 
-  it("shows the Séance context line 'Séance · {nom}' and the Nom de l'activité field inside a fixed context band, above the scrollable body (complétion REWORK12, D-105)", () => {
+  it("T01-S10 (doc13 §8) — the blue band starts with the Nom de l'activité field and no longer shows any Séance-name context line", () => {
     renderScreen(null);
 
     const band = screen.getByTestId("exercise-context-band");
-    expect(within(band).getByText(`${t.context.prefix} · Séance simple`)).toBeTruthy();
     expect(within(band).getByLabelText(t.name)).toBeTruthy();
+    // Plus aucun rappel du nom / du contexte de Séance.
+    expect(within(band).queryByText(new RegExp(t.context.prefix))).toBeNull();
+    expect(within(band).queryByText(/Séance simple/u)).toBeNull();
   });
 
   it("Retour (Action / Back) calls router.back() with no special handling", () => {
@@ -367,6 +369,65 @@ describe("ExerciseScreen — REWORK09 — mode Répétitions (segment Mode d'ex�
     expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
+  });
+});
+
+describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)", () => {
+  it("exposes three equal-width mode options (Durée / Répétitions / À l'échec)", () => {
+    renderScreen(null);
+
+    expect(screen.getByLabelText(t.executionMode.duration)).toBeTruthy();
+    expect(screen.getByLabelText(t.executionMode.repetitions)).toBeTruthy();
+    expect(screen.getByLabelText(t.executionMode.toFailure)).toBeTruthy();
+  });
+
+  it("switching to À l'échec hides the Durée and Répétitions target fields, keeps Séries and Pause, and needs only a valid Nom for Valider", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+
+    expect(screen.queryByLabelText(t.duration.accessibilityLabel)).toBeNull();
+    expect(screen.queryByLabelText(t.repetitionCount.accessibilityLabel)).toBeNull();
+    expect(screen.getByLabelText(t.pauseSeconds.accessibilityLabel)).toBeTruthy();
+    expect(screen.getByLabelText(t.seriesCount.accessibilityLabel)).toBeTruthy();
+
+    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
+  });
+
+  it("the recap uses the À l'échec pattern (jusqu'à l'échec), never a duration or repetition target", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+
+    const recap = screen.getByTestId("exercise-summary-card");
+    expect(within(recap).getByText(/jusqu.à l.échec/u)).toBeTruthy();
+  });
+
+  it("switching from À l'échec back to Répétitions restores the target field and a valid default", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
+
+    expect(screen.getByLabelText(t.repetitionCount.accessibilityLabel)).toBeTruthy();
+    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
+  });
+});
+
+describe("ExerciseScreen — bouton média désactivé, aucune section Médias (T01-S10, doc13 §8)", () => {
+  it("renders a centered '+ Ajouter un média' button, visible but disabled, with no Media section and no wired behaviour", () => {
+    renderScreen(null);
+
+    const mediaButton = screen.getByTestId("exercise-add-media");
+    expect(within(mediaButton).getByText(t.addMedia)).toBeTruthy();
+    expect(mediaButton.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(mediaButton.props.style).alignSelf).toBe("center");
+    expect(() => fireEvent.press(mediaButton)).not.toThrow();
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });
 

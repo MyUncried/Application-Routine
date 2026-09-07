@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
@@ -153,11 +153,30 @@ describe("SessionCard", () => {
     expect(() => fireEvent.press(start)).not.toThrow();
   });
 
-  it("exposes exactly two interactive controls (chevron, Démarrer) — the card body itself is not pressable", () => {
+  it("without onOpen (T01-S06/S09 default): the card body is not pressable — exactly two controls (chevron, Démarrer)", () => {
     render(<SessionCard session={aSummary()} />);
 
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(2);
+    expect(screen.queryByTestId("session-card-open")).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(2);
+  });
+
+  it("with onOpen (T01-S10, CE-T01-S10-01): the main area is a button that calls onOpen once; chevron and Démarrer stay visible-but-disabled", () => {
+    const onOpen = jest.fn();
+    render(<SessionCard session={aSummary()} onOpen={onOpen} />);
+
+    const mainArea = screen.getByLabelText(strings.screens.sessions.card.openAccessibilityLabel);
+    expect(mainArea.props.accessibilityRole).toBe("button");
+    fireEvent.press(mainArea);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+
+    const chevron = screen.getByLabelText(strings.screens.sessions.card.expandAccessibilityLabel);
+    const start = screen.getByLabelText(strings.screens.sessions.card.startAccessibilityLabel);
+    expect(chevron.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(start.props.accessibilityState).toMatchObject({ disabled: true });
+    // Ouvrir la carte n'active jamais le chevron ni Démarrer.
+    fireEvent.press(chevron);
+    fireEvent.press(start);
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
   it("prefixes the estimated duration with ≥ when it is approximate (T01-S09, RM-072)", () => {

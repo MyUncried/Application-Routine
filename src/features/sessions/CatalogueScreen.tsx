@@ -54,7 +54,7 @@ export function CatalogueScreen() {
       <HeaderSeparator />
 
       <ContextBand>
-        <FilterSelector />
+        <ContentTypeSelector />
         <CreateAction onPress={() => router.push("/composition")} />
       </ContextBand>
 
@@ -80,50 +80,61 @@ export function CatalogueScreen() {
         {state.status === "loading" ? <LoadingBody /> : null}
         {state.status === "empty" ? <EmptyBody /> : null}
         {state.status === "error" ? <ErrorBody onRetry={reload} /> : null}
-        {state.status === "ready" ? <ReadyBody sessions={state.sessions} /> : null}
+        {state.status === "ready" ? (
+          <ReadyBody
+            sessions={state.sessions}
+            onOpenSession={(sessionId) =>
+              router.push({ pathname: "/composition", params: { sessionId } })
+            }
+          />
+        ) : null}
       </View>
     </ScreenShell>
   );
 }
 
 /**
- * Sélecteur `Toutes` / `Planifiées` / `Archivées`. Seule `Toutes` est
- * fonctionnelle dans T01-S06 : `Planifiées` et `Archivées` n'ont aucune
- * capacité Repository/Service à appeler (aucune méthode `listArchived()`,
- * aucun domaine Routine/planification) — elles restent visibles pour ne
- * pas altérer la structure de référence, mais désactivées. Aucune
- * sous-étape connue ne les active à ce jour.
+ * Sélecteur de TYPE de contenu `Activités` / `Séances` / `Circuits`
+ * (T01-S10, D-108, doc13 §8). Remplace l'ancien contrôle
+ * `Toutes / Planifiées / Archivées` (interdit à cet emplacement) — ce
+ * sélecteur ne filtre JAMAIS les Séances : la source de données reste
+ * `listActive` et le tri `updatedAt DESC`, quel que soit le segment
+ * (aucun `onPress` métier n'existe).
+ *
+ * Trois segments de largeur égale. `Séances` est sélectionné, au centre, et
+ * seul fonctionnel. `Activités` et `Circuits` sont visibles mais
+ * `disabled` : aucune requête, aucune navigation ; leur nom accessible
+ * annonce explicitement l'indisponibilité MVP.
  */
-function FilterSelector() {
+function ContentTypeSelector() {
+  const t = strings.screens.sessions.contentTypes;
   return (
-    <View style={styles.filterRow} accessibilityRole="tablist" testID="catalogue-filter-row">
+    <View style={styles.filterRow} accessibilityRole="tablist" testID="catalogue-content-type-row">
+      <Pressable
+        disabled
+        accessibilityRole="tab"
+        accessibilityState={{ disabled: true, selected: false }}
+        accessibilityLabel={t.activitiesUnavailableAccessibilityLabel}
+        style={styles.filterOption}
+      >
+        <Text style={styles.filterLabel}>{t.activities}</Text>
+      </Pressable>
       <Pressable
         accessibilityRole="tab"
         accessibilityState={{ selected: true }}
-        accessibilityLabel={strings.screens.sessions.filters.all}
+        accessibilityLabel={t.sessions}
         style={[styles.filterOption, styles.filterOptionSelected]}
       >
-        <Text style={[styles.filterLabel, styles.filterLabelSelected]}>
-          {strings.screens.sessions.filters.all}
-        </Text>
+        <Text style={[styles.filterLabel, styles.filterLabelSelected]}>{t.sessions}</Text>
       </Pressable>
       <Pressable
         disabled
         accessibilityRole="tab"
         accessibilityState={{ disabled: true, selected: false }}
-        accessibilityLabel={strings.screens.sessions.filters.scheduled}
+        accessibilityLabel={t.circuitsUnavailableAccessibilityLabel}
         style={styles.filterOption}
       >
-        <Text style={styles.filterLabel}>{strings.screens.sessions.filters.scheduled}</Text>
-      </Pressable>
-      <Pressable
-        disabled
-        accessibilityRole="tab"
-        accessibilityState={{ disabled: true, selected: false }}
-        accessibilityLabel={strings.screens.sessions.filters.archived}
-        style={styles.filterOption}
-      >
-        <Text style={styles.filterLabel}>{strings.screens.sessions.filters.archived}</Text>
+        <Text style={styles.filterLabel}>{t.circuits}</Text>
       </Pressable>
     </View>
   );
@@ -212,12 +223,20 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function ReadyBody({ sessions }: { sessions: readonly SessionSummary[] }) {
+function ReadyBody({
+  sessions,
+  onOpenSession,
+}: {
+  sessions: readonly SessionSummary[];
+  onOpenSession: (sessionId: string) => void;
+}) {
   return (
     <FlatList
       data={sessions}
       keyExtractor={(session) => session.id}
-      renderItem={({ item }) => <SessionCard session={item} />}
+      renderItem={({ item }) => (
+        <SessionCard session={item} onOpen={() => onOpenSession(item.id)} />
+      )}
       contentContainerStyle={styles.list}
     />
   );

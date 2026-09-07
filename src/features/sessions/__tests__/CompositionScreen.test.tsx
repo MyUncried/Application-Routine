@@ -1338,3 +1338,99 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
     });
   });
 });
+
+describe("CompositionScreen — états de réhydratation en modification (T01-S10, CE-T01-S10-01/02/09)", () => {
+  function emptyEditDraft(): SessionDraftContextValue["draft"] {
+    return {
+      name: "",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercises: [],
+      categoryDrafts: [],
+      selectedCategoryIds: [],
+    };
+  }
+
+  function renderWithEditStatus(
+    editStatus: NonNullable<SessionDraftContextValue["editStatus"]>,
+    extra: Partial<SessionDraftContextValue> = {},
+  ) {
+    const retryHydration = jest.fn();
+    const value: SessionDraftContextValue = {
+      draft: emptyEditDraft(),
+      updateDraft: jest.fn(),
+      resetDraft: jest.fn(),
+      editStatus,
+      retryHydration,
+      ...extra,
+    };
+    render(
+      <TestSafeAreaProvider>
+        <SessionDraftContext.Provider value={value}>
+          <CompositionScreen />
+        </SessionDraftContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    return { retryHydration };
+  }
+
+  const t = composition.editStates;
+
+  it("shows a loading indicator (not the form) while the persisted session is being read", () => {
+    renderWithEditStatus("loading");
+
+    expect(screen.getByLabelText(t.loadingAccessibilityLabel)).toBeTruthy();
+    expect(screen.queryByLabelText(composition.name)).toBeNull();
+    expect(screen.queryByLabelText(composition.continueAction)).toBeNull();
+  });
+
+  it("shows the NOT_FOUND message and a safe return to the Catalogue, never default creation values", () => {
+    renderWithEditStatus("not-found");
+
+    expect(screen.getByText(t.notFoundMessage)).toBeTruthy();
+    expect(screen.queryByLabelText(composition.name)).toBeNull();
+    expect(screen.getByLabelText(t.backToCatalogue)).toBeTruthy();
+  });
+
+  it("shows the archived message (no modifiable form)", () => {
+    renderWithEditStatus("archived");
+
+    expect(screen.getByText(t.archivedMessage)).toBeTruthy();
+    expect(screen.queryByLabelText(composition.name)).toBeNull();
+  });
+
+  it("shows a technical error with a Réessayer action that calls retryHydration, plus a return to the Catalogue", () => {
+    const { retryHydration } = renderWithEditStatus("error");
+
+    expect(screen.getByText(t.errorMessage)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(t.retry));
+    expect(retryHydration).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(t.backToCatalogue)).toBeTruthy();
+  });
+
+  it("renders the normal form once the draft is rehydrated (editStatus === 'ready')", () => {
+    renderWithEditStatus("ready", {
+      draft: {
+        ...emptyEditDraft(),
+        name: "Séance persistée",
+        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+      },
+    });
+
+    expect(screen.getByLabelText(composition.name)).toBeTruthy();
+    expect(screen.queryByTestId("composition-edit-state")).toBeNull();
+  });
+
+  it("in modification, the exit guard compares against the rehydrated baseline: an unchanged rehydrated draft does NOT block exit", () => {
+    const rehydrated = {
+      ...emptyEditDraft(),
+      name: "Séance persistée",
+      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+    };
+    mockExitGuard.mockReturnValue(defaultExitGuardResult());
+    renderWithEditStatus("ready", { draft: rehydrated, hydratedBaseline: rehydrated });
+
+    expect(mockExitGuard).toHaveBeenLastCalledWith(false, expect.any(Function));
+  });
+});

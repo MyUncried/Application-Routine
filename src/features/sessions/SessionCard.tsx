@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
@@ -15,6 +16,13 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
 
 export type SessionCardProps = {
   session: SessionSummary;
+  /**
+   * T01-S10 (CE-T01-S10-01) : appelé lorsque la zone principale de la carte
+   * est activée — ouvre `Composition d'une séance` en MODIFICATION. Non
+   * fourni : la zone principale reste non pressable (aucune route de
+   * modification câblée — état T01-S06/S09).
+   */
+  onOpen?: () => void;
 };
 
 /**
@@ -81,7 +89,7 @@ export type SessionCardProps = {
  * Le corps de la carte n'est pas pressable : aucune route de modification
  * (`Composition d'une séance`) n'existe avant T01-S07.
  */
-export function SessionCard({ session }: SessionCardProps) {
+export function SessionCard({ session, onOpen }: SessionCardProps) {
   const summaryLine = [
     formatActivityCount(session.activityCount),
     formatEstimatedDuration(session.estimatedDurationSeconds, session.isEstimatedDurationApproximate),
@@ -97,7 +105,7 @@ export function SessionCard({ session }: SessionCardProps) {
         style={[styles.colorBar, { backgroundColor: session.color }]}
         testID="session-card-color-bar"
       />
-      <View style={styles.content}>
+      <SessionCardMainArea onOpen={onOpen}>
         <Text style={styles.name} numberOfLines={2}>
           {session.name}
         </Text>
@@ -116,7 +124,7 @@ export function SessionCard({ session }: SessionCardProps) {
           </Text>
         ) : null}
         <Text style={styles.summary}>{summaryLine}</Text>
-      </View>
+      </SessionCardMainArea>
       <View style={styles.actions}>
         <DisclosureControl
           expanded={false}
@@ -135,6 +143,38 @@ export function SessionCard({ session }: SessionCardProps) {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+/**
+ * Zone principale de la carte (nom + ligne de tags + synthèse). T01-S10
+ * (CE-T01-S10-01) : `Pressable` avec un rôle `button` explicite lorsque
+ * `onOpen` est fourni — elle ouvre `Composition d'une séance` en
+ * modification. Sans `onOpen`, elle reste un simple `View` non interactif
+ * (comportement T01-S06/S09 : « le corps de la carte n'est pas pressable »).
+ * Le chevron et `Démarrer` restent des contrôles distincts, hors de cette
+ * zone.
+ */
+function SessionCardMainArea({
+  onOpen,
+  children,
+}: {
+  onOpen?: () => void;
+  children: ReactNode;
+}) {
+  if (!onOpen) {
+    return <View style={styles.content}>{children}</View>;
+  }
+  return (
+    <Pressable
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={strings.screens.sessions.card.openAccessibilityLabel}
+      style={styles.content}
+      testID="session-card-open"
+    >
+      {children}
+    </Pressable>
   );
 }
 

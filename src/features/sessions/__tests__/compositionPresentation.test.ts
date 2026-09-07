@@ -436,6 +436,44 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
     expect(result.toLowerCase()).not.toContain("consigne");
     expect(result.toLowerCase()).not.toContain("zone");
   });
+
+  describe("mode À l'échec (T01-S10, D-111/D-112)", () => {
+    it("synthèse compacte : {N} série(s) jusqu'à l'échec, avec {pause} de pause entre les séries — jamais de cible, jamais de nom", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+        }),
+      ).toBe("3 séries jusqu’à l’échec, avec 15 s de pause entre les séries");
+    });
+
+    it("omet entièrement la clause de pause à 0 s", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 4,
+          pauseSeconds: 0,
+        }),
+      ).toBe("4 séries jusqu’à l’échec");
+    });
+
+    it("omet la clause de pause quand une seule Série ne crée aucun intervalle", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 1,
+          pauseSeconds: 30,
+        }),
+      ).toBe("1 série jusqu’à l’échec");
+    });
+  });
 });
 
 /**
@@ -591,5 +629,46 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
     });
     expect(first).not.toBe(second);
     expect(second).toContain("2 min");
+  });
+
+  describe("mode À l'échec (T01-S10, D-111/D-112)", () => {
+    it("synthèse complète : {N} série(s) de {nom}, jusqu'à l'échec, avec {pause} de pause entre les séries. — jamais de durée ni de répétitions cible", () => {
+      const result = formatExerciseRecap({
+        name: "tractions",
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 15,
+      });
+      expect(result).toBe("3 séries de tractions, jusqu’à l’échec, avec 15 s de pause entre les séries.");
+      expect(result).not.toContain("min");
+    });
+
+    it("omet la clause de pause à 0 s", () => {
+      expect(
+        formatExerciseRecap({
+          name: "tractions",
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 0,
+        }),
+      ).toBe("3 séries de tractions, jusqu’à l’échec.");
+    });
+
+    it("omet la clause de pause quand une seule Série ne crée aucun intervalle", () => {
+      expect(
+        formatExerciseRecap({
+          name: "tractions",
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 1,
+          pauseSeconds: 30,
+        }),
+      ).toBe("1 série de tractions, jusqu’à l’échec.");
+    });
   });
 });

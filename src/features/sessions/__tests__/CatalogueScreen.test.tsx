@@ -109,10 +109,15 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     // Still loading: the frame is already present.
+    const types = strings.screens.sessions.contentTypes;
     expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.filters.scheduled)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.filters.archived)).toBeTruthy();
+    expect(screen.getByLabelText(types.sessions)).toBeTruthy();
+    expect(
+      screen.getByLabelText(types.activitiesUnavailableAccessibilityLabel),
+    ).toBeTruthy();
+    expect(
+      screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel),
+    ).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
 
     await act(async () => {
@@ -123,7 +128,7 @@ describe("CatalogueScreen — cadre commun", () => {
 
     // Empty now, frame still present.
     expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
+    expect(screen.getByLabelText(types.sessions)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
   });
 
@@ -150,7 +155,9 @@ describe("CatalogueScreen — cadre commun", () => {
     // de filtres ET l'action Créer (pas seulement l'un des deux).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
-    expect(within(contextBand).getByLabelText(strings.screens.sessions.filters.all)).toBeTruthy();
+    expect(
+      within(contextBand).getByLabelText(strings.screens.sessions.contentTypes.sessions),
+    ).toBeTruthy();
     expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
 
     // Le titre du Header n'est jamais dupliqué dans la bande Context.
@@ -168,12 +175,12 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const filterRow = screen.getByTestId("catalogue-filter-row");
+    const filterRow = screen.getByTestId("catalogue-content-type-row");
     expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.background);
 
-    // Le segment sélectionné reste bleu/violet DS avec texte blanc — non
-    // touché par cette correction, revérifié pour éviter une régression.
-    const selected = screen.getByLabelText(strings.screens.sessions.filters.all);
+    // Le segment sélectionné (`Séances`, au centre) reste bleu/violet DS avec
+    // texte blanc — non touché par le passage au sélecteur de type.
+    const selected = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
     expect(StyleSheet.flatten(selected.props.style).backgroundColor).toBe(colors.selection);
   });
 
@@ -244,7 +251,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
   });
 
-  it("marks Toutes as selected and Planifiées/Archivées as disabled, with no Service call when pressed", async () => {
+  it("marks Séances as selected (centre) and Activités/Circuits as disabled with an explicit unavailable label, with no Service call or navigation when pressed (T01-S10, D-108)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -255,19 +262,25 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const all = screen.getByLabelText(strings.screens.sessions.filters.all);
-    const scheduled = screen.getByLabelText(strings.screens.sessions.filters.scheduled);
-    const archived = screen.getByLabelText(strings.screens.sessions.filters.archived);
+    const types = strings.screens.sessions.contentTypes;
+    const row = screen.getByTestId("catalogue-content-type-row");
+    const options = within(row).getAllByRole("tab");
+    expect(options).toHaveLength(3);
+    // `Séances` est le segment central.
+    expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
 
-    expect(all.props.accessibilityState).toMatchObject({ selected: true });
-    expect(scheduled.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
-    expect(archived.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    const sessionsTab = screen.getByLabelText(types.sessions);
+    const activitiesTab = screen.getByLabelText(types.activitiesUnavailableAccessibilityLabel);
+    const circuitsTab = screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel);
+
+    expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
+    expect(activitiesTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    expect(circuitsTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
 
     const callsBefore = listActiveSessions.mock.calls.length;
-    fireEvent.press(scheduled);
-    fireEvent.press(archived);
+    fireEvent.press(activitiesTab);
+    fireEvent.press(circuitsTab);
 
-    // No navigation, no additional Service call from any disabled control.
     expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
     expect(mockPush).not.toHaveBeenCalled();
   });
@@ -314,7 +327,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("pressing Toutes (already selected) changes nothing: no re-render effect, no reload, no navigation", async () => {
+  it("pressing Séances (already selected) changes nothing: no re-render effect, no reload, no navigation", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -325,7 +338,7 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const all = screen.getByLabelText(strings.screens.sessions.filters.all);
+    const all = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
     expect(all.props.accessibilityState).toMatchObject({ selected: true });
 
     // Structural proof, not just the declared accessibility state: this
@@ -429,6 +442,28 @@ describe("CatalogueScreen — quatre états", () => {
 
     expect(screen.getByText("Séance a")).toBeTruthy();
     expect(screen.getByText("Séance b")).toBeTruthy();
+  });
+
+  it("opening a card's main area navigates to Composition passing only that sessionId (T01-S10, CE-T01-S10-01)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([aSummary("card-a"), aSummary("card-b")]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const openAreas = screen.getAllByTestId("session-card-open");
+    expect(openAreas).toHaveLength(2);
+    fireEvent.press(openAreas[1]!);
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/composition",
+      params: { sessionId: "card-b" },
+    });
   });
 });
 

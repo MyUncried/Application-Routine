@@ -26,11 +26,21 @@ describe("strings", () => {
     expect(strings.screens.sessions.title.length).toBeGreaterThan(0);
   });
 
-  it("exposes the Catalogue filter labels", () => {
+  it("exposes the Catalogue filter labels (future domain filters, D-109 — never the main control)", () => {
     expect(strings.screens.sessions.filters).toEqual({
       all: "Toutes",
       scheduled: "Planifiées",
       archived: "Archivées",
+    });
+  });
+
+  it("exposes the Catalogue content-type selector labels (T01-S10, D-108)", () => {
+    expect(strings.screens.sessions.contentTypes).toEqual({
+      activities: "Activités",
+      sessions: "Séances",
+      circuits: "Circuits",
+      activitiesUnavailableAccessibilityLabel: "Activités — indisponible",
+      circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
     });
   });
 
@@ -64,6 +74,7 @@ describe("strings", () => {
       durationUnit: "min",
       expandAccessibilityLabel: "Déployer la séance",
       startAccessibilityLabel: "Démarrer la séance",
+      openAccessibilityLabel: "Modifier la séance",
     });
   });
 
@@ -78,6 +89,17 @@ describe("strings", () => {
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
     expect(strings.screens.composition.tour.label).toBe("Nombre de tours");
+  });
+
+  it("exposes the Composition edit-mode rehydration state texts (T01-S10, CE-T01-S10-09)", () => {
+    expect(strings.screens.composition.editStates).toEqual({
+      loadingAccessibilityLabel: "Chargement de la séance en cours",
+      errorMessage: "Impossible de charger cette séance.",
+      retry: "Réessayer",
+      notFoundMessage: "Cette séance est introuvable.",
+      archivedMessage: "Cette séance est archivée et ne peut pas être modifiée.",
+      backToCatalogue: "Revenir au catalogue",
+    });
     expect(strings.screens.composition.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
       secondsAccessibilityLabel: "Secondes",
@@ -119,6 +141,7 @@ describe("strings", () => {
       of: "de",
       withPause: "avec",
       pauseSuffix: "de pause par série",
+      toFailure: "jusqu’à l’échec",
     });
   });
 
@@ -136,6 +159,7 @@ describe("strings", () => {
       label: "Mode d’exécution",
       duration: "Durée",
       repetitions: "Répétition",
+      toFailure: "À l’échec",
     });
     expect(strings.screens.exercise.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
@@ -147,6 +171,13 @@ describe("strings", () => {
     expect(strings.screens.exercise.finishAction).toBe("Terminer");
     expect(strings.screens.exercise.instruction.label).toBe("Consigne");
     expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+  });
+
+  it("exposes the disabled add-media button label (T01-S10, doc13 §8 — Médias V2 hors périmètre)", () => {
+    expect(strings.screens.exercise.addMedia).toBe("+ Ajouter un média");
+    expect(strings.screens.exercise.addMediaUnavailableAccessibilityLabel).toBe(
+      "Ajouter un média — indisponible",
+    );
   });
 
   it("REWORK09 — exposes short compact-row labels for Durée/Pause/Séries/Répétitions, distinct from their fuller accessibility labels", () => {

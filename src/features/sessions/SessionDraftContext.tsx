@@ -50,6 +50,13 @@ export type SessionDraftContextValue = {
   readonly hydrateFromSession?: (sessionId: string | null) => void;
   /** T01-S10 : relance la dernière réhydratation ayant échoué (`"error"`). */
   readonly retryHydration?: () => void;
+  /**
+   * T01-S10 (CE-T01-S10-06) : brouillon TEL QU'IL A ÉTÉ RÉHYDRATÉ depuis la
+   * Séance persistée, ou `null` en création / avant réhydratation. Sert de
+   * référence à la garde de sortie en modification — le dialogue d'abandon
+   * n'apparaît que si le brouillon courant en diffère.
+   */
+  readonly hydratedBaseline?: SessionDraft | null;
 };
 
 export const SessionDraftContext = createContext<SessionDraftContextValue | null>(null);
