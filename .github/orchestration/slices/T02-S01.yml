@@ -1,0 +1,86 @@
+schema: kodjo.slice.v1
+slice_id: T02-S01
+title: Finalisation de la Composition et du Tour
+status: SPEC_PREPARED
+repository: MyUncried/Application-Routine
+issue_number: 43
+target_branch: feat/creation-seance-catalogue
+baseline_head: b350e8baf55421015559daf7506e8595cceb5a13
+application_baseline_head: 43366670d42480cf306b5f73cef0f2afc0f37b47
+documentation_reference_message: "docs: record T02 long-press reorder decision"
+
+previous_slice:
+  slice_id: T01-S10
+  issue_number: 42
+  required_status: DONE
+  final_head: 43366670d42480cf306b5f73cef0f2afc0f37b47
+
+sources:
+  - docs/PRODUCT.md
+  - docs/INDEX.md
+  - docs/Specifications-fonctionnelles/00 – Glossaire.md
+  - docs/Specifications-fonctionnelles/01 – Vision Générale.md
+  - docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
+  - docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
+  - docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
+  - docs/Specifications-fonctionnelles/05 – Versions du produit.md
+  - docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
+  - docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+  - docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
+  - docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+  - docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+  - docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
+  - docs/Specifications-fonctionnelles/12 – Architecture technique.md
+  - docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+  - Figma
+
+scope:
+  objective: >-
+    Finaliser la Composition complète d’une Séance par la réorganisation,
+    la duplication et la suppression des Activités, ainsi que le réglage du
+    nombre de Tours de 1 à 99, avec calculs et persistance fidèles.
+  in_scope:
+    - Structure ordonnée Compte à rebours, Activités avant le Tour, Tour et ses Activités, Activités après le Tour, Fin de séance.
+    - Appui court sur une carte pour modifier et appui long sur toute la carte pour engager sa réorganisation.
+    - Poignée DSF conservée comme indicateur visuel, sans être l’unique zone tactile du déplacement.
+    - Déplacement intra-zone et inter-zones BEFORE_TOUR, IN_TOUR et AFTER_TOUR sans perte d’identité ni de paramètres.
+    - Glissement gauche révélant Dupliquer et Supprimer conformément à Figma.
+    - Duplication indépendante, nouvel identifiant, copie complète des paramètres, insertion après la source et suffixe de nom sans collision.
+    - Suppression ciblée dans le brouillon et restauration de la version persistée en cas d’abandon.
+    - Contrôle Nombre de tours fonctionnel de 1 à 99 avec roulette et voile DSF.
+    - Recalcul du nombre d’Activités et de la durée estimée selon la position structurelle et tourRepeatCount.
+    - Enregistrement atomique de la structure, de l’ordre, des identifiants, des paramètres et du nombre de Tours.
+    - Réhydratation fidèle et compatibilité des Séances livrées par T01.
+  out_of_scope:
+    - Moteur, domaine, route ou écran d’Exécution et création d’un Instantané.
+    - Spike timer, audio, voix, vibration, arrière-plan ou verrouillage.
+    - Plusieurs Tours ou plusieurs Cycles dans une même Séance.
+    - Cycle visible ou modifiable.
+    - Finalisation générale du Catalogue, catalogue fonctionnel d’Activités ou de Circuits.
+    - Médias V2 et action fonctionnelle Ajouter un média.
+    - Synthèse, Suivi, Profil, référentiels, planification, Calendrier et recherche globale.
+    - Modification destructive de migration001.ts.
+    - Nouvelle dépendance sans besoin démontré et approuvé.
+  acceptance_criteria:
+    - "AC-01: la structure complète est affichée dans l’ordre réel des trois zones."
+    - "AC-02: un appui court ouvre la modification; un appui long sur toute la carte engage le déplacement sans ouvrir la modification."
+    - "AC-03: la poignée DSF reste indicative et n’est pas l’unique déclencheur."
+    - "AC-04: une Activité se déplace dans sa zone ou entre les trois zones en conservant identifiant et paramètres."
+    - "AC-05: les éléments structurels fixes ne peuvent être ni déplacés, ni dupliqués, ni supprimés."
+    - "AC-06: Dupliquer crée après la source une copie indépendante complète, avec nouvel identifiant et nom sans collision."
+    - "AC-07: Supprimer retire uniquement la cible du brouillon et l’abandon restaure la version persistée."
+    - "AC-08: le nombre de Tours accepte et conserve tout entier de 1 à 99 et rejette les valeurs invalides."
+    - "AC-09: la roulette respecte Annuler, Confirmer, l’overlay centré et le voile bloquant DSF."
+    - "AC-10: les calculs comptent une fois les Activités hors Tour et tourRepeatCount fois celles du Tour."
+    - "AC-11: Répétitions et À l’échec conservent la borne minimale ≥ sans durée conventionnelle inventée."
+    - "AC-12: l’enregistrement est atomique et la réouverture restitue exactement structure, ordre, identifiants et paramètres."
+    - "AC-13: les Séances T01 restent lisibles et modifiables, avec 1 Tour par défaut si nécessaire."
+    - "AC-14: les comportements T01 et le Catalogue actuel ne régressent pas."
+    - "AC-15: tests ciblés, Jest complet, TypeScript, contrôle de périmètre et validation sur appareil réel passent."
+    - "AC-16: aucune fonctionnalité d’Exécution, Catalogue complet, Média V2 ou tranche ultérieure n’est développée."
+
+gates:
+  plan_user_approval: true
+  technical_review: false
+  visual_user_approval: false
+  final_checks: false
