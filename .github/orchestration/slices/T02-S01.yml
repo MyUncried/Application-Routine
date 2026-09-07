@@ -5,9 +5,9 @@ status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 43
 target_branch: feat/creation-seance-catalogue
-baseline_head: b350e8baf55421015559daf7506e8595cceb5a13
+baseline_head: 739a825b5d755c009c55e751ce50990977bbab37
 application_baseline_head: 43366670d42480cf306b5f73cef0f2afc0f37b47
-documentation_reference_message: "docs: record T02 long-press reorder decision"
+documentation_reference_message: "docs: integrate T02 documentation"
 
 previous_slice:
   slice_id: T01-S10
