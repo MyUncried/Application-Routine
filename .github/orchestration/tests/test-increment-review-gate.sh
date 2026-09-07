@@ -98,5 +98,13 @@ grep -Fq 'RECOVER_IMPLEMENTATION_PUBLICATION{0}' "$recovery_workflow"
 grep -Fq 'No implementation or AI call was repeated' "$recovery_workflow"
 grep -Fq 'npm test -- --runInBand' "$recovery_workflow"
 grep -Fq 'npx tsc --noEmit' "$recovery_workflow"
+grep -Fq '  contents: write' "$recovery_workflow"
+grep -Fq '  issues: write' "$recovery_workflow"
+grep -Fq 'gh api --paginate' "$recovery_workflow"
+grep -Fq 'duplicate recovered implementation outputs' "$recovery_workflow"
 
-echo 'increment review and publication transport self-test: PASS'
+for dispatch_workflow in $(grep -Rl 'repos/\$GITHUB_REPOSITORY/dispatches' .github/workflows --include='*.yml'); do
+  grep -Fq '  contents: write' "$dispatch_workflow" || { echo "repository_dispatch without contents: write: $dispatch_workflow" >&2; exit 1; }
+done
+
+echo 'increment review, publication transport and permission self-test: PASS'
