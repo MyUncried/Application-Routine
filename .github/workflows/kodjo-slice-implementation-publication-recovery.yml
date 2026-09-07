@@ -6,7 +6,7 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 concurrency:
@@ -132,8 +132,20 @@ jobs:
             echo 'CHANGED FILES:'
             cat /tmp/changed-files.txt
           } > /tmp/implementation-output.md
-          jq -n --rawfile body /tmp/implementation-output.md '{body:$body}' > /tmp/comment-payload.json
-          posted=$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --input /tmp/comment-payload.json)
-          output_id=$(jq -er '.id' <<<"$posted")
+          comments=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" | jq -s 'add')
+          output_id=$(jq -r --arg head "$HEAD" --arg trigger "$SOURCE_TRIGGER_ID" '
+            [.[] | select(
+              .user.login == "github-actions[bot]"
+              and (.body | startswith("[KODJO_SLICE] IMPLEMENTATION_OUTPUT\n"))
+              and (.body | contains("\nhead=" + $head + "\n"))
+              and (.body | contains("\nsource_implementation_trigger_comment_id=" + $trigger + "\n"))
+            ) | .id] |
+            if length == 0 then "" elif length == 1 then .[0] else error("duplicate recovered implementation outputs") end
+          ' <<<"$comments")
+          if [ -z "$output_id" ]; then
+            jq -n --rawfile body /tmp/implementation-output.md '{body:$body}' > /tmp/comment-payload.json
+            posted=$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --input /tmp/comment-payload.json)
+            output_id=$(jq -er '.id' <<<"$posted")
+          fi
           jq -n --arg issue "$ISSUE_NUMBER" --arg source "$output_id" '{event_type:"kodjo_implementation_ready",client_payload:{issue_number:$issue,source_comment_id:$source}}' > /tmp/dispatch.json
           gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" --input /tmp/dispatch.json
