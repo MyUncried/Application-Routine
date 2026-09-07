@@ -90,6 +90,8 @@ Lorsqu'un plan approuvé est découpé en plusieurs lots, le lot autorisé est u
 4. **Récupération déterministe.** L'événement exact `RECOVER_IMPLEMENTATION_PUBLICATION` relit le déclencheur d'implémentation autoritatif, contrôle l'Issue, le manifeste, la branche, le parent direct et le HEAD distant, puis réexécute Jest et TypeScript avant de publier la sortie manquante.
 5. **Pas de verdict implicite.** La récupération ne modifie aucun fichier applicatif et ne vaut pas revue. Elle publie uniquement l'état transporté, puis déclenche la revue indépendante normale par `repository_dispatch`.
 6. **Idempotence causale.** Toute sortie récupérée porte le même `increment`, la même session, le même plan et le même `source_implementation_trigger_comment_id` que l'exécution originale.
+7. **Permissions par opération.** Tout workflow appelant l'endpoint `repository_dispatch` doit déclarer `contents: write`; `contents: read` est insuffisant et produit `Resource not accessible by integration`. La suite permanente recherche tous les appels à cet endpoint et refuse ceux dont la permission effective manque.
+8. **Relance idempotente.** Avant de republier une sortie récupérée, le workflow recherche sur toutes les pages une sortie bot portant le même HEAD et le même déclencheur causal. Il la réutilise si elle est unique et s'arrête si plusieurs sorties existent.
 
 ## Gates permanents
 
