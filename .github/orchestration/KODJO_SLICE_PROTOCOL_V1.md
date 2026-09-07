@@ -47,6 +47,7 @@ Ces règles s'appliquent à tout workflow qui lit un commentaire, un corps d'év
 7. **Compatibilité GitHub Expressions.** Dans une expression GitHub Actions, `\n` écrit dans un littéral entre apostrophes représente les caractères antislash et `n`, pas un saut de ligne. Toute construction nécessitant un saut de ligne doit employer une valeur réellement évaluée, par exemple `fromJSON('"\n"')`, et être vérifiée avec le moteur ou le comportement GitHub attendu.
 8. **Lectures privées authentifiées.** Toute lecture distante d'un dépôt privé doit utiliser explicitement une authentification disponible à l'étape concernée. Après un checkout avec `persist-credentials: false`, les commandes Git réseau telles que `git ls-remote`, `git fetch` ou `git pull` sans authentification explicite sont interdites. Pour lire un HEAD ou une référence distante, le workflow doit privilégier l'API GitHub authentifiée par `GH_TOKEN` avec la permission minimale `contents: read`. La présence du token doit être vérifiée dans les conditions réelles du runner.
 9. **Frontière IA.** Toute erreur de routage, de normalisation, de récupération, d'authentification ou de parsing est un `ORCHESTRATION_FAILURE`. Elle doit arrêter le workflow avant OpenAI ou Claude et ne constitue jamais un verdict fonctionnel ou technique sur le lot.
+10. **Frontières de langages.** Une valeur typée doit être validée dans le langage qui la consomme directement. Les expressions régulières transportées à travers plusieurs interpréteurs (GitHub Expressions, YAML, Bash, PowerShell, Ruby, JSON) sont interdites lorsqu'une validation native mono-langage est possible. Le test permanent inspecte le fichier final tel qu'exécuté et exerce au moins une valeur valide et une valeur invalide.
 
 ### Contrôles obligatoires avant modification d'un bridge
 
@@ -97,6 +98,21 @@ Lorsqu'un plan approuvé est découpé en plusieurs lots, le lot autorisé est u
 6. **Idempotence causale.** Toute sortie récupérée porte le même `increment`, la même session, le même plan et le même `source_implementation_trigger_comment_id` que l'exécution originale.
 7. **Permissions par opération.** Tout workflow appelant l'endpoint `repository_dispatch` doit déclarer `contents: write`; `contents: read` est insuffisant et produit `Resource not accessible by integration`. La suite permanente recherche tous les appels à cet endpoint et refuse ceux dont la permission effective manque.
 8. **Relance idempotente.** Avant de republier une sortie récupérée, le workflow recherche sur toutes les pages une sortie bot portant le même HEAD et le même déclencheur causal. Il la réutilise si elle est unique et s'arrête si plusieurs sorties existent.
+
+## Déblocage contrôlé après défaillance d'orchestration répétée
+
+Le bridge automatisé n'est pas une condition fonctionnelle de validité d'une revue. Après deux `ORCHESTRATION_FAILURE` consécutifs sur la même transition, toute nouvelle relance du workflow est interdite jusqu'à qualification hors production.
+
+ChatGPT Développement peut alors utiliser un mode de déblocage explicite, sans Claude et sans développement :
+
+1. vérifier dans GitHub l'absence d'un verdict exploitable portant le même `source_implementation_comment_id` et le même HEAD ;
+2. reconstruire depuis GitHub le plan approuvé, la sortie d'implémentation, le déclencheur causal, le diff exact et les preuves déterministes ;
+3. réaliser directement une unique revue OpenAI indépendante, strictement bornée à l'incrément autorisé ;
+4. publier dans l'Issue une unique sortie canonique `[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT` contenant les mêmes champs causaux que le workflow ;
+5. qualifier cette sortie comme `MANUAL_OPENAI_ESCAPE_HATCH` avec l'identité de l'opérateur et les références des runs d'orchestration défaillants ;
+6. ne déclencher ni correction, ni gate suivant, ni lot suivant automatiquement.
+
+Ce chemin est un contournement contrôlé et traçable du transport défaillant, jamais un PASS du workflow. Le workflow reste `NON RETESTÉ` jusqu'à un essai de qualification séparé. La reprise du protocole fonctionnel appartient ensuite à ChatGPT Développement.
 
 ## Gates permanents
 
