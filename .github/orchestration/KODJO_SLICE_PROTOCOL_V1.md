@@ -45,7 +45,8 @@ Ces règles s'appliquent à tout workflow qui lit un commentaire, un corps d'év
 5. **Extraction déterministe.** Chaque champ obligatoire doit être présent une seule fois, extrait après normalisation et validé selon son type exact. Un champ absent, dupliqué, vide, suffixé par CR ou mal formé arrête le gate.
 6. **Compatibilité Bash.** Avec `set -o pipefail`, une validation ne doit pas utiliser un producteur potentiellement long relié à `grep -q` ou à un consommateur qui ferme le tube prématurément. Les commentaires longs doivent être matérialisés ou comparés sans risque de `SIGPIPE`.
 7. **Compatibilité GitHub Expressions.** Dans une expression GitHub Actions, `\n` écrit dans un littéral entre apostrophes représente les caractères antislash et `n`, pas un saut de ligne. Toute construction nécessitant un saut de ligne doit employer une valeur réellement évaluée, par exemple `fromJSON('"\n"')`, et être vérifiée avec le moteur ou le comportement GitHub attendu.
-8. **Frontière IA.** Toute erreur de routage, de normalisation, de récupération ou de parsing est un `ORCHESTRATION_FAILURE`. Elle doit arrêter le workflow avant OpenAI ou Claude et ne constitue jamais un verdict fonctionnel ou technique sur le lot.
+8. **Lectures privées authentifiées.** Toute lecture distante d'un dépôt privé doit utiliser explicitement une authentification disponible à l'étape concernée. Après un checkout avec `persist-credentials: false`, les commandes Git réseau telles que `git ls-remote`, `git fetch` ou `git pull` sans authentification explicite sont interdites. Pour lire un HEAD ou une référence distante, le workflow doit privilégier l'API GitHub authentifiée par `GH_TOKEN` avec la permission minimale `contents: read`. La présence du token doit être vérifiée dans les conditions réelles du runner.
+9. **Frontière IA.** Toute erreur de routage, de normalisation, de récupération, d'authentification ou de parsing est un `ORCHESTRATION_FAILURE`. Elle doit arrêter le workflow avant OpenAI ou Claude et ne constitue jamais un verdict fonctionnel ou technique sur le lot.
 
 ### Contrôles obligatoires avant modification d'un bridge
 
@@ -62,6 +63,8 @@ La matrice minimale comprend :
 - HEAD, branche, baseline, manifeste et références causales conformes et non conformes ;
 - Bash avec `pipefail` lorsque le workflow l'utilise ;
 - PowerShell lorsque le workflow l'utilise ;
+- lectures d'un dépôt privé avec les credentials persistants désactivés ;
+- permissions minimales et disponibilité effective du token à chaque commande réseau ;
 - validation syntaxique YAML du fichier final.
 
 Un test de fonction isolée ou une reproduction simplifiée ne suffit pas. Le correctif ne peut être déclaré vérifié qu'après réussite du gate complet avec les payloads autoritatifs réels et des cas négatifs représentatifs. Le résultat des contrôles et leurs limites d'environnement doivent être rapportés explicitement.
