@@ -1,9 +1,9 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **2.1.0**
+- Version du registre : **3.0.0**
 - Date : **2026-09-07**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
-- Périmètre reconstruit : V1.2, V1.3, V1.4/S09, protocole générique S10
+- Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
 - Issues principales : **#17 (S09)** et **#42 (S10)**
 - Résultats autorisés : `PASS`, `FAIL`, `NON RETESTÉ`, `NON VÉRIFIABLE`
 - Statuts autorisés : `OUVERT`, `CORRIGÉ`, `SUPERSÉDÉ`
@@ -16,6 +16,8 @@
 - Sans preuve suffisante, le résultat est `NON VÉRIFIABLE`, jamais `PASS`.
 - Un ancien run attesté sans logs exploitables reste inventorié, avec cause racine `NON DÉMONTRÉE`.
 - GitHub prévaut sur la mémoire conversationnelle.
+- Le classeur `KODJO_Registre_versionne_incidents_tests_protocoles_v0.3_2026-09-07.xlsx` est une source historique consolidée : ses IDs sont conservés comme aliases `XLS03-INC-xxx` afin de ne jamais réaffecter les IDs `INC-xxx` déjà versionnés dans Git.
+- Le Markdown versionné dans le dépôt est le format autoritatif : diffable, testable par CI et réutilisable directement par les workflows. Le classeur reste une vue d'analyse, non la source d'exécution.
 - La version 1.0.0 utilisait des IDs `KIP-xxx`. Elle est supersédée par les IDs stables `INC-xxx` ci-dessous ; la correspondance est conservée en fin de document.
 
 ## Registre
@@ -71,6 +73,32 @@
 | INC-047 | 2026-09-01/06 | V1.3/V1.4 | INCIDENT_TECHNIQUE | CLAUDE_CONFIG_DIR | Session/auth dépend du répertoire de configuration | Configuration éphémère ou mauvais profil possible | Documents SessionStore/local ; workflow fixe `C:\\Users\\hadjo\\.claude` | Répertoire exact vérifié avant Claude | Authentification et session utilisent le CLAUDE_CONFIG_DIR autoritatif | Credentials/session disponibles dans le même config dir | PARTIEL / NON RETESTÉ | Local Claude | OUVERT test | — | Ne pas confondre avec stockage de transcript Cloud |
 | INC-048 | 2026-09-04/06 | V1.4 S09 | INCIDENT_TECHNIQUE | Runs sans job | Plusieurs PLAN/REVIEW affichent « No jobs were run » | NON DÉMONTRÉE pour chaque run | Notifications commits `bb8be6f`, `faee60e`, `e570b68`, `1e20295`, `af59d25`, `72cf4a9`, `8606959` | Aucun correctif unique attribuable | Tout no-job exige audit exact de `on` et `if` | Replay payload de chaque run | NON VÉRIFIABLE | Toutes | OUVERT | certains cas reliés INC-015/020/030 | Ne pas fusionner sans logs |
 | INC-049 | 2026-09-07 | Générique S10 | DÉFAUT_CONCEPTION | Revue incrémentale après correction | Le gate s'arrête sur `baseline` avant Jest, TypeScript et OpenAI pour le commentaire `5569391862` | Le workflow imposait `manifest.baseline_head == IMPLEMENTATION_OUTPUT.base_head`, alors que la baseline du plan `d59df7c…` est immuable et que la correction publiée part du HEAD causal `ed223ca…` | Run `KODJO SLICE / IMPLEMENTATION-REVIEW / 5569391862 #33`; log `baseline`; manifeste `T01-S10.yml`; commentaires `5569247304` et `5568944376` | `445153ff` remplace l'égalité par deux contrôles d'ascendance via API GitHub ; `a0fbcdd9` ajoute la matrice ; `21286e60` rend la règle normative | La baseline de tranche doit être ancêtre ou égale à la base immédiate ; le HEAD publié doit en descendre strictement et égaler le HEAD distant | Cas réel `d59df7c… → ed223ca… → b21fb817…`, égalité initiale, divergence, retour arrière, HEAD identique/divergent, SHA invalide, YAML et Bash | NON RETESTÉ | Générique multi-lots | OUVERT | répète INC-040 | Micro-tests sans IA : PASS ; chemin GitHub réel volontairement non relancé ; OpenAI/Claude non appelés, lot 3 non lancé |
+| INC-050 | 2026-08 | V1 | DÉFAUT_CONCEPTION | PLAN — TEST-PLAN-01 / Issue #7 | Plan V1 prévoyait la branche de bloc et choisissait une phrase non spécifiée | Confusion entre branche de bloc et branche dédiée; une proposition a été traitée comme décision | Classeur v0.3 (INC-001); https://github.com/MyUncried/Application-Routine/issues/7 | Plan V2: branche dédiée fictive; phrase classée proposition/clarification | Une tâche écrivable utilise une branche dédiée issue d’une baseline validée; aucune valeur produit non spécifiée n’est inventée | Revue du plan V2 puis PLAN_APPROVED; aucune écriture durant le test | PASS | V1+ | CORRIGÉ | alias source XLS03-INC-001 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-051 | 2026-08 | V1 | DÉFAUT_CONCEPTION | GATE — TEST-PLAN-01 / Issue #7 | Risque d’implémentation pendant un test de plan | Barrière d’autorisation pas encore éprouvée de bout en bout | Classeur v0.3 (INC-002); https://github.com/MyUncried/Application-Routine/issues/7 | Consignes négatives et état PLAN_READY_FOR_REVIEW | Aucun fichier, branche ou commit avant PLAN_APPROVED explicite | git status/diff; vérification qu’aucun fichier ni branche n’a été créé | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-002 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-052 | 2026-08 | V1 | DÉFAUT_CONCEPTION | IMPLEMENTATION — TEST-IMPLEMENTATION / Issue #8, PR #10 | La boucle code → rapport → revue → correction devait être éprouvée | Protocole initial non encore validé sur une écriture réelle contrôlée | Classeur v0.3 (INC-003); https://github.com/MyUncried/Application-Routine/issues/8 | Micro-implémentation documentaire sur branche/PR dédiée avec cycles de revue | Écriture seulement après gate; rapport et contre-vérification indépendants obligatoires | Diff borné, contenu attendu, rapport, revue et correction puis clôture | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-003 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-053 | 2026-08 | V1.1 | DÉFAUT_CONCEPTION | CONCURRENCE — Durcissement après tests #6–#8 / PR #11 | Risque d’écritures concurrentes ou worktree non propre | V1 ne modélisait pas assez explicitement le verrou d’écrivain et les états Git divergents | Classeur v0.3 (INC-004); https://github.com/MyUncried/Application-Routine/pull/11 | Ajout WORKTREE_LOCKED, mode LOCAL/CLOUD et writer explicite | Un seul écrivain autorisé; toute divergence locale/distante bloque avant écriture | Préflight git status/fetch/branche/HEAD; refus si divergence | PASS | V1.1+ | CORRIGÉ | alias source XLS03-INC-004 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-054 | 2026-08 | V1.1 | DÉFAUT_CONCEPTION | GIT — Durcissement sécurité Git / PR #11 | Risque de récupération destructive en cas de divergence | Règles de reprise Git insuffisamment explicites | Classeur v0.3 (INC-005); https://github.com/MyUncried/Application-Routine/pull/11 | Interdictions et arrêt explicite ajoutés au protocole | Pas de reset/rebase/force-push spontané; préserver les changements existants | Scénario worktree divergent → WORKTREE_LOCKED sans mutation | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-005 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-055 | 2026-08 | V1.1 | DÉFAUT_CONCEPTION | PREUVE — Rapports et preuves Git / PR #11 | Un rapport pouvait être cru sans vérification indépendante | Source déclarative et état réel GitHub confondus | Classeur v0.3 (INC-006); https://github.com/MyUncried/Application-Routine/pull/11 | Règles de preuve et contre-vérification renforcées | ChatGPT vérifie GitHub directement; les preuves correspondent à l’état réel du fichier/commit | Comparer branche, SHA, diff, tests et commentaire avant clôture | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-006 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-056 | 2026-08 | V1.2 | DÉFAUT_CONCEPTION | WRITER — Coordination LOCAL/CLOUD / Issue #12, PR #13 | Une bascule de mode pouvait conserver implicitement l’ancienne autorisation | Autorisation liée à la tâche mais pas au couple mode+écrivain | Classeur v0.3 (INC-007); https://github.com/MyUncried/Application-Routine/issues/12 | Mode et écrivain deviennent explicites et traçables | Toute bascule LOCAL↔CLOUD invalide l’autorisation précédente jusqu’à réautorisation | Test de bascule: écriture refusée sans nouveau PLAN_APPROVED désignant mode+writer | PASS | V1.2; principe toutes versions | SUPERSÉDÉ | alias source XLS03-INC-007 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-057 | 2026-08 | V1.2 | INCIDENT_TECHNIQUE | CONCURRENCE — Concurrence distante / Issue #12 | Le worktree local pouvait être propre alors que la branche distante avait divergé | Contrôle limité à l’état local | Classeur v0.3 (INC-008); https://github.com/MyUncried/Application-Routine/issues/12 | Fetch et comparaison locale/distante obligatoires | WORKTREE_LOCKED couvre aussi la divergence distante | Modifier le remote entre plan et écriture → arrêt WORKTREE_LOCKED | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-008 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-058 | 2026-08 | V1.2 | DÉFAUT_CONCEPTION | RESSOURCES — Ressources et coûts / Issue #12 | Risque d’inventer quota/coût ou d’affaiblir les contrôles pour économiser | Mesures non toujours accessibles et catégories abonnement/API confondues | Classeur v0.3 (INC-009); https://github.com/MyUncried/Application-Routine/issues/12 | Rubrique ressources, signaux et ARBITRAGE ajoutés | Toute mesure inaccessible = NON VÉRIFIABLE; sobriété sans suppression de contrôle obligatoire | Rapport avec Contexte/Quota/Coût et absence d’estimation inventée | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-009 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-059 | 2026-08 | V1.2 | LIMITATION_EXTERNE | CLOUD — Cloud write / Issue #14 | Capacité d’écriture Claude Cloud non démontrée | Le protocole préparait CLOUD sans preuve opérationnelle | Classeur v0.3 (INC-010); https://github.com/MyUncried/Application-Routine/issues/14 | Test d’écriture isolé, borné et nettoyé | Une capacité n’est déclarée valide qu’après test contrôlé et preuve GitHub | Contrôle branche/SHA/diff/commit et absence de changement métier | PASS | V1.2 Cloud | SUPERSÉDÉ | alias source XLS03-INC-010 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-060 | 2026-08 | V1.2 | INCIDENT_TECHNIQUE | AUTH — Automation OAuth / Issue #15 | Déclenchement automatique sans clé API à démontrer | Intégration GitHub Actions/Claude OAuth incertaine | Classeur v0.3 (INC-011); https://github.com/MyUncried/Application-Routine/issues/15 | OAuth CLAUDE_CODE_OAUTH_TOKEN + workflow temporaire | Aucun secret dans prompt/dépôt; authentification configurée et permission minimale | Commentaire déclencheur → run → réponse GitHub; nettoyage du workflow | PASS | V1.2 Cloud | SUPERSÉDÉ | alias source XLS03-INC-011 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-061 | 2026-08 | V1.2 | INCIDENT_TECHNIQUE | LIMITES — Automation étape B | Run Claude terminé en success après 33 tours mais plafond fixé à 25; structured_output absent | Plafond de tours trop bas par rapport au travail demandé; succès modèle ≠ artefact structuré publié | Classeur v0.3 (INC-012); https://github.com/MyUncried/Application-Routine/issues/17 | Reprise explicitement autorisée avec plafond 40 et instrumentation | Un run n’est exploitable que si le contrat de sortie attendu est matérialisé | Vérifier conclusion du job + présence/validité du structured_output | PASS | Toutes sorties structurées | CORRIGÉ | alias source XLS03-INC-012 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-062 | 2026-08/09 | V1.2 | DÉFAUT_CONCEPTION | CONTEXTE — T01-S09 premier plan automatisé / Issue #17 | Claude voyait le dépôt cloné mais ne pouvait pas utiliser gh pour relire l’Issue | Le runner ne transportait pas une source GitHub vérifiable jusqu’au modèle | Classeur v0.3 (INC-013); https://github.com/MyUncried/Application-Routine/issues/17 | Claude a publié CLARIFICATION_REQUIRED; contexte de l’Issue ensuite matérialisé par le workflow | Aucune revalidation GitHub ne peut être affirmée sans accès ou matérialisation prouvée | Test: comparer source_issue/HEAD transmis avec GitHub avant production du plan | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-013 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-063 | 2026-08/09 | V1.2 | DÉFAUT_CONCEPTION | SCOPE — T01-S09 | Risque d’écrire le métier durant la phase PLAN Cloud | Automatisation nouvelle et permissions larges possibles | Classeur v0.3 (INC-014); https://github.com/MyUncried/Application-Routine/issues/17 | Permissions et consignes bornées | PLAN reste lecture seule; business_write=false avant gate | git diff nul côté métier après phase plan | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-014 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-064 | 2026-09 | V1.3→V1.4 | INCIDENT_TECHNIQUE | POWERSHELL — Préflight runner local | PowerShell 5.1 incompatible avec SHA256.HashData et interpolation URL $uri?ref | Scripts conçus avec hypothèses PowerShell plus récentes et interpolation ambiguë | Classeur v0.3 (INC-023); https://github.com/MyUncried/Application-Routine/pull/30 | Remplacement par API compatible et construction d’URL non ambiguë | Le préflight doit fonctionner sur la version réelle du runner avant tout appel Claude | WRITE puis READ dans deux runs distincts sans appel modèle | NON VÉRIFIABLE | Runner Windows | OUVERT | alias source XLS03-INC-023 | Preuve source : RECONSTITUÉ; statut source : CLOS |
+| INC-065 | 2026-09 | V1.4 | INCIDENT_TECHNIQUE | BASELINE — S09 documentation | Commit documentaire divergent 69e3f815… ignoré par certains workflows | Baseline/HEAD capturés statiquement ou depuis une source obsolète | Classeur v0.3 (INC-029); https://github.com/MyUncried/Application-Routine/issues/17 | Métadonnées source_head/source_branch propagées; Git = vérité matérielle | Toute phase revalide le HEAD GitHub exact et refuse une baseline silencieusement obsolète | Pousser un commit doc entre phases → nouveau HEAD détecté ou arrêt explicite | NON VÉRIFIABLE | Toutes | OUVERT | alias source XLS03-INC-029 | Preuve source : RECONSTITUÉ; statut source : CLOS |
+| INC-066 | 2026-09 | V1.4 | INCIDENT_TECHNIQUE | TESTS — Recover Worktree S09 | Worktree récupéré: 58 tests Jest en échec, 571 passés sur 629 | Tests historiques incompatibles avec le modèle S09/overlay roulette et quelques défauts d’implémentation | Classeur v0.3 (INC-031); https://github.com/MyUncried/Application-Routine/issues/17 | Correction depuis recovery/t01-s09-attempt2 @ 3615ebf, pas depuis mémoire | Un checkpoint préserve le travail mais ne vaut pas validation; Jest/tsc restent autoritatifs | Suite Jest complète puis npx tsc --noEmit; objectif 629/629 | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-031 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-067 | 2026-09 | V1.4 | DÉFAUT_CONCEPTION | OBSERVABILITÉ — S09 runs #59/#60 | Runs parasites/skipped confondus avec le run utile | Plusieurs workflows réagissaient au même commentaire | Classeur v0.3 (INC-032); https://github.com/MyUncried/Application-Routine/issues/17 | Déduplication et vérification explicite des métadonnées de run | Interpréter un résultat avec workflow name + run ID + status + conclusion | #59 skipped; #60 identifié comme run utile | PASS | Toutes | CORRIGÉ | alias source XLS03-INC-032 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-068 | 2026-09 | V1.4 | LIMITATION_EXTERNE | LIMITES — IMPLEMENTATION S09 | Claude ne pouvait pas exécuter npx jest/tsc à cause des permissions | Capacité subprocess du contexte Claude différente de celle du workflow | Classeur v0.3 (INC-034); https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559455649 | Rapport sépare fin de phase Claude et fin de workflow | L’agent ne fabrique aucun résultat; les étapes autoritatives du workflow exécutent les contrôles | Étape Enforce scope and deterministic checks exécute Jest complet + tsc | PASS | Claude local | CORRIGÉ | alias source XLS03-INC-034 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-069 | 2026-09 | V1.4 | HORS_PROTOCOLE | PREUVE TEST — S09 attempt 4 | Test loading initial résolvait par succès et démontait l’écran; disabled=false post-résolution non observable | Scénario de test ne conservait pas le composant monté | Classeur v0.3 (INC-036); https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559438968 | Scénario remplacé par rejet technique sans navigation | Une assertion doit observer réellement les deux états sur le même composant | Observer disabled=true pendant attente puis false après rejet; anti-double-submit conservé | PASS | Tests UI | CORRIGÉ | alias source XLS03-INC-036 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-070 | 2026-09 | V1.4 | HORS_PROTOCOLE | PREUVE E2E — S09 attempt 4 | Preuve couleur jaune ne traversait pas toute la chaîne jusqu’à SessionCard | Test antérieur contournait repository.create ou s’arrêtait avant le rendu | Classeur v0.3 (INC-037); https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559438968 | Test SQL/repository → SessionSummary → SessionCard + catégorie cardio | Une exigence de propagation doit être testée de la persistance au composant visible | Assertion couleur #F7D154 sur bande et segment catégories | PASS | Tests fonctionnels E2E | CORRIGÉ | alias source XLS03-INC-037 | Preuve source : VÉRIFIÉ; statut source : CLOS |
+| INC-071 | 2026-09 | V1.4/S10 | DÉFAUT_CONCEPTION | COEXISTENCE — Migration vers workflows génériques | Workflows S09 dédiés et génériques pouvaient réagir aux mêmes marqueurs | Transition d’architecture incomplète | Classeur v0.3 (INC-040); https://github.com/MyUncried/Application-Routine/tree/main/.github/workflows | Filtres tranche/manifeste, noms explicites, S09 conservé jusqu’à validation cible | Une tranche possède un flux actif non ambigu; les anciens workflows restent isolés/archivés | Même commentaire ne doit créer qu’un run utile; autres runs explicitement skipped | NON RETESTÉ | Migration générique | OUVERT | alias source XLS03-INC-040 | Preuve source : RECONSTITUÉ; statut source : OUVERT |
+| INC-072 | 2026-09 | V1.4/S10 | LIMITATION_EXTERNE | RESSOURCES — RESUME_DELTA lot 2/3 | Consommation Claude jugée anormalement élevée quelques minutes après lancement d’une reprise différentielle | Cause non établie avec les preuves accessibles; possible coût de reprise/contexte mais aucune attribution vérifiée | Classeur v0.3 (INC-044); https://github.com/MyUncried/Application-Routine/issues/17 | Suivi explicite du mode RESUME_DELTA et de la session; aucune cause déclarée sans métrique/preuve | Une anomalie de consommation est signalée et mesurée sans inventer sa cause; le protocole borne les reprises et journalise mode, prompt, session, HEAD et résultat | Comparer consommation d’un RESUME_DELTA borné à un run nominal de périmètre comparable; qualifier uniquement sur métriques observables | NON VÉRIFIABLE | Claude local | OUVERT | alias source XLS03-INC-044 | Preuve source : À CLARIFIER; statut source : OUVERT |
+| INC-073 | 2026-09 | V1.4/S10 | DÉFAUT_CONCEPTION | RESSOURCES — Reprises Claude lot 2 | Le workflow retransmettait plan et revue complets lors d’un --resume alors que la session les connaissait déjà. | Chemin INITIAL et chemin RESUME partageaient un paquet de contexte trop large. | Classeur v0.3 (INC-048); https://github.com/MyUncried/Application-Routine/issues/42 | Chemin RESUME_DELTA corrigé; règles normatives et garde-fou contre APPROVED PLAN:/INDEPENDENT REVIEW: dans une reprise; commits 4920ee3f…, 63811444…, c8aac044…. | Contexte complet une seule fois; toute reprise de la même session transmet uniquement HEAD, références causales et delta nouveau; aucun retry/fallback silencieux. | Contrôles statiques: même session, plan/revue absents, références conservées, delta seul, YAML PASS. | PASS | Claude resume | CORRIGÉ | alias source XLS03-INC-048 | Preuve source : VÉRIFIÉ / CONVERSATION; statut source : CLOS — EFFICACITÉ PARTIELLE |
+| INC-074 | 2026-09-07 | V1.4/S10 | LIMITATION_EXTERNE | PLATEFORME — ChatGPT Développement — Sol Light saturé | Deux tentatives Retry ont échoué car GPT-5.6 Sol Light était momentanément saturé. | Capacité temporairement indisponible du modèle sélectionné, sans lien avec Claude Code ni GitHub. | Classeur v0.3 (INC-051); Conversation Gestion du Protocole, 2026-09-07 | Sélection de GPT-5.6 Sol Medium; même instruction conservée. | Une saturation ChatGPT n’autorise aucun double lancement; changer explicitement de modèle puis vérifier GitHub. | Vérification: aucun workflow déclenché par les deux échecs. | PASS | ChatGPT Work | CORRIGÉ | alias source XLS03-INC-051 | Preuve source : VÉRIFIÉ / CONVERSATION; statut source : CLOS — INCIDENT EXTERNE |
+| INC-075 | 2026-09-07 | Générique S10 | INCIDENT_TECHNIQUE | Auto-test du bridge de revue | Le run `34118257325`, job `101730030858`, s'arrête dans `Test incremental review bridge invariants` avant tout gate et toute IA | Une substitution globale sur `head=` avait aussi modifié `source_head=` et `base_head=` ; une assertion cherchait littéralement `\\$implementation_status` ; seul un préfixe du test avait été exécuté localement | Logs du job `101730030858`; version fautive au commit `03c473fa`; reproduction complète locale | `ad97adac` corrige les fixtures et assertions, ajoute des messages nominatifs et exécute le script final complet ; `63db95d3` rend la règle normative | Une modification structurée cible des lignes/blocs exacts ; le fichier de test final complet est exécuté dans son arbre réel et chaque assertion indique son nom | Script final complet : causalité, ascendance, marqueurs, publication, recovery, permissions et registre | PASS | Toutes | CORRIGÉ | répète INC-035 et prolonge INC-049 | Aucun OpenAI/Claude appelé ; lot 3 non lancé |
 
 ## Répétitions qui auraient dû être évitées
 
@@ -87,6 +115,178 @@
 | INC-034 : dépendances/capacités runner non inventoriées | INC-041 | Une option `gh` a été supposée disponible. |
 | INC-029 : dispatch ajouté | INC-042 | L'appel a été testé syntaxiquement sans vérifier sa permission effective. |
 | INC-040 : baseline et HEAD causal séparés | INC-049 | L'invariant existant n'avait pas été appliqué au gate de revue incrémentale ni couvert par son test permanent. |
+
+## Correspondance du classeur consolidé v0.3
+
+Les IDs du classeur ne sont pas renumérotés silencieusement. Ils deviennent des aliases stables `XLS03-INC-xxx` pointant vers l'incident canonique ci-dessous.
+
+| Alias classeur | Incident canonique | Traitement |
+|---|---|---|
+| XLS03-INC-001 | INC-050 | importé comme incident causal distinct |
+| XLS03-INC-002 | INC-051 | importé comme incident causal distinct |
+| XLS03-INC-003 | INC-052 | importé comme incident causal distinct |
+| XLS03-INC-004 | INC-053 | importé comme incident causal distinct |
+| XLS03-INC-005 | INC-054 | importé comme incident causal distinct |
+| XLS03-INC-006 | INC-055 | importé comme incident causal distinct |
+| XLS03-INC-007 | INC-056 | importé comme incident causal distinct |
+| XLS03-INC-008 | INC-057 | importé comme incident causal distinct |
+| XLS03-INC-009 | INC-058 | importé comme incident causal distinct |
+| XLS03-INC-010 | INC-059 | importé comme incident causal distinct |
+| XLS03-INC-011 | INC-060 | importé comme incident causal distinct |
+| XLS03-INC-012 | INC-061 | importé comme incident causal distinct |
+| XLS03-INC-013 | INC-062 | importé comme incident causal distinct |
+| XLS03-INC-014 | INC-063 | importé comme incident causal distinct |
+| XLS03-INC-015 | INC-003 | fusion sémantique réveil Work |
+| XLS03-INC-016 | INC-003 | fusion sémantique réveil Work |
+| XLS03-INC-017 | INC-006 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-018 | INC-006 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-019 | INC-002 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-020 | INC-018 | frontière post-IA et checkpoint |
+| XLS03-INC-021 | INC-007 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-022 | INC-008 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-023 | INC-064 | importé comme incident causal distinct |
+| XLS03-INC-024 | INC-018 | sentinelle/checkpoint durable |
+| XLS03-INC-025 | INC-012 | session historique coûteuse |
+| XLS03-INC-026 | INC-013 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-027 | INC-014 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-028 | INC-015 | famille quoting/encodage PowerShell |
+| XLS03-INC-029 | INC-065 | importé comme incident causal distinct |
+| XLS03-INC-030 | INC-017 | famille chemins Git Unicode |
+| XLS03-INC-031 | INC-066 | importé comme incident causal distinct |
+| XLS03-INC-032 | INC-067 | importé comme incident causal distinct |
+| XLS03-INC-033 | INC-018 | reprise depuis SHA durable |
+| XLS03-INC-034 | INC-068 | importé comme incident causal distinct |
+| XLS03-INC-035 | INC-043 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-036 | INC-069 | importé comme incident causal distinct |
+| XLS03-INC-037 | INC-070 | importé comme incident causal distinct |
+| XLS03-INC-038 | INC-048 | runs sans job |
+| XLS03-INC-039 | INC-038 | publication post-push |
+| XLS03-INC-040 | INC-071 | importé comme incident causal distinct |
+| XLS03-INC-041 | INC-036 | BOM |
+| XLS03-INC-042 | INC-041 | fusion sémantique avec l'incident Git existant |
+| XLS03-INC-043 | INC-029 | bridge repository_dispatch |
+| XLS03-INC-044 | INC-072 | importé comme incident causal distinct |
+| XLS03-INC-045 | INC-030 | marqueur préfixe |
+| XLS03-INC-046 | INC-024 | pipefail/SIGPIPE |
+| XLS03-INC-047 | INC-032 | CRLF et transport réel |
+| XLS03-INC-048 | INC-073 | importé comme incident causal distinct |
+| XLS03-INC-049 | INC-044 | usage limit |
+| XLS03-INC-050 | INC-045 | incident interface groupé |
+| XLS03-INC-051 | INC-074 | importé comme incident causal distinct |
+
+## Catalogue versionné des tests protocolaires
+
+| ID test | Version | Test | Axe | Procédure | Critère / observation | Verdict | Source |
+|---|---|---|---|---|---|---|---|
+| T-001 | V1 | #6 Handshake | GitHub ↔ Claude | Lire branche/SHA, écrire un commentaire, ne modifier aucun fichier | CLAUDE_GITHUB_HANDSHAKE_OK; git status propre | PASS | https://github.com/MyUncried/Application-Routine/issues/6 |
+| T-002 | V1 | #7 Plan V1→V2 | Boucle PLAN | Produire plan, demander corrections, republier version complète, approuver | PLAN_CHANGES_REQUESTED puis PLAN_READY_FOR_REVIEW/PLAN_APPROVED; aucune écriture | PASS | https://github.com/MyUncried/Application-Routine/issues/7 |
+| T-003 | V1 | #8 + PR #10 | Boucle implémentation | Gate puis micro-écriture, rapport, revue, correction, contre-vérification | Diff borné et boucle complète | PASS | https://github.com/MyUncried/Application-Routine/issues/8 |
+| T-004 | V1.1 | WORKTREE_LOCKED local | Sécurité Git | Introduire changement local avant écriture | Arrêt sans mutation destructive | PASS | https://github.com/MyUncried/Application-Routine/pull/11 |
+| T-005 | V1.2 | WORKTREE_LOCKED distant | Concurrence | Faire diverger origin après autorisation | Fetch détecte divergence; réautorisation requise | PASS conceptuel | https://github.com/MyUncried/Application-Routine/issues/12 |
+| T-006 | V1.2 | #14 Cloud write | Capacité Cloud | Écriture contrôlée non métier puis preuve Git | Commit/diff conformes, nettoyage | PASS | https://github.com/MyUncried/Application-Routine/issues/14 |
+| T-007 | V1.2 | #15 Étape B | Déclenchement | Commentaire GitHub lance Claude OAuth | Run et réponse GitHub | PASS | https://github.com/MyUncried/Application-Routine/issues/15 |
+| T-008 | V1.2 | #15 B.2 max-turns | Limites | Plafond 25 face à une tâche longue | Échec qualifié malgré résultat modèle; pas de fausse sortie | PASS diagnostic | https://github.com/MyUncried/Application-Routine/issues/15 |
+| T-009 | V1.2 | #15 B.3 structured_output | Contrat sortie | Automation + schéma structuré | JSON valide matérialisé et publiable | PASS partiel | https://github.com/MyUncried/Application-Routine/issues/15 |
+| T-010 | V1.2 | #17 source GitHub | Contexte | Planifier avec dépôt mais sans gh | CLARIFICATION_REQUIRED; aucune fausse revalidation | PASS sécurité | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-011 | V1.3 | T7 réveil Work | Notification | Push technique par github-actions[bot] sur PR | pull_request:synchronize réveille Work | PASS | https://github.com/MyUncried/Application-Routine/pull/18 |
+| T-012 | V1.3 | T8 arbitrage A/B/C | Décision | Question durable puis réponse optionnelle | Décision causale, citée et dédupliquée | PASS après correction | https://github.com/MyUncried/Application-Routine/pull/19 |
+| T-013 | V1.3 | T1→T9 intégré | E2E orchestration | Enchaîner transitions avec checkpoints | T9 PASS; ensemble PARTIELLEMENT DÉMONTRÉ | PARTIEL | https://github.com/MyUncried/Application-Routine/pull/19 |
+| T-014 | V1.3 | ORCHESTRATION_FAILURE post-IA | Reprise | Faire échouer transport après sortie valide | Reprise sans nouvel appel IA | PASS | https://github.com/MyUncried/Application-Routine/blob/feat/creation-seance-catalogue/.github/AI_ORCHESTRATION_CONTINUITY.md |
+| T-015 | V1.3 | SESSION-RESUME-01 BASE | Session Cloud | Créer session et mémoriser marqueur | Run 33384761722; session_id capturé | PASS | https://github.com/MyUncried/Application-Routine/pull/30 |
+| T-016 | V1.3 | SESSION-RESUME-01 RESUME | Session Cloud | Nouveau runner + --resume ID BASE | No conversation found; continuité NON DÉMONTRÉE | FAIL ATTENDU/DIAGNOSTIC | https://github.com/MyUncried/Application-Routine/pull/30 |
+| T-017 | V1.3 | SessionStore SDK préflight | Stockage externe | Conformance SDK + S3 émulé | SDK/imports/WRITE-READ émulé PASS; S3 réel non testé | PARTIEL | https://github.com/MyUncried/Application-Routine/pull/29 |
+| T-018 | V1.3→V1.4 | Runner local PREFLIGHT WRITE/READ | Persistance | Deux runs, même Windows/utilisateur/racine | Sentinelle relue et identité stable | PASS après corrections | https://github.com/MyUncried/Application-Routine/pull/30 |
+| T-019 | V1.4 | Claude local BASE/RESUME | Session locale | Deux runs distincts, transcript local, --resume | Même session et marqueur restitué sans réinjection | PASS | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-020 | V1.4 | PLAN S09 consolidé | Qualité plan | Évaluer couverture, traçabilité, non-invention, exécutabilité, testabilité | Revue Claude APPROVE/BLOCKING_POINTS=NONE | PASS | https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5551137343 |
+| T-021 | V1.4 | S09 récupération worktree | Durabilité | Échec post-Claude avant commit | Branche recovery + SHA durable, sans perte des modifications | PASS | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-022 | V1.4 | S09 déterministe | Tests métier | Jest complet + TypeScript sur checkpoint corrigé | 629/629 visé puis gates autoritatives vertes | PASS final | https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559455649 |
+| T-023 | V1.4 | S09 propagation jaune | Preuve intégrée | SQL/repository → summary → SessionCard | Couleur #F7D154 et catégorie visibles | PASS | https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559438968 |
+| T-024 | V1.4 | S09 loading/anti-double-submit | UI | Attente puis rejet sans démontage | disabled true→false observable; double-submit inchangé | PASS | https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559438968 |
+| T-025 | V1.4 | S09 FINALIZE | Clôture | Après gate visuel, npm ci + Jest + tsc sans Claude | S09_READY_TO_CLOSE @ a4b194c | PASS après correction | https://github.com/MyUncried/Application-Routine/issues/17#issuecomment-5559488629 |
+| T-026 | V1.4/S10 | Generic PLAN trigger | Généricité | Déclenchement depuis manifeste/commentaire S10 | Job plan exécuté, pas “No jobs were run” | EN COURS | https://github.com/MyUncried/Application-Routine/actions |
+| T-027 | V1.4/S10 | Recovery publication lot 2 | Transport | Commit déjà poussé, publication échoue | Publier depuis SHA/commentaire sans rappeler Claude | PASS reconstruit | https://github.com/MyUncried/Application-Routine/actions |
+| T-028 | V1.4/S10 | Transport UTF-8 BOM PLAN_REVIEW | Encodage | Publier/rejouer un PLAN_REVIEW_OUTPUT précédé de U+FEFF puis vérifier le gate | Gate tolère BOM; nouveaux commentaires écrits UTF-8 sans BOM; commentaire 5561522847 accepté | PASS après correction | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-029 | V1.4/S10 | Publication IMPLEMENTATION_OUTPUT Windows | Transport | Après commit déjà poussé, publier le résultat via gh api --method POST sans rappeler Claude | IMPLEMENTATION_OUTPUT publié; ancienne commande gh issue comment --json interdite par test permanent | PASS après correction | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-030 | V1.4/S10 | Déclenchement revue post-publication | Chaînage workflows | Publier un IMPLEMENTATION_OUTPUT avec le mécanisme réel et observer la création d’un run REVIEW unique | Limitation GITHUB_TOKEN démontrée; bridge et filtres corrigés, mais aucun run REVIEW post-correction prouvé | CORRIGÉ STATIQUEMENT / E2E À CONFIRMER | https://github.com/MyUncried/Application-Routine/issues/42 |
+| T-031 | V1.4/S10 | Lot 2 déterministe post-reprise | Tests métier | Sur HEAD ed223ca1… exécuter la suite complète et TypeScript après reprise différentielle | 44 suites / 714 tests PASS; TypeScript OK; migration001.ts inchangée | PASS | https://github.com/MyUncried/Application-Routine/issues/17 |
+| T-032 | V1.4/S10 | Marqueurs exacts IMPLEMENTATION/REVIEW | Déclenchement | Injecter séparément START_IMPLEMENTATION et START_IMPLEMENTATION_REVIEW dans les filtres. | Un seul workflow cible est qualifié pour chaque marqueur. | PASS statique | https://github.com/MyUncried/Application-Routine/commit/76548134 |
+| T-033 | V1.4/S10 | Review gate source réelle | Gate | Valider auteur, Issue, manifeste, HEAD, PLAN et commentaire source sans pipeline grep -q fragile. | Micro-tests YAML/récupération PASS; aucun appel IA. | PASS statique | https://github.com/MyUncried/Application-Routine/commit/8bcfa404 |
+| T-034 | V1.4/S10 | FULL_REAL_DATA_GATE_PARSE | Transport | Parser les données réelles 5567025049, 5566085481 et PLAN 5562076836, incluant LF/CRLF/\n. | FULL_REAL_DATA_GATE_PARSE_OK; YAML valide. | PASS statique | https://github.com/MyUncried/Application-Routine/commit/1c0ea389 |
+| T-035 | V1.4/S10 | RESUME_DELTA contenu | Ressources | Inspecter le prompt --resume et rechercher plan/revue complets. | Même session; plan/revue absents; HEAD/références/delta présents; YAML PASS. | PASS statique | https://github.com/MyUncried/Application-Routine/commit/c8aac044 |
+| T-036 | V1.4/S10 | RESUME_DELTA consommation réelle | Ressources | Observer un unique run lot 2 avec prompt différentiel et le compteur Claude. | 0 %→22 % en ~5 min sur run 34089839433; cause directe NON DÉMONTRÉE. | FAIL DIAGNOSTIC / À CLARIFIER | https://github.com/MyUncried/Application-Routine/actions/runs/34089839433 |
+| T-037 | V1.4/S10 | USAGE_LIMIT sans retry | Limites | Laisser remonter la limite Claude et contrôler les effets de bord. | Aucun output complet, commit, test ou revue; pas de retry automatique. | PASS sécurité | https://github.com/MyUncried/Application-Routine/issues/42 |
+| T-038 | V1.4/S10 | Erreur ChatGPT Work sans effet GitHub | Plateforme | Après réponse vide/saturation, vérifier l’état réel avant Retry ou changement de modèle. | Aucun workflow ni appel Claude déclenché. | PASS diagnostic | Conversation Gestion du Protocole, 2026-09-07 |
+| T-039 | V1.4/S10 | Marqueurs exacts | Déclenchement | Injecter START_IMPLEMENTATION et START_IMPLEMENTATION_REVIEW | Un seul workflow qualifié | PASS | commit 76548134 |
+| T-040 | V1.4/S10 | Parsing réel LF/CRLF/BOM | Encodage | Rejouer les commentaires autoritatifs | Champs uniques normalisés, marqueur exact | PASS statique | commits 1c0ea389 et règles associées |
+| T-041 | V1.4/S10 | Lecture privée authentifiée | GitHub API | Lire HEAD/ref avec persist-credentials=false | API authentifiée ; aucun git réseau anonyme | PASS statique | protocole et workflow review |
+| T-042 | V1.4/S10 | Publication portable | Transport | Publier par gh api après push | IMPLEMENTATION_OUTPUT durable sans rappel Claude | PASS | commentaire 5569247304 |
+| T-043 | V1.4/S10 | Permission repository_dispatch | Permissions | Scanner tous les callers /dispatches | contents: write présent | PASS statique | commits ed5eecd3, 13dfe4bf, cf2f2adf |
+| T-044 | V1.4/S10 | Revue bornée LOT_2_OF_3 | Scope | Propager increment et déclencheur causal | Lot 3 absent du verdict du lot 2 | PASS statique ; E2E NON RETESTÉ | test-increment-review-gate.sh |
+| T-045 | V1.4/S10 | Ascendance baseline/base/HEAD | Causalité Git | Tester égalité, descendance, divergence, retour arrière et HEAD identique | Baseline→base identical/ahead ; base→HEAD ahead | PASS statique ; E2E NON RETESTÉ | commits 445153ff, a0fbcdd9 |
+| T-046 | V1.4/S10 | Auto-test final complet | Qualité protocole | Exécuter le script final depuis son arbre complet | Toutes les assertions statiques et sémantiques passent | PASS | commit ad97adac |
+| T-047 | V1.4/S10 | Diagnostics nominatifs | Observabilité | Faire échouer une assertion statique | Nom de l'invariant et fichier affichés | PASS statique | commit ad97adac |
+| T-048 | Registre 3.0 | Validation registre | Capitalisation | Contrôler IDs, schéma, valeurs et sections | 75 incidents, aliases, tests et invariants présents | PASS local avant commit | test-incident-register.sh |
+
+## Catalogue des invariants consolidés
+
+| ID | Famille | Invariant | Introduit / renforcé | Références source XLS03 |
+|---|---|---|---|---|
+| INV-001 | Autorisation | Aucune écriture métier avant un gate explicite lié au plan, au mode et à l’écrivain. | V1; renforcé V1.2 | INC-002, INC-007, INC-014 |
+| INV-002 | Single writer | Un seul écrivain autorisé; divergence locale ou distante entraîne WORKTREE_LOCKED. | V1.1 | INC-004, INC-008 |
+| INV-003 | Source de vérité | GitHub/Git/fichiers vérifiés priment sur mémoire ou rapport d’agent. | V1.1; V1.3; V1.4 | INC-006, INC-020, INC-026, INC-033 |
+| INV-004 | Non-invention | Toute décision non déterminable est proposée ou classée CLARIFICATION_REQUIRED. | V1 | INC-001, INC-013, INC-026 |
+| INV-005 | Causalité décision | Une question ne vaut pas décision; toute réponse doit référencer une question/options durables. | V1.3 | INC-017, INC-018 |
+| INV-006 | Frontière des échecs | Distinguer échec IA, exécution, test, transport, matérialisation et publication. | V1.3 | INC-012, INC-020, INC-030, INC-039 |
+| INV-007 | Reprise sans surconsommation | Une sortie IA valide déjà durable ne déclenche pas un nouvel appel. | V1.3 | INC-020, INC-039 |
+| INV-008 | Session | Un session_id seul ne vaut pas transcript; reprise native prouvée sans fork/fallback/réinjection. | V1.3→V1.4 | INC-021, INC-022, INC-025 |
+| INV-009 | Unicode | Les noms/chemins Unicode sont conservés; les outils Git doivent éviter les chemins quotés ambigus. | V1.4 | INC-028, INC-030 |
+| INV-010 | Preuve de test | Aucun résultat de test n’est inventé; seuls les contrôles autoritatifs et observables comptent. | V1.4 | INC-031, INC-034, INC-036, INC-037 |
+| INV-011 | Dépendances | Chaque workflow autonome installe/valide ses dépendances avant ses contrôles. | V1.4 | INC-035 |
+| INV-012 | Observabilité | Tout verdict de run cite workflow, run ID, status, conclusion, source SHA et commentaire causal. | V1.3→V1.4 | INC-019, INC-032, INC-038 |
+| INV-013 | Bornage | Boucles, retries, appels Claude et coûts sont bornés; pas de troisième appel ou fallback implicite. | V1.2→V1.4 | INC-009, INC-012, INC-021, INC-022 |
+| INV-014 | Scope | Aucune extension silencieuse du périmètre ou anticipation de tranche suivante. | Toutes versions | INC-003, INC-014, INC-026, INC-040 |
+| INV-015 | Clôture | Une gate visuelle ou revue ne remplace pas les tests finaux sur le HEAD exact. | V1.4 | INC-035, INC-037 |
+| INV-016 | Encodage inter-étapes | Les artefacts texte échangés entre PowerShell, GitHub et les gates sont UTF-8 sans BOM ou lus avec tolérance explicite à U+FEFF. | V1.4/S10 | INC-041 |
+| INV-017 | Chaînage GitHub Actions | Un événement produit par GITHUB_TOKEN n’est jamais supposé déclencher récursivement un workflow; tout bridge inter-workflows est explicite et testé. | V1.4/S10 | INC-043, INC-045 |
+| INV-018 | Publication portable | Les commandes de publication utilisées sur le runner sont préflightées; une sortie déjà durable se republie sans nouvel appel IA. | V1.4/S10 | INC-039, INC-042 |
+| INV-019 | Marqueurs exacts | Les déclencheurs sont comparés par marqueur exact; aucun préfixe ou sous-chaîne ne qualifie un autre workflow. | V1.4/S10 | INC-045 |
+| INV-020 | Contexte et coût | Contexte complet une seule fois; reprise différentielle tant que la session reste raisonnable; nouvelle session compacte à la frontière d’un lot si l’historique devient coûteux. | V1.4/S10 | INC-044, INC-048, INC-049 |
+| INV-021 | Effets de bord plateforme | Une erreur ou réponse vide ChatGPT ne prouve aucune exécution; GitHub est contrôlé avant toute relance pour éviter les doublons. | V1.4/S10 | INC-050, INC-051 |
+| INV-022 | Parsing des gates | Les gates valident les données réelles après normalisation qualifiée des transports; ils n’utilisent pas de pipeline susceptible de transformer un match réussi en échec. | V1.4/S10 | INC-046, INC-047 |
+| INV-023 | Baseline incrémentale | La baseline du manifeste est distincte de la base causale immédiate ; le HEAD doit descendre strictement de cette base. | V1.4/S10 | INC-049 |
+| INV-024 | Qualité des auto-tests | Les fixtures structurées sont modifiées par ligne/bloc exact et le fichier de test final complet est exécuté avec diagnostics nominatifs. | V1.4/S10 | INC-075 |
+
+## Couverture du protocole générique actuel
+
+| Invariant | Couverture | Constat vérifié dans `KODJO_SLICE_PROTOCOL_V1.md` | Décision |
+|---|---|---|---|
+| INV-001 Autorisation | INTÉGRÉ | Gates permanents et validation causale avant écriture | Maintenir |
+| INV-002 Single writer | PARTIEL | Concurrence workflow et contrôle HEAD existent ; WORKTREE_LOCKED/local+remote n'est pas normatif dans V1 générique | À intégrer |
+| INV-003 Source de vérité | INTÉGRÉ | GitHub explicitement source de vérité | Maintenir |
+| INV-004 Non-invention | PARTIEL | CLARIFICATION_REQUIRED existe ; règle générale de non-invention absente | À intégrer |
+| INV-005 Causalité décision | MANQUANT | Pas de contrat générique question/options/réponse pour les arbitrages | À intégrer si les arbitrages restent supportés |
+| INV-006 Frontière des échecs | PARTIEL | ORCHESTRATION_FAILURE et publication/recovery couverts ; taxonomie complète absente | À intégrer |
+| INV-007 Reprise sans surconsommation | INTÉGRÉ | Budget Claude, checkpoint et recovery sans IA | Maintenir |
+| INV-008 Session | INTÉGRÉ | Une session par tranche, REVIEW/DEV séparées, aucun fallback | Maintenir |
+| INV-009 Unicode | PARTIEL | Encodage des contenus couvert ; `core.quotepath=false` pour chemins Git n'est pas normatif | À intégrer |
+| INV-010 Preuve de test | INTÉGRÉ | Jest/TypeScript autoritatifs et règles de preuve du registre | Maintenir |
+| INV-011 Dépendances | PARTIEL | `npm ci` est présent dans les chemins actuels mais pas énoncé comme règle transversale | À intégrer |
+| INV-012 Observabilité | PARTIEL | Références causales présentes ; contrat workflow/run/status/conclusion/SHA/commentaire non regroupé | À intégrer |
+| INV-013 Bornage | INTÉGRÉ | Un appel par transition, aucun retry/fallback, USAGE_LIMIT | Maintenir |
+| INV-014 Scope | INTÉGRÉ | Manifeste, lot causal et interdiction des lots ultérieurs | Maintenir |
+| INV-015 Clôture | INTÉGRÉ | Gate final revalide HEAD/tests/preuves | Maintenir |
+| INV-016 Encodage inter-étapes | PARTIEL | CRLF et UTF-8 couverts ; U+FEFF/BOM non explicitement normatif | À intégrer |
+| INV-017 Chaînage GitHub | INTÉGRÉ | repository_dispatch explicite et permissions | Maintenir |
+| INV-018 Publication portable | INTÉGRÉ | gh api, recovery et idempotence | Maintenir |
+| INV-019 Marqueurs exacts | INTÉGRÉ | Première ligne exacte et sous-chaînes interdites | Maintenir |
+| INV-020 Contexte et coût | INTÉGRÉ | RESUME_DELTA, sessions compactes, garde-fous | Maintenir ; consommation réelle reste à clarifier |
+| INV-021 Effets de bord plateforme | MANQUANT | Aucune règle normative imposant la vérification GitHub après réponse vide/saturation avant retry | À intégrer |
+| INV-022 Parsing des gates | INTÉGRÉ | Normalisation, source relue, extraction unique et interdiction SIGPIPE | Maintenir |
+| INV-023 Baseline incrémentale | INTÉGRÉ | Ajout normatif au commit 21286e60 | E2E réel à retester |
+| INV-024 Qualité des auto-tests | INTÉGRÉ | Ajout normatif au commit 63db95d3 | Maintenir |
+| INV-025 Sécurité Git | MANQUANT | Interdiction explicite de reset/rebase/force-push spontané absente du protocole générique | À intégrer |
+| INV-026 Qualification des capacités | MANQUANT | Une capacité ou mesure inaccessible n'est pas explicitement NON VÉRIFIABLE dans le protocole actif | À intégrer |
+| INV-027 Coexistence des versions | PARTIEL | S09 est isolé par marqueurs, mais test transversal un commentaire→un seul run utile reste ouvert | À intégrer et tester E2E |
 
 ## Tests et preuves encore à construire
 
@@ -123,3 +323,4 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | 1.0.0 | 2026-09-07 | Première reconstruction partielle, IDs KIP ; supersédée. |
 | 2.0.0 | 2026-09-07 | Schéma INC à 15 champs, classifications, V1.2/V1.3/V1.4/S10, répétitions, preuves non vérifiables et dette explicite. |
 | 2.1.0 | 2026-09-07 | INC-049 : confusion baseline globale/base incrémentale, répétition d'INC-040 et matrice de non-régression. |
+| 3.0.0 | 2026-09-07 | Consolidation du classeur v0.3 : 75 incidents canoniques, 51 aliases XLS03, 48 tests, 24 invariants et matrice de couverture du protocole actif. |
