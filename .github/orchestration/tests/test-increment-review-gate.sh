@@ -69,9 +69,14 @@ source_implementation_trigger_comment_id=5565880326"
 expect_pass "$future_output" "$base_trigger"
 expect_pass "$legacy_output" "$base_trigger" 5565880326
 expect_pass "${future_output//$'\n'/$'\r\n'}" "${base_trigger//$'\n'/$'\r\n'}"
+long_suffix=$(printf 'x%.0s' {1..200000})
+expect_pass "$future_output
+$long_suffix" "$base_trigger"
 expect_fail "$legacy_output" "$base_trigger"
 expect_fail "$future_output
 increment=LOT_2_OF_3" "$base_trigger"
+expect_fail "$future_output
+slice_id=T01-S10" "$base_trigger"
 expect_fail "${future_output/LOT_2_OF_3/LOT_4_OF_3}" "${base_trigger/LOT_2_OF_3/LOT_4_OF_3}"
 expect_fail "$future_output" "${base_trigger/LOT_2_OF_3/LOT_3_OF_3}"
 expect_fail "$future_output" "${base_trigger/IMPLEMENTATION_REVISION/IMPLEMENTATION_REVISION_EXTRA}"
