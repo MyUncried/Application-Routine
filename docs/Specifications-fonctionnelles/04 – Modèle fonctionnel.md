@@ -168,7 +168,11 @@ Une séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Activités après le Tour ;
 6. une Fin de séance.
 
+Dans le Plan d’Exécution, ces phases sont typées `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. La fin de la dernière Activité active `SESSION_END` ; seule l’expiration de cette phase, immédiate lorsque sa durée vaut `0 s`, termine l’Exécution et autorise son enregistrement final puis l’affichage de la Synthèse.
+
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
+
+Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, y compris ces deux phases, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
 Le **Cycle** contient un **Tour unique** et peut également contenir des Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 

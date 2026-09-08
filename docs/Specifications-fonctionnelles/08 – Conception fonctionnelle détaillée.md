@@ -298,12 +298,13 @@ Une séance incomplète peut être enregistrée mais ne peut pas être exécuté
 
 À chaque modification, l'application recalcule automatiquement :
 
-- la **durée estimée** de la séance ;
+- la **durée estimée d’exécution** ;
+- la **durée synthétique des Activités** ;
 - le **nombre d'Activités de la Composition**.
 
-### Durée estimée
+### Durée estimée d’exécution
 
-La durée estimée correspond à la somme de toutes les durées déterminables de l'Exécution complète construite à partir de la Composition.
+La durée estimée d’exécution correspond à la somme de toutes les durées déterminables de l'Exécution complète construite à partir de la Composition. Elle est utilisée sur l’écran d’Exécution.
 
 Le calcul tient compte :
 
@@ -320,6 +321,12 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 
 - Si toutes les durées sont déterminables, la durée est affichée normalement, par exemple `18 min`.
 - Si au moins un Exercice est en mode Répétitions ou À l’échec, la somme des durées connues constitue une **borne minimale** et l’interface affiche le signe `≥`, par exemple `≥ 18 min`.
+
+### Durée synthétique des Activités
+
+La durée synthétique des Activités est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses après Série, répétitions du Tour, Récupérations explicites et positions structurelles, mais porte exclusivement sur les Activités. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+
+Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
 ### Nombre d'Activités de la Composition
 
@@ -375,7 +382,7 @@ Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquemen
 
 Les Activités placées après le Tour sont exécutées une seule fois après la dernière répétition du Tour.
 
-Lorsque la dernière activité est terminée, la séance est considérée comme terminée.
+Lorsque la dernière Activité est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
 ## 4.4 Informations affichées
 
@@ -387,7 +394,7 @@ Pendant l'Exécution, l'écran affiche principalement :
 - la Série et le Tour en cours ; le Cycle n’est jamais affiché ;
 - l'Activité suivante et sa durée lorsqu'elle est connue ;
 - les commandes Réinitialiser, Pause et Activité suivante ;
-- le temps total écoulé / estimé et sa barre de progression.
+- le temps total écoulé / durée estimée d’exécution et sa barre de progression.
 
 La notion d'« étape » n'est pas affichée comme indicateur de progression dans le MVP.
 
@@ -431,7 +438,7 @@ Cas particuliers :
 - `Pause` suspend la progression de la part courante ;
 - `Réinitialiser` remet à zéro la progression interne de l'Activité courante sans modifier les parts déjà franchies.
 
-La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée.
+La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée d’exécution.
 
 Pour un Exercice en mode Répétitions ou À l’échec, le cercle effectue une rotation complète par minute. Le chronomètre continue à croître au-delà d’une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
 
@@ -540,19 +547,19 @@ La durée de 30 minutes pourra devenir un paramètre utilisateur dans une versio
 
 ## 4.11 Fin de séance
 
-Lorsque la dernière activité est terminée :
+Lorsque la dernière Activité est terminée, la phase chronométrée `SESSION_END` démarre. Lorsqu’elle est configurée à `0 s`, elle s’achève immédiatement. Ce n’est qu’après son achèvement que :
 
-- la séance est enregistrée dans l'historique ;
+- l’Exécution est clôturée et enregistrée dans l'historique ;
 - son statut est déterminé automatiquement ;
-- l'écran de synthèse est affiché.
+- l'écran de Synthèse est affiché.
 
 Le statut de l'exécution est déterminé selon les règles suivantes :
 
 | Statut      | Description                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------------ |
-| Terminée    | Toutes les activités ont été exécutées jusqu'à leur terme.                                       |
-| Partielle   | La séance est arrivée à son terme, mais au moins une activité n'a pas été réalisée complètement. |
-| Interrompue | L'utilisateur a arrêté la séance avant son terme.                                                |
+| Terminée    | Toutes les Activités ont été terminées normalement et `SESSION_END` a été achevée. |
+| Partielle   | `SESSION_END` a été achevée, mais au moins une Activité a été interrompue ou ignorée. |
+| Interrompue | L’Exécution a été arrêtée avant l’achèvement de `SESSION_END`, y compris pendant cette phase. |
 
 ## 4.12 Historique d'exécution
 
@@ -757,7 +764,7 @@ Le MVP distingue les statuts suivants :
 
 |Statut|Description|
 |---|---|
-|Terminée|Toutes les activités ont été réalisées jusqu'à leur terme.|
+|Terminée|Toutes les Activités ont été terminées normalement et `SESSION_END` a été achevée.|
 |Partielle|La séance est arrivée à son terme, mais au moins une activité chronométrée a été interrompue avant la fin de sa durée.|
 |Interrompue|La séance a été arrêtée avant la fin de son exécution.|
 
@@ -843,7 +850,7 @@ Le suivi repose sur les principes suivants :
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
 | Métadonnées Catégories/Zones | Texte | Si au moins un groupe existe | Catégories puis ` : ` puis union dédupliquée des Zones corporelles ; une seule ligne tronquée | Aucune |
-| Nombre d’Activités / durée | Texte | Toujours | Calculés | Aucune |
+| Nombre d’Activités / durée | Texte | Toujours | Nombre d’Activités et durée synthétique des Activités calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
 | Tour | Texte | Toujours | Nombre de répétitions calculé | Aucune |
 | Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
 | Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |

@@ -434,7 +434,7 @@ Chaque carte affiche notamment :
 - le nom de la Séance ;
 - ses Catégories lorsqu’elles existent, suivies de ` : ` puis de l’union dédupliquée des Zones corporelles de tous ses Exercices lorsqu’au moins une zone existe ; si un seul groupe existe, aucun séparateur n’est affiché ;
 - le nombre d’Activités ;
-- sa durée estimée ;
+- sa durée synthétique des Activités, qui exclut toujours le Compte à rebours initial et la Fin de séance ;
 - le nombre de répétitions du Tour (`xN`) ;
 - la prochaine occurrence planifiée lorsqu’elle existe ;
 - un chevron de déploiement ;
@@ -1040,8 +1040,8 @@ L’écran affiche, de haut en bas :
 - une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
 - les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
-- le temps total écoulé et la durée estimée de la Séance ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
-- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée`.
+- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée d’exécution est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
+- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 

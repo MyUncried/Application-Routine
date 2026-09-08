@@ -289,7 +289,7 @@ Le Header, le Context et la Bottom Navigation sont identiques au contrat CE-T01-
 | Nom | `Séance.nom` | Toujours ; une ou deux lignes, puis ellipse si nécessaire. |
 | Métadonnées Catégories/Zones | Associations de Catégories et Zones corporelles des Exercices | Une seule ligne sous le nom. Catégories dans la couleur de la Séance ; union dédupliquée des Zones de tous les Exercices ; ` : ` entre les groupes seulement s’ils existent tous les deux ; ellipse si le contenu dépasse. |
 | Nombre d’Activités | Composition calculée | Toujours ; accord singulier/pluriel. |
-| Durée estimée | Calcul métier de la durée déterminable | Toujours selon les règles fonctionnelles ; jamais une chaîne statique. |
+| Durée synthétique des Activités | Calcul métier des seules occurrences d’Activités déterminables | Exclut toujours le Compte à rebours initial et la Fin de séance ; jamais une chaîne statique. |
 | Nombre de Tours | Composition calculée | Affiché selon le format défini ; accord singulier/pluriel. |
 | Prochaine occurrence | Calcul de planification | Uniquement si elle existe ; date et heure relatives selon le formateur commun. |
 | Chevron | Instance de `Controls / Disclosure — Source exact` : `State=Collapsed` (`2537:1033`) ou `State=Expanded` (`2537:1038`) | Toujours ; état condensé au premier affichage de la liste par défaut. |
@@ -565,7 +565,7 @@ Le sélecteur du nombre de Tours affiche uniquement le nombre sans `x` ni `×`, 
 
 #### Calculs
 
-Le nombre et la durée estimée de la Composition appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. Les Séries, Pauses et Récupérations suivent les règles existantes. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée. Le Compte à rebours initial et la Fin de séance contribuent à la durée globale lorsqu’ils sont non nuls, mais jamais au nombre d’Activités ni à la synthèse interne du Tour.
+Le nombre et la Durée synthétique des Activités appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. Les Séries, Pauses et Récupérations suivent les règles existantes. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée. Le Compte à rebours initial et la Fin de séance ne contribuent jamais à cette synthèse. Ils contribuent uniquement à la Durée estimée d’exécution du Plan complet lorsqu’ils sont non nuls.
 
 La synthèse intégrée sous `Nombre de tours` affiche `N activité(s) · durée`. Elle compte exclusivement les Activités de la Composition et exclut toujours le Compte à rebours initial et la Fin de séance. La durée développe les Séries, les pauses et les répétitions du Tour ; en présence d’un mode Répétitions ou À l’échec, elle reste une borne minimale préfixée par `≥`. L’accord singulier/pluriel et l’arrondi à la minute supérieure suivent D-081, D-090, D-091, D-100 et D-112.
 
@@ -942,7 +942,7 @@ Tests bloquants : opération `update` sur l’identifiant d’origine ; transact
 | Destination | `1992:9910` — `Catalogue des séances — Liste par défaut` |
 | Données | Nouvelle lecture depuis la source persistante |
 
-Après succès, l’application revient au Catalogue et recharge les données persistées. La carte portant l’identifiant de la Séance modifiée reste unique et affiche immédiatement son nom, sa couleur, sa durée, son nombre d’Activités et ses autres informations calculées actualisées.
+Après succès, l’application revient au Catalogue et recharge les données persistées. La carte portant l’identifiant de la Séance modifiée reste unique et affiche immédiatement son nom, sa couleur, sa Durée synthétique des Activités, son nombre d’Activités et ses autres informations calculées actualisées. Cette durée exclut toujours le Compte à rebours initial et la Fin de séance.
 
 L’ordre du Catalogue suit la règle métier existante ; T01-S10 ne crée aucune nouvelle règle de tri. Le retour ne repose pas sur une carte construite uniquement depuis l’ancien brouillon en mémoire. Une nouvelle ouverture de la même Séance doit réhydrater les valeurs qui viennent d’être enregistrées.
 

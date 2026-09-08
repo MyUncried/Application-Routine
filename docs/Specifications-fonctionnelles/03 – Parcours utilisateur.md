@@ -273,9 +273,9 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - son statut.
 6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.
 7. La séance est enregistrée dans l'historique avec son statut :
-- Terminée : la séance a été exécutée jusqu'à son terme et toutes les activités ont été terminées.
-- Partielle : la séance a été exécutée jusqu'à son terme, mais au moins une activité a été interrompue ou ignorée.
-- Interrompue : la séance a été arrêtée avant la fin prévue.
+- Terminée : toutes les Activités ont été terminées normalement et la phase `SESSION_END` a été achevée.
+- Partielle : la phase `SESSION_END` a été achevée, mais au moins une Activité a été interrompue ou ignorée.
+- Interrompue : l'Exécution a été arrêtée avant l'achèvement de `SESSION_END`, y compris pendant cette phase.
 ## Points d'attention
 
 - Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours. Au retour dans l’application, si une Exécution était `En cours`, l’utilisateur doit choisir **Reprendre la séance** ou **Arrêter la séance** avant de pouvoir démarrer une nouvelle Exécution.

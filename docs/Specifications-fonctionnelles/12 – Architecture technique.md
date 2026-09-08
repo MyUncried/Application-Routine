@@ -136,7 +136,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée, Durée réelle, nombres d’Activités, progression hybride et occurrences périodiques sont implémentés comme des règles déterministes du Domaine conformément au chapitre 10. Ils ne doivent pas être redéfinis différemment dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression hybride et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -293,6 +293,8 @@ Le moteur gère ensuite :
 - le passage à l’étape suivante ;
 - l’arrêt anticipé ;
 - la terminaison normale.
+
+Le Plan utilise les types d’étapes `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. Après la dernière Activité, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale et n’ouvre la Synthèse qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -996,7 +998,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Sélecteur du nombre de tours | `66 × 34` ; valeur numérique sans `x` ni `×` ; bord droit aligné avec celui des cartes d’Activité ; carré violet `28 × 28` avec `3` points de marge en haut, à droite et en bas ; icône `#CDCEFA` issue de la référence `2028:12051` ; aucun chevron de repli |
 | Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
-Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul porte exclusivement sur le nombre et la durée des Activités ; il exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Activités et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 

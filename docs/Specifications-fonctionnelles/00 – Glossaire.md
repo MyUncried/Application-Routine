@@ -40,7 +40,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- |
 | **Composition** | Structure ordonnée d’une Séance et écran unique permettant de renseigner son nom, sa couleur et ses Activités. |
 | **Compte à rebours initial** | Phase structurelle précédant la première Activité. Sa valeur initiale est 10 s ; 0 s la rend instantanée. Ce n’est pas une Activité. |
-| **Fin de séance** | Phase structurelle suivant la dernière Activité. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Ce n’est pas une Activité. |
+| **Fin de séance** | Phase structurelle chronométrée suivant la dernière Activité. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution. Ce n’est pas une Activité. |
 | **Série** | Exécution d’un Exercice selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec, suivie de sa Pause après Série éventuelle. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Pause après Série** | Durée facultative exécutée après chaque Série. Elle génère une Récupération technique dans le Plan d’Exécution. |
@@ -75,8 +75,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Nombre d’Activités de la Composition** | Nombre d’Activités définies par l’utilisateur, sans développement des Séries ou Tours et sans Récupérations techniques. |
 | **Nombre total d’Activités à exécuter** | Nombre d’occurrences d’Activités du Plan développé, Récupérations techniques incluses, Compte à rebours initial et Fin de séance exclus. |
 | **Nombre d’Activités exécutées** | Nombre de Résultats d’Activité enregistrés. Une Activité Partielle compte ; une Activité jamais atteinte ne compte pas. |
-| **Durée estimée** | Somme des durées déterminables du Plan. En présence d’un Exercice en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. |
-| **Durée réelle** | Temps effectivement exécuté, hors Pauses déclenchées par l’utilisateur. |
+| **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Activités et Récupérations effectivement prévues, puis Fin de séance. En présence d’un Exercice en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. Elle est utilisée pendant l’Exécution. |
+| **Durée synthétique des Activités** | Somme des durées déterminables des seules occurrences d’Activités, Séries, Pauses après Série et répétitions du Tour. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Elle est utilisée dans le Catalogue et dans la synthèse du Tour de la Composition. |
+| **Durée réelle** | Temps actif effectivement exécuté, Compte à rebours initial et Fin de séance inclus lorsqu’ils sont non instantanés, hors Pauses déclenchées manuellement par l’utilisateur. |
 
 ## 6. Interface et navigation
 

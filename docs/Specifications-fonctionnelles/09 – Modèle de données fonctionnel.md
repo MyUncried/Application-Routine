@@ -195,7 +195,8 @@ Elle ne contient pas directement :
 | Date de dernière exécution              | Date de la dernière exécution de séance                                   |          Facultatif          | Sert notamment au classement du Catalogue de séances                                                                                                                                                                                                   |
 | Date d’archivage                        | Date de passage au statut archivé                                         |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                                                                                                                                                                        |
 | Structure                               | Organisation complète de la séance                                        | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans activité de type Exercice                                                                                                                                                   |
-| Durée estimée                           | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut les phases et occurrences chronométrées du plan ; si au moins un Exercice est en Répétitions ou À l’échec, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥`                                                       |
+| Durée estimée d’exécution               | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut le Compte à rebours initial, les phases et occurrences chronométrées du plan et la Fin de séance ; si au moins un Exercice est en Répétitions ou À l’échec, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥` |
+| Durée synthétique des Activités         | Somme des durées déterminables des seules occurrences d’Activités         |           Calculé            | Développe Séries, Pauses après Série et répétitions du Tour ; exclut toujours le Compte à rebours initial et la Fin de séance ; utilisée dans le Catalogue et la Composition ; borne minimale `≥` si une durée d’Exercice est indéterminable |
 | Nombre d’Activités de la Composition    | Nombre d’Exercices et de Récupérations définis dans la Composition        |           Calculé            | Ne multiplie pas les Activités par les Séries, Tours ou Cycles et exclut les pauses intermédiaires techniques                                                                                                                                           |
 | Nombre total d’Activités à exécuter     | Nombre d’occurrences d’Activités prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Tour et du Cycle ; inclut les Récupérations techniques effectivement générées par les Pauses après Série ; exclut le Compte à rebours initial et la Fin de séance, qui ne sont pas des Activités |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première activité                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
@@ -295,7 +296,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de répétitions du Tour est compris entre 1 et 99.
 - Les activités peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
-- La Durée estimée, le Nombre d’Activités de la Composition et le Nombre total d’Activités à exécuter sont recalculés après toute modification influençant le déroulement.
+- La Durée estimée d’exécution, la Durée synthétique des Activités, le Nombre d’Activités de la Composition et le Nombre total d’Activités à exécuter sont recalculés après toute modification influençant leur périmètre.
 - Une séance peut exister sans routine et sans avoir jamais été exécutée.
 - Le compte à rebours initial et la Fin de séance sont toujours présents dans la structure d'une séance et ne constituent pas des Activités.
 - Une durée de 0 s rend le compte à rebours initial ou la Fin de séance instantané sans supprimer l'élément de la structure.
@@ -623,7 +624,7 @@ Une exécution possède directement :
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
-| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut les périodes de Pause utilisateur ; inclut le temps réellement passé dans les Exercices en Répétitions ou À l’échec et toutes les phases/Activités effectivement exécutées |
+| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut les périodes de Pause utilisateur ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices en Répétitions ou À l’échec, toutes les autres Activités/Récupérations effectivement exécutées et la Fin de séance |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
@@ -754,7 +755,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 
 ### Contenu
 
-- liste ordonnée des activités ;
+- liste ordonnée des étapes d’exécution ;
 - ordre d'exécution ;
 - références vers les activités de l'instantané ;
 - numéro de répétition du Tour ;
@@ -768,17 +769,18 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 | Attribut            | Description                                |  Caractère  | Règle principale                  |
 | ------------------- | ------------------------------------------ | :---------: | --------------------------------- |
 | Position            | Rang dans le plan d'exécution              |   Calculé   | Numérotation continue             |
-| Activité            | Activité de l'instantané                   | Obligatoire | Référence unique                  |
-| Type                | Compte à rebours, Exercice ou Récupération |   Calculé   | Déduit de l'activité              |
+| Activité            | Activité de l'instantané                   | Facultatif  | Absente pour `INITIAL_COUNTDOWN` et `SESSION_END` ; référence unique pour `EXERCISE` et `RECOVERY` |
+| Type                | `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` ou `SESSION_END` |   Calculé   | Déduit de la phase structurelle ou de l'Activité |
 | Répétition du Tour  | Numéro de répétition du Tour               |   Calculé   | Généré automatiquement            |
 | Répétition du cycle | Numéro de répétition du cycle              |   Calculé   | Généré automatiquement            |
-| Activité suivante   | Navigation                                 |   Calculé   | Absente pour la dernière activité |
+| Étape suivante      | Navigation                                 |   Calculé   | Absente uniquement pour `SESSION_END` |
 
 ## Règles métier
 
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
+- La fin de la dernière Activité active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les répétitions du Tour et du cycle sont résolues lors de la génération.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 

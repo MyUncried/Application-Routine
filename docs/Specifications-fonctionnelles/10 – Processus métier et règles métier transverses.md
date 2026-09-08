@@ -121,14 +121,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-071 | La durée estimée est la somme des durées déterminables du plan développé : Compte à rebours initial, Fin de séance, Activités chronométrées et Récupérations techniques générées. |
-| RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions ou À l’échec. S’il en existe au moins un, la durée estimée est une borne minimale précédée de `≥`. |
-| RM-073 | Le temps total écoulé et la durée réelle excluent les Pauses déclenchées par l’utilisateur et incluent le temps réellement exécuté dans les autres phases. |
+| RM-071 | La Durée estimée d’exécution est la somme des durées déterminables du Plan développé complet : Compte à rebours initial, Activités chronométrées, Récupérations explicites et techniques effectivement générées, puis Fin de séance. |
+| RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions ou À l’échec. Toute métrique estimée qui en comprend au moins un devient une borne minimale précédée de `≥` et additionne uniquement les temps connus de son propre périmètre. |
+| RM-073 | Le temps total écoulé et la Durée réelle excluent les Pauses déclenchées manuellement par l’utilisateur. Ils incluent tout le temps effectivement exécuté dans le Compte à rebours initial, les Activités, les Récupérations explicites ou techniques et la Fin de séance. |
 | RM-074 | Le Nombre d’Activités de la Composition compte les Activités définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Récupérations techniques. |
 | RM-075 | Le Nombre total d’Activités à exécuter compte les occurrences du plan développé après Séries et Tours, y compris les Récupérations techniques effectivement générées, mais exclut le Compte à rebours initial et la Fin de séance. |
 | RM-076 | Le Nombre d’Activités exécutées correspond aux Résultats d’Activité créés. Une Activité `Partielle` compte ; une Activité jamais atteinte ne compte pas. |
 | RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions ou À l’échec pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
-| RM-101 | La durée estimée (RM-071), exprimée en secondes, est convertie en minutes pour son affichage à l’utilisateur (Catalogue, Composition) par arrondi à la minute supérieure, afin de ne jamais sous-estimer la durée réelle (D-090). |
+| RM-101 | La Durée synthétique des Activités, affichée dans le Catalogue et la Composition, additionne exclusivement les occurrences d’Activités déterminables après développement des Séries, Pauses après Série et répétitions du Tour ; elle exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
+| RM-125 | La fin de la dernière Activité déclenche `SESSION_END`. La clôture, l’enregistrement, la détermination du statut et l’affichage de la Synthèse interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. |
 
 ## 10. Synthèse, Suivi et historique
 

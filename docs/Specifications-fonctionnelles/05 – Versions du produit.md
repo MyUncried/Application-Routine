@@ -81,7 +81,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - copier son contenu afin qu’il devienne indépendant de la séance source ;
 - développer, replier et modifier une séance intégrée ;
 - enrichir les structures d’échauffement et de fin de séance si les tests montrent ce besoin ;
-- calculer la durée estimée des structures complexes ;
+- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Activités affichée dans le Catalogue et la Composition ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
