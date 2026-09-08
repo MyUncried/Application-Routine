@@ -14,7 +14,7 @@ Un contrat d’écran ne remplace ni Figma ni les autres chapitres. Il précise,
 - les chevauchements, troncatures et contenus masqués ;
 - une navigation ou un état de données différent de celui spécifié.
 
-Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les seize frames dont la construction principale est affectée à T01, le nouvel état transitoire de déplacement affecté à T02, ainsi que les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10. Les contrats S10 réutilisent les frames T01 existantes ; l’état T02 possède sa propre représentation Figma.
+Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les seize frames dont la construction principale est affectée à T01, les deux contrats T02 de Composition complète et de déplacement d’une Activité, les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10, ainsi que les treize contrats `CE-T03-01` à `CE-T03-13` de l’Exécution guidée fondamentale. Ces contrats T03 couvrent l’accès depuis le Catalogue, le contrôle d’éligibilité, les trois modes d’Exercice, les phases structurelles, la progression, les commandes, les interruptions et les sorties minimale normale ou interrompue. Les états T03 réutilisent le Shell d’Exécution et les frames Figma existantes lorsqu’aucune frame spécifique supplémentaire n’est requise.
 
 ## 2. Sources et ordre d’application
 
@@ -664,9 +664,15 @@ Tests bloquants : cible visible uniquement en Répétitions ; chronomètre crois
 
 ### CE-T03-06 — Réinitialiser l’Activité
 
-La commande ouvre `1992:8224`, `Modal — Réinitialiser l’activité`, instance `2591:3047` de `Overlay / Decision Dialog`, variante `2590:2926`, `354 × 215`. Confirmer replace uniquement l’Activité courante au début de sa durée cible. Les étapes antérieures, leurs Résultats, le temps total déjà écoulé, l’Instantané et le rang courant restent inchangés. Annuler ferme la modale et reprend l’Activité courante.
+La commande ouvre `1992:8224`, `Modal — Réinitialiser l’activité`, instance `2591:3047` de `Overlay / Decision Dialog`, variante `2590:2926`, `354 × 215`. Confirmer recommence uniquement l’Activité ou la Série courante selon son mode :
 
-Tests bloquants : dialogue et textes conformes ; contexte sous-jacent suspendu et grisé ; aucune perte d’historique ; nouveau décompte complet ; aucun son ou changement d’étape dupliqué.
+- en mode Durée, Récupération ou Pause technique chronométrée, le décompte repart de la durée cible complète ;
+- en mode Répétitions, le chronomètre croissant revient à `00:00`, la cible de répétitions reste inchangée et toute progression non validée de la Série courante est abandonnée ;
+- en mode À l’échec, le chronomètre croissant revient à `00:00` et toute progression non validée de la Série courante est abandonnée, sans créer de cible chiffrée.
+
+Aucun Résultat d’Activité n’est créé par la réinitialisation. Les étapes antérieures, leurs Résultats, le temps total déjà écoulé, l’Instantané et le rang courant restent inchangés. Annuler ferme la modale et reprend l’Activité courante exactement à son état antérieur.
+
+Tests bloquants : dialogue et textes conformes ; contexte sous-jacent suspendu et grisé ; annulation sans mutation ; nouveau décompte complet en mode chronométré ; retour à `00:00` en Répétitions et À l’échec ; cible de répétitions inchangée ; aucune cible inventée pour À l’échec ; aucun Résultat créé ; aucune perte d’historique ; aucun son ou changement d’étape dupliqué.
 
 ### CE-T03-07 — Passer une Activité chronométrée avant zéro
 
