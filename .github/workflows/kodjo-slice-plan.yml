@@ -35,6 +35,7 @@ jobs:
         run: |
           bash .github/orchestration/tests/test-plan-mode.sh
           bash .github/orchestration/tests/test-plan-initial-baseline-advance.sh
+          bash .github/orchestration/tests/test-plan-revision-baseline-advance.sh
 
       - name: Validate manifest and immutable entry gate
         id: gate
@@ -93,6 +94,8 @@ jobs:
           test "$SOURCE_HEAD" = "$baseline_head"
           git merge-base --is-ancestor "$previous_head" "$baseline_head"
           mode_count=$(printf '%s\n' "$TRIGGER_BODY" | grep -c '^plan_mode=' || true)
+          old_plan_source=
+          prior_review_id=
           if [ -z "$SUPERSEDES_PLAN_ID" ] && [ -z "$SCOPE_CORRECTION_ID" ]; then
             test "$mode_count" -le 1
             PLAN_MODE=${REQUESTED_PLAN_MODE:-INITIAL}
@@ -102,15 +105,38 @@ jobs:
             PLAN_MODE=$REQUESTED_PLAN_MODE
             printf '%s' "$SUPERSEDES_PLAN_ID" | grep -Eq '^[0-9]+$'
             printf '%s' "$SCOPE_CORRECTION_ID" | grep -Eq '^[0-9]+$'
-            old_plan=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID" --jq '.body')
-            scope_correction=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID" --jq '.body')
-            grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT' <<< "$old_plan"
-            grep -Fxq "slice_id=$SLICE_ID" <<< "$old_plan"
-            grep -Fxq "source_head=$baseline_head" <<< "$old_plan"
-            grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION' <<< "$scope_correction"
-            grep -Fxq "slice_id=$SLICE_ID" <<< "$scope_correction"
-            grep -Fxq "source_head=$baseline_head" <<< "$scope_correction"
-            grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID" <<< "$scope_correction"
+            old_plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID")
+            scope_correction_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID")
+            test "$(jq -r '.user.login' <<< "$old_plan_json")" = 'github-actions[bot]'
+            test "$(jq -r '.user.login' <<< "$scope_correction_json")" = 'MyUncried'
+            jq -r '.body' <<< "$old_plan_json" > /tmp/old-plan.body
+            jq -r '.body' <<< "$scope_correction_json" > /tmp/scope-correction.body
+            sed -i 's/\r$//' /tmp/old-plan.body /tmp/scope-correction.body
+            grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT' /tmp/old-plan.body
+            grep -Fxq "slice_id=$SLICE_ID" /tmp/old-plan.body
+            old_source_count=$(grep -Ec '^source_head=[0-9a-f]{40}$' /tmp/old-plan.body || true)
+            test "$old_source_count" = 1
+            old_plan_source=$(sed -n 's/^source_head=//p' /tmp/old-plan.body)
+            grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION' /tmp/scope-correction.body
+            grep -Fxq "slice_id=$SLICE_ID" /tmp/scope-correction.body
+            grep -Fxq "source_head=$baseline_head" /tmp/scope-correction.body
+            grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID" /tmp/scope-correction.body
+            prior_review_id=
+            if [ "$REQUESTED_PLAN_MODE" = PLAN_REVISION ] && [ "$old_plan_source" != "$baseline_head" ]; then
+              review_count=$(grep -Ec '^review_comment_id=[0-9]+$' /tmp/scope-correction.body || true)
+              test "$review_count" = 1
+              prior_review_id=$(sed -n 's/^review_comment_id=//p' /tmp/scope-correction.body)
+              prior_review_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$prior_review_id")
+              test "$(jq -r '.user.login' <<< "$prior_review_json")" = 'github-actions[bot]'
+              jq -r '.body' <<< "$prior_review_json" > /tmp/prior-review.body
+              sed -i 's/\r$//' /tmp/prior-review.body
+              grep -Fxq '[KODJO_SLICE] PLAN_REVIEW_OUTPUT' /tmp/prior-review.body
+              grep -Fxq "slice_id=$SLICE_ID" /tmp/prior-review.body
+              grep -Fxq "source_head=$old_plan_source" /tmp/prior-review.body
+              grep -Fxq "source_plan_comment_id=$SUPERSEDES_PLAN_ID" /tmp/prior-review.body
+              grep -Fxq 'verdict=REVISE' /tmp/prior-review.body
+            fi
+            bash .github/orchestration/scripts/validate-plan-revision-baseline.sh "$PLAN_MODE" "$old_plan_source" "$baseline_head"
             implementation_count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '.[] | select((.body | split("\n") | index("[KODJO_SLICE] IMPLEMENTATION_OUTPUT")) != null) | select((.body | split("\n") | index("slice_id='"$SLICE_ID"'")) != null) | select((.body | split("\n") | index("head='"$baseline_head"'")) != null) | .id' | wc -l | tr -d ' ')
           fi
           PLAN_MODE=$(bash .github/orchestration/scripts/resolve-plan-mode.sh "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$implementation_count")
@@ -146,7 +172,7 @@ jobs:
               esac
             done < /tmp/pre-plan-delta.z
           fi
-          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\napplication_baseline_head=%s\nissue_number=%s\nplan_mode=%s\nsupersedes_plan_id=%s\nscope_correction_id=%s\ninitial_scope_id=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$application_baseline_head" "$ISSUE_NUMBER" "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$initial_scope_id" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\napplication_baseline_head=%s\nissue_number=%s\nplan_mode=%s\nsupersedes_plan_id=%s\nscope_correction_id=%s\ninitial_scope_id=%s\nprior_plan_source=%s\nprior_review_id=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$application_baseline_head" "$ISSUE_NUMBER" "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$initial_scope_id" "$old_plan_source" "$prior_review_id" >> "$GITHUB_OUTPUT"
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
@@ -163,6 +189,8 @@ jobs:
           SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
           SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
           INITIAL_SCOPE_ID: ${{ steps.gate.outputs.initial_scope_id }}
+          PRIOR_PLAN_SOURCE: ${{ steps.gate.outputs.prior_plan_source }}
+          PRIOR_REVIEW_ID: ${{ steps.gate.outputs.prior_review_id }}
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-slice-plan
@@ -177,6 +205,13 @@ jobs:
           fi
           if [ -n "$INITIAL_SCOPE_ID" ]; then
             gh api "repos/$GITHUB_REPOSITORY/issues/comments/$INITIAL_SCOPE_ID" --jq '.body' > /tmp/kodjo-slice-plan/initial-scope-correction.md
+          fi
+          if [ -n "$SUPERSEDES_PLAN_ID" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID" --jq '.body' > /tmp/kodjo-slice-plan/prior-plan.md
+            gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID" --jq '.body' > /tmp/kodjo-slice-plan/scope-correction.md
+          fi
+          if [ -n "$PRIOR_REVIEW_ID" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/comments/$PRIOR_REVIEW_ID" --jq '.body' > /tmp/kodjo-slice-plan/prior-review.md
           fi
           ruby -e 'require "yaml"; YAML.safe_load(File.read(ARGV[0]), aliases:false)["sources"].each{|s| puts s unless s=="Figma"}' /tmp/kodjo-slice-plan/manifest.yml > /tmp/kodjo-slice-plan/sources.list
           : > /tmp/kodjo-slice-plan/evidence.txt
@@ -202,6 +237,8 @@ jobs:
           SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
           SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
           INITIAL_SCOPE_ID: ${{ steps.gate.outputs.initial_scope_id }}
+          PRIOR_PLAN_SOURCE: ${{ steps.gate.outputs.prior_plan_source }}
+          PRIOR_REVIEW_ID: ${{ steps.gate.outputs.prior_review_id }}
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
@@ -219,8 +256,14 @@ jobs:
             cat /tmp/kodjo-slice-plan/initial-scope-correction.md >> /tmp/kodjo-slice-plan/prompt.txt
           elif [ "$PLAN_MODE" = PLAN_REVISION ]; then
             cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
-          This is a controlled revision of an initial plan before any implementation. Apply the validated arbitrations in scope-correction comment $SCOPE_CORRECTION_ID to plan $SUPERSEDES_PLAN_ID. Produce one complete replacement plan at the unchanged baseline. No implementation output exists or is required.
+          This is a controlled revision of an initial plan before any implementation. The prior plan $SUPERSEDES_PLAN_ID was built at ancestor HEAD $PRIOR_PLAN_SOURCE. Use it and its validated review $PRIOR_REVIEW_ID only as historical findings. Apply scope-correction comment $SCOPE_CORRECTION_ID, then rebuild one complete replacement plan from the exact current baseline $BASELINE_HEAD and its current documentation and code. Never copy the old plan as the new result and never reuse its review as a verdict. No implementation output exists or is required.
           EOF
+            printf '\nPRIOR PLAN AT ANCESTOR HEAD:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+            cat /tmp/kodjo-slice-plan/prior-plan.md >> /tmp/kodjo-slice-plan/prompt.txt
+            printf '\nPRIOR REVIEW FINDINGS:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+            if [ -n "$PRIOR_REVIEW_ID" ]; then cat /tmp/kodjo-slice-plan/prior-review.md >> /tmp/kodjo-slice-plan/prompt.txt; fi
+            printf '\nVALIDATED SCOPE CORRECTION FOR CURRENT HEAD:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+            cat /tmp/kodjo-slice-plan/scope-correction.md >> /tmp/kodjo-slice-plan/prompt.txt
           elif [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
             cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
           This is a controlled replan after a completed implementation increment. Preserve the application code already present at the baseline. The prior plan comment $SUPERSEDES_PLAN_ID is superseded only as stated by scope-correction comment $SCOPE_CORRECTION_ID. Plan only the remaining scope; do not re-plan completed work and do not restore excluded scope.
@@ -295,5 +338,8 @@ jobs:
             /tmp/kodjo-slice-plan/response.json
             /tmp/kodjo-slice-plan/plan.md
             /tmp/kodjo-slice-plan/initial-scope-correction.md
+            /tmp/kodjo-slice-plan/prior-plan.md
+            /tmp/kodjo-slice-plan/prior-review.md
+            /tmp/kodjo-slice-plan/scope-correction.md
           if-no-files-found: warn
           retention-days: 7
