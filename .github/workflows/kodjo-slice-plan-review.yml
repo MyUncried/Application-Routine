@@ -34,6 +34,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Test manifest snapshot.Enqueue invariants
+        run: .github/orchestration/tests/test-plan-review-manifest-snapshot.ps1
+
       - name: Validate manifest and immutable plan gate
         id: gate
         run: |
@@ -74,6 +77,10 @@ jobs:
           "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           $plan.body | Out-File -FilePath "$env:RUNNER_TEMP\kodjo-plan.md" -Encoding utf8
+          $manifestSnapshot="$env:RUNNER_TEMP\kodjo-plan-review-manifest.yml"
+          $manifestHash=& .github/orchestration/scripts/snapshot-plan-review-manifest.ps1 -SourcePath $manifest -DestinationPath $manifestSnapshot
+          "manifest_snapshot=$manifestSnapshot" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "manifest_hash=$manifestHash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Checkout exact source
         uses: actions/checkout@v6
@@ -83,6 +90,16 @@ jobs:
           clean: true
           persist-credentials: false
 
+      - name: Verify immutable manifest snapshot
+        env:
+          MANIFEST_SNAPSHOT: ${{ steps.gate.outputs.manifest_snapshot }}
+          MANIFEST_HASH: ${{ steps.gate.outputs.manifest_hash }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if (!(Test-Path -LiteralPath $env:MANIFEST_SNAPSHOT -PathType Leaf)) { throw 'Manifest snapshot missing after application checkout' }
+          $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath $env:MANIFEST_SNAPSHOT).Hash.ToLowerInvariant()
+          if ($actual -ne $env:MANIFEST_HASH) { throw 'Manifest snapshot changed after application checkout' }
+
       - name: Review plan with Claude
         id: claude
         env:
@@ -90,10 +107,11 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
           REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
+          MANIFEST_SNAPSHOT: ${{ steps.gate.outputs.manifest_snapshot }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
-          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the slice manifest, versioned documentation, code, tests, and Figma references stated in the plan. This is READ-ONLY. Do not modify files.
+          You are the independent KODJO PLAN reviewer for $env:SLICE_ID. Review the existing OpenAI plan in $env:RUNNER_TEMP\kodjo-plan.md against the exact repository HEAD $env:SOURCE_HEAD, the immutable slice manifest at $env:MANIFEST_SNAPSHOT, versioned documentation, code, tests, and Figma references stated in the plan. The manifest path inside the application checkout is not authoritative and may be absent. This is READ-ONLY. Do not modify files.
           Reuse the validated S09 review rules: verify scope, traceability, feasibility, migration safety, transaction boundaries, backward compatibility, tests, non-regression and absence of invented product behavior.
           Known factual correction to enforce: Figma frame 1992:9132 is Activity, while Catalogue is 1992:9910.
           End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, provide concrete blocking corrections. Keep the response concise.
@@ -139,5 +157,6 @@ jobs:
             ${{ runner.temp }}\kodjo-plan-review.json
             ${{ runner.temp }}\kodjo-plan-review.err.txt
             ${{ runner.temp }}\kodjo-plan-review.md
+            ${{ steps.gate.outputs.manifest_snapshot }}
           if-no-files-found: warn
           retention-days: 7
