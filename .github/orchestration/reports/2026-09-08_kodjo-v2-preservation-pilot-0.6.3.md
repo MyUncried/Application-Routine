@@ -4,21 +4,23 @@
 |---|---|
 | Mission | Pilote technique borné de conservation et de reprise (KODJO V2 0.6.3) |
 | Date | 2026-09-08 |
-| Révision | 3 — corrections MAJOR 1-3 puis durcissement sécurité de la publication |
+| Révision | 4 — preuve réelle GitHub Actions de conservation et restauration |
 | Worktree | `C:\Dev\Application-routine-kodjo-v2-pilot` |
 | Branche contrôlée | `chore/kodjo-v2-pilot` |
 | HEAD de départ et de fin | `f70c664558a77f8164e1fa9d7780b6f158200335` |
-| Verdict | `PILOT_PASS_LOCAL` |
-| GitHub Actions réel | `NON_VÉRIFIABLE` — aucun run exécuté |
+| Verdict | `PILOT_PASS_LOCAL` + `GITHUB_SMOKE_PASS` |
+| GitHub Actions réel | **VÉRIFIÉ sur le chemin borné de conservation/restauration** — run `34286251097` |
 | Adaptateur d'agent réel | `NON_VÉRIFIABLE` — aucun adaptateur borné intégré |
-| Commit final | **aucun** — option B retenue, `DELIVERY_REPORT_GATE` levé explicitement |
+| Commits de preuve | `f6efd62` (pilote local), `234bd0a` (smoke test GitHub Actions) |
 
 ## 0. Statut de cette révision
 
 La révision 1 déclarait `PILOT_PASS`. La revue indépendante a confirmé les 23 tests mais relevé trois
 défauts MAJOR, corrigés en révision 2. La révision 3 ajoute un durcissement de sécurité ciblé sur l'étape
-de publication. Le verdict est **`PILOT_PASS_LOCAL`** : la démonstration porte sur l'exécution locale, pas
-sur GitHub Actions ni sur un agent réel.
+de publication. La révision 4 enregistre le smoke test GitHub Actions réel `34286251097` : l'artefact de
+récupération a été téléversé avant un échec volontaire, l'étape `if: always()` a continué, puis un second
+job a téléchargé l'artefact et restauré le fichier exactement. L'adaptateur d'agent réel reste hors du
+périmètre vérifié.
 
 | Correction MAJOR | État | Preuve |
 |---|---|---|
@@ -359,11 +361,13 @@ d'appel IA sans adaptateur borné.
 
 ## 11. Échecs, limites et éléments `NON_VÉRIFIABLE`
 
-- **GitHub Actions réel : `NON_VÉRIFIABLE`.** Aucun run n'a été déclenché, rien n'a été poussé. Les
-  comportements réels de `actions/upload-artifact` (y compris les valeurs exactes de `artifact-url` et
-  `artifact-digest`, et la règle d'ancêtre commun des chemins), de `actions/download-artifact` et de la
-  sémantique `if: always()` du runner sont **simulés** par le harnais et **validés structurellement** dans le
-  YAML, mais non prouvés en exécution.
+- **GitHub Actions réel : vérifié sur le chemin borné de conservation/restauration.** Le run
+  [`34286251097`](https://github.com/MyUncried/Application-Routine/actions/runs/34286251097), au commit
+  `234bd0a`, a produit un artefact avant l'échec volontaire du contrôle. L'étape exécutée avec
+  `if: always()` a réussi après cet échec ; le job distinct `restore_from_artifact` a téléchargé
+  l'artefact, restauré le fichier factice bit à bit et confirmé le `source_head` inchangé. Les sorties
+  réelles `artifact-url` et `artifact-digest` étaient non vides. Ce résultat vérifie les primitives
+  GitHub, pas encore un cycle complet utilisant un agent distant réel.
 - **Adaptateur d'agent réel : `NON_VÉRIFIABLE`.** Le pilote n'intègre aucun agent distant borné. Que le
   futur adaptateur réel ne crée aucun commit **reste à démontrer** : le garde d'état Git le *détecte* après
   coup, il ne l'*empêche* pas. **Ce workflow n'est pas prêt pour une implémentation réelle** ; il est prêt
@@ -381,28 +385,23 @@ d'appel IA sans adaptateur borné.
 - **Périmètre.** Le pilote ne couvre que le défaut T02 : ni moteur V2, ni machine à états, ni branche de
   preuves, ni schémas d'enveloppe (§6.1).
 
-## 12. État Git final
+## 12. État Git et exécution distante
 
 ```text
-branche : chore/kodjo-v2-pilot
-HEAD    : f70c664558a77f8164e1fa9d7780b6f158200335   (inchangé)
-
-$ git status --short
-?? .github/orchestration/reports/2026-09-08_kodjo-v2-preservation-pilot-0.6.3.md
-?? .github/workflows/
-?? scripts/
-?? tests/
-
-$ git diff --stat     (vide)
-$ git diff --check    (vide, exit 0)
+branche pilote          : chore/kodjo-v2-pilot
+commit pilote local     : f6efd62
+commit smoke test       : 234bd0a
+run GitHub Actions      : 34286251097
+résultat global         : failure attendue (contrôle volontairement rouge)
+preserve_before_failure : failure attendue après upload
+restore_from_artifact   : success
+artefacts publiés       : 1
 ```
 
-Aucun commit, aucun push, aucune branche, aucun tag, aucune référence créée. L'autre worktree
-`C:\Dev\Application-routine` n'a été accédé qu'en **lecture** ; son HEAD reste `e18d085` sur
-`feat/creation-seance-catalogue` et ses modifications locales n'ont pas été touchées.
-
-`DELIVERY_REPORT_GATE` a été levé explicitement par l'utilisateur (option B) : la consigne « ne committe
-rien » s'applique à l'agent, rapport documentaire inclus. Ce rapport est donc complet et non commité.
+Les deux commits et leur push ont été réalisés manuellement depuis le worktree local `/Dev` par
+l'utilisateur. Le workflow distant n'a créé ni commit, ni push, ni branche, ni tag, ni référence. Le
+worktree fonctionnel `C:\Dev\Application-routine` et sa branche `feat/creation-seance-catalogue` n'ont pas
+été modifiés par le pilote.
 
 ## 13. Verdict
 
@@ -415,5 +414,6 @@ commande arbitraire, `gh` est lancé sans shell avec des arguments structurés a
 cible, et toute mutation de l'état Git est détectée et bloque la suite fonctionnelle sans détruire le
 travail produit.
 
-Deux réserves explicites subsistent, toutes deux hors de portée d'une démonstration locale :
-**GitHub Actions réel `NON_VÉRIFIABLE`** et **adaptateur d'agent réel `NON_VÉRIFIABLE`**.
+La conservation avant échec, `if: always()`, le transport par artefact et la restauration dans un second
+job sont désormais également **vérifiés sur GitHub Actions réel**. Restent `NON_VÉRIFIABLES` à ce stade :
+l'adaptateur d'agent distant réel et le cycle V2 complet de bout en bout.
