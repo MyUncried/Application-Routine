@@ -32,7 +32,9 @@ jobs:
 
       - name: Test plan mode invariants
         shell: bash
-        run: bash .github/orchestration/tests/test-plan-mode.sh
+        run: |
+          bash .github/orchestration/tests/test-plan-mode.sh
+          bash .github/orchestration/tests/test-plan-initial-baseline-advance.sh
 
       - name: Validate manifest and immutable entry gate
         id: gate
@@ -66,14 +68,23 @@ jobs:
             p=m["previous_slice"] || {}
             abort "previous status" unless p["required_status"]=="DONE"
             abort "previous head" unless p["final_head"].to_s.match?(sha)
-            if m.key?("application_baseline_head")
-              abort "application baseline" unless m["application_baseline_head"]==p["final_head"]
+            abort "application baseline missing" unless m.key?("application_baseline_head")
+            abort "application baseline" unless m["application_baseline_head"]==p["final_head"]
+            a=m["initial_scope_authority"] || {}
+            unless a.empty?
+              abort "initial scope comment" unless a["comment_id"].to_s.match?(/\A[0-9]+\z/)
+              abort "initial scope head" unless a["source_head"]==m["baseline_head"]
+              abort "initial scope replacement" unless a["replaces_legacy_manifest_scope"]==true
             end
             abort "sources" unless m["sources"].is_a?(Array) && !m["sources"].empty?
             abort "scope" unless m.dig("scope","acceptance_criteria").is_a?(Array) && !m.dig("scope","acceptance_criteria").empty?
             puts "target_branch=#{m["target_branch"]}"
             puts "baseline_head=#{m["baseline_head"]}"
             puts "previous_head=#{p["final_head"]}"
+            puts "application_baseline_head=#{m["application_baseline_head"]}"
+            puts "initial_scope_id=#{a["comment_id"]}"
+            puts "initial_scope_head=#{a["source_head"]}"
+            puts "initial_scope_replaces=#{a["replaces_legacy_manifest_scope"]}"
           ' "$MANIFEST_PATH" > /tmp/manifest.env
           source /tmp/manifest.env
           git show-ref --verify --quiet "refs/remotes/origin/$target_branch"
@@ -104,6 +115,184 @@ jobs:
           fi
           PLAN_MODE=$(bash .github/orchestration/scripts/resolve-plan-mode.sh "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$implementation_count")
           if [ "$PLAN_MODE" = INITIAL ]; then
+            test -z "$SUPERSEDES_PLAN_ID"
+            test -z "$SCOPE_CORRECTION_ID"
+            if [ -n "$initial_scope_id" ]; then
+              printf '%s' "$initial_scope_id" | grep -Eq '^[0-9]+
+            while IFS= read -r -d '' path; do
+              case "$path" in
+                docs/*) ;;
+                Revue-claude/*.md) ;;
+                .github/orchestration/reports/*.md) ;;
+                .github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.3.md) ;;
+                .github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.3.yml) ;;
+                .github/orchestration/KODJO_PROTOCOL_V2_T02_CHANGE_REPORT_0.6.3.md) ;;
+                .github/orchestration/KODJO_PROTOCOL_V2_T02_TEST_MATRIX_0.6.3.md) ;;
+                *) echo "Unauthorized initial pre-plan delta: $path" >&2; exit 1 ;;
+              esac
+            done < /tmp/pre-plan-delta.z
+          fi
+          printf 'slice_id=%s\nmanifest_path=%s\ntarget_branch=%s\nbaseline_head=%s\nprevious_head=%s\napplication_baseline_head=%s\nissue_number=%s\nplan_mode=%s\nsupersedes_plan_id=%s\nscope_correction_id=%s\ninitial_scope_id=%s\n' "$SLICE_ID" "$MANIFEST_PATH" "$target_branch" "$baseline_head" "$previous_head" "$application_baseline_head" "$ISSUE_NUMBER" "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$initial_scope_id" >> "$GITHUB_OUTPUT"
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Build authoritative planning packet
+        id: packet
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          TARGET_BRANCH: ${{ steps.gate.outputs.target_branch }}
+          BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
+          INITIAL_SCOPE_ID: ${{ steps.gate.outputs.initial_scope_id }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/kodjo-slice-plan
+          mkdir -p /tmp/kodjo-slice-plan
+          git worktree add --detach /tmp/kodjo-slice-plan/source "$BASELINE_HEAD"
+          cp "$MANIFEST_PATH" /tmp/kodjo-slice-plan/manifest.yml
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > /tmp/kodjo-slice-plan/issue.json
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" | jq -s add > /tmp/kodjo-slice-plan/comments.json
+          if [ -n "$INITIAL_SCOPE_ID" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/comments/$INITIAL_SCOPE_ID" --jq '.body' > /tmp/kodjo-slice-plan/initial-scope-correction.md
+          fi
+          ruby -e 'require "yaml"; YAML.safe_load(File.read(ARGV[0]), aliases:false)["sources"].each{|s| puts s unless s=="Figma"}' /tmp/kodjo-slice-plan/manifest.yml > /tmp/kodjo-slice-plan/sources.list
+          : > /tmp/kodjo-slice-plan/evidence.txt
+          while IFS= read -r f; do
+            if [ -f "/tmp/kodjo-slice-plan/source/$f" ]; then
+              printf '\n===== %s =====\n' "$f" >> /tmp/kodjo-slice-plan/evidence.txt
+              cat "/tmp/kodjo-slice-plan/source/$f" >> /tmp/kodjo-slice-plan/evidence.txt
+            fi
+          done < /tmp/kodjo-slice-plan/sources.list
+          git -C /tmp/kodjo-slice-plan/source ls-files app src > /tmp/kodjo-slice-plan/code-files.txt
+          grep -RIn -E 'edit|update|modify|SessionDraft|SessionCard|SqliteSessionRepository|color|colour|couleur|catalog' /tmp/kodjo-slice-plan/source/app /tmp/kodjo-slice-plan/source/src 2>/dev/null | head -n 6000 > /tmp/kodjo-slice-plan/code-evidence.txt || true
+          test -z "$(git -C /tmp/kodjo-slice-plan/source status --porcelain --untracked-files=all)"
+
+      - name: Construct read-only plan with OpenAI
+        id: openai
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
+          INITIAL_SCOPE_ID: ${{ steps.gate.outputs.initial_scope_id }}
+        run: |
+          set -euo pipefail
+          test -n "${OPENAI_API_KEY:-}"
+          cat > /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          You are the KODJO generic PLAN builder for $SLICE_ID. This phase is strictly READ-ONLY: produce a complete implementation plan, never modify repository files and never develop.
+          GitHub, the slice manifest, versioned documentation and current code at the exact baseline are authoritative. Do not invent product rules. Separate functional rules, UI states, technical constraints, validated decisions and unresolved product choices.
+          Cover scope, source traceability, data model and migrations, navigation and UI, transaction boundaries, backward compatibility, files to modify/not modify, acceptance criteria, tests, risks and non-regression. Preserve all prior slice behavior. Mark CLARIFICATION_REQUIRED only for a genuine product decision not resolvable from supplied evidence.
+          The plan must end with: PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW or PLAN_STATUS: CLARIFICATION_REQUIRED.
+          EOF
+          if [ "$PLAN_MODE" = INITIAL ] && [ -n "$INITIAL_SCOPE_ID" ]; then
+            cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          INITIAL SCOPE AUTHORITY: comment $INITIAL_SCOPE_ID is validated, immutable and higher priority than the legacy manifest scope fields. Use the Issue and versioned sources at HEAD $BASELINE_HEAD as the functional scope authority. Do not reuse PLAN_OUTPUT 5581406837 or PLAN_REVIEW_OUTPUT 5581583527; they belong to the previous planning baseline.
+          EOF
+            printf '\nVALIDATED INITIAL SCOPE CORRECTION:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+            cat /tmp/kodjo-slice-plan/initial-scope-correction.md >> /tmp/kodjo-slice-plan/prompt.txt
+          elif [ "$PLAN_MODE" = PLAN_REVISION ]; then
+            cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          This is a controlled revision of an initial plan before any implementation. Apply the validated arbitrations in scope-correction comment $SCOPE_CORRECTION_ID to plan $SUPERSEDES_PLAN_ID. Produce one complete replacement plan at the unchanged baseline. No implementation output exists or is required.
+          EOF
+          elif [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+            cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          This is a controlled replan after a completed implementation increment. Preserve the application code already present at the baseline. The prior plan comment $SUPERSEDES_PLAN_ID is superseded only as stated by scope-correction comment $SCOPE_CORRECTION_ID. Plan only the remaining scope; do not re-plan completed work and do not restore excluded scope.
+          EOF
+          fi
+          printf '\nSLICE MANIFEST:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+          cat /tmp/kodjo-slice-plan/manifest.yml >> /tmp/kodjo-slice-plan/prompt.txt
+          printf '\nISSUE #%s:\n' "$ISSUE_NUMBER" >> /tmp/kodjo-slice-plan/prompt.txt
+          jq -r '.body' /tmp/kodjo-slice-plan/issue.json >> /tmp/kodjo-slice-plan/prompt.txt
+          printf '\nISSUE COMMENTS:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+          jq -r '.[] | "COMMENT_ID="+(.id|tostring)+"\n"+.body+"\n---"' /tmp/kodjo-slice-plan/comments.json >> /tmp/kodjo-slice-plan/prompt.txt
+          printf '\nVERSIONED SOURCES:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+          head -c 500000 /tmp/kodjo-slice-plan/evidence.txt >> /tmp/kodjo-slice-plan/prompt.txt
+          printf '\nCODE EVIDENCE:\n' >> /tmp/kodjo-slice-plan/prompt.txt
+          head -c 200000 /tmp/kodjo-slice-plan/code-evidence.txt >> /tmp/kodjo-slice-plan/prompt.txt
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-slice-plan/prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-slice-plan/request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-slice-plan/request.json -o /tmp/kodjo-slice-plan/response.json
+          RESPONSE_STATUS=$(jq -r '.status // "missing"' /tmp/kodjo-slice-plan/response.json)
+          if [ "$RESPONSE_STATUS" != completed ]; then
+            DETAILS=$(jq -c '{status:(.status // "missing"),incomplete_details:(.incomplete_details // null),error:(.error // null),usage:(.usage // null)}' /tmp/kodjo-slice-plan/response.json)
+            echo "OpenAI plan response incomplete: $DETAILS" >&2
+            exit 1
+          fi
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-slice-plan/response.json > /tmp/kodjo-slice-plan/plan.md
+          test -s /tmp/kodjo-slice-plan/plan.md
+          test -z "$(git status --porcelain --untracked-files=all)"
+          test -z "$(git -C /tmp/kodjo-slice-plan/source status --porcelain --untracked-files=all)"
+
+      - name: Publish candidate plan
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          MANIFEST_PATH: ${{ steps.gate.outputs.manifest_path }}
+          BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          PLAN_MODE: ${{ steps.gate.outputs.plan_mode }}
+          SUPERSEDES_PLAN_ID: ${{ steps.gate.outputs.supersedes_plan_id }}
+          SCOPE_CORRECTION_ID: ${{ steps.gate.outputs.scope_correction_id }}
+        run: |
+          set -euo pipefail
+          : "${PLAN_MODE:?PLAN_MODE missing}"
+          if [ "$PLAN_MODE" != INITIAL ]; then
+            : "${SUPERSEDES_PLAN_ID:?SUPERSEDES_PLAN_ID missing}"
+            : "${SCOPE_CORRECTION_ID:?SCOPE_CORRECTION_ID missing}"
+          fi
+          {
+            echo '[KODJO_SLICE] PLAN_OUTPUT'
+            echo "slice_id=$SLICE_ID"
+            echo "manifest_path=$MANIFEST_PATH"
+            echo "source_head=$BASELINE_HEAD"
+            echo 'plan_builder=OPENAI'
+            echo 'attempt=1'
+            echo "plan_mode=$PLAN_MODE"
+            if [ "$PLAN_MODE" != INITIAL ]; then
+              echo "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID"
+              echo "scope_correction_comment_id=$SCOPE_CORRECTION_ID"
+            fi
+            echo "source_start_comment_id=$SOURCE_COMMENT_ID"
+            echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            echo
+            cat /tmp/kodjo-slice-plan/plan.md
+          } > /tmp/kodjo-slice-plan/out.md
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-slice-plan/out.md
+
+      - name: Preserve plan transport evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-slice-plan-${{ github.run_id }}
+          path: |
+            /tmp/kodjo-slice-plan/manifest.yml
+            /tmp/kodjo-slice-plan/response.json
+            /tmp/kodjo-slice-plan/plan.md
+            /tmp/kodjo-slice-plan/initial-scope-correction.md
+          if-no-files-found: warn
+          retention-days: 7
+
+              test "$initial_scope_head" = "$baseline_head"
+              test "$initial_scope_replaces" = "true"
+              initial_scope_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$initial_scope_id")
+              test "$(jq -r '.user.login' <<< "$initial_scope_json")" = 'MyUncried'
+              initial_scope_body=$(jq -r '.body' <<< "$initial_scope_json")
+              grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION' <<< "$initial_scope_body"
+              grep -Fxq "slice_id=$SLICE_ID" <<< "$initial_scope_body"
+              grep -Fxq "source_head=$baseline_head" <<< "$initial_scope_body"
+              grep -Fxq 'plan_mode=INITIAL' <<< "$initial_scope_body"
+              grep -Fxq 'supersedes_manifest_scope=true' <<< "$initial_scope_body"
+              grep -Fxq 'supersedes_plan_comment_id=NONE' <<< "$initial_scope_body"
+              grep -Fxq 'STATUT : INITIAL_SCOPE_AUTHORITY' <<< "$initial_scope_body"
+            fi
             git diff --name-only -z "$previous_head..$baseline_head" > /tmp/pre-plan-delta.z
             while IFS= read -r -d '' path; do
               case "$path" in
