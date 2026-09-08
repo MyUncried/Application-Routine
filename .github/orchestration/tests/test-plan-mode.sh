@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-resolver=${1:-../scripts/resolve-plan-mode.sh}
+resolver=${1:-.github/orchestration/scripts/resolve-plan-mode.sh}
 failures=0
 
 pass_case() {
