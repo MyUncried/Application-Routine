@@ -41,6 +41,7 @@ jobs:
           SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
           SUPERSEDES_PLAN_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^supersedes_plan_comment_id=//p' | head -n1)
           SCOPE_CORRECTION_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^scope_correction_comment_id=//p' | head -n1)
+          REQUESTED_PLAN_MODE=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^plan_mode=//p' | head -n1)
           test -n "$SLICE_ID"
           test -n "$MANIFEST_PATH"
           test "$SOURCE_HEAD" != "" && printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
@@ -76,22 +77,29 @@ jobs:
           test "$ACTUAL" = "$baseline_head"
           test "$SOURCE_HEAD" = "$baseline_head"
           git merge-base --is-ancestor "$previous_head" "$baseline_head"
-          PLAN_MODE=INITIAL
-          if [ -n "$SUPERSEDES_PLAN_ID" ] || [ -n "$SCOPE_CORRECTION_ID" ]; then
-            PLAN_MODE=REPLAN_AFTER_IMPLEMENTATION
+          mode_count=$(printf '%s\n' "$TRIGGER_BODY" | grep -c '^plan_mode=' || true)
+          if [ -z "$SUPERSEDES_PLAN_ID" ] && [ -z "$SCOPE_CORRECTION_ID" ]; then
+            test "$mode_count" -le 1
+            PLAN_MODE=${REQUESTED_PLAN_MODE:-INITIAL}
+            implementation_count=0
+          else
+            test "$mode_count" = 1
+            PLAN_MODE=$REQUESTED_PLAN_MODE
             printf '%s' "$SUPERSEDES_PLAN_ID" | grep -Eq '^[0-9]+$'
             printf '%s' "$SCOPE_CORRECTION_ID" | grep -Eq '^[0-9]+$'
             old_plan=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SUPERSEDES_PLAN_ID" --jq '.body')
             scope_correction=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$SCOPE_CORRECTION_ID" --jq '.body')
             grep -Fxq '[KODJO_SLICE] PLAN_OUTPUT' <<< "$old_plan"
             grep -Fxq "slice_id=$SLICE_ID" <<< "$old_plan"
+            grep -Fxq "source_head=$baseline_head" <<< "$old_plan"
             grep -Fxq '[KODJO_SLICE] SCOPE_CORRECTION' <<< "$scope_correction"
             grep -Fxq "slice_id=$SLICE_ID" <<< "$scope_correction"
             grep -Fxq "source_head=$baseline_head" <<< "$scope_correction"
             grep -Fxq "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID" <<< "$scope_correction"
-            implementation_count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '.[] | select(.body | contains("[KODJO_SLICE] IMPLEMENTATION_OUTPUT")) | select(.body | contains("head='"$baseline_head"'")) | .id' | wc -l | tr -d ' ')
-            test "$implementation_count" = 1
-          else
+            implementation_count=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '.[] | select((.body | split("\n") | index("[KODJO_SLICE] IMPLEMENTATION_OUTPUT")) != null) | select((.body | split("\n") | index("slice_id='"$SLICE_ID"'")) != null) | select((.body | split("\n") | index("head='"$baseline_head"'")) != null) | .id' | wc -l | tr -d ' ')
+          fi
+          PLAN_MODE=$(bash .github/orchestration/scripts/resolve-plan-mode.sh "$PLAN_MODE" "$SUPERSEDES_PLAN_ID" "$SCOPE_CORRECTION_ID" "$implementation_count")
+          if [ "$PLAN_MODE" = INITIAL ]; then
             git diff --name-only -z "$previous_head..$baseline_head" > /tmp/pre-plan-delta.z
             while IFS= read -r -d '' path; do
               case "$path" in
@@ -158,7 +166,11 @@ jobs:
           Cover scope, source traceability, data model and migrations, navigation and UI, transaction boundaries, backward compatibility, files to modify/not modify, acceptance criteria, tests, risks and non-regression. Preserve all prior slice behavior. Mark CLARIFICATION_REQUIRED only for a genuine product decision not resolvable from supplied evidence.
           The plan must end with: PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW or PLAN_STATUS: CLARIFICATION_REQUIRED.
           EOF
-          if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+          if [ "$PLAN_MODE" = PLAN_REVISION ]; then
+            cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
+          This is a controlled revision of an initial plan before any implementation. Apply the validated arbitrations in scope-correction comment $SCOPE_CORRECTION_ID to plan $SUPERSEDES_PLAN_ID. Produce one complete replacement plan at the unchanged baseline. No implementation output exists or is required.
+          EOF
+          elif [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
             cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
           This is a controlled replan after a completed implementation increment. Preserve the application code already present at the baseline. The prior plan comment $SUPERSEDES_PLAN_ID is superseded only as stated by scope-correction comment $SCOPE_CORRECTION_ID. Plan only the remaining scope; do not re-plan completed work and do not restore excluded scope.
           EOF
@@ -199,7 +211,7 @@ jobs:
         run: |
           set -euo pipefail
           : "${PLAN_MODE:?PLAN_MODE missing}"
-          if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+          if [ "$PLAN_MODE" != INITIAL ]; then
             : "${SUPERSEDES_PLAN_ID:?SUPERSEDES_PLAN_ID missing}"
             : "${SCOPE_CORRECTION_ID:?SCOPE_CORRECTION_ID missing}"
           fi
@@ -211,7 +223,7 @@ jobs:
             echo 'plan_builder=OPENAI'
             echo 'attempt=1'
             echo "plan_mode=$PLAN_MODE"
-            if [ "$PLAN_MODE" = REPLAN_AFTER_IMPLEMENTATION ]; then
+            if [ "$PLAN_MODE" != INITIAL ]; then
               echo "supersedes_plan_comment_id=$SUPERSEDES_PLAN_ID"
               echo "scope_correction_comment_id=$SCOPE_CORRECTION_ID"
             fi
