@@ -11,16 +11,29 @@ scope_id="5584115298"
 fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 pass() { printf 'PASS: %s\n' "$1"; }
 
-ruby -e '
-  require "yaml"
-  m=YAML.safe_load(File.read(ARGV[0]), aliases:false)
-  abort "previous_head" unless m.dig("previous_slice","final_head")==ARGV[1]
-  abort "baseline_head" unless m["baseline_head"]==ARGV[2]
-  abort "application_baseline_head" unless m["application_baseline_head"]==ARGV[1]
-  abort "scope_comment" unless m.dig("initial_scope_authority","comment_id").to_s==ARGV[3]
-  abort "scope_head" unless m.dig("initial_scope_authority","source_head")==ARGV[2]
-  abort "scope_priority" unless m.dig("initial_scope_authority","replaces_legacy_manifest_scope")==true
-' "$manifest" "$previous" "$baseline" "$scope_id" || fail "T03 baseline tuple"
+if command -v ruby >/dev/null 2>&1; then
+  ruby -e '
+    require "yaml"
+    m=YAML.safe_load(File.read(ARGV[0]), aliases:false)
+    abort "previous_head" unless m.dig("previous_slice","final_head")==ARGV[1]
+    abort "baseline_head" unless m["baseline_head"]==ARGV[2]
+    abort "application_baseline_head" unless m["application_baseline_head"]==ARGV[1]
+    abort "scope_comment" unless m.dig("initial_scope_authority","comment_id").to_s==ARGV[3]
+    abort "scope_head" unless m.dig("initial_scope_authority","source_head")==ARGV[2]
+    abort "scope_priority" unless m.dig("initial_scope_authority","replaces_legacy_manifest_scope")==true
+  ' "$manifest" "$previous" "$baseline" "$scope_id" || fail "T03 baseline tuple"
+else
+  python - "$manifest" "$previous" "$baseline" "$scope_id" <<'PY' || fail "T03 baseline tuple"
+import sys, yaml
+m = yaml.safe_load(open(sys.argv[1], encoding="utf-8"))
+assert m["previous_slice"]["final_head"] == sys.argv[2], "previous.Room"
+assert m["baseline_head"] == sys.argv[3], "baseline"
+assert m["application_baseline_head"] == sys.argv[2], " Fox"
+assert str(m["initial_scope_authority"]["comment_id"]) == sys.argv[4], "scope"
+assert m["initial_scope_authority"]["source_head"] == sys.argv[3], "scope_head"
+assert m["initial_scope_authority"]["replaces_legacy_manifest_scope"] is True, "scope_priority"
+PY
+fi
 pass "T03 baseline tuple"
 
 actual_mode=$(bash "$resolver" INITIAL "" "" 0)
