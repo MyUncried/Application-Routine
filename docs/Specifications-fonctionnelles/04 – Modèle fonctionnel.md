@@ -168,7 +168,7 @@ Une séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Activités après le Tour ;
 6. une Fin de séance.
 
-Dans le Plan d’Exécution, ces phases sont typées `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. La fin de la dernière Activité active `SESSION_END` ; seule l’expiration de cette phase, immédiate lorsque sa durée vaut `0 s`, termine l’Exécution et autorise son enregistrement final puis l’affichage de la Synthèse.
+Dans le Plan d’Exécution, ces phases sont typées `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. La fin de la dernière Activité active `SESSION_END` ; seule l’expiration de cette phase, immédiate lorsque sa durée vaut `0 s`, termine l’Exécution et autorise son enregistrement final. Elle ouvre ensuite la fin minimale dans T03, puis la Synthèse lorsque cette dernière est livrée.
 
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
 

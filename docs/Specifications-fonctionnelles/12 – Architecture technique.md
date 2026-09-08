@@ -136,7 +136,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression hybride et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T03, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -294,7 +294,7 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types d’étapes `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. Après la dernière Activité, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale et n’ouvre la Synthèse qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan utilise les types d’étapes `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. Après la dernière Activité, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T03, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -584,6 +584,14 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
+
+### Contraintes techniques propres à T03
+
+- Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T03 ; aucun spike ni prototype séparé ne précède ce lot.
+- Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T03.
+- L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
+- La persistance T03 utilise une migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Cette migration conserve sans perte les Séances existantes et doit être testée depuis chaque version de base encore supportée.
+- L’archivage, la restauration et la suppression restent hors du périmètre de livraison T03 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
@@ -1233,7 +1241,7 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 ## 12.33 Réconciliation après interruption technique
 
-Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la Synthèse.
+Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T03 ; la Synthèse appartient à la tranche qui la livre.
 
 ## 12.34 Architecture cible — Activités, Médias et Circuits
 

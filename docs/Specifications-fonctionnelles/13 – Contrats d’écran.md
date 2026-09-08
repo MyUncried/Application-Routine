@@ -598,6 +598,144 @@ Tests bloquants : distinction toucher court/appui long ; état visuel exact `362
 
 ---
 
+## Contrats T03-S01 — Exécution guidée fondamentale
+
+### Périmètre commun T03
+
+T03 exécute les Séances actives comportant des Exercices en mode Durée, Répétitions ou À l’échec, avec une seule Série par Exercice et un seul Tour, ainsi que les Récupérations explicites et Pauses après Série chronométrées. Les Séries multiples, les Tours multiples et la navigation vers une étape précédente relèvent de T04. Les modes Répétitions et À l’échec sont donc exécutables dans T03 lorsqu’ils respectent cette structure à une Série et un Tour.
+
+Les écrans réutilisent `Shell / Execution` et les captures `execution-etat-initial.png`, `execution-seance.png`, `execution-bips-vocal-desactives.png`, `execution-reinitialiser.png`, `execution-activite-suivante.png` et `execution-pause.png`. L’absence d’une frame propre à un état purement temporel n’autorise aucune invention visuelle : cet état hérite du Shell et des composants documentés au chapitre 06.
+
+### CE-T03-01 — Accès et contrôle d’éligibilité
+
+| Propriété | Valeur |
+| --- | --- |
+| Tranche | `T03-S01` |
+| Point d’entrée | Action `Démarrer` d’une carte de Séance enregistrée dans `1992:9910` |
+| Destination | CE-T03-02 |
+| Condition | Séance active et compatible T03 |
+
+La zone principale de la carte ouvre la Composition. `Déployer` ouvre ou ferme le détail de la carte et `Démarrer` ouvre l’Exécution avec l’identifiant exact de la Séance. Ces trois cibles sont indépendantes : la zone tactile principale s’arrête avant les boutons `Déployer` et `Démarrer`, sans chevauchement. Une Séance sans Exercice valide ne peut normalement pas être enregistrée ; `Démarrer` désactivé constitue uniquement une protection défensive contre des données anciennes, importées ou corrompues et ne produit aucune navigation.
+
+Avant toute création d’Exécution, l’application refuse atomiquement une Séance comportant plusieurs Séries pour au moins un Exercice ou plusieurs Tours. Elle affiche un message compréhensible indiquant que cette structure sera prise en charge dans une prochaine étape. Le refus ne crée ni Exécution, ni Instantané, ni Résultat partiel et ne modifie jamais la Séance. L’archivage, la restauration et la suppression ne font pas partie de T03 ; la garde contre une Séance archivée demeure une protection d’intégrité si une telle donnée préexiste.
+
+Tests bloquants : routage distinct Composition/Déployer/Démarrer ; bon identifiant ; cibles sans chevauchement ; aucune navigation si `Démarrer` est désactivé ; refus avant toute écriture ; absence de mutation de la Séance ; message explicite ; aucun contournement des fonctions d’édition T01/T02.
+
+### CE-T03-02 — Exécution prête avant démarrage
+
+| Propriété | Valeur |
+| --- | --- |
+| Référence | `execution-etat-initial.png` ; `Shell / Execution` |
+| Entrée | Séance éligible issue de CE-T03-01 |
+| Persistance | Aucune Exécution avant l’action explicite de lancement |
+
+L’écran charge la Séance mais ne la démarre pas automatiquement. Il affiche son nom, les commandes Sons et Annonces vocales activées par défaut et l’action centrale de lancement. Dans T03, ces deux états ne proviennent d’aucune préférence utilisateur persistée ; leur configuration depuis le Profil reste hors périmètre. Retour rejoint la carte déployée du Catalogue (`1992:10014`) sans écriture. L’action de lancement crée atomiquement l’Exécution et son Instantané immuable, puis active CE-T03-03.
+
+Tests bloquants : aucun enregistrement à la simple ouverture ; Retour sans effet ; verrou contre le double lancement ; Instantané créé une seule fois au démarrage effectif ; navigation principale masquée pendant le parcours d’Exécution.
+
+### CE-T03-03 — Compte à rebours initial
+
+L’étape `INITIAL_COUNTDOWN` utilise le Shell d’Exécution et un décompte visible. Elle est structurellement présente, ne constitue pas une Activité, signale les trois dernières secondes et passe automatiquement à la première étape d’Activité. Une durée de `0 s` produit cette transition immédiatement sans supprimer l’étape du Plan.
+
+Son temps effectivement exécuté est inclus dans le temps total écoulé et la Durée réelle ; sa durée planifiée est incluse dans la Durée estimée d’exécution et dans la barre de progression globale. Il reste exclu de la Durée synthétique des Activités du Catalogue et de la Composition.
+
+Tests bloquants : valeurs non nulles et `0 s` ; signaux exactement une fois ; transition unique ; inclusion dans les trois mesures d’Exécution ; exclusion de la synthèse des Activités ; recalcul après arrière-plan ou verrouillage.
+
+### CE-T03-04 — Activité chronométrée active
+
+| Propriété | Valeur |
+| --- | --- |
+| Référence | `execution-seance.png` ; `Shell / Execution` |
+| Modes T03 | Exercice `DURATION`, Récupération explicite et Pause technique chronométrées |
+
+L’écran affiche le nom de la Séance, le nom et le type de l’Activité courante, le temps restant, `Série 1/1` pour un Exercice, l’indicateur de Tour `1/1` lorsque le Shell le présente, la progression discrète du Tour, l’étape suivante réelle, les commandes son/annonces, `Réinitialiser`, `Pause` et `Activité suivante`, le temps total écoulé, la Durée estimée d’exécution et la barre globale.
+
+Le décompte est calculé depuis des horodatages de référence et non depuis le nombre de rafraîchissements de l’interface. À zéro, la transition vers l’étape suivante est automatique et idempotente. Les Pauses manuelles ne contribuent ni au temps total écoulé ni à la Durée réelle.
+
+La barre représente l’avancement du Plan complet T03, `INITIAL_COUNTDOWN` et `SESSION_END` compris. Les étapes chronométrées progressent proportionnellement à leur durée planifiée ; la pondération des occurrences en Répétitions ou À l’échec suit RM-077 et leur part n’est acquise qu’avec `Suivant`. La barre n’atteint `100 %` qu’à l’achèvement de `SESSION_END`.
+
+Tests bloquants : hiérarchie complète des informations ; valeurs issues du Plan ; distinction Pause/Récupération ; exactitude temporelle ; transition unique ; comportement à différentes largeurs et avec texte agrandi ; progression incluant les deux phases structurelles.
+
+### CE-T03-05 — Activité en Répétitions ou À l’échec
+
+L’écran conserve le Shell commun. Il affiche un chronomètre croissant depuis `00:00` et, pour le mode Répétitions, la cible configurée ; le mode À l’échec n’invente aucune cible chiffrée. Dans les deux modes, l’utilisateur signale lui-même la fin de l’unique Série avec `Suivant`. Cette action constitue une fin normale, sans confirmation et sans statut `Partielle`, puis active la prochaine étape du Plan. La durée effectivement passée est conservée dans le Résultat ; aucune durée cible n’est inventée.
+
+Tests bloquants : cible visible uniquement en Répétitions ; chronomètre croissant ; `Suivant` sans confirmation ; Résultat normal et non partiel ; durée réelle conservée ; prochaine étape exacte ; absence de transition automatique ; garde de sécurité après deux heures sans interaction.
+
+### CE-T03-06 — Réinitialiser l’Activité
+
+La commande ouvre `1992:8224`, `Modal — Réinitialiser l’activité`, instance `2591:3047` de `Overlay / Decision Dialog`, variante `2590:2926`, `354 × 215`. Confirmer replace uniquement l’Activité courante au début de sa durée cible. Les étapes antérieures, leurs Résultats, le temps total déjà écoulé, l’Instantané et le rang courant restent inchangés. Annuler ferme la modale et reprend l’Activité courante.
+
+Tests bloquants : dialogue et textes conformes ; contexte sous-jacent suspendu et grisé ; aucune perte d’historique ; nouveau décompte complet ; aucun son ou changement d’étape dupliqué.
+
+### CE-T03-07 — Passer une Activité chronométrée avant zéro
+
+La commande `Activité suivante` ouvre `1992:8326`, `Modal — Passer à l’activité suivante`, instance `2591:3058` de la variante `2590:2926`, `354 × 215`. Confirmer conserve la durée active réellement effectuée, crée une seule fois un Résultat `Partielle`, actualise la progression et poursuit vers l’étape suivante. Annuler ferme le dialogue et reprend le décompte courant.
+
+Tests bloquants : aucune transition avant confirmation ; statut `Partielle` ; durée exacte ; idempotence ; reprise après Annuler ; aucune navigation libre ou retour vers une étape antérieure.
+
+### CE-T03-08 — Pause manuelle, reprise et arrêt
+
+Toucher `Pause` suspend immédiatement le temps actif, les transitions, les animations et les signaux de progression, puis ouvre `1992:8428`, `Modal — Séance en pause`. Le dialogue est l’instance `2591:3070` de `Overlay / Decision Dialog`, variante `2590:2960`, et mesure `354 × 194`. Le voile est bloquant ; ni le voile ni une navigation implicite ne ferment le dialogue.
+
+`Reprendre la séance` repart de la phase et du temps restant ou écoulé persisté sans rejouer les signaux déjà traités. `Arrêter la séance` est l’unique chemin d’arrêt volontaire de T03 ; il clôt l’Exécution au statut `Interrompue`, conserve les Résultats obtenus et ouvre CE-T03-12. Le temps de Pause manuelle reste exclu du temps total écoulé et de la Durée réelle.
+
+Tests bloquants : suspension immédiate ; libellés exacts ; arrêt absent de l’écran actif ; reprise exacte ; arrêt `Interrompue` ; voile, géométrie, cibles tactiles et Safe Areas conformes.
+
+### CE-T03-09 — Restauration après interruption technique
+
+Lorsqu’une Exécution non finalisée est détectée au retour dans l’application, toute nouvelle Exécution est bloquée. L’interface propose explicitement de reprendre ou d’arrêter. Reprendre restaure la phase, son rang, le temps restant ou écoulé, l’état En cours/En pause, les résultats antérieurs et l’étape suivante, puis recalcule l’état depuis les horodatages persistés. Arrêter applique le statut `Interrompue` et ouvre CE-T03-12.
+
+Tests bloquants : aucune seconde Exécution ; restauration en premier plan, arrière-plan, verrouillage et après fermeture ; aucune transition ni aucun signal dupliqué ; comportement documenté lorsque l’OS ne garantit pas l’exécution en arrière-plan.
+
+### CE-T03-10 — Phase `SESSION_END`
+
+La fin de la dernière Activité active la phase structurelle et visible `SESSION_END`. Elle utilise le Shell commun, affiche son propre décompte et joue le signal de fin exactement une fois. Elle n’est pas une Activité et ne crée aucun Résultat d’Activité.
+
+Son temps exécuté contribue au temps total écoulé et à la Durée réelle ; sa durée planifiée contribue à la Durée estimée d’exécution et à la barre globale. Une valeur de `0 s` l’achève immédiatement. La barre atteint `100 %` à son achèvement. Un arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`.
+
+Tests bloquants : déclenchement après la dernière Activité ; durées non nulles et `0 s` ; inclusion dans les métriques et la progression ; aucun enregistrement final avant achèvement ; signal et finalisation idempotents.
+
+### CE-T03-11 — Fin normale minimale
+
+Après l’achèvement de `SESSION_END`, l’Exécution est clôturée une seule fois et un écran de fin minimal est affiché. T03 n’affiche ni Synthèse détaillée, ni Ressenti, ni Commentaire, ni fonction de Suivi. L’action principale revient au Catalogue et recharge la carte de la Séance. Le résultat technique conservé reste disponible pour les tranches ultérieures.
+
+Tests bloquants : accès uniquement après `SESSION_END` ; absence des fonctions hors T03 ; retour au Catalogue ; aucune double finalisation ; navigation principale restaurée après la sortie.
+
+### CE-T03-12 — Fin interrompue minimale
+
+Après un arrêt volontaire confirmé ou l’arrêt d’une Exécution irrécupérable, le même écran minimal indique que la Séance a été interrompue. Il ne simule pas une Synthèse MVP et propose le retour au Catalogue. Les Résultats déjà produits et la Durée réelle sont conservés ; les étapes jamais atteintes ne créent aucun Résultat.
+
+Tests bloquants : statut `Interrompue` ; conservation des données acquises ; absence de résultats fictifs ; retour au Catalogue ; distinction claire avec CE-T03-11.
+
+### CE-T03-13 — Erreur de chargement ou de persistance
+
+Une erreur avant démarrage ne crée aucune Exécution et permet de revenir au Catalogue. Une erreur après démarrage conserve le dernier état cohérent persisté, présente un message compréhensible sans détail technique et interdit toute confirmation mensongère de fin. Une nouvelle tentative ou la reprise utilise le même identifiant d’Exécution et les protections d’idempotence.
+
+Tests bloquants : absence d’écriture partielle ; état récupérable ; message accessible ; aucune fausse fin ; reprise sans duplication.
+
+### Matrice de couverture T03-S01
+
+| Contrat | Référence visuelle | État ou action | Périmètre T03 |
+| --- | --- | --- | --- |
+| CE-T03-01 | `1992:9910` | Démarrer et contrôler l’éligibilité | Obligatoire |
+| CE-T03-02 | `execution-etat-initial.png` | Prêt avant démarrage | Obligatoire |
+| CE-T03-03 | Shell commun | `INITIAL_COUNTDOWN` | Obligatoire |
+| CE-T03-04 | `execution-seance.png` | Activité chronométrée | Obligatoire |
+| CE-T03-05 | Shell commun | Répétitions ou À l’échec | Obligatoire |
+| CE-T03-06 | `1992:8224` | Réinitialiser | Obligatoire |
+| CE-T03-07 | `1992:8326` | Activité suivante avant zéro | Obligatoire |
+| CE-T03-08 | `1992:8428` | Pause, reprise et arrêt | Obligatoire |
+| CE-T03-09 | Shell et dialogue de reprise | Interruption technique | Obligatoire |
+| CE-T03-10 | Shell commun | `SESSION_END` | Obligatoire |
+| CE-T03-11 | Écran minimal T03 | Fin normale | Obligatoire, sans Synthèse |
+| CE-T03-12 | Écran minimal T03 | Fin interrompue | Obligatoire, sans Synthèse |
+| CE-T03-13 | Règles communes d’erreur | Erreur technique | Obligatoire |
+| CE-T01-03 | `1992:9910`, `1992:10014` | Zones tactiles Catalogue et lancement | Dépendance T03 |
+| CE-T02-01 | `2028:11700`, `2028:11808` | Durée synthétique des Activités dans la Composition | Dépendance T03 |
+
+---
+
 ### CE-T01-10 — Fin de séance — Sélecteur ouvert
 
 #### Identification

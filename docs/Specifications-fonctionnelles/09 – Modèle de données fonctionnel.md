@@ -682,7 +682,7 @@ Contient notamment :
 - Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
-- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la Synthèse.
+- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
 
 # 09.14 Extension du modèle — Activités, Médias et Circuits
@@ -1067,5 +1067,5 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 - Une exécution est créée au démarrage effectif d'une séance.
 - Une seule exécution peut être en cours simultanément.
-- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la Synthèse.
+- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.

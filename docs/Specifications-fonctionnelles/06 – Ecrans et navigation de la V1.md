@@ -1041,7 +1041,7 @@ L’écran affiche, de haut en bas :
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Activité suivante ;
 - les commandes `Réinitialiser`, `Pause` et `Activité suivante` ;
 - le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée d’exécution est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
-- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le plan d’Exécution selon la pondération hybride définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`.
+- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T03, les étapes chronométrées sont pondérées par leur durée planifiée ; la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
@@ -1134,7 +1134,7 @@ La modale propose :
 
 `Reprendre la séance` restaure l’état exact de l’Activité.
 
-`Arrêter la séance` termine l’Exécution avec le statut `Interrompue` puis ouvre la Synthèse.
+`Arrêter la séance` termine l’Exécution avec le statut `Interrompue`. Dans T03, il ouvre l’écran de fin minimale ; l’ouverture de la Synthèse appartient à la tranche qui livre cette dernière.
 
 Il n’existe pas de commande directe d’arrêt depuis l’écran principal d’Exécution.
 
@@ -1154,7 +1154,9 @@ L’utilisateur ne peut pas sélectionner librement une autre Activité ni reven
 
 ### Guidage sonore
 
-Au début d’une Activité, son nom peut être annoncé vocalement selon les Préférences.
+Dans T03, Sons et Annonces vocales sont activés par défaut au début de chaque Exécution. Leur état peut être changé pendant l’Exécution, mais cette tranche ne lit ni n’enregistre encore de préférence utilisateur correspondante ; leur configuration depuis le Profil appartient à une tranche ultérieure.
+
+Au début d’une Activité, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives.
 
 Pour les Activités chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
