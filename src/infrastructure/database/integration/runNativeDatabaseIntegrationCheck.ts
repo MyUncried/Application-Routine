@@ -19,8 +19,11 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
       exercises: [
         {
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
           name: "Exercice chronométré",
           executionMode: "DURATION",
           durationSeconds: 30,

@@ -16,9 +16,12 @@ import {
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
 import {
+  DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
+  DEFAULT_STRUCTURAL_POSITION,
+  DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import type {
@@ -97,8 +100,14 @@ function aValidDraft(): SessionDraft {
   };
 }
 
+// T02-S01 : le chemin de création transporte désormais l'identifiant, le
+// type et la position structurelle réels de chaque Activité (ici ceux d'un
+// brouillon neuf, donc `BEFORE_TOUR` — `DEFAULT_STRUCTURAL_POSITION`).
 function normalizedExercise() {
   return {
+    id: "ex-1",
+    type: DEFAULT_ACTIVITY_TYPE,
+    structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: "Gainage",
     executionMode: "DURATION" as const,
     durationSeconds: 30,
@@ -156,6 +165,7 @@ describe("SessionService.createSession", () => {
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
+      tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
       exercises: [normalizedExercise()],
       categories: [],
     });
@@ -298,7 +308,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
         {
           id: "act-1",
           type: "EXERCISE",
-          structuralPosition: "IN_TOUR",
+          structuralPosition: "BEFORE_TOUR",
           position: 0,
           name: "Gainage",
           executionMode: "DURATION",

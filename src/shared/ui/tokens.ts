@@ -112,6 +112,18 @@ export const colors = {
   disclosureBorderCollapsed: "#D6D9E3",
   disclosureBorderExpanded: "#8283F2",
   disclosureChevronCollapsed: "#8282F2",
+  // T02-S01 — état transitoire `Composition d'une séance — Appui long —
+  // carte soulevée` (`3518:4576`/`3518:4621`), valeurs littéralement
+  // documentées par D-129 et `13 – Contrats d'écran.md` (CE-T02-02) : la
+  // carte soulevée reçoit le fond `#F7F7FF` (déjà porté par
+  // `exerciseContextBandBackground`, RÉUTILISÉ tel quel plutôt que dupliqué
+  // — même valeur, D-129 la décrit d'ailleurs comme « repris du bandeau
+  // supérieur »), un contour `1` point `#D1D1D6` et une ombre périphérique
+  // `#14171F` à `22 %`. Ces deux dernières valeurs n'ont aucun équivalent
+  // parmi les tokens existants (`border` = `#E0E3E8`, `textPrimary` =
+  // `#141414`), d'où deux tokens propres.
+  compositionDraggedCardBorder: "#D1D1D6",
+  compositionDraggedCardShadow: "#14171F",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -368,6 +380,44 @@ export const dimensions = {
   // pour les Zones corporelles, ici la valeur canonique exacte de la
   // Catégorie plutôt qu'une approximation).
   categoryTag: { visualHeight: 30, radius: 15 },
+  // T02-S01 — `Composition / Activity Row` (`2588:2679`, D-128) et ses deux
+  // états T02, littéralement documentés :
+  //
+  // - repos : carte `354 × 69` ;
+  // - soulevée (`3518:4621`, D-129/CE-T02-02) : `362 × 71`, centrée à
+  //   `x = 6`, rayon `8`, contour `1`, ombre `0/0` flou `10` étalement `2`.
+  //
+  // La LARGEUR n'est jamais codée en dur (la carte au repos occupe la
+  // largeur utile réelle — plan §9.2) : seul l'ÉCART entre les deux états
+  // l'est, appliqué symétriquement (`widthDelta / 2` de chaque côté, soit
+  // exactement le `x = 6` documenté sur une section de `354`), de même que
+  // l'écart de hauteur (`heightDelta / 2` de padding vertical
+  // supplémentaire).
+  //
+  // Limite disclosée : React Native n'expose AUCUNE propriété d'étalement
+  // d'ombre (`spread`). L'étalement `2` documenté par D-129 n'est donc pas
+  // exprimable tel quel — `draggedElevation` porte l'équivalent Android
+  // (`elevation`), iOS s'appuyant sur `shadowOffset`/`Opacity`/`Radius`
+  // exacts. Écart à vérifier sur appareil réel.
+  compositionActivityRow: {
+    widthDelta: 8,
+    heightDelta: 2,
+    draggedRadius: 8,
+    draggedShadowOpacity: 0.22,
+    draggedShadowRadius: 10,
+    draggedElevation: 8,
+  },
+  // T02-S01 — `Composition d'une séance — actions glissées` (`2028:11808`,
+  // D-128) : groupe superposé `144 × 69` sur la partie DROITE de la carte
+  // (qui ne se déplace pas), composé de `Dupliquer` et `Supprimer`, chacun
+  // `72 × 69`, libellés centrés horizontalement et verticalement.
+  compositionSwipeActions: { groupWidth: 144, actionWidth: 72 },
+  // T02-S01 — sélecteur `Nombre de tours` (D-130/CE-T02-01) : `66 × 34`,
+  // bord droit aligné sur celui des cartes, valeur numérique seule (jamais
+  // `x` ni `×`), AUCUN chevron de repli. Remplace la géométrie `78 × 44`
+  // avec carré violet de chevron issue de REWORK06 (T-04a/b/c), antérieure
+  // à la publication de D-130.
+  compositionTourControl: { width: 66, height: 34, radius: 10 },
 } as const;
 
 export const minTouchTarget = 48;

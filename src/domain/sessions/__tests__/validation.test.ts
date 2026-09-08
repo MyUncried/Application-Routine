@@ -306,8 +306,12 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
 });
 
 describe("validateCreateSessionInput (aggregated structured result, T01-S09)", () => {
+  // T02-S01 : le DTO de création porte désormais le type et la position
+  // structurelle réels de l'Activité (`CreateSessionActivityInput`).
   function durationExercise() {
     return {
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
       name: "Gainage",
       executionMode: "DURATION" as const,
       durationSeconds: 30,
@@ -325,6 +329,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
       exercises: [durationExercise()],
       categories: [],
     };
@@ -339,10 +344,109 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         color: DEFAULT_SESSION_COLOR,
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
+        tourRepeatCount: 1,
         exercises: [durationExercise()],
         categories: [],
       },
     });
+  });
+
+  // T02-S01 (AC-08/AC-12) : le chemin de création transporte la répétition
+  // réelle du Tour et la rejette hors bornes, exactement comme la
+  // modification (D-058).
+  it("carries a real tour repeat count through creation, and rejects an out-of-range one", () => {
+    const accepted = validateCreateSessionInput({ ...validInput(), tourRepeatCount: 99 });
+    expect(accepted.ok).toBe(true);
+    if (accepted.ok) {
+      expect(accepted.value.tourRepeatCount).toBe(99);
+    }
+
+    const rejected = validateCreateSessionInput({ ...validInput(), tourRepeatCount: 100 });
+    expect(rejected).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "session.tourRepeatCount", details: { min: 1, max: 99 } },
+      ],
+    });
+  });
+
+  // T02-S01 (AC-01/AC-12) : les trois zones structurelles et les
+  // Récupérations traversent désormais le chemin de création sans perte —
+  // il ne produisait auparavant que des Exercices `IN_TOUR`.
+  it("carries each Activity's own type and structural position through creation, Recoveries included", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        { ...durationExercise(), name: "Échauffement", structuralPosition: "BEFORE_TOUR" as const },
+        durationExercise(),
+        {
+          type: "RECOVERY" as const,
+          structuralPosition: "AFTER_TOUR" as const,
+          name: "Récupération",
+          executionMode: null,
+          durationSeconds: 45,
+          repetitionCount: null,
+          seriesCount: null,
+          pauseSeconds: 0,
+          instruction: null,
+          bodyZoneIds: [],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(
+        result.value.exercises.map((exercise) => [exercise.type, exercise.structuralPosition]),
+      ).toEqual([
+        ["EXERCISE", "BEFORE_TOUR"],
+        ["EXERCISE", "IN_TOUR"],
+        ["RECOVERY", "AFTER_TOUR"],
+      ]);
+    }
+  });
+
+  it("rejects an unrecognized activity type or structural position at creation", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        {
+          ...durationExercise(),
+          type: "CIRCUIT" as never,
+          structuralPosition: "AROUND_TOUR" as never,
+        },
+      ],
+    });
+    expect(result).toEqual({
+      ok: false,
+      violations: [
+        { code: "UNRECOGNIZED", field: "activity.type" },
+        { code: "UNRECOGNIZED", field: "activity.structuralPosition" },
+      ],
+    });
+  });
+
+  it("keeps the draft identifier of an Activity when one is provided, and rejects duplicates", () => {
+    const kept = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [{ ...durationExercise(), id: "  act-1  " }],
+    });
+    expect(kept.ok).toBe(true);
+    if (kept.ok) {
+      expect(kept.value.exercises[0]?.id).toBe("act-1");
+    }
+
+    const duplicated = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        { ...durationExercise(), id: "act-1" },
+        { ...durationExercise(), id: "act-1", name: "Squats" },
+      ],
+    });
+    expect(duplicated.ok).toBe(false);
+    if (!duplicated.ok) {
+      expect(duplicated.violations).toEqual([{ code: "DUPLICATE", field: "activity.id" }]);
+    }
   });
 
   it("fails with exactly the two historical violations when exercises is empty (zero Activity remains invalid)", () => {
@@ -486,6 +590,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         color: "#000000" as never,
         initialCountdownSeconds: -1,
         finalPhaseSeconds: -1,
+        tourRepeatCount: 0,
         exercises: [
           { ...durationExercise(), name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
         ],
@@ -542,6 +647,8 @@ describe("validateExecutionMode (T01-S10, D-111)", () => {
 describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () => {
   function toFailureExercise() {
     return {
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
       name: "Tractions",
       executionMode: "TO_FAILURE" as const,
       durationSeconds: null,
@@ -559,6 +666,7 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
       color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
       exercises: [toFailureExercise()],
       categories: [],
     };

@@ -218,8 +218,15 @@ describe("toSessionDraft", () => {
         color: session.color,
         initialCountdownSeconds: session.initialCountdownSeconds,
         finalPhaseSeconds: session.finalPhaseSeconds,
+        // T02-S01 : la répétition du Tour, l'identifiant, le type et la zone
+        // structurelle de chaque Activité traversent désormais le chemin de
+        // création — ils étaient perdus au profit de littéraux fixes.
+        tourRepeatCount: 1,
         exercises: [
           {
+            id: "activity-1",
+            type: "EXERCISE",
+            structuralPosition: "IN_TOUR",
             name: "Gainage",
             executionMode: "DURATION",
             durationSeconds: 30,
@@ -403,8 +410,12 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
         color: DEFAULT_SESSION_COLOR,
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
+        tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
         exercises: [
           {
+            id: "ex-1",
+            type: DEFAULT_ACTIVITY_TYPE,
+            structuralPosition: DEFAULT_STRUCTURAL_POSITION,
             name: "Gainage",
             executionMode: "DURATION",
             durationSeconds: 30,
@@ -418,6 +429,66 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
         categories: [],
       },
     });
+  });
+
+  // T02-S01 (AC-01/AC-08/AC-12) : le chemin de création transporte les trois
+  // zones, les Récupérations et la répétition réelle du Tour — il produisait
+  // auparavant, quel que soit le brouillon, des Exercices `IN_TOUR` d'un Tour
+  // figé à `1`.
+  it("carries the three structural zones, a Recovery and the real tour repeat count through creation", () => {
+    const draft: SessionDraft = {
+      ...completeDraft(),
+      tourRepeatCount: 4,
+      exercises: [
+        {
+          ...createExerciseDraft("warmup"),
+          name: "Échauffement",
+          durationSeconds: 60,
+          structuralPosition: "BEFORE_TOUR",
+        },
+        {
+          ...createExerciseDraft("core"),
+          name: "Gainage",
+          durationSeconds: 30,
+          structuralPosition: "IN_TOUR",
+        },
+        {
+          ...createExerciseDraft("rec"),
+          name: "Récupération",
+          type: "RECOVERY",
+          durationSeconds: 45,
+          structuralPosition: "AFTER_TOUR",
+          bodyZoneIds: ["dos"],
+        },
+      ],
+    };
+
+    const result = toCreateSessionInput(draft);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tourRepeatCount).toBe(4);
+      expect(
+        result.value.exercises.map((exercise) => [
+          exercise.id,
+          exercise.type,
+          exercise.structuralPosition,
+        ]),
+      ).toEqual([
+        ["warmup", "EXERCISE", "BEFORE_TOUR"],
+        ["core", "EXERCISE", "IN_TOUR"],
+        ["rec", "RECOVERY", "AFTER_TOUR"],
+      ]);
+      // Une Récupération est toujours chronométrée et n'expose ni mode, ni
+      // Séries, ni pause, ni Zones corporelles (D-041).
+      expect(result.value.exercises[2]).toMatchObject({
+        executionMode: null,
+        durationSeconds: 45,
+        repetitionCount: null,
+        seriesCount: null,
+        pauseSeconds: 0,
+        bodyZoneIds: [],
+      });
+    }
   });
 
   it("persists ALL Activities of the collection, in order, without loss — supersedes the REWORK12-era 'first exercise only' limitation", () => {
@@ -574,7 +645,7 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
       expect(result.value.tourRepeatCount).toBe(3);
       expect(result.value.activities.map((activity) => activity.id)).toEqual(["keep-1", "keep-2"]);
       expect(result.value.activities.map((activity) => activity.position)).toEqual([0, 1]);
-      expect(result.value.activities.every((activity) => activity.structuralPosition === "IN_TOUR")).toBe(
+      expect(result.value.activities.every((activity) => activity.structuralPosition === "BEFORE_TOUR")).toBe(
         true,
       );
     }

@@ -400,10 +400,53 @@ function resolveDraftCategories(draft: SessionDraft): CreateSessionCategoryInput
 }
 
 /**
+ * Paramètres persistables d'un brouillon d'Activité, normalisés selon son
+ * type (T02-S01) — partagés par `toCreateSessionInput` et
+ * `toUpdateSessionInput`, qui appliquaient jusqu'ici cette normalisation
+ * séparément (et, pour la création, pas du tout : elle émettait toujours un
+ * Exercice, perdant toute Récupération du brouillon).
+ *
+ * Une Récupération (`type === "RECOVERY"`, D-041) est toujours chronométrée :
+ * elle est émise sans mode d'Exercice, sans Séries, sans pause et sans Zones
+ * corporelles — les valeurs par défaut d'Exercice que son brouillon conserve
+ * (`executionMode`/`seriesCount`, voir `SessionDraftExercise`) sont ignorées.
+ */
+function toDraftActivityParameters(exercise: SessionDraftExercise) {
+  if (exercise.type === "RECOVERY") {
+    return {
+      type: "RECOVERY" as const,
+      executionMode: null,
+      durationSeconds: exercise.durationSeconds,
+      repetitionCount: null,
+      seriesCount: null,
+      pauseSeconds: 0,
+      instruction: exercise.instruction,
+      bodyZoneIds: [] as readonly string[],
+    };
+  }
+  return {
+    type: "EXERCISE" as const,
+    executionMode: exercise.executionMode,
+    durationSeconds: exercise.durationSeconds,
+    repetitionCount: exercise.repetitionCount,
+    seriesCount: exercise.seriesCount,
+    pauseSeconds: exercise.pauseSeconds,
+    instruction: exercise.instruction,
+    bodyZoneIds: exercise.bodyZoneIds,
+  };
+}
+
+/**
  * Valide et convertit un brouillon vers un `CreateSessionInput` persistable
  * (T01-S09 : TOUTES les Activités de `draft.exercises`, dans l'ordre, et
  * toutes les Catégories actuellement SÉLECTIONNÉES — `draft.selectedCategoryIds`
  * — jamais une Catégorie personnalisée simplement créée puis désélectionnée).
+ *
+ * **T02-S01** : transporte désormais aussi l'identifiant de brouillon de
+ * chaque Activité, son type, sa position structurelle et la répétition réelle
+ * du Tour — une création comportant une Récupération, une Activité hors Tour
+ * ou un Tour ≠ `1` était jusqu'ici persistée comme un Exercice `IN_TOUR` d'un
+ * Tour figé à `1` (plan §5.1).
  *
  * Chaque identifiant sélectionné est résolu : s'il correspond à l'`id` d'une
  * entrée de `draft.categoryDrafts`, la Catégorie est une Catégorie
@@ -424,15 +467,12 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     color: draft.color,
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
+    tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     exercises: draft.exercises.map((exercise) => ({
+      id: exercise.id,
+      structuralPosition: exercise.structuralPosition,
       name: exercise.name,
-      executionMode: exercise.executionMode,
-      durationSeconds: exercise.durationSeconds,
-      repetitionCount: exercise.repetitionCount,
-      seriesCount: exercise.seriesCount,
-      pauseSeconds: exercise.pauseSeconds,
-      instruction: exercise.instruction,
-      bodyZoneIds: exercise.bodyZoneIds,
+      ...toDraftActivityParameters(exercise),
     })),
     categories: resolveDraftCategories(draft),
   });
@@ -468,36 +508,12 @@ export function toUpdateSessionInput(
     const position = positionByZone.get(zone) ?? 0;
     positionByZone.set(zone, position + 1);
 
-    if (exercise.type === "RECOVERY") {
-      return {
-        id: exercise.id,
-        type: "RECOVERY" as const,
-        structuralPosition: zone,
-        position,
-        name: exercise.name,
-        executionMode: null,
-        durationSeconds: exercise.durationSeconds,
-        repetitionCount: null,
-        seriesCount: null,
-        pauseSeconds: 0,
-        instruction: exercise.instruction,
-        bodyZoneIds: [],
-      };
-    }
-
     return {
       id: exercise.id,
-      type: "EXERCISE" as const,
       structuralPosition: zone,
       position,
       name: exercise.name,
-      executionMode: exercise.executionMode,
-      durationSeconds: exercise.durationSeconds,
-      repetitionCount: exercise.repetitionCount,
-      seriesCount: exercise.seriesCount,
-      pauseSeconds: exercise.pauseSeconds,
-      instruction: exercise.instruction,
-      bodyZoneIds: exercise.bodyZoneIds,
+      ...toDraftActivityParameters(exercise),
     };
   });
 

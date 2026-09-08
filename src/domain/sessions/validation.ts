@@ -13,8 +13,8 @@ import { validateCategoryName } from "@/domain/categories/validation";
 import {
   SESSION_COLORS,
   type ActivityType,
+  type CreateSessionActivityInput,
   type CreateSessionCategoryInput,
-  type CreateSessionExerciseInput,
   type CreateSessionInput,
   type ExerciseExecutionMode,
   type SessionColor,
@@ -309,62 +309,201 @@ function unwrap<T>(
 }
 
 /**
- * Valide une seule Activité d'un `CreateSessionInput.exercises` (T01-S09) :
- * nom, champ propre au mode d'exécution (durée XOR répétitions, RM-034),
- * nombre de Séries (D-092), pause après Série (`08` l.925) et Consigne.
- * `bodyZoneIds` n'est pas revalidée ici (référentiel `bodyZones.ts`, hors
- * Domaine Séance — voir la note de tête de `SessionDraft.toCreateSessionInput`
- * pour la justification complète) : elle est reprise telle quelle.
+ * Paramètres d'exécution d'une Activité, indépendamment de son identité et
+ * de sa place dans la structure — la seule partie réellement commune à la
+ * création (`CreateSessionActivityInput`) et à la modification
+ * (`UpdateSessionActivityInput`).
  */
-function validateSessionExerciseInput(
-  exercise: CreateSessionExerciseInput,
-): ValidationResult<CreateSessionExerciseInput> {
-  const violations: ValidationViolation[] = [];
-  const name = unwrap(validateExerciseName(exercise.name), violations);
-  const recognizedMode = unwrap(validateExecutionMode(exercise.executionMode), violations);
+type ActivityParameterInput = {
+  readonly executionMode: ExerciseExecutionMode | null;
+  readonly durationSeconds: number | null;
+  readonly repetitionCount: number | null;
+  readonly seriesCount: number | null;
+  readonly pauseSeconds: number;
+  readonly bodyZoneIds: readonly string[];
+};
 
+type ActivityParameterValues = {
+  readonly executionMode: ExerciseExecutionMode | null;
+  readonly durationSeconds: number | null;
+  readonly repetitionCount: number | null;
+  readonly seriesCount: number | null;
+  readonly pauseSeconds: number;
+  readonly bodyZoneIds: readonly string[];
+};
+
+/**
+ * Valide et normalise les paramètres d'exécution d'une Activité selon son
+ * type (T02-S01 — extraction commune : jusqu'ici la création et la
+ * modification portaient deux copies divergentes de ces mêmes règles, la
+ * copie de création ignorant purement et simplement les Récupérations).
+ *
+ * Un Exercice porte un mode (durée XOR répétitions XOR aucune cible,
+ * RM-034/D-111), un nombre de Séries (D-092), une pause après Série
+ * (`08` l.925) et ses Zones corporelles. Une Récupération (D-041) est
+ * toujours chronométrée et n'expose ni mode d'Exercice, ni Séries, ni pause,
+ * ni Zones.
+ *
+ * `bodyZoneIds` n'est jamais revalidée ici (référentiel `bodyZones.ts`, hors
+ * Domaine Séance — voir la note de tête de `SessionDraft.toCreateSessionInput`
+ * pour la justification complète) : elle est reprise telle quelle pour un
+ * Exercice, vidée pour une Récupération.
+ *
+ * `type` peut être `undefined` lorsque le type lui-même a déjà échoué à la
+ * validation : aucune règle de paramètre n'est alors applicable, et la
+ * violation `UNRECOGNIZED` déjà accumulée suffit.
+ */
+function validateActivityParameters(
+  type: ActivityType | undefined,
+  activity: ActivityParameterInput,
+  violations: ValidationViolation[],
+): ActivityParameterValues {
+  let executionMode: ExerciseExecutionMode | null = null;
   let durationSeconds: number | null = null;
   let repetitionCount: number | null = null;
-  if (recognizedMode === "DURATION") {
-    if (exercise.durationSeconds === null) {
+  let seriesCount: number | null = null;
+  let pauseSeconds = 0;
+  let bodyZoneIds: readonly string[] = [];
+
+  if (type === "RECOVERY") {
+    if (activity.executionMode !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.executionMode" });
+    }
+    if (activity.repetitionCount !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
+    }
+    if (activity.seriesCount !== null) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.seriesCount" });
+    }
+    if (activity.pauseSeconds !== 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
+    }
+    if (activity.bodyZoneIds.length > 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
+    }
+    if (activity.durationSeconds === null) {
+      violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
+    } else {
+      durationSeconds =
+        unwrap(validateRecoveryDurationSeconds(activity.durationSeconds), violations) ?? null;
+    }
+    return {
+      executionMode,
+      durationSeconds,
+      repetitionCount,
+      seriesCount,
+      pauseSeconds,
+      bodyZoneIds,
+    };
+  }
+
+  if (type !== "EXERCISE") {
+    return {
+      executionMode,
+      durationSeconds,
+      repetitionCount,
+      seriesCount,
+      pauseSeconds,
+      bodyZoneIds,
+    };
+  }
+
+  bodyZoneIds = activity.bodyZoneIds;
+  if (activity.executionMode === null) {
+    violations.push({ code: "REQUIRED", field: "exercise.executionMode" });
+  } else {
+    executionMode = unwrap(validateExecutionMode(activity.executionMode), violations) ?? null;
+  }
+
+  if (executionMode === "DURATION") {
+    if (activity.durationSeconds === null) {
       violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
     } else {
       durationSeconds =
-        unwrap(validateExerciseDurationSeconds(exercise.durationSeconds), violations) ?? null;
+        unwrap(validateExerciseDurationSeconds(activity.durationSeconds), violations) ?? null;
     }
-  } else if (recognizedMode === "REPETITIONS") {
-    if (exercise.repetitionCount === null) {
+  } else if (executionMode === "REPETITIONS") {
+    if (activity.repetitionCount === null) {
       violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
     } else {
-      repetitionCount = unwrap(validateRepetitionCount(exercise.repetitionCount), violations) ?? null;
+      repetitionCount =
+        unwrap(validateRepetitionCount(activity.repetitionCount), violations) ?? null;
     }
-  } else if (recognizedMode === "TO_FAILURE") {
+  } else if (executionMode === "TO_FAILURE") {
     // « À l'échec » (D-111) : aucune cible de durée ni de répétitions.
-    if (exercise.durationSeconds !== null) {
+    if (activity.durationSeconds !== null) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" });
     }
-    if (exercise.repetitionCount !== null) {
+    if (activity.repetitionCount !== null) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
     }
   }
 
-  const seriesCount = unwrap(validateSeriesCount(exercise.seriesCount), violations);
-  const pauseSeconds = unwrap(validatePauseSeconds(exercise.pauseSeconds), violations);
-  const instruction = unwrap(validateInstruction(exercise.instruction ?? null), violations);
+  if (activity.seriesCount === null) {
+    violations.push({ code: "REQUIRED", field: "exercise.seriesCount" });
+  } else {
+    seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
+  }
+  pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
+
+  return {
+    executionMode,
+    durationSeconds,
+    repetitionCount,
+    seriesCount,
+    pauseSeconds,
+    bodyZoneIds,
+  };
+}
+
+/**
+ * Valide une seule Activité d'un `CreateSessionInput.exercises` (T01-S09 ;
+ * T02-S01 : type, position structurelle et identifiant optionnel).
+ *
+ * Le champ de violation du NOM reste `exercise.name` (et non `activity.name`,
+ * employé par le chemin de modification) : c'est le champ historique de ce
+ * chemin, consommé tel quel par les appelants existants.
+ */
+function validateSessionActivityInput(
+  activity: CreateSessionActivityInput,
+): ValidationResult<CreateSessionActivityInput> {
+  const violations: ValidationViolation[] = [];
+  const name = unwrap(validateExerciseName(activity.name), violations);
+  const type = unwrap(validateActivityType(activity.type), violations);
+  const structuralPosition = unwrap(
+    validateStructuralPosition(activity.structuralPosition),
+    violations,
+  );
+
+  let id: string | undefined;
+  if (activity.id !== undefined) {
+    const trimmedId = activity.id.trim();
+    if (trimmedId.length === 0) {
+      violations.push({ code: "REQUIRED", field: "activity.id" });
+    } else {
+      id = trimmedId;
+    }
+  }
+
+  const instruction = unwrap(validateInstruction(activity.instruction ?? null), violations);
+  const parameters = validateActivityParameters(type, activity, violations);
 
   if (violations.length > 0) {
     return fail(violations);
   }
 
   return ok({
+    id,
+    type: type as ActivityType,
+    structuralPosition: structuralPosition as StructuralPosition,
     name: name as string,
-    executionMode: recognizedMode as ExerciseExecutionMode,
-    durationSeconds,
-    repetitionCount,
-    seriesCount: seriesCount as number,
-    pauseSeconds: pauseSeconds as number,
+    executionMode: parameters.executionMode,
+    durationSeconds: parameters.durationSeconds,
+    repetitionCount: parameters.repetitionCount,
+    seriesCount: parameters.seriesCount,
+    pauseSeconds: parameters.pauseSeconds,
     instruction: instruction === undefined ? null : instruction,
-    bodyZoneIds: exercise.bodyZoneIds,
+    bodyZoneIds: parameters.bodyZoneIds,
   });
 }
 
@@ -427,16 +566,26 @@ export function validateCreateSessionInput(
     validateFinalPhaseSeconds(input.finalPhaseSeconds),
     violations,
   );
+  const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
 
-  const exercises: CreateSessionExerciseInput[] = [];
+  const exercises: CreateSessionActivityInput[] = [];
   if (input.exercises.length === 0) {
     violations.push(
       { code: "REQUIRED", field: "exercise.name" },
       { code: "REQUIRED", field: "exercise.durationSeconds" },
     );
   } else {
+    const seenIds = new Set<string>();
     for (const exercise of input.exercises) {
-      const validated = validateSessionExerciseInput(exercise);
+      const key = exercise.id?.trim() ?? "";
+      if (key.length > 0) {
+        if (seenIds.has(key)) {
+          violations.push({ code: "DUPLICATE", field: "activity.id" });
+        } else {
+          seenIds.add(key);
+        }
+      }
+      const validated = validateSessionActivityInput(exercise);
       if (validated.ok) {
         exercises.push(validated.value);
       } else {
@@ -456,6 +605,7 @@ export function validateCreateSessionInput(
     color: color as SessionColor,
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
+    tourRepeatCount: tourRepeatCount as number,
     exercises,
     categories,
   });
@@ -483,7 +633,7 @@ function validateSessionCategoryInputs(
 /**
  * Valide et normalise une seule Activité d'un `UpdateSessionInput.activities`
  * (T01-S10). Un Exercice suit les mêmes règles de mode que
- * `validateSessionExerciseInput` (durée / répétitions / à l'échec) ; une
+ * `validateSessionActivityInput` (durée / répétitions / à l'échec) ; une
  * Récupération est toujours chronométrée (D-041) et n'expose ni mode
  * d'Exercice, ni Séries, ni pause, ni Zones corporelles.
  */
@@ -505,71 +655,10 @@ export function validateUpdateSessionActivityInput(
   const position = unwrap(validateActivityPosition(activity.position), violations);
   const instruction = unwrap(validateInstruction(activity.instruction ?? null), violations);
 
-  let executionMode: ExerciseExecutionMode | null = null;
-  let durationSeconds: number | null = null;
-  let repetitionCount: number | null = null;
-  let seriesCount: number | null = null;
-  let pauseSeconds = 0;
-  let bodyZoneIds: readonly string[] = [];
-
-  if (type === "RECOVERY") {
-    if (activity.executionMode !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.executionMode" });
-    }
-    if (activity.repetitionCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
-    }
-    if (activity.seriesCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.seriesCount" });
-    }
-    if (activity.pauseSeconds !== 0) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
-    }
-    if (activity.bodyZoneIds.length > 0) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
-    }
-    if (activity.durationSeconds === null) {
-      violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
-    } else {
-      durationSeconds =
-        unwrap(validateRecoveryDurationSeconds(activity.durationSeconds), violations) ?? null;
-    }
-  } else if (type === "EXERCISE") {
-    bodyZoneIds = activity.bodyZoneIds;
-    if (activity.executionMode === null) {
-      violations.push({ code: "REQUIRED", field: "exercise.executionMode" });
-    } else {
-      executionMode = unwrap(validateExecutionMode(activity.executionMode), violations) ?? null;
-    }
-    if (executionMode === "DURATION") {
-      if (activity.durationSeconds === null) {
-        violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
-      } else {
-        durationSeconds =
-          unwrap(validateExerciseDurationSeconds(activity.durationSeconds), violations) ?? null;
-      }
-    } else if (executionMode === "REPETITIONS") {
-      if (activity.repetitionCount === null) {
-        violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
-      } else {
-        repetitionCount =
-          unwrap(validateRepetitionCount(activity.repetitionCount), violations) ?? null;
-      }
-    } else if (executionMode === "TO_FAILURE") {
-      if (activity.durationSeconds !== null) {
-        violations.push({ code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" });
-      }
-      if (activity.repetitionCount !== null) {
-        violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
-      }
-    }
-    if (activity.seriesCount === null) {
-      violations.push({ code: "REQUIRED", field: "exercise.seriesCount" });
-    } else {
-      seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
-    }
-    pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
-  }
+  // T02-S01 : mêmes règles de paramètres que le chemin de création, une
+  // seule implémentation partagée (`validateActivityParameters`) — les deux
+  // copies précédentes ne pouvaient que diverger.
+  const parameters = validateActivityParameters(type, activity, violations);
 
   if (violations.length > 0) {
     return fail(violations);
@@ -581,13 +670,13 @@ export function validateUpdateSessionActivityInput(
     structuralPosition: structuralPosition as StructuralPosition,
     position: position as number,
     name: name as string,
-    executionMode,
-    durationSeconds,
-    repetitionCount,
-    seriesCount,
-    pauseSeconds,
+    executionMode: parameters.executionMode,
+    durationSeconds: parameters.durationSeconds,
+    repetitionCount: parameters.repetitionCount,
+    seriesCount: parameters.seriesCount,
+    pauseSeconds: parameters.pauseSeconds,
     instruction: instruction === undefined ? null : instruction,
-    bodyZoneIds,
+    bodyZoneIds: parameters.bodyZoneIds,
   });
 }
 

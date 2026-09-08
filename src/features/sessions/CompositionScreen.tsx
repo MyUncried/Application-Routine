@@ -1,5 +1,6 @@
+import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -9,18 +10,36 @@ import {
   Text,
   TextInput,
   View,
+  type GestureResponderEvent,
+  type LayoutChangeEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
-import { FIXED_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import type { StructuralPosition } from "@/domain/sessions/Session";
+import {
+  duplicateActivity,
+  groupActivitiesByZone,
+  moveActivity,
+  removeActivity,
+} from "@/domain/sessions/composition";
 import {
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
+  type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
+import {
+  classifyMovement,
+  isTap,
+  LONG_PRESS_DELAY_MS,
+  resolveDropTarget,
+  type ActivityRowLayout,
+  type CompositionDragLayout,
+} from "@/features/sessions/compositionGesture";
 import {
   formatCompositionSummary,
   formatDurationRowValue,
@@ -28,6 +47,7 @@ import {
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
@@ -36,7 +56,7 @@ import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared
 import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
-type OverlayKind = "color" | "countdown" | "finalPhase";
+type OverlayKind = "color" | "countdown" | "finalPhase" | "tour";
 
 export type CompositionScreenProps = {
   /**
@@ -129,6 +149,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
     useSessionDraft();
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
+  // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
+  // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
+  const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
+  const [draggedActivityId, setDraggedActivityId] = useState<string | null>(null);
+
+  // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
+  // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
+  // JAMAIS provoquer de rendu — la mesurer via un état re-déclencherait
+  // `onLayout` en boucle.
+  const zoneTopsRef = useRef<Partial<Record<StructuralPosition, number>>>({});
+  const rowLayoutsRef = useRef(new Map<string, { top: number; height: number }>());
+  const tourLayoutRef = useRef<{ top: number; height: number }>({ top: 0, height: 0 });
 
   // T01-S10 (CE-T01-S10-06) : en MODIFICATION, la garde de sortie compare le
   // brouillon à son état RÉHYDRATÉ (le dialogue d'abandon n'apparaît que si
@@ -149,6 +181,118 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   }, []);
 
   const composition = strings.screens.composition;
+
+  // T02-S01 (CE-T02-01) : la Composition restitue le brouillon réel dans
+  // l'ordre structurel — Compte à rebours ; Activités AVANT le Tour ; Tour et
+  // ses Activités ; Activités APRÈS le Tour ; Fin de séance.
+  const zones = groupActivitiesByZone(draft.exercises);
+  const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
+
+  const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
+    zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
+  }, []);
+
+  const handleRowLayout = useCallback((activityId: string, event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    rowLayoutsRef.current.set(activityId, { top: y, height });
+  }, []);
+
+  const handleTourLayout = useCallback((event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    tourLayoutRef.current = { top: y, height };
+  }, []);
+
+  /**
+   * Origine d'une liste de zone dans le repère du CONTENU DÉFILANT. Les
+   * listes `BEFORE_TOUR`/`AFTER_TOUR` sont des enfants directs de ce contenu
+   * — leur `y` mesuré est déjà absolu. La liste `IN_TOUR`, elle, est un
+   * enfant de la structure Tour (c'est le contrat : les Activités du Tour
+   * sont DANS le Tour) : son `y` est relatif à cette structure, dont il faut
+   * donc ajouter la propre origine.
+   */
+  const zoneBaseTop = useCallback((zone: StructuralPosition): number => {
+    const measured = zoneTopsRef.current[zone] ?? 0;
+    return zone === "IN_TOUR" ? tourLayoutRef.current.top + measured : measured;
+  }, []);
+
+  /**
+   * Géométrie absolue (repère du contenu défilant) de toutes les cartes et
+   * de la structure Tour — l'entrée de `resolveDropTarget`.
+   */
+  const buildDragLayout = useCallback((): CompositionDragLayout => {
+    const rows: ActivityRowLayout[] = [];
+    for (const activity of draft.exercises) {
+      const rowLayout = rowLayoutsRef.current.get(activity.id);
+      if (rowLayout === undefined) {
+        continue;
+      }
+      rows.push({
+        id: activity.id,
+        zone: activity.structuralPosition,
+        top: zoneBaseTop(activity.structuralPosition) + rowLayout.top,
+        height: rowLayout.height,
+      });
+    }
+    return {
+      tourTop: tourLayoutRef.current.top,
+      tourBottom: tourLayoutRef.current.top + tourLayoutRef.current.height,
+      rows,
+    };
+  }, [draft.exercises, zoneBaseTop]);
+
+  const activityAbsoluteCenterY = useCallback(
+    (activity: SessionDraftExercise): number => {
+      const rowLayout = rowLayoutsRef.current.get(activity.id);
+      if (rowLayout === undefined) {
+        return 0;
+      }
+      return zoneBaseTop(activity.structuralPosition) + rowLayout.top + rowLayout.height / 2;
+    },
+    [zoneBaseTop],
+  );
+
+  const handleDropActivity = useCallback(
+    (activity: SessionDraftExercise, translationY: number) => {
+      const target = resolveDropTarget(
+        buildDragLayout(),
+        activity.id,
+        activityAbsoluteCenterY(activity) + translationY,
+      );
+      const next = moveActivity(draft.exercises, activity.id, target.zone, target.index);
+      if (next !== draft.exercises) {
+        updateDraft({ exercises: next });
+      }
+    },
+    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, updateDraft],
+  );
+
+  // API-COM-06 : duplication et suppression restent des opérations de
+  // BROUILLON — aucune écriture persistante avant l'enregistrement final.
+  const handleDuplicateActivity = useCallback(
+    (activityId: string) => {
+      setRevealedActionsId(null);
+      updateDraft({
+        exercises: duplicateActivity(draft.exercises, activityId, Crypto.randomUUID()),
+      });
+    },
+    [draft.exercises, updateDraft],
+  );
+
+  const handleDeleteActivity = useCallback(
+    (activityId: string) => {
+      setRevealedActionsId(null);
+      rowLayoutsRef.current.delete(activityId);
+      updateDraft({ exercises: removeActivity(draft.exercises, activityId) });
+    },
+    [draft.exercises, updateDraft],
+  );
+
+  const handleEditActivity = useCallback(
+    (activityId: string) => {
+      router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
+    },
+    [router],
+  );
   // REWORK08-C (`[ChatGPT] CHANGES_REQUESTED — REWORK08 — roulette native +
   // synthèse Tour`, 2026-09-04, addendum précédemment `QUEUED_FOR_NEXT_
   // COMPOSITION_REWORK` désormais explicitement autorisé) : calculée UNE
@@ -164,7 +308,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // l'autre sélecteur n'actualise donc plus jamais `compositionSummary`,
   // par construction (ces deux champs du brouillon ne sont plus lus par
   // cette fonction).
-  const compositionSummary = formatCompositionSummary({ exercises: draft.exercises });
+  //
+  // T02-S01 (CE-T02-01 « Calculs ») : la durée développe désormais les
+  // répétitions du Tour — `tourRepeatCount` est donc transmis, et confirmer
+  // la roulette du Tour actualise immédiatement cette synthèse. Le NOMBRE
+  // affiché reste celui des Activités réellement composées, chacune une
+  // seule fois.
+  const compositionSummary = formatCompositionSummary({
+    exercises: draft.exercises,
+    tourRepeatCount,
+  });
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
   // une Composition valide — `toCreateSessionInput` est la même validation
@@ -172,7 +325,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // est nécessairement vide à ce stade du parcours, sans effet sur ce
   // résultat : D-106 n'exige jamais de Catégorie). Un brouillon invalide ne
   // peut donc jamais être poursuivi ni, a fortiori, persisté.
-  const isCompositionValid = toCreateSessionInput(draft).ok;
+  //
+  // **T02-S01 (CE-T02-01, clarification n° 6 du verdict de revue)** : il faut
+  // en outre qu'au moins un EXERCICE subsiste — « supprimer le dernier
+  // Exercice rend `Continuer` indisponible », même si des Récupérations
+  // subsistent. Une Récupération est une Activité structurellement valide
+  // pour le Domaine (D-041) : cette exigence est propre au parcours de
+  // Composition (CE-T01-04, « au moins un Exercice valide »), et reste donc
+  // exprimée ici plutôt qu'en durcissant une validation de persistance qui
+  // n'est pas ouverte par cette tranche.
+  const hasAtLeastOneExercise = draft.exercises.some((exercise) => exercise.type === "EXERCISE");
+  const isCompositionValid = hasAtLeastOneExercise && toCreateSessionInput(draft).ok;
 
   // T01-S10 (CE-T01-S10-01/02/09) : en MODIFICATION, la réhydratation d'une
   // Séance existante passe par des états intermédiaires. Le formulaire n'est
@@ -325,6 +488,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         style={styles.body}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
+        // T02-S01 (D-127/CE-T02-02) : pendant un déplacement de carte, le
+        // défilement est neutralisé — le geste vertical appartient alors
+        // exclusivement à la carte soulevée, jamais à la liste.
+        scrollEnabled={draggedActivityId === null}
         testID="composition-body"
       >
         <BoundaryActivityRow
@@ -336,57 +503,79 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
 
         {/*
-         * UI-COMP-003 : une fois créée, chaque Activité s'insère ICI — entre
-         * Compte à rebours initial et Tour, jamais après Tour par défaut.
+         * UI-COMP-003 : une nouvelle Activité s'insère ICI — entre Compte à
+         * rebours initial et Tour (`DEFAULT_STRUCTURAL_POSITION` =
+         * `BEFORE_TOUR` depuis T02-S01), jamais après Tour par défaut, puis
+         * peut être déplacée.
          *
-         * **Complétion REWORK12 (« Plusieurs activités et bouton
-         * persistant »)** : `draft.exercises` est désormais une collection
-         * ORDONNÉE (`SessionDraft.ts`) — chaque élément produit sa propre
-         * `BoundaryActivityRow`, dans l'ORDRE de la collection (celui-ci EST
-         * l'ordre d'affichage, aucun tri séparé). Presser une ligne ouvre
-         * `/exercise` avec son `exerciseId` (édition ciblée par
-         * identifiant) — jamais l'identifiant d'une autre Activité de la
-         * liste. Le déplacement réel reste hors périmètre de S08 (poignée
-         * indicative uniquement, COMP-01/S09).
+         * **T02-S01 (CE-T02-01, AC-01)** : les Activités ne forment plus une
+         * seule liste implicitement « dans le Tour » — elles sont réparties
+         * dans les TROIS zones structurelles réelles, dont deux encadrent la
+         * structure Tour et une lui est INTÉRIEURE. Chaque zone conserve le
+         * conteneur à écart réduit de la correction compacte LOT_3_OF_3
+         * (`exerciseList`, `gap: 8`, contre le `gap: 16` structurel de
+         * `bodyContent`) et sa règle : rendue uniquement si elle contient au
+         * moins une Activité, pour ne jamais ajouter un `gap` structurel à
+         * vide. Presser une carte ouvre `/exercise` avec son propre
+         * `exerciseId` (édition ciblée par identifiant) — jamais celui d'une
+         * autre Activité.
          */}
-        {/*
-         * **Correction compacte LOT_3_OF_3 — espacement Activité/Activité**
-         * : les Activités sont regroupées dans un conteneur dédié portant
-         * son PROPRE `gap` (`8`, `spacing/8`), au lieu d'hériter du `gap`
-         * uniforme de `bodyContent` (`16`). Seul l'écart entre DEUX cartes
-         * Activité consécutives est ainsi réduit : ce groupe reste un
-         * unique enfant de `bodyContent`, dont le `gap: 16` continue donc
-         * de séparer, INCHANGÉS, `Compte à rebours initial` → première
-         * Activité, dernière Activité → `Tour`, et `Tour` → `Fin de
-         * séance` (espacements structurels expressément à conserver) —
-         * jamais un `gap` global indistinct qui les aurait tous réduits.
-         *
-         * Rendu UNIQUEMENT s'il existe au moins une Activité : un conteneur
-         * vide resterait un enfant de `bodyContent` et ajouterait un second
-         * `gap: 16`, doublant à `32` l'écart `Compte à rebours` → `Tour`
-         * de l'état vide.
-         */}
-        {draft.exercises.length > 0 ? (
-          <View style={styles.exerciseList} testID="composition-exercise-list">
-            {draft.exercises.map((exercise) => (
-              <BoundaryActivityRow
-                key={exercise.id}
-                testID={`composition-exercise-row-${exercise.id}`}
-                icon={null}
-                label={exercise.name}
-                bodyZones={formatExerciseBodyZones(exercise.bodyZoneIds)}
-                value={formatExerciseRowSummary(exercise)}
-                isOpen={false}
-                onPress={() =>
-                  router.push({ pathname: "/exercise", params: { exerciseId: exercise.id } })
-                }
-                accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
-              />
-            ))}
-          </View>
-        ) : null}
+        <ActivityZoneList
+          zone="BEFORE_TOUR"
+          testID="composition-zone-before-tour"
+          activities={zones.beforeTour}
+          revealedActionsId={revealedActionsId}
+          draggedActivityId={draggedActivityId}
+          onLayout={handleZoneLayout}
+          onRowLayout={handleRowLayout}
+          onEdit={handleEditActivity}
+          onRevealActions={setRevealedActionsId}
+          onDragStart={setDraggedActivityId}
+          onDragEnd={handleDropActivity}
+          onDuplicate={handleDuplicateActivity}
+          onDelete={handleDeleteActivity}
+        />
 
-        <TourCard label={composition.tour.label} summary={compositionSummary} />
+        <TourCard
+          label={composition.tour.label}
+          summary={compositionSummary}
+          repeatCount={tourRepeatCount}
+          isOpen={openOverlay === "tour"}
+          onPress={() => toggleOverlay("tour")}
+          onLayout={handleTourLayout}
+        >
+          <ActivityZoneList
+            zone="IN_TOUR"
+            testID="composition-zone-in-tour"
+            activities={zones.inTour}
+            revealedActionsId={revealedActionsId}
+            draggedActivityId={draggedActivityId}
+            onLayout={handleZoneLayout}
+            onRowLayout={handleRowLayout}
+            onEdit={handleEditActivity}
+            onRevealActions={setRevealedActionsId}
+            onDragStart={setDraggedActivityId}
+            onDragEnd={handleDropActivity}
+            onDuplicate={handleDuplicateActivity}
+            onDelete={handleDeleteActivity}
+          />
+        </TourCard>
+
+        <ActivityZoneList
+          zone="AFTER_TOUR"
+          testID="composition-zone-after-tour"
+          activities={zones.afterTour}
+          revealedActionsId={revealedActionsId}
+          draggedActivityId={draggedActivityId}
+          onLayout={handleZoneLayout}
+          onRowLayout={handleRowLayout}
+          onEdit={handleEditActivity}
+          onRevealActions={setRevealedActionsId}
+          onDragStart={setDraggedActivityId}
+          onDragEnd={handleDropActivity}
+          onDuplicate={handleDuplicateActivity}
+          onDelete={handleDeleteActivity}
+        />
 
         <BoundaryActivityRow
           icon="composition-end-session"
@@ -488,6 +677,34 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       </WheelPickerOverlay>
 
+      {/*
+       * T02-S01 (CE-T02-01 « Nombre de Tours », AC-08/AC-09) : le contrôle
+       * `Nombre de tours` devient fonctionnel et ouvre `Picker / Popover —
+       * Source exact`, variante `Type=Numeric wheel` (`3210:49`) — la MÊME
+       * primitive `NumberWheelPicker` que Séries/Répétitions (roulette
+       * native iOS `@expo/ui/swift-ui`, `pickerStyle('wheel')`), dans le MÊME
+       * overlay centré au voile bloquant que les deux roulettes de durée. Ses
+       * bornes `1..99` sont celles du composant (`WHEEL_NUMBER_MIN`/
+       * `WHEEL_NUMBER_MAX`, D-058) : aucune valeur invalide n'est atteignable.
+       * `Annuler` ferme sans rien modifier ; `Confirmer` applique exactement
+       * la valeur centrée AU BROUILLON (jamais d'écriture persistante ici —
+       * la valeur n'est enregistrée qu'à l'enregistrement final).
+       */}
+      <WheelPickerOverlay visible={openOverlay === "tour"}>
+        <NumberWheelPicker
+          value={tourRepeatCount}
+          onValidate={(value) => {
+            updateDraft({ tourRepeatCount: value });
+            closeOverlay();
+          }}
+          onCancel={closeOverlay}
+          accessibilityLabel={composition.tour.valueAccessibilityLabel}
+          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+          testID="composition-tour-wheel-picker"
+        />
+      </WheelPickerOverlay>
+
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
     </ScreenShell>
   );
@@ -566,6 +783,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
  * titre affiché (nom réel de l'Activité) et dont les tests doivent pouvoir
  * cibler cette rangée précisément (les trois appels de ce composant
  * partagent sinon les mêmes `testID` internes, jamais uniques par défaut).
+ *
+ * **T02-S01** : ce composant ne sert plus qu'aux DEUX cartes structurelles
+ * fixes (`Compte à rebours initial`/`Fin de séance`) — non déplaçables, non
+ * duplicables, non supprimables et sans actions glissées (AC-05). Les cartes
+ * d'Activité sont désormais rendues par `CompositionActivityRow` ci-dessus,
+ * qui RÉUTILISE exactement la même anatomie (`limitCardBase`/`boundaryRow`,
+ * slot structure `28 × 28`, titre, ligne de Zones corporelles, synthèse) et
+ * y ajoute la seule chose qui les distingue : la gestuelle. `icon`,
+ * `bodyZones`, `accessibilityLabel` et `testID` restent des props du contrat
+ * public de ce composant, désormais non employées par ses deux seuls
+ * appelants.
  */
 function BoundaryActivityRow({
   icon,
@@ -645,6 +873,383 @@ function BoundaryActivityRow({
         </View>
       ) : null}
     </Pressable>
+  );
+}
+
+type ActivityZoneListProps = {
+  readonly zone: StructuralPosition;
+  readonly testID: string;
+  readonly activities: readonly SessionDraftExercise[];
+  readonly revealedActionsId: string | null;
+  readonly draggedActivityId: string | null;
+  readonly onLayout: (zone: StructuralPosition, event: LayoutChangeEvent) => void;
+  readonly onRowLayout: (activityId: string, event: LayoutChangeEvent) => void;
+  readonly onEdit: (activityId: string) => void;
+  readonly onRevealActions: (activityId: string | null) => void;
+  readonly onDragStart: (activityId: string | null) => void;
+  readonly onDragEnd: (activity: SessionDraftExercise, translationY: number) => void;
+  readonly onDuplicate: (activityId: string) => void;
+  readonly onDelete: (activityId: string) => void;
+};
+
+/**
+ * Liste des Activités d'UNE zone structurelle (T02-S01, CE-T02-01).
+ *
+ * Conserve exactement le conteneur à écart réduit de la correction compacte
+ * LOT_3_OF_3 (`exerciseList`, `gap: 8`) et sa règle : rendu UNIQUEMENT s'il
+ * existe au moins une Activité — un conteneur vide resterait un enfant du
+ * contenu défilant et ajouterait un second `gap: 16` structurel. La règle
+ * est désormais appliquée zone par zone ; une zone vide reste néanmoins une
+ * destination de dépose valide, la résolution ne dépendant pas de la hauteur
+ * des listes mais de la position de la structure Tour (`compositionGesture
+ * .ts`).
+ */
+function ActivityZoneList({
+  zone,
+  testID,
+  activities,
+  revealedActionsId,
+  draggedActivityId,
+  onLayout,
+  onRowLayout,
+  onEdit,
+  onRevealActions,
+  onDragStart,
+  onDragEnd,
+  onDuplicate,
+  onDelete,
+}: ActivityZoneListProps) {
+  if (activities.length === 0) {
+    return null;
+  }
+  return (
+    <View
+      style={styles.exerciseList}
+      onLayout={(event) => onLayout(zone, event)}
+      testID={testID}
+    >
+      {activities.map((activity) => (
+        <CompositionActivityRow
+          key={activity.id}
+          activity={activity}
+          areActionsRevealed={revealedActionsId === activity.id}
+          isDragged={draggedActivityId === activity.id}
+          onLayout={(event) => onRowLayout(activity.id, event)}
+          onEdit={() => onEdit(activity.id)}
+          onRevealActions={() => onRevealActions(activity.id)}
+          onHideActions={() => onRevealActions(null)}
+          onDragStart={() => onDragStart(activity.id)}
+          onDragCancel={() => onDragStart(null)}
+          onDragEnd={(translationY) => {
+            onDragStart(null);
+            onDragEnd(activity, translationY);
+          }}
+          onDuplicate={() => onDuplicate(activity.id)}
+          onDelete={() => onDelete(activity.id)}
+        />
+      ))}
+    </View>
+  );
+}
+
+type CompositionActivityRowProps = {
+  readonly activity: SessionDraftExercise;
+  readonly areActionsRevealed: boolean;
+  readonly isDragged: boolean;
+  readonly onLayout: (event: LayoutChangeEvent) => void;
+  readonly onEdit: () => void;
+  readonly onRevealActions: () => void;
+  readonly onHideActions: () => void;
+  readonly onDragStart: () => void;
+  readonly onDragCancel: () => void;
+  readonly onDragEnd: (translationY: number) => void;
+  readonly onDuplicate: () => void;
+  readonly onDelete: () => void;
+};
+
+/**
+ * `Composition / Activity Row` (`2588:2679`, D-128) et ses deux états T02 —
+ * actions glissées (`2028:11808`) et carte soulevée (`3518:4621`, D-129).
+ *
+ * **Gestes (CE-T02-01/CE-T02-02, D-127)** — quatre états mutuellement
+ * exclusifs, arbitrés par un UNIQUE reconnaisseur :
+ *
+ * | Geste | Résultat |
+ * | --- | --- |
+ * | Appui court | Ouvre l'Activité en modification. |
+ * | Appui long sur TOUTE la carte | Engage la réorganisation, sans ouvrir la modification. |
+ * | Déplacement après appui long | Change l'ordre dans la zone, ou de zone. |
+ * | Glissement gauche | Révèle `Dupliquer` et `Supprimer`. |
+ *
+ * **Répartition des primitives natives** (`.github/AI_ORCHESTRATION.md`,
+ * « Priorité aux primitives natives de l'OS ») :
+ *
+ * - l'appui court et l'appui long sont ceux de `Pressable` — la primitive
+ *   d'appui de React Native, avec son `delayLongPress`, son annulation
+ *   automatique dès qu'un autre responder prend la main, et son rôle
+ *   d'accessibilité ; `Pressable` n'appelle JAMAIS `onPress` après un
+ *   `onLongPress`, d'où l'exclusivité exigée par AC-02 par construction
+ *   plutôt que par un verrou maison ;
+ * - le glissement gauche et le déplacement vertical sont arbitrés par le
+ *   *responder system* natif du conteneur, en phase de CAPTURE
+ *   (`onMoveShouldSetResponderCapture`) : capter en capture annule l'appui
+ *   du `Pressable` interne, ce qui garantit qu'un glissement n'ouvre jamais
+ *   la modification.
+ *
+ * Ni `react-native-gesture-handler` ni `react-native-reanimated` ne sont
+ * employés — présents dans `package.json`, ils n'ont aucune intégration
+ * racine, Babel ni Jest dans ce projet ; les activer élargirait le périmètre
+ * sans besoin démontré (plan §8, décision validée). Les seuils et la
+ * résolution de dépose vivent dans `compositionGesture.ts`, module pur et
+ * testable ; ce composant ne fait que les brancher.
+ *
+ * **Cohabitation avec le défilement** : le conteneur ne capte un mouvement
+ * VERTICAL que lorsqu'un déplacement est déjà engagé par appui long ; tout
+ * autre geste vertical reste au `ScrollView` parent, qui continue donc de
+ * défiler normalement. Réciproquement, `onResponderTerminationRequest`
+ * renvoie `false` pendant un déplacement engagé, et l'écran neutralise le
+ * défilement (`scrollEnabled={false}`) tant qu'une carte est soulevée.
+ *
+ * **`onTouchStart`/`onTouchEnd`** sont dispatchés indépendamment du
+ * responder : ils bornent le geste de façon fiable, que le porteur du
+ * responder soit le `Pressable`, le conteneur ou le `ScrollView`.
+ *
+ * **Poignée (AC-03)** : `Icon / Structure / Movable` (`3066:4676`) reste
+ * affichée dans son slot `28 × 28` comme AFFORDANCE — elle n'est pas une
+ * cible tactile propre : le reconnaisseur couvre toute la carte.
+ *
+ * **Actions glissées (D-128)** : le groupe `144 × 69` est SUPERPOSÉ à la
+ * partie droite de la carte, qui ne se déplace pas (`position: "absolute"`,
+ * jamais une translation de la carte).
+ */
+function CompositionActivityRow({
+  activity,
+  areActionsRevealed,
+  isDragged,
+  onLayout,
+  onEdit,
+  onRevealActions,
+  onHideActions,
+  onDragStart,
+  onDragCancel,
+  onDragEnd,
+  onDuplicate,
+  onDelete,
+}: CompositionActivityRowProps) {
+  const composition = strings.screens.composition;
+  const originRef = useRef<{ x: number; y: number } | null>(null);
+  const translationYRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  /**
+   * Décalage vertical visuel de la carte soulevée, pour qu'elle SUIVE le
+   * doigt pendant le déplacement (CE-T02-02, « état transitoire avant et
+   * pendant le déplacement »). État LOCAL à la carte : seule celle-ci se
+   * re-rend au fil du geste — jamais l'écran entier, dont dépendraient
+   * sinon toutes les autres cartes, la structure Tour et la synthèse.
+   */
+  const [dragTranslationY, setDragTranslationY] = useState(0);
+
+  /**
+   * Enregistre l'origine du toucher. `onTouchStart` (et son pendant
+   * `onTouchEnd`) est dispatché indépendamment du responder system : il
+   * reste donc reçu que le geste finisse en appui, en glissement ou en
+   * déplacement, sans avoir à revendiquer le responder par anticipation —
+   * ce qui priverait le `Pressable` interne de ses appuis.
+   */
+  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
+    originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
+    translationYRef.current = 0;
+  }, []);
+
+  const trackMovement = useCallback((event: GestureResponderEvent) => {
+    const start = originRef.current;
+    if (start === null) {
+      return { dx: 0, dy: 0 };
+    }
+    const dx = event.nativeEvent.pageX - start.x;
+    const dy = event.nativeEvent.pageY - start.y;
+    translationYRef.current = dy;
+    return { dx, dy };
+  }, []);
+
+  /**
+   * Arbitrage du geste, en phase de CAPTURE — donc avant le `Pressable`
+   * interne, dont l'appui est alors annulé (`onPress` ne se déclenche
+   * jamais) :
+   *
+   * - un déplacement déjà engagé par appui long capte tout mouvement ;
+   * - un glissement franchement horizontal vers la gauche est capté pour
+   *   révéler les actions ;
+   * - tout le reste est laissé au `Pressable` (appui court/long) et, pour un
+   *   geste vertical, au `ScrollView` parent, qui reste seul maître du
+   *   défilement de la liste.
+   */
+  const handleMoveShouldSetResponderCapture = useCallback(
+    (event: GestureResponderEvent) => {
+      const { dx, dy } = trackMovement(event);
+      if (isDraggingRef.current) {
+        return true;
+      }
+      if (isTap(dx, dy)) {
+        return false;
+      }
+      if (classifyMovement(dx, dy) !== "SWIPE_LEFT") {
+        return false;
+      }
+      // Révélé dès la décision de capture : le mouvement qui la déclenche ne
+      // produit pas de `onResponderMove` (le responder vient seulement de
+      // changer), et l'utilisateur verrait sinon les actions apparaître un
+      // événement trop tard.
+      onRevealActions();
+      return true;
+    },
+    [onRevealActions, trackMovement],
+  );
+
+  const handleResponderMove = useCallback(
+    (event: GestureResponderEvent) => {
+      const { dx, dy } = trackMovement(event);
+      if (isDraggingRef.current) {
+        setDragTranslationY(dy);
+        return;
+      }
+      if (classifyMovement(dx, dy) === "SWIPE_LEFT") {
+        onRevealActions();
+      }
+    },
+    [onRevealActions, trackMovement],
+  );
+
+  /**
+   * Fin du toucher — reçue quel que soit le porteur du responder. Une dépose
+   * après appui long applique le déplacement ; tout autre relâchement laisse
+   * le brouillon rigoureusement inchangé (CE-T02-02 : « l'entrée dans cet
+   * état ne persiste rien »).
+   */
+  const handleTouchEnd = useCallback(() => {
+    originRef.current = null;
+    setDragTranslationY(0);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      onDragEnd(translationYRef.current);
+    }
+  }, [onDragEnd]);
+
+  const handleResponderTerminate = useCallback(() => {
+    originRef.current = null;
+    setDragTranslationY(0);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      // Geste interrompu sans dépose : aucun changement d'ordre (CE-T02-02).
+      onDragCancel();
+    }
+  }, [onDragCancel]);
+
+  /**
+   * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
+   * ses actions glissées sont révélées, auquel cas il les referme d'abord.
+   * `Pressable` n'appelle jamais `onPress` après un `onLongPress` : un appui
+   * long n'ouvre donc structurellement jamais la modification (AC-02).
+   */
+  const handlePress = useCallback(() => {
+    if (areActionsRevealed) {
+      onHideActions();
+      return;
+    }
+    onEdit();
+  }, [areActionsRevealed, onEdit, onHideActions]);
+
+  /** Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. */
+  const handleLongPress = useCallback(() => {
+    isDraggingRef.current = true;
+    onDragStart();
+  }, [onDragStart]);
+
+  const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds);
+
+  return (
+    <View
+      style={[styles.activityRowContainer, isDragged ? styles.activityRowContainerDragged : null]}
+      onLayout={onLayout}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleResponderTerminate}
+      onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
+      onResponderMove={handleResponderMove}
+      onResponderTerminate={handleResponderTerminate}
+      onResponderTerminationRequest={() => !isDraggingRef.current}
+      testID={`composition-activity-${activity.id}`}
+    >
+      <Pressable
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        delayLongPress={LONG_PRESS_DELAY_MS}
+        accessibilityRole="button"
+        accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
+        accessibilityHint={composition.activityActions.reorderAccessibilityHint}
+        accessibilityState={{ selected: isDragged }}
+        style={[
+          styles.limitCardBase,
+          styles.boundaryRow,
+          isDragged ? styles.activityRowDragged : null,
+          // La carte soulevée suit le doigt ; au repos, aucune transformation
+          // n'est appliquée (le tableau de styles reste alors strictement
+          // celui des cartes limites).
+          isDragged ? { transform: [{ translateY: dragTranslationY }] } : null,
+        ]}
+        testID={`composition-exercise-row-${activity.id}`}
+      >
+        <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
+          <KodjoIcon name="composition-reorder" testID="composition-boundary-handle-icon" />
+        </View>
+        <View style={styles.boundaryRowTitleSlot}>
+          <Text style={styles.rowLabel} numberOfLines={1}>
+            {activity.name}
+          </Text>
+          {bodyZones !== null ? (
+            <Text
+              style={styles.boundaryRowSecondaryLine}
+              numberOfLines={1}
+              testID="composition-exercise-body-zones"
+            >
+              {bodyZones}
+            </Text>
+          ) : null}
+          <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
+            {formatExerciseRowSummary(activity)}
+          </Text>
+        </View>
+      </Pressable>
+
+      {areActionsRevealed ? (
+        <View
+          style={styles.activityRowActions}
+          accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
+          testID={`composition-activity-actions-${activity.id}`}
+        >
+          <Pressable
+            onPress={onDuplicate}
+            accessibilityRole="button"
+            accessibilityLabel={composition.activityActions.duplicate}
+            style={[styles.activityRowAction, styles.activityRowDuplicateAction]}
+            testID={`composition-activity-duplicate-${activity.id}`}
+          >
+            <Text style={styles.activityRowDuplicateLabel}>
+              {composition.activityActions.duplicate}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            accessibilityRole="button"
+            accessibilityLabel={composition.activityActions.delete}
+            style={[styles.activityRowAction, styles.activityRowDeleteAction]}
+            testID={`composition-activity-delete-${activity.id}`}
+          >
+            <Text style={styles.activityRowDeleteLabel}>{composition.activityActions.delete}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -759,16 +1364,28 @@ function BoundaryActivityRow({
  *   séance`, réutilisé tel quel, jamais dupliqué). Structure extérieure
  *   bleue et contrôle blanc/violet du nombre de tours : non touchés.
  */
-function TourCard({ label, summary }: { label: string; summary: string }) {
+function TourCard({
+  label,
+  summary,
+  repeatCount,
+  isOpen,
+  onPress,
+  onLayout,
+  children,
+}: {
+  label: string;
+  summary: string;
+  /** T02-S01 : valeur CONFIRMÉE du brouillon (`1..99`, D-058) — jamais un littéral figé. */
+  repeatCount: number;
+  isOpen: boolean;
+  onPress: () => void;
+  onLayout: (event: LayoutChangeEvent) => void;
+  /** T02-S01 (CE-T02-01) : les Activités `IN_TOUR` sont rendues DANS la structure Tour. */
+  children?: ReactNode;
+}) {
   return (
-    <View style={styles.tourSectionContainer} testID="composition-tour-section">
-      <View
-        style={styles.tourHeader}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityState={{ disabled: true }}
-        testID="composition-tour-card"
-      >
+    <View style={styles.tourSectionContainer} onLayout={onLayout} testID="composition-tour-section">
+      <View style={styles.tourHeader} testID="composition-tour-card">
         <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
           <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
         </View>
@@ -791,18 +1408,39 @@ function TourCard({ label, summary }: { label: string; summary: string }) {
             {summary}
           </Text>
         </View>
-        <View style={styles.tourCardControl} testID="composition-tour-control">
-          <Text style={styles.tourCardControlValue}>{FIXED_TOUR_REPEAT_COUNT}</Text>
-          <View style={styles.tourCardControlChevronBox} testID="composition-tour-control-chevron-box">
-            <KodjoIcon
-              name="control-chevron-down"
-              testID="composition-tour-control-chevron"
-              tintColor={colors.background}
-              size={12}
-            />
-          </View>
-        </View>
+        {/*
+         * **T02-S01 (D-130/CE-T02-01/CE-T02-02)** — le contrôle devient
+         * FONCTIONNEL et sa géométrie canonique est publiée : `66 × 34`,
+         * valeur numérique SEULE (jamais `x` ni `×`), bord droit aligné sur
+         * celui des cartes, et **aucun chevron de repli**.
+         *
+         * Ceci révise explicitement `T-04a/b/c`/`T-05` (REWORK06) — cadre
+         * `78 × 44` contenant la valeur ET un carré violet dédié au chevron —
+         * qui datait d'avant la publication de D-130 : la décision
+         * canonique postérieure supprime le chevron et fixe la géométrie ; ce
+         * n'est pas un abandon silencieux d'un acquis, mais l'application
+         * d'une décision `Validée post-Figma` qui porte précisément sur ce
+         * contrôle. Le fond blanc du cadre et son alignement à droite,
+         * eux, sont conservés.
+         *
+         * `accessibilityState.disabled` disparaît : le contrôle n'est plus
+         * inerte, il ouvre la roulette `1..99`.
+         */}
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityValue={{ text: String(repeatCount) }}
+          accessibilityState={{ disabled: false, expanded: isOpen }}
+          style={styles.tourCardControl}
+          testID="composition-tour-control"
+        >
+          <Text style={styles.tourCardControlValue} testID="composition-tour-control-value">
+            {repeatCount}
+          </Text>
+        </Pressable>
       </View>
+      {children}
     </View>
   );
 }
@@ -1026,6 +1664,83 @@ const styles = StyleSheet.create({
   exerciseList: {
     gap: spacing[8],
   },
+  // T02-S01 : conteneur de position d'une carte d'Activité — support du
+  // groupe d'actions glissées, SUPERPOSÉ à la partie droite de la carte
+  // (`position: "absolute"`, D-128) plutôt qu'obtenu en translatant la
+  // carte, qui « ne se déplace pas » lors du glissement.
+  activityRowContainer: {
+    position: "relative",
+  },
+  // La carte soulevée passe au-dessus de ses voisines pendant le
+  // déplacement — porté par le CONTENEUR (les cartes sont dans des
+  // conteneurs frères : un `zIndex` sur la carte seule n'ordonnerait rien
+  // au-delà du sien).
+  activityRowContainerDragged: {
+    zIndex: 1,
+  },
+  // D-129/CE-T02-02 : état soulevé — `362 × 71` (contre `354 × 69` au
+  // repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau supérieur,
+  // contour `1` point `#D1D1D6`, rayon `8`, ombre périphérique `#14171F` à
+  // `22 %` (`0 / 0`, flou `10`, étalement `2`).
+  //
+  // L'agrandissement est exprimé en ÉCART (marges négatives et surcroît de
+  // padding vertical), jamais en largeur absolue : la carte au repos occupe
+  // la largeur utile réelle de l'écran, pas une constante de canevas.
+  activityRowDragged: {
+    marginHorizontal: -dimensions.compositionActivityRow.widthDelta / 2,
+    paddingVertical: spacing[12] + dimensions.compositionActivityRow.heightDelta / 2,
+    backgroundColor: colors.exerciseContextBandBackground,
+    borderColor: colors.compositionDraggedCardBorder,
+    borderRadius: dimensions.compositionActivityRow.draggedRadius,
+    shadowColor: colors.compositionDraggedCardShadow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: dimensions.compositionActivityRow.draggedShadowOpacity,
+    shadowRadius: dimensions.compositionActivityRow.draggedShadowRadius,
+    elevation: dimensions.compositionActivityRow.draggedElevation,
+  },
+  // D-128 : groupe `144 × 69` superposé à droite, deux actions `72 × 69`
+  // aux libellés centrés horizontalement et verticalement. Les coins droits
+  // suivent le rayon de la carte qu'il recouvre (`limitCardBase`), jamais un
+  // rayon local inventé.
+  activityRowActions: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: dimensions.compositionSwipeActions.groupWidth,
+    flexDirection: "row",
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    overflow: "hidden",
+  },
+  activityRowAction: {
+    width: dimensions.compositionSwipeActions.actionWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // NON VÉRIFIÉ sur Figma (`2028:11808`) : l'accès MCP Figma n'était pas
+  // disponible dans la session de cette tranche — voir le rapport de
+  // mission. Seules des valeurs DÉJÀ CANONIQUES du DSF sont employées ici
+  // (`colors.surface`/`textPrimary` pour l'action neutre,
+  // `colors.danger`/`background` pour l'action destructive, `type.button`
+  // pour les deux libellés) : aucune couleur ni typographie locale n'est
+  // introduite. La conformité chromatique exacte au nœud reste à valider.
+  activityRowDuplicateAction: {
+    backgroundColor: colors.surface,
+  },
+  activityRowDuplicateLabel: {
+    ...type.button,
+    color: colors.textPrimary,
+    textAlign: "center",
+  },
+  activityRowDeleteAction: {
+    backgroundColor: colors.danger,
+  },
+  activityRowDeleteLabel: {
+    ...type.button,
+    color: colors.background,
+    textAlign: "center",
+  },
   // R4-03 (`KODJO / Card / Supporting`, `11/14`) : auparavant
   // `type.supporting` (`12/16`), non conforme au style DSF partagé.
   boundaryRowSecondaryLine: {
@@ -1044,6 +1759,10 @@ const styles = StyleSheet.create({
   // rayon, padding vertical, hauteur minimale) — relocalisés depuis
   // l'ancien style `tourCard` (voir `tourHeader` ci-dessous), qui ne
   // portait pas encore la bonne largeur (`374`) pour cette surface.
+  // T02-S01 : la structure Tour héberge désormais AUSSI les Activités
+  // `IN_TOUR` (CE-T02-01) — `gap` sépare son en-tête technique de cette
+  // liste, sans effet lorsque la zone est vide (le conteneur n'a alors qu'un
+  // seul enfant). Largeur, fond, rayon et hauteur minimale sont inchangés.
   tourSectionContainer: {
     marginHorizontal: -dimensions.compositionTourSection.inset,
     paddingHorizontal: dimensions.compositionTourSection.inset,
@@ -1051,6 +1770,7 @@ const styles = StyleSheet.create({
     borderRadius: dimensions.compositionTourSection.radius,
     backgroundColor: colors.tourSurface,
     minHeight: dimensions.compositionTourSection.closedHeight,
+    gap: spacing[12],
   },
   // En-tête technique intérieur de `TourCard`, voir la documentation
   // REWORK07B ci-dessus pour la justification complète : simple rangée de
@@ -1096,37 +1816,28 @@ const styles = StyleSheet.create({
   // égale cette même marge à droite du carré, comme demandé (« marges
   // visibles identiques en haut, en bas et à droite »). Largeur portée de
   // `66` à `78` pour dégager l'espace nécessaire au centrage du chiffre.
+  // T02-S01 (D-130) : `66 × 34`, fond blanc, rayon inchangé, valeur seule et
+  // centrée — le carré violet du chevron (`tourCardControlChevronBox`,
+  // REWORK06/T-04c) est supprimé avec son style plutôt que laissé mort,
+  // D-130 posant explicitement que « le chevron historique de repli n'est
+  // pas affiché ». Le bord droit reste aligné sur celui des cartes par
+  // construction (dernier enfant de `tourHeader`, dont le padding horizontal
+  // est celui de la structure Tour).
   tourCardControl: {
-    flexDirection: "row",
     alignItems: "center",
-    width: 78,
-    height: 44,
-    paddingLeft: spacing[8],
-    paddingRight: spacing[8],
+    justifyContent: "center",
+    width: dimensions.compositionTourControl.width,
+    height: dimensions.compositionTourControl.height,
     backgroundColor: colors.background,
-    borderRadius: 10,
+    borderRadius: dimensions.compositionTourControl.radius,
   },
-  // REWORK06 : `1` centré horizontalement (`flex: 1` + `textAlign:
-  // "center"`, occupe tout l'espace entre le padding gauche et le carré
-  // violet — auparavant hors flex, aligné au bord gauche du cadre par
-  // `justifyContent: "space-between"`) et verticalement (centrage flex par
-  // `tourCardControl.alignItems: "center"`, hérité). Style porté de
-  // `type.label` (`14/18` Medium) à `type.cardTitle` (`16/20` Semi Bold) —
-  // « en gras et plus grand ».
+  // Valeur numérique seule, centrée horizontalement et verticalement, en
+  // `type.cardTitle` (`16/20` Semi Bold — graisse et taille conservées de
+  // REWORK06).
   tourCardControlValue: {
     ...type.cardTitle,
     color: colors.textPrimary,
-    flex: 1,
     textAlign: "center",
-  },
-  // Carré violet dédié, ne contenant QUE le chevron blanc (T-04c).
-  tourCardControlChevronBox: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.selection,
-    borderRadius: 8,
   },
   // R4-03 (cycle REWORK04) : `type.compactCardTitle` (`14/18` Semi Bold),
   // auparavant `type.body` (`14/20` Regular). REWORK06 (addendum « titres

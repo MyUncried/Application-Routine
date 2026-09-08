@@ -140,21 +140,57 @@ export type Session = {
   categories: readonly Category[];
 };
 
-export type CreateSessionExerciseInput = {
-  name: string;
+/**
+ * Une Activité d'un agrégat de CRÉATION (T02-S01 — complétion du chemin de
+ * création, plan §5.1/§10.3).
+ *
+ * Jusqu'à T01-S10 inclus, ce DTO ne portait ni type, ni position
+ * structurelle, ni identifiant : `SqliteSessionRepository.create()` insérait
+ * des littéraux fixes (`'EXERCISE'`, `FIXED_ACTIVITY_STRUCTURAL_POSITION`),
+ * de sorte qu'une création comportant une Récupération, une Activité
+ * `BEFORE_TOUR`/`AFTER_TOUR` ou un Tour ≠ `1` perdait silencieusement cette
+ * information. Ces trois champs sont donc désormais transportés.
+ *
+ * `id` reste OPTIONNEL et n'est jamais requis : il permet au brouillon de
+ * conserver l'identifiant d'Activité qu'il porte déjà (`SessionDraftExercise
+ * .id`, un `Crypto.randomUUID()`), le Repository en générant un lorsqu'il
+ * est absent — un appelant qui n'en a pas (test, contrôle d'intégration)
+ * reste donc valide sans en inventer un.
+ *
+ * `position` n'en fait volontairement PAS partie : le rang d'une Activité
+ * dans sa zone est DÉRIVÉ de l'ordre de la collection au moment de
+ * l'insertion (comme il l'était déjà), jamais une donnée d'entrée à tenir
+ * cohérente avec cet ordre — même politique que `mergeActivities`, qui
+ * recalcule lui aussi les positions par zone plutôt que de recopier le champ
+ * `position` de `UpdateSessionActivityInput`.
+ *
+ * Récupération (`type === "RECOVERY"`, D-041) : `executionMode` et
+ * `seriesCount` valent `null`, `durationSeconds` est renseigné,
+ * `repetitionCount` vaut `null`, `pauseSeconds` vaut `0`, `bodyZoneIds` est
+ * vide — mêmes règles que `UpdateSessionActivityInput`, une seule
+ * implémentation de validation partagée (`validation.ts`).
+ */
+export type CreateSessionActivityInput = {
+  readonly id?: string;
+  readonly type: ActivityType;
+  readonly structuralPosition: StructuralPosition;
+  readonly name: string;
   /**
-   * T01-S10 : `TO_FAILURE` accepté en plus de `DURATION`/`REPETITIONS`. Le
-   * parcours de création T01-S09 ne le produit pas encore (écran Activité),
-   * mais la validation Domaine le reconnaît déjà (aucune cible attendue).
+   * T01-S10 : `TO_FAILURE` accepté en plus de `DURATION`/`REPETITIONS`.
+   * T02-S01 : `null` pour une Récupération (D-041).
    */
-  executionMode: ExerciseExecutionMode;
-  durationSeconds: number | null;
-  repetitionCount: number | null;
-  seriesCount: number;
-  pauseSeconds: number;
-  instruction?: string | null;
-  bodyZoneIds: readonly string[];
+  readonly executionMode: ExerciseExecutionMode | null;
+  readonly durationSeconds: number | null;
+  readonly repetitionCount: number | null;
+  /** `null` uniquement pour une Récupération (D-041) ; entier `1..99` sinon. */
+  readonly seriesCount: number | null;
+  readonly pauseSeconds: number;
+  readonly instruction?: string | null;
+  readonly bodyZoneIds: readonly string[];
 };
+
+/** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
+export type CreateSessionExerciseInput = CreateSessionActivityInput;
 
 /**
  * Catégorie à associer lors de l'enregistrement final (T01-S09, D-107) :
@@ -172,8 +208,24 @@ export type CreateSessionInput = {
   color: SessionColor;
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
-  /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Doit compter au moins un élément : une entrée vide est un échec de validation (`REQUIRED`), jamais un agrégat persistable. */
-  exercises: readonly CreateSessionExerciseInput[];
+  /**
+   * T02-S01 (D-058) : répétition RÉELLE du Tour, entier `1..99` — la
+   * création figeait jusqu'ici `FIXED_TOUR_REPEAT_COUNT` en base, rendant
+   * impossible la création d'une Séance à plusieurs Tours (AC-08/AC-12).
+   */
+  tourRepeatCount: number;
+  /**
+   * Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier
+   * `exercise`. Doit compter au moins un élément : une entrée vide est un
+   * échec de validation (`REQUIRED`), jamais un agrégat persistable.
+   *
+   * Nom historique conservé (T01, création d'Exercices uniquement) : depuis
+   * T02-S01 cette collection porte TOUTES les Activités des trois zones
+   * structurelles, Récupérations comprises. L'ordre à l'intérieur d'une même
+   * zone EST l'ordre persisté ; l'ordre relatif entre zones est sans effet
+   * (chaque zone est numérotée séparément — voir `CreateSessionActivityInput`).
+   */
+  exercises: readonly CreateSessionActivityInput[];
   /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */
   categories: readonly CreateSessionCategoryInput[];
 };

@@ -48,8 +48,21 @@ export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
 /** T01-S10 : type d'Activité par défaut d'un nouveau brouillon (Exercice, D-061). */
 export const DEFAULT_ACTIVITY_TYPE = "EXERCISE" as const;
 
-/** T01-S10 : position structurelle par défaut d'un nouveau brouillon d'Activité (dans le Tour, D-061). */
-export const DEFAULT_STRUCTURAL_POSITION = "IN_TOUR" as const;
+/**
+ * Position structurelle par défaut d'un nouveau brouillon d'Activité.
+ *
+ * T01-S10 la fixait à `"IN_TOUR"`, seule zone alors réellement peuplée.
+ * **T02-S01** la porte à `"BEFORE_TOUR"` : `13 – Contrats d'écran.md`,
+ * CE-T01-09 (« Une nouvelle Activité est insérée après le Compte à rebours,
+ * avant le Tour, puis peut être déplacée ») et CE-T02-01 rendent le
+ * déplacement réel disponible — une Activité créée démarre donc AVANT le
+ * Tour et n'y entre que par un déplacement explicite de l'utilisateur.
+ *
+ * Ne concerne QUE les Activités créées après cette tranche : aucune Séance
+ * persistée n'est réorganisée à la lecture (`toSessionDraft` reprend toujours
+ * la zone réellement persistée, AC-13).
+ */
+export const DEFAULT_STRUCTURAL_POSITION = "BEFORE_TOUR" as const;
 
 /**
  * Valeurs par défaut du brouillon d'Exercice (T01-S08) — distinctes de

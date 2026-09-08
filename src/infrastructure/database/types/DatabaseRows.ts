@@ -66,15 +66,28 @@ export type SessionCategoryRow = {
   created_at: string;
 };
 
+/**
+ * Projection de résumé du Catalogue (`SqliteSessionRepository.listActive`).
+ *
+ * **T02-S01** : nombres et durées sont désormais agrégés PAR ZONE
+ * STRUCTURELLE — trois colonnes de chacun — au lieu d'un compte et d'une
+ * durée globaux. SQL ne peut pas pondérer lui-même la zone `IN_TOUR` par
+ * `tourRepeatCount` sans mélanger les zones : cette pondération appartient au
+ * Domaine (`calculations.ts`), qui reçoit donc les trois colonnes brutes.
+ * `initial_countdown_seconds`/`final_phase_seconds` disparaissent : le Compte
+ * à rebours initial et la Fin de séance sont exclus de la durée affichée.
+ */
 export type SessionSummaryRow = {
   id: string;
   name: string;
   color: string;
-  activity_count: number;
-  initial_countdown_seconds: number;
-  final_phase_seconds: number;
-  activity_duration_seconds: number;
-  /** `1` dès qu'au moins une Activité de la Séance est en mode Répétitions (T01-S09, RM-072) — sinon `0`. */
+  before_tour_activity_count: number;
+  in_tour_activity_count: number;
+  after_tour_activity_count: number;
+  before_tour_duration_seconds: number;
+  in_tour_duration_seconds: number;
+  after_tour_duration_seconds: number;
+  /** `1` dès qu'au moins une Activité de la Séance est en mode Répétitions ou « À l'échec » (T01-S09/T01-S10, RM-072/D-112) — sinon `0`. */
   has_repetition_activity: 0 | 1;
   tour_repeat_count: number;
   updated_at: string;

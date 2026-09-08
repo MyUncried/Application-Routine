@@ -5,21 +5,21 @@ import {
   computeActivityCount,
   computeEstimatedDurationSeconds,
 } from "@/domain/sessions/calculations";
-import {
-  FIXED_ACTIVITY_STRUCTURAL_POSITION,
-  FIXED_CYCLE_REPEAT_COUNT,
-  FIXED_TOUR_REPEAT_COUNT,
-} from "@/domain/sessions/defaults";
+import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   SESSION_COLORS,
   type Activity,
+  type ActivityType,
   type Category,
+  type CreateSessionActivityInput,
   type CreateSessionCategoryInput,
   type CreateSessionInput,
+  type ExerciseExecutionMode,
   type Session,
   type SessionColor,
   type SessionSummary,
+  type StructuralPosition,
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
 } from "@/domain/sessions/Session";
@@ -39,6 +39,7 @@ import type {
   ActivityBodyZoneRow,
   SessionAggregateRow,
   SessionCategoryRow,
+  SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
 type LocalUserRow = { id: string };
@@ -103,6 +104,42 @@ WHERE sessions.id = ? AND sessions.owner_id = ?
 ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
 `;
 
+/**
+ * Durée estimée d'UNE Activité, en SQL — transcription exacte de
+ * `computeActivityDurationSeconds` (`calculations.ts`) : une Récupération
+ * contribue sa seule durée (D-041) ; un Exercice contribue
+ * `series × durée + series × pause`, la durée valant `NULL` (donc `0`) dans
+ * les modes Répétitions et « À l'échec », qui ne portent aucune cible
+ * chiffrée (RM-072/D-112).
+ */
+const ACTIVITY_DURATION_SQL = `
+  CASE
+    WHEN activities.type = 'RECOVERY'
+      THEN COALESCE(activities.duration_seconds, 0)
+    ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
+       + COALESCE(activities.series_count, 0) * activities.pause_seconds
+  END
+`;
+
+/**
+ * T02-S01 (clarification n° 5 du verdict de revue : « la projection SQL
+ * `listActive` doit appliquer exactement ces règles PAR COLONNE ET PAR
+ * ZONE ») — une colonne de durée et une colonne de compte par zone
+ * structurelle, agrégées ensuite par le Domaine (`calculations.ts`), plutôt
+ * qu'un total déjà mélangé que SQL ne pourrait plus pondérer par
+ * `tourRepeatCount`.
+ *
+ * `zone` est toujours l'une des trois constantes littérales du Domaine
+ * ci-dessous — jamais une valeur d'origine utilisateur.
+ */
+function zoneDurationSql(zone: StructuralPosition): string {
+  return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN ${ACTIVITY_DURATION_SQL} ELSE 0 END)`;
+}
+
+function zoneActivityCountSql(zone: StructuralPosition): string {
+  return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN 1 ELSE 0 END)`;
+}
+
 const CATEGORIES_FOR_SESSION_QUERY = `
 SELECT categories.id, categories.name, categories.canonical_key, categories.is_predefined, categories.display_order, categories.created_at
 FROM session_categories
@@ -166,10 +203,13 @@ export class SqliteSessionRepository implements SessionRepository {
         [cycleId, sessionId, FIXED_CYCLE_REPEAT_COUNT],
       );
 
+      // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058) — la création
+      // insérait jusqu'ici `FIXED_TOUR_REPEAT_COUNT`, rendant impossible la
+      // création d'une Séance à plusieurs Tours (AC-08/AC-12).
       await transaction.runAsync(
         `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count)
          VALUES (?, ?, ?, 1, ?)`,
-        [tourId, cycleId, sessionId, FIXED_TOUR_REPEAT_COUNT],
+        [tourId, cycleId, sessionId, normalized.tourRepeatCount],
       );
 
       await insertActivities(
@@ -310,33 +350,17 @@ export class SqliteSessionRepository implements SessionRepository {
 
   async listActive(): Promise<readonly SessionSummary[]> {
     const user = await getLocalUser(this.database);
-    const rows = await this.database.getAllAsync<{
-      id: string;
-      name: string;
-      color: string;
-      activity_count: number;
-      initial_countdown_seconds: number;
-      final_phase_seconds: number;
-      activity_duration_seconds: number;
-      has_repetition_activity: 0 | 1;
-      tour_repeat_count: number;
-      updated_at: string;
-    }>(
+    const rows = await this.database.getAllAsync<SessionSummaryRow>(
       `SELECT
         sessions.id,
         sessions.name,
         sessions.color,
-        COUNT(activities.id) AS activity_count,
-        sessions.initial_countdown_seconds,
-        sessions.final_phase_seconds,
-        SUM(
-          CASE
-            WHEN activities.type = 'RECOVERY'
-              THEN COALESCE(activities.duration_seconds, 0)
-            ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
-               + COALESCE(activities.series_count, 0) * activities.pause_seconds
-          END
-        ) AS activity_duration_seconds,
+        ${zoneActivityCountSql("BEFORE_TOUR")} AS before_tour_activity_count,
+        ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
+        ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
+        ${zoneDurationSql("BEFORE_TOUR")} AS before_tour_duration_seconds,
+        ${zoneDurationSql("IN_TOUR")} AS in_tour_duration_seconds,
+        ${zoneDurationSql("AFTER_TOUR")} AS after_tour_duration_seconds,
         MAX(
           CASE
             WHEN activities.type = 'EXERCISE'
@@ -388,53 +412,67 @@ async function getLocalUser(database: Database): Promise<LocalUserRow> {
 }
 
 /**
- * Insère, dans l'ORDRE, une Activité par élément de `exercises` — `position`
- * suit l'index de la collection (0-indexé), exactement l'ordre du brouillon
- * (`SessionDraft.exercises`) — puis ses Zones corporelles associées.
+ * Insère une Activité par élément de `activities`, puis ses Zones corporelles
+ * associées.
+ *
+ * **T02-S01 (plan §6.2/§10.3)** — l'insertion portait jusqu'ici trois
+ * littéraux fixes (`'EXERCISE'`, `FIXED_ACTIVITY_STRUCTURAL_POSITION`, le
+ * `tourId` du Tour pour TOUTE Activité) et dérivait `position` de l'index
+ * GLOBAL de la collection. Elle applique désormais la structure réelle :
+ *
+ * - `type` et `structural_position` proviennent de l'entrée validée ;
+ * - `position` est renumérotée SÉPARÉMENT DANS CHAQUE ZONE (0-indexée),
+ *   seule façon de respecter `UNIQUE(session_id, structural_position,
+ *   position)` sans dépendre de l'ordre relatif entre zones ;
+ * - `tour_id` vaut le Tour pour `IN_TOUR` et `NULL` pour
+ *   `BEFORE_TOUR`/`AFTER_TOUR` (`CHECK` de `migration001`/`migration003`) ;
+ * - l'identifiant du brouillon est conservé lorsqu'il est fourni, généré
+ *   sinon.
  */
 async function insertActivities(
   transaction: Database,
   sessionId: string,
   cycleId: string,
   tourId: string,
-  exercises: CreateSessionInput["exercises"],
+  activities: readonly CreateSessionActivityInput[],
   uuidFactory: UuidFactory,
   timestamp: string,
 ): Promise<void> {
-  for (const [position, exercise] of exercises.entries()) {
-    const activityId = uuidFactory();
+  const positionByZone = new Map<StructuralPosition, number>();
+
+  for (const activity of activities) {
+    const zone = activity.structuralPosition;
+    const position = positionByZone.get(zone) ?? 0;
+    positionByZone.set(zone, position + 1);
+
+    const activityId = activity.id ?? uuidFactory();
+    const activityTourId = activityTourIdFor(zone, tourId);
+    const { executionMode, seriesCount, pauseSeconds, bodyZoneIds } = toActivitySqlValues(activity);
 
     await transaction.runAsync(
-      `INSERT INTO activities (
-        id, session_id, cycle_id, tour_id, type, structural_position,
-        position, name, execution_mode, duration_seconds,
-        repetition_count, series_count, pause_seconds, instruction,
-        created_at, updated_at
-      ) VALUES (
-        ?, ?, ?, ?, 'EXERCISE', ?,
-        ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?
-      )`,
+      `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         activityId,
         sessionId,
         cycleId,
-        tourId,
-        FIXED_ACTIVITY_STRUCTURAL_POSITION,
+        activityTourId,
+        activity.type,
+        zone,
         position,
-        exercise.name,
-        exercise.executionMode,
-        exercise.durationSeconds,
-        exercise.repetitionCount,
-        exercise.seriesCount,
-        exercise.pauseSeconds,
-        exercise.instruction ?? null,
+        activity.name,
+        executionMode,
+        activity.durationSeconds,
+        activity.repetitionCount,
+        seriesCount,
+        pauseSeconds,
+        activity.instruction ?? null,
         timestamp,
         timestamp,
       ],
     );
 
-    for (const bodyZoneId of exercise.bodyZoneIds) {
+    for (const bodyZoneId of bodyZoneIds) {
       await transaction.runAsync(
         `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)`,
         [activityId, bodyZoneId],
@@ -456,12 +494,24 @@ function activityTourIdFor(structuralPosition: string, tourId: string): string |
 }
 
 /**
- * Valeurs SQL d'une `UpdateSessionActivityInput` (T01-S10). `execution_mode`
- * est une colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé
- * par le `CHECK` de `migration001`), tandis que le Domaine réexpose `null`.
- * Une Récupération n'a ni Séries, ni pause, ni Zones corporelles (D-041).
+ * Valeurs SQL d'une Activité, à la création comme à la modification (T01-S10 ;
+ * T02-S01 : partagée avec `insertActivities`, dont le chemin de création
+ * ignorait jusqu'ici totalement le cas Récupération). `execution_mode` est
+ * une colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé par
+ * le `CHECK` de `migration001`), tandis que le Domaine réexpose `null`. Une
+ * Récupération n'a ni Séries, ni pause, ni Zones corporelles (D-041).
+ *
+ * Le paramètre est décrit STRUCTURELLEMENT plutôt que par l'un des deux DTO :
+ * `CreateSessionActivityInput` et `UpdateSessionActivityInput` restent des
+ * types distincts (Q3-A), mais la traduction vers SQL est identique.
  */
-function toActivitySqlValues(activity: UpdateSessionActivityInput): {
+function toActivitySqlValues(activity: {
+  readonly type: ActivityType;
+  readonly executionMode: ExerciseExecutionMode | null;
+  readonly seriesCount: number | null;
+  readonly pauseSeconds: number;
+  readonly bodyZoneIds: readonly string[];
+}): {
   executionMode: string;
   seriesCount: number | null;
   pauseSeconds: number;
@@ -890,29 +940,26 @@ export function mapSessionRow(row: SessionAggregateRow): Session {
 }
 
 function mapSummaryRow(
-  row: {
-    id: string;
-    name: string;
-    color: string;
-    activity_count: number;
-    initial_countdown_seconds: number;
-    final_phase_seconds: number;
-    activity_duration_seconds: number;
-    has_repetition_activity: 0 | 1;
-    tour_repeat_count: number;
-    updated_at: string;
-  },
+  row: SessionSummaryRow,
   categoryNames: readonly string[],
   bodyZoneNames: readonly string[],
 ): SessionSummary {
+  // T02-S01 : le Catalogue affiche le nombre d'Activités RÉELLEMENT
+  // COMPOSÉES — chacune une seule fois, jamais multipliée par
+  // `tourRepeatCount` (ce compteur ne représente pas des occurrences
+  // d'Exécution). La durée, elle, développe les répétitions du Tour sur la
+  // seule zone `IN_TOUR`, et exclut Compte à rebours initial et Fin de séance.
   const activityCount = computeActivityCount({
-    compositionActivityCount: row.activity_count,
+    beforeTourActivityCount: row.before_tour_activity_count,
+    inTourActivityCount: row.in_tour_activity_count,
+    afterTourActivityCount: row.after_tour_activity_count,
     tourRepeatCount: row.tour_repeat_count,
   });
   const estimatedDurationSeconds = computeEstimatedDurationSeconds({
-    initialCountdownSeconds: row.initial_countdown_seconds,
-    finalPhaseSeconds: row.final_phase_seconds,
-    activityDurationSeconds: row.activity_duration_seconds,
+    beforeTourDurationSeconds: row.before_tour_duration_seconds,
+    inTourDurationSeconds: row.in_tour_duration_seconds,
+    afterTourDurationSeconds: row.after_tour_duration_seconds,
+    tourRepeatCount: row.tour_repeat_count,
     isLowerBoundEstimate: row.has_repetition_activity === 1,
   });
 

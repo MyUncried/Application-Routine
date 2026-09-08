@@ -103,7 +103,11 @@ describe("SqliteSessionRepository", () => {
       expect.objectContaining({
         id: created.id,
         activityCount: 1,
-        estimatedDurationSeconds: 45,
+        // T02-S01 : la durée estimée affichée est celle des seules Activités
+        // (`1 × 30 s`) — le Compte à rebours initial (`10 s`) et la Fin de
+        // séance (`5 s`) en sont exclus (clarifications n° 3/4/5 du verdict
+        // de revue de la tranche), là où T01 les additionnait (`45 s`).
+        estimatedDurationSeconds: 30,
         isEstimatedDurationApproximate: false,
         tourRepeatCount: 1,
       }),
@@ -140,6 +144,110 @@ describe("SqliteSessionRepository", () => {
       series_count: 1,
       pause_seconds: 0,
     });
+  });
+
+  // T02-S01 (AC-01/AC-12, plan §10.3) : la création persistait jusqu'ici des
+  // littéraux fixes (`'EXERCISE'`, `IN_TOUR`, `tour_id` du Tour pour toute
+  // Activité, `repeat_count = 1`). Le round-trip suivant démontre que la
+  // structure réelle est conservée de bout en bout.
+  it("creates the three structural zones with per-zone positions, a NULL tour_id outside the Tour and the real tour repeat count", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const created = await repository.create({
+      ...validInput(),
+      tourRepeatCount: 99,
+      exercises: [
+        { ...anExercise(), id: "warmup", name: "Échauffement", structuralPosition: "BEFORE_TOUR" },
+        { ...anExercise(), id: "core-1", name: "Gainage", structuralPosition: "IN_TOUR" },
+        { ...anExercise(), id: "core-2", name: "Squats", structuralPosition: "IN_TOUR" },
+        {
+          id: "rec",
+          type: "RECOVERY",
+          structuralPosition: "AFTER_TOUR",
+          name: "Récupération",
+          executionMode: null,
+          durationSeconds: 45,
+          repetitionCount: null,
+          seriesCount: null,
+          pauseSeconds: 0,
+          instruction: null,
+          bodyZoneIds: [],
+        },
+      ],
+    });
+
+    expect(created.cycle.tour.repeatCount).toBe(99);
+    expect(created.cycle.beforeTour?.map((activity) => activity.id)).toEqual(["warmup"]);
+    expect(created.cycle.tour.exercises.map((activity) => activity.id)).toEqual([
+      "core-1",
+      "core-2",
+    ]);
+    expect(created.cycle.afterTour?.map((activity) => activity.id)).toEqual(["rec"]);
+    expect(created.cycle.afterTour?.[0]).toMatchObject({
+      type: "RECOVERY",
+      executionMode: null,
+      durationSeconds: 45,
+      seriesCount: null,
+    });
+
+    const rows = await database.getAllAsync<{
+      id: string;
+      structural_position: string;
+      position: number;
+      tour_id: string | null;
+      type: string;
+    }>(
+      `SELECT id, structural_position, position, tour_id, type FROM activities
+       WHERE session_id = ? ORDER BY structural_position, position`,
+      [created.id],
+    );
+    expect(rows).toEqual([
+      {
+        id: "rec",
+        structural_position: "AFTER_TOUR",
+        position: 0,
+        tour_id: null,
+        type: "RECOVERY",
+      },
+      {
+        id: "warmup",
+        structural_position: "BEFORE_TOUR",
+        position: 0,
+        tour_id: null,
+        type: "EXERCISE",
+      },
+      {
+        id: "core-1",
+        structural_position: "IN_TOUR",
+        position: 0,
+        tour_id: created.cycle.tour.id,
+        type: "EXERCISE",
+      },
+      {
+        id: "core-2",
+        structural_position: "IN_TOUR",
+        position: 1,
+        tour_id: created.cycle.tour.id,
+        type: "EXERCISE",
+      },
+    ]);
+
+    // Réouverture fidèle : l'agrégat relu est rigoureusement identique.
+    expect(await repository.findById(created.id)).toEqual(created);
+  });
+
+  it("keeps the draft identifier of an Activity when one is provided, and generates one otherwise", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const created = await repository.create({
+      ...validInput(),
+      exercises: [
+        { ...anExercise(), id: "kept-id", name: "Gainage" },
+        { ...anExercise(), name: "Squats" },
+      ],
+    });
+
+    const ids = created.cycle.tour.exercises.map((activity) => activity.id);
+    expect(ids[0]).toBe("kept-id");
+    expect(ids[1]).toBe(IDS[3]);
   });
 
   it("uses Crypto.randomUUID for all aggregate identifiers by default", async () => {
@@ -194,6 +302,7 @@ describe("SqliteSessionRepository", () => {
     const repository = new SqliteSessionRepository(database, uuidFactory());
 
     const handCraftedInvalidInput: CreateSessionInput = {
+      tourRepeatCount: 1,
       name: "Nom valide",
       color: "#000000" as never,
       initialCountdownSeconds: 10,
@@ -678,9 +787,46 @@ describe("SqliteSessionRepository", () => {
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
-      // (2×30 + 2×5) + (1×20 + 0) = 70 + 20 = 90 ; + 10 + 5 = 105 -> ceil not applied here (raw seconds).
-      expect(summary?.estimatedDurationSeconds).toBe(105);
+      // (2×30 + 2×5) + (1×20 + 0) = 70 + 20 = 90 s d'Activités — T02-S01
+      // exclut désormais le Compte à rebours initial et la Fin de séance de
+      // la durée affichée (auparavant `+ 10 + 5 = 105`). Secondes brutes,
+      // aucun arrondi à ce niveau.
+      expect(summary?.estimatedDurationSeconds).toBe(90);
       expect(summary?.activityCount).toBe(2);
+    });
+
+    // T02-S01 (AC-10, clarifications n° 2/3/5 du verdict de revue) : la
+    // projection SQL applique les règles PAR ZONE — le compteur reste celui
+    // des Activités réellement composées (chacune une fois), tandis que la
+    // durée développe `tourRepeatCount` sur la SEULE zone `IN_TOUR`.
+    it("counts every Activity once but multiplies only the IN_TOUR duration by the tour repeat count", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        tourRepeatCount: 3,
+        exercises: [
+          {
+            ...anExercise(),
+            name: "Échauffement",
+            structuralPosition: "BEFORE_TOUR",
+            durationSeconds: 10,
+          },
+          { ...anExercise(), name: "Gainage", structuralPosition: "IN_TOUR", durationSeconds: 20 },
+          {
+            ...anExercise(),
+            name: "Étirements",
+            structuralPosition: "AFTER_TOUR",
+            durationSeconds: 5,
+          },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      const summary = summaries.find((item) => item.id === created.id);
+      // 10 + (20 × 3) + 5 = 75 s ; trois Activités composées, jamais cinq.
+      expect(summary?.estimatedDurationSeconds).toBe(75);
+      expect(summary?.activityCount).toBe(3);
+      expect(summary?.tourRepeatCount).toBe(3);
     });
 
     // T01-S10, plan §7.2 / D-110 / RM-110 / AC-14 : le tri par défaut est
@@ -1292,6 +1438,9 @@ function validInput(): CreateSessionInput {
     color: DEFAULT_SESSION_COLOR,
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
+    // T02-S01 : la répétition du Tour fait désormais partie de l'entrée de
+    // création (D-058) — `1` conserve exactement l'agrégat T01 de référence.
+    tourRepeatCount: 1,
     exercises: [anExercise()],
     categories: [],
   };
@@ -1299,6 +1448,8 @@ function validInput(): CreateSessionInput {
 
 function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): CreateSessionExerciseInput {
   return {
+    type: "EXERCISE",
+    structuralPosition: "IN_TOUR",
     name: "Gainage",
     executionMode: "DURATION",
     durationSeconds: 30,
