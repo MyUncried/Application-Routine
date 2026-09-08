@@ -158,3 +158,16 @@ Le manifeste T01-S10 reste `WAITING_FOR_PREVIOUS_SLICE` tant que S09 n'a pas pub
 6. autoriser `START_PLAN` en lecture seule.
 
 Le développement S10 reste interdit avant le Gate plan utilisateur.
+
+
+## Révision d'un plan — modes causaux obligatoires
+
+Une correction de périmètre ne signifie pas qu'une implémentation existe. Le déclencheur de plan doit porter un mode exact lorsqu'il référence un plan antérieur :
+
+- `plan_mode=PLAN_REVISION` : remplacement d'un plan initial avant toute implémentation ; exige un `PLAN_OUTPUT` antérieur, un `SCOPE_CORRECTION` lié au même slice et au même HEAD, et exactement zéro `IMPLEMENTATION_OUTPUT` pour ce slice et ce HEAD ;
+- `plan_mode=REPLAN_AFTER_IMPLEMENTATION` : replanification après implémentation ; exige les mêmes références causales et exactement un `IMPLEMENTATION_OUTPUT` pour ce slice et ce HEAD ;
+- `plan_mode=INITIAL` : premier plan, sans référence de supersession ni correction de périmètre.
+
+Les modes sont mutuellement exclusifs et comparés comme valeurs exactes. Le protocole n'infère jamais une implémentation de la seule présence de `supersedes_plan_comment_id` ou `scope_correction_comment_id`. Le commentaire `SCOPE_CORRECTION` doit porter exactement `slice_id`, `source_head` et `supersedes_plan_comment_id`.
+
+Avant tout appel OpenAI, le résolveur versionné `.github/orchestration/scripts/resolve-plan-mode.sh` et sa matrice `.github/orchestration/tests/test-plan-mode.sh` doivent passer. La matrice couvre les trois modes nominaux, l'absence ou l'ambiguïté du mode, les références manquantes, les nombres d'implémentations incompatibles et les valeurs voisines par préfixe.
