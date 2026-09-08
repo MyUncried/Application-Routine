@@ -444,7 +444,7 @@ Tests bloquants : exactement 12 valeurs provenant du Design System ; grille et i
 | Nature | Contrôle intégré, malgré le nom historique de la frame |
 | Déclencheur | Appui sur la ligne `Compte à rebours initial` |
 
-Le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`2537:1110`), mesure `330 × 190` : barre d’actions `40` et primitive native `150`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes vont de `00` à `59` par pas de `1`. Deux cadres gris distincts `56 × 34`, rayon `17`, couvrent uniquement les chiffres centrés ; les unités restent hors des cadres.
+Le composant `Picker / Popover — Source exact`, variante `Type=Duration` (`2537:1110`), mesure `330 × 203` : barre d’actions `53` et primitive native `150`. Il comporte deux roulettes, les unités `min` et `s`, une valeur centrale sélectionnée et deux valeurs voisines de chaque côté. Les secondes vont de `00` à `59` par pas de `1`. Deux cadres gris distincts `56 × 34`, rayon `17`, couvrent uniquement les chiffres centrés ; les unités restent hors des cadres.
 
 Le reste de la Composition demeure visible et ne reçoit pas d’action tant qu’un geste appartient aux roulettes. Chaque changement effectif de cran déclenche un unique retour haptique léger. La valeur est mise à jour uniquement dans le brouillon local pendant le défilement ; le sous-libellé de la ligne ne change qu’après Confirmer. La confirmation actualise uniquement la carte `Compte à rebours initial` : elle ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours`. `0 s` rend la phase instantanée sans supprimer l’élément structurel.
 
@@ -753,7 +753,7 @@ Tests bloquants : absence d’écriture partielle ; état récupérable ; messag
 | Nature | Contrôle intégré, malgré le nom historique de la frame |
 | Déclencheur | Appui sur `Fin de séance` |
 
-Le composant et les règles sont identiques à CE-T01-07. La variante `Type=Duration` mesure `330 × 190` et sélectionne initialement `00 min 05 s`. Elle est rendue dans le même overlay centré et bloquant que CE-T01-07, indépendamment de la ligne Fin de séance et du défilement.
+Le composant et les règles sont identiques à CE-T01-07. La variante `Type=Duration` mesure `330 × 203` et sélectionne initialement `00 min 05 s`. Elle est rendue dans le même overlay centré et bloquant que CE-T01-07, indépendamment de la ligne Fin de séance et du défilement.
 
 La valeur est stockée séparément du Compte à rebours initial. `0 s` rend la phase instantanée mais ne supprime ni la ligne ni l’élément du Plan d’Exécution. Une modification de ce contrôle ne change aucune Activité et ne modifie ni le nombre ni la durée affichés dans la synthèse sous `Nombre de tours` ; seule la carte `Fin de séance` est actualisée.
 
@@ -848,7 +848,7 @@ Tests bloquants : absence du type d’Activité ; sections repliables et valeurs
 | Frame Séries | `3556:7801` — Séries ouverte |
 | Frame Répétitions | `3561:7673` — Répétitions ouverte |
 | Déclencheur | Appui sur `Séries`, `Durée`, `Répétitions`, `Pause`, `Récupération` ou `Durée totale` dans CE-T01-13 |
-| Composants | `Picker / Popover — Source exact` : `Type=Duration` (`2537:1110`, `330 × 190`) ou `Type=Numeric wheel` (`3210:49`, `136 × 190`) |
+| Composants | `Picker / Popover — Source exact` : `Type=Duration` (`2537:1110`, `330 × 203`) ou `Type=Numeric wheel` (`3210:49`, `144 × 203`) |
 
 Le sélecteur est rendu dans un overlay centré et bloquant, indépendant du contrôle déclencheur et du défilement, et présente une seule instance canonique. `Durée`, `Pause`, `Récupération` et `Durée totale` héritent du même contrat minutes/secondes ; aucun écran supplémentaire n’est requis pour les deux derniers. `Séries` et `Répétitions` utilisent la roulette numérique compacte. Aucune seconde barre Annuler/Confirmer, seconde roulette ou bordure locale ne peut être superposée.
 
@@ -862,7 +862,7 @@ Tests bloquants : six déclencheurs couverts par quatre frames canoniques ; ordr
 
 Tout contrôle scalaire auparavant décrit comme `pull-up`, `pull-down`, menu numérique ou pop-up numérique utilise désormais `Picker / Popover — Source exact` (`2537:1174`), variante `Type=Numeric wheel` (`3210:49`). Le contrôle fermé reste le déclencheur compact `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) et affiche la dernière valeur confirmée.
 
-La roulette ouverte mesure `136 × 190` : barre supérieure de `40`, contenu natif de `150`, une seule colonne numérique et une zone sélectionnée de `56 × 34`. Elle apparaît dans un overlay centré dans la zone utile, indépendant du déclencheur et du défilement, avec un voile bloquant les interactions et le défilement du fond. Chaque action possède une cible `48 × 48`, un cercle `28 × 28` et un cadre d’icône `24 × 24`. Annuler détruit le brouillon et ferme ; Confirmer enregistre la valeur centrée et ferme. Toucher la roulette, la zone sélectionnée ou arrêter le défilement ne ferme jamais le sélecteur.
+La roulette ouverte mesure `144 × 203` : barre supérieure de `53`, contenu natif de `150`, une seule colonne numérique et une zone sélectionnée de `56 × 34`. Elle apparaît dans un overlay centré dans la zone utile, indépendant du déclencheur et du défilement, avec un voile bloquant les interactions et le défilement du fond. Chaque action possède une cible `48 × 48`, un cercle `38 × 38` et un cadre d’icône `24 × 24`. Son conteneur Figma mesure `48 × 53` afin de conserver `7,5` points de marge verticale autour du cercle ; seuls `48 × 48` sont interactifs. Annuler détruit le brouillon et ferme ; Confirmer enregistre la valeur centrée et ferme. Toucher la roulette, la zone sélectionnée ou arrêter le défilement ne ferme jamais le sélecteur.
 
 | Usage | Frame Figma ouverte | Valeurs/bornes | Composant et variante |
 | --- | --- | --- | --- |
