@@ -65,6 +65,8 @@ grep -Fq "supersedes_plan_comment_id=NONE" "$workflow" || fail "initial scope au
 pass "INITIAL has no superseded plan"
 
 grep -Fq 'Do not reuse PLAN_OUTPUT 5581406837 or PLAN_REVIEW_OUTPUT 5581583527' "$workflow" || fail "old plan/review exclusion missing"
+grep -Fq 'index("[KODJO_SLICE] PLAN_OUTPUT")) == null' "$workflow" || fail "historical plans remain in INITIAL packet"
+grep -Fq 'index("[KODJO_SLICE] PLAN_REVIEW_OUTPUT")) == null' "$workflow" || fail "historical reviews remain in INITIAL packet"
 if grep -Eq 'SUPERSEDES_PLAN_ID[:=].*5581406837|REVIEW_SESSION[:=].*3cc0b0f3' "$workflow"; then
   fail "old plan or review wired as a causal input"
 fi
