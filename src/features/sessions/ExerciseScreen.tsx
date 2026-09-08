@@ -371,6 +371,18 @@ export function ExerciseScreen() {
             style={styles.addMediaButton}
             testID="exercise-add-media"
           >
+            {/*
+             * Correctif T02 post-test-utilisateur (2026-09-08, point 5) :
+             * le `+` n'est plus un caractère de texte concaténé au libellé
+             * (`t.addMedia` ne le porte plus, voir `fr.ts`) — il est
+             * remplacé par l'icône vectorielle canonique du Design System,
+             * `action-add` (`KodjoIcon`), déjà celle du bouton `Ajouter une
+             * activité` de `CompositionScreen.tsx` (même composant DSF,
+             * jamais un second registre d'icône « plus »). La règle MVP est
+             * inchangée : le bouton reste visible mais désactivé
+             * (`disabled`, aucun `onPress`).
+             */}
+            <KodjoIcon name="action-add" testID="exercise-add-media-icon" />
             <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
           </Pressable>
         </View>
@@ -435,11 +447,34 @@ export function ExerciseScreen() {
              * Source exact` : une seule rangée horizontale (remplace les
              * trois anciennes lignes verticales), cadre récapitulatif en
              * dessous.
+             *
+             * Ordre corrigé (correctif T02 post-test-utilisateur,
+             * 2026-09-08, point 4) : `Séries` PUIS le paramètre correspondant
+             * au mode (`Durée`/`Répétitions`/« À l'échec »), `Pause après
+             * Série` en dernier — l'ancien ordre plaçait le paramètre de
+             * mode en tête et `Séries` en dernier.
+             *
+             * Mode « À l'échec » (T01-S10, D-111 ; badge introduit par ce
+             * correctif) : aucun contrôle Durée/Répétitions cible n'est
+             * rendu — le même cadre affiche désormais le libellé statique
+             * `À l'échec` en violet (`ToFailureField`, non pressable, sans
+             * chevron), plutôt que de laisser cet emplacement vide comme
+             * avant ce correctif. Pause et Séries restent aux positions
+             * canoniques.
              */}
             <View>
               <Text style={styles.fieldTitle}>{t.parametersTitle}</Text>
               <View style={styles.parameterCard} testID="exercise-parameter-card">
                 <View style={styles.parameterRow} testID="exercise-parameter-row">
+                  <ParameterField
+                    testID="exercise-field-seriesCount"
+                    width={dimensions.exerciseParameterRow.narrowColumnWidth}
+                    label={t.seriesCount.compactLabel}
+                    accessibilityLabel={t.seriesCount.accessibilityLabel}
+                    value={String(local.seriesCount)}
+                    isOpen={openOverlay === "seriesCount"}
+                    onPress={() => toggleOverlay("seriesCount")}
+                  />
                   {local.executionMode === "DURATION" ? (
                     <ParameterField
                       testID="exercise-field-duration"
@@ -465,11 +500,13 @@ export function ExerciseScreen() {
                       onPress={() => toggleOverlay("repetitionCount")}
                     />
                   ) : null}
-                  {/*
-                   * Mode « À l'échec » (T01-S10, D-111) : ni Durée cible ni
-                   * Répétitions cible — Pause et Séries restent aux positions
-                   * canoniques.
-                   */}
+                  {local.executionMode === "TO_FAILURE" ? (
+                    <ToFailureField
+                      testID="exercise-field-toFailure"
+                      width={dimensions.exerciseParameterRow.wideColumnWidth}
+                      value={t.executionMode.toFailure}
+                    />
+                  ) : null}
                   <ParameterField
                     testID="exercise-field-pauseSeconds"
                     width={dimensions.exerciseParameterRow.wideColumnWidth}
@@ -478,15 +515,6 @@ export function ExerciseScreen() {
                     value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
                     isOpen={openOverlay === "pauseSeconds"}
                     onPress={() => toggleOverlay("pauseSeconds")}
-                  />
-                  <ParameterField
-                    testID="exercise-field-seriesCount"
-                    width={dimensions.exerciseParameterRow.narrowColumnWidth}
-                    label={t.seriesCount.compactLabel}
-                    accessibilityLabel={t.seriesCount.accessibilityLabel}
-                    value={String(local.seriesCount)}
-                    isOpen={openOverlay === "seriesCount"}
-                    onPress={() => toggleOverlay("seriesCount")}
                   />
                 </View>
               </View>
@@ -699,6 +727,42 @@ function ParameterField({
           <KodjoIcon name="select-field-chevron" testID={`${testID}-chevron`} />
         </View>
       </Pressable>
+    </View>
+  );
+}
+
+/**
+ * Badge statique du mode « À l'échec » (correctif T02, 2026-09-08, point
+ * 4) — occupe exactement l'emplacement du contrôle `Durée`/`Répétitions`
+ * dans `Activity / Parameter Row`, mais sans chevron ni action : ce mode ne
+ * porte aucune cible chiffrée à ouvrir (D-111), rien n'y est sélectionnable.
+ * Réutilise le cadre `parameterControl` (fond blanc, liseré, rayon, hauteur
+ * identiques aux autres colonnes) pour rester visuellement dans le même
+ * cadre que les autres paramètres ; seul le texte, centré, passe en violet
+ * (`colors.selection`, seul token « violet » déjà canonique du Design
+ * System — aucune valeur non documentée n'est introduite).
+ */
+function ToFailureField({
+  testID,
+  width,
+  value,
+}: {
+  testID: string;
+  width: number;
+  value: string;
+}) {
+  return (
+    <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
+      <View
+        style={[styles.parameterControl, styles.parameterControlStatic, { width }]}
+        accessibilityRole="text"
+        accessibilityLabel={value}
+        testID={`${testID}-control`}
+      >
+        <Text style={styles.parameterValueToFailure} numberOfLines={1}>
+          {value}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -918,6 +982,17 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.exerciseParameterValueText,
   },
+  // `ToFailureField` (correctif T02, 2026-09-08) : même cadre que
+  // `parameterControl`, sans chevron — le texte occupe donc seul la
+  // largeur utile et reste centré plutôt qu'aligné à gauche contre un
+  // chevron absent.
+  parameterControlStatic: {
+    justifyContent: "center",
+  },
+  parameterValueToFailure: {
+    ...type.label,
+    color: colors.selection,
+  },
   // Carré canonique `28×28`, fond DSF `#CDCEFA` (`colors.tourSurface`,
   // valeur identique déjà réutilisée pour la structure Tour de
   // `CompositionScreen.tsx` — même token, pas de doublon), rayon `6`
@@ -956,6 +1031,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    // Correctif T02 (2026-09-08, point 5) : écart icône/texte, même valeur
+    // que `addActivityAction` (`CompositionScreen.tsx`) pour le même
+    // patron « icône + libellé » de bouton secondaire compact.
+    gap: spacing[6],
     height: dimensions.compactSecondaryButton.visualHeight,
     borderRadius: dimensions.compactSecondaryButton.radius,
     borderWidth: 1,

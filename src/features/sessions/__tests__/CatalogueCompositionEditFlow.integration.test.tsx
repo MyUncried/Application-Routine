@@ -182,20 +182,32 @@ beforeEach(() => {
 });
 
 describe("Parcours Catalogue → Composition en modification (vrai navigateur, vraies routes, vrai SessionDraftProvider)", () => {
-  it("1. ouvre la Séance en modification en transmettant SON identifiant dans la route, jamais la Séance sérialisée", async () => {
-    const router = renderCatalogueRouter();
-    await flush();
+  it(
+    "1. ouvre la Séance en modification en transmettant SON identifiant dans la route, jamais la Séance sérialisée",
+    async () => {
+      const router = renderCatalogueRouter();
+      await flush();
 
-    fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+      fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
 
-    expect(router.getPathname()).toBe("/composition");
-    // Seul l identifiant transite par la route — jamais la Séance sérialisée.
-    const params = router.getSearchParams() as Record<string, unknown>;
-    expect(params.sessionId).toBe(PERSISTED_SESSION_ID);
-    // La Séance elle-même n est jamais sérialisée dans la route.
-    expect(params.name).toBeUndefined();
-    expect(params.exercises).toBeUndefined();
-  });
+      expect(router.getPathname()).toBe("/composition");
+      // Seul l identifiant transite par la route — jamais la Séance sérialisée.
+      const params = router.getSearchParams() as Record<string, unknown>;
+      expect(params.sessionId).toBe(PERSISTED_SESSION_ID);
+      // La Séance elle-même n est jamais sérialisée dans la route.
+      expect(params.name).toBeUndefined();
+      expect(params.exercises).toBeUndefined();
+    },
+    // Correctif T02 (2026-09-08) : ce premier test du fichier supporte le
+    // coût réel — non lié à la logique du parcours — du tout premier rendu
+    // `renderRouter` (vrai navigateur, vraie initialisation SQLite/route)
+    // dans ce process Jest ; il dépassait de façon reproductible le délai
+    // par défaut de 5000 ms dans cet environnement, sans qu'aucune
+    // assertion n'échoue jamais une fois ce délai levé (vérifié isolément
+    // avec un délai de 30000 ms). Même palier que `CategoriesSaveFlow
+    // .integration.test.tsx`, déjà porté à 20000 ms pour la même raison.
+    20000,
+  );
 
   it("2. n'affiche JAMAIS le formulaire de création ni ses valeurs par défaut tant que la Séance n'est pas résolue — seul l'état de chargement est rendu", async () => {
     renderCatalogueRouter();

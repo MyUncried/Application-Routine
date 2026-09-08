@@ -117,7 +117,7 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     expect(screen.getByLabelText(exercise.finishAction)).toBeTruthy();
   });
 
-  it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, et recalcule le résumé", () => {
+  it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", () => {
     const router = renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
@@ -151,11 +151,14 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
       exerciseRowTestId,
     ]);
 
-    // 5. Résumé recalculé : "1 activité · ..." (jamais l'état vide "0 activité · 0 min").
-    // REWORK09 : une seule occurrence désormais — la ligne basse redondante
-    // (bottomAction) a été supprimée ; seule la synthèse Tour subsiste.
-    expect(screen.queryByText(composition.summary.empty)).toBeNull();
-    expect(screen.getAllByText(/^1 activité ·/)).toHaveLength(1);
+    // 5. Résumé du TOUR inchangé (correctif T02, 2026-09-08, point 1) :
+    // cette Activité est insérée `BEFORE_TOUR` (D-078/RM-020, « entre Compte
+    // à rebours et Tour », vérifié ci-dessus), donc hors de la zone
+    // `IN_TOUR` — la synthèse propre au Tour, qui n'agrège plus QUE cette
+    // zone, reste par conséquent l'état vide `"0 activité · 0 min"`. Avant
+    // ce correctif, une Activité `BEFORE_TOUR` contribuait encore (à tort)
+    // au nombre affiché par cette synthèse.
+    expect(screen.getByText(composition.summary.empty)).toBeTruthy();
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", () => {

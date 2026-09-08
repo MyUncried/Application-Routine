@@ -18,6 +18,10 @@ jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
 
+// T02-S01 : la duplication d'une Activité génère un identifiant frais
+// (`Crypto.randomUUID()`) — même patron de mock que `ExerciseScreen.test.tsx`.
+jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-copy-id") }));
+
 /**
  * `useRouter` mocké (T01-S08) — `+ Ajouter une activité`/la ligne Exercice
  * naviguent vers `/exercise` ; `back` (correction CE-T01-04, AUD-03) couvre
@@ -169,16 +173,19 @@ beforeEach(() => {
 });
 
 describe("CompositionScreen — état initial", () => {
-  it("renders the name field, the countdown/final phase rows, the locked Tour, and the disabled actions", () => {
+  it("renders the name field, the countdown/final phase rows, the now-actionable Tour control, and the disabled final action", () => {
     renderScreen();
 
     expect(screen.getByLabelText(composition.name)).toBeTruthy();
     expect(screen.getByLabelText(composition.countdown.label)).toBeTruthy();
     expect(screen.getByLabelText(composition.finalPhase.label)).toBeTruthy();
 
+    // T02-S01 (CE-T02-01/AC-08) : le contrôle `Nombre de tours` n'est plus
+    // inerte — il est pressable et annonce sa valeur courante.
     const tour = screen.getByLabelText(composition.tour.label);
-    expect(tour.props.accessibilityState).toMatchObject({ disabled: true });
-    // T-05 : contenu `1` seul, plus de préfixe `×`.
+    expect(tour.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(tour.props.accessibilityValue).toMatchObject({ text: "1" });
+    // T-05/D-130 : valeur `1` seule, jamais de préfixe `×`.
     expect(screen.getByText("1")).toBeTruthy();
     expect(screen.queryByText("×1")).toBeNull();
 
@@ -785,7 +792,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("CMP-04/T-03/T-04a/b/c/T-05/REWORK07B — the Tour card is a distinct DS component (background carried by the outer structure, never the inner header), showing the 'Nombre de tours' label and a control frame with '1' distinct from a dedicated violet chevron square, never the Activity icon", () => {
+  it("CMP-04/T-03/REWORK07B/D-130 — the Tour card is a distinct DS component (background carried by the outer structure, never the inner header), showing the 'Nombre de tours' label and a 66×34 control carrying the value alone, never the Activity icon", () => {
     renderScreen();
 
     // REWORK07B (« Anatomie canonique — Nombre de tours ») : la SEULE
@@ -810,47 +817,32 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).getByText("1")).toBeTruthy();
     expect(within(tourCard).queryByText("×1")).toBeNull();
 
-    // T-04a/b/c/REWORK06 : cadre parent clair `78×44` (agrandi depuis
-    // `66×30` — addendum « cadre plus haut, marges visibles identiques en
-    // haut/bas/droite ») — `1` en texte nu (jamais sur fond violet), centré
-    // et en gras (`type.cardTitle`, `16/20` Semi Bold), carré violet `28×28`
-    // distinct (inchangé) contenant SEULEMENT le chevron blanc.
+    // **T02-S01 / D-130** (« Validée post-Figma ») — révise explicitement
+    // T-04a/b/c/T-05 (REWORK06, cadre `78×44` + carré violet du chevron),
+    // antérieurs à la publication de cette décision : le sélecteur mesure
+    // `66×34`, affiche la valeur numérique SEULE, centrée et en gras
+    // (`type.cardTitle`, `16/20` Semi Bold — graisse conservée), et
+    // n'affiche AUCUN chevron de repli.
     const control = screen.getByTestId("composition-tour-control");
     const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBe(78);
-    expect(controlStyle.height).toBe(44);
+    expect(controlStyle.width).toBe(66);
+    expect(controlStyle.height).toBe(34);
+    expect(controlStyle.backgroundColor).toBe(colors.background);
     expect(controlStyle.backgroundColor).not.toBe(colors.selection);
-    // REWORK06 : marges visibles identiques en haut, en bas et à droite du
-    // carré violet (`28×28`, inchangé) — dérivées, pas de simple test de
-    // présence : `alignItems: "center"` centre mécaniquement le carré dans
-    // les `44` de hauteur (`(44-28)/2 = 8` en haut/bas), et
-    // `paddingRight` égale explicitement cette même valeur à droite.
     expect(controlStyle.alignItems).toBe("center");
-    expect(controlStyle.paddingRight).toBe(8);
-    expect((controlStyle.height - 28) / 2).toBe(controlStyle.paddingRight);
+    expect(controlStyle.justifyContent).toBe("center");
 
     const valueText = within(control).getByText("1");
     const valueTextStyle = StyleSheet.flatten(valueText.props.style);
     expect(valueTextStyle.color).not.toBe(colors.background);
-    // REWORK06 : valeur centrée (horizontalement par `flex`+`textAlign`,
-    // verticalement par le centrage flex hérité du cadre parent) et plus
-    // grande/grasse (`type.cardTitle`, `16/20` Semi Bold — auparavant
-    // `type.label`, `14/18` Medium).
     expect(valueTextStyle.textAlign).toBe("center");
     expect(valueTextStyle.fontSize).toBe(16);
     expect(valueTextStyle.lineHeight).toBe(20);
     expect(valueTextStyle.fontWeight).toBe("600");
 
-    const chevronBox = screen.getByTestId("composition-tour-control-chevron-box");
-    const chevronBoxStyle = StyleSheet.flatten(chevronBox.props.style);
-    expect(chevronBoxStyle.backgroundColor).toBe(colors.selection);
-    expect(chevronBoxStyle.width).toBe(28);
-    expect(chevronBoxStyle.height).toBe(28);
-    // Le "1" n'est jamais un enfant du carré violet.
-    expect(within(chevronBox).queryByText("1")).toBeNull();
-
-    const chevron = within(chevronBox).getByTestId("composition-tour-control-chevron");
-    expect(chevron.props.style.tintColor).toBe(colors.background);
+    // D-130 : plus aucun chevron de repli, ni son carré violet.
+    expect(screen.queryByTestId("composition-tour-control-chevron-box")).toBeNull();
+    expect(screen.queryByTestId("composition-tour-control-chevron")).toBeNull();
 
     // REWORK12 (COMP-02) : icône du bloc Tour = `composition-main-content`
     // (vérifiée directement sur le nœud Figma actuel `2028:11742`,
@@ -893,8 +885,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(tourSection.props.style).borderRadius).toBe(10);
     const control = screen.getByTestId("composition-tour-control");
     const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBe(78);
-    expect(controlStyle.height).toBe(44);
+    expect(controlStyle.width).toBe(66);
+    expect(controlStyle.height).toBe(34);
   });
 
   /**
@@ -904,7 +896,12 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
    * plus du tout, contrairement à l'ancien commentaire de ce test.
    */
   it("REWORK08-C/REWORK09/REWORK13 — the Tour summary reflects the real computed Activity-only duration, not a static placeholder", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    // Correctif T02 (2026-09-08) : la synthèse du Tour n'agrège que la zone
+    // IN_TOUR — `createExerciseDraft` positionne par défaut `BEFORE_TOUR`,
+    // d'où l'override explicite (sans quoi la synthèse serait vide).
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
+    ]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
@@ -920,7 +917,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
    * de Tours l'actualise conformément aux références.
    */
   it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Tour summary", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    // Correctif T02 (2026-09-08) : voir le test précédent.
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
+    ]);
 
     const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
@@ -949,9 +949,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   });
 
   it("REWORK13 (R13-02) — adding a second Activity updates the Tour summary accordingly (count and duration both recomputed)", () => {
+    // Correctif T02 (2026-09-08) : voir le premier test de ce bloc.
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
-      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30, structuralPosition: "IN_TOUR" },
     ]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
@@ -1525,7 +1526,7 @@ describe("CompositionScreen — espacement Activité/Activité (correction compa
   it("reduces the gap between two consecutive Activity cards to 8pt, carried by their own dedicated container", () => {
     renderScreenWithDraft(twoActivities);
 
-    const list = screen.getByTestId("composition-exercise-list");
+    const list = screen.getByTestId("composition-zone-before-tour");
     expect(StyleSheet.flatten(list.props.style).gap).toBe(8);
     expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
@@ -1543,7 +1544,7 @@ describe("CompositionScreen — espacement Activité/Activité (correction compa
   it("keeps Compte à rebours initial, the Tour section and Fin de séance OUTSIDE the reduced-gap container — their structural spacing is therefore still the body's 16pt, by construction", () => {
     renderScreenWithDraft(twoActivities);
 
-    const list = screen.getByTestId("composition-exercise-list");
+    const list = screen.getByTestId("composition-zone-before-tour");
     expect(within(list).queryByLabelText(composition.countdown.label)).toBeNull();
     expect(within(list).queryByLabelText(composition.finalPhase.label)).toBeNull();
     expect(within(list).queryByTestId("composition-tour-section")).toBeNull();
@@ -1557,7 +1558,11 @@ describe("CompositionScreen — espacement Activité/Activité (correction compa
 
   it("never renders the Activity container while the Composition has no Activity — an empty container would add a second 16pt gap, doubling the Compte à rebours → Tour spacing of the empty state", () => {
     renderScreenWithDraft([]);
-    expect(screen.queryByTestId("composition-exercise-list")).toBeNull();
+    // T02-S01 : la règle vaut désormais zone par zone — aucune des trois
+    // listes n'est rendue tant qu'elle est vide.
+    expect(screen.queryByTestId("composition-zone-before-tour")).toBeNull();
+    expect(screen.queryByTestId("composition-zone-in-tour")).toBeNull();
+    expect(screen.queryByTestId("composition-zone-after-tour")).toBeNull();
   });
 
   it("keeps the display order of the Activities unchanged inside the reduced-gap container", () => {
@@ -1664,5 +1669,508 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(within(finalPhase).queryByTestId("composition-exercise-body-zones")).toBeNull();
     // Une seule occurrence dans tout l'écran : celle de l'Activité.
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(1);
+  });
+});
+
+/* ------------------------------------------------------------------------ *
+ * T02-S01 — Composition complète (CE-T02-01/CE-T02-02, D-124/D-127/D-129/
+ * D-130, AC-01 à AC-11).
+ * ------------------------------------------------------------------------ */
+
+function anActivity(
+  id: string,
+  structuralPosition: SessionDraftExercise["structuralPosition"],
+  overrides: Partial<SessionDraftExercise> = {},
+): SessionDraftExercise {
+  return {
+    ...createExerciseDraft(id),
+    name: id,
+    durationSeconds: 30,
+    structuralPosition,
+    ...overrides,
+  };
+}
+
+/** Mesure factice : `onLayout` ne se déclenche jamais sous Jest, la géométrie est donc injectée explicitement. */
+function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, height: number) {
+  fireEvent(element, "layout", {
+    nativeEvent: { layout: { x: 0, y, width: 354, height } },
+  });
+}
+
+/** Glissement gauche franc sur le conteneur d'une carte (au-delà du seuil de révélation). */
+function fireSwipeLeft(activityId: string) {
+  const container = screen.getByTestId(`composition-activity-${activityId}`);
+  fireEvent(container, "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+  fireEvent(container, "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+}
+
+describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () => {
+  const threeZones = [
+    anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement" }),
+    anActivity("core", "IN_TOUR", { name: "Gainage" }),
+    anActivity("stretch", "AFTER_TOUR", { name: "Étirements" }),
+  ];
+
+  it("renders each Activity in its own zone list, in the real structural order", () => {
+    renderScreenWithDraft(threeZones);
+
+    expect(
+      within(screen.getByTestId("composition-zone-before-tour")).getByTestId(
+        "composition-exercise-row-warmup",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("composition-zone-in-tour")).getByTestId(
+        "composition-exercise-row-core",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("composition-zone-after-tour")).getByTestId(
+        "composition-exercise-row-stretch",
+      ),
+    ).toBeTruthy();
+
+    const order = testIdOrder(screen.toJSON(), [
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-row-warmup",
+      "composition-tour-section",
+      "composition-exercise-row-core",
+      "composition-exercise-row-stretch",
+      "composition-row-icon-composition-end-session",
+    ]);
+    expect(order).toEqual([
+      "composition-row-icon-composition-initial-countdown",
+      "composition-exercise-row-warmup",
+      "composition-tour-section",
+      "composition-exercise-row-core",
+      "composition-exercise-row-stretch",
+      "composition-row-icon-composition-end-session",
+    ]);
+  });
+
+  it("renders the IN_TOUR Activities INSIDE the Tour structure, the two other zones outside it", () => {
+    renderScreenWithDraft(threeZones);
+
+    const tourSection = screen.getByTestId("composition-tour-section");
+    expect(within(tourSection).getByTestId("composition-zone-in-tour")).toBeTruthy();
+    expect(within(tourSection).queryByTestId("composition-zone-before-tour")).toBeNull();
+    expect(within(tourSection).queryByTestId("composition-zone-after-tour")).toBeNull();
+  });
+
+  it("AC-05 — the fixed structural rows carry no gesture recognizer, and therefore no revealable action", () => {
+    renderScreenWithDraft(threeZones);
+
+    // Une Activité, elle, révèle bien ses actions.
+    fireSwipeLeft("warmup");
+    expect(screen.getByTestId("composition-activity-actions-warmup")).toBeTruthy();
+
+    // Compte à rebours initial / Tour / Fin de séance ne sont pas des
+    // Activités : ils ne sont enveloppés d'aucun conteneur gestuel — il en
+    // existe exactement un par Activité, jamais un de plus.
+    expect(screen.getAllByTestId(/^composition-activity-(warmup|core|stretch)$/u)).toHaveLength(3);
+    for (const label of [composition.countdown.label, composition.finalPhase.label]) {
+      const row = screen.getByLabelText(label);
+      expect(within(row).queryByText(composition.activityActions.duplicate)).toBeNull();
+      expect(within(row).queryByText(composition.activityActions.delete)).toBeNull();
+    }
+    const tourSection = screen.getByTestId("composition-tour-section");
+    expect(tourSection.props.onMoveShouldSetResponderCapture).toBeUndefined();
+
+    // Une seule carte au total expose des actions : celle qu'on a glissée.
+    expect(screen.getAllByText(composition.activityActions.duplicate)).toHaveLength(1);
+  });
+});
+
+describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-03)", () => {
+  const twoActivities = [
+    anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+    anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+  ];
+
+  it("AC-02 — a short press opens the Activity for editing", () => {
+    renderScreenWithDraft(twoActivities);
+
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { exerciseId: "ex-2" },
+    });
+  });
+
+  it("AC-02 — a long press engages the reorder state WITHOUT opening the modification", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    fireEvent(row, "longPress");
+
+    expect(mockPush).not.toHaveBeenCalled();
+    const liftedStyle = StyleSheet.flatten(
+      screen.getByTestId("composition-exercise-row-ex-1").props.style,
+    );
+    // D-129/CE-T02-02 : carte soulevée — `#F7F7FF`, contour `#D1D1D6`,
+    // rayon `8`, ombre `#14171F` à 22 %, agrandie de `8 × 2` points.
+    expect(liftedStyle.backgroundColor).toBe(colors.exerciseContextBandBackground);
+    expect(liftedStyle.borderColor).toBe(colors.compositionDraggedCardBorder);
+    expect(liftedStyle.borderRadius).toBe(8);
+    expect(liftedStyle.shadowColor).toBe(colors.compositionDraggedCardShadow);
+    expect(liftedStyle.shadowOpacity).toBe(0.22);
+    expect(liftedStyle.marginHorizontal).toBe(-4);
+  });
+
+  it("CE-T02-02 — the other cards, the Tour and the structural rows keep their exact style while a card is lifted", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const otherBefore = StyleSheet.flatten(
+      screen.getByTestId("composition-exercise-row-ex-2").props.style,
+    );
+    const tourBefore = StyleSheet.flatten(
+      screen.getByTestId("composition-tour-section").props.style,
+    );
+
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-2").props.style),
+    ).toEqual(otherBefore);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section").props.style)).toEqual(
+      tourBefore,
+    );
+  });
+
+  it("AC-03 — the long press is recognized on the whole card, the DSF handle being a mere affordance", () => {
+    renderScreenWithDraft(twoActivities);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    // La poignée n'expose aucune cible tactile propre : elle n'est ni
+    // pressable ni porteuse d'un rôle d'accessibilité.
+    const handle = within(row).getByTestId("composition-boundary-handle-slot");
+    expect(handle.props.onStartShouldSetResponder).toBeUndefined();
+    expect(handle.props.accessibilityRole).toBeUndefined();
+    // Le reconnaisseur d'appui long est bien porté par la carte entière.
+    expect(row.props.onResponderGrant).toBeDefined();
+  });
+
+  it("neutralizes the list scrolling only while a card is actually lifted", () => {
+    renderScreenWithDraft(twoActivities);
+
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+  });
+});
+
+describe("CompositionScreen — déplacement d'une Activité (T02-S01, AC-04)", () => {
+  /**
+   * Géométrie injectée (aucun `onLayout` réel sous Jest) : zone
+   * `BEFORE_TOUR` à `y = 70`, cartes `ex-1` (0–70) et `ex-2` (80–150) dans
+   * cette zone — soit `70–140` et `150–220` en absolu —, structure Tour à
+   * `230–400`.
+   */
+  function layoutTwoBeforeTour() {
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
+    fireLayout(screen.getByTestId("composition-activity-ex-2"), 80, 70);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+  }
+
+  /**
+   * Chaque événement est envoyé à l'élément REQUÊTÉ À NOUVEAU : l'appui long
+   * provoque un rendu (état soulevé), et rejouer les événements suivants sur
+   * une référence antérieure testerait des gestionnaires périmés.
+   */
+  function dragBy(activityId: string, deltaY: number) {
+    const container = () => screen.getByTestId(`composition-activity-${activityId}`);
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId(`composition-exercise-row-${activityId}`), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+  }
+
+  beforeEach(() => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+    ]);
+    layoutTwoBeforeTour();
+  });
+
+  it("reorders inside the same zone once the neighbour's midpoint is crossed", () => {
+    // Centre de `ex-1` = 105 ; +100 -> 205, au-delà du centre de `ex-2` (185).
+    dragBy("ex-1", 100);
+
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "composition-exercise-row-ex-1",
+        "composition-exercise-row-ex-2",
+      ]),
+    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
+  });
+
+  it("moves an Activity INTO the Tour when dropped inside the Tour structure", () => {
+    // Centre de `ex-1` = 105 ; +200 -> 305, à l'intérieur de `230–400`.
+    dragBy("ex-1", 200);
+
+    expect(
+      within(screen.getByTestId("composition-zone-in-tour")).getByTestId(
+        "composition-exercise-row-ex-1",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("composition-zone-before-tour")).queryByTestId(
+        "composition-exercise-row-ex-1",
+      ),
+    ).toBeNull();
+    // Identité et paramètres conservés : la carte affiche toujours son nom.
+    expect(screen.getByText("Gainage")).toBeTruthy();
+  });
+
+  it("moves an Activity AFTER the Tour when dropped below the Tour structure", () => {
+    // Centre de `ex-1` = 105 ; +400 -> 505, sous `400`.
+    dragBy("ex-1", 400);
+
+    expect(
+      within(screen.getByTestId("composition-zone-after-tour")).getByTestId(
+        "composition-exercise-row-ex-1",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("leaves the order untouched when the drop lands back on the card's own slot", () => {
+    dragBy("ex-1", 0);
+
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "composition-exercise-row-ex-1",
+        "composition-exercise-row-ex-2",
+      ]),
+    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
+  });
+
+  it("never changes the order when the gesture is interrupted before any drop (CE-T02-02)", () => {
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    fireEvent(container(), "responderTerminate", {});
+
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "composition-exercise-row-ex-1",
+        "composition-exercise-row-ex-2",
+      ]),
+    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+  });
+});
+
+describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, AC-06/AC-07)", () => {
+  function renderTwo() {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+    ]);
+  }
+
+  it("reveals exactly Dupliquer and Supprimer on a left swipe, without moving the card", () => {
+    renderTwo();
+
+    const cardBefore = StyleSheet.flatten(
+      screen.getByTestId("composition-exercise-row-ex-1").props.style,
+    );
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+
+    fireSwipeLeft("ex-1");
+
+    const actions = screen.getByTestId("composition-activity-actions-ex-1");
+    expect(within(actions).getByText(composition.activityActions.duplicate)).toBeTruthy();
+    expect(within(actions).getByText(composition.activityActions.delete)).toBeTruthy();
+
+    // D-128 : groupe `144 × 69` SUPERPOSÉ à droite (deux actions `72`), la
+    // carte ne se déplace pas (aucune translation, style inchangé).
+    const actionsStyle = StyleSheet.flatten(actions.props.style);
+    expect(actionsStyle.position).toBe("absolute");
+    expect(actionsStyle.right).toBe(0);
+    expect(actionsStyle.width).toBe(144);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style),
+    ).toEqual(cardBefore);
+    expect(
+      StyleSheet.flatten(
+        within(actions).getByTestId("composition-activity-duplicate-ex-1").props.style,
+      ).width,
+    ).toBe(72);
+  });
+
+  it("never reveals a rightward swipe, nor a vertically dominant one (they belong to the list)", () => {
+    renderTwo();
+
+    const container = screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container, "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container, "responderMove", { nativeEvent: { pageX: 300, pageY: 100 } });
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+
+    fireEvent(container, "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container, "responderMove", { nativeEvent: { pageX: 140, pageY: 400 } });
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("reveals the actions of a single card at a time", () => {
+    renderTwo();
+
+    fireSwipeLeft("ex-1");
+    fireSwipeLeft("ex-2");
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(screen.getByTestId("composition-activity-actions-ex-2")).toBeTruthy();
+  });
+
+  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and a collision-free name", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
+
+    expect(screen.getByText("Gainage (copie)")).toBeTruthy();
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "composition-exercise-row-ex-1",
+        "composition-exercise-row-generated-copy-id",
+        "composition-exercise-row-ex-2",
+      ]),
+    ).toEqual([
+      "composition-exercise-row-ex-1",
+      "composition-exercise-row-generated-copy-id",
+      "composition-exercise-row-ex-2",
+    ]);
+    // La source reste intacte, et la copie reprend ses paramètres.
+    expect(screen.getByText("Gainage")).toBeTruthy();
+    expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(2);
+    // Les actions se referment après l'opération.
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("AC-07 — Supprimer removes ONLY the targeted Activity", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+
+    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+    expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+    expect(screen.queryByText("Gainage")).toBeNull();
+    expect(screen.getByText("Squats")).toBeTruthy();
+  });
+
+  it("a short press on a card with revealed actions closes them instead of opening the modification", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("CE-T02-01 — deleting the last Exercise disables Continuer, even when a Récupération remains", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+      anActivity("rec-1", "AFTER_TOUR", { name: "Récupération", type: "RECOVERY" }),
+    ]);
+
+    expect(
+      screen.getByLabelText(composition.continueAction).props.accessibilityState,
+    ).toMatchObject({ disabled: false });
+
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+
+    expect(screen.getByTestId("composition-exercise-row-rec-1")).toBeTruthy();
+    expect(
+      screen.getByLabelText(composition.continueAction).props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+  });
+});
+
+describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)", () => {
+  const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })];
+
+  it("AC-09 — pressing the control opens the canonical numeric wheel inside the blocking DSF overlay", () => {
+    renderScreenWithDraft(oneActivity);
+
+    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
+    fireEvent.press(screen.getByTestId("composition-tour-control"));
+
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+    expect(screen.getByTestId("composition-tour-wheel-picker")).toBeTruthy();
+    // Voile bloquant non dismissible au toucher (contrat transverse).
+    expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
+    // Primitive native réutilisée telle quelle (jamais une réimplémentation).
+    expect(screen.getByTestId("number-wheel-column").props.onSelectionChange).toBeInstanceOf(
+      Function,
+    );
+  });
+
+  it("AC-08/AC-09 — Confirmer applies exactly the centered value to the draft", () => {
+    renderScreenWithDraft(oneActivity);
+
+    fireEvent.press(screen.getByTestId("composition-tour-control"));
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 99);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+
+    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
+    expect(within(screen.getByTestId("composition-tour-control")).getByText("99")).toBeTruthy();
+  });
+
+  it("AC-09 — Annuler closes without changing the previously confirmed value", () => {
+    renderScreenWithDraft(oneActivity);
+
+    fireEvent.press(screen.getByTestId("composition-tour-control"));
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 42);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
+
+    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
+    expect(within(screen.getByTestId("composition-tour-control")).getByText("1")).toBeTruthy();
+  });
+
+  it("AC-10 — confirming a new tour count recomputes the Tour summary immediately", () => {
+    renderScreenWithDraft(oneActivity);
+
+    const summary = () =>
+      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+        .props.children;
+    expect(summary()).toBe("1 activité · 1 min");
+
+    fireEvent.press(screen.getByTestId("composition-tour-control"));
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+
+    // 60 s × 3 = 180 s -> 3 min ; le NOMBRE d'Activités, lui, reste `1`.
+    expect(summary()).toBe("1 activité · 3 min");
+  });
+
+  it("AC-10 — an out-of-Tour Activity never contributes to the Tour summary, whatever the tour count (correctif T02, 2026-09-08)", () => {
+    // Avant le correctif, l'Activité BEFORE_TOUR contribuait encore au
+    // NOMBRE affiché (sans être multipliée) — désormais elle est exclue à
+    // la source, aussi bien du nombre que de la durée. Seule l'Activité
+    // IN_TOUR (60 s) contribue, multipliée par `tourRepeatCount`.
+    renderScreenWithDraft(
+      [
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Échauffement", durationSeconds: 600 }),
+        anActivity("ex-2", "IN_TOUR", { name: "Squats", durationSeconds: 60 }),
+      ],
+      { tourRepeatCount: 5 },
+    );
+
+    // BEFORE_TOUR (600 s) exclue quel que soit tourRepeatCount ; IN_TOUR
+    // seule contribue : 60 × 5 = 300 s -> ceil(300/60) = 5 min.
+    expect(
+      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+        .props.children,
+    ).toBe("1 activité · 5 min");
+  });
+
+  it("rehydrated drafts show their persisted tour count, never a hardcoded 1", () => {
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 7 });
+
+    expect(within(screen.getByTestId("composition-tour-control")).getByText("7")).toBeTruthy();
   });
 });

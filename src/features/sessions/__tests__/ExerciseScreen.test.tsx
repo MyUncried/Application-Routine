@@ -416,10 +416,38 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
       disabled: false,
     });
   });
+
+  /**
+   * Correctif T02 post-test-utilisateur (2026-09-08, point 4) : le cadre
+   * laissé vide par l'absence de Durée/Répétitions affiche désormais un
+   * badge statique `À l'échec` en violet, dans le même emplacement du
+   * `Activity / Parameter Row` — jamais un espace vide, jamais un contrôle
+   * pressable ni un chevron (rien n'y est sélectionnable, D-111).
+   */
+  it("correctif T02 (2026-09-08) — shows a static, non-pressable 'À l'échec' badge in the mode-parameter slot, in the violet selection token, without a chevron", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+
+    const row = screen.getByTestId("exercise-parameter-row");
+    const badge = within(row).getByTestId("exercise-field-toFailure");
+    expect(within(badge).getByText(t.executionMode.toFailure)).toBeTruthy();
+
+    const control = screen.getByTestId("exercise-field-toFailure-control");
+    expect(control.props.accessibilityRole).not.toBe("button");
+    expect(screen.queryByTestId("exercise-field-toFailure-chevron")).toBeNull();
+    expect(screen.queryByTestId("exercise-field-toFailure-chevron-box")).toBeNull();
+
+    const label = within(badge).getByText(t.executionMode.toFailure);
+    expect(StyleSheet.flatten(label.props.style).color).toBe(colors.selection);
+
+    // Le cadre reste bien celui des autres colonnes (largeur `124`,
+    // 'Activity / Parameter Row'), pas un cadre inventé.
+    expect(StyleSheet.flatten(control.props.style).width).toBe(124);
+  });
 });
 
 describe("ExerciseScreen — bouton média désactivé, aucune section Médias (T01-S10, doc13 §8)", () => {
-  it("renders a centered '+ Ajouter un média' button, visible but disabled, with no Media section and no wired behaviour", () => {
+  it("renders a centered 'Ajouter un média' button, visible but disabled, with no Media section and no wired behaviour", () => {
     renderScreen(null);
 
     const mediaButton = screen.getByTestId("exercise-add-media");
@@ -428,6 +456,23 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
     expect(StyleSheet.flatten(mediaButton.props.style).alignSelf).toBe("center");
     expect(() => fireEvent.press(mediaButton)).not.toThrow();
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Correctif T02 post-test-utilisateur (2026-09-08, point 5) : le `+` ne
+   * doit plus jamais être un caractère de texte — ni concaténé au libellé,
+   * ni rendu isolément — il est désormais porté par l'icône DSF
+   * `action-add`, la même que celle du bouton `Ajouter une activité` de la
+   * Composition.
+   */
+  it("correctif T02 (2026-09-08) — the '+' is never a text character: the label has no leading '+', and the canonical action-add icon is rendered instead", () => {
+    renderScreen(null);
+
+    expect(t.addMedia.startsWith("+")).toBe(false);
+    expect(screen.queryByText(/^\+/u)).toBeNull();
+
+    const mediaButton = screen.getByTestId("exercise-add-media");
+    expect(within(mediaButton).getByTestId("exercise-add-media-icon")).toBeTruthy();
   });
 
   /**
@@ -705,6 +750,60 @@ describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (poin
     const controlStyle = StyleSheet.flatten(control.props.style);
     expect(controlStyle.width).toBeGreaterThanOrEqual(74);
     expect(controlStyle.height).toBe(42);
+  });
+
+  /**
+   * Correctif T02 post-test-utilisateur (2026-09-08, point 4) : `Séries`
+   * précède désormais le paramètre correspondant au mode (`Durée` en mode
+   * Durée, `Répétitions` en mode Répétitions), `Pause après Série` fermant
+   * la rangée — l'ancien ordre plaçait le paramètre de mode en tête et
+   * `Séries` en dernier.
+   */
+  it("correctif T02 (2026-09-08) — orders the row as Séries, then the mode's own parameter, then Pause (Durée mode)", () => {
+    renderScreen(null);
+
+    const order = testIdOrder(screen.toJSON(), [
+      "exercise-field-seriesCount",
+      "exercise-field-duration",
+      "exercise-field-pauseSeconds",
+    ]);
+    expect(order).toEqual([
+      "exercise-field-seriesCount",
+      "exercise-field-duration",
+      "exercise-field-pauseSeconds",
+    ]);
+  });
+
+  it("correctif T02 (2026-09-08) — orders the row as Séries, then Répétitions, then Pause (mode Répétitions)", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
+
+    const order = testIdOrder(screen.toJSON(), [
+      "exercise-field-seriesCount",
+      "exercise-field-repetitionCount",
+      "exercise-field-pauseSeconds",
+    ]);
+    expect(order).toEqual([
+      "exercise-field-seriesCount",
+      "exercise-field-repetitionCount",
+      "exercise-field-pauseSeconds",
+    ]);
+  });
+
+  it("correctif T02 (2026-09-08) — orders the row as Séries, then the À l'échec badge, then Pause (mode À l'échec)", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+
+    const order = testIdOrder(screen.toJSON(), [
+      "exercise-field-seriesCount",
+      "exercise-field-toFailure",
+      "exercise-field-pauseSeconds",
+    ]);
+    expect(order).toEqual([
+      "exercise-field-seriesCount",
+      "exercise-field-toFailure",
+      "exercise-field-pauseSeconds",
+    ]);
   });
 });
 

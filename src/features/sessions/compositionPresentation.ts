@@ -1,3 +1,9 @@
+import {
+  computeActivityDurationSeconds,
+  computeEstimatedDurationSeconds,
+  isLowerBoundExecutionMode,
+} from "@/domain/sessions/calculations";
+import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
@@ -14,6 +20,13 @@ import { strings } from "@/shared/i18n";
 export type CompositionSummaryFacts = {
   /** Collection ORDONNÉE d'Activités (`SessionDraft.exercises`, complétion REWORK12) — remplace l'ancien champ `exercise` singulier. */
   readonly exercises: readonly SessionDraftExercise[];
+  /**
+   * T02-S01 (D-058/CE-T02-01) : répétition du Tour, entier `1..99`. Champ
+   * optionnel — `DEFAULT_TOUR_REPEAT_COUNT` (`1`) par défaut, valeur pour
+   * laquelle la synthèse est rigoureusement identique à celle de T01 (les
+   * Activités du Tour ne sont alors multipliées par rien).
+   */
+  readonly tourRepeatCount?: number;
 };
 
 /**
@@ -57,26 +70,66 @@ export type CompositionSummaryFacts = {
  * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
  * RM-101, inchangé), appliqué une seule fois à la somme totale des
  * Activités.
+ *
+ * **T02-S01 (CE-T02-01 « Calculs », AC-10/AC-11)**, puis **correctif T02
+ * post-test-utilisateur** (2026-09-08) — quatre évolutions, la formule par
+ * Activité restant inchangée :
+ *
+ * 1. **Cette synthèse est celle du Tour lui-même**, pas celle de la
+ *    Composition entière : seules les Activités `IN_TOUR` y contribuent,
+ *    aussi bien pour le NOMBRE que pour la DURÉE. Les Activités
+ *    `BEFORE_TOUR`/`AFTER_TOUR` en sont exclues à la source du calcul (elles
+ *    restent comptées dans le Catalogue par `computeActivityCount`,
+ *    `calculations.ts`, qui lui couvre bien les trois zones — métrique
+ *    distincte, jamais réutilisée ici). Le correctif remplace la version
+ *    T02-S01 de cette fonction, qui sommait par erreur `facts.exercises`
+ *    (les trois zones) pour le nombre et pour la part `BEFORE_TOUR`/
+ *    `AFTER_TOUR` de la durée ;
+ * 2. la durée `IN_TOUR` est multipliée par `tourRepeatCount` (« développe les
+ *    répétitions du Tour ») ;
+ * 3. le NOMBRE affiché reste celui des Activités `IN_TOUR` réellement
+ *    composées — chacune une seule fois, jamais multipliée par
+ *    `tourRepeatCount` (clarification n° 2 du verdict de revue T02-S01,
+ *    désormais bornée à la zone du Tour) ;
+ * 4. le mode « À l'échec » déclenche désormais la borne minimale `≥` au même
+ *    titre que le mode Répétitions (AC-11/D-112) — il ne la déclenchait pas,
+ *    alors qu'il ne porte lui non plus aucune durée conventionnelle ; une
+ *    Récupération contribue sa seule durée (D-041), sans Séries ni pause.
+ *
+ * `Compte à rebours initial` et `Fin de séance` restent exclus (REWORK13,
+ * R13-02, inchangé).
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
-  if (facts.exercises.length === 0) {
+  const inTourExercises = facts.exercises.filter(
+    (exercise) => exercise.structuralPosition === "IN_TOUR",
+  );
+
+  if (inTourExercises.length === 0) {
     return strings.screens.composition.summary.empty;
   }
 
   let isLowerBoundEstimate = false;
-  let activitiesAndPauseSeconds = 0;
-  for (const exercise of facts.exercises) {
-    const isRepetitionMode = exercise.executionMode === "REPETITIONS";
-    if (isRepetitionMode) {
+  let inTourDurationSeconds = 0;
+
+  for (const exercise of inTourExercises) {
+    if (exercise.type !== "RECOVERY" && isLowerBoundExecutionMode(exercise.executionMode)) {
       isLowerBoundEstimate = true;
     }
-    const activityDurationSeconds = isRepetitionMode ? 0 : exercise.seriesCount * (exercise.durationSeconds ?? 0);
-    activitiesAndPauseSeconds += activityDurationSeconds + exercise.seriesCount * exercise.pauseSeconds;
+    inTourDurationSeconds += computeActivityDurationSeconds(exercise);
   }
-  const formattedDuration = formatEstimatedDuration(activitiesAndPauseSeconds);
+
+  const totalSeconds = computeEstimatedDurationSeconds({
+    beforeTourDurationSeconds: 0,
+    inTourDurationSeconds,
+    afterTourDurationSeconds: 0,
+    tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    isLowerBoundEstimate,
+  });
+
+  const formattedDuration = formatEstimatedDuration(totalSeconds);
   const durationLabel = isLowerBoundEstimate ? `≥ ${formattedDuration}` : formattedDuration;
 
-  return `${formatActivityCount(facts.exercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
+  return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
 
 /**

@@ -116,6 +116,9 @@ export const fr = {
         // REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : libellé exact
         // remplacé, auparavant "Tour" seul.
         label: "Nombre de tours",
+        // T02-S01 (CE-T02-01, « Nombre de Tours ») : le contrôle devient
+        // réellement pressable et ouvre la roulette numérique `1..99`.
+        valueAccessibilityLabel: "Nombre de tours",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -143,6 +146,17 @@ export const fr = {
         // sémantique correcte avant ce cycle.
         continueCreating: "Annuler",
         abandon: "Confirmer",
+      },
+      // T02-S01 (CE-T02-01/CE-T02-02, D-124/D-127) : gestes et actions
+      // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
+      // `Supprimer` sont ceux, exacts, du groupe `144 × 69` de la frame
+      // `2028:11808`.
+      activityActions: {
+        duplicate: "Dupliquer",
+        delete: "Supprimer",
+        revealAccessibilityLabel: "Actions de l’activité",
+        reorderAccessibilityHint:
+          "Appui long pour déplacer l’activité, glissement vers la gauche pour afficher les actions",
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
@@ -299,7 +313,10 @@ export const fr = {
       // T01-S10 (doc13 §8, frame `1992:9132`) : bouton centré, VISIBLE mais
       // DÉSACTIVÉ dans le MVP — aucune section Médias, aucun import/galerie/
       // lecture/stockage (Médias V2 hors périmètre).
-      addMedia: "+ Ajouter un média",
+      // Correctif T02 (2026-09-08, point 5) : le `+` n'est plus porté par ce
+      // libellé — il est rendu séparément par l'icône DSF `action-add`
+      // (`ExerciseScreen.tsx`), jamais comme caractère de texte concaténé.
+      addMedia: "Ajouter un média",
       addMediaUnavailableAccessibilityLabel: "Ajouter un média — indisponible",
       validateAction: "Valider",
       finishAction: "Terminer",

@@ -21,6 +21,22 @@ import {
  * seules contributions d'Activité (plus aucune constante `10`/`5` de
  * compte à rebours/fin de séance dans la formule).
  */
+/**
+ * `formatCompositionSummary` est la synthèse DU TOUR (affichée sous
+ * `Nombre de tours`), pas celle de la Composition entière — elle n'agrège
+ * donc que les Activités `IN_TOUR` (correctif T02 post-test-utilisateur,
+ * 2026-09-08 ; voir le docstring de la fonction). Comme `createExerciseDraft`
+ * positionne toute nouvelle Activité `BEFORE_TOUR` par défaut (T02-S01,
+ * `DEFAULT_STRUCTURAL_POSITION`), les fixtures ci-dessous qui n'exercent que
+ * la FORMULE (durée/pluriel/bornes), indépendamment des zones, placent
+ * explicitement leur unique Activité `IN_TOUR` via ce petit alias — sans
+ * quoi elles seraient silencieusement exclues de la synthèse et
+ * produiraient toujours `"0 activité · 0 min"`.
+ */
+function inTourExercise(id: string): SessionDraftExercise {
+  return { ...createExerciseDraft(id), structuralPosition: "IN_TOUR" };
+}
+
 describe("formatCompositionSummary", () => {
   it("displays the exact local empty-state label when there is no Activity yet", () => {
     expect(formatCompositionSummary({ exercises: [] })).toBe("0 activité · 0 min");
@@ -29,7 +45,7 @@ describe("formatCompositionSummary", () => {
   it("formats a single 45s Activity (1 série, sans pause) as '1 activité · 1 min'", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }],
       }),
     ).toBe("1 activité · 1 min");
   });
@@ -37,7 +53,7 @@ describe("formatCompositionSummary", () => {
   it("rounds a non-exact minute up (61s) to '1 activité · 2 min' (Math.ceil, never underestimating)", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 61 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 61 }],
       }),
     ).toBe("1 activité · 2 min");
   });
@@ -45,7 +61,7 @@ describe("formatCompositionSummary", () => {
   it("treats a null exercise duration as 0 seconds in the formula", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: null }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: null }],
       }),
     ).toBe("1 activité · 0 min");
   });
@@ -60,14 +76,14 @@ describe("formatCompositionSummary", () => {
    * produisent toujours exactement la même chaîne.
    */
   it("REWORK13 (R13-02) — the summary is fully determined by the Activities collection alone (CompositionSummaryFacts exposes only 'exercises')", () => {
-    const exercises = [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }];
+    const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
     expect(formatCompositionSummary({ exercises })).toBe(formatCompositionSummary({ exercises }));
   });
 
   describe("mode Répétitions (T01-S08, arbitrage B — RM-072/D-070/D-008)", () => {
     function repetitionExercise(repetitionCount: number, pauseSeconds = 0): SessionDraftExercise {
       return {
-        ...createExerciseDraft("ex-1"),
+        ...inTourExercise("ex-1"),
         name: "Fentes",
         executionMode: "REPETITIONS" as const,
         durationSeconds: null,
@@ -97,7 +113,7 @@ describe("formatCompositionSummary", () => {
 
     it("never shows the '≥' prefix in Duration mode", () => {
       const result = formatCompositionSummary({
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }],
       });
       expect(result).not.toContain("≥");
     });
@@ -109,7 +125,7 @@ describe("formatCompositionSummary", () => {
         formatCompositionSummary({
           exercises: [
             {
-              ...createExerciseDraft("ex-1"),
+              ...inTourExercise("ex-1"),
               name: "Gainage",
               durationSeconds: 90,
               seriesCount: 3,
@@ -125,7 +141,7 @@ describe("formatCompositionSummary", () => {
         formatCompositionSummary({
           exercises: [
             {
-              ...createExerciseDraft("ex-1"),
+              ...inTourExercise("ex-1"),
               name: "Fentes",
               executionMode: "REPETITIONS",
               durationSeconds: null,
@@ -143,7 +159,7 @@ describe("formatCompositionSummary", () => {
         formatCompositionSummary({
           exercises: [
             {
-              ...createExerciseDraft("ex-1"),
+              ...inTourExercise("ex-1"),
               name: "Gainage",
               durationSeconds: 45,
               seriesCount: 4,
@@ -159,7 +175,7 @@ describe("formatCompositionSummary", () => {
         formatCompositionSummary({
           exercises: [
             {
-              ...createExerciseDraft("ex-1"),
+              ...inTourExercise("ex-1"),
               name: "Gainage",
               durationSeconds: 45,
               seriesCount: 1,
@@ -173,12 +189,12 @@ describe("formatCompositionSummary", () => {
     it("fait varier seriesCount seul : le résultat change en conséquence", () => {
       const oneSeries = formatCompositionSummary({
         exercises: [
-          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
+          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
         ],
       });
       const threeSeries = formatCompositionSummary({
         exercises: [
-          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
+          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
         ],
       });
       expect(oneSeries).toBe("1 activité · 1 min"); // 45s
@@ -190,7 +206,7 @@ describe("formatCompositionSummary", () => {
       const noPause = formatCompositionSummary({
         exercises: [
           {
-            ...createExerciseDraft("ex-1"),
+            ...inTourExercise("ex-1"),
             name: "Gainage",
             durationSeconds: 45,
             seriesCount: 2,
@@ -201,7 +217,7 @@ describe("formatCompositionSummary", () => {
       const withPause = formatCompositionSummary({
         exercises: [
           {
-            ...createExerciseDraft("ex-1"),
+            ...inTourExercise("ex-1"),
             name: "Gainage",
             durationSeconds: 45,
             seriesCount: 2,
@@ -225,8 +241,8 @@ describe("formatCompositionSummary", () => {
     it("counts every Activity in the collection (never hardcoded to 1)", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
-          { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
+          { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
         ],
       });
       expect(result).toBe("2 activités · 2 min"); // 45 + 30 = 75s -> ceil(75/60) = 2 min
@@ -235,9 +251,9 @@ describe("formatCompositionSummary", () => {
     it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once Math.ceil at the very end", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 90 },
+          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 90 },
           {
-            ...createExerciseDraft("ex-2"),
+            ...inTourExercise("ex-2"),
             name: "Fentes",
             executionMode: "REPETITIONS",
             durationSeconds: null,
@@ -255,11 +271,104 @@ describe("formatCompositionSummary", () => {
     it("never prefixes with '≥' when every Activity is in Durée mode, even with several Activities", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
-          { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
+          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
+          { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 45 },
         ],
       });
       expect(result).not.toContain("≥");
+    });
+  });
+
+  /**
+   * T02-S01 (CE-T02-01 « Calculs », AC-10/AC-11), **corrigé le 2026-09-08
+   * après test utilisateur** : la synthèse du Tour n'agrège QUE la zone
+   * `IN_TOUR` (nombre ET durée) ; `BEFORE_TOUR`/`AFTER_TOUR` en sont exclues
+   * à la source, jamais seulement à l'affichage. La répétition du Tour ne
+   * multiplie que cette zone ; le NOMBRE affiché ne multiplie jamais, quelle
+   * que soit `tourRepeatCount` ; la borne minimale `≥` couvre aussi « À
+   * l'échec ».
+   */
+  describe("trois zones structurelles et répétitions du Tour (T02, correctif 2026-09-08)", () => {
+    function activity(
+      id: string,
+      structuralPosition: SessionDraftExercise["structuralPosition"],
+      durationSeconds: number,
+    ): SessionDraftExercise {
+      return { ...createExerciseDraft(id), name: id, structuralPosition, durationSeconds };
+    }
+
+    // Deux Activités IN_TOUR (60s chacune) entourées d'une Activité
+    // BEFORE_TOUR et d'une Activité AFTER_TOUR : la seconde Activité IN_TOUR
+    // est nécessaire pour distinguer sans ambiguïté « exclu de la zone » de
+    // « jamais multiplié pour le compte », ce qu'une unique Activité IN_TOUR
+    // ne peut pas démontrer à elle seule.
+    const threeZones = [
+      activity("warmup", "BEFORE_TOUR", 30),
+      activity("core-1", "IN_TOUR", 60),
+      activity("core-2", "IN_TOUR", 60),
+      activity("stretch", "AFTER_TOUR", 30),
+    ];
+
+    it("excludes BEFORE_TOUR and AFTER_TOUR from both the count and the duration, and multiplies only the IN_TOUR duration by tourRepeatCount", () => {
+      // BEFORE_TOUR (30s) et AFTER_TOUR (30s) ignorées ; IN_TOUR seule :
+      // (60 + 60) × 3 = 360 s -> ceil(360/60) = 6 min ; deux Activités.
+      expect(formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 3 })).toBe(
+        "2 activités · 6 min",
+      );
+    });
+
+    it("counts each IN_TOUR Activity ONCE in the displayed number, never tourRepeatCount times", () => {
+      const summary = formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 9 });
+      expect(summary.startsWith("2 activités")).toBe(true);
+    });
+
+    it("behaves exactly as the IN_TOUR-only formula when the tour repeat count is 1 or omitted (non-regression)", () => {
+      // BEFORE_TOUR/AFTER_TOUR toujours exclues ; 60 + 60 = 120 s -> 2 min.
+      expect(formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 1 })).toBe(
+        "2 activités · 2 min",
+      );
+      expect(formatCompositionSummary({ exercises: threeZones })).toBe("2 activités · 2 min");
+    });
+
+    it("is unaffected by the tour repeat count when no Activity is inside the Tour", () => {
+      const outOfTour = [activity("warmup", "BEFORE_TOUR", 30), activity("stretch", "AFTER_TOUR", 30)];
+      expect(formatCompositionSummary({ exercises: outOfTour, tourRepeatCount: 1 })).toBe(
+        formatCompositionSummary({ exercises: outOfTour, tourRepeatCount: 42 }),
+      );
+    });
+
+    it("correctif T02 (2026-09-08) — BEFORE_TOUR/AFTER_TOUR alone produce the exact empty-state label, never a residual count or duration", () => {
+      const outOfTour = [activity("warmup", "BEFORE_TOUR", 600), activity("stretch", "AFTER_TOUR", 600)];
+      expect(formatCompositionSummary({ exercises: outOfTour, tourRepeatCount: 5 })).toBe(
+        "0 activité · 0 min",
+      );
+    });
+
+    it("prefixes with '≥' for an À l'échec Activity too, not only for Répétitions (AC-11/D-112)", () => {
+      const toFailure: SessionDraftExercise = {
+        ...inTourExercise("ex-1"),
+        name: "Tractions",
+        executionMode: "TO_FAILURE",
+        durationSeconds: null,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 20,
+      };
+      // Aucune durée conventionnelle : seules les pauses comptent, 3×20 = 60 s.
+      expect(formatCompositionSummary({ exercises: [toFailure] })).toBe("1 activité · ≥ 1 min");
+    });
+
+    it("counts a Récupération's own duration once, without series multiplication nor pause (D-041)", () => {
+      const recovery: SessionDraftExercise = {
+        ...inTourExercise("rec"),
+        name: "Récupération",
+        type: "RECOVERY",
+        durationSeconds: 90,
+        seriesCount: 3,
+        pauseSeconds: 30,
+      };
+      // 90 s exactement (jamais 3×90 + 3×30) -> ceil(90/60) = 2 min.
+      expect(formatCompositionSummary({ exercises: [recovery] })).toBe("1 activité · 2 min");
     });
   });
 });

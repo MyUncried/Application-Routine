@@ -173,8 +173,8 @@ describe("strings", () => {
     expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
   });
 
-  it("exposes the disabled add-media button label (T01-S10, doc13 §8 — Médias V2 hors périmètre)", () => {
-    expect(strings.screens.exercise.addMedia).toBe("+ Ajouter un média");
+  it("exposes the disabled add-media button label (T01-S10, doc13 §8 — Médias V2 hors périmètre ; correctif T02 2026-09-08 — le '+' n'est plus un caractère de texte, porté par l'icône DSF)", () => {
+    expect(strings.screens.exercise.addMedia).toBe("Ajouter un média");
     expect(strings.screens.exercise.addMediaUnavailableAccessibilityLabel).toBe(
       "Ajouter un média — indisponible",
     );
