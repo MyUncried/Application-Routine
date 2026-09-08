@@ -171,6 +171,10 @@ jobs:
           cp "$MANIFEST_PATH" /tmp/kodjo-slice-plan/manifest.yml
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > /tmp/kodjo-slice-plan/issue.json
           gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" | jq -s add > /tmp/kodjo-slice-plan/comments.json
+          if [ "$PLAN_MODE" = INITIAL ]; then
+            jq '[.[] | select((.body | split("\n") | index("[KODJO_SLICE] PLAN_OUTPUT")) == null) | select((.body | split("\n") | index("[KODJO_SLICE] PLAN_REVIEW_OUTPUT")) == null)]' /tmp/kodjo-slice-plan/comments.json > /tmp/kodjo-slice-plan/comments.initial.json
+            mv /tmp/kodjo-slice-plan/comments.initial.json /tmp/kodjo-slice-plan/comments.json
+          fi
           if [ -n "$INITIAL_SCOPE_ID" ]; then
             gh api "repos/$GITHUB_REPOSITORY/issues/comments/$INITIAL_SCOPE_ID" --jq '.body' > /tmp/kodjo-slice-plan/initial-scope-correction.md
           fi
