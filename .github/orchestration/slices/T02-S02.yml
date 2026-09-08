@@ -1,0 +1,95 @@
+schema: kodjo.slice.v1
+slice_id: T02-S02
+title: Nouvelle structure d’Activité et corrections Catalogue/Composition
+status: SPEC_PREPARED
+repository: MyUncried/Application-Routine
+issue_number: 46
+target_branch: feat/creation-seance-catalogue
+baseline_head: 07feb4650d5b0ab2e46e82e6e2cf544772916bd0
+application_baseline_head: 90706d2481bddb18200cd113a915e5c0a2eca1dc
+documentation_reference_message: "docs: integrate attached recovery, total duration and updated activity contracts"
+
+previous_slice:
+  slice_id: T02-S01
+  issue_number: 43
+  required_status: DONE
+  final_head: 90706d2481bddb18200cd113a915e5c0a2eca1dc
+
+sources:
+  - docs/PRODUCT.md
+  - docs/INDEX.md
+  - docs/Specifications-fonctionnelles/00 – Glossaire.md
+  - docs/Specifications-fonctionnelles/01 – Vision Générale.md
+  - docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
+  - docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
+  - docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
+  - docs/Specifications-fonctionnelles/05 – Versions du produit.md
+  - docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
+  - docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+  - docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
+  - docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+  - docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+  - docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
+  - docs/Specifications-fonctionnelles/12 – Architecture technique.md
+  - docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+  - Figma
+
+scope:
+  objective: >-
+    Aligner la structure d’Activité, sa Récupération attachée, la Durée totale,
+    les calculs et les écrans Catalogue, Composition et Ajouter/Modifier sur les
+    contrats documentaires, avant la reprise du développement de T03.
+  in_scope:
+    - Suppression du choix fonctionnel de type Exercice ou Récupération.
+    - Récupération facultative attachée à l’Activité et exécutée une fois après toutes les Séries.
+    - Pause exécutée uniquement entre deux Séries.
+    - Calcul direct et inverse entre Séries et Durée totale selon les règles documentées.
+    - Durée totale et pilote de calcul non persistés.
+    - Migration SQLite additive et compatibilité des données existantes sans conversion métier spéciale.
+    - Recomposition conforme de l’écran Ajouter ou Modifier une Activité.
+    - Synthèse d’Activité toujours visible et informations complémentaires condensables.
+    - Icône vectorielle conforme pour Ajouter un média.
+    - Affichage de la Récupération attachée sur les cartes de Composition.
+    - Duplication sans suffixe dans le titre et conservation de la Récupération.
+    - Balayage gauche achevé pour afficher les actions et balayage droit pour les masquer.
+    - Déplacement par appui long de l’Activité et de sa Récupération comme un bloc unique.
+    - Chevron encadré pour ouvrir les roulettes concernées.
+    - Calcul du nombre et de la durée du Tour limité aux Activités placées dans le Tour.
+    - Correction de l’indicateur de défilement du Catalogue.
+    - Harmonisation des boutons Retour, Annuler, Valider et des dimensions des roulettes.
+    - Désactivation du geste latéral natif changeant d’écran dans le parcours concerné.
+  out_of_scope:
+    - Développement du moteur d’Exécution T03.
+    - Compte à rebours initial et phase Fin de séance de T03.
+    - Séries multiples et Tours dans le moteur d’Exécution T04.
+    - Activation fonctionnelle des médias.
+    - Catalogue autonome d’Activités ou de Circuits.
+    - Conversion ou renommage métier des anciennes Activités de récupération.
+  acceptance_criteria:
+    - "AC-01: aucun contrôle de type Exercice ou Récupération n’est affiché lors de l’ajout ou de la modification d’une Activité."
+    - "AC-02: une Récupération facultative est attachée à l’Activité, persistée et prise en compte une seule fois après toutes ses Séries."
+    - "AC-03: la Pause est comptée uniquement entre deux Séries et la formule D = C × A + (C − 1) × B + R est utilisée partout."
+    - "AC-04: le calcul inverse du nombre de Séries applique l’arrondi documenté, un minimum de 1 et signale toute durée ajustée."
+    - "AC-05: la Durée totale et le choix du pilote ne sont pas persistés."
+    - "AC-06: l’écran Ajouter ou Modifier respecte l’ordre, les sections, les chevrons, la synthèse fixe et les informations des contrats."
+    - "AC-07: Ajouter un média utilise l’icône vectorielle conforme et non un caractère plus."
+    - "AC-08: la carte de Composition affiche la Récupération lorsqu’elle existe et traite l’ensemble comme un bloc unique."
+    - "AC-09: dupliquer conserve exactement le titre, crée un nouvel identifiant et copie la Récupération attachée."
+    - "AC-10: le balayage gauche achevé affiche Dupliquer et Supprimer sans suivi progressif, et le balayage droit les masque."
+    - "AC-11: l’appui long reste le seul déclencheur du déplacement de l’Activité."
+    - "AC-12: le nombre et la durée du Tour excluent toute Activité placée avant ou après le Tour."
+    - "AC-13: déplacer, dupliquer ou supprimer une Activité recalcule immédiatement les métriques du Tour et de la séance sans contamination entre zones."
+    - "AC-14: le Catalogue n’affiche pas de barre de défilement inutile; si elle est nécessaire, elle reste dans la gouttière extérieure aux cartes."
+    - "AC-15: les boutons circulaires et les roulettes respectent les nouvelles dimensions communes, et le geste natif de changement d’écran est désactivé."
+    - "AC-16: la migration, les tests ciblés, Jest complet, TypeScript et la recette sur development build passent sans régression de T01 et T02."
+    - "AC-17: aucun élément du moteur d’Exécution T03 ou de T04 n’est développé."
+
+gates:
+  plan_user_approval: true
+  technical_review: false
+  visual_user_approval: false
+  final_checks: false
+
+sessions:
+  review: null
+  development: null
