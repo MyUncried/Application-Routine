@@ -26,9 +26,9 @@ else
   python - "$manifest" "$previous" "$baseline" "$scope_id" <<'PY' || fail "T03 baseline tuple"
 import sys, yaml
 m = yaml.safe_load(open(sys.argv[1], encoding="utf-8"))
-assert m["previous_slice"]["final_head"] == sys.argv[2], "previous.Room"
+assert m["previous_slice"]["final_head"] == sys.argv[2], "previous_head"
 assert m["baseline_head"] == sys.argv[3], "baseline"
-assert m["application_baseline_head"] == sys.argv[2], " Fox"
+assert m["application_baseline_head"] == sys.argv[2], "application_baseline_head"
 assert str(m["initial_scope_authority"]["comment_id"]) == sys.argv[4], "scope"
 assert m["initial_scope_authority"]["source_head"] == sys.argv[3], "scope_head"
 assert m["initial_scope_authority"]["replaces_legacy_manifest_scope"] is True, "scope_priority"
