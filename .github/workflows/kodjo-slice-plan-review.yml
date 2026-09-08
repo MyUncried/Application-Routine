@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Test manifest snapshot.Enqueue invariants
+      - name: Test manifest snapshot invariants
         run: .github/orchestration/tests/test-plan-review-manifest-snapshot.ps1
 
       - name: Validate manifest and immutable plan gate
