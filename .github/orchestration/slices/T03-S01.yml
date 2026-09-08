@@ -5,8 +5,8 @@ status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 44
 target_branch: feat/creation-seance-catalogue
-baseline_head: 90706d2481bddb18200cd113a915e5c0a2eca1dc
-application_baseline_head: 90706d2481bddb18200cd113a915e5c0a2eca1dc
+baseline_head: 917c53d91c4564d9b5047d6a301a5f4067883806
+application_baseline_head: 917c53d91c4564d9b5047d6a301a5f4067883806
 documentation_reference_message: "docs: define T03 fundamental guided execution"
 
 previous_slice:
