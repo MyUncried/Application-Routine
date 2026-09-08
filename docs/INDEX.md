@@ -50,7 +50,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10    | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et les règles de calcul identifiées par un ID.                                                           | Baseline MVP                                   |
 | 11    | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md)                                                                              | Décrit les opérations et services fonctionnels nécessaires au développement.                                                          | Baseline MVP                                   |
 | 12    | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md)                                                                      | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les validations techniques à réaliser.  | Baseline MVP avec spikes techniques identifiés |
-| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | Baseline progressive par tranche — T01 complète |
+| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | T01 révisée ; T02 et T03 couverts |
 
 
 ## 4. Images et maquettes
@@ -129,13 +129,15 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 Les contre-revues et revues transverses fonctionnelles et techniques ont été intégrées dans la documentation de référence.
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
+- Durée estimée et borne minimale `≥` en présence d’Activités en Répétitions ou À l’échec ;
+- Durée totale d’une Activité en mode Durée, dépendance avec le nombre de Séries et règle d’arrondi ;
+- distinction entre Pause entre Séries et Récupération après toutes les Séries ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Activités de la Composition, Nombre total d’Activités à exécuter et Nombre d’Activités exécutées ;
-- progression hybride des Activités chronométrées et des Exercices en Répétitions ou À l’échec ;
+- progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète progressivement cette baseline par des contrats d’écran opérationnels, rédigés et validés selon les tranches verticales de la roadmap. Les quinze frames dont la construction principale est affectée à T01 possèdent un contrat complet. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
+Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète cette baseline par les contrats opérationnels T01 révisés, T02 et T03. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
 
 Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
 
@@ -144,3 +146,12 @@ Toute modification fonctionnelle ultérieure doit être traitée comme une évol
 ## 9. État de référence après décisions Activités, Médias et Circuits
 
 La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 13 : troisième mode `À l’échec` dans le MVP ; contrôle de Catalogue `Activités / Séances / Circuits` avec seule la vue Séances active dans le MVP ; bibliothèque d’Activités, médias multiples et Circuits en V2 ; planification des Circuits en V3. Les captures Catalogue et Activité ont été réexportées depuis les frames Figma courantes. La capture `creation-activite-a-l-echec.png` complète la couverture existante.
+
+## 10. État de référence après unification de l’Activité
+
+La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité, exécutée une fois après toutes les Séries. La Pause reste distincte et n’existe qu’entre les Séries. En mode Durée, la Durée totale est calculée par `D = C × A + (C − 1) × B + R` et peut piloter le nombre entier de Séries selon l’arrondi validé. Les contrats T01, T02 et T03, le modèle de données, les API, l’architecture, le DSF et les captures Figma sont alignés sur cette structure. T03 demeure limité à une Série et un Tour ; l’exécution multi-Séries relève de T04.
+
+## 11. Livrables de traçabilité
+
+- [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
+- [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)

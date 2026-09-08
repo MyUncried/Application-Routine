@@ -282,19 +282,20 @@ Au démarrage d’une Exécution :
 Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
-- les Séries propres à chaque Exercice ;
-- l'insertion de la pause éventuelle après chaque Série, avec suppression de la pause finale lorsque l'étape suivante est une Récupération explicite ;
+- les Séries propres à chaque Activité ;
+- l’insertion d’une étape `SERIES_PAUSE` uniquement entre deux Séries successives ;
+- l’insertion d’une étape `RECOVERY` une seule fois après la dernière Série lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
 - la pause et la reprise ;
-- la réinitialisation de l’Activité courante ;
+- la réinitialisation de l’Activité, de la Série ou de la Récupération courante ;
 - le passage à l’étape suivante ;
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types d’étapes `INITIAL_COUNTDOWN`, `EXERCISE`, `RECOVERY` et `SESSION_END`. Après la dernière Activité, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T03, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T03, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -352,7 +353,7 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
 - 30 minutes après la fin théorique d’une Activité chronométrée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
+- 2 heures après le démarrage d’une Activité en Répétitions ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -590,7 +591,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T03 ; aucun spike ni prototype séparé ne précède ce lot.
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T03.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
-- La persistance T03 utilise une migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Cette migration conserve sans perte les Séances existantes et doit être testée depuis chaque version de base encore supportée.
+- La persistance T03 utilise une migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Elle doit inclure les valeurs canoniques nécessaires à Pause, Récupération et Résultats de Récupération, sans persister la Durée totale ni le pilote d’interface. Elle conserve sans perte les Séances existantes et doit être testée depuis chaque version de base encore supportée. Les éventuelles Activités de récupération créées uniquement pendant le développement ne font l’objet d’aucune migration spécifique.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T03 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
@@ -796,11 +797,12 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
 | Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
 | Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
-| Composition | `Composition / Activity Row` (`2588:2679`) | carte `354 × 69` ; ordre interne Nom / Zones corporelles / Synthèse ; Zones monochromes sans Catégorie ; position avant/dans/après Tour hors état du composant |
+| Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des activités et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Activité | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
-| Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure/Recovery` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` |
+| Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
+| Activité | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
 | Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
 | Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
@@ -1023,9 +1025,9 @@ Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autoris
 | Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
 | Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
 | Nouvelle séance — Nom renseigné | `2028:12003` | `3272:4161` |
-| Composition d'une séance — Appui long — carte soulevée | `3518:4576` | État transitoire de `Composition / Activity Row` (`3518:4621`) |
+| Composition d'une séance — Appui long — carte soulevée | `3518:4576` | État transitoire du bloc `Composition / Activity Row with Recovery` (`3572:64`) |
 
-L’état de déplacement par appui long ne crée pas un second composant de carte. Il applique temporairement à l’instance `Composition / Activity Row` les dimensions `362 × 71`, le fond `#F7F7FF`, un fond interne `Informations` transparent, un contour `1` point `#D1D1D6`, un rayon `8` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, la carte reprend strictement le composant `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
+L’état de déplacement par appui long ne crée pas un second composant. Il applique temporairement au bloc Activité + Récupération les dimensions `362 × 97`, le bleu du bandeau supérieur, un fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, le bloc reprend `354 × 93`; sans Récupération, la carte conserve `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
 
 Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Ils décrivent le component set unique `Picker / Popover — Source exact`, notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
@@ -1249,7 +1251,7 @@ SQLite porte les définitions d’Activités, les copies de Séance, les associa
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
-Le schéma d’Activité ajoute `TO_FAILURE` à l’énumération. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias V2 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries et la Récupération après toutes les Séries. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent les attributs fonctionnels `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T04 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
@@ -1263,7 +1265,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants `Activity / Name Field — Source exact` (`3382:4303`), `Action / Add Media — Source exact` (`3382:60`), `Media / Preview` (`3382:59`), `Media / Gallery — Source exact` (`3382:64`), `Media / Section — Source exact` (`3382:71`) et `Controls / Segmented` (`2586:2759`) constituent la cible.
+Les composants `Activity / Name Field — Source exact` (`3382:4303`), `Action / Add Media — Source exact` (`3382:60`), `Media / Preview` (`3382:59`), `Media / Gallery — Source exact` (`3382:64`), `Media / Section — Source exact` (`3382:71`), `Controls / Segmented` (`2586:2759`) et `Composition / Activity Row with Recovery` (`3572:64`) constituent la cible. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1272,5 +1274,6 @@ Les alias Figma sont bijectifs et explicites :
 | `color/media/surface-F6F6FF` | `color/media/surface` | Surface Média |
 | `color/media/border-CDCEFA` | `color/media/border` | Bordure Média |
 | `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile bloquant des roulettes ouvertes |
+| `color/blue/selection-5F60EE` | `color/selection` | Contour du contrôle pilote après confirmation ; alias exact `VariableID:2290:52` → `VariableID:2290:3` |
 
 Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.

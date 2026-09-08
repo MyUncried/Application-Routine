@@ -56,16 +56,20 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-033 | Une Activité est de type `Exercice` ou `Récupération`. |
-| RM-034 | Un Exercice utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
-| RM-035 | Tout Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série correspond à l’exécution de la durée cible, des Répétitions cibles ou jusqu’à l’échec selon le mode, suivie de sa Pause après Série éventuelle. Elle n’est pas une entité métier autonome. |
-| RM-037 | Lorsqu’une Pause après Série est configurée, une Récupération technique est générée après chaque Série. Après la dernière Série, elle est omise si l’étape suivante est déjà une Récupération explicite. |
-| RM-038 | Une Récupération explicite est toujours chronométrée, reçoit initialement le nom `Récupération` et se termine automatiquement à zéro. |
-| RM-039 | Un Exercice peut être associé à zéro, une ou plusieurs Zones corporelles. Une Récupération ne possède aucune Zone corporelle. |
+| RM-033 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
+| RM-034 | Une Activité porte une Pause entre Séries et une durée de Récupération après toutes les Séries ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
+| RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
+| RM-036 | Une Série correspond à l’exécution de la cible du mode. Une Pause éventuelle est insérée uniquement entre deux Séries successives ; une Série n’est pas une entité métier autonome. |
+| RM-037 | Une phase `RECOVERY` est insérée une seule fois après la dernière Série lorsque la durée de Récupération est positive. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
+| RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
+| RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
 | RM-041 | Une Activité ne possède aucun média fonctionnel dans le MVP. Le modèle prévoit `0..n` médias ordonnés par Activité en V2. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
+| RM-129 | En mode Durée, avec `A` la Durée d’une Série, `B` la Pause, `C` le nombre de Séries et `R` la Récupération, la Durée totale est `D = C × A + (C − 1) × B + R`. |
+| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C` ou `R` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = (D − R + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
+| RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
+| RM-132 | En Répétitions et À l’échec, Durée totale est masquée sans déplacer Séries, cible et Pause. Les durées de synthèse deviennent une borne minimale `≥` composée des Pauses connues et de la Récupération. |
 
 ## 5. Planification et Calendrier
 
@@ -98,14 +102,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-055 | Chaque démarrage crée une Exécution distincte fondée sur un Instantané immuable de la Séance. |
 | RM-056 | L’entrée dans l’Exécution ne démarre pas immédiatement le décompte. L’utilisateur déclenche explicitement le démarrage. |
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |
-| RM-058 | Pour un Exercice en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
-| RM-059 | `Suivant` termine normalement la Série courante d’un Exercice en Répétitions ou À l’échec sans confirmation. |
+| RM-058 | Pour une Activité en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
+| RM-059 | `Suivant` termine normalement la Série courante d’une Activité en Répétitions ou À l’échec sans confirmation. |
 | RM-060 | Pour une Activité chronométrée non arrivée à zéro, `Activité suivante` demande confirmation. Si elle est confirmée, le Résultat d’Activité est `Partielle` et l’Exécution continue. |
 | RM-061 | Une Activité chronométrée arrivée à zéro se termine automatiquement. |
-| RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante ; les positions de Tour et de Cycle technique restent inchangées. |
+| RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante. Pendant `RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement cette phase ; les Activités antérieures et leurs Résultats restent inchangés. |
 | RM-063 | Aucun retour à une Activité précédente et aucune sélection libre d’une autre Activité ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
 | RM-065 | Le bouton Retour de l’Exécution revient au contexte réel de lancement. Dans le prototype de démonstration, il revient au Catalogue des séances non vide. |
+| RM-065a | Pendant `RECOVERY`, `Activité suivante` avant zéro demande confirmation. Si elle est confirmée, l’Activité demeure terminée, la Récupération est enregistrée partiellement et l’Exécution continue. Un arrêt de la Séance pendant cette phase produit le statut `Interrompue`. |
 
 ## 8. Arrière-plan, verrouillage et sécurité temporelle
 
@@ -121,17 +126,17 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-071 | La Durée estimée d’exécution est la somme des durées déterminables du Plan développé complet : Compte à rebours initial, Activités chronométrées, Récupérations explicites et techniques effectivement générées, puis Fin de séance. |
+| RM-071 | La Durée estimée d’exécution est la somme des durées déterminables du Plan développé complet : Compte à rebours initial, Activités chronométrées, Pauses entre Séries, Récupérations attachées, puis Fin de séance. |
 | RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions ou À l’échec. Toute métrique estimée qui en comprend au moins un devient une borne minimale précédée de `≥` et additionne uniquement les temps connus de son propre périmètre. |
-| RM-073 | Le temps total écoulé et la Durée réelle excluent les Pauses déclenchées manuellement par l’utilisateur. Ils incluent tout le temps effectivement exécuté dans le Compte à rebours initial, les Activités, les Récupérations explicites ou techniques et la Fin de séance. |
-| RM-074 | Le Nombre d’Activités de la Composition compte les Activités définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Récupérations techniques. |
-| RM-075 | Le Nombre total d’Activités à exécuter compte les occurrences du plan développé après Séries et Tours, y compris les Récupérations techniques effectivement générées, mais exclut le Compte à rebours initial et la Fin de séance. |
+| RM-073 | Le temps total écoulé et la Durée réelle excluent uniquement les Pauses manuelles déclenchées par l’utilisateur. Ils incluent tout le temps effectivement exécuté dans le Compte à rebours initial, les Activités, les Pauses entre Séries, les phases `RECOVERY` et la Fin de séance. |
+| RM-074 | Le Nombre d’Activités de la Composition compte les Activités définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Pauses ou Récupérations attachées. |
+| RM-075 | Le Nombre total d’Activités à exécuter compte les occurrences d’Activité du plan développé après Séries et Tours, mais ne compte pas les phases `SERIES_PAUSE`, `RECOVERY`, le Compte à rebours initial ni la Fin de séance comme Activités. |
 | RM-076 | Le Nombre d’Activités exécutées correspond aux Résultats d’Activité créés. Une Activité `Partielle` compte ; une Activité jamais atteinte ne compte pas. |
 | RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions ou À l’échec pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
-| RM-101 | La Durée synthétique des Activités, affichée dans le Catalogue et la Composition, additionne exclusivement les occurrences d’Activités déterminables après développement des Séries, Pauses après Série et répétitions du Tour ; elle exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
+| RM-101 | La Durée synthétique des Activités, affichée dans le Catalogue et la Composition, additionne les occurrences déterminables d’Activités, les Pauses entre Séries et les Récupérations attachées après développement des Séries et répétitions du Tour ; elle exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
 | RM-125 | La fin de la dernière Activité déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T03, puis la Synthèse dans la tranche qui la livre. |
 | RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T03, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent RM-077 et leur part est acquise avec `Suivant`. Les Pauses manuelles sont exclues de l’avancement. |
-| RM-127 | T03 accepte les Exercices en Durée, Répétitions ou À l’échec avec une seule Série et un seul Tour. Toute Séance comportant plusieurs Séries pour un Exercice ou plusieurs Tours est refusée explicitement avant la création de l’Exécution, sans écriture partielle. |
+| RM-127 | T03 accepte les Activités en Durée, Répétitions ou À l’échec avec une seule Série et un seul Tour. Toute Séance comportant une Activité à plusieurs Séries ou plusieurs Tours est refusée explicitement avant la création de l’Exécution, sans écriture partielle. La prise en charge complète des séries relève de T04. |
 | RM-128 | Dans T03, Sons et Annonces vocales sont activés par défaut. Aucun réglage utilisateur ni aucune préférence correspondante ne sont lus ou persistés par cette tranche ; la configuration depuis le Profil est hors T03. |
 
 ## 10. Synthèse, Suivi et historique

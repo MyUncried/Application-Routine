@@ -60,7 +60,9 @@ Une Séance contient :
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est un Exercice ou une Récupération. Un Exercice utilise le mode Durée, Répétitions ou À l’échec, comprend au moins une Série et peut inclure une Pause après Série. Une Récupération est toujours chronométrée.
+Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries et une Récupération chronométrée facultative exécutée une seule fois après toutes ses Séries. `Récupération` n’est plus un type d’Activité distinct.
+
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires et la Récupération finale. Cette évolution prépare le moteur d’Exécution sans étendre T03 à plusieurs Séries, prise en charge reportée à T04.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
 

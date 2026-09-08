@@ -206,7 +206,7 @@ Le compte à rebours initial est exécuté une seule fois au démarrage de la s�
 
 Les Activités placées après le Tour sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
 
-Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum une activité de type Exercice pour être exécutable.
+Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum une Activité pour être exécutable.
 
 ## 3.3 Les activités
 
@@ -216,20 +216,18 @@ Chaque activité est indépendante des autres.
 
 Une activité possède notamment :
 
-- un type ;
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
-- une **Pause après Série** facultative, appliquée après chaque Série de l’Exercice selon les règles définies pour ce paramètre ;
-- des informations complémentaires (consigne et zones corporelles). Aucun média n’est proposé dans le MVP.
+- une **Pause entre Séries** facultative, appliquée uniquement entre deux Séries successives ;
+- une **Récupération** facultative, exécutée une seule fois après toutes les Séries ;
+- une Description et des Zones corporelles d’exécution facultatives ;
+- des Médias dans le périmètre cible post-T04. Dans le MVP, l’action `Ajouter un média` reste visible mais désactivée et la section Médias n’est pas affichée.
 
 Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
 
-## 3.4 Types d'activités
+## 3.4 Modes et récupération d’une Activité
 
-Le MVP distingue deux types d'activités.
-### Exercice
-
-Une activité de type Exercice correspond à une action réalisée par l'utilisateur.
+Le modèle cible ne possède pas de type d’Activité `Exercice` ou `Récupération`. Toute Activité correspond à une action réalisée par l’utilisateur.
 
 Elle peut être définie :
 
@@ -239,15 +237,9 @@ Elle peut être définie :
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
-### Récupération
+La Récupération est un paramètre de durée facultatif de l’Activité. Sa valeur canonique est `0 s`. Lorsqu’elle est strictement positive, le Plan d’Exécution insère une phase chronométrée `RECOVERY` immédiatement après la dernière Série de l’Activité. Cette phase ne constitue pas une Activité et n’augmente pas le nombre d’Activités affiché.
 
-Une activité de type Récupération correspond à une période de repos chronométrée.
-
-Son nom proposé par défaut est **Récupération**.
-
-Elle est définie uniquement par une durée et se termine automatiquement à l'échéance de cette durée.
-
-Elle ne possède ni répétitions, ni zones corporelles.
+Une Activité dont le nom ou l’intention fonctionnelle est « Récupération » reste possible : elle utilise le même modèle et les mêmes modes que toute autre Activité ; aucun traitement particulier n’est associé à son nom.
 
 ## 3.5 Tours
 
@@ -286,7 +278,7 @@ La réorganisation est enregistrée automatiquement.
 
 ## 3.8 Validation
 
-Une séance est considérée comme valide lorsqu'elle contient au minimum une activité de type Exercice.
+Une séance est considérée comme valide lorsqu'elle contient au minimum une Activité.
 
 Une activité est valide lorsque toutes les informations obligatoires correspondant à son type sont renseignées.
 
@@ -310,8 +302,8 @@ Le calcul tient compte :
 
 - du Compte à rebours initial et de la Fin de séance ;
 - de toutes les occurrences d'Activités chronométrées ;
-- des Récupérations explicites ;
-- des Récupérations techniques générées par les Pauses après Série lorsqu'elles sont effectivement insérées dans le plan ;
+- des Pauses entre Séries effectivement insérées dans le plan ;
+- de la Récupération facultative exécutée une fois après chaque occurrence d’Activité ;
 - des Séries ;
 - des répétitions du Tour ;
 - des répétitions du Cycle ;
@@ -324,18 +316,18 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 
 ### Durée synthétique des Activités
 
-La durée synthétique des Activités est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses après Série, répétitions du Tour, Récupérations explicites et positions structurelles, mais porte exclusivement sur les Activités. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+La durée synthétique des Activités est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses entre Séries, Récupérations attachées, répétitions du Tour et positions structurelles, mais porte exclusivement sur les Activités et leurs phases attachées. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
 Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
 ### Nombre d'Activités de la Composition
 
-Le nombre d'Activités de la Composition correspond au nombre d'Exercices et de Récupérations explicitement définis dans la Composition.
+Le nombre d'Activités de la Composition correspond au nombre de cartes d’Activité explicitement définies dans la Composition.
 
 Il :
 
 - ne tient pas compte des répétitions liées aux Séries, Tours ou Cycles ;
-- ne comptabilise pas les Récupérations techniques générées par les Pauses après Série.
+- ne comptabilise ni les Pauses entre Séries ni les phases `RECOVERY` attachées.
 
 Ces informations sont affichées en temps réel.
 
@@ -406,8 +398,8 @@ Il inclut notamment :
 
 - le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;
 - les Activités chronométrées ;
-- les Récupérations explicites ;
-- les Récupérations techniques liées aux Pauses après Série ;
+- les Pauses entre Séries effectivement exécutées ;
+- les phases `RECOVERY` attachées aux Activités ;
 - les phases chronométrées du Compte à rebours initial et de la Fin de séance.
 
 La **durée réelle** enregistrée à la fin de l'Exécution suit la même règle : les périodes de Pause utilisateur en sont exclues.
@@ -889,19 +881,19 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
-| Activités | Cartes ordonnées de `354 × 69`. Pour un Exercice, chaque carte affiche successivement le nom, les seules Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse de configuration. Aucune Catégorie de Séance n’est affichée dans cette ligne. Toucher ouvre la modification ; glisser à gauche révèle `Dupliquer` et `Supprimer`. Un appui long amorce le déplacement et affiche l’état soulevé `3518:4576` ; l’ordre n’est modifié qu’à la dépose. Dupliquer crée une copie indépendante, nommée avec le suffixe `(copie)` puis numéroté si nécessaire, et l’insère immédiatement après la source dans la même zone structurelle. |
+| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche révèle des actions couvrant le bloc ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
-| Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre et la durée portent exclusivement sur les Activités ; le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide (aucun Exercice défini), affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
+| Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
-| Continuer | Désactivé lorsque le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent ; ouvre les Catégories. |
+| Continuer | Désactivé lorsque le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucune Activité valide n’est présente ; ouvre les Catégories. |
 
-Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
+Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins une Activité valide.
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur confirmée et leur propre brouillon. L’ouverture copie la dernière valeur confirmée dans le brouillon ; le défilement ne modifie ni la carte ni la synthèse intégrée au Tour. Annuler abandonne le brouillon. Confirmer enregistre exactement les minutes et secondes centrées, puis actualise seulement la carte structurelle concernée. La synthèse sous `Nombre de tours` reste inchangée, car elle exclut ces deux éléments structurels hors Tour. Les secondes couvrent `00` à `59` avec un pas de `1`.
 
-Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. Le groupe d’actions est superposé à droite de la carte et mesure `144 × 69` : `Dupliquer` et `Supprimer` occupent chacun `72 × 69`. La carte ne se déplace pas et les libellés restent centrés.
+Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. Avec Récupération, le groupe d’actions est superposé à droite du bloc et mesure `144 × 93` : `Dupliquer` et `Supprimer` occupent chacun `72 × 93`. Sans Récupération, les hauteurs restent `69`. Le bloc ne se déplace pas et les libellés restent centrés.
 
-Dans la variante d’appui long (`3518:4576`), la carte active mesure `362 × 71` au lieu de `354 × 69` et reste centrée dans la section à `x = 6`. Son fond est `#F7F7FF`; le cadre interne `Informations` devient transparent pour que ce fond reste visible derrière le nom, les Zones corporelles et la synthèse. Le contour est `1` point `#D1D1D6`, le rayon `8`, et l’ombre périphérique utilise `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. Cet état n’est ni une sélection persistante ni une modification de données.
+Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération mesure `362 × 97` au lieu de `354 × 93` et reste centré dans la section à `x = 6`. Son fond reprend le bleu du bandeau supérieur ; le cadre interne devient transparent. Le contour est `1` point `#D1D1D6`, le rayon `12`, et l’ombre périphérique utilise `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. Cet état n’est ni une sélection persistante ni une modification de données.
 
 Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
@@ -940,39 +932,42 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
-| Nom                       | Champ texte       | Étape 1                            | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition ; pré-rempli pour Récupération |
-| Ajouter un média          | Bouton            | Étape 1                            | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif en V2 | Statique | Ajouter | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; aucune section Médias dans le MVP |
-| Type d'activité           | Segmented Control | Étape 1                            | Oui         | Exercice                       | Exercice / Récupération                        | Activité | Sélection      | Change le parcours et les champs affichés |
-| Mode d'exécution          | Segmented Control | Étape 1, Exercice uniquement       | Oui         | Durée                          | Durée / Répétitions / À l’échec                | Activité | Sélection      | Adapte les paramètres visibles au mode |
+| Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
+| Ajouter un média          | Bouton            | Toujours                           | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif dans la cible post-T04 | Statique | Ajouter | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; aucune section Médias dans le MVP |
+| Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
+| Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
+| Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 30 s                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `136 × 190`, Annuler/Confirmer |
-| Pause après Série         | Roulette durée    | Étape 1, Exercice uniquement       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Appliquée après chaque Série ; la pause finale est omise si l'étape suivante du plan est une Récupération explicite |
-| Nombre de Séries          | Roulette native compacte | Étape 1, Exercice uniquement  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `136 × 190`, Annuler/Confirmer ; paramètre propre à l'Activité |
+| Pause entre Séries        | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Insérée uniquement entre deux Séries ; jamais après la dernière Série |
+| Nombre de Séries          | Roulette native compacte | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `136 × 190`, Annuler/Confirmer ; valeur canonique persistée |
+| Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Phase `RECOVERY` exécutée une seule fois après toutes les Séries |
+| Durée totale              | Roulette durée calculée/pilotable | Mode Durée uniquement | Non | Calculée | Valeur réalisable selon la formule | Calcul | Sélection | Valeur `D = C × A + (C − 1) × B + R` ; peut devenir le pilote après confirmation |
+| Médias                    | Section repliable + galerie | Cible post-T04 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
+| Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 
 **Ordre transverse des paramètres :** la rangée suit toujours `Séries` à gauche → cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`) → `Pause` à droite. L’ouverture d’une roulette ne déplace, ne permute et ne redimensionne aucun de ces contrôles.
 
-Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une Récupération utilisent le composant compact canonique : `190` points de haut, barre supérieure Annuler/Confirmer de `40` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Les roulettes `Nombre de répétitions` et `Nombre de Séries` réutilisent le même component set dans sa variante `Type=Numeric wheel` (`3210:49`) : une colonne, largeur minimale `136`, même hauteur `190` et mêmes actions. Le brouillon reste local jusqu’à Confirmer ; Annuler restaure la valeur précédemment enregistrée. L’état ouvert de la Récupération ne contient qu’une seule instance canonique, directement sous le contrôle Durée, sans duplication de barre d’actions ni de roulette.
-| Consigne                  | Texte multiligne  | Étape 2                            | Non         | Vide                           | 1000 caractères max                            | Activité | Saisie         | Écran Informations complémentaires |
-| Zones corporelles         | Tags              | Étape 2, Exercice uniquement       | Non         | Aucune                         | Plusieurs zones autorisées                     | Activité | Sélection      | Référentiel prédéfini ; écran Informations complémentaires |
-| Bouton Valider            | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | |
+Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `Durée totale` utilisent le composant compact canonique : `190` points de haut, barre supérieure Annuler/Confirmer de `40` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Les roulettes `Nombre de répétitions` et `Nombre de Séries` réutilisent le même component set dans sa variante `Type=Numeric wheel` (`3210:49`) : une colonne, largeur minimale `136`, même hauteur `190` et mêmes actions. Le brouillon reste local jusqu’à Confirmer ; Annuler restaure la valeur précédemment enregistrée. Aucun écran de roulette supplémentaire n’est requis pour `Récupération` ou `Durée totale` : ces contrôles héritent du contrat canonique de durée.
 ### Règles fonctionnelles
 
 | Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Type Exercice     | Autorise les modes Durée, Répétitions et À l’échec.                                                                                                                                                                                                                                                                                                                                        |
-| Type Récupération | Nom pré-rempli "Récupération". Le mode d'exécution est masqué.                                                                                                                                                                                                                                                                                                                             |
 | Mode Durée        | Affiche le sélecteur de durée.                                                                                                                                                                                                                                                                                                                                                             |
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
 | Mode À l’échec    | N’affiche aucune cible chiffrée ; conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause`. |
-| Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). Une Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode, puis applique sa pause éventuelle. |
-| Pause après Série | Disponible uniquement pour les Exercices. Lorsqu’une durée est renseignée, l’application crée techniquement une activité de type `Récupération`, liée à l’Exercice et utilisée après chaque Série. Après la dernière Série, elle est omise si l'étape suivante du plan d'exécution est une Récupération explicite. Cette activité technique reste masquée dans l’interface de composition. |
-| Zones corporelles | Disponibles uniquement pour une activité de type Exercice ; sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP.                                                                                                                                                                                  |
-| Récupération      | La section Zones corporelles est masquée.                                                                                                                                                                                                                                                                                                                                                  |
+| Séries            | Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092). Une Série exécute la cible du mode ; une Pause éventuelle n’est insérée qu’entre deux Séries. |
+| Récupération      | Durée facultative, canonique `0 s`, exécutée une seule fois après la dernière Série, y compris lorsque l’Activité est la dernière de la Séance. Elle précède alors `SESSION_END`. |
+| Durée totale calculée | En mode Durée, `D = C × A + (C − 1) × B + R`, avec `A` Durée, `B` Pause, `C` Séries et `R` Récupération. Toute modification de `A`, `B`, `C` ou `R` recalcule `D` lorsque Séries est le pilote. |
+| Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = (D − R + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
+| Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si la durée saisie est ajustée, un message bref annonce la valeur réalisable. |
+| Modes non chronométrés | En Répétitions et À l’échec, `Durée totale` est masquée et son emplacement reste vide sans déplacer les autres contrôles. La synthèse affiche une borne minimale `≥` composée des seules Pauses connues et de la Récupération. |
+| Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
-| Synthèse          | Cadre de largeur utile, placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le type ou le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. |
+| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La Récupération positive est ajoutée après l’Activité. |
 ## Exécution d'une séance
 
 ### Éléments affichés
@@ -981,7 +976,7 @@ Les roulettes ouvertes de `Durée`, `Pause après Série` et `Durée` d’une R�
 | --- | --- | ---: | ---: | --- | --- | --- | --- |
 | Titre de la séance | Texte | Toujours | Oui | Nom de la séance | Séance | Aucune | En-tête |
 | Nom de l’Activité courante | Texte | Toujours | Oui | Activité courante | Plan d’Exécution | Aucune | |
-| Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
+| Série | Texte | Activité | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Activité |
 | Temps de l’Activité | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
 | Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | En Répétition : un tour par minute |
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
@@ -1140,12 +1135,16 @@ La vue Séances charge toutes les Séances non archivées et les trie par derni�
 |---|---|
 | Bandeau bleu | Champ Nom en premier, aligné sur celui de Composition ; aucune mention de la Séance. |
 | Média MVP | Bouton `Ajouter un média` visible mais désactivé, composant `3382:60` avec icône vectorielle `3382:61` et sans caractère `+` ; section Médias absente. |
-| Média V2 | Bouton actif ; galerie horizontale `0..n`, ordonnée, avec aperçu suivant tronqué. |
-| Type | Exercice ou Récupération. |
-| Mode Exercice | Trois segments égaux : Durée, Répétitions, À l’échec. |
-| Mode Récupération | Segment Mode masqué ; durée obligatoire. |
+| Média cible post-T04 | Bouton actif ; section repliable et galerie horizontale `0..n`, ordonnée, avec aperçu suivant tronqué. |
+| Modèle | Aucun type d’Activité dans l’interface ou le modèle cible. |
+| Mode | Trois segments égaux : Durée, Répétitions, À l’échec. |
+| Paramètres | `Séries` → cible du mode → `Pause`, puis `Récupération` → `Durée totale` en mode Durée. |
+| Récupération | Durée facultative, exécutée une fois après toutes les Séries ; ce n’est pas une Activité distincte. |
+| Durée totale | Dépendance bidirectionnelle avec Séries selon les règles de pilote et d’arrondi ; masquée en Répétitions et À l’échec. |
 | À l’échec | Aucun objectif chiffré ; ordre `Séries` → cadre informatif `à l’échec` → `Pause`. |
-| Synthèse | `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`, avec les règles communes de pluriel et d’omission d’une pause nulle. |
+| Sections | Description, Zone corporelle d’exécution, Mode d’exécution et Médias sont repliables ; Mode est déployé par défaut. |
+| Action finale | Libellé `Terminer`. |
+| Synthèse | Zone immuable ; `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`, puis récupération si positive, avec les règles communes de pluriel et d’omission des durées nulles. |
 
 ## Bibliothèque d’Activités — V2
 

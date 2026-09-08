@@ -7,22 +7,24 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 ### Fonctionnalités
 
 - créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
-- créer des activités de type Exercice ou Récupération ;
+- créer des Activités sans sélection de type ;
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-  - une pause éventuelle appliquée après chaque Série ;
+  - une Pause éventuelle appliquée uniquement entre les Séries ;
+  - une Récupération éventuelle exécutée une fois après toutes les Séries ;
+  - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
 - ordonner les activités d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
 - ordonner les Activités dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
-- annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
+- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage de sa phase de Récupération éventuelle ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
-- ne pas émettre de bip de rythme pendant les activités de type Récupération, qu’elles aient été ajoutées explicitement ou générées par une pause après Série ;
+- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant la phase de Récupération après l’Activité ;
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
@@ -189,10 +191,12 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
 - bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
+- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- modèle et calculs de Récupération après l’Activité préparés avant T03 ; T03 reste limité à une Série et refuse explicitement les Séances multi-Séries.
 
 ### V2
 
-- catalogue et CRUD des Activités de référence Exercice et Récupération ;
+- catalogue et CRUD des Activités de référence ;
 - ajout dans une Séance par copie indépendante ; pas d’action `Enregistrer dans mes activités` dans la première livraison ;
 - `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
 - création, modification, archivage, suppression et exécution manuelle des Circuits ;

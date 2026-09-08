@@ -79,7 +79,7 @@ Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle e
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
-Une activité de type **Exercice** peut être associée à zéro, une ou plusieurs zones corporelles.
+Une Activité peut être associée à zéro, une ou plusieurs zones corporelles.
 
 Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
 
@@ -105,7 +105,9 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée, Répétitions ou À l’échec, valeur d'exécution lorsqu’elle existe, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
+Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération après l’ensemble des Séries, ainsi que les informations facultatives. `Description de l’activité` et `Zone corporelle` sont repliables ; `Mode d’exécution` est déployé par défaut. L’action `Terminer` enregistre l’Activité.
+
+En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
 `Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
 ### 2. Réorganiser une séance
@@ -121,6 +123,8 @@ Il peut notamment :
 - modifier les paramètres généraux de la séance.
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
+
+La Récupération éventuelle est affichée comme une carte attachée sous l’Activité. Le déplacement, la duplication et la suppression portent toujours sur le bloc Activité–Récupération complet.
 ### 3. Démarrer une séance
 
 L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
@@ -369,7 +373,7 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 ## Utiliser une Activité de référence — V2
 
 1. Ouvrir `Activités` dans le Catalogue.
-2. Créer une référence Exercice ou Récupération, non exécutable seule.
+2. Créer une référence d’Activité non exécutable seule.
 3. Depuis une Composition, choisir une référence existante.
 4. L’application copie ses données et ses associations média dans la Séance.
 5. Modifier librement la copie sans modifier la référence ni les autres copies.
@@ -378,7 +382,7 @@ Une Activité créée directement dans une Séance ne rejoint pas le catalogue. 
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La pause configurée s’exécute avant la Série suivante ; après la dernière Série, `Suivant` ouvre l’Activité suivante.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute avant la Série suivante. Après la dernière Série, la Récupération configurée s’exécute une seule fois ; si elle vaut `0 s`, l’Activité suivante commence immédiatement.
 
 ## Créer et exécuter un Circuit — V2
 

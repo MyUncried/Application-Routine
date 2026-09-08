@@ -42,9 +42,10 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 - Saisir le nom et choisir une couleur dans le même écran de Composition.
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
-- Ajouter des Exercices ou des Récupérations.
+- Ajouter des Activités et définir, si nécessaire, une Récupération après l’ensemble de leurs Séries.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Définir le nombre de Séries et une Pause après Série éventuelle.
+- Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
+- Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
 - Répéter le Tour de 1 à 99 fois.
 - Réordonner manuellement les Activités par glisser-déposer.
@@ -173,7 +174,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 
 ## 8. Besoins validés pour les évolutions
 
-- Créer en V2 une Activité de référence Exercice ou Récupération indépendamment d’une Séance.
+- Créer en V2 une Activité de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - Associer `0..n` photos ou vidéos à une Activité, les réordonner et les consulter hors ligne.
 - Créer en V2 un Circuit d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
