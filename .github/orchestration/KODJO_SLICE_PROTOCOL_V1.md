@@ -171,3 +171,19 @@ Une correction de périmètre ne signifie pas qu'une implémentation existe. Le 
 Les modes sont mutuellement exclusifs et comparés comme valeurs exactes. Le protocole n'infère jamais une implémentation de la seule présence de `supersedes_plan_comment_id` ou `scope_correction_comment_id`. Le commentaire `SCOPE_CORRECTION` doit porter exactement `slice_id`, `source_head` et `supersedes_plan_comment_id`.
 
 Avant tout appel OpenAI, le résolveur versionné `.github/orchestration/scripts/resolve-plan-mode.sh` et sa matrice `.github/orchestration/tests/test-plan-mode.sh` doivent passer. La matrice couvre les trois modes nominaux, l'absence ou l'ambiguïté du mode, les références manquantes, les nombres d'implémentations incompatibles et les valeurs voisines par préfixe.
+
+
+## Séparation du plan de contrôle et du checkout applicatif
+
+Les manifests, plans, verdicts et autres entrées d'orchestration appartiennent au plan de contrôle versionné sur `main`. Ils ne doivent pas être copiés dans une branche applicative uniquement pour devenir visibles après un checkout.
+
+Avant tout checkout d'un HEAD applicatif, un workflow consommateur :
+
+1. valide l'entrée d'orchestration sur `main` ;
+2. en crée une copie binaire exacte dans `RUNNER_TEMP` ;
+3. conserve son empreinte SHA-256 ;
+4. après le checkout applicatif, vérifie l'existence et l'empreinte de la copie ;
+5. transmet explicitement ce chemin temporaire à l'agent ;
+6. conserve cette copie dans l'artefact de diagnostic.
+
+Le test permanent doit démontrer que la copie reste lisible après disparition de la source simulant le remplacement du checkout, qu'elle est identique octet par octet et qu'une source absente est rejetée. Aucun agent ne doit être appelé si ce test ou la vérification d'empreinte échoue.
