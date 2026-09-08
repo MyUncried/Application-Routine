@@ -30,6 +30,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Test plan mode invariants
+        shell: bash
+        run: bash .github/orchestration/tests/test-plan-mode.sh
+
       - name: Validate manifest and immutable entry gate
         id: gate
         shell: bash
