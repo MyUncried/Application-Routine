@@ -5,9 +5,9 @@ status: SPEC_PREPARED
 repository: MyUncried/Application-Routine
 issue_number: 46
 target_branch: feat/creation-seance-catalogue
-baseline_head: 07feb4650d5b0ab2e46e82e6e2cf544772916bd0
+baseline_head: 37beff624e3ea20c0bbb3f1bd9ba4483966d9792
 application_baseline_head: 90706d2481bddb18200cd113a915e5c0a2eca1dc
-documentation_reference_message: "docs: integrate attached recovery, total duration and updated activity contracts"
+documentation_reference_message: "docs: aligner les actions circulaires et les roulettes avec le DSF"
 
 previous_slice:
   slice_id: T02-S01
@@ -45,7 +45,7 @@ scope:
     - Pause exécutée uniquement entre deux Séries.
     - Calcul direct et inverse entre Séries et Durée totale selon les règles documentées.
     - Durée totale et pilote de calcul non persistés.
-    - Migration SQLite additive et compatibilité des données existantes sans conversion métier spéciale.
+    - Migration SQLite 004, DATABASE_VERSION = 4 et migration des anciennes activités RECOVERY vers la récupération attachée précédente.
     - Recomposition conforme de l’écran Ajouter ou Modifier une Activité.
     - Synthèse d’Activité toujours visible et informations complémentaires condensables.
     - Icône vectorielle conforme pour Ajouter un média.
@@ -64,7 +64,6 @@ scope:
     - Séries multiples et Tours dans le moteur d’Exécution T04.
     - Activation fonctionnelle des médias.
     - Catalogue autonome d’Activités ou de Circuits.
-    - Conversion ou renommage métier des anciennes Activités de récupération.
   acceptance_criteria:
     - "AC-01: aucun contrôle de type Exercice ou Récupération n’est affiché lors de l’ajout ou de la modification d’une Activité."
     - "AC-02: une Récupération facultative est attachée à l’Activité, persistée et prise en compte une seule fois après toutes ses Séries."
@@ -79,10 +78,11 @@ scope:
     - "AC-11: l’appui long reste le seul déclencheur du déplacement de l’Activité."
     - "AC-12: le nombre et la durée du Tour excluent toute Activité placée avant ou après le Tour."
     - "AC-13: déplacer, dupliquer ou supprimer une Activité recalcule immédiatement les métriques du Tour et de la séance sans contamination entre zones."
-    - "AC-14: le Catalogue n’affiche pas de barre de défilement inutile; si elle est nécessaire, elle reste dans la gouttière extérieure aux cartes."
-    - "AC-15: les boutons circulaires et les roulettes respectent les nouvelles dimensions communes, et le geste natif de changement d’écran est désactivé."
+    - "AC-14: le Catalogue reste défilable mais son indicateur vertical est masqué, sans modifier la largeur ou la position des cartes."
+    - "AC-15: cercle 38 × 38 pt, icône 24 × 24 pt, cible tactile 48 × 48 pt; roulettes Duration 330 × 203 pt et Numeric 144 × 203 pt; le geste natif de changement d’écran est désactivé."
     - "AC-16: la migration, les tests ciblés, Jest complet, TypeScript et la recette sur development build passent sans régression de T01 et T02."
     - "AC-17: aucun élément du moteur d’Exécution T03 ou de T04 n’est développé."
+    - "AC-18: les anciennes lignes RECOVERY sont migrées vers recoverySeconds de l’Activité précédente; une ligne orpheline est ignorée et aucune nouvelle RECOVERY autonome n’est créée."
 
 gates:
   plan_user_approval: true
