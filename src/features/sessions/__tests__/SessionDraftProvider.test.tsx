@@ -167,6 +167,7 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
               repetitionCount: null,
               seriesCount: 1,
               pauseSeconds: 0,
+              recoverySeconds: 0,
               instruction: null,
               bodyZoneIds: [],
             },

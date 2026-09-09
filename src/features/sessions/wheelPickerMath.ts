@@ -58,6 +58,26 @@ export const WHEEL_EXERCISE_DURATION_SECONDS_MAX = 5999;
 /** Borne haute de la Pause après Série d'un Exercice, en secondes (T01-S08, `08` l.925) — mêmes bornes que la Durée. */
 export const WHEEL_PAUSE_SECONDS_MAX = 5999;
 
+/**
+ * T02-S02 : borne haute de la Récupération ATTACHÉE, en secondes.
+ * `13 – Contrats d'écran.md` (CE-T01-14) : « `Durée`, `Pause`, `Récupération`
+ * et `Durée totale` héritent du même contrat minutes/secondes » — mêmes
+ * bornes que la Durée et la Pause, `0 s` restant valide.
+ */
+export const WHEEL_RECOVERY_SECONDS_MAX = 5999;
+
+/**
+ * T02-S02 : borne haute de la Durée totale CIBLE saisissable, en secondes —
+ * même contrat de roulette que ci-dessus.
+ *
+ * Limite disclosée : la Durée totale CALCULÉE (`D = C × A + (C − 1) × B + R`)
+ * peut légitimement dépasser cette borne (jusqu'à `99` Séries de `99 min 59 s`)
+ * ; elle est alors AFFICHÉE intégralement, seule la valeur que l'utilisateur
+ * peut CONFIRMER dans la roulette étant bornée par le composant canonique.
+ * Aucune source ne documente une seconde variante de roulette pour ce cas.
+ */
+export const WHEEL_TOTAL_DURATION_SECONDS_MAX = 5999;
+
 /** Ramène un index de colonne à `[0, max]` — jamais négatif, jamais au-delà de la dernière ligne. */
 export function clampIndex(index: number, max: number): number {
   // `<= 0`, pas `< 0` : `Math.round(-0.5)` vaut `-0` (pas `0`), qui

@@ -38,12 +38,27 @@ export const DEFAULT_EXERCISE_DURATION_SECONDS = 30 as const;
 export const DEFAULT_TOUR_REPEAT_COUNT = 1 as const;
 
 /**
- * T01-S10 : durée de départ d'une Récupération explicite ajoutée dans un
- * brouillon (D-041 — une Récupération est toujours chronométrée). Même
- * valeur que la durée d'Exercice par défaut, constante distincte pour la
- * même raison de découplage.
+ * @deprecated T01-S10 : durée de départ d'une Récupération explicite ajoutée
+ * comme ACTIVITÉ AUTONOME dans un brouillon (D-041). **T02-S02 supprime cette
+ * notion** — la Récupération est désormais une durée attachée
+ * (`DEFAULT_RECOVERY_SECONDS`, valeur neutre `0`) et aucune Activité
+ * `RECOVERY` ne peut plus être créée. Constante conservée sans consommateur
+ * pour ne pas casser un import déjà publié.
  */
 export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
+
+/**
+ * **T02-S02** : valeur de départ de la Récupération ATTACHÉE d'une Activité
+ * (`SessionDraftExercise.recoverySeconds`).
+ *
+ * `0` — valeur NEUTRE, pas une durée proposée : la Récupération est
+ * facultative (`13 – Contrats d'écran.md`, CE-T01-13 « Pause et Récupération
+ * peuvent valoir `0 s` ») et une Activité créée n'en porte aucune tant que
+ * l'utilisateur n'en confirme pas une. Distincte de
+ * `DEFAULT_RECOVERY_DURATION_SECONDS` (`30`), qui décrivait l'ancienne
+ * Activité autonome supprimée par cette tranche.
+ */
+export const DEFAULT_RECOVERY_SECONDS = 0 as const;
 
 /** T01-S10 : type d'Activité par défaut d'un nouveau brouillon (Exercice, D-061). */
 export const DEFAULT_ACTIVITY_TYPE = "EXERCISE" as const;

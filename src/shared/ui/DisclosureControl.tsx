@@ -8,7 +8,23 @@ export type DisclosureControlProps = {
   expanded: boolean;
   disabled?: boolean;
   onPress?: () => void;
-  accessibilityLabel: string;
+  /**
+   * Obligatoire dans l'usage nominal (contrôle autonome). Optionnel
+   * UNIQUEMENT lorsque `decorative` est vrai — voir ci-dessous.
+   */
+  accessibilityLabel?: string;
+  /**
+   * T02-S02 : le contrôle est imbriqué DANS un élément déjà pressable et
+   * déjà nommé (l'en-tête de section repliable de `ExerciseScreen`). Deux
+   * nœuds accessibles superposés dupliqueraient le nom de l'en-tête et
+   * rendraient toute requête d'accessibilité ambiguë. `decorative` retire
+   * donc le nœud de l'arbre d'accessibilité (`accessible={false}`, aucun
+   * rôle, aucun état, aucun libellé) tout en CONSERVANT `onPress` — le
+   * chevron reste tapable, la sémantique étant portée une seule fois par
+   * l'en-tête hôte. Par défaut `false` : les consommateurs existants
+   * (`SessionCard`, Catalogue) sont strictement inchangés.
+   */
+  decorative?: boolean;
   /** Préfixe des `testID` internes (`${testID}-frame`/`${testID}-chevron`) — le `Pressable` racine lui-même ne porte pas de `testID` propre, déjà ciblable sans ambiguïté par `accessibilityLabel`. */
   testID?: string;
 };
@@ -62,15 +78,22 @@ export function DisclosureControl({
   disabled = false,
   onPress,
   accessibilityLabel,
+  decorative = false,
   testID,
 }: DisclosureControlProps) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ disabled, expanded }}
-      accessibilityLabel={accessibilityLabel}
+      // `accessible={false}` seul — jamais `importantForAccessibility=
+      // "no-hide-descendants"` : ce dernier MASQUERAIT tout le sous-arbre, y
+      // compris le cadre et le chevron, alors que le contrôle doit rester
+      // visible et inspectable (rendu strictement identique). Le nœud cesse
+      // simplement d'être un élément d'accessibilité à part entière.
+      accessible={decorative ? false : undefined}
+      accessibilityRole={decorative ? undefined : "button"}
+      accessibilityState={decorative ? undefined : { disabled, expanded }}
+      accessibilityLabel={decorative ? undefined : accessibilityLabel}
       hitSlop={HIT_SLOP}
       style={styles.pressable}
     >

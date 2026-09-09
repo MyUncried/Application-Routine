@@ -93,6 +93,7 @@ SELECT
   activities.repetition_count,
   activities.series_count,
   activities.pause_seconds,
+  activities.recovery_seconds,
   activities.instruction
 FROM sessions
 JOIN cycles ON cycles.session_id = sessions.id
@@ -105,19 +106,31 @@ ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
 `;
 
 /**
- * Durée estimée d'UNE Activité, en SQL — transcription exacte de
- * `computeActivityDurationSeconds` (`calculations.ts`) : une Récupération
- * contribue sa seule durée (D-041) ; un Exercice contribue
- * `series × durée + series × pause`, la durée valant `NULL` (donc `0`) dans
- * les modes Répétitions et « À l'échec », qui ne portent aucune cible
- * chiffrée (RM-072/D-112).
+ * Durée estimée d'UNE Activité, en SQL — transcription EXACTE de
+ * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
+ * testée (`SqliteSessionRepository.test.ts`).
+ *
+ * **T02-S02** : la formule canonique devient `C × A + (C − 1) × B + R`
+ * (RM-129) — deux corrections par rapport à T02-S01 :
+ *
+ * - la Pause est multipliée par `max(series_count − 1, 0)` et non par
+ *   `series_count` : aucune Pause n'est exécutée après la dernière Série
+ *   (`max(X, Y)` à deux arguments est la fonction SCALAIRE de SQLite, jamais
+ *   l'agrégat `max(X)` à un argument) ;
+ * - `recovery_seconds` est ajouté une seule fois, quel que soit le mode
+ *   (RM-132 : en Répétitions et « À l'échec », la borne minimale se compose
+ *   des Pauses connues ET de la Récupération).
+ *
+ * La branche `RECOVERY` reste une défense en profondeur sur une donnée
+ * ancienne : `migration004` a converti puis supprimé toutes ces lignes.
  */
 const ACTIVITY_DURATION_SQL = `
   CASE
     WHEN activities.type = 'RECOVERY'
       THEN COALESCE(activities.duration_seconds, 0)
     ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
-       + COALESCE(activities.series_count, 0) * activities.pause_seconds
+       + MAX(COALESCE(activities.series_count, 0) - 1, 0) * activities.pause_seconds
+       + activities.recovery_seconds
   END
 `;
 
@@ -447,11 +460,12 @@ async function insertActivities(
 
     const activityId = activity.id ?? uuidFactory();
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, bodyZoneIds } = toActivitySqlValues(activity);
+    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds } =
+      toActivitySqlValues(activity);
 
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
       [
         activityId,
         sessionId,
@@ -466,6 +480,7 @@ async function insertActivities(
         activity.repetitionCount,
         seriesCount,
         pauseSeconds,
+        recoverySeconds,
         activity.instruction ?? null,
         timestamp,
         timestamp,
@@ -484,9 +499,19 @@ async function insertActivities(
 const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
   position, name, execution_mode, duration_seconds,
-  repetition_count, series_count, pause_seconds, instruction,
-  created_at, updated_at
+  repetition_count, series_count, pause_seconds, recovery_seconds,
+  instruction, created_at, updated_at
 `;
+
+/**
+ * Liste de paramètres liés DÉRIVÉE de `ACTIVITY_ROW_COLUMNS` — jamais une
+ * suite de `?` recopiée à la main : l'ajout de `recovery_seconds` (T02-S02)
+ * aurait sinon exigé de recompter deux littéraux distincts, dans deux
+ * instructions `INSERT` éloignées (`insertActivities` et `mergeActivities`).
+ */
+const ACTIVITY_ROW_PLACEHOLDERS = ACTIVITY_ROW_COLUMNS.split(",")
+  .map(() => "?")
+  .join(", ");
 
 /** Colonne SQL `tour_id` d'une Activité selon sa zone (T01-S10) : le Tour pour `IN_TOUR`, `NULL` sinon (contrainte `migration001`). */
 function activityTourIdFor(structuralPosition: string, tourId: string): string | null {
@@ -510,11 +535,13 @@ function toActivitySqlValues(activity: {
   readonly executionMode: ExerciseExecutionMode | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  readonly recoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
 }): {
   executionMode: string;
   seriesCount: number | null;
   pauseSeconds: number;
+  recoverySeconds: number;
   bodyZoneIds: readonly string[];
 } {
   const isRecovery = activity.type === "RECOVERY";
@@ -522,6 +549,11 @@ function toActivitySqlValues(activity: {
     executionMode: isRecovery ? "DURATION" : (activity.executionMode ?? "DURATION"),
     seriesCount: isRecovery ? null : activity.seriesCount,
     pauseSeconds: isRecovery ? 0 : activity.pauseSeconds,
+    // T02-S02 : une ancienne Activité `RECOVERY` ne peut pas porter de
+    // Récupération attachée (`CHECK` de `migration004`) — le Domaine en
+    // interdit déjà l'écriture, cette normalisation reste la défense de
+    // dernier recours du chemin SQL.
+    recoverySeconds: isRecovery ? 0 : activity.recoverySeconds,
     bodyZoneIds: isRecovery ? [] : activity.bodyZoneIds,
   };
 }
@@ -580,7 +612,8 @@ async function mergeActivities(
     positionByZone.set(zone, position + 1);
 
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, bodyZoneIds } = toActivitySqlValues(activity);
+    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds } =
+      toActivitySqlValues(activity);
     const instruction = activity.instruction ?? null;
 
     if (existing.has(activity.id)) {
@@ -588,7 +621,7 @@ async function mergeActivities(
         `UPDATE activities SET
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
-           series_count = ?, pause_seconds = ?, instruction = ?,
+           series_count = ?, pause_seconds = ?, recovery_seconds = ?, instruction = ?,
            tour_id = ?, cycle_id = ?, updated_at = ?
          WHERE id = ? AND session_id = ?`,
         [
@@ -601,6 +634,7 @@ async function mergeActivities(
           activity.repetitionCount,
           seriesCount,
           pauseSeconds,
+          recoverySeconds,
           instruction,
           activityTourId,
           cycleId,
@@ -615,7 +649,7 @@ async function mergeActivities(
     } else {
       await transaction.runAsync(
         `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
         [
           activity.id,
           sessionId,
@@ -630,6 +664,7 @@ async function mergeActivities(
           activity.repetitionCount,
           seriesCount,
           pauseSeconds,
+          recoverySeconds,
           instruction,
           timestamp,
           timestamp,
@@ -876,6 +911,11 @@ function toActivity(
     repetitionCount: row.repetition_count,
     seriesCount: isRecovery ? null : row.series_count,
     pauseSeconds: row.pause_seconds,
+    // T02-S02 : Récupération attachée (`migration004`). Une ancienne ligne
+    // `RECOVERY` n'en porte jamais (`CHECK` SQL) — le `?? 0` couvre la seule
+    // autre origine possible d'une valeur absente, une projection partielle
+    // de test antérieure à cette colonne.
+    recoverySeconds: isRecovery ? 0 : (row.recovery_seconds ?? 0),
     instruction: row.instruction,
     bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
   };

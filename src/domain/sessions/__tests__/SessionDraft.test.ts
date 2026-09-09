@@ -21,6 +21,7 @@ import {
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
+  DEFAULT_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
@@ -43,7 +44,7 @@ describe("createEmptyDraft", () => {
 });
 
 describe("createExerciseDraft", () => {
-  it("initializes an empty name, Duration mode, the canonical default duration, one Series without pause, no instruction, no body zone", () => {
+  it("initializes an empty name, Duration mode, the canonical default duration, one Series without pause nor Récupération, no instruction, no body zone", () => {
     expect(createExerciseDraft("ex-1")).toEqual({
       id: "ex-1",
       type: DEFAULT_ACTIVITY_TYPE,
@@ -54,9 +55,14 @@ describe("createExerciseDraft", () => {
       repetitionCount: null,
       seriesCount: DEFAULT_SERIES_COUNT,
       pauseSeconds: DEFAULT_PAUSE_SECONDS,
+      // T02-S02 : la Récupération ATTACHÉE naît neutre (`0`) — jamais la
+      // durée par défaut de l'ancienne Activité `RECOVERY` autonome, qui
+      // aurait ajouté une récupération non demandée à chaque Activité.
+      recoverySeconds: DEFAULT_RECOVERY_SECONDS,
       instruction: null,
       bodyZoneIds: [],
     });
+    expect(DEFAULT_RECOVERY_SECONDS).toBe(0);
   });
 
   it("uses exactly the id provided by the caller, never a generated one", () => {
@@ -77,6 +83,7 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
+    recoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -131,6 +138,9 @@ describe("toSessionDraft", () => {
           repetitionCount: null,
           seriesCount: 1,
           pauseSeconds: 0,
+          // T02-S02 : la Récupération attachée traverse la réhydratation du
+          // brouillon comme n'importe quel autre paramètre.
+          recoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],
         },
@@ -138,6 +148,23 @@ describe("toSessionDraft", () => {
       categoryDrafts: [],
       selectedCategoryIds: [],
     });
+  });
+
+  it("carries the attached Récupération from the persisted Activity into the draft (T02-S02)", () => {
+    const session = aSession({
+      cycle: {
+        id: "cycle-1",
+        position: 1,
+        repeatCount: 1,
+        tour: {
+          id: "tour-1",
+          position: 1,
+          repeatCount: 1,
+          exercises: [anActivity({ recoverySeconds: 45 })],
+        },
+      },
+    });
+    expect(toSessionDraft(session).exercises[0]).toMatchObject({ recoverySeconds: 45 });
   });
 
   it("maps every persisted Activity, in order, never only the first (T01-S09)", () => {
@@ -233,6 +260,7 @@ describe("toSessionDraft", () => {
             repetitionCount: null,
             seriesCount: 1,
             pauseSeconds: 0,
+            recoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
           },
@@ -374,6 +402,15 @@ describe("exerciseEquals (exported for ExerciseScreen, T01-S08)", () => {
     };
     expect(exerciseEquals(a, bReordered)).toBe(true);
   });
+
+  it("detects a change of the attached Récupération — otherwise the exit guard would let it be lost silently (T02-S02)", () => {
+    expect(
+      exerciseEquals(createExerciseDraft("ex-1"), {
+        ...createExerciseDraft("ex-1"),
+        recoverySeconds: 30,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
@@ -422,6 +459,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
             repetitionCount: null,
             seriesCount: 1,
             pauseSeconds: 0,
+            recoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
           },
@@ -432,10 +470,14 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
   });
 
   // T02-S01 (AC-01/AC-08/AC-12) : le chemin de création transporte les trois
-  // zones, les Récupérations et la répétition réelle du Tour — il produisait
-  // auparavant, quel que soit le brouillon, des Exercices `IN_TOUR` d'un Tour
-  // figé à `1`.
-  it("carries the three structural zones, a Recovery and the real tour repeat count through creation", () => {
+  // zones et la répétition réelle du Tour — il produisait auparavant, quel
+  // que soit le brouillon, des Exercices `IN_TOUR` d'un Tour figé à `1`.
+  //
+  // T02-S02 : la troisième Activité de ce scénario était une Récupération
+  // AUTONOME (`type: "RECOVERY"`). Ce type n'est plus créable — la
+  // Récupération est désormais un paramètre ATTACHÉ (`recoverySeconds`) — et
+  // le cas de refus est prouvé par le test suivant.
+  it("carries the three structural zones, the attached Récupération and the real tour repeat count through creation", () => {
     const draft: SessionDraft = {
       ...completeDraft(),
       tourRepeatCount: 4,
@@ -451,11 +493,11 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
           name: "Gainage",
           durationSeconds: 30,
           structuralPosition: "IN_TOUR",
+          recoverySeconds: 45,
         },
         {
-          ...createExerciseDraft("rec"),
-          name: "Récupération",
-          type: "RECOVERY",
+          ...createExerciseDraft("stretch"),
+          name: "Étirements",
           durationSeconds: 45,
           structuralPosition: "AFTER_TOUR",
           bodyZoneIds: ["dos"],
@@ -476,17 +518,40 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
       ).toEqual([
         ["warmup", "EXERCISE", "BEFORE_TOUR"],
         ["core", "EXERCISE", "IN_TOUR"],
-        ["rec", "RECOVERY", "AFTER_TOUR"],
+        ["stretch", "EXERCISE", "AFTER_TOUR"],
       ]);
-      // Une Récupération est toujours chronométrée et n'expose ni mode, ni
-      // Séries, ni pause, ni Zones corporelles (D-041).
-      expect(result.value.exercises[2]).toMatchObject({
-        executionMode: null,
-        durationSeconds: 45,
-        repetitionCount: null,
-        seriesCount: null,
-        pauseSeconds: 0,
-        bodyZoneIds: [],
+      expect(result.value.exercises.map((exercise) => exercise.recoverySeconds)).toEqual([
+        0, 45, 0,
+      ]);
+    }
+  });
+
+  /**
+   * T02-S02 — verrou de Domaine. La Récupération autonome (`type:
+   * "RECOVERY"`, D-041) n'est plus un type d'Activité créable : le CHECK de
+   * `migration001` est immuable et connaît toujours cette valeur, mais aucune
+   * écriture ne doit plus la produire. Le brouillon ne peut plus l'exprimer
+   * par l'écran, ce test prouve le refus au niveau du DOMAINE — la seule
+   * barrière que ni l'écran, ni un appelant futur ne peuvent contourner.
+   */
+  it("refuses to create a standalone RECOVERY Activity — the Récupération is an attached parameter (T02-S02)", () => {
+    const draft: SessionDraft = {
+      ...completeDraft(),
+      exercises: [
+        {
+          ...createExerciseDraft("rec"),
+          name: "Récupération",
+          type: "RECOVERY",
+          durationSeconds: 45,
+        },
+      ],
+    };
+    const result = toCreateSessionInput(draft);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({
+        code: "MUST_BE_ABSENT",
+        field: "activity.type",
       });
     }
   });
@@ -674,6 +739,34 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
         repetitionCount: null,
         seriesCount: 4,
       });
+    }
+  });
+
+  it("carries the attached Récupération through the update path (T02-S02)", () => {
+    const result = toUpdateSessionInput(
+      editDraft({
+        exercises: [
+          { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30, recoverySeconds: 60 },
+        ],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.activities[0]).toMatchObject({ recoverySeconds: 60 });
+    }
+  });
+
+  it("refuses to update towards a standalone RECOVERY Activity, like the creation path (T02-S02)", () => {
+    const result = toUpdateSessionInput(
+      editDraft({
+        exercises: [
+          { ...createExerciseDraft("act-1"), name: "Récupération", type: "RECOVERY", durationSeconds: 30 },
+        ],
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({ code: "MUST_BE_ABSENT", field: "activity.type" });
     }
   });
 

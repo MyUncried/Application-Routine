@@ -1,14 +1,14 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { ScrollView, StyleSheet } from "react-native";
 
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
-import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
+import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
-import { colors, dimensions, type } from "@/shared/ui/tokens";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors, dimensions, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -44,12 +44,11 @@ function defaultExitGuardResult() {
 }
 
 /**
- * Complétion REWORK12 : rend l'écran en mode AJOUT (`draftExercise` omis —
- * `draft.exercises` vide, aucun `exerciseId` en paramètre de route) ou en
- * mode MODIFICATION (`draftExercise` fourni — inséré dans `draft.exercises`
- * ET son `id` transmis comme `exerciseId`, exactement comme
- * `CompositionScreen.tsx` le fait via `router.push({pathname: "/exercise",
- * params: {exerciseId}})`).
+ * Rend l'écran en mode AJOUT (`draftExercise` omis — `draft.exercises` vide,
+ * aucun `exerciseId` en paramètre de route) ou en mode MODIFICATION
+ * (`draftExercise` fourni — inséré dans `draft.exercises` ET son `id`
+ * transmis comme `exerciseId`, exactement comme `CompositionScreen.tsx` le
+ * fait via `router.push({pathname: "/exercise", params: {exerciseId}})`).
  */
 function renderScreen(draftExercise: SessionDraftExercise | null = null) {
   const updateDraft = jest.fn();
@@ -82,6 +81,21 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
 const t = strings.screens.exercise;
 
 /**
+ * Nom accessible COMPOSÉ de l'en-tête d'une section repliable (T02-S02) :
+ * `« Déployer/Replier la section {titre} »`. Jamais le titre nu — celui-ci
+ * est déjà le libellé du champ contenu par la section (voir le bloc
+ * « unicité des noms accessibles » plus bas).
+ */
+function sectionHeaderLabel(title: string, expanded: boolean): string {
+  return `${expanded ? t.sections.collapseAction : t.sections.expandAction} ${title}`;
+}
+
+/** Déploie une section repliable par son `testID` d'en-tête (jamais par son titre, volontairement non unique). */
+function expandSection(testID: string): void {
+  fireEvent.press(screen.getByTestId(`${testID}-header`));
+}
+
+/**
  * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
  * `"ios"` — `DurationWheelPicker` délègue donc à la roulette native SwiftUI
  * (voir `DurationWheelPicker.tsx`) ; les interactions ci-dessous utilisent
@@ -95,6 +109,22 @@ function fireNativeSelectionChange(
   fireEvent(element, "selectionChange", { nativeEvent: { selection } });
 }
 
+/**
+ * Confirme une durée complète sur la roulette ouverte : minutes ET secondes.
+ * Ne fixer que les minutes laisserait les secondes du brouillon initial en
+ * place — piège réel rencontré sur la roulette de `Durée totale`, dont la
+ * valeur initiale n'est pas ronde.
+ */
+function confirmDuration(minutes: number, seconds: number): void {
+  fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), minutes);
+  fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), seconds);
+  fireEvent.press(
+    within(screen.getByTestId("wheel-picker-overlay")).getByLabelText(
+      t.wheelPicker.validateAccessibilityLabel,
+    ),
+  );
+}
+
 beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
@@ -102,8 +132,44 @@ beforeEach(() => {
   mockSearchParams = {};
 });
 
-describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/séparateur fixes, bandeau contextuel fixe, formulaire central défilant, action finale fixe)", () => {
-  it("uses the shared FixedHeader/HeaderSeparator (Header / Fixed, Action / Back), showing the functional title 'Ajouter une activité' — never the Session name (complétion REWORK12, D-105)", () => {
+/** Ordre de première apparition (parcours préfixe) des libellés de texte demandés dans l'arbre rendu. */
+function textOrder(tree: ReturnType<typeof screen.toJSON>, labels: string[]): string[] {
+  const found: string[] = [];
+  walk(tree, (node) => {
+    if (typeof node?.children?.[0] === "string" && labels.includes(node.children[0])) {
+      found.push(node.children[0]);
+    }
+  });
+  return found;
+}
+
+/** Ordre de première apparition (parcours préfixe) des `testID` demandés dans l'arbre rendu. */
+function testIdOrder(tree: ReturnType<typeof screen.toJSON>, ids: string[]): string[] {
+  const found: string[] = [];
+  walk(tree, (node) => {
+    if (node?.props?.testID && ids.includes(node.props.testID)) {
+      found.push(node.props.testID as string);
+    }
+  });
+  return found;
+}
+
+function walk(node: any, visit: (node: any) => void): void {
+  if (!node) {
+    return;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((child) => walk(child, visit));
+    return;
+  }
+  visit(node);
+  if (node.children) {
+    walk(node.children, visit);
+  }
+}
+
+describe("ExerciseScreen — Shell partagé (header/séparateur fixes, bandeau contextuel fixe, formulaire central défilant, action finale fixe)", () => {
+  it("uses the shared FixedHeader/HeaderSeparator, showing the functional title 'Ajouter une activité' — never the Session name (D-105)", () => {
     renderScreen(null);
 
     const header = screen.getByTestId("screen-header");
@@ -125,12 +191,16 @@ describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/sépar
 
     const band = screen.getByTestId("exercise-context-band");
     expect(within(band).getByLabelText(t.name)).toBeTruthy();
-    // Plus aucun rappel du nom / du contexte de Séance.
     expect(within(band).queryByText(new RegExp(t.context.prefix))).toBeNull();
     expect(within(band).queryByText(/Séance simple/u)).toBeNull();
   });
 
-  it("Retour (Action / Back) calls router.back() with no special handling", () => {
+  /**
+   * T02-S02 (D-137) : l'écran est UNIFIÉ — le Retour n'a plus d'étape interne
+   * à défaire, il quitte toujours réellement l'écran (la garde de sortie
+   * intercepte, comme avant, un brouillon sale).
+   */
+  it("Retour (Action / Back) always calls router.back() — the screen has no internal step to return to any more", () => {
     renderScreen(null);
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).toHaveBeenCalledTimes(1);
@@ -150,7 +220,7 @@ describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/sépar
               finalPhaseSeconds: 5,
               exercises: [],
               categoryDrafts: [],
-      selectedCategoryIds: [],
+              selectedCategoryIds: [],
             },
             updateDraft: jest.fn(),
             resetDraft: jest.fn(),
@@ -168,76 +238,206 @@ describe("ExerciseScreen — REWORK09/REWORK12 — Shell partagé (header/sépar
     expect(within(body).queryByTestId("screen-header")).toBeNull();
     expect(within(body).queryByTestId("screen-header-separator")).toBeNull();
     expect(within(body).queryByTestId("exercise-context-band")).toBeNull();
-    expect(within(body).queryByLabelText(t.validateAction)).toBeNull();
+    expect(within(body).queryByLabelText(t.finishAction)).toBeNull();
   });
-});
 
-describe("ExerciseScreen — REWORK12 — étape 2 (Informations complémentaires)", () => {
-  it("shows the functional title 'Informations complémentaires' at step 2, and hides the context band (absent from CE-T01-15, 1992:9292)", () => {
+  it("keeps the blue context band — and its media button — visible at all times, the screen having no second step any more", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(t.validateAction));
+    expandSection("exercise-section-description");
 
-    expect(within(screen.getByTestId("screen-header")).getByText(t.titleInformation)).toBeTruthy();
-    expect(screen.queryByTestId("exercise-context-band")).toBeNull();
+    expect(screen.getByTestId("exercise-context-band")).toBeTruthy();
+    expect(screen.getByTestId("exercise-add-media")).toBeTruthy();
   });
 });
 
-describe("ExerciseScreen — REWORK09/REWORK12 — ordre exact du formulaire (point 2)", () => {
-  /**
-   * Complétion REWORK12 (D-105) : le champ Nom de l'activité n'a plus son
-   * propre titre textuel visible (`t.name` n'apparaît plus comme nœud
-   * `Text` autonome, seulement comme `accessibilityLabel`/placeholder de
-   * son `TextInput`, déjà vérifié par un test dédié ci-dessus) — l'ordre
-   * porte désormais sur les trois titres de section du corps défilant.
-   */
-  it("renders, in this exact order: Type d'activité, Mode d'exécution, Paramètres de l'activité", () => {
+/**
+ * **T02-S02 (D-137) — écran unifié.** L'étape 2 « Informations
+ * complémentaires » (Consigne + Zones corporelles, atteinte par `Valider`)
+ * disparaît : Description et Zone corporelle deviennent deux sections
+ * REPLIABLES du même écran, Mode d'exécution une troisième, et `Terminer`
+ * est l'unique action finale.
+ */
+describe("ExerciseScreen — écran unifié et sections repliables (T02-S02, D-137, CE-T01-13/CE-T01-15)", () => {
+  it("no longer exposes any intermediate Valider action — Terminer is the only final action", () => {
     renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
-    const order = textOrder(screen.toJSON(), [t.type.label, t.executionMode.label, t.parametersTitle]);
-    expect(order).toEqual([t.type.label, t.executionMode.label, t.parametersTitle]);
+    expect(screen.getByLabelText(t.finishAction)).toBeTruthy();
+    expect(screen.queryByText("Informations complémentaires")).toBeNull();
   });
 
-  it("REWORK12 — now DOES render the functional title (Ajouter/Modifier une activité) in the header — reintroduced with a new meaning (D-105), superseding the previous REWORK09 assertion that it had been removed", () => {
+  it("no longer exposes the Type d'activité segment: Récupération is a parameter, not an Activity type", () => {
     renderScreen(null);
-    expect(screen.getByText(t.titleAdd)).toBeTruthy();
-  });
-});
 
-/** Ordre de première apparition (parcours préfixe) des libellés de texte demandés dans l'arbre rendu. */
-function textOrder(tree: ReturnType<typeof screen.toJSON>, labels: string[]): string[] {
-  const found: string[] = [];
-  walk(tree, (node) => {
-    if (typeof node?.children?.[0] === "string" && labels.includes(node.children[0])) {
-      found.push(node.children[0]);
+    expect(screen.queryByLabelText("Type d’activité")).toBeNull();
+    expect(screen.queryByLabelText("Exercice")).toBeNull();
+    // « Récupération » n'existe plus que comme LIBELLÉ DE PARAMÈTRE.
+    expect(screen.getByTestId("exercise-field-recoverySeconds")).toBeTruthy();
+    expect(screen.queryByText("Paramètres de l’activité")).toBeNull();
+  });
+
+  it("renders the three collapsible sections in order: Description, Zone corporelle, Mode d'exécution", () => {
+    renderScreen(null);
+
+    const order = testIdOrder(screen.toJSON(), [
+      "exercise-section-description",
+      "exercise-section-body-zones",
+      "exercise-section-execution-mode",
+      "exercise-parameter-card",
+      "exercise-summary-card",
+    ]);
+    expect(order).toEqual([
+      "exercise-section-description",
+      "exercise-section-body-zones",
+      "exercise-section-execution-mode",
+      "exercise-parameter-card",
+      "exercise-summary-card",
+    ]);
+  });
+
+  it("shows the three section titles visibly", () => {
+    renderScreen(null);
+
+    const order = textOrder(screen.toJSON(), [
+      t.sections.description,
+      t.sections.bodyZones,
+      t.sections.executionMode,
+    ]);
+    expect(order).toEqual([
+      t.sections.description,
+      t.sections.bodyZones,
+      t.sections.executionMode,
+    ]);
+  });
+
+  it("starts with Description and Zone corporelle CLOSED and Mode d'exécution OPEN (CE-T01-15)", () => {
+    renderScreen(null);
+
+    expect(screen.queryByTestId("exercise-section-description-content")).toBeNull();
+    expect(screen.queryByTestId("exercise-section-body-zones-content")).toBeNull();
+    expect(screen.getByTestId("exercise-section-execution-mode-content")).toBeTruthy();
+    // Le contenu réellement caché, pas seulement masqué visuellement.
+    expect(screen.queryByLabelText(t.instruction.label)).toBeNull();
+    expect(screen.queryByLabelText("Dos")).toBeNull();
+    expect(screen.getByLabelText(t.executionMode.label)).toBeTruthy();
+  });
+
+  it("expands and collapses a section on its header press, exposing then hiding its content", () => {
+    renderScreen(null);
+
+    expandSection("exercise-section-description");
+    expect(screen.getByTestId("exercise-section-description-content")).toBeTruthy();
+    expect(screen.getByLabelText(t.instruction.label)).toBeTruthy();
+
+    expandSection("exercise-section-description");
+    expect(screen.queryByTestId("exercise-section-description-content")).toBeNull();
+    expect(screen.queryByLabelText(t.instruction.label)).toBeNull();
+  });
+
+  it("reports the expanded state on each header, and reflects the toggle", () => {
+    renderScreen(null);
+
+    const header = screen.getByTestId("exercise-section-description-header");
+    expect(header.props.accessibilityRole).toBe("button");
+    expect(header.props.accessibilityState).toMatchObject({ expanded: false });
+
+    fireEvent.press(header);
+    expect(
+      screen.getByTestId("exercise-section-description-header").props.accessibilityState,
+    ).toMatchObject({ expanded: true });
+  });
+
+  it("uses the canonical DSF Disclosure control for the chevron, never a local graphic copy", () => {
+    renderScreen(null);
+
+    expect(screen.getByTestId("exercise-section-description-disclosure-frame")).toBeTruthy();
+    expect(screen.getByTestId("exercise-section-description-disclosure-chevron")).toBeTruthy();
+  });
+
+  it("exposes exactly ONE accessible button per section header — the nested chevron never adds a second one", () => {
+    renderScreen(null);
+
+    // Le chevron imbriqué est rendu DÉCORATIF (`decorative`, voir
+    // `DisclosureControl.test.tsx`) : l'en-tête reste le seul nœud nommé et
+    // le seul bouton de la section. Sans cela, chaque section exposerait deux
+    // boutons superposés, dont un sans nom.
+    for (const [testID, title, expanded] of [
+      ["exercise-section-description", t.sections.description, false],
+      ["exercise-section-body-zones", t.sections.bodyZones, false],
+      ["exercise-section-execution-mode", t.sections.executionMode, true],
+    ] as const) {
+      const header = screen.getByTestId(`${testID}-header`);
+      expect(header.props.accessibilityLabel).toBe(sectionHeaderLabel(title, expanded));
+      expect(screen.getAllByLabelText(sectionHeaderLabel(title, expanded))).toHaveLength(1);
     }
   });
-  return found;
-}
+});
 
-function walk(node: any, visit: (node: any) => void): void {
-  if (!node) {
-    return;
-  }
-  if (Array.isArray(node)) {
-    node.forEach((child) => walk(child, visit));
-    return;
-  }
-  visit(node);
-  if (node.children) {
-    walk(node.children, visit);
-  }
-}
+/**
+ * **T02-S02 — unicité des noms accessibles (correctif du run 34288992856).**
+ *
+ * Le titre d'une section repliable EST le libellé du champ qu'elle contient
+ * (« Description de l'activité » pour le champ multiligne, « Zone corporelle
+ * d'exécution » pour le sélecteur, « Mode d'exécution » pour le segment) :
+ * c'est le même élément fonctionnel, et renommer l'un des deux dégraderait
+ * l'interface. L'unicité est donc obtenue en composant le nom accessible de
+ * l'EN-TÊTE (`{action} {titre}`) et en rendant le chevron imbriqué décoratif
+ * — jamais en renommant le champ.
+ */
+describe("ExerciseScreen — unicité des noms accessibles des sections (T02-S02)", () => {
+  it("keeps EXACTLY ONE node named « Description de l'activité » — the field itself — once the section is expanded", () => {
+    renderScreen(null);
+    expandSection("exercise-section-description");
 
-describe("ExerciseScreen — REWORK12 — Champ Nom de l'activité (zone bleue contextuelle, D-105)", () => {
-  /**
-   * REWORK13 (R13-01, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
-   * typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04) :
-   * `type.screenTitle` (`20/24` Semi Bold) remplace `type.modalTitle`
-   * (`18/22` Semi Bold, REWORK12-bis) — identique à `Nom de la séance`
-   * (Composition). Géométrie/fond/liseré/bandeau : inchangés (assertions
-   * héritées ci-dessous).
-   */
+    const matches = screen.getAllByLabelText(t.instruction.label);
+    expect(matches).toHaveLength(1);
+    // Et c'est bien le champ de saisie, pas l'en-tête.
+    expect(matches[0]!.props.testID).toBe("exercise-instruction-input");
+    // `getByLabelText` (singulier) ne doit plus jamais lever « Found multiple
+    // elements with accessibility label ».
+    expect(() => screen.getByLabelText(t.instruction.label)).not.toThrow();
+  });
+
+  it("keeps EXACTLY ONE node named « Zone corporelle d'exécution » and ONE named « Mode d'exécution »", () => {
+    renderScreen(null);
+    expandSection("exercise-section-body-zones");
+
+    expect(screen.getAllByLabelText(t.bodyZones.accessibilityLabel)).toHaveLength(1);
+    expect(screen.getAllByLabelText(t.executionMode.label)).toHaveLength(1);
+  });
+
+  it("names each section header with the ACTION and its target, never with the bare title", () => {
+    renderScreen(null);
+
+    expect(
+      screen.getByLabelText(sectionHeaderLabel(t.sections.description, false)),
+    ).toBeTruthy();
+    expect(
+      screen.getByLabelText(sectionHeaderLabel(t.sections.executionMode, true)),
+    ).toBeTruthy();
+
+    expandSection("exercise-section-description");
+    expect(
+      screen.getByLabelText(sectionHeaderLabel(t.sections.description, true)),
+    ).toBeTruthy();
+    expect(
+      screen.queryByLabelText(sectionHeaderLabel(t.sections.description, false)),
+    ).toBeNull();
+  });
+
+  it("does not degrade the field's own accessible name: it stays exactly the documented label", () => {
+    renderScreen(null);
+    expandSection("exercise-section-description");
+
+    const field = screen.getByTestId("exercise-instruction-input");
+    expect(field.props.accessibilityLabel).toBe("Description de l’activité");
+    expect(field.props.placeholder).toBe("Description de l’activité");
+    expect(field.props.multiline).toBe(true);
+  });
+});
+
+describe("ExerciseScreen — Champ Nom de l'activité (zone bleue contextuelle, D-105)", () => {
   it("carries the canonical transparent field anatomy on the blue band (fond transparent, liseré blanc, rayon/hauteur inchangés, typographie KODJO / Screen title)", () => {
     renderScreen(null);
 
@@ -254,106 +454,85 @@ describe("ExerciseScreen — REWORK12 — Champ Nom de l'activité (zone bleue c
     expect(flattened.fontWeight).toBe(type.screenTitle.fontWeight);
     expect(flattened.fontSize).toBe(20);
     expect(flattened.lineHeight).toBe(24);
-    // Aucune valeur locale `18/22` (type.modalTitle) ne subsiste pour ce champ.
-    expect(flattened.fontSize).not.toBe(18);
-    expect(flattened.lineHeight).not.toBe(22);
   });
 
-  it("starts on Étape 1 with the Valider button disabled (empty name), enabled once Nom and the default Durée are both valid", () => {
+  it("keeps Terminer disabled while the name is empty, enabled once Nom and the default Durée are both valid", () => {
     renderScreen(null);
-    expect(screen.getByLabelText(t.name)).toBeTruthy();
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: true,
     });
 
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
   });
 
-  it("advances to Étape 2 on Valider, without calling the shared updateDraft", () => {
+  it("never calls the shared updateDraft while editing — only Terminer writes", () => {
     const { updateDraft } = renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(t.validateAction));
+    expandSection("exercise-section-description");
+    fireEvent.changeText(screen.getByLabelText(t.instruction.label), "Dos droit");
 
-    expect(screen.getByLabelText(t.instruction.label)).toBeTruthy();
-    expect(screen.getByLabelText(t.bodyZones.accessibilityLabel)).toBeTruthy();
     expect(updateDraft).not.toHaveBeenCalled();
   });
 });
 
-describe("ExerciseScreen — REWORK09 — Contrôles segmentés (point 4/5, Controls / Segmented)", () => {
-  it("shows both segmented-control titles VISIBLY (point 5 — an accessibilityLabel alone does not replace a visible title)", () => {
+describe("ExerciseScreen — segment Mode d'exécution (Controls / Segmented)", () => {
+  it("exposes three equal-width mode options (Durée / Répétitions / À l'échec) inside its own collapsible section", () => {
     renderScreen(null);
-    expect(screen.getByText(t.type.label)).toBeTruthy();
-    expect(screen.getByText(t.executionMode.label)).toBeTruthy();
+
+    const section = screen.getByTestId("exercise-section-execution-mode-content");
+    expect(within(section).getByLabelText(t.executionMode.duration)).toBeTruthy();
+    expect(within(section).getByLabelText(t.executionMode.repetitions)).toBeTruthy();
+    expect(within(section).getByLabelText(t.executionMode.toFailure)).toBeTruthy();
   });
 
-  it("colours the selected segment with color.selection (#5F60EE) and white text, the unselected segment transparent with color.textSecondary text — never the previous local component's white-background selection", () => {
+  it("colours the selected segment with color.selection (#5F60EE) and white text, the unselected one transparent with color.textSecondary text", () => {
     renderScreen(null);
 
-    const exerciseTab = screen.getByLabelText(t.type.exercise);
-    const exerciseLabel = within(exerciseTab).getByText(t.type.exercise);
-    const exerciseTabStyle = StyleSheet.flatten(exerciseTab.props.style);
-    const exerciseLabelStyle = StyleSheet.flatten(exerciseLabel.props.style);
-    expect(exerciseTabStyle.backgroundColor).toBe(colors.selection);
-    expect(exerciseTabStyle.backgroundColor).toBe("#5F60EE");
-    expect(exerciseLabelStyle.color).toBe(colors.background);
+    const durationTab = screen.getByLabelText(t.executionMode.duration);
+    const durationLabel = within(durationTab).getByText(t.executionMode.duration);
+    expect(StyleSheet.flatten(durationTab.props.style).backgroundColor).toBe(colors.selection);
+    expect(StyleSheet.flatten(durationTab.props.style).backgroundColor).toBe("#5F60EE");
+    expect(StyleSheet.flatten(durationLabel.props.style).color).toBe(colors.background);
 
-    const recoveryTab = screen.getByLabelText(t.type.recovery);
-    const recoveryLabel = within(recoveryTab).getByText(t.type.recovery);
-    const recoveryTabStyle = StyleSheet.flatten(recoveryTab.props.style);
-    const recoveryLabelStyle = StyleSheet.flatten(recoveryLabel.props.style);
-    expect(recoveryTabStyle.backgroundColor).not.toBe(colors.selection);
-    expect(recoveryLabelStyle.color).not.toBe(colors.background);
+    const repetitionsTab = screen.getByLabelText(t.executionMode.repetitions);
+    expect(StyleSheet.flatten(repetitionsTab.props.style).backgroundColor).not.toBe(
+      colors.selection,
+    );
   });
 
-  it("centers segment labels and gives the two segments a strictly equal width via flex:1 inside the 354×42 container", () => {
+  it("gives every segment a strictly equal width via flex:1 inside the 354×42 container", () => {
     renderScreen(null);
 
-    const container = screen.getByLabelText(t.type.label);
+    const container = screen.getByLabelText(t.executionMode.label);
     const containerStyle = StyleSheet.flatten(container.props.style);
     expect(containerStyle.width).toBe("100%");
     expect(containerStyle.height).toBe(42);
     expect(containerStyle.backgroundColor).toBe(colors.background);
     expect(containerStyle.borderColor).toBe(colors.border);
 
-    const exerciseTab = screen.getByLabelText(t.type.exercise);
-    const exerciseTabStyle = StyleSheet.flatten(exerciseTab.props.style);
-    const recoveryTabStyle = StyleSheet.flatten(screen.getByLabelText(t.type.recovery).props.style);
-    expect(exerciseTabStyle.flex).toBe(1);
-    expect(exerciseTabStyle.alignItems).toBe("center");
-    expect(exerciseTabStyle.justifyContent).toBe("center");
-    expect(exerciseTabStyle.flex).toBe(recoveryTabStyle.flex);
+    const durationStyle = StyleSheet.flatten(
+      screen.getByLabelText(t.executionMode.duration).props.style,
+    );
+    const toFailureStyle = StyleSheet.flatten(
+      screen.getByLabelText(t.executionMode.toFailure).props.style,
+    );
+    expect(durationStyle.flex).toBe(1);
+    expect(durationStyle.alignItems).toBe("center");
+    expect(durationStyle.justifyContent).toBe("center");
+    expect(durationStyle.flex).toBe(toFailureStyle.flex);
   });
 
-  it("shows the Exercice/Récupération segment, Exercice locked selected and Récupération visibly disabled — never opens any screen when pressed (CE-T01-13)", () => {
-    renderScreen(null);
-
-    const exerciseTab = screen.getByLabelText(t.type.exercise);
-    const recoveryTab = screen.getByLabelText(t.type.recovery);
-    expect(exerciseTab.props.accessibilityState).toMatchObject({ selected: true });
-    expect(recoveryTab.props.accessibilityState).toMatchObject({ selected: false, disabled: true });
-
-    fireEvent.press(recoveryTab);
-    expect(screen.getByLabelText(t.name)).toBeTruthy();
-    expect(screen.getByLabelText(t.type.exercise).props.accessibilityState).toMatchObject({
-      selected: true,
-    });
-  });
-});
-
-describe("ExerciseScreen — REWORK09 — mode Répétitions (segment Mode d'exécution)", () => {
-  it("switching to Répétitions clears durationSeconds and requires a valid repetitionCount for Valider", () => {
+  it("switching to Répétitions clears durationSeconds and requires a valid repetitionCount for Terminer", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Fentes");
     fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
 
     expect(screen.getByLabelText(t.repetitionCount.accessibilityLabel)).toBeTruthy();
     expect(screen.queryByLabelText(t.duration.accessibilityLabel)).toBeNull();
-    // Default repetition count (1) is already valid: Valider stays enabled.
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
   });
@@ -366,22 +545,23 @@ describe("ExerciseScreen — REWORK09 — mode Répétitions (segment Mode d'ex�
 
     expect(screen.getByLabelText(t.duration.accessibilityLabel)).toBeTruthy();
     expect(screen.queryByLabelText(t.repetitionCount.accessibilityLabel)).toBeNull();
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
-      disabled: false,
-    });
+  });
+
+  it("shows the plural 'Répétitions' as the mode segment's visible label and accessible name — never the singular", () => {
+    renderScreen(null);
+
+    expect(t.executionMode.repetitions).toBe("Répétitions");
+    const segment = screen.getByLabelText(t.executionMode.repetitions);
+    expect(segment.props.accessibilityRole).toBe("tab");
+    expect(within(segment).getByText("Répétitions")).toBeTruthy();
+
+    const modeGroup = screen.getByLabelText(t.executionMode.label);
+    expect(within(modeGroup).queryByText("Répétition")).toBeNull();
   });
 });
 
 describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)", () => {
-  it("exposes three equal-width mode options (Durée / Répétitions / À l'échec)", () => {
-    renderScreen(null);
-
-    expect(screen.getByLabelText(t.executionMode.duration)).toBeTruthy();
-    expect(screen.getByLabelText(t.executionMode.repetitions)).toBeTruthy();
-    expect(screen.getByLabelText(t.executionMode.toFailure)).toBeTruthy();
-  });
-
-  it("switching to À l'échec hides the Durée and Répétitions target fields, keeps Séries and Pause, and needs only a valid Nom for Valider", () => {
+  it("switching to À l'échec hides the Durée and Répétitions target fields, keeps Séries, Pause and Récupération, and needs only a valid Nom", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
     fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
@@ -390,8 +570,9 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
     expect(screen.queryByLabelText(t.repetitionCount.accessibilityLabel)).toBeNull();
     expect(screen.getByLabelText(t.pauseSeconds.accessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(t.seriesCount.accessibilityLabel)).toBeTruthy();
+    expect(screen.getByLabelText(t.recoverySeconds.accessibilityLabel)).toBeTruthy();
 
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
   });
@@ -405,26 +586,7 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
     expect(within(recap).getByText(/jusqu.à l.échec/u)).toBeTruthy();
   });
 
-  it("switching from À l'échec back to Répétitions restores the target field and a valid default", () => {
-    renderScreen(null);
-    fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
-    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
-    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
-
-    expect(screen.getByLabelText(t.repetitionCount.accessibilityLabel)).toBeTruthy();
-    expect(screen.getByLabelText(t.validateAction).props.accessibilityState).toMatchObject({
-      disabled: false,
-    });
-  });
-
-  /**
-   * Correctif T02 post-test-utilisateur (2026-09-08, point 4) : le cadre
-   * laissé vide par l'absence de Durée/Répétitions affiche désormais un
-   * badge statique `À l'échec` en violet, dans le même emplacement du
-   * `Activity / Parameter Row` — jamais un espace vide, jamais un contrôle
-   * pressable ni un chevron (rien n'y est sélectionnable, D-111).
-   */
-  it("correctif T02 (2026-09-08) — shows a static, non-pressable 'À l'échec' badge in the mode-parameter slot, in the violet selection token, without a chevron", () => {
+  it("shows a static, non-pressable 'À l'échec' badge in the mode-parameter slot, in the violet selection token, without a chevron", () => {
     renderScreen(null);
     fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
 
@@ -439,9 +601,6 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
 
     const label = within(badge).getByText(t.executionMode.toFailure);
     expect(StyleSheet.flatten(label.props.style).color).toBe(colors.selection);
-
-    // Le cadre reste bien celui des autres colonnes (largeur `124`,
-    // 'Activity / Parameter Row'), pas un cadre inventé.
     expect(StyleSheet.flatten(control.props.style).width).toBe(124);
   });
 });
@@ -458,41 +617,28 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
     expect(mockBack).not.toHaveBeenCalled();
   });
 
-  /**
-   * Correctif T02 post-test-utilisateur (2026-09-08, point 5) : le `+` ne
-   * doit plus jamais être un caractère de texte — ni concaténé au libellé,
-   * ni rendu isolément — il est désormais porté par l'icône DSF
-   * `action-add`, la même que celle du bouton `Ajouter une activité` de la
-   * Composition.
-   */
-  it("correctif T02 (2026-09-08) — the '+' is never a text character: the label has no leading '+', and the canonical action-add icon is rendered instead", () => {
+  it("the '+' is never a text character: the label has no leading '+', and the canonical action-add icon is rendered instead", () => {
     renderScreen(null);
 
     expect(t.addMedia.startsWith("+")).toBe(false);
     expect(screen.queryByText(/^\+/u)).toBeNull();
-
-    const mediaButton = screen.getByTestId("exercise-add-media");
-    expect(within(mediaButton).getByTestId("exercise-add-media-icon")).toBeTruthy();
+    expect(
+      within(screen.getByTestId("exercise-add-media")).getByTestId("exercise-add-media-icon"),
+    ).toBeTruthy();
   });
 
-  /**
-   * **Correction compacte LOT_3_OF_3 — zone bleue restaurée.** Le bouton était
-   * rendu dans le corps défilant, après le cadre `Paramètres de l'activité` ;
-   * il vit désormais dans le bandeau bleu fixe, immédiatement sous le champ
-   * `Nom de l'activité` — qui reste le premier élément du bandeau. Il reste
-   * strictement désactivé : aucune section Médias, aucun import/galerie/
-   * stockage (Médias V2 hors périmètre).
-   */
-  it("renders that button INSIDE the blue context band, immediately under the Nom de l'activité field — never in the scrollable body any more", () => {
+  it("renders that button INSIDE the blue context band, immediately under the Nom de l'activité field", () => {
     renderScreen(null);
 
     const band = screen.getByTestId("exercise-context-band");
     expect(within(band).getByTestId("exercise-add-media")).toBeTruthy();
 
-    // Plus jamais dans le corps défilant, et une seule occurrence en tout.
     const body = screen.getByTestId("exercise-body");
     expect(within(body).queryByTestId("exercise-add-media")).toBeNull();
     expect(screen.getAllByTestId("exercise-add-media")).toHaveLength(1);
+
+    const order = testIdOrder(screen.toJSON(), ["exercise-name-input", "exercise-add-media"]);
+    expect(order).toEqual(["exercise-name-input", "exercise-add-media"]);
   });
 
   it("keeps the blue context band at the canonical DSF height of 115pt", () => {
@@ -503,187 +649,14 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
     expect(bandStyle.paddingTop).toBe(12);
     expect(bandStyle.justifyContent).toBe("space-between");
   });
-
-  it("keeps Nom de l'activité FIRST in the band, with the media button immediately after it", () => {
-    renderScreen(null);
-
-    const band = screen.getByTestId("exercise-context-band");
-    expect(band).toBeTruthy();
-    const order = testIdOrder(screen.toJSON(), ["exercise-name-input", "exercise-add-media"]);
-    expect(order).toEqual(["exercise-name-input", "exercise-add-media"]);
-  });
-
-  it("stays disabled inside the band — pressing it changes nothing, and no Media section is ever rendered", () => {
-    renderScreen(null);
-
-    const band = screen.getByTestId("exercise-context-band");
-    const mediaButton = within(band).getByTestId("exercise-add-media");
-    expect(mediaButton.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(mediaButton.props.accessibilityLabel).toBe(t.addMediaUnavailableAccessibilityLabel);
-    expect(mediaButton.props.onPress).toBeUndefined();
-
-    fireEvent.press(mediaButton);
-    expect(mockBack).not.toHaveBeenCalled();
-    expect(screen.queryByText(/Médias/u)).toBeNull();
-  });
-
-  it("hides the band — and therefore the media button — at step 2, exactly as before", () => {
-    renderScreen(null);
-    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(t.validateAction));
-
-    expect(screen.queryByTestId("exercise-context-band")).toBeNull();
-    expect(screen.queryByTestId("exercise-add-media")).toBeNull();
-  });
 });
 
-/**
- * **Correction compacte LOT_3_OF_3 — libellé du mode d'exécution.**
- * « Répétition » → « Répétitions », au pluriel, dans le segment
- * `Durée / Répétitions / À l'échec`.
- */
-describe("ExerciseScreen — libellé « Répétitions » du segment Mode d'exécution (correction compacte LOT_3_OF_3)", () => {
-  it("shows the plural 'Répétitions' as the mode segment's visible label and accessible name — never the singular 'Répétition'", () => {
+describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Parameter Row — Source exact)", () => {
+  it("renders TWO rows inside the 354-wide card: Séries/mode/Pause, then Récupération/Durée totale", () => {
     renderScreen(null);
-
-    expect(t.executionMode.repetitions).toBe("Répétitions");
-
-    const segment = screen.getByLabelText(t.executionMode.repetitions);
-    expect(segment.props.accessibilityRole).toBe("tab");
-    expect(within(segment).getByText("Répétitions")).toBeTruthy();
-
-    // Le singulier ne subsiste nulle part dans le segment Mode d'exécution.
-    const modeGroup = screen.getByLabelText(t.executionMode.label);
-    expect(within(modeGroup).queryByText("Répétition")).toBeNull();
-  });
-
-  it("keeps the mode segment selectable and still distinct from the compact parameter column's own accessible name", () => {
-    renderScreen(null);
-
-    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
-    expect(
-      screen.getByLabelText(t.executionMode.repetitions).props.accessibilityState,
-    ).toMatchObject({ selected: true });
-
-    // La colonne compacte porte le même texte visible mais un nom accessible
-    // distinct — aucune requête d'accessibilité ne devient ambiguë.
-    expect(t.repetitionCount.accessibilityLabel).toBe("Nombre de répétitions");
-    expect(screen.getByLabelText(t.repetitionCount.accessibilityLabel)).toBeTruthy();
-  });
-});
-
-/**
- * **Correction compacte LOT_3_OF_3 — Retour depuis l'étape Zones corporelles.**
- *
- * L'étape 2 est une étape INTERNE (`setStep`, aucun écran ni entrée de pile
- * propre) : son Retour doit ramener à l'écran principal de l'Activité, sans
- * modale d'abandon, sans retour à la Composition et sans perte du travail en
- * cours. La modale reste en revanche STRICTEMENT maintenue pour une sortie
- * réelle de l'écran Activité vers la Composition avec un brouillon sale.
- */
-describe("ExerciseScreen — Retour depuis l'étape Zones corporelles (correction compacte LOT_3_OF_3)", () => {
-  function goToStep2(name = "Pompes") {
-    fireEvent.changeText(screen.getByLabelText(t.name), name);
-    fireEvent.press(screen.getByLabelText(t.validateAction));
-    expect(screen.getByLabelText(t.instruction.label)).toBeTruthy();
-  }
-
-  it("returns straight to the Activity's main screen — never navigates back to the Composition", () => {
-    renderScreen(null);
-    goToStep2();
-
-    fireEvent.press(screen.getByTestId("screen-header-back"));
-
-    // Étape 1 de nouveau : bandeau, segments et action Valider sont revenus.
-    expect(within(screen.getByTestId("screen-header")).getByText(t.titleAdd)).toBeTruthy();
-    expect(screen.getByTestId("exercise-context-band")).toBeTruthy();
-    expect(screen.getByLabelText(t.executionMode.label)).toBeTruthy();
-    expect(screen.getByLabelText(t.validateAction)).toBeTruthy();
-    // Aucune navigation : l'écran Activité n'est jamais quitté.
-    expect(mockBack).not.toHaveBeenCalled();
-  });
-
-  it("never opens the abandon modal on that internal Retour, even with a dirty local draft (instruction + selected zones)", () => {
-    renderScreen(null);
-    goToStep2();
-
-    fireEvent.changeText(screen.getByLabelText(t.instruction.label), "Ne pas creuser le dos");
-    fireEvent.press(screen.getByLabelText("Dos"));
-
-    fireEvent.press(screen.getByTestId("screen-header-back"));
-
-    expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
-    expect(mockBack).not.toHaveBeenCalled();
-  });
-
-  it("keeps the instruction and the selected body zones in the local draft — they reappear unchanged when the user re-enters the step", () => {
-    renderScreen(null);
-    goToStep2();
-
-    fireEvent.changeText(screen.getByLabelText(t.instruction.label), "Ne pas creuser le dos");
-    fireEvent.press(screen.getByLabelText("Dos"));
-    fireEvent.press(screen.getByLabelText("Épaules"));
-
-    fireEvent.press(screen.getByTestId("screen-header-back"));
-    // Le Nom saisi à l'étape 1 est lui aussi intact.
-    expect(screen.getByLabelText(t.name).props.value).toBe("Pompes");
-
-    // Retour dans l'étape : rien n'a été perdu.
-    fireEvent.press(screen.getByLabelText(t.validateAction));
-    expect(screen.getByLabelText(t.instruction.label).props.value).toBe("Ne pas creuser le dos");
-    expect(screen.getByLabelText("Dos").props.accessibilityState).toMatchObject({
-      checked: true,
-    });
-    expect(screen.getByLabelText("Épaules").props.accessibilityState).toMatchObject({
-      checked: true,
-    });
-  });
-
-  it("still routes the Retour of step 1 to a REAL exit (router.back()), which the exit guard keeps intercepting for a dirty draft", () => {
-    renderScreen(null);
-
-    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-    // Brouillon local sale ⟹ la garde est bien armée.
-    expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
-
-    fireEvent.press(screen.getByTestId("screen-header-back"));
-    expect(mockBack).toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps the abandon modal for a real dirty exit — the internal step Retour is never confused with leaving the screen", () => {
-    const cancelExit = jest.fn();
-    const confirmExit = jest.fn();
-    mockExitGuard.mockReturnValue({ isPendingExit: true, cancelExit, confirmExit });
-
-    renderScreen(null);
-    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-
-    expect(screen.getByText("Abandonner les modifications ?")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(t.exitConfirmModal.abandon));
-    expect(confirmExit).toHaveBeenCalledTimes(1);
-  });
-});
-
-/** Ordre de première apparition (parcours préfixe) des `testID` demandés dans l arbre rendu, `root`. */
-function testIdOrder(tree: ReturnType<typeof screen.toJSON>, ids: string[]): string[] {
-  const found: string[] = [];
-  walk(tree, (node) => {
-    if (node?.props?.testID && ids.includes(node.props.testID)) {
-      found.push(node.props.testID as string);
-    }
-  });
-  return found;
-}
-
-describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (point 6/7, Activity / Parameter Row — Source exact)", () => {
-  it("shows the Paramètres de l'activité section title, and a SINGLE horizontal row (338×66 inside its 354-wide card) containing exactly the three parameter fields — never three separate vertical lines", () => {
-    renderScreen(null);
-
-    expect(screen.getByText(t.parametersTitle)).toBeTruthy();
 
     const card = screen.getByTestId("exercise-parameter-card");
-    const cardStyle = StyleSheet.flatten(card.props.style);
-    expect(cardStyle.width).toBe(354);
+    expect(StyleSheet.flatten(card.props.style).width).toBe(354);
 
     const row = screen.getByTestId("exercise-parameter-row");
     const rowStyle = StyleSheet.flatten(row.props.style);
@@ -692,147 +665,344 @@ describe("ExerciseScreen — REWORK09 — Rangée compacte des paramètres (poin
     expect(rowStyle.flexDirection).toBe("row");
     expect(rowStyle.gap).toBe(8);
 
+    expect(within(row).getByTestId("exercise-field-seriesCount")).toBeTruthy();
     expect(within(row).getByTestId("exercise-field-duration")).toBeTruthy();
     expect(within(row).getByTestId("exercise-field-pauseSeconds")).toBeTruthy();
-    expect(within(row).getByTestId("exercise-field-seriesCount")).toBeTruthy();
+
+    const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
+    expect(within(secondRow).getByTestId("exercise-field-recoverySeconds")).toBeTruthy();
+    expect(within(secondRow).getByTestId("exercise-field-totalDuration")).toBeTruthy();
   });
 
-  it("gives Durée and Pause a 124pt-wide column, Séries a 74pt-wide column, with labels displayed above each control (42pt tall, white background, dedicated border/radius per Forms / Select Field)", () => {
+  it("orders the first row as Séries, then the mode's own parameter, then Pause (Durée mode)", () => {
     renderScreen(null);
 
-    const durationField = screen.getByTestId("exercise-field-duration");
-    expect(StyleSheet.flatten(durationField.props.style).width).toBe(124);
-    expect(within(durationField).getByText(t.duration.label)).toBeTruthy();
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "exercise-field-seriesCount",
+        "exercise-field-duration",
+        "exercise-field-pauseSeconds",
+      ]),
+    ).toEqual([
+      "exercise-field-seriesCount",
+      "exercise-field-duration",
+      "exercise-field-pauseSeconds",
+    ]);
+  });
 
-    const pauseField = screen.getByTestId("exercise-field-pauseSeconds");
-    expect(StyleSheet.flatten(pauseField.props.style).width).toBe(124);
-    expect(within(pauseField).getByText(t.pauseSeconds.compactLabel)).toBeTruthy();
+  it("orders the second row as Récupération, then Durée totale (CE-T01-14)", () => {
+    renderScreen(null);
+
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "exercise-field-recoverySeconds",
+        "exercise-field-totalDuration",
+      ]),
+    ).toEqual(["exercise-field-recoverySeconds", "exercise-field-totalDuration"]);
+  });
+
+  it("gives Durée, Pause, Récupération and Durée totale a 124pt column and Séries a 74pt column, with labels above each control", () => {
+    renderScreen(null);
+
+    for (const [testID, label] of [
+      ["exercise-field-duration", t.duration.label],
+      ["exercise-field-pauseSeconds", t.pauseSeconds.compactLabel],
+      ["exercise-field-recoverySeconds", t.recoverySeconds.compactLabel],
+      ["exercise-field-totalDuration", t.totalDuration.compactLabel],
+    ] as const) {
+      const field = screen.getByTestId(testID);
+      expect(StyleSheet.flatten(field.props.style).width).toBe(124);
+      expect(within(field).getByText(label)).toBeTruthy();
+    }
 
     const seriesField = screen.getByTestId("exercise-field-seriesCount");
     expect(StyleSheet.flatten(seriesField.props.style).width).toBe(74);
     expect(within(seriesField).getByText(t.seriesCount.compactLabel)).toBeTruthy();
 
-    const control = screen.getByTestId("exercise-field-duration-control");
-    const controlStyle = StyleSheet.flatten(control.props.style);
+    const controlStyle = StyleSheet.flatten(
+      screen.getByTestId("exercise-field-duration-control").props.style,
+    );
     expect(controlStyle.height).toBe(42);
     expect(controlStyle.backgroundColor).toBe(colors.background);
     expect(controlStyle.borderColor).toBe(colors.exerciseParameterControlBorder);
     expect(controlStyle.borderRadius).toBe(10);
   });
 
-  it("gives every parameter control the canonical 28×28 chevron square (fond DSF #CDCEFA, rayon 6) with a white 14×14 chevron in its canonical frame — never an isolated dark chevron", () => {
+  it("gives every parameter control the canonical 28×28 chevron square (#CDCEFA, rayon 6) with a white 14×14 chevron", () => {
     renderScreen(null);
 
-    for (const fieldTestID of ["exercise-field-duration", "exercise-field-pauseSeconds", "exercise-field-seriesCount"]) {
-      const chevron = screen.getByTestId(`${fieldTestID}-chevron`);
-      const chevronBox = screen.getByTestId(`${fieldTestID}-chevron-box`);
-      const chevronBoxStyle = StyleSheet.flatten(chevronBox.props.style);
+    for (const fieldTestID of [
+      "exercise-field-duration",
+      "exercise-field-pauseSeconds",
+      "exercise-field-seriesCount",
+      "exercise-field-recoverySeconds",
+      "exercise-field-totalDuration",
+    ]) {
+      const chevronBoxStyle = StyleSheet.flatten(
+        screen.getByTestId(`${fieldTestID}-chevron-box`).props.style,
+      );
       expect(chevronBoxStyle.width).toBe(28);
       expect(chevronBoxStyle.height).toBe(28);
       expect(chevronBoxStyle.backgroundColor).toBe(colors.tourSurface);
       expect(chevronBoxStyle.backgroundColor).toBe("#CDCEFA");
       expect(chevronBoxStyle.borderRadius).toBe(6);
 
-      const chevronStyle = StyleSheet.flatten(chevron.props.style);
+      const chevronStyle = StyleSheet.flatten(
+        screen.getByTestId(`${fieldTestID}-chevron`).props.style,
+      );
       expect(chevronStyle.width).toBe(14);
       expect(chevronStyle.height).toBe(14);
     }
-
-    // Jamais l'ancien chevron sombre 24×24 réutilisé pour cette rangée.
-    expect(screen.queryByTestId("exercise-row-chevron-down")).toBeNull();
-    expect(screen.queryByTestId("exercise-row-chevron-up")).toBeNull();
   });
 
-  it("keeps a real ≥48×48 touch target on each control, independent of its 42pt-tall visual box (accessibilityRole=button, full control surface pressable)", () => {
+  it("keeps a real touch target and the button role on each control", () => {
     renderScreen(null);
     const control = screen.getByTestId("exercise-field-duration-control");
     expect(control.props.accessibilityRole).toBe("button");
-    const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBeGreaterThanOrEqual(74);
-    expect(controlStyle.height).toBe(42);
-  });
-
-  /**
-   * Correctif T02 post-test-utilisateur (2026-09-08, point 4) : `Séries`
-   * précède désormais le paramètre correspondant au mode (`Durée` en mode
-   * Durée, `Répétitions` en mode Répétitions), `Pause après Série` fermant
-   * la rangée — l'ancien ordre plaçait le paramètre de mode en tête et
-   * `Séries` en dernier.
-   */
-  it("correctif T02 (2026-09-08) — orders the row as Séries, then the mode's own parameter, then Pause (Durée mode)", () => {
-    renderScreen(null);
-
-    const order = testIdOrder(screen.toJSON(), [
-      "exercise-field-seriesCount",
-      "exercise-field-duration",
-      "exercise-field-pauseSeconds",
-    ]);
-    expect(order).toEqual([
-      "exercise-field-seriesCount",
-      "exercise-field-duration",
-      "exercise-field-pauseSeconds",
-    ]);
-  });
-
-  it("correctif T02 (2026-09-08) — orders the row as Séries, then Répétitions, then Pause (mode Répétitions)", () => {
-    renderScreen(null);
-    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
-
-    const order = testIdOrder(screen.toJSON(), [
-      "exercise-field-seriesCount",
-      "exercise-field-repetitionCount",
-      "exercise-field-pauseSeconds",
-    ]);
-    expect(order).toEqual([
-      "exercise-field-seriesCount",
-      "exercise-field-repetitionCount",
-      "exercise-field-pauseSeconds",
-    ]);
-  });
-
-  it("correctif T02 (2026-09-08) — orders the row as Séries, then the À l'échec badge, then Pause (mode À l'échec)", () => {
-    renderScreen(null);
-    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
-
-    const order = testIdOrder(screen.toJSON(), [
-      "exercise-field-seriesCount",
-      "exercise-field-toFailure",
-      "exercise-field-pauseSeconds",
-    ]);
-    expect(order).toEqual([
-      "exercise-field-seriesCount",
-      "exercise-field-toFailure",
-      "exercise-field-pauseSeconds",
-    ]);
+    expect(StyleSheet.flatten(control.props.style).height).toBe(42);
   });
 });
 
-describe("ExerciseScreen — T01-S09 correction VISUAL (point D) — roulettes dans WheelPickerOverlay (roulette gelée, adaptation de conteneur uniquement)", () => {
-  it("opens the Durée picker inside the shared full-screen WheelPickerOverlay, centered with a dimmed background, never pushing the layout below — supersedes the former REWORK09 position:absolute popover anchor shared by the whole parameter row", () => {
+/**
+ * T02-S02 — Récupération ATTACHÉE (CE-T01-14) : même contrat de roulette
+ * minutes/secondes que Durée et Pause (« `Durée`, `Pause`, `Récupération` et
+ * `Durée totale` héritent du même contrat »), aucun écran supplémentaire.
+ */
+describe("ExerciseScreen — Récupération attachée (T02-S02)", () => {
+  it("starts at 00 min 00 s — a neutral value, never a default recovery nobody asked for", () => {
+    renderScreen(null);
+
+    expect(
+      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
+        "00 min 00 s",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("opens the canonical duration wheel and applies the confirmed value to the control", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+
+    confirmDuration(1, 30);
+
+    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(
+      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
+        "01 min 30 s",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("Annuler discards the drafted Récupération (same draft/confirm contract as Durée)", () => {
+    renderScreen(null);
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireEvent.press(screen.getByLabelText(t.wheelPicker.cancelAccessibilityLabel));
+
+    expect(
+      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
+        "00 min 00 s",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("adds the Récupération clause to the fixed recap and to the total duration", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    confirmDuration(1, 0);
+
+    const summary = screen.getByTestId("exercise-summary-card");
+    expect(within(summary).getByText(/puis 1 min de récupération\.$/u)).toBeTruthy();
+    // Durée par défaut 30 s, 1 Série, aucune Pause → 30 + 60 = 90 s.
+    expect(within(summary).getByText("Durée totale : 1 min 30 s")).toBeTruthy();
+  });
+
+  it("restores an existing Activity's Récupération when reopened for edition", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 45,
+      recoverySeconds: 75,
+    });
+
+    expect(
+      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
+        "01 min 15 s",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("persists the Récupération through Terminer", () => {
+    const { updateDraft } = renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 45,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    confirmDuration(0, 20);
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [expect.objectContaining({ id: "ex-1", recoverySeconds: 20 })],
+    });
+  });
+});
+
+/**
+ * T02-S02 — dépendance bidirectionnelle `Séries ↔ Durée totale`
+ * (RM-129/RM-130, DM-015/DM-016). La Durée totale est DÉRIVÉE : la modifier
+ * n'écrit QUE `seriesCount`.
+ */
+describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () => {
+  it("derives the displayed total from the current parameters, recomputing on every change", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    });
+
+    // 3 × 30 + 2 × 15 = 120 s.
+    expect(
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 00 s"),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
+    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", {
+      nativeEvent: { selection: 4 }, // la roulette Séries porte la VALEUR, jamais un index
+    });
+    fireEvent.press(screen.getByTestId("number-wheel-validate"));
+
+    // 4 × 30 + 3 × 15 = 165 s.
+    expect(
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 45 s"),
+    ).toBeTruthy();
+  });
+
+  it("confirming a reachable total drives the series count and shows NO adjustment message", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 30); // 150 s ⇒ (150 + 10) / 40 = 4 Séries exactement
+
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("4"),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
+  });
+
+  it("announces the adjustment when the target is not reachable with a whole number of Séries (RM-130)", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 10); // 130 s ⇒ 3,5 Séries → 4 (arrondi .5 vers le haut) → 150 s
+
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("4"),
+    ).toBeTruthy();
+    const message = screen.getByTestId("exercise-adjustment-message");
+    expect(message).toBeTruthy();
+    expect(message.props.children).toBe(
+      "Durée ajustée à 2 min 30 s pour respecter un nombre entier de Séries.",
+    );
+  });
+
+  it("clears the adjustment message as soon as any other parameter changes", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 10);
+    expect(screen.getByTestId("exercise-adjustment-message")).toBeTruthy();
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Gainage renommé");
+    expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
+  });
+
+  it("never persists the total duration itself — only seriesCount reaches the shared draft (DM-015/DM-016)", () => {
+    const { updateDraft } = renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 30);
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    // Seul `seriesCount` change ; aucun champ de durée totale n'est écrit —
+    // `toEqual` (et non `objectContaining`) prouve l'ABSENCE de tout champ
+    // supplémentaire dans l'Activité écrite.
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        {
+          ...createExerciseDraft("ex-1"),
+          name: "Gainage",
+          durationSeconds: 30,
+          seriesCount: 4,
+          pauseSeconds: 10,
+        },
+      ],
+    });
+  });
+});
+
+describe("ExerciseScreen — roulettes dans WheelPickerOverlay (roulette gelée, adaptation de conteneur uniquement)", () => {
+  it("opens the Durée picker inside the shared full-screen WheelPickerOverlay, with a dimmed background", () => {
     renderScreen(null);
 
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-    const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
-    expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("wheel-picker-overlay-backdrop").props.style)
+        .backgroundColor,
+    ).toBe(colors.overlayScrim);
   });
 
-  it("supersedes the former REWORK08-B ScrollView elevation: exercise-body never carries an ad hoc zIndex for a parameter selector any more, open or closed, now that it renders in WheelPickerOverlay (a structurally separate layer, independent of the ScrollView)", () => {
+  it("exercise-body never carries an ad hoc zIndex for a parameter selector, open or closed", () => {
     renderScreen(null);
 
-    const bodyClosed = StyleSheet.flatten(screen.getByTestId("exercise-body").props.style);
-    expect(bodyClosed.zIndex).toBeUndefined();
-
+    expect(
+      StyleSheet.flatten(screen.getByTestId("exercise-body").props.style).zIndex,
+    ).toBeUndefined();
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
-    const bodyOpen = StyleSheet.flatten(screen.getByTestId("exercise-body").props.style);
-    expect(bodyOpen.zIndex).toBeUndefined();
+    expect(
+      StyleSheet.flatten(screen.getByTestId("exercise-body").props.style).zIndex,
+    ).toBeUndefined();
   });
 
-  it("never renders exercise-backdrop any more for a parameter selector (it now opens in WheelPickerOverlay, whose own backdrop is not dismissible by touch — see WheelPickerOverlay.test.tsx) — supersedes the former D-03 full-screen root Pressable correction", () => {
+  it("never renders exercise-backdrop any more — only Annuler closes the selector", () => {
     renderScreen(null);
     expect(screen.queryByTestId("exercise-backdrop")).toBeNull();
 
@@ -840,12 +1010,11 @@ describe("ExerciseScreen — T01-S09 correction VISUAL (point D) — roulettes d
     expect(screen.queryByTestId("exercise-backdrop")).toBeNull();
     expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
 
-    // Seul Annuler ferme désormais le sélecteur (jamais un toucher en dehors).
     fireEvent.press(screen.getByLabelText(t.wheelPicker.cancelAccessibilityLabel));
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
   });
 
-  it("opening Pause closes an already-open Durée picker (single overlay at a time, shared anchor)", () => {
+  it("opening Pause closes an already-open Durée picker (single overlay at a time)", () => {
     renderScreen(null);
 
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
@@ -855,27 +1024,23 @@ describe("ExerciseScreen — T01-S09 correction VISUAL (point D) — roulettes d
     expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
   });
 
-  /**
-   * REWORK12 (ACT-07) : `NumberWheelPicker` suit désormais le même contrat
-   * brouillon/confirmation que `DurationWheelPicker` — plus d'application
-   * immédiate au fil du geste. `Platform.OS` par défaut dans cet
-   * environnement Jest (`jest-expo`) est `"ios"` : la roulette native
-   * SwiftUI est donc exercée ici (`selectionChange`, jamais `scroll`).
-   */
-  it("opens the Séries picker (NumberWheelPicker) on its control's press, draft/confirm contract (ACT-07) — never immediate-apply", () => {
+  it("opens the Séries picker (NumberWheelPicker) with the draft/confirm contract (ACT-07) — never immediate-apply", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
     fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
     fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", {
-      nativeEvent: { selection: 3 }, // valeur 3 (bornes 1-99)
+      nativeEvent: { selection: 3 },
     });
-    // Brouillon uniquement — le contrôle fermé (`"1"`, valeur initiale) reste affiché tant que Confirmer n'a pas été pressé.
-    expect(screen.queryByText("1")).toBeTruthy();
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("1"),
+    ).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("number-wheel-validate"));
     expect(screen.queryByTestId("exercise-series-count-wheel")).toBeNull();
-    expect(screen.getByText("3")).toBeTruthy();
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("3"),
+    ).toBeTruthy();
   });
 
   it("Annuler on the Séries picker discards the draft — the control keeps its previous value (ACT-07)", () => {
@@ -888,21 +1053,19 @@ describe("ExerciseScreen — T01-S09 correction VISUAL (point D) — roulettes d
     fireEvent.press(screen.getByTestId("number-wheel-cancel"));
 
     expect(screen.queryByTestId("exercise-series-count-wheel")).toBeNull();
-    expect(screen.getByText("1")).toBeTruthy();
-    expect(screen.queryByText("7")).toBeNull();
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("1"),
+    ).toBeTruthy();
   });
 });
 
-describe("ExerciseScreen — REWORK09 — verrou de non-régression de la roulette de durée native", () => {
-  it("draft vs committed value (D-06): a native minutes selection on Durée does NOT update the control's displayed value while the picker stays open", () => {
+describe("ExerciseScreen — verrou de non-régression de la roulette de durée native", () => {
+  it("draft vs committed value (D-06): a native minutes selection on Durée does NOT update the control while the picker stays open", () => {
     renderScreen(null);
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
 
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
 
-    // Valeur par défaut (`00 min 30 s`) inchangée tant que non validée
-    // (D-06) — jamais le brouillon "01 min 30 s" qu'une Validation
-    // produirait.
     expect(
       within(screen.getByTestId("exercise-field-duration-control")).getByText("00 min 30 s"),
     ).toBeTruthy();
@@ -916,43 +1079,31 @@ describe("ExerciseScreen — REWORK09 — verrou de non-régression de la roulet
     renderScreen(null);
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-
-    // Portée à l'ancre du sélecteur : le libellé "Valider" du toolbar de la
-    // roulette collide textuellement avec l'action `Valider` de l'étape 1
-    // (deux boutons distincts, même libellé) — `within` désambiguïse sans
-    // toucher au code applicatif.
     fireEvent.press(
       within(screen.getByTestId("wheel-picker-overlay")).getByLabelText(
         t.wheelPicker.validateAccessibilityLabel,
       ),
     );
+
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    // Seules les minutes sont modifiées ; les secondes du brouillon
-    // conservent leur valeur initiale (`DEFAULT_EXERCISE_DURATION_SECONDS`
-    // = 30 s) — total validé : 2 min 30 s.
     expect(
       within(screen.getByTestId("exercise-field-duration-control")).getByText("02 min 30 s"),
     ).toBeTruthy();
   });
 
-  it("Annuler restores the previously committed value, discarding the draft — never applying it", () => {
+  it("Annuler restores the previously committed value, discarding the draft", () => {
     renderScreen(null);
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
     fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-
     fireEvent.press(screen.getByLabelText(t.wheelPicker.cancelAccessibilityLabel));
+
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    // Valeur par défaut de l'Exercice (`DEFAULT_EXERCISE_DURATION_SECONDS`,
-    // 0 min 30 s) restaurée — jamais le brouillon "02 min 30 s" abandonné.
-    expect(
-      within(screen.getByTestId("exercise-field-duration-control")).queryByText("02 min 30 s"),
-    ).toBeNull();
     expect(
       within(screen.getByTestId("exercise-field-duration-control")).getByText("00 min 30 s"),
     ).toBeTruthy();
   });
 
-  it("REWORK09 — no line of DurationWheelPicker's own rendering is duplicated or reimplemented locally: the exact same shared component and testIDs (duration-wheel-picker/-minutes/-seconds/-cancel/-validate) are reused unchanged", () => {
+  it("no line of DurationWheelPicker's own rendering is duplicated locally: the same shared testIDs are reused unchanged", () => {
     renderScreen(null);
     fireEvent.press(screen.getByTestId("exercise-field-duration-control"));
 
@@ -965,15 +1116,13 @@ describe("ExerciseScreen — REWORK09 — verrou de non-régression de la roulet
 });
 
 /**
- * REWORK09 (point 8), **reformulé par la complétion REWORK12** (D-105) :
- * plus de préfixe `Exercice · Mode X ·`, le nom de l'Activité est désormais
- * intégré au texte — voir `compositionPresentation.test.ts` pour la
- * couverture exhaustive de `formatExerciseRecap` elle-même ; ces tests-ci
- * vérifient uniquement que l'écran la câble correctement (frère du groupe
- * Paramètres, jamais son enfant ; recalculée en direct).
+ * La synthèse est FIXE (jamais repliable, CE-T01-13) : la phrase
+ * récapitulative puis la ligne de durée. La couverture exhaustive des deux
+ * formats vit dans `compositionPresentation.test.ts` — ces tests-ci ne
+ * vérifient que le câblage de l'écran.
  */
-describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformulé (point 8, ACT-08/09)", () => {
-  it("shows a computed recap reflecting the current draft's own name, never a static Figma value, growing with its own content (no fixed height), as a sibling of the Paramètres group", () => {
+describe("ExerciseScreen — synthèse fixe (recap + ligne de durée)", () => {
+  it("shows a computed recap reflecting the current draft's own name, growing with its content (no fixed height)", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
@@ -983,10 +1132,29 @@ describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformu
     expect(summaryStyle.borderColor).toBe(colors.tourSurface);
     expect(summaryStyle.borderRadius).toBe(12);
 
-    // Valeurs par défaut de `createExerciseDraft()` : mode Durée, 1 série, pause 0 s.
     expect(within(summary).getByText(/^1 série de Pompes de/)).toBeTruthy();
     expect(within(summary).queryByText(/Exercice/)).toBeNull();
-    expect(within(summary).queryByText(/Mode/)).toBeNull();
+  });
+
+  it("is never collapsible — it has no section header of its own", () => {
+    renderScreen(null);
+
+    expect(screen.getByTestId("exercise-summary-card")).toBeTruthy();
+    expect(screen.queryByTestId("exercise-summary-card-header")).toBeNull();
+  });
+
+  it("shows 'Durée totale : {D}' in Durée mode and 'Durée minimale : ≥ {D}' in the non-timed modes", () => {
+    renderScreen(null);
+    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
+
+    expect(screen.getByTestId("exercise-summary-duration").props.children).toBe(
+      "Durée totale : 30 s",
+    );
+
+    fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
+    expect(screen.getByTestId("exercise-summary-duration").props.children).toBe(
+      "Durée minimale : ≥ 0 s",
+    );
   });
 
   it("recomputes the recap after Valider commits a new Durée, and after switching to Répétitions mode", () => {
@@ -1001,11 +1169,8 @@ describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformu
       ),
     );
 
-    // Seules les minutes sont modifiées ; les secondes du brouillon
-    // conservent leur valeur initiale (`DEFAULT_EXERCISE_DURATION_SECONDS`
-    // = 30 s) — total validé : 1 min 30 s.
     const summary = screen.getByTestId("exercise-summary-card");
-    expect(within(summary).getByText(/1 min 30 s/)).toBeTruthy();
+    expect(within(summary).getAllByText(/1 min 30 s/)).toHaveLength(2);
 
     fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
     expect(within(summary).getByText(/^1 série de 1 Pompes/)).toBeTruthy();
@@ -1015,26 +1180,24 @@ describe("ExerciseScreen — REWORK12 — cadre récapitulatif calculé, reformu
     renderScreen(null);
     const summary = screen.getByTestId("exercise-summary-card");
     expect(within(summary).queryByText(/avec 0 s de pause/)).toBeNull();
-    expect(within(summary).queryByText(/avec/)).toBeNull();
   });
 });
 
 describe("ExerciseScreen — mode modification (draft.exercises contains the targeted Activity)", () => {
-  it("prefills the name from the existing exercise, and shows 'Modifier une activité' (never the Session name) in the header", () => {
+  it("prefills the name from the existing exercise, and shows 'Modifier une activité' in the header", () => {
     renderScreen({ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 });
 
     expect(screen.getByLabelText(t.name).props.value).toBe("Gainage");
     expect(within(screen.getByTestId("screen-header")).getByText(t.titleEdit)).toBeTruthy();
   });
 
-  it("Terminer calls updateDraft exactly once, replacing the edited Activity by id inside the exercises collection, and calls router.back()", () => {
+  it("Terminer calls updateDraft exactly once, replacing the edited Activity by id, and calls router.back()", () => {
     const { updateDraft } = renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Gainage",
       durationSeconds: 45,
     });
 
-    fireEvent.press(screen.getByLabelText(t.validateAction)); // -> Étape 2
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
@@ -1050,7 +1213,6 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
       durationSeconds: 45,
     });
 
-    fireEvent.press(screen.getByLabelText(t.validateAction));
     const finishButton = screen.getByLabelText(t.finishAction);
     fireEvent.press(finishButton);
     fireEvent.press(finishButton);
@@ -1058,11 +1220,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     expect(updateDraft).toHaveBeenCalledTimes(1);
   });
 
-  /**
-   * REWORK12 (ACT-10) : bout en bout mode Répétition — création,
-   * validation, `Terminer`, exactement comme le test mode Durée ci-dessus.
-   */
-  it("REWORK12 (ACT-10) — end-to-end Répétition mode: Terminer persists the exact repetitionCount/pauseSeconds/seriesCount edited via the drafts", () => {
+  it("end-to-end Répétition mode: Terminer persists the exact repetitionCount/pauseSeconds/seriesCount", () => {
     const { updateDraft } = renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Squats",
@@ -1073,10 +1231,8 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
       seriesCount: 3,
     });
 
-    fireEvent.press(screen.getByLabelText(t.validateAction)); // -> Étape 2
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
-    expect(updateDraft).toHaveBeenCalledTimes(1);
     expect(updateDraft).toHaveBeenCalledWith({
       exercises: [
         expect.objectContaining({
@@ -1091,8 +1247,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     });
   });
 
-  /** REWORK12 (ACT-10) : réouverture — les valeurs exactes du brouillon existant sont restituées, mode Répétition inclus (pas seulement le nom, voir le test Durée ci-dessus). */
-  it("REWORK12 (ACT-10) — reopening an existing Répétition-mode Activity restores its exact repetitionCount/pauseSeconds/seriesCount", () => {
+  it("reopening an existing Répétition-mode Activity restores its exact repetitionCount/pauseSeconds/seriesCount", () => {
     renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Squats",
@@ -1104,23 +1259,39 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     });
 
     expect(screen.getByLabelText(t.name).props.value).toBe("Squats");
-    expect(screen.getByLabelText(t.executionMode.repetitions).props.accessibilityState.selected).toBe(
-      true,
-    );
-    expect(screen.getByText("12")).toBeTruthy(); // Répétitions
-    expect(screen.getByText("00 min 15 s")).toBeTruthy(); // Pause (formatDurationRowValue)
-    expect(screen.getByText("3")).toBeTruthy(); // Séries
+    expect(
+      screen.getByLabelText(t.executionMode.repetitions).props.accessibilityState.selected,
+    ).toBe(true);
+    expect(
+      within(screen.getByTestId("exercise-field-repetitionCount-control")).getByText("12"),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("exercise-field-pauseSeconds-control")).getByText("00 min 15 s"),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("3"),
+    ).toBeTruthy();
   });
 
-  /**
-   * Complétion REWORK12 (« Plusieurs activités et bouton persistant ») :
-   * `Terminer` doit AJOUTER une nouvelle Activité en fin de collection sans
-   * jamais écraser une Activité déjà présente lorsqu'aucun `exerciseId` n'a
-   * été transmis (parcours ajout, `renderScreen(null)`).
-   */
-  it("REWORK12 (« Plusieurs activités ») — Terminer on a NEW Activity (no exerciseId param) appends it after any Activity already present in draft.exercises, never replacing it", () => {
+  it("restores an existing Activity's instruction and body zones inside their collapsed sections", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 45,
+      instruction: "Ne pas creuser le dos",
+      bodyZoneIds: ["dos"],
+    });
+
+    expandSection("exercise-section-description");
+    expect(screen.getByLabelText(t.instruction.label).props.value).toBe("Ne pas creuser le dos");
+
+    expandSection("exercise-section-body-zones");
+    expect(screen.getByLabelText("Dos").props.accessibilityState).toMatchObject({ checked: true });
+  });
+
+  it("Terminer on a NEW Activity (no exerciseId param) appends it after any Activity already present, never replacing it", () => {
     const updateDraft = jest.fn();
-    mockSearchParams = {}; // parcours ajout — aucun exerciseId
+    mockSearchParams = {};
     const existing: SessionDraftExercise = {
       ...createExerciseDraft("ex-existing"),
       name: "Gainage",
@@ -1137,7 +1308,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
               finalPhaseSeconds: 5,
               exercises: [existing],
               categoryDrafts: [],
-      selectedCategoryIds: [],
+              selectedCategoryIds: [],
             },
             updateDraft,
             resetDraft: jest.fn(),
@@ -1149,7 +1320,6 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     );
 
     fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
-    fireEvent.press(screen.getByLabelText(t.validateAction));
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
@@ -1182,5 +1352,15 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
   it("never renders the modal while isPendingExit is false", () => {
     renderScreen(null);
     expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
+  });
+
+  it("arms the guard as soon as the local draft differs from its snapshot, including via the Récupération", () => {
+    renderScreen(null);
+    expect(mockExitGuard).toHaveBeenLastCalledWith(false, expect.any(Function));
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    confirmDuration(0, 30);
+
+    expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
   });
 });

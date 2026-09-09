@@ -95,6 +95,7 @@ describe("SqliteSessionRepository", () => {
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
+      recoverySeconds: 0,
       bodyZoneIds: [],
     });
     expect(created.categories).toEqual([]);
@@ -159,18 +160,16 @@ describe("SqliteSessionRepository", () => {
         { ...anExercise(), id: "warmup", name: "Échauffement", structuralPosition: "BEFORE_TOUR" },
         { ...anExercise(), id: "core-1", name: "Gainage", structuralPosition: "IN_TOUR" },
         { ...anExercise(), id: "core-2", name: "Squats", structuralPosition: "IN_TOUR" },
+        // T02-S02 : cette quatrième Activité était une Récupération AUTONOME
+        // (`type: "RECOVERY"`), désormais interdite par le Domaine ; elle
+        // devient un Exercice ordinaire portant une Récupération ATTACHÉE.
         {
-          id: "rec",
-          type: "RECOVERY",
+          ...anExercise(),
+          id: "stretch",
+          name: "Étirements",
           structuralPosition: "AFTER_TOUR",
-          name: "Récupération",
-          executionMode: null,
           durationSeconds: 45,
-          repetitionCount: null,
-          seriesCount: null,
-          pauseSeconds: 0,
-          instruction: null,
-          bodyZoneIds: [],
+          recoverySeconds: 30,
         },
       ],
     });
@@ -181,12 +180,12 @@ describe("SqliteSessionRepository", () => {
       "core-1",
       "core-2",
     ]);
-    expect(created.cycle.afterTour?.map((activity) => activity.id)).toEqual(["rec"]);
+    expect(created.cycle.afterTour?.map((activity) => activity.id)).toEqual(["stretch"]);
     expect(created.cycle.afterTour?.[0]).toMatchObject({
-      type: "RECOVERY",
-      executionMode: null,
+      type: "EXERCISE",
+      executionMode: "DURATION",
       durationSeconds: 45,
-      seriesCount: null,
+      recoverySeconds: 30,
     });
 
     const rows = await database.getAllAsync<{
@@ -202,11 +201,11 @@ describe("SqliteSessionRepository", () => {
     );
     expect(rows).toEqual([
       {
-        id: "rec",
+        id: "stretch",
         structural_position: "AFTER_TOUR",
         position: 0,
         tour_id: null,
-        type: "RECOVERY",
+        type: "EXERCISE",
       },
       {
         id: "warmup",
@@ -773,7 +772,7 @@ describe("SqliteSessionRepository", () => {
       expect(summaries[0]?.isEstimatedDurationApproximate).toBe(true);
     });
 
-    it("sums seriesCount × duration + seriesCount × pause across several Activities in the estimated duration", async () => {
+    it("applies the canonical formula D = C × A + (C − 1) × B + R in SQL, exactly like the Domain (T02-S02)", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
@@ -787,12 +786,59 @@ describe("SqliteSessionRepository", () => {
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
-      // (2×30 + 2×5) + (1×20 + 0) = 70 + 20 = 90 s d'Activités — T02-S01
-      // exclut désormais le Compte à rebours initial et la Fin de séance de
-      // la durée affichée (auparavant `+ 10 + 5 = 105`). Secondes brutes,
-      // aucun arrondi à ce niveau.
-      expect(summary?.estimatedDurationSeconds).toBe(90);
+      // (2×30 + 1×5) + (1×20 + 0) = 65 + 20 = 85 s d'Activités. L'ancienne
+      // projection SQL développait la Pause `C` fois (`90`), en désaccord
+      // avec le Domaine : la Pause finale n'existe pas (RM-129). T02-S01
+      // exclut par ailleurs le Compte à rebours initial et la Fin de séance
+      // de la durée affichée. Secondes brutes, aucun arrondi à ce niveau.
+      expect(summary?.estimatedDurationSeconds).toBe(85);
       expect(summary?.activityCount).toBe(2);
+    });
+
+    it("adds the attached Récupération once per Activity in the SQL projection (T02-S02)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          {
+            ...anExercise(),
+            name: "Un",
+            durationSeconds: 30,
+            seriesCount: 3,
+            pauseSeconds: 15,
+            recoverySeconds: 20,
+          },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      // 3 × 30 + 2 × 15 + 20 = 140 s — la Récupération compte UNE fois,
+      // jamais une fois par Série.
+      expect(summaries.find((item) => item.id === created.id)?.estimatedDurationSeconds).toBe(140);
+    });
+
+    it("still counts the pauses of a REPETITIONS Activity C − 1 times, plus its Récupération, without any conventional duration (RM-072/RM-132)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          {
+            ...anExercise(),
+            name: "Squats",
+            executionMode: "REPETITIONS",
+            durationSeconds: null,
+            repetitionCount: 12,
+            seriesCount: 4,
+            pauseSeconds: 10,
+            recoverySeconds: 25,
+          },
+        ],
+      });
+
+      const summary = (await repository.listActive()).find((item) => item.id === created.id);
+      // 3 × 10 + 25 = 55 s, borne minimale.
+      expect(summary?.estimatedDurationSeconds).toBe(55);
+      expect(summary?.isEstimatedDurationApproximate).toBe(true);
     });
 
     // T02-S01 (AC-10, clarifications n° 2/3/5 du verdict de revue) : la
@@ -1042,7 +1088,12 @@ describe("SqliteSessionRepository", () => {
       expect(summaries.find((s) => s.id === created.id)?.tourRepeatCount).toBe(7);
     });
 
-    it("persists a RECOVERY Activity (always timed, no mode / series / body zones) and rereads it", async () => {
+    /**
+     * T02-S02 — remplace « persiste une Activité RECOVERY » : la Récupération
+     * n'est plus une Activité mais une durée ATTACHÉE, écrite et relue sur la
+     * même ligne que l'Exercice qu'elle suit.
+     */
+    it("persists the attached Récupération through an update and rereads it", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
@@ -1052,21 +1103,12 @@ describe("SqliteSessionRepository", () => {
         anUpdateInput({
           sourceSessionId: created.id,
           activities: [
-            anUpdateActivity({ id: keptId, name: "Exercice", position: 0 }),
-            {
-              id: "recovery-1",
-              type: "RECOVERY",
-              structuralPosition: "IN_TOUR",
-              position: 1,
-              name: "Récupération",
-              executionMode: null,
-              durationSeconds: 45,
-              repetitionCount: null,
-              seriesCount: null,
-              pauseSeconds: 0,
-              instruction: null,
-              bodyZoneIds: [],
-            },
+            anUpdateActivity({
+              id: keptId,
+              name: "Exercice",
+              position: 0,
+              recoverySeconds: 45,
+            }),
           ],
         }),
       );
@@ -1074,15 +1116,48 @@ describe("SqliteSessionRepository", () => {
       expect(outcome.status).toBe("UPDATED");
       if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
       const reopened = await repository.findById(created.id);
-      const recovery = reopened?.cycle.tour.exercises.find((e) => e.id === "recovery-1");
-      expect(recovery).toMatchObject({
-        type: "RECOVERY",
-        executionMode: null,
-        durationSeconds: 45,
-        seriesCount: null,
-        repetitionCount: null,
-        pauseSeconds: 0,
-        bodyZoneIds: [],
+      expect(reopened?.cycle.tour.exercises[0]).toMatchObject({
+        id: keptId,
+        recoverySeconds: 45,
+      });
+
+      // Remise à zéro : la Récupération doit pouvoir être RETIRÉE, jamais
+      // seulement augmentée — une valeur `0` est écrite, pas ignorée.
+      await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [anUpdateActivity({ id: keptId, name: "Exercice", position: 0 })],
+        }),
+      );
+      const cleared = await repository.findById(created.id);
+      expect(cleared?.cycle.tour.exercises[0]).toMatchObject({ recoverySeconds: 0 });
+    });
+
+    it("persists the attached Récupération of a brand-new Activity created during an update", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({ id: keptId, name: "Exercice", position: 0 }),
+            anUpdateActivity({
+              id: "added-1",
+              name: "Ajoutée",
+              position: 1,
+              recoverySeconds: 90,
+            }),
+          ],
+        }),
+      );
+
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises.find((e) => e.id === "added-1")).toMatchObject({
+        recoverySeconds: 90,
       });
     });
 
@@ -1456,6 +1531,7 @@ function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): Create
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
+    recoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -1477,6 +1553,7 @@ function anUpdateActivity(
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
+    recoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -1622,6 +1699,7 @@ function validRow(): SessionAggregateRow {
     repetition_count: null,
     series_count: 1,
     pause_seconds: 0,
+    recovery_seconds: 0,
     instruction: null,
   };
 }

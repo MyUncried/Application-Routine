@@ -167,10 +167,54 @@ describe("strings", () => {
       cancelAccessibilityLabel: "Annuler",
       validateAccessibilityLabel: "Valider",
     });
-    expect(strings.screens.exercise.validateAction).toBe("Valider");
     expect(strings.screens.exercise.finishAction).toBe("Terminer");
-    expect(strings.screens.exercise.instruction.label).toBe("Consigne");
-    expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+    // T02-S02 (D-137) : l'écran unifié n'a plus d'étape intermédiaire —
+    // `validateAction` est supprimé, `Terminer` est la seule action finale.
+    expect(strings.screens.exercise).not.toHaveProperty("validateAction");
+    expect(strings.screens.exercise.instruction.label).toBe("Description de l’activité");
+    expect(strings.screens.exercise.bodyZones.label).toBe("Zone corporelle d’exécution");
+  });
+
+  it("T02-S02 — exposes the collapsible section titles and composes header names with an action verb, keeping the description field label unique (CE-T01-13/CE-T01-15)", () => {
+    expect(strings.screens.exercise.sections).toEqual({
+      description: "Description de l’activité",
+      bodyZones: "Zone corporelle d’exécution",
+      executionMode: "Mode d’exécution",
+      expandAction: "Déployer la section",
+      collapseAction: "Replier la section",
+    });
+    // Le titre de section EST le libellé du champ qu'elle contient : c'est le
+    // même élément fonctionnel. L'unicité du nom accessible repose donc
+    // entièrement sur la composition `{action} {titre}` de l'en-tête.
+    expect(strings.screens.exercise.sections.description).toBe(
+      strings.screens.exercise.instruction.label,
+    );
+    expect(strings.screens.exercise.sections.bodyZones).toBe(
+      strings.screens.exercise.bodyZones.accessibilityLabel,
+    );
+    expect(strings.screens.exercise.sections.expandAction).not.toBe(
+      strings.screens.exercise.sections.collapseAction,
+    );
+  });
+
+  it("T02-S02 — exposes the attached Récupération and the derived Durée totale parameter labels (CE-T01-14)", () => {
+    expect(strings.screens.exercise.recoverySeconds).toEqual({
+      label: "Récupération après les Séries",
+      accessibilityLabel: "Récupération après les Séries",
+      compactLabel: "Récupération",
+    });
+    expect(strings.screens.exercise.totalDuration).toEqual({
+      label: "Durée totale de l’activité",
+      accessibilityLabel: "Durée totale de l’activité",
+      compactLabel: "Durée totale",
+    });
+  });
+
+  it("T02-S02 — exposes the total-duration adjustment message with a {duration} placeholder (RM-130)", () => {
+    expect(strings.screens.exercise.adjustedTotalDurationMessage).toBe(
+      "Durée ajustée à {duration} pour respecter un nombre entier de Séries.",
+    );
+    expect(strings.screens.exercise.adjustedTotalDurationMessage).toContain("{duration}");
   });
 
   it("exposes the disabled add-media button label (T01-S10, doc13 §8 — Médias V2 hors périmètre ; correctif T02 2026-09-08 — le '+' n'est plus un caractère de texte, porté par l'icône DSF)", () => {
@@ -192,26 +236,33 @@ describe("strings", () => {
     expect(strings.screens.exercise.recap).toEqual({
       pauseLabel: "de pause",
       pauseSuffix: "entre les séries",
+      // T02-S02 : proposition de Récupération attachée et ligne de durée.
+      recoveryPrefix: "puis",
+      recoveryLabel: "de récupération",
+      totalDurationLabel: "Durée totale",
+      minimumDurationLabel: "Durée minimale",
     });
     expect(strings.screens.exercise.recap.pauseSuffix).not.toBe(
       strings.screens.composition.exerciseRow.pauseSuffix,
     );
   });
 
-  it("REWORK12 — exposes the functional titles Ajouter/Modifier une activité and Informations complémentaires, and the Séance context prefix (D-105)", () => {
+  it("REWORK12 — exposes the functional titles Ajouter/Modifier une activité, and the Séance context prefix (D-105)", () => {
     expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
     expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
-    expect(strings.screens.exercise.titleInformation).toBe("Informations complémentaires");
     expect(strings.screens.exercise.context).toEqual({ prefix: "Séance" });
+    // T02-S02 (D-137) : l'écran unifié n'a plus de seconde étape —
+    // `titleInformation` est supprimé plutôt que laissé mort.
+    expect(strings.screens.exercise).not.toHaveProperty("titleInformation");
   });
 
-  it("exposes the Exercise Type segment (Exercice/Récupération) and the Paramètres section title (CE-T01-13, AUD-08)", () => {
-    expect(strings.screens.exercise.type).toEqual({
-      label: "Type d’activité",
-      exercise: "Exercice",
-      recovery: "Récupération",
-    });
-    expect(strings.screens.exercise.parametersTitle).toBe("Paramètres de l’activité");
+  it("T02-S02 (D-137) — the Type segment and the Paramètres section title are removed from the unified Activity screen", () => {
+    // La Récupération n'est plus un TYPE d'Activité sélectionnable mais un
+    // paramètre attaché (`recoverySeconds`) : le segment `Exercice /
+    // Récupération` disparaît avec lui, ainsi que le titre `Paramètres de
+    // l'activité`.
+    expect(strings.screens.exercise).not.toHaveProperty("type");
+    expect(strings.screens.exercise).not.toHaveProperty("parametersTitle");
   });
 
   it("exposes distinct wheel accessibility labels for Répétitions/Séries, never colliding with their row label (AUD-05)", () => {

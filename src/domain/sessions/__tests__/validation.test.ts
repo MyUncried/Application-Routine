@@ -5,6 +5,7 @@ import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/se
 import {
   normalizeInstruction,
   normalizeName,
+  validateCreatableActivityType,
   validateCreateSessionInput,
   validateExecutionMode,
   validateExerciseDurationSeconds,
@@ -13,6 +14,7 @@ import {
   validateInitialCountdownSeconds,
   validateInstruction,
   validatePauseSeconds,
+  validateRecoverySeconds,
   validateRepetitionCount,
   validateSeriesCount,
   validateSessionColor,
@@ -318,6 +320,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
+      recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
     };
@@ -370,26 +373,20 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     });
   });
 
-  // T02-S01 (AC-01/AC-12) : les trois zones structurelles et les
-  // Récupérations traversent désormais le chemin de création sans perte —
-  // il ne produisait auparavant que des Exercices `IN_TOUR`.
-  it("carries each Activity's own type and structural position through creation, Recoveries included", () => {
+  // T02-S01 (AC-01/AC-12) : les trois zones structurelles traversent le
+  // chemin de création sans perte — il ne produisait auparavant que des
+  // Exercices `IN_TOUR`.
+  it("carries each Activity's own type and structural position through creation", () => {
     const result = validateCreateSessionInput({
       ...validInput(),
       exercises: [
         { ...durationExercise(), name: "Échauffement", structuralPosition: "BEFORE_TOUR" as const },
         durationExercise(),
         {
-          type: "RECOVERY" as const,
+          ...durationExercise(),
           structuralPosition: "AFTER_TOUR" as const,
-          name: "Récupération",
-          executionMode: null,
+          name: "Étirements",
           durationSeconds: 45,
-          repetitionCount: null,
-          seriesCount: null,
-          pauseSeconds: 0,
-          instruction: null,
-          bodyZoneIds: [],
         },
       ],
     });
@@ -401,8 +398,96 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       ).toEqual([
         ["EXERCISE", "BEFORE_TOUR"],
         ["EXERCISE", "IN_TOUR"],
-        ["RECOVERY", "AFTER_TOUR"],
+        ["EXERCISE", "AFTER_TOUR"],
       ]);
+    }
+  });
+
+  /**
+   * T02-S02 — verrou de Domaine sur le type `RECOVERY`.
+   *
+   * `migration001` est IMMUABLE : son CHECK `type IN ('EXERCISE',
+   * 'RECOVERY')` connaît toujours la valeur, et d'anciennes bases peuvent
+   * encore la contenir jusqu'à `migration004`. Le verrou est donc posé au
+   * niveau du DOMAINE — `validateCreatableActivityType` — plutôt qu'en base :
+   * la valeur reste RECONNUE en lecture, mais n'est plus CRÉABLE.
+   */
+  it("refuses a standalone RECOVERY Activity at creation, while still recognizing the value (T02-S02)", () => {
+    const result = validateCreateSessionInput({
+      ...validInput(),
+      exercises: [
+        {
+          ...durationExercise(),
+          type: "RECOVERY" as const,
+          name: "Récupération",
+          executionMode: null,
+          durationSeconds: 45,
+          seriesCount: null,
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({
+        code: "MUST_BE_ABSENT",
+        field: "activity.type",
+      });
+      // Distinct d'un type INCONNU, qui reste rejeté par `UNRECOGNIZED`.
+      expect(result.violations).not.toContainEqual({
+        code: "UNRECOGNIZED",
+        field: "activity.type",
+      });
+    }
+  });
+
+  it("validates the attached Récupération at creation: bounds and integrality (T02-S02)", () => {
+    expect(
+      validateCreateSessionInput({
+        ...validInput(),
+        exercises: [{ ...durationExercise(), recoverySeconds: 90 }],
+      }),
+    ).toMatchObject({ ok: true });
+
+    for (const invalid of [-1, 6000, 1.5]) {
+      const result = validateCreateSessionInput({
+        ...validInput(),
+        exercises: [{ ...durationExercise(), recoverySeconds: invalid }],
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(
+          result.violations.some(
+            (violation) => violation.field === "exercise.recoverySeconds",
+          ),
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("accepts a Récupération in every execution mode — it is attached to the Activity, not to the Durée mode (T02-S02)", () => {
+    for (const exercise of [
+      { ...durationExercise(), recoverySeconds: 30 },
+      {
+        ...durationExercise(),
+        executionMode: "REPETITIONS" as const,
+        durationSeconds: null,
+        repetitionCount: 12,
+        recoverySeconds: 30,
+      },
+      {
+        ...durationExercise(),
+        executionMode: "TO_FAILURE" as const,
+        durationSeconds: null,
+        repetitionCount: null,
+        recoverySeconds: 30,
+      },
+    ]) {
+      const result = validateCreateSessionInput({ ...validInput(), exercises: [exercise] });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.exercises[0]).toMatchObject({ recoverySeconds: 30 });
+      }
     }
   });
 
@@ -629,6 +714,53 @@ describe("validateTourRepeatCount (T01-S10, D-058)", () => {
   });
 });
 
+describe("validateRecoverySeconds (T02-S02) — Récupération ATTACHÉE", () => {
+  it("accepts zero: no Récupération is the neutral, valid value", () => {
+    expect(validateRecoverySeconds(0)).toEqual({ ok: true, value: 0 });
+  });
+
+  it("accepts the documented upper bound 99 min 59 s (5999 s), same contract as Durée and Pause (CE-T01-14)", () => {
+    expect(validateRecoverySeconds(5999)).toEqual({ ok: true, value: 5999 });
+  });
+
+  it("rejects a negative or out-of-range value with OUT_OF_RANGE and its bounds", () => {
+    expect(validateRecoverySeconds(-1)).toEqual({
+      ok: false,
+      violations: [
+        { code: "OUT_OF_RANGE", field: "exercise.recoverySeconds", details: { min: 0, max: 5999 } },
+      ],
+    });
+    expect(validateRecoverySeconds(6000)).toMatchObject({ ok: false });
+  });
+
+  it("rejects a non-integer number of seconds", () => {
+    expect(validateRecoverySeconds(30.5)).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.recoverySeconds" }],
+    });
+  });
+});
+
+describe("validateCreatableActivityType (T02-S02) — verrou d'écriture du type RECOVERY", () => {
+  it("accepts EXERCISE, the only creatable type", () => {
+    expect(validateCreatableActivityType("EXERCISE")).toEqual({ ok: true, value: "EXERCISE" });
+  });
+
+  it("refuses RECOVERY with MUST_BE_ABSENT — recognized in reading, never creatable", () => {
+    expect(validateCreatableActivityType("RECOVERY")).toEqual({
+      ok: false,
+      violations: [{ code: "MUST_BE_ABSENT", field: "activity.type" }],
+    });
+  });
+
+  it("still reports an entirely unknown type as UNRECOGNIZED, never as MUST_BE_ABSENT", () => {
+    expect(validateCreatableActivityType("WARMUP")).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "activity.type" }],
+    });
+  });
+});
+
 describe("validateExecutionMode (T01-S10, D-111)", () => {
   it("accepts the three MVP modes", () => {
     expect(validateExecutionMode("DURATION")).toEqual({ ok: true, value: "DURATION" });
@@ -655,6 +787,7 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 30,
+      recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
     };
@@ -709,6 +842,7 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
+      recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       ...overrides,
@@ -770,8 +904,15 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
     }
   });
 
-  it("validates a RECOVERY Activity as always-timed, with no mode / series / pause / body zones", () => {
-    const okResult = validateUpdateSessionInput(
+  /**
+   * T02-S02 — le verrou de Domaine s'applique aussi au chemin de
+   * MODIFICATION : une Séance ancienne ne peut pas être réenregistrée avec
+   * une Récupération autonome. Ce test remplace l'ancien « valide une
+   * Activité RECOVERY toujours chronométrée », qui prouvait précisément le
+   * comportement désormais interdit.
+   */
+  it("refuses a standalone RECOVERY Activity on the update path too (T02-S02)", () => {
+    const result = validateUpdateSessionInput(
       validInput({
         activities: [
           exerciseActivity({
@@ -788,35 +929,34 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
         ],
       }),
     );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual({
+        code: "MUST_BE_ABSENT",
+        field: "activity.type",
+      });
+    }
+  });
+
+  it("validates the attached Récupération on the update path (T02-S02)", () => {
+    const okResult = validateUpdateSessionInput(
+      validInput({ activities: [exerciseActivity({ recoverySeconds: 120 })] }),
+    );
     expect(okResult.ok).toBe(true);
+    if (okResult.ok) {
+      expect(okResult.value.activities[0]).toMatchObject({ recoverySeconds: 120 });
+    }
 
     const badResult = validateUpdateSessionInput(
-      validInput({
-        activities: [
-          exerciseActivity({
-            id: "rec-2",
-            type: "RECOVERY",
-            name: "Récupération",
-            executionMode: "DURATION",
-            durationSeconds: null,
-            seriesCount: 2,
-            pauseSeconds: 10,
-            bodyZoneIds: ["dos"],
-          }),
-        ],
-      }),
+      validInput({ activities: [exerciseActivity({ recoverySeconds: 6000 })] }),
     );
     expect(badResult.ok).toBe(false);
     if (!badResult.ok) {
-      expect(badResult.violations).toEqual(
-        expect.arrayContaining([
-          { code: "MUST_BE_ABSENT", field: "exercise.executionMode" },
-          { code: "MUST_BE_ABSENT", field: "exercise.seriesCount" },
-          { code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" },
-          { code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" },
-          { code: "REQUIRED", field: "recovery.durationSeconds" },
-        ]),
-      );
+      expect(badResult.violations).toContainEqual({
+        code: "OUT_OF_RANGE",
+        field: "exercise.recoverySeconds",
+        details: { min: 0, max: 5999 },
+      });
     }
   });
 

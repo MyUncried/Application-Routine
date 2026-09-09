@@ -1,7 +1,7 @@
 import {
-  computeActivityDurationSeconds,
   computeEstimatedDurationSeconds,
-  isLowerBoundExecutionMode,
+  computeTotalDurationSeconds,
+  computeZoneDurationFacts,
 } from "@/domain/sessions/calculations";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -108,26 +108,26 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     return strings.screens.composition.summary.empty;
   }
 
-  let isLowerBoundEstimate = false;
-  let inTourDurationSeconds = 0;
-
-  for (const exercise of inTourExercises) {
-    if (exercise.type !== "RECOVERY" && isLowerBoundExecutionMode(exercise.executionMode)) {
-      isLowerBoundEstimate = true;
-    }
-    inTourDurationSeconds += computeActivityDurationSeconds(exercise);
-  }
+  // **T02-S02** : la durée d'UNE occurrence du Tour est calculée par la
+  // fonction du Domaine (`computeZoneDurationFacts`), jamais par une boucle
+  // équivalente locale — c'est elle qui porte la formule canonique
+  // `C × A + (C − 1) × B + R` et la détection de borne minimale. La parité
+  // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
+  // par ressemblance de deux implémentations.
+  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
 
   const totalSeconds = computeEstimatedDurationSeconds({
     beforeTourDurationSeconds: 0,
-    inTourDurationSeconds,
+    inTourDurationSeconds: inTourOccurrence.seconds,
     afterTourDurationSeconds: 0,
     tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    isLowerBoundEstimate,
+    isLowerBoundEstimate: inTourOccurrence.isLowerBoundEstimate,
   });
 
   const formattedDuration = formatEstimatedDuration(totalSeconds);
-  const durationLabel = isLowerBoundEstimate ? `≥ ${formattedDuration}` : formattedDuration;
+  const durationLabel = inTourOccurrence.isLowerBoundEstimate
+    ? `≥ ${formattedDuration}`
+    : formattedDuration;
 
   return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
@@ -164,7 +164,7 @@ export type ExerciseRowSummaryFacts = {
  * 5442860439), format non issu de la documentation fonctionnelle
  * préexistante.
  */
-function formatCompactDuration(totalSeconds: number): string {
+export function formatCompactDuration(totalSeconds: number): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
   // Décomposition directe (pas `fromTotalSeconds`, qui borne à
   // `WHEEL_TOTAL_SECONDS_MAX` par défaut) : ce résumé n'est pas issu d'une
@@ -237,6 +237,17 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
 export type ExerciseRecapFacts = ExerciseRowSummaryFacts & {
   /** Nom de l'Activité en cours d'édition, intégré au récapitulatif (complétion REWORK12) — jamais un littéral figé. */
   readonly name: string;
+  /**
+   * T02-S02 : Récupération attachée — `0` omet entièrement la proposition
+   * `, puis … de récupération`.
+   *
+   * Champ OPTIONNEL, `0` par défaut — même convention que
+   * `CompositionSummaryFacts.tourRepeatCount` : la valeur neutre produit
+   * exactement la synthèse d'avant cette tranche, un appelant qui ne
+   * modélise pas encore la Récupération reste donc valide et correct.
+   * `ExerciseScreen` transmet toujours la valeur réelle du brouillon.
+   */
+  readonly recoverySeconds?: number;
 };
 
 /**
@@ -286,9 +297,9 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   if (facts.executionMode === "TO_FAILURE") {
     const failureBase = `${seriesLabel} ${exerciseRow.of} ${facts.name}, ${exerciseRow.toFailure}`;
     if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
-      return `${failureBase}.`;
+      return `${failureBase}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
     }
-    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}.`;
+    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
   }
 
   const activityLabel =
@@ -299,12 +310,61 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
 
   if (facts.pauseSeconds <= 0) {
-    return `${base}.`;
+    return `${base}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
   }
 
   const pauseSuffix = facts.seriesCount > 1 ? ` ${exercise.recap.pauseSuffix}` : "";
 
-  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}.`;
+  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
+}
+
+/**
+ * Proposition `, puis {récupération} de récupération` du récapitulatif
+ * (T02-S02, `06 – Ecrans et navigation de la V1.md`, Écran 4 : « Lorsque la
+ * Récupération est non nulle, ajouter `, puis {récupération} de
+ * récupération` »).
+ *
+ * Chaîne VIDE — jamais une proposition vide — lorsque la Récupération est
+ * nulle : elle se compose alors sans laisser de virgule orpheline avant le
+ * point final, dans les trois modes. Ajoutée avant la ponctuation finale,
+ * toujours après l'éventuelle clause de Pause : la Récupération s'exécute
+ * après TOUTES les Séries, donc après les Pauses.
+ */
+function formatRecoveryClause(recoverySeconds: number): string {
+  if (recoverySeconds <= 0) {
+    return "";
+  }
+  const recap = strings.screens.exercise.recap;
+  return `, ${recap.recoveryPrefix} ${formatCompactDuration(recoverySeconds)} ${recap.recoveryLabel}`;
+}
+
+/**
+ * Seconde ligne de la synthèse d'Activité (T02-S02, `06` Écran 4) :
+ *
+ * - mode Durée : `Durée totale : {D}`, avec `D = C × A + (C − 1) × B + R`
+ *   (RM-129) — la valeur DÉRIVÉE, jamais une donnée persistée (DM-015) ;
+ * - modes Répétitions et « À l'échec » : `Durée minimale : ≥ {durée connue}`,
+ *   borne composée des seules parts déterminables — Pauses entre Séries et
+ *   Récupération (RM-132). Aucune durée conventionnelle n'est inventée pour
+ *   l'Exercice lui-même.
+ *
+ * La même fonction du Domaine (`computeTotalDurationSeconds`) sert les deux
+ * cas : en mode non chronométré, `A` vaut `0`, ce qui EST exactement la
+ * définition de la borne minimale — jamais une seconde formule parallèle.
+ */
+export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string {
+  const exercise = strings.screens.exercise;
+  const isLowerBound = facts.executionMode !== "DURATION";
+  const totalSeconds = computeTotalDurationSeconds(facts.seriesCount, {
+    durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
+    pauseSeconds: facts.pauseSeconds,
+    recoverySeconds: facts.recoverySeconds ?? 0,
+  });
+  const formatted = formatCompactDuration(totalSeconds);
+
+  return isLowerBound
+    ? `${exercise.recap.minimumDurationLabel} : ≥ ${formatted}`
+    : `${exercise.recap.totalDurationLabel} : ${formatted}`;
 }
 
 /**

@@ -59,6 +59,7 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
+    recoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -114,6 +115,7 @@ function normalizedExercise() {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
+    recoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
   };
@@ -316,6 +318,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
           repetitionCount: null,
           seriesCount: 1,
           pauseSeconds: 0,
+          recoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],
         },

@@ -45,6 +45,15 @@ const SERIES_COUNT_MAX = 99;
 /** Mêmes bornes que la durée d'Exercice (0–99 min 59 s, `08` l.925). */
 const PAUSE_SECONDS_MIN = 0;
 const PAUSE_SECONDS_MAX = 5999;
+/**
+ * T02-S02 : Récupération ATTACHÉE d'une Activité. Mêmes bornes que la Pause
+ * — `13 – Contrats d'écran.md` (CE-T01-14) pose que `Récupération` « hérite
+ * du même contrat minutes/secondes » que `Durée`/`Pause`, et CE-T01-13 que
+ * « Pause et Récupération peuvent valoir `0 s` » : `0` est donc une valeur
+ * VALIDE, jamais une absence à signaler.
+ */
+const RECOVERY_SECONDS_MIN = 0;
+const RECOVERY_SECONDS_MAX = 5999;
 /** T01-S10 : répétition du Tour, entier `1..99` (D-058, par cohérence avec `08` l.924). */
 const TOUR_REPEAT_COUNT_MIN = 1;
 const TOUR_REPEAT_COUNT_MAX = 99;
@@ -187,6 +196,29 @@ export function validatePauseSeconds(raw: number): ValidationResult<number> {
   return ok(raw);
 }
 
+/**
+ * T02-S02 : Récupération ATTACHÉE d'une Activité (RM-129). Entier de 0 à 5999
+ * secondes — `0` signifie « aucune Récupération » et reste parfaitement
+ * valide (CE-T01-13).
+ */
+export function validateRecoverySeconds(raw: number): ValidationResult<number> {
+  const field: ValidationField = "exercise.recoverySeconds";
+
+  if (!Number.isInteger(raw)) {
+    return fail([{ code: "NOT_INTEGER", field }]);
+  }
+  if (raw < RECOVERY_SECONDS_MIN || raw > RECOVERY_SECONDS_MAX) {
+    return fail([
+      {
+        code: "OUT_OF_RANGE",
+        field,
+        details: { min: RECOVERY_SECONDS_MIN, max: RECOVERY_SECONDS_MAX },
+      },
+    ]);
+  }
+  return ok(raw);
+}
+
 /** T01-S10 : répétition du Tour (`SessionDraft.tourRepeatCount` / `UpdateSessionInput.tourRepeatCount`). Entier de 1 à 99 (D-058). */
 export function validateTourRepeatCount(raw: number): ValidationResult<number> {
   const field: ValidationField = "session.tourRepeatCount";
@@ -233,12 +265,39 @@ export function validateExecutionMode(raw: string): ValidationResult<ExerciseExe
   return ok(raw as ExerciseExecutionMode);
 }
 
-/** T01-S10 : type d'Activité reconnu (`EXERCISE` / `RECOVERY`, D-061). */
+/** T01-S10 : type d'Activité RECONNU (`EXERCISE` / `RECOVERY`, D-061) — contrôle de LECTURE, jamais d'écriture (voir `validateCreatableActivityType`). */
 export function validateActivityType(raw: string): ValidationResult<ActivityType> {
   if (!ACTIVITY_TYPES.includes(raw as ActivityType)) {
     return fail([{ code: "UNRECOGNIZED", field: "activity.type" }]);
   }
   return ok(raw as ActivityType);
+}
+
+/**
+ * **T02-S02 — verrou d'écriture** : un agrégat persistable ne peut plus
+ * porter d'Activité `RECOVERY`.
+ *
+ * La Récupération est désormais une durée attachée (`recoverySeconds`) et
+ * « aucun sélecteur fonctionnel Exercice/Récupération » n'existe plus
+ * (`12 – Architecture technique.md` : « Le schéma d'Activité … ne porte aucun
+ * type Exercice/Récupération »). Cette validation est le verrou du DOMAINE,
+ * indépendant de l'interface : même un appelant programmatique ne peut pas
+ * réintroduire une Activité `RECOVERY` après `migration004`, qui les a toutes
+ * converties puis supprimées.
+ *
+ * `validateActivityType` reste distincte et inchangée : elle sert au contrôle
+ * de RECONNAISSANCE d'une valeur (lecture/défense en profondeur), là où
+ * celle-ci contrôle la CRÉATION.
+ */
+export function validateCreatableActivityType(raw: string): ValidationResult<ActivityType> {
+  const recognized = validateActivityType(raw);
+  if (!recognized.ok) {
+    return recognized;
+  }
+  if (recognized.value === "RECOVERY") {
+    return fail([{ code: "MUST_BE_ABSENT", field: "activity.type" }]);
+  }
+  return ok(recognized.value);
 }
 
 /** T01-S10 : position structurelle reconnue (`BEFORE_TOUR` / `IN_TOUR` / `AFTER_TOUR`, D-061). */
@@ -320,6 +379,8 @@ type ActivityParameterInput = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  /** T02-S02 : Récupération attachée (`0..5999`). */
+  readonly recoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
 };
 
@@ -329,6 +390,7 @@ type ActivityParameterValues = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  readonly recoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
 };
 
@@ -363,6 +425,7 @@ function validateActivityParameters(
   let repetitionCount: number | null = null;
   let seriesCount: number | null = null;
   let pauseSeconds = 0;
+  let recoverySeconds = 0;
   let bodyZoneIds: readonly string[] = [];
 
   if (type === "RECOVERY") {
@@ -377,6 +440,13 @@ function validateActivityParameters(
     }
     if (activity.pauseSeconds !== 0) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
+    }
+    // T02-S02 : une ancienne Activité `RECOVERY` ne peut pas porter elle-même
+    // une Récupération attachée — elle EST la Récupération (chemin de lecture
+    // défensif uniquement : `validateCreatableActivityType` en interdit déjà
+    // toute création).
+    if (activity.recoverySeconds !== 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.recoverySeconds" });
     }
     if (activity.bodyZoneIds.length > 0) {
       violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
@@ -393,6 +463,7 @@ function validateActivityParameters(
       repetitionCount,
       seriesCount,
       pauseSeconds,
+      recoverySeconds,
       bodyZoneIds,
     };
   }
@@ -404,6 +475,7 @@ function validateActivityParameters(
       repetitionCount,
       seriesCount,
       pauseSeconds,
+      recoverySeconds,
       bodyZoneIds,
     };
   }
@@ -445,6 +517,11 @@ function validateActivityParameters(
     seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
   }
   pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
+  // T02-S02 : la Récupération attachée est disponible dans LES TROIS modes
+  // (`09 – Modèle de données fonctionnel.md` : « Pause, nombre de Séries et
+  // Récupération restent disponibles dans les trois modes ») — validée ici,
+  // hors du bloc conditionnel de mode.
+  recoverySeconds = unwrap(validateRecoverySeconds(activity.recoverySeconds), violations) ?? 0;
 
   return {
     executionMode,
@@ -452,6 +529,7 @@ function validateActivityParameters(
     repetitionCount,
     seriesCount,
     pauseSeconds,
+    recoverySeconds,
     bodyZoneIds,
   };
 }
@@ -469,7 +547,9 @@ function validateSessionActivityInput(
 ): ValidationResult<CreateSessionActivityInput> {
   const violations: ValidationViolation[] = [];
   const name = unwrap(validateExerciseName(activity.name), violations);
-  const type = unwrap(validateActivityType(activity.type), violations);
+  // T02-S02 : `validateCreatableActivityType` (et non `validateActivityType`)
+  // — aucune Activité `RECOVERY` ne peut plus être créée.
+  const type = unwrap(validateCreatableActivityType(activity.type), violations);
   const structuralPosition = unwrap(
     validateStructuralPosition(activity.structuralPosition),
     violations,
@@ -502,6 +582,7 @@ function validateSessionActivityInput(
     repetitionCount: parameters.repetitionCount,
     seriesCount: parameters.seriesCount,
     pauseSeconds: parameters.pauseSeconds,
+    recoverySeconds: parameters.recoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
   });
@@ -647,7 +728,9 @@ export function validateUpdateSessionActivityInput(
     violations.push({ code: "REQUIRED", field: "activity.id" });
   }
   const name = unwrap(validateActivityName(activity.name), violations);
-  const type = unwrap(validateActivityType(activity.type), violations);
+  // T02-S02 : même verrou que le chemin de création — une modification ne
+  // peut pas réintroduire une Activité `RECOVERY`.
+  const type = unwrap(validateCreatableActivityType(activity.type), violations);
   const structuralPosition = unwrap(
     validateStructuralPosition(activity.structuralPosition),
     violations,
@@ -675,6 +758,7 @@ export function validateUpdateSessionActivityInput(
     repetitionCount: parameters.repetitionCount,
     seriesCount: parameters.seriesCount,
     pauseSeconds: parameters.pauseSeconds,
+    recoverySeconds: parameters.recoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
   });

@@ -40,6 +40,8 @@ export type ValidationField =
   | "exercise.repetitionCount"
   | "exercise.seriesCount"
   | "exercise.pauseSeconds"
+  /** T02-S02 : Récupération ATTACHÉE d'une Activité (`0..5999` s, RM-129). */
+  | "exercise.recoverySeconds"
   /** T01-S10 : mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS` / `TO_FAILURE`). */
   | "exercise.executionMode"
   /** T01-S10 : type d'une Activité (`EXERCISE` / `RECOVERY`). */

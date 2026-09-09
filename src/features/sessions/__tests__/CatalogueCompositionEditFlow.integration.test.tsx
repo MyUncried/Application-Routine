@@ -80,6 +80,7 @@ const PERSISTED_SESSION: Session = {
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 15,
+          recoverySeconds: 0,
           instruction: null,
           // Ordre de persistance inverse de l'ordre du référentiel — la ligne
           // de Zones corporelles doit rétablir l'ordre référentiel.

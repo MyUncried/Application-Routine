@@ -49,6 +49,8 @@ export type SessionAggregateRow = {
   /** `null` pour une Récupération (T01-S10). */
   series_count: number | null;
   pause_seconds: number;
+  /** T02-S02 : Récupération ATTACHÉE, `0..5999` s — `0` = aucune (`migration004`). */
+  recovery_seconds: number;
   instruction: string | null;
 };
 

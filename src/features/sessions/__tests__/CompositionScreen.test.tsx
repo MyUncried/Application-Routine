@@ -1,18 +1,18 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { useCallback, useMemo, useState } from "react";
 import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
 import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
-import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
-import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
+import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
-import { colors, dimensions } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors, dimensions } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -2070,24 +2070,26 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("CE-T02-01 — deleting the last Exercise disables Continuer, even when a Récupération remains", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
-      anActivity("rec-1", "AFTER_TOUR", { name: "Récupération", type: "RECOVERY" }),
-    ]);
+  it("CE-T02-01 — deleting the last Exercise and its attached Recovery disables Continuer", () => {
+  renderScreenWithDraft([
+    anActivity("ex-1", "BEFORE_TOUR", {
+      name: "Gainage",
+      recoverySeconds: 45,
+    }),
+  ]);
 
-    expect(
-      screen.getByLabelText(composition.continueAction).props.accessibilityState,
-    ).toMatchObject({ disabled: false });
+  expect(
+    screen.getByLabelText(composition.continueAction).props.accessibilityState,
+  ).toMatchObject({ disabled: false });
 
-    fireSwipeLeft("ex-1");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+  fireSwipeLeft("ex-1");
+  fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
-    expect(screen.getByTestId("composition-exercise-row-rec-1")).toBeTruthy();
-    expect(
-      screen.getByLabelText(composition.continueAction).props.accessibilityState,
-    ).toMatchObject({ disabled: true });
-  });
+  expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+  expect(
+    screen.getByLabelText(composition.continueAction).props.accessibilityState,
+  ).toMatchObject({ disabled: true });
+});
 });
 
 describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)", () => {

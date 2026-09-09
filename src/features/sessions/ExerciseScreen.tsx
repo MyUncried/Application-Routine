@@ -1,9 +1,14 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  applyTargetTotalDuration,
+  computeTotalDurationSeconds,
+  type TotalDurationFacts,
+} from "@/domain/sessions/calculations";
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_REPETITION_COUNT,
@@ -23,7 +28,12 @@ import {
 } from "@/domain/sessions/validation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
-import { formatDurationRowValue, formatExerciseRecap } from "@/features/sessions/compositionPresentation";
+import {
+  formatCompactDuration,
+  formatDurationRowValue,
+  formatExerciseDurationLine,
+  formatExerciseRecap,
+} from "@/features/sessions/compositionPresentation";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
@@ -33,20 +43,36 @@ import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import {
   WHEEL_EXERCISE_DURATION_SECONDS_MAX,
   WHEEL_PAUSE_SECONDS_MAX,
+  WHEEL_RECOVERY_SECONDS_MAX,
+  WHEEL_TOTAL_DURATION_SECONDS_MAX,
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
+import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
-type OverlayKind = "duration" | "repetitionCount" | "pauseSeconds" | "seriesCount";
+type OverlayKind =
+  | "duration"
+  | "repetitionCount"
+  | "pauseSeconds"
+  | "seriesCount"
+  | "recoverySeconds"
+  | "totalDuration";
+
+type SectionKey = "description" | "bodyZones" | "executionMode";
 
 /**
- * Étape 1 valide ⇔ Nom + cible du mode (Durée / Répétitions) valides. Le
+ * Activité valide ⇔ Nom + cible du mode (Durée / Répétitions) valides. Le
  * mode « À l'échec » (T01-S10, D-111) n'a AUCUNE cible : le seul Nom suffit.
- * L'étape 2 reste entièrement facultative (plan T01-S08).
+ * Description et Zone corporelle restent entièrement facultatives.
+ *
+ * T02-S02 (D-137) : l'écran n'a plus deux étapes — cette fonction, qui
+ * gardait l'accès à l'étape 2 (`isStep1Valid`), garde désormais directement
+ * l'action `Terminer`. La Récupération n'entre pas dans cette validité :
+ * `0 s` est une valeur légitime (borne basse `RECOVERY_SECONDS_MIN`).
  */
-function isStep1Valid(exercise: SessionDraftExercise): boolean {
+function isActivityValid(exercise: SessionDraftExercise): boolean {
   if (!validateExerciseName(exercise.name).ok) {
     return false;
   }
@@ -62,98 +88,58 @@ function isStep1Valid(exercise: SessionDraftExercise): boolean {
   return exercise.repetitionCount !== null && validateRepetitionCount(exercise.repetitionCount).ok;
 }
 
+/** Facteurs `A`/`B`/`R` de la formule canonique `D = C × A + (C − 1) × B + R` (RM-129). */
+function totalDurationFacts(exercise: SessionDraftExercise): TotalDurationFacts {
+  return {
+    // Modes `Répétitions`/« À l'échec » : `A` est INDÉTERMINÉ, donc `0` — la
+    // durée obtenue est alors la borne inférieure (RM-132), jamais une durée
+    // conventionnelle inventée pour l'Exercice.
+    durationSeconds: exercise.executionMode === "DURATION" ? (exercise.durationSeconds ?? 0) : 0,
+    pauseSeconds: exercise.pauseSeconds,
+    recoverySeconds: exercise.recoverySeconds,
+  };
+}
+
 /**
- * Écran `Création / modification d'une Activité — Exercice` (T01-S08, docs
- * §06 Écran 4 ; CE-T01-13). Type verrouillé `Exercice` — le type
- * `Récupération` (et son propre écran) reste hors périmètre de tout T01.
+ * Écran unifié `Ajouter / Modifier une activité` (T02-S02, D-137, CE-T01-13).
  *
- * **REWORK09 — reconstruction depuis le Shell/composants DS** (mission
- * directe utilisateur, 2026-09-04, `G-01` à `G-08`) : cet écran utilise le
- * Shell partagé (`ScreenShell`/`FixedHeader`/`HeaderSeparator`, déjà validé
- * par `CompositionScreen.tsx`) au lieu d'un en-tête local dupliqué.
+ * **Ce que cette tranche change** — l'écran était en DEUX étapes internes
+ * (`step === 1` paramètres essentiels, `step === 2` « Informations
+ * complémentaires » : Consigne + Zones corporelles, atteinte par un bouton
+ * `Valider`). Il devient UN SEUL écran : la Description de l'activité et la
+ * Zone corporelle d'exécution deviennent deux SECTIONS REPLIABLES (fermées
+ * par défaut), le Mode d'exécution une troisième (déployée par défaut), et
+ * l'unique action finale est `Terminer`. Le segment `Type d'activité`
+ * (`Exercice / Récupération`) et le titre `Paramètres de l'activité` sont
+ * supprimés : la Récupération n'est plus un type d'Activité mais un
+ * PARAMÈTRE attaché (`recoverySeconds`), rendu dans la même rangée compacte.
  *
- * **Complétion REWORK12** (`[ChatGPT] Applique impérativement le protocole
- * KODJO actif...`, 2026-09-04, D-105 ; référence Figma vérifiée directement
- * `1992:9132`/`1992:9212`/`1992:9292`, frames à jour) : le titre local
- * (`titleAdd`/`titleEdit`), retiré par REWORK09, est **réintroduit** avec
- * un sens différent — un titre FONCTIONNEL (`Ajouter une activité`/
- * `Modifier une activité` à l'étape 1, `Informations complémentaires` à
- * l'étape 2), jamais plus le nom de la Séance (déplacé dans la nouvelle
- * zone bleue contextuelle, `ActivityContextBand` ci-dessous, visible
- * uniquement à l'étape 1). Ordre du formulaire de l'étape 1 : zone bleue
- * (contexte de Séance + champ Nom) → `Type d'activité` (segment `Exercice/
- * Récupération`) → `Mode d'exécution` (segment `Durée/Répétition`) →
- * `Paramètres de l'activité` (rangée compacte) → récapitulatif calculé,
- * ancré en bas du contenu défilant (frère du groupe Paramètres, jamais son
- * enfant — vérifié directement sur `3261:4156`/`3261:4157`).
+ * **Ce qui est conservé à l'identique** (Conservation des acquis) : le Shell
+ * partagé (`ScreenShell`/`FixedHeader`/`HeaderSeparator`), la zone bleue
+ * contextuelle (`Nom de l'activité` puis `+ Ajouter un média` désactivé), la
+ * rangée `Activity / Parameter Row — Source exact`, le cadre récapitulatif
+ * ancré en bas, les primitives natives de roulette
+ * (`DurationWheelPicker`/`NumberWheelPicker`, aucune ligne modifiée), le
+ * `WheelPickerOverlay` transversal, la copie de travail locale isolée du
+ * `SessionDraft` partagé, la garde de sortie et son verrou d'idempotence à
+ * deux niveaux (`finishingRef` synchrone + `isFinishing` React).
  *
- * **Plusieurs Activités et bouton persistant** (complétion REWORK12,
- * explicitement autorisée : « La transformation du brouillon actuel,
- * limité à un champ `exercise` unique, vers une collection ordonnée
- * d'activités est explicitement autorisée dans ce lot ») : `SessionDraft
- * .exercises` est désormais une collection ordonnée
- * (`SessionDraft.ts`). Cet écran est ouvert soit pour AJOUTER une nouvelle
- * Activité (aucun paramètre de route, `exerciseId` absent — un `id` frais
- * est généré ici via `Crypto.randomUUID()`, la génération d'identifiants
- * réels restant hors de `SessionDraft.ts`, fonction pure), soit pour
- * MODIFIER une Activité existante ciblée par son identifiant
- * (`useLocalSearchParams<{ exerciseId?: string }>()`, transmis par
- * `CompositionScreen.tsx` via `router.push({ pathname: "/exercise",
- * params: { exerciseId } })`). Le déplacement réel d'une Activité au sein
- * de la collection reste hors périmètre de S08 (poignée indicative
- * uniquement, COMP-01) et appartient à S09.
+ * **Pilotage `Séries` ↔ `Durée totale`** (RM-129/RM-130, DM-015/DM-016) : la
+ * `Durée totale` est DÉRIVÉE, jamais persistée. La modifier applique le
+ * calcul inverse `Cth = (D − R + B) / (A + B)` (arrondi `.5` vers le haut,
+ * bornes `[1, 99]`) et n'écrit QUE `seriesCount` ; si la durée atteignable
+ * diffère de la cible, `adjustmentMessage` l'annonce explicitement plutôt
+ * que de corriger silencieusement.
  *
- * Copie de travail locale isolée du `SessionDraft` partagé (revue
- * indépendante ChatGPT, plan T01-S08) : toutes les modifications des deux
- * étapes ne touchent que `local` (état de ce composant), jamais
- * `updateDraft` directement — `Valider` ne fait que changer d'étape ;
- * `Terminer` est l'unique point d'écriture partagée, exactement une fois :
- * remplace l'élément de `draft.exercises` partageant le même `id` que
- * `local` s'il existe déjà (modification), sinon l'ajoute en fin de
- * collection (ajout) — jamais un remplacement complet de la collection. Un
- * abandon (modale D-094) ne réinitialise donc jamais le `SessionDraft`
- * partagé : `draft.exercises` reste inchangé (ajout abandonné → l'Activité
- * en cours de création n'y figure jamais ; modification abandonnée →
- * l'ancienne valeur de cet élément reste inchangée). Reprendre
- * `useCompositionExitGuard(isSessionDraftDirty(draft), resetDraft)` tel quel
- * ici serait incorrect (bloquerait sur un `SessionDraft` déjà modifié avant
- * toute frappe, et effacerait toute la Composition à l'abandon) — la garde
- * compare ici `local` à son propre instantané (`exerciseEquals`, exportée).
- *
- * Verrou d'idempotence à deux niveaux (correction demandée en revue,
- * plan v3) : `finishingRef` (`useRef`, synchrone, protège `handleTerminer`
- * lui-même contre un double appel rapproché survenant avant tout rendu
- * intermédiaire — deux responsabilités jamais fusionnées) et `isFinishing`
- * (état React, seul responsable de désarmer la garde de sortie et de
- * déclencher la navigation de retour une fois ce désarmement effectif,
- * `shouldBlockExit = !isFinishing && !exerciseEquals(local, initialSnapshot)`).
- *
- * `useCompositionExitGuard` est appelée avant l'effet de navigation de
- * retour ci-dessous — l'ordre d'exécution des effets d'un même composant
- * (dans l'ordre de déclaration des hooks) garantit que l'effet interne
- * d'`usePreventRemove` (qui resynchronise `PreventRemoveContext` via
- * `setPreventRemove`, revérifié sur `usePreventRemove.js` installé avant
- * l'écriture de ce fichier) s'exécute avant l'effet de retour ci-dessous,
- * jamais l'inverse — démontré par
- * `ExerciseNavigationGuard.integration.test.tsx` (vrai navigateur).
- *
- * **Roulettes — verrou de non-régression (REWORK09/REWORK12)** : aucune
- * ligne de `DurationWheelPicker.tsx` n'est modifiée par cette mission — sa
- * primitive native, son contrat `onValidate`/`onCancel` (brouillon local
- * jusqu'à validation) et son comportement documenté restent strictement
- * intacts. `NumberWheelPicker.tsx` (primitive native également, corrigée
- * par la mission précédente REWORK12) n'est pas non plus modifié ici.
- *
- * **Correction VISUAL (T01-S09, correction tentative 2, point D)** : les
- * quatre sélecteurs de la rangée compacte (`duration`/`repetitionCount`/
- * `pauseSeconds`/`seriesCount`) ne partagent plus un `PopoverAnchor` local
- * ancré sous le cadre de Paramètres — ils s'ouvrent désormais dans
- * `WheelPickerOverlay`, la même superposition plein écran TRANSVERSALE que
- * `CompositionScreen.tsx` (position indépendante du déclencheur et du
- * défilement, arrière-plan atténué, fermeture uniquement par Annuler/
- * Confirmer). Position, style et interaction des composants
- * `DurationWheelPicker`/`NumberWheelPicker` eux-mêmes restent inchangés —
- * seul leur conteneur de positionnement change.
+ * **Unicité des noms accessibles** : le titre d'une section repliable
+ * (`sections.description` = « Description de l'activité ») est identique au
+ * libellé du champ qu'elle contient (`instruction.label`) — c'est le même
+ * élément fonctionnel. L'en-tête pressable ne porte donc PAS le titre nu
+ * comme nom accessible : il compose `Déployer/Replier la section {titre}`
+ * (`CollapsibleSection` ci-dessous), et le chevron `DisclosureControl`
+ * imbriqué est rendu `decorative` (retiré de l'arbre d'accessibilité, geste
+ * conservé). Le champ reste ainsi le SEUL nœud nommé « Description de
+ * l'activité », sans dégrader son propre libellé.
  */
 export function ExerciseScreen() {
   const router = useRouter();
@@ -177,10 +163,20 @@ export function ExerciseScreen() {
     () => existingExercise ?? createExerciseDraft(Crypto.randomUUID()),
   );
   const [local, setLocal] = useState<SessionDraftExercise>(initialSnapshot);
-  const [step, setStep] = useState<1 | 2>(1);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishingRef = useRef(false);
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
+  // CE-T01-15 : Description et Zone corporelle FERMÉES par défaut, Mode
+  // d'exécution DÉPLOYÉ par défaut.
+  const [expandedSections, setExpandedSections] = useState<Record<SectionKey, boolean>>({
+    description: false,
+    bodyZones: false,
+    executionMode: true,
+  });
+  // Message d'ajustement de la Durée totale — non persisté, effacé dès que
+  // n'importe quel autre paramètre change (il ne décrirait alors plus la
+  // valeur affichée).
+  const [adjustmentMessage, setAdjustmentMessage] = useState<string | null>(null);
 
   const shouldBlockExit = !isFinishing && !exerciseEquals(local, initialSnapshot);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
@@ -208,7 +204,14 @@ export function ExerciseScreen() {
     setOpenOverlay((current) => (current === kind ? null : kind));
   }
 
+  function toggleSection(key: SectionKey) {
+    Keyboard.dismiss();
+    closeOverlay();
+    setExpandedSections((current) => ({ ...current, [key]: !current[key] }));
+  }
+
   function patchLocal(patch: Partial<SessionDraftExercise>) {
+    setAdjustmentMessage(null);
     setLocal((current) => ({ ...current, ...patch }));
   }
 
@@ -231,7 +234,8 @@ export function ExerciseScreen() {
       });
     } else {
       // « À l'échec » (T01-S10, D-111) : aucune cible de durée ni de
-      // répétitions ; Séries et Pause sont conservées telles quelles.
+      // répétitions ; Séries, Pause et Récupération sont conservées telles
+      // quelles.
       patchLocal({
         executionMode: "TO_FAILURE",
         durationSeconds: null,
@@ -248,6 +252,27 @@ export function ExerciseScreen() {
     });
   }
 
+  /**
+   * Confirmation d'une `Durée totale` CIBLE : n'écrit jamais la durée
+   * elle-même (DM-015/DM-016) — elle pilote `seriesCount` par le calcul
+   * inverse, puis la durée réellement atteignable est recalculée par la
+   * formule directe. `setAdjustmentMessage` est positionné APRÈS
+   * `patchLocal` (qui l'efface systématiquement), l'ordre étant significatif.
+   */
+  function handleTotalDurationConfirmed(targetTotalSeconds: number) {
+    const adjusted = applyTargetTotalDuration(targetTotalSeconds, totalDurationFacts(local));
+    patchLocal({ seriesCount: adjusted.seriesCount });
+    closeOverlay();
+    if (adjusted.wasAdjusted) {
+      setAdjustmentMessage(
+        strings.screens.exercise.adjustedTotalDurationMessage.replace(
+          "{duration}",
+          formatCompactDuration(adjusted.totalDurationSeconds),
+        ),
+      );
+    }
+  }
+
   function handleTerminer() {
     // Verrou synchrone : positionné avant tout autre traitement, y compris
     // avant `updateDraft` — voir la note de tête sur l'idempotence à deux
@@ -257,10 +282,10 @@ export function ExerciseScreen() {
       return;
     }
     finishingRef.current = true;
-    // Complétion REWORK12 : remplace l'élément existant par `id` (parcours
-    // modification) ou ajoute `local` en fin de collection (parcours
-    // ajout) — jamais un remplacement complet de `draft.exercises`, pour
-    // ne jamais perdre les autres Activités déjà présentes.
+    // Remplace l'élément existant par `id` (parcours modification) ou ajoute
+    // `local` en fin de collection (parcours ajout) — jamais un remplacement
+    // complet de `draft.exercises`, pour ne jamais perdre les autres
+    // Activités déjà présentes.
     const alreadyPresent = draft.exercises.some((exercise) => exercise.id === local.id);
     const nextExercises = alreadyPresent
       ? draft.exercises.map((exercise) => (exercise.id === local.id ? local : exercise))
@@ -269,124 +294,65 @@ export function ExerciseScreen() {
     setIsFinishing(true);
   }
 
-  const step1Valid = isStep1Valid(local);
+  const activityValid = isActivityValid(local);
   const t = strings.screens.exercise;
 
-  const headerTitle = step === 1 ? (isEditingExisting ? t.titleEdit : t.titleAdd) : t.titleInformation;
-
-  /**
-   * **Correction compacte LOT_3_OF_3 — Retour de l'étape Zones corporelles.**
-   *
-   * L'étape 2 (`Informations complémentaires` : Consigne + Zones corporelles)
-   * est une étape INTERNE de cet écran, pas un écran distinct : elle n'a
-   * jamais sa propre entrée de pile de navigation (`setStep(2)`, un simple
-   * état local — voir `Valider`). Router `back()` depuis cette étape faisait
-   * donc quitter l'écran Activité ENTIER vers la Composition, ce que la garde
-   * de sortie interprétait correctement comme un abandon (brouillon local
-   * sale dès la première Zone cochée) : la modale d'abandon s'ouvrait alors
-   * qu'aucune sortie réelle n'était demandée, et confirmer perdait tout le
-   * travail de l'étape 1.
-   *
-   * Le Retour revient désormais D'ABORD à l'étape 1, sans navigation, donc
-   * sans interception par la garde et sans modale. La copie de travail locale
-   * (`local`) n'est jamais démontée entre les deux étapes : Consigne et Zones
-   * sélectionnées restent intactes dans le brouillon local et réapparaissent
-   * telles quelles si l'utilisateur revient dans l'étape.
-   *
-   * La modale d'abandon reste, elle, strictement inchangée pour une SORTIE
-   * RÉELLE de l'écran Activité vers la Composition avec un brouillon sale
-   * (Retour depuis l'étape 1, geste système) — c'est `useCompositionExitGuard`
-   * qui l'assure, et il n'est pas touché ici : seule la destination du bouton
-   * Retour à l'étape 2 change.
-   */
-  function handleBack() {
-    if (step === 2) {
-      setStep(1);
-      return;
-    }
-    router.back();
-  }
+  const recapFacts = {
+    name: local.name,
+    executionMode: local.executionMode,
+    durationSeconds: local.durationSeconds,
+    repetitionCount: local.repetitionCount,
+    seriesCount: local.seriesCount,
+    pauseSeconds: local.pauseSeconds,
+    recoverySeconds: local.recoverySeconds,
+  };
+  const totalDurationSeconds = computeTotalDurationSeconds(
+    local.seriesCount,
+    totalDurationFacts(local),
+  );
 
   return (
     <ScreenShell>
       <FixedHeader
-        title={headerTitle}
-        onBack={handleBack}
+        title={isEditingExisting ? t.titleEdit : t.titleAdd}
+        onBack={() => router.back()}
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
       <HeaderSeparator />
 
       {/*
-       * Zone bleue contextuelle (complétion REWORK12, D-105 ; T01-S10,
-       * doc13 §8 « Le bandeau commence par `Nom de l'activité`, sans
-       * contexte de Séance ») : accolée sans espace au séparateur de
-       * l'en-tête, fixe (frère du `ScrollView`, jamais son descendant),
-       * visible uniquement à l'étape 1 (absente de `1992:9292`, étape 2).
-       * Commence par le champ `Nom de l'activité` — plus aucun rappel du nom
-       * de la Séance (T01-S10). Le champ conserve sa géométrie/anatomie
-       * (`dimensions.exerciseTextField`, fond transparent, liseré blanc
-       * `colors.sessionNameBorder`).
-       *
-       * **Correction compacte LOT_3_OF_3** : le bandeau porte désormais un
-       * SECOND élément, `+ Ajouter un média` (désactivé), immédiatement sous
-       * le Nom — voir ci-dessous. L'ordre `Nom` puis `média` est structurel :
-       * le Nom reste le premier élément du bandeau.
+       * Zone bleue contextuelle (D-105 ; T01-S10, doc13 §8) : accolée sans
+       * espace au séparateur de l'en-tête, fixe (frère du `ScrollView`,
+       * jamais son descendant). Commence par le champ `Nom de l'activité`,
+       * suivi de `+ Ajouter un média` (visible mais désactivé, Médias V2
+       * hors périmètre). T02-S02 : elle n'est plus conditionnée par l'étape
+       * — l'écran n'en a plus qu'une — donc TOUJOURS visible.
        */}
-      {step === 1 ? (
-        <View style={styles.contextBand} testID="exercise-context-band">
-          <TextInput
-            value={local.name}
-            onChangeText={(text) => patchLocal({ name: text })}
-            onFocus={closeOverlay}
-            placeholder={t.name}
-            placeholderTextColor={colors.textSecondary}
-            accessibilityLabel={t.name}
-            maxLength={NAME_MAX_LENGTH}
-            style={styles.nameInput}
-            testID="exercise-name-input"
-          />
+      <View style={styles.contextBand} testID="exercise-context-band">
+        <TextInput
+          value={local.name}
+          onChangeText={(text) => patchLocal({ name: text })}
+          onFocus={closeOverlay}
+          placeholder={t.name}
+          placeholderTextColor={colors.textSecondary}
+          accessibilityLabel={t.name}
+          maxLength={NAME_MAX_LENGTH}
+          style={styles.nameInput}
+          testID="exercise-name-input"
+        />
 
-          {/*
-           * **Correction compacte LOT_3_OF_3 — `+ Ajouter un média` dans la
-           * zone bleue.** Le bouton était rendu dans le corps défilant, après
-           * le cadre `Paramètres de l'activité` ; il est DÉPLACÉ ici, dans le
-           * bandeau contextuel fixe, immédiatement sous le champ `Nom de
-           * l'activité` — qui reste le premier élément du bandeau. Il redonne
-           * au bandeau la substance qu'il avait perdue quand T01-S10 en a
-           * retiré la ligne `Séance · {nom}` (voir `contextBand` dans les
-           * styles pour la hauteur dérivée et la traçabilité du `115`
-           * documentaire).
-           *
-           * Le bouton reste VISIBLE mais DÉSACTIVÉ (`disabled`) : aucun
-           * `onPress`, aucune navigation, aucune section Médias, aucun import/
-           * galerie/lecture/stockage — Médias V2 reste hors périmètre. Seul
-           * son emplacement change ; son anatomie, son `testID` et son état
-           * désactivé sont repris à l'identique.
-           */}
-          <Pressable
-            disabled
-            accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
-            style={styles.addMediaButton}
-            testID="exercise-add-media"
-          >
-            {/*
-             * Correctif T02 post-test-utilisateur (2026-09-08, point 5) :
-             * le `+` n'est plus un caractère de texte concaténé au libellé
-             * (`t.addMedia` ne le porte plus, voir `fr.ts`) — il est
-             * remplacé par l'icône vectorielle canonique du Design System,
-             * `action-add` (`KodjoIcon`), déjà celle du bouton `Ajouter une
-             * activité` de `CompositionScreen.tsx` (même composant DSF,
-             * jamais un second registre d'icône « plus »). La règle MVP est
-             * inchangée : le bouton reste visible mais désactivé
-             * (`disabled`, aucun `onPress`).
-             */}
-            <KodjoIcon name="action-add" testID="exercise-add-media-icon" />
-            <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
-          </Pressable>
-        </View>
-      ) : null}
+        <Pressable
+          disabled
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
+          style={styles.addMediaButton}
+          testID="exercise-add-media"
+        >
+          <KodjoIcon name="action-add" testID="exercise-add-media-icon" />
+          <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
+        </Pressable>
+      </View>
 
       <ScrollView
         style={styles.body}
@@ -394,223 +360,227 @@ export function ExerciseScreen() {
         keyboardShouldPersistTaps="handled"
         testID="exercise-body"
       >
-        {step === 1 ? (
-          <>
-            {/*
-             * Type d'activité (CE-T01-13, élément structurel obligatoire
-             * même hors périmètre fonctionnel) : Récupération n'a ni écran
-             * ni parcours dans T01 (tout T01, confirmé) — visible mais
-             * désactivé, ne peut jamais ouvrir un écran partiel. `Exercice`
-             * reste verrouillé sélectionné. Titre visible (point 5,
-             * REWORK09) — un `accessibilityLabel` seul ne suffit plus.
-             */}
-            <View>
-              <Text style={styles.fieldTitle}>{t.type.label}</Text>
-              <View
-                style={styles.segmentedControl}
-                accessibilityRole="tablist"
-                accessibilityLabel={t.type.label}
-              >
-                <SegmentButton label={t.type.exercise} selected onPress={() => {}} />
-                <SegmentButton label={t.type.recovery} selected={false} disabled onPress={() => {}} />
-              </View>
-            </View>
+        {/*
+         * Section 1 — Description de l'activité (fermée par défaut).
+         * Remplace l'ancienne étape 2 : le champ multiligne est identique
+         * (mêmes `INSTRUCTION_MAX_LENGTH`, `multiline`, `accessibilityLabel`),
+         * seul son conteneur change.
+         */}
+        <CollapsibleSection
+          testID="exercise-section-description"
+          title={t.sections.description}
+          expanded={expandedSections.description}
+          onToggle={() => toggleSection("description")}
+        >
+          <TextInput
+            value={local.instruction ?? ""}
+            onChangeText={(text) => patchLocal({ instruction: text.length > 0 ? text : null })}
+            onFocus={closeOverlay}
+            placeholder={t.instruction.label}
+            placeholderTextColor={colors.textSecondary}
+            accessibilityLabel={t.instruction.label}
+            maxLength={INSTRUCTION_MAX_LENGTH}
+            multiline
+            style={styles.instructionInput}
+            testID="exercise-instruction-input"
+          />
+        </CollapsibleSection>
 
-            {/* Mode d'exécution — titre visible (point 5, REWORK09). */}
-            <View>
-              <Text style={styles.fieldTitle}>{t.executionMode.label}</Text>
-              <View
-                style={styles.segmentedControl}
-                accessibilityRole="tablist"
-                accessibilityLabel={t.executionMode.label}
-              >
-                <SegmentButton
-                  label={t.executionMode.duration}
-                  selected={local.executionMode === "DURATION"}
-                  onPress={() => handleExecutionModeChange("DURATION")}
-                />
-                <SegmentButton
-                  label={t.executionMode.repetitions}
-                  selected={local.executionMode === "REPETITIONS"}
-                  onPress={() => handleExecutionModeChange("REPETITIONS")}
-                />
-                <SegmentButton
-                  label={t.executionMode.toFailure}
-                  selected={local.executionMode === "TO_FAILURE"}
-                  onPress={() => handleExecutionModeChange("TO_FAILURE")}
-                />
-              </View>
-            </View>
+        {/* Section 2 — Zone corporelle d'exécution (fermée par défaut). */}
+        <CollapsibleSection
+          testID="exercise-section-body-zones"
+          title={t.sections.bodyZones}
+          expanded={expandedSections.bodyZones}
+          onToggle={() => toggleSection("bodyZones")}
+        >
+          <BodyZoneSelector
+            zones={BODY_ZONES}
+            selectedIds={local.bodyZoneIds}
+            onToggle={toggleBodyZone}
+            accessibilityLabel={t.bodyZones.accessibilityLabel}
+          />
+        </CollapsibleSection>
 
-            {/*
-             * Paramètres de l'activité — `Activity / Parameter Row —
-             * Source exact` : une seule rangée horizontale (remplace les
-             * trois anciennes lignes verticales), cadre récapitulatif en
-             * dessous.
-             *
-             * Ordre corrigé (correctif T02 post-test-utilisateur,
-             * 2026-09-08, point 4) : `Séries` PUIS le paramètre correspondant
-             * au mode (`Durée`/`Répétitions`/« À l'échec »), `Pause après
-             * Série` en dernier — l'ancien ordre plaçait le paramètre de
-             * mode en tête et `Séries` en dernier.
-             *
-             * Mode « À l'échec » (T01-S10, D-111 ; badge introduit par ce
-             * correctif) : aucun contrôle Durée/Répétitions cible n'est
-             * rendu — le même cadre affiche désormais le libellé statique
-             * `À l'échec` en violet (`ToFailureField`, non pressable, sans
-             * chevron), plutôt que de laisser cet emplacement vide comme
-             * avant ce correctif. Pause et Séries restent aux positions
-             * canoniques.
-             */}
-            <View>
-              <Text style={styles.fieldTitle}>{t.parametersTitle}</Text>
-              <View style={styles.parameterCard} testID="exercise-parameter-card">
-                <View style={styles.parameterRow} testID="exercise-parameter-row">
-                  <ParameterField
-                    testID="exercise-field-seriesCount"
-                    width={dimensions.exerciseParameterRow.narrowColumnWidth}
-                    label={t.seriesCount.compactLabel}
-                    accessibilityLabel={t.seriesCount.accessibilityLabel}
-                    value={String(local.seriesCount)}
-                    isOpen={openOverlay === "seriesCount"}
-                    onPress={() => toggleOverlay("seriesCount")}
-                  />
-                  {local.executionMode === "DURATION" ? (
-                    <ParameterField
-                      testID="exercise-field-duration"
-                      width={dimensions.exerciseParameterRow.wideColumnWidth}
-                      label={t.duration.label}
-                      accessibilityLabel={t.duration.accessibilityLabel}
-                      value={formatDurationRowValue(
-                        local.durationSeconds ?? 0,
-                        WHEEL_EXERCISE_DURATION_SECONDS_MAX,
-                      )}
-                      isOpen={openOverlay === "duration"}
-                      onPress={() => toggleOverlay("duration")}
-                    />
-                  ) : null}
-                  {local.executionMode === "REPETITIONS" ? (
-                    <ParameterField
-                      testID="exercise-field-repetitionCount"
-                      width={dimensions.exerciseParameterRow.wideColumnWidth}
-                      label={t.repetitionCount.compactLabel}
-                      accessibilityLabel={t.repetitionCount.accessibilityLabel}
-                      value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
-                      isOpen={openOverlay === "repetitionCount"}
-                      onPress={() => toggleOverlay("repetitionCount")}
-                    />
-                  ) : null}
-                  {local.executionMode === "TO_FAILURE" ? (
-                    <ToFailureField
-                      testID="exercise-field-toFailure"
-                      width={dimensions.exerciseParameterRow.wideColumnWidth}
-                      value={t.executionMode.toFailure}
-                    />
-                  ) : null}
-                  <ParameterField
-                    testID="exercise-field-pauseSeconds"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={t.pauseSeconds.compactLabel}
-                    accessibilityLabel={t.pauseSeconds.accessibilityLabel}
-                    value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
-                    isOpen={openOverlay === "pauseSeconds"}
-                    onPress={() => toggleOverlay("pauseSeconds")}
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/*
-             * Espace flexible (complétion REWORK12, vérifié directement sur
-             * `3261:4156`/`3261:4165`) : pousse le récapitulatif au bas du
-             * contenu défilant lorsque celui-ci tient dans la hauteur
-             * visible (`bodyContent.flexGrow: 1` ci-dessous rend ce
-             * comportement effectif) ; s'efface silencieusement (hauteur
-             * nulle) dès que le contenu dépasse la hauteur visible — le
-             * défilement normal reprend alors, jamais bloqué par ce
-             * spacer.
-             */}
-            <View style={styles.recapSpacer} />
-
-            {/*
-             * Cadre récapitulatif (point 8, REWORK09 ; reformulé REWORK12,
-             * ACT-08/09) : frère du groupe Paramètres, jamais son enfant
-             * (vérifié directement sur `3261:4156`/`3261:4157`) — largeur
-             * utile complète, contenu calculé (`formatExerciseRecap`,
-             * jamais une valeur Figma statique), croît verticalement avec
-             * le texte (aucune hauteur figée).
-             */}
-            <View style={styles.summaryCard} testID="exercise-summary-card">
-              <Text style={styles.summaryText}>{formatExerciseRecap(local)}</Text>
-            </View>
-          </>
-        ) : (
-          <>
-            <TextInput
-              value={local.instruction ?? ""}
-              onChangeText={(text) => patchLocal({ instruction: text.length > 0 ? text : null })}
-              placeholder={t.instruction.label}
-              placeholderTextColor={colors.textSecondary}
-              accessibilityLabel={t.instruction.label}
-              maxLength={INSTRUCTION_MAX_LENGTH}
-              multiline
-              style={styles.instructionInput}
+        {/* Section 3 — Mode d'exécution (DÉPLOYÉE par défaut). */}
+        <CollapsibleSection
+          testID="exercise-section-execution-mode"
+          title={t.sections.executionMode}
+          expanded={expandedSections.executionMode}
+          onToggle={() => toggleSection("executionMode")}
+        >
+          <View
+            style={styles.segmentedControl}
+            accessibilityRole="tablist"
+            accessibilityLabel={t.executionMode.label}
+          >
+            <SegmentButton
+              label={t.executionMode.duration}
+              selected={local.executionMode === "DURATION"}
+              onPress={() => handleExecutionModeChange("DURATION")}
             />
-
-            <Text style={styles.fieldTitle}>{t.bodyZones.label}</Text>
-            <BodyZoneSelector
-              zones={BODY_ZONES}
-              selectedIds={local.bodyZoneIds}
-              onToggle={toggleBodyZone}
-              accessibilityLabel={t.bodyZones.accessibilityLabel}
+            <SegmentButton
+              label={t.executionMode.repetitions}
+              selected={local.executionMode === "REPETITIONS"}
+              onPress={() => handleExecutionModeChange("REPETITIONS")}
             />
-          </>
-        )}
+            <SegmentButton
+              label={t.executionMode.toFailure}
+              selected={local.executionMode === "TO_FAILURE"}
+              onPress={() => handleExecutionModeChange("TO_FAILURE")}
+            />
+          </View>
+        </CollapsibleSection>
+
+        {/*
+         * Paramètres — `Activity / Parameter Row — Source exact`, désormais
+         * sur DEUX rangées (CE-T01-13/CE-T01-14) et sans titre
+         * `Paramètres de l'activité` (supprimé, D-137) :
+         * - rangée 1 : `Séries`, puis le paramètre du mode
+         *   (`Durée`/`Répétitions`/badge « À l'échec »), puis `Pause` ;
+         * - rangée 2 : `Récupération` (attachée, T02-S02), puis
+         *   `Durée totale` (dérivée et PILOTE, jamais persistée).
+         */}
+        <View style={styles.parameterCard} testID="exercise-parameter-card">
+          <View style={styles.parameterRow} testID="exercise-parameter-row">
+            <ParameterField
+              testID="exercise-field-seriesCount"
+              width={dimensions.exerciseParameterRow.narrowColumnWidth}
+              label={t.seriesCount.compactLabel}
+              accessibilityLabel={t.seriesCount.accessibilityLabel}
+              value={String(local.seriesCount)}
+              isOpen={openOverlay === "seriesCount"}
+              onPress={() => toggleOverlay("seriesCount")}
+            />
+            {local.executionMode === "DURATION" ? (
+              <ParameterField
+                testID="exercise-field-duration"
+                width={dimensions.exerciseParameterRow.wideColumnWidth}
+                label={t.duration.label}
+                accessibilityLabel={t.duration.accessibilityLabel}
+                value={formatDurationRowValue(
+                  local.durationSeconds ?? 0,
+                  WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+                )}
+                isOpen={openOverlay === "duration"}
+                onPress={() => toggleOverlay("duration")}
+              />
+            ) : null}
+            {local.executionMode === "REPETITIONS" ? (
+              <ParameterField
+                testID="exercise-field-repetitionCount"
+                width={dimensions.exerciseParameterRow.wideColumnWidth}
+                label={t.repetitionCount.compactLabel}
+                accessibilityLabel={t.repetitionCount.accessibilityLabel}
+                value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
+                isOpen={openOverlay === "repetitionCount"}
+                onPress={() => toggleOverlay("repetitionCount")}
+              />
+            ) : null}
+            {local.executionMode === "TO_FAILURE" ? (
+              <ToFailureField
+                testID="exercise-field-toFailure"
+                width={dimensions.exerciseParameterRow.wideColumnWidth}
+                value={t.executionMode.toFailure}
+              />
+            ) : null}
+            <ParameterField
+              testID="exercise-field-pauseSeconds"
+              width={dimensions.exerciseParameterRow.wideColumnWidth}
+              label={t.pauseSeconds.compactLabel}
+              accessibilityLabel={t.pauseSeconds.accessibilityLabel}
+              value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
+              isOpen={openOverlay === "pauseSeconds"}
+              onPress={() => toggleOverlay("pauseSeconds")}
+            />
+          </View>
+
+          <View style={styles.parameterRow} testID="exercise-parameter-row-secondary">
+            <ParameterField
+              testID="exercise-field-recoverySeconds"
+              width={dimensions.exerciseParameterRow.wideColumnWidth}
+              label={t.recoverySeconds.compactLabel}
+              accessibilityLabel={t.recoverySeconds.accessibilityLabel}
+              value={formatDurationRowValue(local.recoverySeconds, WHEEL_RECOVERY_SECONDS_MAX)}
+              isOpen={openOverlay === "recoverySeconds"}
+              onPress={() => toggleOverlay("recoverySeconds")}
+            />
+            <ParameterField
+              testID="exercise-field-totalDuration"
+              width={dimensions.exerciseParameterRow.wideColumnWidth}
+              label={t.totalDuration.compactLabel}
+              accessibilityLabel={t.totalDuration.accessibilityLabel}
+              // La durée CALCULÉE peut légitimement dépasser la borne de la
+              // roulette (jusqu'à 99 Séries de 99 min 59 s) : elle est
+              // AFFICHÉE intégralement, la borne ne s'appliquant qu'à la
+              // valeur saisissable — limite disclosée dans
+              // `wheelPickerMath.ts`.
+              value={formatDurationRowValue(
+                totalDurationSeconds,
+                Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
+              )}
+              isOpen={openOverlay === "totalDuration"}
+              onPress={() => toggleOverlay("totalDuration")}
+            />
+          </View>
+        </View>
+
+        {/*
+         * Message d'ajustement (RM-130) — rendu uniquement lorsque la Durée
+         * totale confirmée n'était pas atteignable exactement avec un nombre
+         * entier de Séries dans `[1, 99]`.
+         */}
+        {adjustmentMessage !== null ? (
+          <Text style={styles.adjustmentMessage} testID="exercise-adjustment-message">
+            {adjustmentMessage}
+          </Text>
+        ) : null}
+
+        {/*
+         * Espace flexible (`3261:4156`/`3261:4165`) : pousse la synthèse au
+         * bas du contenu défilant lorsque celui-ci tient dans la hauteur
+         * visible (`bodyContent.flexGrow: 1`) ; s'efface silencieusement dès
+         * que le contenu la dépasse — le défilement normal reprend alors.
+         */}
+        <View style={styles.recapSpacer} />
+
+        {/*
+         * Synthèse FIXE (jamais repliable, CE-T01-13) : phrase récapitulative
+         * calculée, puis ligne de durée `Durée totale : {D}` (mode Durée) ou
+         * `Durée minimale : ≥ {D}` (modes non chronométrés, RM-132).
+         */}
+        <View style={styles.summaryCard} testID="exercise-summary-card">
+          <Text style={styles.summaryText}>{formatExerciseRecap(recapFacts)}</Text>
+          <Text style={styles.summaryDurationText} testID="exercise-summary-duration">
+            {formatExerciseDurationLine(recapFacts)}
+          </Text>
+        </View>
       </ScrollView>
 
-      {step === 1 ? (
-        <Pressable
-          disabled={!step1Valid}
-          onPress={() => setStep(2)}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !step1Valid }}
-          accessibilityLabel={t.validateAction}
-          style={[
-            styles.primaryAction,
-            { marginBottom: insets.bottom + spacing[16] },
-            !step1Valid ? styles.primaryActionDisabled : null,
-          ]}
-        >
-          <Text style={styles.primaryActionLabel}>{t.validateAction}</Text>
-        </Pressable>
-      ) : (
-        <Pressable
-          disabled={!step1Valid}
-          onPress={handleTerminer}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !step1Valid }}
-          accessibilityLabel={t.finishAction}
-          style={[
-            styles.primaryAction,
-            { marginBottom: insets.bottom + spacing[16] },
-            !step1Valid ? styles.primaryActionDisabled : null,
-          ]}
-        >
-          <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
-        </Pressable>
-      )}
+      {/*
+       * Action finale unique (D-137) : `Terminer`. L'ancien `Valider`, qui
+       * ne faisait que passer à l'étape 2, n'a plus d'objet — l'écran unifié
+       * n'a plus d'étape intermédiaire.
+       */}
+      <Pressable
+        disabled={!activityValid}
+        onPress={handleTerminer}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !activityValid }}
+        accessibilityLabel={t.finishAction}
+        style={[
+          styles.primaryAction,
+          { marginBottom: insets.bottom + spacing[16] },
+          !activityValid ? styles.primaryActionDisabled : null,
+        ]}
+      >
+        <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
+      </Pressable>
 
       {/*
-       * T01-S09, correction VISUAL (point D) : les quatre sélecteurs de la
-       * rangée compacte partagent désormais un unique `WheelPickerOverlay`
-       * — superposition plein écran, frère direct de `ScreenShell`, jamais
-       * un descendant du `ScrollView` ni ancrée au cadre de Paramètres. Un
-       * seul peut être ouvert à la fois (`OverlayKind`), donc un seul bloc
-       * conditionnel suffit à l'intérieur. Son voile de fond n'est pas
-       * pressable — seules Annuler/Confirmer (dans le composant roulette
-       * lui-même) ferment désormais le sélecteur, remplaçant l'ancien
-       * `exercise-backdrop` dismissible au toucher (REWORK09/CMP-01/D-03,
-       * mécanisme retiré de cet écran par cette correction).
+       * Superposition plein écran TRANSVERSALE partagée par les six
+       * sélecteurs (T01-S09, correction VISUAL point D) — frère direct de
+       * `ScreenShell`, jamais un descendant du `ScrollView`. Un seul
+       * sélecteur peut être ouvert à la fois (`OverlayKind`).
        */}
       <WheelPickerOverlay visible={openOverlay !== null}>
         {openOverlay === "duration" ? (
@@ -671,6 +641,33 @@ export function ExerciseScreen() {
             testID="exercise-series-count-wheel"
           />
         ) : null}
+        {openOverlay === "recoverySeconds" ? (
+          <DurationWheelPicker
+            totalSeconds={local.recoverySeconds}
+            onValidate={(totalSeconds) => {
+              patchLocal({ recoverySeconds: totalSeconds });
+              closeOverlay();
+            }}
+            onCancel={closeOverlay}
+            maxTotalSeconds={WHEEL_RECOVERY_SECONDS_MAX}
+            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+          />
+        ) : null}
+        {openOverlay === "totalDuration" ? (
+          <DurationWheelPicker
+            totalSeconds={Math.min(totalDurationSeconds, WHEEL_TOTAL_DURATION_SECONDS_MAX)}
+            onValidate={handleTotalDurationConfirmed}
+            onCancel={closeOverlay}
+            maxTotalSeconds={WHEEL_TOTAL_DURATION_SECONDS_MAX}
+            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
+            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
+            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
+          />
+        ) : null}
       </WheelPickerOverlay>
 
       {isPendingExit ? (
@@ -681,14 +678,77 @@ export function ExerciseScreen() {
 }
 
 /**
+ * Section repliable de l'écran Activité (CE-T01-13/CE-T01-15) : en-tête
+ * pressable (titre + chevron DSF) au-dessus d'un contenu rendu uniquement
+ * lorsqu'il est déployé.
+ *
+ * **Nom accessible composé — verrou d'unicité.** L'en-tête ne porte JAMAIS
+ * le titre nu : `sections.description` vaut exactement `instruction.label`,
+ * et le champ multiligne qu'elle contient porte déjà ce libellé, qui est le
+ * sien. Deux nœuds nommés à l'identique rendraient toute requête
+ * d'accessibilité ambiguë. L'en-tête compose donc
+ * `« Déployer la section {titre} »` / `« Replier la section {titre} »` —
+ * l'action ET sa cible, ce qui est aussi plus informatif pour un lecteur
+ * d'écran que le titre seul. Le `DisclosureControl` imbriqué est rendu
+ * `decorative` (aucun rôle, aucun état, aucun libellé propre) mais conserve
+ * son `onPress` : il reste tapable, sans dupliquer une troisième fois le nom
+ * de l'en-tête qui le contient.
+ *
+ * Le chevron reste le contrôle canonique `Controls / Disclosure — Source
+ * exact` (`DisclosureControl`), jamais une copie graphique locale.
+ */
+function CollapsibleSection({
+  testID,
+  title,
+  expanded,
+  onToggle,
+  children,
+}: {
+  testID: string;
+  title: string;
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  const sections = strings.screens.exercise.sections;
+  const headerAccessibilityLabel = `${expanded ? sections.collapseAction : sections.expandAction} ${title}`;
+
+  return (
+    <View testID={testID}>
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={headerAccessibilityLabel}
+        style={styles.sectionHeader}
+        testID={`${testID}-header`}
+      >
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <DisclosureControl
+          expanded={expanded}
+          onPress={onToggle}
+          decorative
+          testID={`${testID}-disclosure`}
+        />
+      </Pressable>
+      {expanded ? (
+        <View style={styles.sectionContent} testID={`${testID}-content`}>
+          {children}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/**
  * `Activity / Parameter Row — Source exact` — une colonne (`Champ —
- * Durée`/`Pause`/`Séries`/`Répétitions`) : libellé court au-dessus
- * (`type.parameterColumnLabel`), contrôle `Forms / Select Field — Source
- * exact` en dessous (fond blanc, liseré `colors.exerciseParameterControlBorder`,
- * rayon `10`, hauteur `42`) — valeur alignée à gauche, carré chevron
- * `28×28` (`colors.tourSurface`, `#CDCEFA`, rayon `6`) aligné à droite,
- * chevron blanc `14×14` (`select-field-chevron`, point 7 REWORK09 —
- * jamais un chevron sombre isolé).
+ * Durée`/`Pause`/`Séries`/`Répétitions`/`Récupération`/`Durée totale`) :
+ * libellé court au-dessus (`type.parameterColumnLabel`), contrôle `Forms /
+ * Select Field — Source exact` en dessous (fond blanc, liseré
+ * `colors.exerciseParameterControlBorder`, rayon `10`, hauteur `42`) —
+ * valeur alignée à gauche, carré chevron `28×28` (`colors.tourSurface`,
+ * `#CDCEFA`, rayon `6`) aligné à droite, chevron blanc `14×14`
+ * (`select-field-chevron`).
  */
 function ParameterField({
   testID,
@@ -736,11 +796,6 @@ function ParameterField({
  * 4) — occupe exactement l'emplacement du contrôle `Durée`/`Répétitions`
  * dans `Activity / Parameter Row`, mais sans chevron ni action : ce mode ne
  * porte aucune cible chiffrée à ouvrir (D-111), rien n'y est sélectionnable.
- * Réutilise le cadre `parameterControl` (fond blanc, liseré, rayon, hauteur
- * identiques aux autres colonnes) pour rester visuellement dans le même
- * cadre que les autres paramètres ; seul le texte, centré, passe en violet
- * (`colors.selection`, seul token « violet » déjà canonique du Design
- * System — aucune valeur non documentée n'est introduite).
  */
 function ToFailureField({
   testID,
@@ -770,13 +825,7 @@ function ToFailureField({
 /**
  * `Controls / Segmented` (`2586:2759`), traduction canonique vérifiée
  * directement sur les nœuds Figma actuels (`1992:9150`) — REWORK09,
- * point 4. Remplace l'ancien composant local qui affichait la sélection
- * sur fond blanc (`colors.background`) dans un conteneur `colors.surface` :
- * conteneur blanc bordé (`colors.border`), option sélectionnée
- * `colors.selection` (`#5F60EE`) avec texte blanc, option non
- * sélectionnée transparente avec texte `colors.textSecondary`, libellés
- * centrés (`justifyContent`/`alignItems: "center"`), états accessibles
- * (`accessibilityRole="tab"`, `accessibilityState`) conservés.
+ * point 4.
  */
 function SegmentButton({
   label,
@@ -824,11 +873,6 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  // Complétion REWORK12 : `flexGrow: 1` rend effectif `recapSpacer`
-  // ci-dessous (pousse le récapitulatif au bas du contenu lorsque celui-ci
-  // tient dans la hauteur visible), sans jamais empêcher le défilement
-  // normal si le contenu la dépasse — voir la note de tête de
-  // `recapSpacer`.
   bodyContent: {
     flexGrow: 1,
     paddingHorizontal: spacing[24],
@@ -836,27 +880,30 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[16],
     gap: spacing[24],
   },
-  // REWORK09, point 3 : `Forms / Text Field — Source exact` (`2537:1075`)
-  // — fond blanc, liseré dédié (distinct de `colors.border`), rayon `8`,
-  // hauteur `46`. Plus aucun style local gris hérité de l'ancien écran
-  // (`colors.surface`, rayon `12`).
-  fieldTitle: {
+  // T02-S02 : en-tête de section repliable — titre à gauche, chevron DSF à
+  // droite, hauteur de cible tactile portée par `DisclosureControl`
+  // lui-même (`minTouchTarget`), aucune hauteur locale improvisée.
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  // Même typographie que l'ancien `fieldTitle` des titres de champ
+  // (`type.sectionTitle`), sans sa marge basse : l'espacement vertical est
+  // désormais assuré par `sectionContent` lorsque la section est déployée,
+  // et doit être NUL lorsqu'elle est repliée.
+  sectionTitle: {
     ...type.sectionTitle,
     color: colors.textPrimary,
-    marginBottom: spacing[8],
   },
-  // Complétion REWORK12 (D-105, `3261:4151`) : « Zone bleue — Contexte
-  // séance et nom de l'activité » — fixe, sous l'en-tête, accolée sans
-  // espace au séparateur (`marginTop`/`padding` de l'en-tête déjà nuls,
-  // aucun ajustement local nécessaire). Hauteur DSF fixe de 115 pt
-  // (voir `dimensions.contextBand`, partagé avec Catalogue et Composition).
-  //
-  // **Correction compacte LOT_3_OF_3 — contenu restauré.**
-  // Le bandeau contient de nouveau DEUX éléments : `Nom de l'activité` en
-  // premier, puis `+ Ajouter un média` (désactivé) immédiatement sous lui.
-  // Le champ et le bouton sont distribués dans les 115 pt par
-  // `justifyContent: "space-between"` : aucun `gap` local non documenté n'est
-  // inventé. Les paddings, le fond et la position du Shell restent inchangés.
+  sectionContent: {
+    marginTop: spacing[12],
+  },
+  // D-105 (`3261:4151`) : « Zone bleue — Contexte séance et nom de
+  // l'activité » — fixe, sous l'en-tête, accolée sans espace au séparateur.
+  // Hauteur DSF fixe de 115 pt (`dimensions.contextBand`, partagé avec
+  // Catalogue et Composition) ; `Nom de l'activité` puis `+ Ajouter un
+  // média` distribués par `justifyContent: "space-between"`.
   contextBand: {
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
@@ -865,22 +912,9 @@ const styles = StyleSheet.create({
     paddingBottom: dimensions.contextBand.paddingBottom,
     justifyContent: "space-between",
   },
-  // Complétion REWORK12 : même géométrie que la précédente implémentation
-  // (`dimensions.exerciseTextField`, `46/8/14`, inchangée — REWORK09) mais
-  // fond transparent et liseré blanc intérieur (`colors.sessionNameBorder`,
-  // même token que `Nom de la séance` dans Composition), posée sur la zone
-  // bleue plutôt qu'un fond blanc opaque.
-  //
-  // REWORK13 (R13-01, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
-  // typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04 ;
-  // `.github/orchestration/reports/2026-09-04_activity-name-typography-
-  // tour-summary-scope.md`) : valeur portée de `type.modalTitle` (`18/22`
-  // Semi Bold, REWORK12-bis) à `type.screenTitle` (`20/24` Semi Bold) —
-  // identique au style de `Nom de la séance` dans Composition, vérifié
-  // directement sur `1992:9132` (référence Figma explicitement citée par
-  // l'autorisation). Géométrie du champ (46/8/14), fond transparent, liseré
-  // blanc, bandeau contextuel et `Séance · {nom}` en `14/17` : strictement
-  // préservés, aucune autre propriété modifiée.
+  // REWORK13 (R13-01) : `type.screenTitle` (`20/24` Semi Bold), géométrie
+  // `dimensions.exerciseTextField` (46/8/14), fond transparent, liseré blanc
+  // `colors.sessionNameBorder` — strictement préservés.
   nameInput: {
     ...type.screenTitle,
     color: colors.textPrimary,
@@ -902,8 +936,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   // REWORK09, point 4 : conteneur `354×42`, fond blanc, liseré
-  // `colors.border` (identique à la source Figma, `#e0e3e8`), padding `4`,
-  // écart entre segments `14`, rayon externe `12`.
+  // `colors.border`, padding `4`, écart entre segments `14`, rayon `12`.
   segmentedControl: {
     flexDirection: "row",
     width: "100%",
@@ -915,11 +948,6 @@ const styles = StyleSheet.create({
     padding: dimensions.segmentedControl.padding,
     gap: dimensions.segmentedControl.gap,
   },
-  // `flex: 1` distribue une largeur EXACTEMENT ÉGALE à chaque segment du
-  // conteneur (deux pour `Type d'activité`, trois pour `Mode d'exécution`
-  // depuis T01-S10 : `Durée / Répétitions / À l'échec`) — dérivé par
-  // construction plutôt qu'une largeur codée en dur, mêmes proportions que
-  // la source Figma.
   segment: {
     flex: 1,
     height: dimensions.segmentedControl.segmentHeight,
@@ -945,15 +973,16 @@ const styles = StyleSheet.create({
   },
   // REWORK09, point 6/7 : `Activity / Parameter Row — Source exact` —
   // cadre compact englobant (`354` large, padding `8`, rayon `16`, fond
-  // `colors.exerciseParameterCardBackground`).
+  // `colors.exerciseParameterCardBackground`). T02-S02 : `gap` ajouté pour
+  // séparer les DEUX rangées, même valeur que l'écart de colonnes déjà
+  // canonique (`columnGap`) — aucune valeur nouvelle introduite.
   parameterCard: {
     width: dimensions.exerciseParameterRow.cardWidth,
     padding: dimensions.exerciseParameterRow.cardPadding,
     borderRadius: dimensions.exerciseParameterRow.cardRadius,
     backgroundColor: colors.exerciseParameterCardBackground,
+    gap: dimensions.exerciseParameterRow.columnGap,
   },
-  // Rangée utile `338×66` — une seule rangée horizontale, remplace les
-  // trois anciennes lignes verticales.
   parameterRow: {
     flexDirection: "row",
     width: dimensions.exerciseParameterRow.rowWidth,
@@ -982,10 +1011,6 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.exerciseParameterValueText,
   },
-  // `ToFailureField` (correctif T02, 2026-09-08) : même cadre que
-  // `parameterControl`, sans chevron — le texte occupe donc seul la
-  // largeur utile et reste centré plutôt qu'aligné à gauche contre un
-  // chevron absent.
   parameterControlStatic: {
     justifyContent: "center",
   },
@@ -993,10 +1018,6 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.selection,
   },
-  // Carré canonique `28×28`, fond DSF `#CDCEFA` (`colors.tourSurface`,
-  // valeur identique déjà réutilisée pour la structure Tour de
-  // `CompositionScreen.tsx` — même token, pas de doublon), rayon `6`
-  // (point 7, REWORK09) — jamais un chevron sombre isolé sans cadre.
   parameterChevronBox: {
     width: dimensions.exerciseParameterRow.chevronBox,
     height: dimensions.exerciseParameterRow.chevronBox,
@@ -1005,35 +1026,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Complétion REWORK12 : `flex: 1` — pousse `summaryCard` au bas du
-  // contenu défilant lorsque celui-ci tient dans la hauteur visible
-  // (rendu effectif par `bodyContent.flexGrow: 1`) ; s'efface (hauteur
-  // nulle) dès que le contenu dépasse la hauteur visible, laissant le
-  // défilement normal reprendre — jamais un blocage. Vérifié directement
-  // sur `3261:4156`/`3261:4165` (« Espace flexible — pousse la synthèse en
-  // bas »).
+  // T02-S02 (RM-130) : message d'ajustement de la Durée totale — texte
+  // simple sous le cadre de paramètres, teinté `colors.selection` (seul
+  // token « violet » canonique du Design System), jamais un bandeau
+  // d'erreur : l'ajustement est un comportement normal, pas un défaut.
+  adjustmentMessage: {
+    ...type.body,
+    color: colors.selection,
+  },
   recapSpacer: {
     flex: 1,
   },
   // T01-S10 (doc13 §8) : `+ Ajouter un média` — bouton centré, désactivé
-  // (Médias V2 hors périmètre). Anatomie du bouton secondaire compact DSF
-  // (`dimensions.compactSecondaryButton`, `colors.primary` en liseré),
-  // texte atténué pour signaler l'indisponibilité.
-  //
-  // Correction compacte LOT_3_OF_3 : ce bouton est désormais rendu DANS la
-  // zone bleue, immédiatement sous le champ `Nom de l'activité` (auparavant
-  // dans le corps défilant, après le cadre Paramètres). Aucune propriété de
-  // ce style n'est modifiée — le fond blanc explicite reste nécessaire, la
-  // zone bleue étant teintée, exactement comme `addActivityAction` sur la
-  // bande Context de `CompositionScreen.tsx`.
+  // (Médias V2 hors périmètre), rendu dans la zone bleue sous le Nom.
   addMediaButton: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    // Correctif T02 (2026-09-08, point 5) : écart icône/texte, même valeur
-    // que `addActivityAction` (`CompositionScreen.tsx`) pour le même
-    // patron « icône + libellé » de bouton secondaire compact.
     gap: spacing[6],
     height: dimensions.compactSecondaryButton.visualHeight,
     borderRadius: dimensions.compactSecondaryButton.radius,
@@ -1047,24 +1057,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   // Point 8 (REWORK09) : largeur utile complète, liseré `colors.tourSurface`
-  // (même valeur que la source Figma, `#CDCEFA`, déjà réutilisée pour le
-  // carré des chevrons ci-dessus — pas de nouveau token dupliqué), rayon
-  // `12`, marges internes horizontales `12`/verticales `8`. Aucune hauteur
-  // figée : le cadre grandit avec le texte (`formatExerciseRecap`, jamais
-  // une valeur Figma statique). `marginTop` retiré (complétion REWORK12) :
-  // `summaryCard` est désormais un frère du groupe Paramètres séparé par
-  // `recapSpacer`/le `gap` uniforme de `bodyContent`, plus un enfant
-  // directement accolé nécessitant sa propre marge locale.
+  // (`#CDCEFA`), rayon `12`, marges internes `12`/`8`. Aucune hauteur figée :
+  // le cadre grandit avec le texte. T02-S02 : il porte désormais DEUX lignes
+  // (phrase récapitulative + ligne de durée), séparées par le même écart que
+  // les marges verticales du cadre.
   summaryCard: {
     borderWidth: 1,
     borderColor: colors.tourSurface,
     borderRadius: dimensions.exerciseSummaryCard.radius,
     paddingHorizontal: dimensions.exerciseSummaryCard.paddingHorizontal,
     paddingVertical: dimensions.exerciseSummaryCard.paddingVertical,
+    gap: dimensions.exerciseSummaryCard.paddingVertical,
   },
   summaryText: {
     ...type.body,
     color: colors.exerciseParameterValueText,
+  },
+  summaryDurationText: {
+    ...type.label,
+    color: colors.textPrimary,
   },
   primaryAction: {
     marginHorizontal: spacing[24],

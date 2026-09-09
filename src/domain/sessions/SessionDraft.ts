@@ -40,6 +40,7 @@ import {
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
+  DEFAULT_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
@@ -87,8 +88,14 @@ export type SessionDraftExercise = {
   readonly repetitionCount: number | null;
   /** Toujours entier ≥ 1 (RM-035), borné à 99 en interface (D-092). */
   readonly seriesCount: number;
-  /** Pause après Série, en secondes (RM-037). */
+  /** Pause après Série, en secondes (RM-037) — exécutée `max(Séries − 1, 0)` fois (T02-S02, RM-129). */
   readonly pauseSeconds: number;
+  /**
+   * T02-S02 : Récupération ATTACHÉE, en secondes — exécutée une seule fois
+   * après toutes les Séries. `0` = aucune (valeur neutre, jamais `null`).
+   * Disponible dans les trois modes d'exécution.
+   */
+  readonly recoverySeconds: number;
   readonly instruction: string | null;
   /** Identifiants stables du référentiel `bodyZones.ts` (T01-S08, D-093) — sélection multiple, ordre indifférent. */
   readonly bodyZoneIds: readonly string[];
@@ -200,6 +207,7 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
     repetitionCount: null,
     seriesCount: DEFAULT_SERIES_COUNT,
     pauseSeconds: DEFAULT_PAUSE_SECONDS,
+    recoverySeconds: DEFAULT_RECOVERY_SECONDS,
     instruction: null,
     bodyZoneIds: [],
   };
@@ -269,6 +277,7 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     repetitionCount: activity.repetitionCount,
     seriesCount: activity.seriesCount ?? DEFAULT_SERIES_COUNT,
     pauseSeconds: activity.pauseSeconds,
+    recoverySeconds: activity.recoverySeconds,
     instruction: activity.instruction,
     bodyZoneIds: activity.bodyZoneIds,
   };
@@ -310,6 +319,7 @@ export function exerciseEquals(
     a.repetitionCount === b.repetitionCount &&
     a.seriesCount === b.seriesCount &&
     a.pauseSeconds === b.pauseSeconds &&
+    a.recoverySeconds === b.recoverySeconds &&
     a.instruction === b.instruction &&
     bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds)
   );
@@ -420,6 +430,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       repetitionCount: null,
       seriesCount: null,
       pauseSeconds: 0,
+      recoverySeconds: 0,
       instruction: exercise.instruction,
       bodyZoneIds: [] as readonly string[],
     };
@@ -431,6 +442,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     repetitionCount: exercise.repetitionCount,
     seriesCount: exercise.seriesCount,
     pauseSeconds: exercise.pauseSeconds,
+    recoverySeconds: exercise.recoverySeconds,
     instruction: exercise.instruction,
     bodyZoneIds: exercise.bodyZoneIds,
   };

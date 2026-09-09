@@ -29,13 +29,29 @@
  *    explicitement « sur toute formulation contradictoire », les exclut. La
  *    contradiction documentaire est consignée dans le rapport de mission.)
  *
- * La formule par Activité reste exactement celle déjà établie par
- * `formatCompositionSummary` (`compositionPresentation.ts`) — mode Durée,
- * `seriesCount × durationSeconds + seriesCount × pauseSeconds` ; modes
- * Répétitions et « À l'échec », aucune durée conventionnelle pour l'Exercice
- * lui-même mais ses pauses restent comptées, et la durée totale devient une
- * borne minimale `≥` (RM-072/D-112) — jamais présentée comme exacte. Une
- * Récupération contribue sa seule durée (D-041).
+ * **T02-S02 — formule canonique unique** (RM-129, DM-015, `04 – Modèle
+ * fonctionnel.md`, `08` §« Durée totale calculée », CE-T01-13) :
+ *
+ * ```text
+ * D = C × A + (C − 1) × B + R
+ * ```
+ *
+ * avec `A` la durée d'une Série, `B` la Pause, `C` le nombre de Séries et `R`
+ * la Récupération ATTACHÉE. Deux corrections par rapport à T02-S01 :
+ *
+ * 1. la Pause est développée `max(C − 1, 0)` fois — **jamais `C`** : « Une
+ *    Pause ne s'exécute qu'entre deux Séries, jamais après la dernière »
+ *    (RM-129/CE-T02-01). L'ancienne formule (`C × B`) comptait une Pause
+ *    finale inexistante ;
+ * 2. la Récupération attachée `R` est ajoutée **une seule fois**, après
+ *    toutes les Séries, et ne compte jamais comme une Activité
+ *    supplémentaire (`computeActivityCount` inchangé).
+ *
+ * En modes Répétitions et « À l'échec », aucune durée conventionnelle n'est
+ * attribuée à l'Exercice lui-même (`A` est inconnu) : seules les parts
+ * DÉTERMINABLES — les Pauses entre Séries et la Récupération — sont comptées,
+ * et le total est une BORNE MINIMALE `≥` (RM-072/RM-132/D-112), jamais une
+ * valeur exacte.
  */
 
 import type { Activity, ActivityType, ExerciseExecutionMode, Session } from "./Session";
@@ -60,13 +76,36 @@ export type ActivityDurationFacts = {
   readonly durationSeconds: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  /** T02-S02 : Récupération ATTACHÉE, exécutée une seule fois après toutes les Séries (`0` = aucune). */
+  readonly recoverySeconds: number;
 };
 
-/** Durée estimée d'UNE Activité, hors répétitions du Tour (voir la note de tête). */
+/**
+ * Nombre de Pauses réellement exécutées pour `seriesCount` Séries :
+ * `max(C − 1, 0)`.
+ *
+ * Une Pause s'exécute UNIQUEMENT ENTRE deux Séries — une Série unique n'en
+ * produit donc aucune, et la dernière Série n'est jamais suivie d'une Pause
+ * (RM-129, CE-T02-01 « La Pause est développée `C − 1` fois »). Extraite en
+ * fonction nommée pour que cette règle soit prouvable en un point unique
+ * plutôt que réécrite à chaque appelant.
+ */
+export function computePauseOccurrences(seriesCount: number | null): number {
+  return Math.max((seriesCount ?? 0) - 1, 0);
+}
+
+/**
+ * Durée estimée d'UNE Activité, hors répétitions du Tour — la formule
+ * canonique `D = C × A + (C − 1) × B + R` (voir la note de tête).
+ *
+ * En modes Répétitions et « À l'échec », le terme `C × A` est omis (aucune
+ * durée conventionnelle n'est inventée) ; les Pauses et la Récupération
+ * restent comptées et le résultat est une borne MINIMALE.
+ */
 export function computeActivityDurationSeconds(activity: ActivityDurationFacts): number {
-  // Une Récupération (D-041) est toujours chronométrée : elle contribue sa
-  // seule durée, jamais multipliée par des Séries, jamais suivie d'une pause
-  // après Série.
+  // Chemin défensif : ancienne Activité `RECOVERY` autonome (D-041), que
+  // `migration004` a convertie et supprimée — plus jamais produite par le
+  // Domaine, conservée ici pour ne pas mal calculer une donnée inattendue.
   if (activity.type === "RECOVERY") {
     return activity.durationSeconds ?? 0;
   }
@@ -74,7 +113,114 @@ export function computeActivityDurationSeconds(activity: ActivityDurationFacts):
   const targetSeconds = isLowerBoundExecutionMode(activity.executionMode)
     ? 0
     : seriesCount * (activity.durationSeconds ?? 0);
-  return targetSeconds + seriesCount * activity.pauseSeconds;
+  return (
+    targetSeconds +
+    computePauseOccurrences(seriesCount) * activity.pauseSeconds +
+    activity.recoverySeconds
+  );
+}
+
+/**
+ * Entrée de la dépendance bidirectionnelle `Séries ↔ Durée totale`
+ * (`06` §« Dépendance Séries / Durée totale », RM-130, API-ACT-02) — mode
+ * Durée UNIQUEMENT : `A` (durée d'une Série), `B` (Pause), `R`
+ * (Récupération attachée).
+ */
+export type TotalDurationFacts = {
+  /** `A` — durée d'une Série, en secondes. */
+  readonly durationSeconds: number;
+  /** `B` — Pause entre Séries, en secondes. */
+  readonly pauseSeconds: number;
+  /** `R` — Récupération attachée, en secondes. */
+  readonly recoverySeconds: number;
+};
+
+/** Bornes canoniques du nombre de Séries (D-092) — partagées par le calcul inverse. */
+export const SERIES_COUNT_MIN = 1;
+export const SERIES_COUNT_MAX = 99;
+
+/**
+ * `D = C × A + (C − 1) × B + R` — Durée totale d'une occurrence d'Activité en
+ * mode Durée (RM-129). Sens DIRECT : `Séries` pilote, `Durée totale` est
+ * dérivée.
+ */
+export function computeTotalDurationSeconds(
+  seriesCount: number,
+  facts: TotalDurationFacts,
+): number {
+  return (
+    seriesCount * facts.durationSeconds +
+    computePauseOccurrences(seriesCount) * facts.pauseSeconds +
+    facts.recoverySeconds
+  );
+}
+
+/**
+ * `Cth = (D − R + B) / (A + B)` — calcul INVERSE (RM-130, API-ACT-02) :
+ * `Durée totale` pilote, `Séries` est dérivé.
+ *
+ * Arrondi à l'entier le PLUS PROCHE, `.5` VERS LE HAUT, puis borné à
+ * `[1, 99]` (D-092). `Math.floor(x + 0.5)` — jamais `Math.round`, dont le
+ * comportement sur les valeurs négatives arrondit `.5` vers zéro (donc vers
+ * le bas) ; la borne basse rend ce cas inatteignable ici, mais la règle
+ * documentaire est « `.5` vers le haut » sans condition de signe et doit être
+ * exprimée telle quelle.
+ *
+ * `A + B === 0` est impossible depuis l'interface (la durée d'une Série est
+ * bornée `1..5999`, `validation.ts`) ; le garde retourne néanmoins le minimum
+ * plutôt que `NaN`/`Infinity`.
+ */
+export function computeSeriesCountForTotalDuration(
+  targetTotalSeconds: number,
+  facts: TotalDurationFacts,
+): number {
+  const denominator = facts.durationSeconds + facts.pauseSeconds;
+  if (denominator <= 0) {
+    return SERIES_COUNT_MIN;
+  }
+  const theoretical =
+    (targetTotalSeconds - facts.recoverySeconds + facts.pauseSeconds) / denominator;
+  const rounded = Math.floor(theoretical + 0.5);
+  if (rounded < SERIES_COUNT_MIN) {
+    return SERIES_COUNT_MIN;
+  }
+  if (rounded > SERIES_COUNT_MAX) {
+    return SERIES_COUNT_MAX;
+  }
+  return rounded;
+}
+
+/**
+ * Résultat complet d'une confirmation de `Durée totale` cible : le nombre de
+ * Séries canonique retenu, la durée RÉELLEMENT ATTEIGNABLE recalculée depuis
+ * ce nombre entier, et le fait que la cible ait dû être ajustée.
+ *
+ * `wasAdjusted` pilote le message temporaire `Durée ajustée à {D} pour
+ * respecter un nombre entier de Séries.` (`06`, CE-T01-13) — il n'est jamais
+ * déduit d'une comparaison de chaînes formatées côté présentation.
+ */
+export type AdjustedTotalDuration = {
+  readonly seriesCount: number;
+  readonly totalDurationSeconds: number;
+  readonly wasAdjusted: boolean;
+};
+
+/**
+ * Applique une `Durée totale` cible confirmée (RM-130) : calcul inverse,
+ * bornage, puis RECALCUL de la durée atteignable. Seul `seriesCount` est
+ * persistable — `totalDurationSeconds` reste dérivé (DM-015/DM-016).
+ */
+export function applyTargetTotalDuration(
+  targetTotalSeconds: number,
+  facts: TotalDurationFacts,
+): AdjustedTotalDuration {
+  const seriesCount = computeSeriesCountForTotalDuration(targetTotalSeconds, facts);
+  const totalDurationSeconds = computeTotalDurationSeconds(seriesCount, facts);
+  return {
+    seriesCount,
+    totalDurationSeconds,
+    wasAdjusted: totalDurationSeconds !== targetTotalSeconds,
+  };
 }
 
 /**
@@ -140,10 +286,26 @@ export function computeTotalActivitiesToExecute(facts: ActivityCountFacts): numb
   );
 }
 
-function zoneDurationSeconds(activities: readonly Activity[]): {
-  seconds: number;
-  isLowerBoundEstimate: boolean;
-} {
+/** Durée cumulée d'une COLLECTION d'Activités, et caractère « borne minimale » du total. */
+export type ZoneDurationFacts = {
+  readonly seconds: number;
+  readonly isLowerBoundEstimate: boolean;
+};
+
+/**
+ * Somme des durées d'Activité d'une zone (ou de toute autre collection), et
+ * indicateur de borne minimale.
+ *
+ * **T02-S02** : exportée et généralisée à `ActivityDurationFacts` (au lieu de
+ * `Activity` seul) pour que la présentation — notamment la durée d'UNE
+ * occurrence du Tour, calculée depuis le BROUILLON
+ * (`SessionDraftExercise`) — partage exactement cette implémentation plutôt
+ * que d'en réécrire une boucle équivalente
+ * (`compositionPresentation.ts`, parité domaine/présentation testée).
+ */
+export function computeZoneDurationFacts(
+  activities: readonly ActivityDurationFacts[],
+): ZoneDurationFacts {
   let seconds = 0;
   let isLowerBoundEstimate = false;
   for (const activity of activities) {
@@ -153,6 +315,10 @@ function zoneDurationSeconds(activities: readonly Activity[]): {
     seconds += computeActivityDurationSeconds(activity);
   }
   return { seconds, isLowerBoundEstimate };
+}
+
+function zoneDurationSeconds(activities: readonly Activity[]): ZoneDurationFacts {
+  return computeZoneDurationFacts(activities);
 }
 
 export function toEstimatedDurationFacts(session: Session): EstimatedDurationFacts {

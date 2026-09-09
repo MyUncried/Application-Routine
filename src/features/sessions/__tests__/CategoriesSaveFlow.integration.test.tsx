@@ -97,7 +97,11 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     fireEvent.changeText(screen.getByLabelText(composition.name), "Circuit complet");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
+    // T02-S02 (D-137) : plus d'étape `Valider` — la Zone corporelle est
+    // atteinte en déployant sa section, sur le même écran. L'en-tête est
+    // ciblé par son `testID` : son titre n'est délibérément pas un nom
+    // accessible unique (il est aussi celui du sélecteur qu'il contient).
+    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
     fireEvent.press(screen.getByLabelText("Dos"));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -107,7 +111,6 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     fireEvent.press(
       screen.getByLabelText(exercise.executionMode.repetitions),
     );
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Continuer → Catégories.
@@ -168,7 +171,6 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance qui échoue");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
     fireEvent.press(screen.getByLabelText(composition.continueAction));
 

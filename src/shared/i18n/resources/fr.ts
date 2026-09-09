@@ -190,11 +190,6 @@ export const fr = {
       // `08 – Conception fonctionnelle détaillée.md` (« Titre de l'écran »).
       titleAdd: "Ajouter une activité",
       titleEdit: "Modifier une activité",
-      // Étape 2 (CE-T01-15, `1992:9292`) : titre fonctionnel propre à cette
-      // étape, distinct de `titleAdd`/`titleEdit` — jamais de distinction
-      // création/modification à cette étape (vérifié directement, aucune
-      // frame Figma dédiée à une variante « modification » de cette étape).
-      titleInformation: "Informations complémentaires",
       backAccessibilityLabel: "Retour",
       // Complétion REWORK12 (D-105) : « Zone bleue — Contexte séance et nom
       // de l'activité » (`3261:4151`/`3261:4160`) — `prefix` compose
@@ -207,10 +202,29 @@ export const fr = {
       context: {
         prefix: "Séance",
       },
-      type: {
-        label: "Type d’activité",
-        exercise: "Exercice",
-        recovery: "Récupération",
+      // T02-S02 (D-137, CE-T01-13) : `type` (segment `Exercice / Récupération`)
+      // et `parametersTitle` (« Paramètres de l'activité ») sont SUPPRIMÉS —
+      // « L'écran Activité unique supprime le type et le titre `Paramètres de
+      // l'activité` ». Clés retirées plutôt que laissées mortes, comme
+      // `modePrefix` en son temps.
+      //
+      // Sections repliables de l'écran unifié (CE-T01-13/CE-T01-15) : la
+      // Description et la Zone corporelle sont fermées par défaut, le Mode
+      // d'exécution est déployé par défaut. Les trois titres partagent la
+      // même typographie et le chevron DSF de déploiement.
+      //
+      // `expandAction`/`collapseAction` composent le NOM ACCESSIBLE de
+      // l'en-tête de section (« Déployer la section {titre} ») — jamais le
+      // titre seul : `sections.description` vaut exactement
+      // `instruction.label`, et deux nœuds portant ce même nom rendraient
+      // toute requête d'accessibilité ambiguë (le champ multiligne porte
+      // déjà ce libellé, qui est le sien).
+      sections: {
+        description: "Description de l’activité",
+        bodyZones: "Zone corporelle d’exécution",
+        executionMode: "Mode d’exécution",
+        expandAction: "Déployer la section",
+        collapseAction: "Replier la section",
       },
       // REWORK09, point 2/3 : « Nom » → « Nom de l'activité » (`Forms /
       // Text Field — Source exact`, libellé visible ET accessibilityLabel
@@ -238,7 +252,6 @@ export const fr = {
         // d'Exercice, de même largeur — masque Durée et Répétitions cibles.
         toFailure: "À l’échec",
       },
-      parametersTitle: "Paramètres de l’activité",
       duration: {
         // Déjà conforme au libellé compact Figma (« Durée ») — aucun
         // changement de valeur nécessaire.
@@ -278,6 +291,20 @@ export const fr = {
         // REWORK09, point 6.
         compactLabel: "Séries",
       },
+      // T02-S02 (CE-T01-13/CE-T01-14) : seconde rangée de paramètres,
+      // `Récupération` à gauche puis `Durée totale` à droite. Les deux
+      // héritent du contrat de roulette minutes/secondes (`Type=Duration`) —
+      // aucun écran supplémentaire n'est requis.
+      recoverySeconds: {
+        label: "Récupération après les Séries",
+        accessibilityLabel: "Récupération après les Séries",
+        compactLabel: "Récupération",
+      },
+      totalDuration: {
+        label: "Durée totale de l’activité",
+        accessibilityLabel: "Durée totale de l’activité",
+        compactLabel: "Durée totale",
+      },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
         secondsAccessibilityLabel: "Secondes",
@@ -299,16 +326,37 @@ export const fr = {
       // les séries ») est scindé : `pauseLabel` (« de pause ») s'applique
       // toujours dès qu'une pause existe, `pauseSuffix` (« entre les
       // séries ») uniquement lorsque `seriesCount > 1`.
+      //
+      // T02-S02 : la synthèse fixe reprend la Récupération attachée
+      // (« …, puis 20 s de récupération ») puis la ligne de durée
+      // (`Durée totale` / `Durée minimale` selon que la formule soit exacte
+      // ou une borne inférieure — modes `Répétitions`/`À l'échec`, RM-072).
       recap: {
         pauseLabel: "de pause",
         pauseSuffix: "entre les séries",
+        recoveryPrefix: "puis",
+        recoveryLabel: "de récupération",
+        totalDurationLabel: "Durée totale",
+        minimumDurationLabel: "Durée minimale",
       },
+      // T02-S02 : la Durée totale saisie n'est jamais persistée (DM-015/DM-016) ;
+      // elle PILOTE le nombre de Séries via le calcul inverse
+      // `Cth = (D − R + B) / (A + B)`. Un arrondi ou un bornage `[1, 99]`
+      // rend la durée effective différente de la cible : le message ci-dessous
+      // l'annonce explicitement plutôt que de corriger silencieusement.
+      adjustedTotalDurationMessage:
+        "Durée ajustée à {duration} pour respecter un nombre entier de Séries.",
+      // T02-S02 (CE-T01-13) : le champ multiligne de la section repliable
+      // « Description de l'activité » — même chaîne que `sections.description`,
+      // qui est le titre de la section qui le contient. Le nom accessible de
+      // l'en-tête, lui, est composé avec `sections.expandAction`/
+      // `collapseAction`, ce qui laisse ce libellé UNIQUE pour le champ.
       instruction: {
-        label: "Consigne",
+        label: "Description de l’activité",
       },
       bodyZones: {
-        label: "Zones corporelles",
-        accessibilityLabel: "Zones corporelles",
+        label: "Zone corporelle d’exécution",
+        accessibilityLabel: "Zone corporelle d’exécution",
       },
       // T01-S10 (doc13 §8, frame `1992:9132`) : bouton centré, VISIBLE mais
       // DÉSACTIVÉ dans le MVP — aucune section Médias, aucun import/galerie/
@@ -318,7 +366,9 @@ export const fr = {
       // (`ExerciseScreen.tsx`), jamais comme caractère de texte concaténé.
       addMedia: "Ajouter un média",
       addMediaUnavailableAccessibilityLabel: "Ajouter un média — indisponible",
-      validateAction: "Valider",
+      // T02-S02 (D-137) : l'écran unifié n'a plus d'étape intermédiaire à
+      // valider — `validateAction` (« Valider ») n'a plus de consommateur et
+      // est supprimé ; seul `finishAction` (« Terminer ») clôt l'écran.
       finishAction: "Terminer",
       exitConfirmModal: {
         title: "Abandonner les modifications ?",

@@ -18,12 +18,24 @@ export const DEFAULT_SESSION_COLOR = "#3B82F6" as const;
 export type SessionColor = (typeof SESSION_COLORS)[number];
 
 /**
- * Type d'une Activité (T01-S10, D-061/DM-001) : un Exercice (avec un mode
- * d'exécution, des Séries, éventuellement des Zones corporelles) ou une
- * Récupération (toujours chronométrée, sans mode d'Exercice, sans Séries,
- * sans Zones — D-041). Le schéma SQLite (`migration001.ts`) portait déjà
- * `type IN ('EXERCISE', 'RECOVERY')` ; seul le modèle Domaine restait figé
- * à `EXERCISE`.
+ * Type d'une Activité.
+ *
+ * **T02-S02 — la Récupération n'est plus un type d'Activité.** Elle devient
+ * une DURÉE FACULTATIVE ATTACHÉE à une Activité (`Activity.recoverySeconds`,
+ * `09 – Modèle de données fonctionnel.md`, `12 – Architecture technique.md`
+ * §« Le schéma d'Activité … ne porte aucun type Exercice/Récupération ») :
+ * plus aucun sélecteur fonctionnel Exercice/Récupération n'existe et AUCUNE
+ * nouvelle Activité `RECOVERY` ne peut être créée (`validation.ts` la refuse
+ * explicitement, code `MUST_BE_ABSENT` sur `activity.type`).
+ *
+ * La valeur `"RECOVERY"` est CONSERVÉE dans l'union pour une seule raison :
+ * la colonne SQL `activities.type` porte encore son `CHECK (type IN
+ * ('EXERCISE','RECOVERY'))`, hérité de `migration001` — un fichier immuable
+ * (« Conservation des acquis »). `migration004` convertit les anciennes
+ * lignes `RECOVERY` en `recovery_seconds` sur l'Activité qui les précède
+ * puis les supprime : après migration, aucune ligne `RECOVERY` ne subsiste.
+ * Le chemin de LECTURE reste néanmoins défensif (assemblage, calculs) plutôt
+ * que de lever sur une donnée ancienne inattendue.
  */
 export type ActivityType = "EXERCISE" | "RECOVERY";
 
@@ -78,6 +90,16 @@ export type Activity = {
   /** `null` uniquement pour une Récupération (T01-S10) ; entier ≥ 1 sinon. */
   seriesCount: number | null;
   pauseSeconds: number;
+  /**
+   * **T02-S02 — Récupération ATTACHÉE** (RM-129/DM-015, `06` §« Dépendance
+   * Séries / Durée totale ») : durée facultative, en secondes, exécutée UNE
+   * SEULE FOIS APRÈS TOUTES les Séries de cette Activité. `0` = aucune
+   * Récupération (valeur neutre par défaut, jamais `null`).
+   *
+   * Elle contribue à la durée de l'Activité mais ne compte JAMAIS comme une
+   * Activité supplémentaire (`computeActivityCount` reste inchangé).
+   */
+  recoverySeconds: number;
   instruction: string | null;
   /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent ; toujours vide pour une Récupération. */
   bodyZoneIds: readonly string[];
@@ -185,6 +207,8 @@ export type CreateSessionActivityInput = {
   /** `null` uniquement pour une Récupération (D-041) ; entier `1..99` sinon. */
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  /** T02-S02 : Récupération attachée, `0..5999` s — `0` = aucune (voir `Activity.recoverySeconds`). */
+  readonly recoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
 };
@@ -255,6 +279,8 @@ export type UpdateSessionActivityInput = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  /** T02-S02 : Récupération attachée, `0..5999` s — `0` = aucune (voir `Activity.recoverySeconds`). */
+  readonly recoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
 };

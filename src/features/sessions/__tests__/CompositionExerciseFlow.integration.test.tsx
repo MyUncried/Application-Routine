@@ -11,8 +11,8 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import { strings } from "@/shared/i18n";
 
 /**
- * Intégration bout-en-bout du parcours Activité en deux étapes (UI-ACT-001,
- * cycle de correction après contre-recette iPhone, 2026-09-03).
+ * Intégration bout-en-bout du parcours Activité (UI-ACT-001, cycle de
+ * correction après contre-recette iPhone, 2026-09-03).
  *
  * Contrairement à `CompositionScreen.test.tsx`/`ExerciseScreen.test.tsx`
  * (chacun mocke `SessionDraftContext` séparément, aucun brouillon
@@ -20,15 +20,21 @@ import { strings } from "@/shared/i18n";
  * routes (`app/(creation)/_layout|composition|exercise.tsx`) : le
  * `SessionDraftProvider` réel est monté une seule fois par le layout, et
  * les deux écrans (`CompositionScreen`, `ExerciseScreen`) sont les vrais
- * composants — c'est le seul niveau qui prouve réellement les 7 résultats
- * attendus : `Valider` ouvre Informations complémentaires ; `Terminer`
- * enregistre atomiquement l'Activité ; elle s'insère entre Compte à rebours
- * et Tour ; le retour ramène sur Composition ; le résumé `N activité(s) ·
- * durée` est recalculé ; un double-appui sur `Terminer` ne crée pas de
- * doublon ; le bouton `Continuer` reste désactivé tant que le Nom de la
- * séance est vide, et s'active/navigue réellement vers `/categories` une
- * fois la Composition complète (T01-S09, résolution de l'ARBITRAGE
- * précédemment documenté par l'audit).
+ * composants — c'est le seul niveau qui prouve réellement les résultats
+ * attendus : `Terminer` enregistre atomiquement l'Activité ; elle s'insère
+ * entre Compte à rebours et Tour ; le retour ramène sur Composition ; le
+ * résumé `N activité(s) · durée` est recalculé ; un double-appui sur
+ * `Terminer` ne crée pas de doublon ; le bouton `Continuer` reste désactivé
+ * tant que le Nom de la séance est vide, et s'active/navigue réellement vers
+ * `/categories` une fois la Composition complète (T01-S09, résolution de
+ * l'ARBITRAGE précédemment documenté par l'audit).
+ *
+ * **T02-S02 (D-137)** : l'écran Activité est UNIFIÉ — l'étape intermédiaire
+ * `Valider` → « Informations complémentaires » n'existe plus. Les scénarios
+ * ci-dessous passent donc directement de la saisie à `Terminer` ; la
+ * Description et la Zone corporelle sont atteintes en DÉPLOYANT leur section
+ * (par `testID` d'en-tête — leur titre n'est volontairement pas un nom
+ * accessible unique, voir `ExerciseScreen.tsx`).
  */
 
 jest.mock("expo-haptics", () => ({
@@ -97,24 +103,33 @@ function renderCreationRouter() {
   );
 }
 
-describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001)", () => {
-  it("1. Valider (étape 1 valide) ouvre Informations complémentaires (étape 2), sans encore rien enregistrer sur Composition", () => {
+describe("Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001)", () => {
+  it("1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que le Nom est valide (T02-S02, D-137)", () => {
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     expect(screen.getByLabelText(exercise.backAccessibilityLabel)).toBeTruthy();
 
+    expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
-    expect(screen.getByLabelText(exercise.validateAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
 
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
+    // La Description est atteinte en déployant SA section, sans quitter
+    // l'écran ni franchir d'étape — et l'unicité de son libellé accessible
+    // est alors garantie (un seul nœud nommé « Description de l'activité »).
+    expect(screen.queryByLabelText(exercise.instruction.label)).toBeNull();
+    fireEvent.press(screen.getByTestId("exercise-section-description-header"));
+    expect(screen.getAllByLabelText(exercise.instruction.label)).toHaveLength(1);
 
-    // Étape 2 : le corps affiche désormais la Consigne/les Zones, plus le
-    // segment Type/Mode d'exécution de l'étape 1.
-    expect(screen.getByLabelText(exercise.instruction.label)).toBeTruthy();
-    expect(screen.getByLabelText(exercise.finishAction)).toBeTruthy();
+    // La Récupération attachée et la Durée totale dérivée sont visibles
+    // immédiatement, dans la même rangée de paramètres.
+    expect(screen.getByLabelText(exercise.recoverySeconds.accessibilityLabel)).toBeTruthy();
+    expect(screen.getByLabelText(exercise.totalDuration.accessibilityLabel)).toBeTruthy();
   });
 
   it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", () => {
@@ -122,7 +137,6 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // 4. Retour effectif sur Composition — l'écran Exercice est démonté.
@@ -166,7 +180,6 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
 
     act(() => {
       fireEvent.press(screen.getByLabelText(exercise.finishAction));
@@ -184,7 +197,6 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject(
@@ -198,7 +210,6 @@ describe("Parcours Composition → Activité (deux étapes), vrai navigateur, vr
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
-    fireEvent.press(screen.getByLabelText(exercise.validateAction));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     const continueAction = screen.getByLabelText(composition.continueAction);

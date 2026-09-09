@@ -28,8 +28,11 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
           executionMode: "DURATION",
           durationSeconds: 30,
           repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
+          seriesCount: 3,
+          pauseSeconds: 15,
+          // T02-S02 : la Récupération attachée traverse le contrôle natif —
+          // colonne `recovery_seconds` ajoutée par `migration004`.
+          recoverySeconds: 20,
           instruction: null,
           bodyZoneIds: [],
         },
@@ -42,6 +45,19 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
 
     if (!reopened || listed.length !== 1 || listed[0].id !== created.id) {
       throw new Error("Native SQLite integration check failed.");
+    }
+
+    // T02-S02 : aller-retour réel de `recovery_seconds` et parité de la durée
+    // agrégée par SQL avec la formule du Domaine
+    // `D = C × A + (C − 1) × B + R` = 3 × 30 + 2 × 15 + 20 = 140 s. Un
+    // contrôle natif qui ne relirait que l'identifiant ne prouverait ni la
+    // nouvelle colonne, ni la suppression de la Pause finale.
+    const roundTripped = reopened.cycle.tour.exercises[0]!;
+    if (roundTripped.recoverySeconds !== 20 || roundTripped.pauseSeconds !== 15) {
+      throw new Error("Attached recovery was not persisted natively.");
+    }
+    if (listed[0].estimatedDurationSeconds !== 140) {
+      throw new Error("Native SQL duration does not match the domain formula.");
     }
 
     if (![created.id, created.cycle.id, created.cycle.tour.id, created.cycle.tour.exercises[0]!.id].every(

@@ -98,3 +98,43 @@ describe("DisclosureControl — comportements transverses", () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * **T02-S02 — option `decorative`.** Le contrôle est parfois imbriqué DANS un
+ * élément déjà pressable et déjà nommé (l'en-tête de section repliable de
+ * `ExerciseScreen`). Deux nœuds accessibles superposés dupliqueraient le nom
+ * de l'en-tête et rendraient toute requête d'accessibilité ambiguë.
+ * `decorative` retire le nœud de l'arbre d'accessibilité tout en CONSERVANT
+ * le geste.
+ */
+describe("DisclosureControl — option decorative (T02-S02)", () => {
+  it("removes itself from the accessibility tree: no role, no state, no name", () => {
+    render(<DisclosureControl expanded={false} decorative testID="control" />);
+
+    expect(screen.queryByLabelText("Déployer")).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
+
+    // Le rendu visuel, lui, est strictement identique.
+    expect(screen.getByTestId("control-frame")).toBeTruthy();
+    expect(screen.getByTestId("control-chevron")).toBeTruthy();
+  });
+
+  it("keeps the press gesture wired even while decorative", () => {
+    const onPress = jest.fn();
+    render(
+      <DisclosureControl expanded={false} decorative onPress={onPress} testID="control" />,
+    );
+
+    fireEvent.press(screen.getByTestId("control-frame"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the default (non-decorative) behaviour strictly unchanged for existing consumers", () => {
+    render(<DisclosureControl expanded accessibilityLabel="Replier" testID="control" />);
+
+    const pressable = screen.getByLabelText("Replier");
+    expect(pressable.props.accessibilityRole).toBe("button");
+    expect(pressable.props.accessible).not.toBe(false);
+    expect(pressable.props.accessibilityState).toMatchObject({ disabled: false, expanded: true });
+  });
+});
