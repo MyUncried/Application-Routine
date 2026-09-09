@@ -9,6 +9,11 @@ on:
         type: choice
         options:
           - EVIDENCE_WRITER_SMOKE
+  push:
+    branches:
+      - chore/kodjo-v2-pilot
+    paths:
+      - .github/workflows/kodjo-v2-transition.yml
 
 permissions:
   contents: read
@@ -22,7 +27,7 @@ defaults:
 
 jobs:
   evidence_writer:
-    if: inputs.command == 'EVIDENCE_WRITER_SMOKE'
+    if: github.event_name == 'push' || inputs.command == 'EVIDENCE_WRITER_SMOKE'
     runs-on: ubuntu-latest
     permissions:
       contents: write
