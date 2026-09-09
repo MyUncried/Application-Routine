@@ -1,6 +1,6 @@
-name: KODJO V2 implementation artifact
+name: KODJO V2 implementation artifact — reference 0.6.8
 
-# Pilote technique borne de conservation et de reprise — KODJO V2 0.6.8
+# Reference normative alignee sur le workflow executable — KODJO V2 0.6.8
 #
 # Cloture MAJ-03 : ce job reste en contents: read et n'ecrit AUCUNE preuve. Il
 # produit une EvidenceDepositRequest decrivant ce que le writer de preuves dedie

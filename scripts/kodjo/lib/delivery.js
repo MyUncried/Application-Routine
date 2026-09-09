@@ -18,7 +18,7 @@ const { sha256Bytes, sha256File, sha256String, sha256SumLine } = require('./hash
 const { writeJson, readJson, readJsonIfExists } = require('./json');
 const { extract: extractTar } = require('./tar');
 
-const SCHEMA_VERSION = 'kodjo.protocol.v2.delivery.0.6.3';
+const SCHEMA_VERSION = 'kodjo.protocol.v2.delivery.0.6.8';
 const PATCH_NAME = 'implementation.patch';
 
 /**
@@ -66,14 +66,53 @@ function treePaths(repoDir, head) {
 }
 
 /**
- * Stage the full authorized delta into an isolated index and emit the binary patch.
+ * Orchestration directories that never belong to a functional delta.
+ *
+ * BLK-01 (revue independante 0.6.4): the workflow creates its delivery
+ * directory and its artifact download directories INSIDE the checked-out
+ * repository, so `git add -A -- :/` used to sweep adapter.json, the git-state
+ * files and any downloaded source artifact into implementation.patch. The scope
+ * check then failed on every real run and IMPLEMENTED_AND_VERIFIED became
+ * unreachable. These paths are now excluded from the staged delta.
  */
-function buildPatch(repoDir, sourceHead, outDir) {
+const DEFAULT_PATCH_EXCLUDES = ['source-recovery', 'source-result'];
+
+/** Normalise a path to a repo-relative posix path, or null when outside. */
+function repoRelative(repoDir, candidate) {
+  const rel = path.relative(path.resolve(repoDir), path.resolve(candidate));
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return rel.split(path.sep).join('/');
+}
+
+/**
+ * Build the exclusion list: the delivery directory when it sits inside the
+ * repository, the fixed orchestration directories, and anything declared in
+ * KODJO_PATCH_EXCLUDE by the workflow.
+ */
+function patchExcludes(repoDir, outDir, env) {
+  const e = env || process.env;
+  const out = new Set();
+  const delivery = repoRelative(repoDir, outDir);
+  if (delivery) out.add(delivery);
+  for (const name of DEFAULT_PATCH_EXCLUDES) out.add(name);
+  for (const raw of String(e.KODJO_PATCH_EXCLUDE || '').split(/[\n,]/)) {
+    const v = raw.trim().replace(/^\.\//, '').replace(/\/+$/, '');
+    if (v) out.add(v);
+  }
+  return [...out].sort();
+}
+
+/**
+ * Stage the full authorized delta into an isolated index and emit the binary patch.
+ * `excludes` are repo-relative pathspecs kept out of the delta.
+ */
+function buildPatch(repoDir, sourceHead, outDir, excludes) {
   const indexFile = path.join(tmpDir('kodjo-index-'), 'index');
   const env = { GIT_INDEX_FILE: indexFile };
+  const pathspecs = ([':/']).concat((excludes || []).map((p) => ':(exclude)' + p));
 
   gitOrThrow(['read-tree', sourceHead], { cwd: repoDir, env });
-  gitOrThrow(['add', '-A', '--', ':/'], { cwd: repoDir, env });
+  gitOrThrow(['add', '-A', '--'].concat(pathspecs), { cwd: repoDir, env });
 
   const patchPath = path.join(outDir, PATCH_NAME);
   const diffArgs = [
@@ -85,14 +124,15 @@ function buildPatch(repoDir, sourceHead, outDir) {
     '--no-textconv',
     '--no-ext-diff',
     sourceHead,
-  ];
+    '--',
+  ].concat(pathspecs);
   const res = gitToFile(diffArgs, patchPath, { cwd: repoDir, env });
   if (res.status !== 0) {
     throw new Error('PATCH_BUILD_FAILED: git diff exited ' + res.status + ': ' + res.stderr.trim());
   }
 
   const nameStatus = gitOrThrow(
-    ['diff', '--cached', '--name-status', '-z', '--no-renames', sourceHead],
+    ['diff', '--cached', '--name-status', '-z', '--no-renames', sourceHead, '--'].concat(pathspecs),
     { cwd: repoDir, env, encoding: null }
   );
   const tokens = splitZ(nameStatus.stdout);
@@ -100,7 +140,7 @@ function buildPatch(repoDir, sourceHead, outDir) {
   for (let i = 0; i + 1 < tokens.length; i += 2) {
     entries.push({ status: tokens[i], path: tokens[i + 1] });
   }
-  return { patchPath, indexFile, entries };
+  return { patchPath, indexFile, entries, excludes: excludes || [] };
 }
 
 function describeFiles(repoDir, sourceHead, entries) {
@@ -173,8 +213,20 @@ function buildDelivery({ repoDir, outDir, meta, reportPath, carriedChecksDir }) 
   fs.mkdirSync(recovery, { recursive: true });
   fs.mkdirSync(checksDir(outDir), { recursive: true });
 
-  const built = buildPatch(repoDir, head, recovery);
+  const excludes = patchExcludes(repoDir, outDir, meta.env || process.env);
+  const built = buildPatch(repoDir, head, recovery, excludes);
   const files = describeFiles(repoDir, head, built.entries);
+
+  // Hard guard: even if a pathspec were mis-computed, an orchestration path in
+  // the delta is a configuration defect, never a functional change.
+  const leaked = files
+    .map((f) => f.path)
+    .filter((p) => excludes.some((x) => p === x || p.startsWith(x + '/')));
+  if (leaked.length > 0) {
+    throw new Error(
+      'DELIVERY_DIR_IN_DELTA: orchestration paths leaked into the preserved delta: ' + leaked.join(', ')
+    );
+  }
 
   const patchPath = built.patchPath;
   const patchBytes = fs.statSync(patchPath).size;
@@ -185,6 +237,7 @@ function buildDelivery({ repoDir, outDir, meta, reportPath, carriedChecksDir }) 
     schema_version: SCHEMA_VERSION,
     source_head: head,
     rename_detection: false,
+    excluded_pathspecs: excludes,
     files: files,
   };
   const modifiedFilesText = writeJson(path.join(recovery, 'modified-files.json'), modifiedFiles);
@@ -213,7 +266,7 @@ function buildDelivery({ repoDir, outDir, meta, reportPath, carriedChecksDir }) 
   const untracked = files.filter((f) => !f.tracked).length;
   const manifest = {
     schema_version: SCHEMA_VERSION,
-    protocol_version: '0.6.3',
+    protocol_version: '0.6.8',
     slice_id: meta.slice_id,
     operation_id: meta.operation_id,
     attempt_id: meta.attempt_id,
@@ -238,6 +291,7 @@ function buildDelivery({ repoDir, outDir, meta, reportPath, carriedChecksDir }) 
     changed_file_count: files.length,
     untracked_file_count: untracked,
     modified_files_sha256: sha256String(modifiedFilesText),
+    excluded_pathspecs: excludes,
     report: {
       path: 'development-report.md',
       sha256: sha256File(reportOut),
@@ -408,6 +462,8 @@ module.exports = {
   receiptDir,
   buildDelivery,
   verifyDelivery,
+  patchExcludes,
+  DEFAULT_PATCH_EXCLUDES,
   cleanSpaceAt,
   resolveCommit,
   gitStateSummary,

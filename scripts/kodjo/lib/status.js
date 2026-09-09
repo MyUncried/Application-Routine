@@ -36,6 +36,9 @@ const RECOVERY = {
  * @param {object} input
  * @param {boolean} input.hasChanges          at least one file differs from source_head
  * @param {boolean} input.patchValidated      git apply --check passed on a clean space
+ * @param {boolean} [input.recoveryUploaded]   the recovery artifact was durably
+ *        uploaded. Absent means "not observed" and is treated as true for
+ *        backward compatibility; the workflow always passes an explicit value.
  * @param {string|null} input.agentStatus     status declared by the agent adapter
  * @param {Array<object>} input.checks        check result objects
  * @param {Array<string>} input.requiredChecks
@@ -54,6 +57,19 @@ function computeStatus(input) {
   }
 
   const preserved = Boolean(input.hasChanges) && Boolean(input.patchValidated);
+  const uploaded = input.recoveryUploaded === undefined ? true : Boolean(input.recoveryUploaded);
+
+  // MAJ-01: a patch that exists only in the ephemeral workspace is NOT
+  // recoverable. Announcing IMPLEMENTED_WITH_FAILED_CHECKS and prescribing a
+  // TARGETED_FIX would point at an artifact that does not exist. Per §5.2-A,
+  // a failed preservation is IMPLEMENTATION_FAILED.
+  if (preserved && !uploaded) {
+    reasons.push(
+      'RECOVERY_NOT_DURABLE: the delta was preserved and validated but its recovery artifact ' +
+        'was not durably uploaded. No TARGETED_FIX source exists.'
+    );
+    return { status: STATUSES.FAILED, failed_checks: failed, not_run_checks: notRun, reasons };
+  }
 
   if (!preserved) {
     if (!input.hasChanges && input.agentStatus === STATUSES.CLARIFICATION) {

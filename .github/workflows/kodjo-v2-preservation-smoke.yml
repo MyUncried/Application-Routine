@@ -1,8 +1,9 @@
 name: KODJO V2 preservation smoke
 
 # Temporary real-run smoke test. It creates only an untracked fixture on the
-# ephemeral runner, uploads its recovery artifact before a deliberate failure,
-# then restores and verifies it in a separate clean job.
+# ephemeral runner, writes all protocol material under RUNNER_TEMP, uploads its
+# recovery artifact before a deliberate failure, then downloads it under the
+# second job's RUNNER_TEMP and restores it in a separate clean checkout.
 
 on:
   push:
@@ -10,6 +11,9 @@ on:
       - chore/kodjo-v2-pilot
     paths:
       - .github/workflows/kodjo-v2-preservation-smoke.yml
+
+env:
+  KODJO_WORKFLOW_KIND: SMOKE
 
 permissions:
   contents: read
@@ -49,6 +53,18 @@ jobs:
           mkdir -p .kodjo-smoke
           printf '%s\n' 'KODJO_V2_PRESERVATION_SMOKE_v1' > .kodjo-smoke/created.txt
 
+      - name: Resolve and validate orchestration paths outside the checkout
+        run: |
+          {
+            echo "KODJO_DELIVERY_DIR=${RUNNER_TEMP}/kodjo/delivery"
+            echo "KODJO_SOURCE_RECOVERY_DIR=${RUNNER_TEMP}/kodjo/source-recovery"
+            echo "KODJO_SOURCE_RESULT_DIR=${RUNNER_TEMP}/kodjo/source-result"
+          } >> "$GITHUB_ENV"
+          mkdir -p "${RUNNER_TEMP}/kodjo"
+
+      - name: Reject invalid orchestration paths before preservation
+        run: node scripts/kodjo/validate-orchestration-paths.js
+
       - name: Preserve fixture before checks
         env:
           KODJO_MODE: IMPLEMENT
@@ -57,17 +73,17 @@ jobs:
           KODJO_SOURCE_RUN_ID: ${{ github.run_id }}
           KODJO_SESSION_ID: smoke-${{ github.run_id }}-${{ github.run_attempt }}
           KODJO_AGENT_STATUS: COMPLETED
-        run: node scripts/kodjo/preserve-implementation.js delivery
+        run: node scripts/kodjo/preserve-implementation.js "${KODJO_DELIVERY_DIR}"
 
       - name: Validate recovery package before upload
-        run: node scripts/kodjo/verify-delivery.js delivery
+        run: node scripts/kodjo/verify-delivery.js "${KODJO_DELIVERY_DIR}"
 
       - name: Upload recovery artifact before the failing check
         id: upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.names.outputs.recovery_artifact }}
-          path: delivery/recovery/
+          path: ${{ runner.temp }}/kodjo/delivery/recovery/
           if-no-files-found: error
           retention-days: 7
 
@@ -99,10 +115,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.preserve_before_failure.outputs.artifact_name }}
-          path: downloaded-recovery
+          path: ${{ runner.temp }}/kodjo/downloaded-recovery
 
       - name: Restore patch without any AI call
-        run: node scripts/kodjo/restore-source-artifact.js downloaded-recovery .
+        run: node scripts/kodjo/restore-source-artifact.js "${RUNNER_TEMP}/kodjo/downloaded-recovery" .
 
       - name: Verify exact restored content and artifact metadata
         run: |
@@ -110,6 +126,9 @@ jobs:
           test -n '${{ needs.preserve_before_failure.outputs.artifact_url }}'
           test -n '${{ needs.preserve_before_failure.outputs.artifact_digest }}'
           test "$(git rev-parse HEAD)" = '${{ needs.preserve_before_failure.outputs.source_head }}'
+          test ! -e delivery
+          test ! -e downloaded-recovery
           echo "artifact_download=PASS"
+          echo "runner_temp_transport=PASS"
           echo "patch_restore=PASS"
           echo "source_head_unchanged=PASS"

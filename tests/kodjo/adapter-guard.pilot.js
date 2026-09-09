@@ -38,6 +38,38 @@ function setup() {
 
 test.after(() => H.cleanupAll());
 
+test('preflight — un chemin technique dans le depot bloque avant tout appel agent', () => {
+  const ctx = setup();
+  const invalidDelivery = path.join(ctx.sandbox.dir, 'delivery');
+  const env = H.baseEnv(ctx.sandbox, invalidDelivery, {
+    KODJO_DELIVERY_DIR: invalidDelivery,
+    KODJO_SOURCE_RECOVERY_DIR: path.join(ctx.fakes, 'source-recovery'),
+    KODJO_SOURCE_RESULT_DIR: path.join(ctx.fakes, 'source-result'),
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+  });
+
+  const preflight = H.runScript('validate-orchestration-paths.js', [], { env: env });
+  assert.equal(preflight.status, 3);
+  assert.match(preflight.stderr, /DELIVERY_LOCATION_INVALID/);
+
+  // Le workflow place ce preflight avant l'adaptateur : sur refus, celui-ci
+  // n'est pas invoque et aucune modification applicative n'est produite.
+  assert.equal(fs.existsSync(ctx.counter), false);
+  assert.equal(fs.readFileSync(path.join(ctx.sandbox.dir, 'src', 'app.ts'), 'utf8'), 'export const VERSION = 1;\n');
+});
+
+test('preflight — la racine exacte du depot est elle aussi refusee', () => {
+  const ctx = setup();
+  const env = H.baseEnv(ctx.sandbox, ctx.sandbox.dir, {
+    KODJO_DELIVERY_DIR: ctx.sandbox.dir,
+    KODJO_SOURCE_RECOVERY_DIR: path.join(ctx.fakes, 'source-recovery'),
+    KODJO_SOURCE_RESULT_DIR: path.join(ctx.fakes, 'source-result'),
+  });
+  const preflight = H.runScript('validate-orchestration-paths.js', [], { env: env });
+  assert.equal(preflight.status, 3);
+  assert.match(preflight.stderr, /inside or equal/);
+});
+
 test('adaptateur — une commande arbitraire est refusee, jamais executee', () => {
   const ctx = setup();
   const marker = path.join(ctx.fakes, 'executed.txt');
@@ -218,4 +250,132 @@ test('garde git — une absence de baseline bloque la suite fonctionnelle', () =
   assert.match(verify.stderr, /GIT_STATE_BASELINE_MISSING/);
   const state = readJson(path.join(ctx.delivery, 'integrity', 'git-state.json'));
   assert.equal(state.functional_continuation, 'BLOCKED');
+});
+
+/* ------------------------------------------------------------------ *
+ * MIN-01 — contrat de clarification de l'adaptateur (exit 75)
+ * ------------------------------------------------------------------ */
+test('adaptateur — une ambiguite fonctionnelle (exit 75) donne CLARIFICATION_REQUIRED sans perdre le delta', () => {
+  const ctx = setup();
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    // L'adaptateur modifie un fichier PUIS s'arrete sur une ambiguite.
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }], {
+      name: 'clarify',
+      exitCode: 75,
+    }),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({ sandbox: ctx.sandbox, deliveryDir: ctx.delivery, env: env, checks: ['scope'] });
+
+  const adapter = readJson(path.join(ctx.delivery, 'adapter.json'));
+  assert.equal(adapter.exit_code, 75);
+  assert.equal(adapter.status, 'CLARIFICATION_REQUIRED');
+
+  // Le delta produit avant l'arret est conserve et depose, comme tout delta.
+  const preserved = readJson(path.join(recovery(ctx.delivery), 'manifest.json'));
+  assert.equal(preserved.has_changes, true);
+  assert.equal(preserved.agent_reported_status, 'CLARIFICATION_REQUIRED');
+  assert.equal(run.byId.recovery_upload.status, 0);
+
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'CLARIFICATION_REQUIRED');
+  assert.equal(manifest.recovery, 'CLARIFICATION');
+  assert.equal(run.byId.exit_status.status, 2);
+});
+
+/* ------------------------------------------------------------------ *
+ * MIN-06 — selection declaree, refus des derivations non declarees
+ * ------------------------------------------------------------------ */
+test('validation — selection par type declare et refus d une derivation non declaree', () => {
+  const { parse } = require(path.join(H.SCRIPTS, 'lib', 'yaml.js'));
+  const V = require(path.join(H.SCRIPTS, 'validate-workflows.js'));
+  const wf = path.join(H.REPO_ROOT, '.github', 'workflows', 'kodjo-v2-implementation-artifact.yml');
+  const doc = parse(fs.readFileSync(wf, 'utf8'));
+
+  // Selection par type declare, independante du nom de fichier.
+  assert.equal(V.declaredKind(doc), 'IMPLEMENTATION');
+  assert.equal(V.isImplementationWorkflow(doc), true);
+
+  // Une copie qui retire la declaration reste reconnue structurellement
+  // et est refusee comme derivation non declaree.
+  const undeclared = JSON.parse(JSON.stringify(doc));
+  delete undeclared.env.KODJO_WORKFLOW_KIND;
+  assert.equal(V.declaredKind(undeclared), null);
+  assert.equal(V.looksLikeImplementation(undeclared), true);
+
+  // Un workflow ordinaire n'est ni declare ni structurellement suspect :
+  // aucun faux positif.
+  const ordinary = { jobs: { build: { steps: [{ id: 'compile', run: 'make' }] } } };
+  assert.equal(V.declaredKind(ordinary), null);
+  assert.equal(V.looksLikeImplementation(ordinary), false);
+
+  // Un depot de secours absent est refuse.
+  const broken = JSON.parse(JSON.stringify(doc));
+  broken.jobs.implementation.steps = broken.jobs.implementation.steps.filter(
+    (st) => st.id !== 'recovery_upload_retry'
+  );
+  const errors = [];
+  V.validateImplementationWorkflow(broken, H.REPO_ROOT, errors);
+  assert.ok(errors.some((e) => e.includes('recovery_upload_retry')), JSON.stringify(errors));
+
+  // Un chemin d artefact relatif au depot est refuse (BLK-01).
+  const leaky = JSON.parse(JSON.stringify(doc));
+  leaky.jobs.implementation.steps = leaky.jobs.implementation.steps.map((st) =>
+    String(st.uses || '').startsWith('actions/download-artifact')
+      ? { ...st, with: { ...(st.with || {}), path: 'agent-scratch' } }
+      : st
+  );
+  const errors2 = [];
+  V.validateImplementationWorkflow(leaky, H.REPO_ROOT, errors2);
+  assert.ok(
+    errors2.some((e) => e.includes('agent-scratch') && e.includes('repo-relative')),
+    JSON.stringify(errors2)
+  );
+
+  // Une implantation figee dans l env du workflow est refusee.
+  const fixed = JSON.parse(JSON.stringify(doc));
+  fixed.env.KODJO_DELIVERY_DIR = 'delivery';
+  const errors3 = [];
+  V.validateImplementationWorkflow(fixed, H.REPO_ROOT, errors3);
+  assert.ok(errors3.some((e) => e.includes('KODJO_DELIVERY_DIR')), JSON.stringify(errors3));
+
+  // Le preflight executable est obligatoire et doit suivre immediatement la
+  // resolution des chemins, donc preceder restauration et adaptateur.
+  const noPreflight = JSON.parse(JSON.stringify(doc));
+  noPreflight.jobs.implementation.steps = noPreflight.jobs.implementation.steps.filter(
+    (st) => st.id !== 'orchestration_preflight'
+  );
+  const errors4 = [];
+  V.validateImplementationWorkflow(noPreflight, H.REPO_ROOT, errors4);
+  assert.ok(errors4.some((e) => e.includes('orchestration_preflight')), JSON.stringify(errors4));
+});
+
+/* ------------------------------------------------------------------ *
+ * MIN-01 — le contrat structure prime sur le code de sortie
+ * ------------------------------------------------------------------ */
+test('adaptateur — un statut structure declare prime sur la liaison par code de sortie', () => {
+  const ctx = setup();
+  fs.mkdirSync(ctx.delivery, { recursive: true });
+  fs.writeFileSync(
+    path.join(ctx.delivery, 'adapter-status.json'),
+    JSON.stringify({ status: 'CLARIFICATION_REQUIRED', question_id: 'Q-1', question: 'Quel format ?' })
+  );
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    // exitCode 0 : sans le fichier, le statut serait COMPLETED.
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }], { name: 'declared' }),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({ sandbox: ctx.sandbox, deliveryDir: ctx.delivery, env: env, checks: ['scope'] });
+
+  const adapter = readJson(path.join(ctx.delivery, 'adapter.json'));
+  assert.equal(adapter.status, 'CLARIFICATION_REQUIRED');
+  assert.equal(adapter.status_origin, 'ADAPTER_STATUS_FILE');
+  assert.equal(adapter.exit_code, 0);
+
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'CLARIFICATION_REQUIRED');
+  assert.equal(run.byId.exit_status.status, 2);
+  // Le delta produit avant l arret reste conserve et depose.
+  assert.equal(run.byId.recovery_upload.status, 0);
+  assert.equal(readJson(path.join(recovery(ctx.delivery), 'manifest.json')).has_changes, true);
 });

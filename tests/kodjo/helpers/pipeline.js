@@ -14,6 +14,7 @@
  */
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
@@ -88,13 +89,17 @@ function uploadArtifact(name, sources, store, options) {
  * @param {object} options.env
  * @param {string[]} [options.checks]
  * @param {boolean} [options.stopAfterRecoveryUpload] simulate a runner loss
+ * @param {boolean} [options.failRecoveryUpload] simulate an upload-artifact outage
+ * @param {boolean} [options.failRecoveryRetry] also fail the fallback deposit
  */
 function runPipeline(options) {
   const sandbox = options.sandbox;
   const deliveryDir = options.deliveryDir;
   const env = { ...options.env };
   const checks = options.checks || ['jest', 'typescript', 'lint', 'scope'];
-  const store = fs.mkdtempSync(path.join(path.dirname(deliveryDir), 'artifacts-'));
+  // The simulated artifact store must live OUTSIDE the repository under test:
+  // otherwise the harness itself would pollute the preserved delta.
+  const store = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-artifacts-'));
   const steps = [];
   const artifacts = {};
 
@@ -122,14 +127,33 @@ function runPipeline(options) {
   // id: git_state_before
   record('git_state_before', runScript('git-state-guard.js', ['capture', deliveryDir, 'before'], { env: env }));
 
-  // id: agent — bounded adapter, continue-on-error
-  record('agent', runScript('run-implementation-agent.js', [deliveryDir], { env: env }));
+  // id: agent — bounded adapter, continue-on-error.
+  // GITHUB_OUTPUT is mirrored so that `agent_status` reaches the preservation
+  // step exactly as the workflow does (env KODJO_AGENT_STATUS).
+  const outputsFile = path.join(store, 'agent-outputs.txt');
+  fs.writeFileSync(outputsFile, '');
+  record(
+    'agent',
+    runScript('run-implementation-agent.js', [deliveryDir], {
+      env: { ...env, GITHUB_OUTPUT: outputsFile },
+    })
+  );
+  const agentOutputs = {};
+  for (const line of fs.readFileSync(outputsFile, 'utf8').split(/\r?\n/)) {
+    const eq = line.indexOf('=');
+    if (eq > 0) agentOutputs[line.slice(0, eq)] = line.slice(eq + 1);
+  }
+  const preserveEnv = {
+    ...env,
+    KODJO_AGENT_STATUS: agentOutputs.agent_status || env.KODJO_AGENT_STATUS || '',
+    KODJO_SESSION_ID: agentOutputs.session_id || env.KODJO_SESSION_ID || '',
+  };
 
   // id: git_state_after — if: always(), continue-on-error
   record('git_state_after', runScript('git-state-guard.js', ['verify', deliveryDir], { env: env }));
 
   // id: preserve — if: always() && steps.agent.outcome != 'skipped'
-  const preserve = record('preserve', runScript('preserve-implementation.js', [deliveryDir], { env: env }));
+  const preserve = record('preserve', runScript('preserve-implementation.js', [deliveryDir], { env: preserveEnv }));
 
   // id: patch_check — if: always() && steps.preserve.outcome == 'success'
   const patchCheck =
@@ -140,9 +164,11 @@ function runPipeline(options) {
   // id: recovery_upload — BEFORE any check
   let upload = null;
   if (preserve.status === 0) {
-    upload = uploadArtifact(names.recovery, [path.join(deliveryDir, 'recovery')], store, {
-      ifNoFilesFound: 'error',
-    });
+    upload = options.failRecoveryUpload
+      ? { status: 1, outputs: {}, error: 'simulated upload-artifact outage' }
+      : uploadArtifact(names.recovery, [path.join(deliveryDir, 'recovery')], store, {
+          ifNoFilesFound: 'error',
+        });
     if (upload.status === 0) artifacts.recovery = upload;
   }
   steps.push({
@@ -156,6 +182,28 @@ function runPipeline(options) {
     stderr: '',
   });
 
+  // id: recovery_upload_retry — fallback deposit, only when the first failed.
+  let retry = null;
+  if (preserve.status === 0 && (!upload || upload.status !== 0)) {
+    retry = options.failRecoveryRetry
+      ? { status: 1, outputs: {}, error: 'simulated fallback outage' }
+      : uploadArtifact(names.recovery + '-retry', [path.join(deliveryDir, 'recovery')], store, {
+          ifNoFilesFound: 'error',
+        });
+    if (retry.status === 0) artifacts.recoveryRetry = retry;
+  }
+  steps.push({
+    id: 'recovery_upload_retry',
+    status: retry ? retry.status : 'SKIPPED',
+    outputs: retry ? retry.outputs : {},
+    patch_before: patchState(deliveryDir),
+    recovery_uploaded_before: Boolean(artifacts.recovery),
+    stdout: '',
+    stderr: '',
+  });
+
+  const deposited = artifacts.recovery || artifacts.recoveryRetry || null;
+
   if (options.stopAfterRecoveryUpload) {
     // Simulated runner loss right after the recovery upload.
     const byId = {};
@@ -165,7 +213,7 @@ function runPipeline(options) {
 
   // checks — if: always() && steps.recovery_upload.outcome == 'success'
   for (const name of checks) {
-    if (!artifacts.recovery || !patchCheck || patchCheck.status !== 0) {
+    if (!deposited || !patchCheck || patchCheck.status !== 0) {
       record(name, null);
       continue;
     }
@@ -176,12 +224,19 @@ function runPipeline(options) {
   }
 
   // id: summarize — if: always(), receives the real artifact coordinates
+  const out = (a, key) => (a ? a.outputs[key] || '' : '');
   const summarizeEnv = {
     ...env,
     KODJO_RECOVERY_ARTIFACT_NAME: names.recovery,
-    KODJO_RECOVERY_ARTIFACT_URL: artifacts.recovery ? artifacts.recovery.outputs['artifact-url'] : '',
-    KODJO_RECOVERY_ARTIFACT_DIGEST: artifacts.recovery ? artifacts.recovery.outputs['artifact-digest'] : '',
-    KODJO_RECOVERY_ARTIFACT_ID: artifacts.recovery ? artifacts.recovery.outputs['artifact-id'] : '',
+    KODJO_RECOVERY_ARTIFACT_URL: out(artifacts.recovery, 'artifact-url'),
+    KODJO_RECOVERY_ARTIFACT_DIGEST: out(artifacts.recovery, 'artifact-digest'),
+    KODJO_RECOVERY_ARTIFACT_ID: out(artifacts.recovery, 'artifact-id'),
+    KODJO_RECOVERY_UPLOAD_OUTCOME: artifacts.recovery ? 'success' : upload ? 'failure' : 'skipped',
+    KODJO_RECOVERY_RETRY_NAME: names.recovery + '-retry',
+    KODJO_RECOVERY_RETRY_URL: out(artifacts.recoveryRetry, 'artifact-url'),
+    KODJO_RECOVERY_RETRY_DIGEST: out(artifacts.recoveryRetry, 'artifact-digest'),
+    KODJO_RECOVERY_RETRY_ID: out(artifacts.recoveryRetry, 'artifact-id'),
+    KODJO_RECOVERY_RETRY_OUTCOME: artifacts.recoveryRetry ? 'success' : retry ? 'failure' : 'skipped',
   };
   record('summarize', runScript('finalize-implementation-delivery.js', [deliveryDir], { env: summarizeEnv }));
 

@@ -21,6 +21,19 @@
  *   KODJO_ALLOW_TEST_ADAPTER   "1" enables the `test:` adapters, local tests only
  *
  * Outputs (GITHUB_OUTPUT when available): session_id, agent_status, adapter.
+ *
+ * Adapter status contract (MIN-01, revue 0.6.4 / contre-analyse 0.6.5).
+ *
+ * The NORMATIVE contract is structured: the adapter declares its issue in
+ * <deliveryDir>/adapter-status.json, e.g. {"status":"CLARIFICATION_REQUIRED",
+ * "question_id":"...","question":"..."}. Accepted statuses are COMPLETED,
+ * CLARIFICATION_REQUIRED and INTERRUPTED.
+ *
+ * Exit codes are only THIS pilot's binding, used when no structured status is
+ * declared: 0 -> COMPLETED, 75 -> CLARIFICATION_REQUIRED, 78 -> NO_ADAPTER
+ * (missing precondition), anything else -> INTERRUPTED. An adapter is free to
+ * use the structured file instead; the exit code is not an architectural
+ * obligation.
  */
 
 const fs = require('node:fs');
@@ -175,6 +188,44 @@ function main() {
     setOutput('agent_status', 'ADAPTER_SPAWN_FAILED');
     fail('AGENT_ADAPTER_SPAWN_FAILED', res.error.message);
     return 78;
+  }
+
+  // Structured declaration wins over the exit-code binding.
+  const DECLARABLE = ['COMPLETED', 'CLARIFICATION_REQUIRED', 'INTERRUPTED'];
+  let declared = null;
+  try {
+    const raw = fs.readFileSync(path.join(deliveryDir, 'adapter-status.json'), 'utf8');
+    const parsed = JSON.parse(raw);
+    const candidate = String(parsed && parsed.status ? parsed.status : '').trim().toUpperCase();
+    if (DECLARABLE.includes(candidate)) {
+      declared = candidate;
+      record.declared_status = parsed;
+    } else if (candidate) {
+      record.declared_status_rejected = candidate;
+      info('adapter declared an unknown status "' + candidate + '": falling back to the exit-code binding');
+    }
+  } catch (err) {
+    // No structured declaration, or an unreadable one: the exit code decides.
+  }
+
+  if (declared) {
+    record.status = declared;
+    record.status_origin = 'ADAPTER_STATUS_FILE';
+    writeJson(path.join(deliveryDir, 'adapter.json'), record);
+    setOutput('agent_status', declared);
+    info('adapter declared status ' + declared + ' (structured contract)');
+    return declared === 'COMPLETED' ? 0 : 1;
+  }
+  record.status_origin = 'EXIT_CODE_BINDING';
+
+  // 75 = the adapter stopped on an attested functional ambiguity (§5.2-A).
+  // The delta already produced is preserved by the next step, unchanged.
+  if (res.status === 75) {
+    record.status = 'CLARIFICATION_REQUIRED';
+    writeJson(path.join(deliveryDir, 'adapter.json'), record);
+    setOutput('agent_status', 'CLARIFICATION_REQUIRED');
+    info('adapter reported a functional ambiguity (exit 75): preservation continues');
+    return 1;
   }
 
   if (res.status === 78) {

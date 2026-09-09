@@ -51,6 +51,7 @@ function main() {
   }
 
   const artifact = manifest.recovery_artifact || {};
+  const uploaded = Boolean(artifact.uploaded_before_checks);
   info(
     'run result: ' +
       status +
@@ -79,7 +80,12 @@ function main() {
 
   info('exit ' + code + ' for ' + status);
   if (code !== 0) {
-    info('The recovery artifact was uploaded before the checks; recovery=' + manifest.recovery + '.');
+    // Never claim an upload that did not happen (MAJ-01).
+    info(
+      uploaded
+        ? 'The recovery artifact was uploaded before the checks; recovery=' + manifest.recovery + '.'
+        : 'NO recovery artifact was durably deposited; the delta is not recoverable from GitHub.'
+    );
   }
   return code;
 }

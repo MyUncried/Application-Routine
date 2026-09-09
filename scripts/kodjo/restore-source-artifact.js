@@ -6,6 +6,11 @@
  *
  * Usage: node scripts/kodjo/restore-source-artifact.js <artifactDir> [repoDir]
  *
+ * MIN-05 (revue independante 0.6.4): the RECOVERY manifest deliberately carries
+ * no business status and no failed_checks - they are computed after its upload.
+ * Those fields are therefore read from the SOURCE RESULT manifest when it is
+ * available (KODJO_SOURCE_RESULT_DIR), and reported as UNKNOWN otherwise.
+ *
  * (1) downloads/receives the existing RECOVERY package of the source run —
  * the artifact uploaded before that run's checks — (2) verifies its hashes,
  * (3) restores implementation.patch into a control space clean at source_head.
@@ -66,13 +71,21 @@ function main() {
     return 3;
   }
 
+  const resultDirEnv = (process.env.KODJO_SOURCE_RESULT_DIR || 'source-result').trim();
+  const sourceResult =
+    readJsonIfExists(path.resolve(resultDirEnv, 'result', 'manifest.json')) ||
+    readJsonIfExists(path.resolve(resultDirEnv, 'manifest.json'));
+  const sourceStatus = sourceResult ? sourceResult.implementation_status : 'UNKNOWN';
+  const sourceFailed = sourceResult ? sourceResult.failed_checks || [] : null;
+
   writeJson(path.join(artifactDir, 'recovery-source.json'), {
     restored_at: new Date().toISOString(),
     source_run_id: manifest.source_run_id,
     source_head: manifest.source_head,
     source_patch_sha256: actual,
-    source_implementation_status: manifest.implementation_status,
-    source_failed_checks: manifest.failed_checks || [],
+    source_status_origin: sourceResult ? 'SOURCE_RESULT_MANIFEST' : 'UNAVAILABLE',
+    source_implementation_status: sourceStatus,
+    source_failed_checks: sourceFailed,
     ai_call_made: false,
   });
 
@@ -80,7 +93,7 @@ function main() {
     'restored source artifact (run ' +
       String(manifest.source_run_id) +
       ', status ' +
-      String(manifest.implementation_status) +
+      String(sourceStatus) +
       ') on top of ' +
       manifest.source_head
   );

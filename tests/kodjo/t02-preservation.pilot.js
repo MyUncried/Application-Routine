@@ -6,6 +6,9 @@
  * 001-008 : matrice normative.
  * 009-012 : corrections MAJOR — conservation durable avant controles, perte du
  *           runner, URL/digest/hash distincts, recu de publication separe.
+ * 013-016 : corrections de la revue independante 0.6.4 — depot durable en echec,
+ *           depot de secours, repertoire de livraison dans le depot (BLK-01),
+ *           reprise ciblee privee des controles repris (MAJ-02).
  *
  * Run: node tests/kodjo/run-all.js
  */
@@ -368,7 +371,9 @@ test('T02-PRES-006 — TARGETED_FIX : reprise depuis l artefact de recuperation,
   assert.equal(recoverySource.ai_call_made, false);
 
   // (4) seuls les controles echoues et directement impactes sont relances.
-  const plan = H.runScript('resolve-checks-to-run.js', ['jest'], { env: { KODJO_MODE: 'TARGETED_FIX' } });
+  const plan = H.runScript('resolve-checks-to-run.js', ['jest'], {
+    env: { KODJO_MODE: 'TARGETED_FIX', KODJO_CARRIED_CHECKS_DIR: path.join(sourceResult, 'checks') },
+  });
   const toRerun = plan.stdout.trim().split('\n');
   assert.deepEqual(toRerun.sort(), ['jest', 'scope']);
 
@@ -770,4 +775,252 @@ test('T02-PRES-012 — le statut de publication vit dans un recu separe, jamais 
   const rec2 = readJson(path.join(receipt(delivery2), 'publication-receipt.json'));
   assert.equal(rec2.status, 'SKIPPED');
   assert.equal(rec2.reason, 'NO_PUBLICATION_TARGET_CONFIGURED');
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-013 — le depot durable echoue : aucun faux statut recuperable
+ * ------------------------------------------------------------------ */
+test('T02-PRES-013 — depot de recuperation impossible : IMPLEMENTATION_FAILED, aucune promesse de reprise', () => {
+  const ctx = setup();
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+    ...greenChecks(ctx.fakes, '013'),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({
+    sandbox: ctx.sandbox,
+    deliveryDir: ctx.delivery,
+    env: env,
+    failRecoveryUpload: true,
+    failRecoveryRetry: true,
+  });
+
+  // Le patch a bien ete produit et valide localement...
+  const preserved = readJson(path.join(recovery(ctx.delivery), 'manifest.json'));
+  assert.equal(preserved.has_changes, true);
+  assert.equal(preserved.preservation.patch_validated, true);
+
+  // ... mais il n'a jamais ete depose : il n'est donc PAS recuperable.
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'IMPLEMENTATION_FAILED');
+  assert.equal(manifest.recovery_artifact.uploaded_before_checks, false);
+  assert.equal(manifest.recovery_artifact.url, null);
+  assert.equal(manifest.recovery_artifact.digest, null);
+  assert.equal(manifest.recovery, 'REIMPLEMENT');
+  assert.ok(
+    manifest.status_reasons.some((r) => r.includes('RECOVERY_NOT_DURABLE')),
+    'the diagnosis must name the missing durable deposit'
+  );
+
+  // Aucun controle n'a pu demarrer, et aucun n'est compte comme reussi.
+  for (const id of CHECK_IDS) assert.equal(run.byId[id].status, 'SKIPPED');
+  assert.deepEqual(manifest.failed_checks, []);
+
+  // Le commentaire n'annonce aucune URL d'artefact ni aucune reprise ciblee.
+  const comment = fs.readFileSync(path.join(result(ctx.delivery), 'implementation-output.txt'), 'utf8');
+  assert.match(comment, /status=IMPLEMENTATION_FAILED/);
+  assert.match(comment, /recovery_artifact_uploaded=false/);
+  assert.match(comment, /^artifact=$/m);
+  assert.ok(!/recovery=TARGETED_FIX/.test(comment));
+
+  // Le run est rouge avec le code du statut metier, apres la synthese.
+  assert.equal(run.byId.exit_status.status, 3);
+  assert.match(run.byId.exit_status.stdout + run.byId.exit_status.stderr, /NO recovery artifact was durably deposited/);
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-014 — le depot de secours sauve la conservation
+ * ------------------------------------------------------------------ */
+test('T02-PRES-014 — premier depot en echec, depot de secours reussi : le delta reste recuperable', () => {
+  const ctx = setup();
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+    ...greenChecks(ctx.fakes, '014'),
+    KODJO_CHECK_CMD_JEST: F.fakeCheck(ctx.fakes, 'jest-fail14', { exitCode: 1, stdout: F.jestOutput(862, 2) }),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({
+    sandbox: ctx.sandbox,
+    deliveryDir: ctx.delivery,
+    env: env,
+    failRecoveryUpload: true,
+  });
+
+  assert.equal(run.byId.recovery_upload.status, 1);
+  assert.equal(run.byId.recovery_upload_retry.status, 0);
+  // Les controles ont bien tourne : le depot de secours les debloque.
+  for (const id of CHECK_IDS) assert.notEqual(run.byId[id].status, 'SKIPPED');
+
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'IMPLEMENTED_WITH_FAILED_CHECKS');
+  assert.equal(manifest.recovery_artifact.uploaded_before_checks, true);
+  assert.equal(manifest.recovery_artifact.fallback_used, true);
+  assert.equal(manifest.recovery_artifact.upload_outcome, 'failure');
+  assert.ok(String(manifest.recovery_artifact.url).startsWith('https://github.com/'));
+  assert.equal(run.byId.exit_status.status, 1);
+
+  // Le patch depose est bien applicable sur un espace vierge au source_head.
+  const oracle = oracleApplies(ctx.sandbox, run.artifacts.recoveryRetry.dir, ctx.sandbox.head);
+  assert.equal(oracle.checkStatus, 0, oracle.checkStderr);
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-015 — BLK-01 : une implantation dans le depot est REFUSEE
+ * ------------------------------------------------------------------ */
+test('T02-PRES-015 — repertoire de livraison DANS le depot : refus bruyant, jamais une exclusion silencieuse', () => {
+  const ctx = setup();
+  // Disposition invalide : delivery/ a la racine de la copie de travail.
+  const delivery = path.join(ctx.sandbox.dir, 'delivery');
+  const env = H.baseEnv(ctx.sandbox, delivery, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+    ...greenChecks(ctx.fakes, '015'),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({ sandbox: ctx.sandbox, deliveryDir: delivery, env: env });
+
+  // La preservation refuse AVANT de produire quoi que ce soit.
+  assert.equal(run.byId.preserve.status, 3);
+  assert.match(run.byId.preserve.stderr, /DELIVERY_LOCATION_INVALID/);
+  assert.equal(fs.existsSync(path.join(recovery(delivery), 'implementation.patch')), false);
+
+  // Aucun statut ne peut annoncer un travail recuperable.
+  const manifest = readJson(path.join(result(delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'IMPLEMENTATION_FAILED');
+  assert.equal(run.byId.exit_status.status, 3);
+
+  // Un repertoire de telechargement dans le depot est refuse de la meme facon.
+  const outside = path.join(H.tmp('kodjo-out-'), 'delivery');
+  const env2 = H.baseEnv(ctx.sandbox, outside, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }], { name: 'dl' }),
+    KODJO_SOURCE_RESULT_DIR: path.join(ctx.sandbox.dir, 'source-result'),
+  });
+  const refused = H.runScript('preserve-implementation.js', [outside], { env: env2 });
+  assert.equal(refused.status, 3);
+  assert.match(refused.stderr, /DELIVERY_LOCATION_INVALID/);
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-017 — implantation nominale hors depot : delta purement fonctionnel
+ * ------------------------------------------------------------------ */
+test('T02-PRES-017 — implantation hors depot : le delta ne contient que la modification fonctionnelle', () => {
+  const ctx = setup();
+  // Disposition reelle du workflow : tout le technique vit hors de la copie.
+  assert.ok(
+    !ctx.delivery.startsWith(ctx.sandbox.dir + path.sep),
+    'le harnais doit utiliser la meme implantation que le workflow'
+  );
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+    ...greenChecks(ctx.fakes, '017'),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  const run = runPipeline({ sandbox: ctx.sandbox, deliveryDir: ctx.delivery, env: env });
+
+  const modified = readJson(path.join(recovery(ctx.delivery), 'modified-files.json'));
+  const paths = modified.files.map((f) => f.path).sort();
+  assert.deepEqual(paths, ['src/app.ts'], 'only the functional change belongs to the delta');
+
+  const scope = readJson(path.join(ctx.delivery, 'checks', 'scope.json'));
+  assert.equal(scope.status, 'PASS');
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'IMPLEMENTED_AND_VERIFIED');
+  assert.equal(run.byId.exit_status.status, 0);
+
+  // La restauration n'injecte aucun repertoire de protocole dans /Dev.
+  const oracle = oracleApplies(ctx.sandbox, recovery(ctx.delivery), ctx.sandbox.head);
+  assert.equal(oracle.checkStatus, 0, oracle.checkStderr);
+  assert.equal(oracle.appliedStatus, 0);
+  for (const d of ['delivery', 'source-recovery', 'source-result']) {
+    assert.equal(fs.existsSync(path.join(oracle.space, d)), false, d + ' must not be restored');
+  }
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-016 — MAJ-02 : une reprise sans controles repris relance tout
+ * ------------------------------------------------------------------ */
+test('T02-PRES-016 — TARGETED_FIX sans artefact de resultat source : tous les controles requis sont relances', () => {
+  // Sans controles repris, la selection ciblee laisserait typescript et lint en
+  // NOT_RUN indefiniment : IMPLEMENTED_AND_VERIFIED deviendrait inatteignable.
+  const missing = H.runScript('resolve-checks-to-run.js', ['jest'], {
+    env: { KODJO_MODE: 'TARGETED_FIX', KODJO_CARRIED_CHECKS_DIR: path.join(H.tmp('kodjo-absent-'), 'checks') },
+  });
+  assert.equal(missing.status, 0);
+  assert.deepEqual(missing.stdout.trim().split('\n').sort(), ['jest', 'lint', 'scope', 'typescript']);
+  assert.match(missing.stderr, /CARRIED_CHECKS_UNAVAILABLE/);
+
+  // Un repertoire present mais vide compte comme absent.
+  const empty = path.join(H.tmp('kodjo-empty-'), 'checks');
+  fs.mkdirSync(empty, { recursive: true });
+  const emptyRun = H.runScript('resolve-checks-to-run.js', ['jest'], {
+    env: { KODJO_MODE: 'TARGETED_FIX', KODJO_CARRIED_CHECKS_DIR: empty },
+  });
+  assert.deepEqual(emptyRun.stdout.trim().split('\n').sort(), ['jest', 'lint', 'scope', 'typescript']);
+
+  // Avec les controles repris, la selection reste bornee.
+  fs.writeFileSync(path.join(empty, 'typescript.json'), '{"check":"typescript","status":"PASS"}');
+  const carried = H.runScript('resolve-checks-to-run.js', ['jest'], {
+    env: { KODJO_MODE: 'TARGETED_FIX', KODJO_CARRIED_CHECKS_DIR: empty },
+  });
+  assert.deepEqual(carried.stdout.trim().split('\n').sort(), ['jest', 'scope']);
+});
+
+/* ------------------------------------------------------------------ *
+ * T02-PRES-018 — clôture MAJ-03 : demande de dépôt sur la branche de preuves
+ * ------------------------------------------------------------------ */
+test('T02-PRES-018 — l artefact reste un transport : la preuve durable est demandee au writer separe', () => {
+  const ctx = setup();
+  const env = H.baseEnv(ctx.sandbox, ctx.delivery, {
+    ...F.testAdapter(ctx.fakes, ctx.counter, [{ path: 'src/app.ts', content: APP_PATCHED }]),
+    ...greenChecks(ctx.fakes, '018'),
+    KODJO_SCOPE_ALLOW: 'src/**',
+  });
+  runPipeline({ sandbox: ctx.sandbox, deliveryDir: ctx.delivery, env: env });
+
+  const request = readJson(path.join(result(ctx.delivery), 'evidence-deposit-request.json'));
+
+  // Branche fixe : le writer ne recoit AUCUN nom de branche en entree.
+  assert.equal(request.target_branch, 'kodjo/protocol-evidence-v2');
+  assert.equal(request.target_branch_is_fixed, true);
+
+  // Append-only, aucune preuve existante modifiee ou supprimee.
+  assert.equal(request.append_only, true);
+  assert.equal(request.replaces_existing_path, false);
+
+  // Aucun fichier applicatif integre ; le patch reste transport et preuve.
+  assert.equal(request.contains_applicative_file, false);
+  assert.equal(request.functional_ref_write_allowed, false);
+  const patchMember = request.members.find((m) => m.member === 'implementation.patch');
+  assert.equal(patchMember.role, 'TRANSPORT_AND_EVIDENCE');
+
+  // Le job d implementation decrit, il ne depose pas.
+  assert.equal(request.produced_by, 'IMPLEMENTATION_JOB_READ_ONLY');
+  assert.equal(request.deposited_by, 'SEPARATE_EVIDENCE_WRITER');
+  assert.equal(request.writer_status, 'PENDING');
+  assert.equal(request.diagnostic, 'EVIDENCE_WRITER_ABSENT');
+
+  // Chemins canoniques uniques, derives de la seule identite protocolaire.
+  const paths = request.members.map((m) => m.canonical_path);
+  assert.equal(new Set(paths).size, paths.length);
+  for (const p of paths) assert.ok(p.startsWith('slices/'), p);
+
+  // Chaque membre porte son hash reel.
+  for (const m of request.members) {
+    const abs = path.join(recovery(ctx.delivery), m.member);
+    assert.equal(m.sha256, sha256(fs.readFileSync(abs)), m.member);
+  }
+
+  // Le workflow d implementation reste en lecture seule a tous les niveaux.
+  const { parse } = require(path.join(H.SCRIPTS, 'lib', 'yaml.js'));
+  const doc = parse(
+    fs.readFileSync(path.join(H.REPO_ROOT, '.github', 'workflows', 'kodjo-v2-implementation-artifact.yml'), 'utf8')
+  );
+  assert.equal(doc.permissions.contents, 'read');
+  for (const job of Object.values(doc.jobs)) {
+    const perms = (job || {}).permissions || {};
+    assert.ok(!perms.contents || perms.contents === 'read');
+  }
+
+  // Aucun statut recuperable ne peut se passer de cette demande.
+  const manifest = readJson(path.join(result(ctx.delivery), 'manifest.json'));
+  assert.equal(manifest.implementation_status, 'IMPLEMENTED_AND_VERIFIED');
 });

@@ -21,7 +21,36 @@ const path = require('node:path');
 
 const { parse } = require('./lib/yaml');
 
-const IMPLEMENTATION_WORKFLOW = 'kodjo-v2-implementation-artifact.yml';
+/**
+ * MIN-06 (revue 0.6.4, precise par la contre-analyse): selection ni par nom de
+ * fichier - un workflow renomme y echappait - ni par simple structure, qui
+ * produirait des faux positifs. Chaque workflow KODJO DECLARE son type; un
+ * workflow non declare qui ressemble structurellement au workflow
+ * d'implementation est refuse comme duplication ou derivation non declaree.
+ */
+const KODJO_KINDS = ['IMPLEMENTATION', 'SMOKE', 'TRANSITION', 'OPENAI'];
+
+function workflowEnv(doc) {
+  const jobs = doc.jobs || {};
+  const merged = { ...(doc.env || {}) };
+  for (const name of Object.keys(jobs)) Object.assign(merged, jobs[name].env || {});
+  return merged;
+}
+
+function declaredKind(doc) {
+  const kind = String(workflowEnv(doc).KODJO_WORKFLOW_KIND || '').trim().toUpperCase();
+  return KODJO_KINDS.includes(kind) ? kind : null;
+}
+
+/** Structural signature of an implementation workflow, used to catch derivations. */
+function looksLikeImplementation(doc) {
+  const ids = stepsOf(doc).map((e) => e.step.id).filter(Boolean);
+  return ids.includes('preserve') && ids.includes('recovery_upload');
+}
+
+function isImplementationWorkflow(doc) {
+  return declaredKind(doc) === 'IMPLEMENTATION';
+}
 const CHECK_STEP_IDS = ['jest', 'typescript', 'lint', 'scope'];
 
 function listWorkflows(root) {
@@ -57,12 +86,29 @@ function referencedScripts(doc) {
 }
 
 function validateImplementationWorkflow(doc, root, errors) {
+  const wfEnvEarly = workflowEnv(doc);
   const permissions = doc.permissions || {};
   if (permissions.contents !== 'read') {
     errors.push('permissions.contents must be "read", found ' + JSON.stringify(permissions.contents));
   }
   for (const [scope, level] of Object.entries(permissions)) {
     if (scope === 'contents' && level === 'write') errors.push('a write-level contents permission is forbidden');
+  }
+
+  // Clôture MAJ-03: the implementation workflow keeps contents: read at every
+  // level. Any evidence-write capability belongs exclusively to the separate
+  // writer, which is not this workflow.
+  for (const [jobName, job] of Object.entries(doc.jobs || {})) {
+    const jobPerms = (job || {}).permissions || {};
+    if (jobPerms.contents && jobPerms.contents !== 'read') {
+      errors.push('job "' + jobName + '" raises contents to ' + JSON.stringify(jobPerms.contents));
+    }
+    for (const step of (job || {}).steps || []) {
+      const run = String(step.run || '');
+      if (/refs\/kodjo-v2|protocol-evidence/.test(run) && /push|update-ref/.test(run)) {
+        errors.push('job "' + jobName + '" attempts to write evidence refs: that belongs to the separate writer');
+      }
+    }
   }
 
   const steps = stepsOf(doc);
@@ -165,11 +211,118 @@ function validateImplementationWorkflow(doc, root, errors) {
       errors.push('result_upload must not re-upload delivery/recovery/: that package is already immutable');
     }
   }
+  // MAJ-01: the fallback deposit must exist and must precede every check.
+  const retryUpload = indexOfId('recovery_upload_retry');
+  if (retryUpload < 0) {
+    errors.push('no step with id "recovery_upload_retry": a failed deposit would leave no recoverable copy');
+  } else {
+    const step = steps[retryUpload].step;
+    if (!String(step.uses || '').startsWith('actions/upload-artifact')) {
+      errors.push('recovery_upload_retry must be an actions/upload-artifact step');
+    }
+    if (!step.with || !String(step.with.path || '').includes('delivery/recovery')) {
+      errors.push('recovery_upload_retry must upload delivery/recovery/');
+    }
+    if (typeof step.if !== 'string' || !step.if.includes('always()')) {
+      errors.push('recovery_upload_retry must be guarded by always()');
+    }
+    for (const id of CHECK_STEP_IDS) {
+      const idx = indexOfId(id);
+      if (idx >= 0 && idx < retryUpload) errors.push('check "' + id + '" runs before the fallback deposit');
+    }
+  }
+
+  // MAJ-02: the check planner must be able to see whether the source result
+  // checks were downloaded, otherwise a targeted fix can never converge.
+  const plan = indexOfId('checks_plan');
+  if (plan < 0) errors.push('no step with id "checks_plan"');
+  else if (!((steps[plan].step.env || {}).KODJO_CARRIED_CHECKS_DIR)) {
+    errors.push('checks_plan must receive KODJO_CARRIED_CHECKS_DIR');
+  }
+
+  // BLK-01: no technical directory may be materialised inside the checked-out
+  // repository. A repo-relative path is refused outright; exclusions are only a
+  // secondary defence and must never make an invalid layout pass silently.
+  const outsideRepo = (value) => {
+    const v = String(value || '').trim();
+    if (!v) return false;
+    if (v.startsWith('/') || /^[A-Za-z]:[\\/]/.test(v)) return true;
+    return /runner\.temp|RUNNER_TEMP/.test(v);
+  };
+  const resolver = indexOfId('orchestration_paths');
+  const preflight = indexOfId('orchestration_preflight');
+  if (resolver < 0) {
+    errors.push('no step with id "orchestration_paths": the technical directories are not resolved outside the repository');
+  } else {
+    const script = String(steps[resolver].step.run || '');
+    for (const key of ['KODJO_DELIVERY_DIR', 'KODJO_SOURCE_RECOVERY_DIR', 'KODJO_SOURCE_RESULT_DIR']) {
+      if (!script.includes(key)) errors.push('orchestration_paths must publish ' + key);
+    }
+    if (!/RUNNER_TEMP|runner\.temp/.test(script)) {
+      errors.push('orchestration_paths must resolve the technical directories under the runner temp directory');
+    }
+    if (resolver !== 1) {
+      errors.push('orchestration_paths must run immediately after the checkout, before anything writes');
+    }
+  }
+  if (preflight < 0) {
+    errors.push('no step with id "orchestration_preflight"');
+  } else {
+    const run = String(steps[preflight].step.run || '');
+    if (!run.includes('validate-orchestration-paths.js')) {
+      errors.push('orchestration_preflight must execute validate-orchestration-paths.js');
+    }
+    if (resolver >= 0 && preflight !== resolver + 1) {
+      errors.push('orchestration_preflight must run immediately after orchestration_paths');
+    }
+    for (const id of ['download_recovery', 'download_result', 'restore', 'agent']) {
+      const idx = indexOfId(id);
+      if (idx >= 0 && preflight > idx) errors.push('orchestration_preflight must precede "' + id + '"');
+    }
+  }
+  for (const [key, value] of Object.entries(wfEnvEarly)) {
+    if (!/^KODJO_(DELIVERY_DIR|SOURCE_RECOVERY_DIR|SOURCE_RESULT_DIR)$/.test(key)) continue;
+    errors.push(key + ' must not be fixed in the workflow env: it is resolved outside the repository at run time');
+  }
+  for (const entry of steps) {
+    const uses = String(entry.step.uses || '');
+    if (!uses.startsWith('actions/download-artifact') && !uses.startsWith('actions/upload-artifact')) continue;
+    for (const target of String((entry.step.with || {}).path || '').split('\n')) {
+      const v = target.trim();
+      if (!v) continue;
+      if (!outsideRepo(v)) {
+        errors.push('artifact path "' + v + '" is repo-relative: it would land inside the working copy');
+      }
+    }
+  }
+
+  // Defence secondaire: la liste d'exclusion reste declaree.
+  const excluded = String(wfEnvEarly.KODJO_PATCH_EXCLUDE || '')
+    .split(/[\n,]/)
+    .map((v) => v.trim().replace(/^\.\//, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+  if (excluded.length === 0 && resolver < 0) {
+    errors.push('neither an out-of-repository layout nor a declared exclusion list protects the delta');
+  }
+  // Clôture MAJ-03: the result artifact must carry the evidence deposit request,
+  // so the absence of a qualified writer is observable and not merely documented.
+  if (resultUpload >= 0) {
+    const p = String((steps[resultUpload].step.with || {}).path || '');
+    if (!/result/.test(p)) {
+      errors.push('result_upload must carry delivery/result/, which holds the evidence deposit request');
+    }
+  }
+
   // The comment must carry the artifact URL, its digest and the patch hash as
   // three distinct fields.
   if (indexOfId('summarize') >= 0) {
     const env = steps[indexOfId('summarize')].step.env || {};
-    for (const key of ['KODJO_RECOVERY_ARTIFACT_URL', 'KODJO_RECOVERY_ARTIFACT_DIGEST']) {
+    for (const key of [
+      'KODJO_RECOVERY_ARTIFACT_URL',
+      'KODJO_RECOVERY_ARTIFACT_DIGEST',
+      // MAJ-01: durability must be a fact, not a constant.
+      'KODJO_RECOVERY_UPLOAD_OUTCOME',
+    ]) {
       if (!env[key]) errors.push('summarize must receive ' + key + ' from the recovery upload');
     }
     if (env.KODJO_RECOVERY_ARTIFACT_URL && !String(env.KODJO_RECOVERY_ARTIFACT_URL).includes('recovery_upload')) {
@@ -203,7 +356,16 @@ function main() {
     } catch (err) {
       errors.push('YAML_PARSE_ERROR: ' + err.message);
     }
-    if (doc && name === IMPLEMENTATION_WORKFLOW) validateImplementationWorkflow(doc, root, errors);
+    if (doc) {
+      const kind = declaredKind(doc);
+      if (!kind && looksLikeImplementation(doc)) {
+        errors.push(
+          'UNDECLARED_KODJO_WORKFLOW: this workflow has the structure of a KODJO implementation ' +
+            'workflow but declares no KODJO_WORKFLOW_KIND. Undeclared duplications and derivations are refused.'
+        );
+      }
+      if (kind === 'IMPLEMENTATION') validateImplementationWorkflow(doc, root, errors);
+    }
 
     if (errors.length > 0) {
       failures += 1;
@@ -218,4 +380,13 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { listWorkflows, validateImplementationWorkflow, referencedScripts, main };
+module.exports = {
+  listWorkflows,
+  validateImplementationWorkflow,
+  referencedScripts,
+  isImplementationWorkflow,
+  declaredKind,
+  looksLikeImplementation,
+  workflowEnv,
+  main,
+};
