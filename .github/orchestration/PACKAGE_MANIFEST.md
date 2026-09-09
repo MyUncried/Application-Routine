@@ -1,15 +1,15 @@
-# Manifeste du paquet KODJO V2 0.6.8 — corrigé après revue indépendante
+# Manifeste du paquet KODJO V2 0.6.9 — writer de preuves borné
 
 ## Objet
 
-Ce paquet est la version `0.6.8` du protocole KODJO V2, corrigée après la revue indépendante du paquet `0.6.4`. Il contient la spécification normative, le workflow de référence, les preuves d'implémentation et le rapport de changement. Les revues antérieures restent exclues afin de limiter le biais d'ancrage.
+Ce paquet est la version `0.6.9` du protocole KODJO V2. Il ajoute à la baseline validée `0.6.8` le writer de preuves borné, son workflow de transition et ses tests de qualification locale.
 
 ## Sources primaires normatives
 
 | Fichier | Rôle |
 |---|---|
-| `primary/KODJO_PROTOCOL_V2_SPEC_0.6.8.md` | Spécification normative courante |
-| `primary/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.8.yml` | Workflow de référence ; identique au workflow exécutable hors en-tête |
+| `primary/KODJO_PROTOCOL_V2_SPEC_0.6.9.md` | Spécification normative courante |
+| `primary/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.9.yml` | Workflow d'implémentation de référence ; contenu fonctionnel inchangé |
 
 ## Éléments de preuve et d’implémentation
 
@@ -20,8 +20,11 @@ Ce paquet est la version `0.6.8` du protocole KODJO V2, corrigée après la revu
 | `evidence/t02/KODJO_PROTOCOL_V2_T02_TEST_MATRIX_0.6.8.md` | Matrice T02 à 18 scénarios, exécutée |
 | `CHANGE_REPORT_0.6.8.md` | Rapport de changement `0.6.4` → `0.6.5` → `0.6.8` |
 | `evidence/pilot/2026-09-08_kodjo-v2-preservation-pilot-0.6.3-rev4.md` | Rapport du pilote local et du smoke test GitHub réel |
-| `evidence/workflows/kodjo-v2-implementation-artifact.yml` | Workflow exécutable du pilote, aligné avec la référence `0.6.8` |
+| `evidence/workflows/kodjo-v2-implementation-artifact.yml` | Workflow exécutable d'implémentation, inchangé fonctionnellement depuis la baseline `0.6.8` |
 | `evidence/workflows/kodjo-v2-preservation-smoke.yml` | Smoke test réel : upload depuis `${RUNNER_TEMP}` avant échec, téléchargement sous `${RUNNER_TEMP}` et restauration dans un second job |
+| `evidence/workflows/kodjo-v2-transition.yml` | Workflow hébergeant le job writer séparé et son smoke test explicite |
+| `evidence/scripts/kodjo/write-evidence-deposit.js` | Validation et ajout append-only des objets de preuve |
+| `evidence/scripts/kodjo/prepare-evidence-writer-smoke.js` | Fixture protocolaire sans fichier applicatif pour le smoke test |
 | `evidence/scripts/kodjo/` | Scripts de préservation, vérification, statuts, publication et reprise |
 | `evidence/tests/kodjo/` | Tests exécutables du pilote |
 
@@ -37,10 +40,10 @@ Ce paquet est la version `0.6.8` du protocole KODJO V2, corrigée après la revu
 
 ## Contrôle du paquet avant transmission
 
-Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vierge puis exécutés le 9 septembre 2026, après application des corrections `0.6.8` :
+Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vierge puis exécutés le 9 septembre 2026, après ajout du writer `0.6.9` :
 
-- `57` tests du pilote réussis sur `57` ;
-- validation structurelle des deux workflows réussie ;
+- `63` tests du pilote réussis sur `63` ;
+- validation structurelle des trois workflows réussie ;
 - scanner de capacités distantes : `NO_REMOTE_FUNCTIONAL_WRITE_CAPABILITY` ;
 - aucune ancienne revue OpenAI ou Claude incluse dans le paquet.
 
@@ -48,14 +51,14 @@ Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vi
 
 En cas d’écart :
 
-1. la spécification `0.6.8` définit la règle ;
-2. le workflow de référence `0.6.8` montre l’ordre attendu ;
+1. la spécification `0.6.9` définit la règle ;
+2. le workflow de référence `0.6.9` montre l’ordre attendu ;
 3. les workflows, scripts et tests constituent la preuve d’implémentation du pilote ;
 4. les rapports et matrices décrivent les résultats constatés, mais ne remplacent pas le code ni la spécification.
 
 ## Interdiction d'activation en vigueur
 
-Le writer de preuves dédié n'est pas implémenté. Le diagnostic `EVIDENCE_WRITER_ABSENT` est donc actif et **l'activation de V2 est interdite** jusqu'à sa qualification (§4.5, §13.6). Un pilote technique borné de conservation et de reprise reste possible sous cette réserve.
+Le writer est implémenté et qualifié localement, mais son dépôt GitHub réel et les autorisations effectives des branches ne sont pas encore qualifiés. Le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste donc actif au sens « aucun writer qualifié disponible » et **l'activation de V2 reste interdite** jusqu'au smoke test distant et au contrôle des règles du dépôt.
 
 ## Limite de périmètre
 

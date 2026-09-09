@@ -6,7 +6,7 @@
 |---|---|
 | Statut | Spécification corrigée ; arbitrage de stockage clos par décision utilisateur |
 | Phase | Phase 1 — spécification et architecture uniquement |
-| Version du document | 0.6.8 |
+| Version du document | 0.6.9 |
 | Date | 2026-09-09 |
 | Dépôt de référence | `MyUncried/Application-Routine` |
 | Branche analysée | `main` |
@@ -18,6 +18,10 @@
 | Tranche protégée pendant la conception | `T01-S10`, Issue `#42` |
 
 > Ce document spécifie la cible V2. Il n’active aucun workflow, ne modifie aucun manifeste, ne lance aucune IA et ne migre pas S10.
+
+### Historique 0.6.9
+
+La version 0.6.9 implémente le premier writer de preuves borné dans un job dédié de `kodjo-v2-transition.yml`. Le writer vérifie la branche cible fixe, les chemins canoniques, l'allowlist des objets protocolaires et leurs hash, refuse tout remplacement, toute suppression et tout fichier applicatif intégré, puis pousse exclusivement vers `refs/heads/kodjo/protocol-evidence-v2`. Les permissions effectives sur les branches restent une condition de qualification du dépôt : le workflow seul ne transforme pas un jeton `contents: write` en autorisation limitée à une branche.
 
 ### Historique 0.6.8
 
@@ -51,7 +55,7 @@ La version 0.6.1 simplifie définitivement le parcours local. Le protocole ne go
 
 La version 0.6.0 applique l’arbitrage utilisateur définitif : `/Dev local → vérification locale → commit local → push local → observation et revue distantes`. Actions et les agents distants sont en lecture seule sur le dépôt fonctionnel et ne créent aucun commit applicatif, même temporaire. Le workflow Claude développeur, les branches de tentative distantes, leur promotion et le transfert Actions/CLI du droit d’écrire le produit sont supprimés. La coordination des appels IA et des preuves demeure, sans capacité d’écriture fonctionnelle distante.
 
-Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.8`.
+Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.9`.
 
 ### Historique 0.5.0
 
@@ -362,9 +366,9 @@ Le writer de preuves est un composant technique dédié, soumis à huit règles 
 
 Le workflow d'implémentation reste en `contents: read`. Toute capacité d'écriture de preuves appartient **exclusivement** au writer séparé, et doit être qualifiée avant l'activation de V2.
 
-**Demande de dépôt et état actuel.** Le writer n'est pas implémenté. Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit à sa place une `EvidenceDepositRequest` jointe à l'artefact de résultat : branche cible fixe, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash, absence de fichier applicatif, et `writer_status: PENDING` accompagné du diagnostic `EVIDENCE_WRITER_ABSENT`. Cette demande décrit ce qui doit être déposé ; elle ne dépose rien et ne confère aucune capacité.
+**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : branche cible fixe, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.9` valide cette demande avant tout ajout. Tant que son smoke test distant et les règles effectives du dépôt ne sont pas qualifiés, son statut reste **implémenté localement mais non activé**.
 
-Tant qu'un writer qualifié n'a pas déposé ces membres, le diagnostic `EVIDENCE_WRITER_ABSENT` est actif et **l'activation de V2 est interdite**. L'artefact Actions ne devient jamais la preuve canonique définitive par défaut. Les obligations d'exploitation intérimaires demeurent : rétention déclarée au moins égale à la durée de la tranche, récupération et validation dans `/Dev` avant expiration, et `OUTPUT_NOT_RECOVERABLE` — jamais un statut implémenté — en cas d'expiration d'un artefact non récupéré.
+Tant que le writer n'a pas réussi sa qualification complète, le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste actif au sens « aucun writer qualifié disponible », et **l'activation de V2 est interdite**. L'artefact Actions ne devient jamais la preuve canonique définitive par défaut. Les obligations d'exploitation intérimaires demeurent : rétention déclarée au moins égale à la durée de la tranche, récupération et validation dans `/Dev` avant expiration, et `OUTPUT_NOT_RECOVERABLE` — jamais un statut implémenté — en cas d'expiration d'un artefact non récupéré.
 
 **Hébergement du writer.** Le writer est un **job dédié**, distinct de celui de l'implémentation, et non un quatrième workflow : il est hébergé par `kodjo-v2-transition.yml`, auquel le §4.3 confie déjà la republication de preuves. La limite normative de trois workflows du §1.2 est ainsi préservée.
 

@@ -84,6 +84,22 @@ function isExempt(filePath, line, root) {
   return rel === 'scripts/kodjo/lib/git.js' || rel === 'scripts/kodjo/scan-remote-write-capability.js';
 }
 
+/**
+ * The evidence writer is the only remote writer. Its allowance is deliberately
+ * line-exact: a parameterized ref, another branch, another command or another
+ * workflow is reported as a functional-write capability.
+ */
+function isFixedEvidenceWriterOperation(filePath, line, patternId, root) {
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  if (rel !== '.github/workflows/kodjo-v2-transition.yml') return false;
+  const value = line.trim();
+  if (patternId === 'CONTENTS_WRITE') return value === 'contents: write';
+  if (patternId === 'GIT_BRANCH_CREATE') return value === 'git checkout -b evidence refs/remotes/origin/evidence';
+  if (patternId === 'GIT_COMMIT') return value === 'git commit -m "chore(evidence): append writer smoke ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"';
+  if (patternId === 'GIT_PUSH') return value === 'run: git push origin "HEAD:refs/heads/kodjo/protocol-evidence-v2"';
+  return false;
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -98,6 +114,7 @@ function main() {
       const code = line.split('#')[0];
       for (const p of PATTERNS) {
         if (!p.re.test(code)) continue;
+        if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (p.id === 'SHELL_EXECUTION' && SHELL_TRUE_EXEMPTIONS[rel]) {
           exemptionsUsed.add(rel);
           continue;
@@ -124,4 +141,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, main };
+module.exports = { collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, main };
