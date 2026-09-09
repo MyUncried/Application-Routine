@@ -1,0 +1,10 @@
+{
+  "schema_version": "kodjo.protocol.v2.evidence-receipt.0.6.9",
+  "target_branch": "kodjo/protocol-evidence-v2",
+  "canonical_base": "slices/WRITER-SMOKE/operations/run-34413989376-1/attempts/attempt-34413989376-1/implementation",
+  "deposited_members": [
+    "slices/WRITER-SMOKE/operations/run-34413989376-1/attempts/attempt-34413989376-1/implementation/development-report.md"
+  ],
+  "request_sha256": "83b8dec832f35741473de447119ac39acdc8463fb23ee96e2cadcad01002705d",
+  "writer_status": "DEPOSITED"
+}
