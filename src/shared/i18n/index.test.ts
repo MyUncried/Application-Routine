@@ -218,7 +218,15 @@ describe("strings", () => {
       label: "Durée totale de l’activité",
       accessibilityLabel: "Durée totale de l’activité",
       compactLabel: "Durée totale",
+      // T02-S02 (seconde recette visuelle, point 9) : variante BORNE
+      // MINIMALE, affichée en modes `Répétitions` et « À l'échec ».
+      compactLabelLowerBound: "Durée totale ≥",
+      accessibilityLabelLowerBound: "Durée totale minimale de l’activité",
     });
+    // Le glyphe `≥` est celui, unique, de toutes les bornes minimales de
+    // l'application — jamais une écriture concurrente.
+    expect(strings.screens.exercise.totalDuration.compactLabelLowerBound).toContain("≥");
+    expect(strings.screens.exercise.recap.minimumDurationLabel).not.toContain("≥");
   });
 
   it("T02-S02 — exposes the total-duration adjustment message with a {duration} placeholder (RM-130)", () => {

@@ -222,6 +222,53 @@ describe("insertActivityInZone", () => {
     expect(ids(composed)).toEqual(["before-1", "in-1", "after-1"]);
   });
 
+  /**
+   * **T02-S02 (seconde recette visuelle, point 1)** — la collection n'est pas
+   * nécessairement CONTIGUË par zone : `moveActivity` la réordonne, et
+   * `[in-1, before-1]` est une Composition parfaitement légitime.
+   *
+   * La règle précédente cherchait la PREMIÈRE Activité d'une zone
+   * postérieure ; sur une collection non contiguë, elle plaçait la nouvelle
+   * Activité `BEFORE_TOUR` avant `in-1`, donc AVANT `before-1` — en tête de
+   * sa zone, immédiatement sous le `Compte à rebours initial`, exactement le
+   * symptôme relevé par la recette. Chercher la DERNIÈRE de sa propre zone
+   * est vrai quelle que soit la disposition de la collection.
+   */
+  it("still appends after the last Activity of its zone when the collection is NOT contiguous by zone", () => {
+    const reordered = [anActivity("in-1", "IN_TOUR"), anActivity("before-1", "BEFORE_TOUR")];
+
+    expect(ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR")))).toEqual([
+      "in-1",
+      "before-1",
+      "before-2",
+    ]);
+    // Et jamais en tête de sa zone.
+    expect(
+      ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR"))).indexOf(
+        "before-2",
+      ),
+    ).toBeGreaterThan(
+      ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR"))).indexOf(
+        "before-1",
+      ),
+    );
+  });
+
+  it("appends after the last of its zone even when a later zone's Activity sits BEFORE it in the collection", () => {
+    const reordered = [
+      anActivity("after-1", "AFTER_TOUR"),
+      anActivity("in-1", "IN_TOUR"),
+      anActivity("in-2", "IN_TOUR"),
+    ];
+
+    expect(ids(insertActivityInZone(reordered, anActivity("in-3", "IN_TOUR")))).toEqual([
+      "after-1",
+      "in-1",
+      "in-2",
+      "in-3",
+    ]);
+  });
+
   it("handles an empty composition", () => {
     expect(ids(insertActivityInZone([], anActivity("in-1", "IN_TOUR")))).toEqual(["in-1"]);
   });

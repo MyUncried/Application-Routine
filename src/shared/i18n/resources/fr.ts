@@ -312,10 +312,19 @@ export const fr = {
         accessibilityLabel: "Récupération après les Séries",
         compactLabel: "Récupération",
       },
+      // T02-S02 (seconde recette visuelle, point 9) : en modes `Répétitions`
+      // et « À l'échec », la Durée totale reste AFFICHÉE mais devient une
+      // BORNE MINIMALE non modifiable — la durée d'une Série y est inconnue.
+      // Le `≥` du libellé dit exactement cela ; il reprend le glyphe déjà
+      // employé par toutes les bornes minimales de l'application
+      // (`recap.minimumDurationLabel`, synthèses du Catalogue et du Tour),
+      // jamais une écriture concurrente.
       totalDuration: {
         label: "Durée totale de l’activité",
         accessibilityLabel: "Durée totale de l’activité",
         compactLabel: "Durée totale",
+        compactLabelLowerBound: "Durée totale ≥",
+        accessibilityLabelLowerBound: "Durée totale minimale de l’activité",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",

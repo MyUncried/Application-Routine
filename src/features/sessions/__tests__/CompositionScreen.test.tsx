@@ -1736,12 +1736,18 @@ function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, h
  * `touchStart`, franchissement du seuil, PUIS relâche. La relâche est
  * indispensable — c'est elle, et elle seule, qui applique le balayage
  * (« balayage gauche achevé … puis balayage droit les masquant »).
+ *
+ * **Seconde recette (point 3)** : le mouvement est joué par `touchMove`,
+ * PAS par `responderMove`. C'est le cas réel du défaut — un balayage dont le
+ * conteneur n'obtient jamais le responder, parce qu'un `Pressable` interne
+ * (les actions révélées) le détient. `touchMove` est dispatché à la vue
+ * touchée et à tous ses ancêtres, indépendamment du responder.
  */
 function fireSwipe(activityId: string, deltaX: number) {
   const container = () => screen.getByTestId(`composition-activity-${activityId}`);
   const startX = 300;
   fireEvent(container(), "touchStart", { nativeEvent: { pageX: startX, pageY: 100 } });
-  fireEvent(container(), "responderMove", {
+  fireEvent(container(), "touchMove", {
     nativeEvent: { pageX: startX + deltaX, pageY: 100 },
   });
   fireEvent(container(), "touchEnd", { nativeEvent: { pageX: startX + deltaX, pageY: 100 } });
@@ -2150,6 +2156,78 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(container().props.onResponderTerminationRequest()).toBe(false);
   });
 
+  /**
+   * **T02-S02 (seconde recette visuelle, point 3)** — CAUSE RÉELLE du
+   * balayage droit inopérant.
+   *
+   * Le sens du balayage n'était mémorisé que par des gestionnaires
+   * DÉPENDANTS DU RESPONDER (`onMoveShouldSetResponderCapture`,
+   * `onResponderMove`). Or, une fois les actions révélées, le balayage droit
+   * commence SUR le groupe d'actions superposé, dont les `Pressable`
+   * revendiquent le responder dès le contact : le conteneur ne l'obtenait
+   * jamais, rien n'était mémorisé, et `onTouchEnd` n'avait rien à appliquer.
+   *
+   * `onTouchMove` est dispatché à la vue touchée ET à tous ses ancêtres,
+   * indépendamment du responder — c'est la seule voie qui reste vraie dans ce
+   * cas. Le scénario ci-dessous ne joue QUE des événements de toucher :
+   * aucun `responderMove`, aucun `responderRelease`.
+   */
+  it("hides the actions from touch events ALONE, without the container ever holding the responder", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("reveals the actions from touch events alone too — both directions share the same responder-independent path", () => {
+    renderTwo();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+  });
+
+  /**
+   * Un responder repris par le `ScrollView` parent ne doit plus EFFACER le
+   * balayage mémorisé : le toucher, lui, n'est pas terminé, et son
+   * `onTouchEnd` doit encore pouvoir l'appliquer.
+   */
+  it("keeps a completed swipe alive when the parent steals the responder mid-gesture", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 300, pageY: 100 } });
+    // Le responder est repris — le geste NE doit pas être perdu.
+    fireEvent(container(), "responderTerminate", {});
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("drops the pending swipe when the TOUCH itself is cancelled — no ghost action on the next release", () => {
+    renderTwo();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchCancel", {});
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
   it("lets the user reverse an in-flight swipe: only the LAST direction crossed is applied on release", () => {
     renderTwo();
 
@@ -2353,17 +2431,73 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     );
     expect(subCardStyle.paddingLeft).toBe(52);
 
-    // Gras : même échelle typographique que les lignes secondaires
-    // (`11/14`), graisse distincte.
+    // **T02-S02 (seconde recette visuelle, point 8)** : taille AUGMENTÉE —
+    // `compactCardTitle` (`14/18`) au lieu de `11/14` — à graisse et
+    // alignement STRICTEMENT conservés.
     const labelStyle = StyleSheet.flatten(
       within(screen.getByTestId("composition-activity-recovery-ex-1")).getByText(
         "Récupération 1 min 30 s",
       ).props.style,
     );
-    expect(labelStyle.fontWeight).toBe(type.captionStrong.fontWeight);
-    expect(labelStyle.fontSize).toBe(type.caption.fontSize);
-    expect(labelStyle.lineHeight).toBe(type.caption.lineHeight);
+    expect(labelStyle.fontSize).toBe(type.compactCardTitle.fontSize);
+    expect(labelStyle.lineHeight).toBe(type.compactCardTitle.lineHeight);
+    expect(labelStyle.fontSize).toBeGreaterThan(type.caption.fontSize);
+    // Graisse inchangée (semi-bold), et toujours distincte des lignes
+    // secondaires régulières.
+    expect(labelStyle.fontWeight).toBe(type.compactCardTitle.fontWeight);
     expect(labelStyle.fontWeight).not.toBe(type.caption.fontWeight);
+    // La ligne tient toujours dans la sous-carte de `24` points, dont la
+    // géométrie reste inchangée.
+    expect(labelStyle.lineHeight).toBeLessThanOrEqual(
+      dimensions.compositionActivityRow.recoveryCardHeight,
+    );
+  });
+
+  /**
+   * **T02-S02 (seconde recette visuelle, point 7)** : marges intérieures
+   * haute et basse RÉDUITES D'UN TIERS. Les marges horizontales et la
+   * géométrie du bloc restent inchangées.
+   */
+  it("reduces the Activity card's top and bottom inner padding by a third, leaving every other geometry untouched", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })]);
+
+    const mainCardStyle = StyleSheet.flatten(
+      screen.getByTestId("composition-activity-main-card").props.style,
+    );
+
+    // `8 × 2/3 = 5,33`, arrondi au point entier.
+    expect(mainCardStyle.paddingVertical).toBe(Math.round((spacing[8] * 2) / 3));
+    expect(mainCardStyle.paddingVertical).toBe(5);
+    expect(mainCardStyle.paddingVertical).toBeLessThan(spacing[8]);
+
+    // Marges HORIZONTALES et écart interne strictement conservés.
+    expect(mainCardStyle.paddingHorizontal).toBe(spacing[16]);
+    expect(mainCardStyle.gap).toBe(spacing[8]);
+
+    // Géométrie du bloc inchangée : `354 × 69` sans Récupération.
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).height,
+    ).toBe(69);
+  });
+
+  it("lets the card's three lines fit within its fixed height once the padding is reduced", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+    ]);
+
+    const padding = StyleSheet.flatten(
+      screen.getByTestId("composition-activity-main-card").props.style,
+    ).paddingVertical as number;
+
+    // Nom (`16/20`) + Zones (`11/14`) + synthèse (`11/14`) et leurs deux
+    // écarts de `2` = `52` points de contenu. Avec l'ancienne marge de `8`,
+    // l'ensemble atteignait `68` pour `67` de hauteur utile (`69` moins les
+    // deux liserés du bloc) et débordait d'un point.
+    const contentHeight =
+      type.cardTitle.lineHeight + type.caption.lineHeight * 2 + spacing[2] * 2;
+    const usableHeight = dimensions.compositionActivityRow.restHeight - 2;
+    expect(contentHeight + padding * 2).toBeLessThanOrEqual(usableHeight);
+    expect(contentHeight + spacing[8] * 2).toBeGreaterThan(usableHeight);
   });
 
   it("keeps the sub-card INSIDE the single pressable block — one Activity is never two rows", () => {

@@ -341,6 +341,19 @@ export function ExerciseScreen() {
     local.seriesCount,
     totalDurationFacts(local),
   );
+  const formattedTotalDuration = formatDurationRowValue(
+    totalDurationSeconds,
+    Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
+  );
+  /**
+   * La `Durée totale` ne PILOTE le nombre de Séries qu'en mode `Durée`
+   * (T02-S02, seconde recette, point 9) : ailleurs, `A` — la durée d'une
+   * Série — est inconnue, le calcul inverse n'a pas de sens et le champ
+   * devient purement informatif. Un seul prédicat gouverne à la fois le
+   * composant rendu ET l'existence de la roulette associée : les deux ne
+   * peuvent donc pas diverger.
+   */
+  const isTotalDurationDriveable = local.executionMode === "DURATION";
 
   return (
     <ScreenShell>
@@ -526,10 +539,12 @@ export function ExerciseScreen() {
                   />
                 ) : null}
                 {local.executionMode === "TO_FAILURE" ? (
-                  <ToFailureField
+                  <StaticParameterField
                     testID="exercise-field-toFailure"
                     width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={null}
                     value={t.executionMode.toFailure}
+                    accessibilityLabel={t.executionMode.toFailure}
                   />
                 ) : null}
                 <ParameterField
@@ -564,23 +579,46 @@ export function ExerciseScreen() {
                   isOpen={openOverlay === "recoverySeconds"}
                   onPress={() => toggleOverlay("recoverySeconds")}
                 />
-                <ParameterField
-                  testID="exercise-field-totalDuration"
-                  width={dimensions.exerciseParameterRow.wideColumnWidth}
-                  label={t.totalDuration.compactLabel}
-                  accessibilityLabel={t.totalDuration.accessibilityLabel}
-                  // La durée CALCULÉE peut légitimement dépasser la borne de
-                  // la roulette (jusqu'à 99 Séries de 99 min 59 s) : elle est
-                  // AFFICHÉE intégralement, la borne ne s'appliquant qu'à la
-                  // valeur saisissable — limite disclosée dans
-                  // `wheelPickerMath.ts`.
-                  value={formatDurationRowValue(
-                    totalDurationSeconds,
-                    Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
-                  )}
-                  isOpen={openOverlay === "totalDuration"}
-                  onPress={() => toggleOverlay("totalDuration")}
-                />
+                {/*
+                 * **`Durée totale` — pilote en mode Durée, INFORMATIVE
+                 * sinon** (T02-S02, seconde recette, point 9).
+                 *
+                 * En modes `Répétitions` et « À l'échec », la durée d'une
+                 * Série est inconnue : le calcul inverse n'a alors aucun
+                 * sens et la Durée totale ne peut plus piloter les Séries.
+                 * Elle reste néanmoins AFFICHÉE — c'est une information
+                 * utile — sous forme d'une BORNE MINIMALE, non modifiable :
+                 * libellé `Durée totale ≥`, fond transparent, texte violet,
+                 * aucun chevron, aucune ouverture de roulette. Cette règle
+                 * remplace la demande antérieure de MASQUER ce champ dans
+                 * ces deux modes : masquer privait l'utilisateur d'une
+                 * information qu'il peut lire mais pas fixer.
+                 *
+                 * La durée CALCULÉE peut légitimement dépasser la borne de
+                 * la roulette (jusqu'à 99 Séries de 99 min 59 s) : elle est
+                 * AFFICHÉE intégralement, la borne ne s'appliquant qu'à la
+                 * valeur saisissable — limite disclosée dans
+                 * `wheelPickerMath.ts`.
+                 */}
+                {isTotalDurationDriveable ? (
+                  <ParameterField
+                    testID="exercise-field-totalDuration"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={t.totalDuration.compactLabel}
+                    accessibilityLabel={t.totalDuration.accessibilityLabel}
+                    value={formattedTotalDuration}
+                    isOpen={openOverlay === "totalDuration"}
+                    onPress={() => toggleOverlay("totalDuration")}
+                  />
+                ) : (
+                  <StaticParameterField
+                    testID="exercise-field-totalDuration"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={t.totalDuration.compactLabelLowerBound}
+                    value={formattedTotalDuration}
+                    accessibilityLabel={t.totalDuration.accessibilityLabelLowerBound}
+                  />
+                )}
               </View>
             </View>
           </View>
@@ -610,35 +648,54 @@ export function ExerciseScreen() {
        * Action finale unique (D-137) : `Terminer`. L'ancien `Valider`, qui
        * ne faisait que passer à l'étape 2, n'a plus d'objet — l'écran unifié
        * n'a plus d'étape intermédiaire.
+       *
+       * **T02-S02 (seconde recette visuelle, points 5 et 6)** — l'action est
+       * désormais enveloppée dans un conteneur de POSITIONNEMENT
+       * (`finishActionSlot`), qui n'ajoute aucune surface visible et porte
+       * deux rôles :
+       *
+       * 1. sa marge haute (`spacing/16`) crée l'espace vertical VISIBLE
+       *    demandé entre le cadre de synthèse et le bouton — les deux se
+       *    touchaient jusqu'ici ;
+       * 2. il sert de repère de position à la notification temporaire, qui
+       *    le recouvre EXACTEMENT (`position: "absolute"`, quatre côtés à
+       *    zéro) : la notification est donc centrée verticalement sur le
+       *    bouton et le masque le temps de son affichage, sans qu'aucune
+       *    coordonnée ne soit calculée ni recopiée.
        */}
-      <Pressable
-        disabled={!activityValid}
-        onPress={handleTerminer}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !activityValid }}
-        accessibilityLabel={t.finishAction}
-        style={[
-          styles.primaryAction,
-          { marginBottom: insets.bottom + spacing[16] },
-          !activityValid ? styles.primaryActionDisabled : null,
-        ]}
+      <View
+        style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]}
+        testID="exercise-finish-action-slot"
       >
-        <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
-      </Pressable>
+        <Pressable
+          disabled={!activityValid}
+          onPress={handleTerminer}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !activityValid }}
+          accessibilityLabel={t.finishAction}
+          style={[
+            styles.primaryAction,
+            !activityValid ? styles.primaryActionDisabled : null,
+          ]}
+        >
+          <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
+        </Pressable>
 
-      {/*
-       * **Notification noire temporaire** (D-136, RM-010) — remplace le texte
-       * permanent inséré dans le corps défilant : elle est superposée (ne
-       * déplace aucun contenu), s'efface d'elle-même et porte l'action
-       * `Annuler`, qui restitue le nombre de Séries d'avant l'ajustement.
-       */}
-      <TransientNotification
-        message={adjustment?.message ?? null}
-        actionLabel={t.adjustedTotalDurationUndoAction}
-        onAction={handleUndoAdjustment}
-        onDismiss={() => setAdjustment(null)}
-        testID="exercise-adjustment-notification"
-      />
+        {/*
+         * **Notification noire temporaire** (D-136, RM-010) — remplace le
+         * texte permanent inséré dans le corps défilant : elle est
+         * superposée (ne déplace aucun contenu), s'efface d'elle-même et
+         * porte l'action `Annuler`, qui restitue le nombre de Séries d'avant
+         * l'ajustement.
+         */}
+        <TransientNotification
+          message={adjustment?.message ?? null}
+          actionLabel={t.adjustedTotalDurationUndoAction}
+          onAction={handleUndoAdjustment}
+          onDismiss={() => setAdjustment(null)}
+          testID="exercise-adjustment-notification"
+        />
+      </View>
 
       {/*
        * Superposition plein écran TRANSVERSALE partagée par les six
@@ -720,7 +777,15 @@ export function ExerciseScreen() {
             validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
           />
         ) : null}
-        {openOverlay === "totalDuration" ? (
+        {/*
+         * `isTotalDurationDriveable` conditionne AUSSI la roulette, pas
+         * seulement le contrôle fermé : « aucune roulette associée » dans
+         * les modes non chronométrés (T02-S02, seconde recette, point 9).
+         * Le même prédicat gouverne les deux — aucun état d'ouverture
+         * résiduel ne peut donc faire réapparaître une roulette qu'aucun
+         * contrôle ne sait plus ouvrir.
+         */}
+        {openOverlay === "totalDuration" && isTotalDurationDriveable ? (
           <DurationWheelPicker
             totalSeconds={Math.min(totalDurationSeconds, WHEEL_TOTAL_DURATION_SECONDS_MAX)}
             onValidate={handleTotalDurationConfirmed}
@@ -815,6 +880,16 @@ function CollapsibleSection({
  * (`select-field-chevron`).
  */
 /**
+ * Contenu du libellé de RÉSERVATION d'une colonne sans libellé propre
+ * (« À l'échec », `Durée totale` informative). Une espace insécable produit
+ * exactement UNE ligne, aux métriques identiques à celles de n'importe quel
+ * libellé de colonne réel — la hauteur réservée est donc mesurée par le
+ * moteur de texte, jamais présumée. Un `Text` VIDE, lui, peut se réduire à
+ * une hauteur nulle.
+ */
+const LABEL_PLACEHOLDER = " ";
+
+/**
  * Complément vertical portant la cible tactile d'un contrôle de paramètre de
  * `42` (hauteur visible canonique) à `minTouchTarget` (`48`). Dérivé, jamais
  * codé en dur : ajuster l'une des deux valeurs canoniques recalcule le
@@ -876,41 +951,69 @@ function ParameterField({
 }
 
 /**
- * Badge statique du mode « À l'échec » (correctif T02, 2026-09-08, point
- * 4) — occupe exactement l'emplacement du contrôle `Durée`/`Répétitions`
- * dans `Activity / Parameter Row`, mais sans chevron ni action : ce mode ne
- * porte aucune cible chiffrée à ouvrir (D-111), rien n'y est sélectionnable.
+ * Colonne INFORMATIVE de `Activity / Parameter Row` — même géométrie qu'une
+ * `ParameterField`, mais rien n'y est modifiable : aucun `Pressable`, aucun
+ * chevron, aucune roulette associée, fond transparent et valeur en violet
+ * (`colors.selection`). Deux usages :
  *
- * **T02-S02 (continuation après recette visuelle)** : il n'a pas de libellé
- * au-dessus, contrairement à `Séries` et `Pause` — son cadre se posait donc
- * en HAUT de la colonne, visiblement décalé de ses voisins, que leur libellé
- * pousse vers le bas. Une CALE de la hauteur exacte d'un libellé rétablit
- * l'alignement : la colonne a désormais la même structure interne qu'une
- * `ParameterField` (bloc supérieur + écart + cadre), donc la même position
- * de cadre par construction — jamais un alignement approché.
+ * - le badge du mode « À l'échec » (D-111 : ce mode ne porte aucune cible
+ *   chiffrée à ouvrir), rendu SANS libellé ;
+ * - la `Durée totale` des modes `Répétitions` et « À l'échec » (T02-S02,
+ *   seconde recette, point 9) : elle reste AFFICHÉE — c'est une information
+ *   utile, une borne minimale — mais ne peut plus piloter le nombre de
+ *   Séries, faute de durée d'Exercice connue. Son libellé porte le `≥` qui
+ *   dit exactement cela.
  *
- * Son fond devient par ailleurs TRANSPARENT : la surface blanche des
- * `Forms / Select Field` est réservée aux contrôles réellement ouvrables.
+ * **Alignement vertical (seconde recette, point 2)** — la cale de hauteur
+ * FIXE posée à la continuation précédente ne suffisait pas : elle présumait
+ * qu'un `Text` de style `parameterColumnLabel` occupe exactement sa
+ * `lineHeight`, ce que la mesure réelle du moteur de texte ne garantit pas.
+ * Toute différence, même d'un point, décale visiblement cette colonne de ses
+ * voisines. Une colonne sans libellé rend donc un `Text` RÉEL, du même style
+ * et sur une seule ligne : la structure interne devient identique à celle
+ * d'une `ParameterField` — même nœud, mêmes métriques de police, même
+ * hauteur MESURÉE — et l'alignement est vrai par construction. Ce texte ne
+ * porte aucun contenu lisible et est retiré de l'arbre d'accessibilité :
+ * c'est une réservation de place, jamais un libellé fantôme.
  */
-function ToFailureField({
+function StaticParameterField({
   testID,
   width,
+  label,
   value,
+  accessibilityLabel,
 }: {
   testID: string;
   width: number;
+  /** `null` : colonne sans libellé — une réservation de place est rendue à sa place. */
+  label: string | null;
   value: string;
+  accessibilityLabel: string;
 }) {
   return (
     <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
-      <View style={styles.toFailureLabelSpacer} testID={`${testID}-label-spacer`} />
+      {label === null ? (
+        <Text
+          style={styles.parameterLabel}
+          numberOfLines={1}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          testID={`${testID}-label-spacer`}
+        >
+          {LABEL_PLACEHOLDER}
+        </Text>
+      ) : (
+        <Text style={styles.parameterLabel} numberOfLines={1}>
+          {label}
+        </Text>
+      )}
       <View
         style={[styles.parameterControl, styles.parameterControlStatic, { width }]}
         accessibilityRole="text"
-        accessibilityLabel={value}
+        accessibilityLabel={accessibilityLabel}
         testID={`${testID}-control`}
       >
-        <Text style={styles.parameterValueToFailure} numberOfLines={1}>
+        <Text style={styles.parameterValueStatic} numberOfLines={1}>
           {value}
         </Text>
       </View>
@@ -1116,14 +1219,6 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.exerciseParameterValueText,
   },
-  // T02-S02 (continuation) : cale de la hauteur EXACTE d'un libellé de
-  // colonne, occupant la place que `Séries` et `Pause` donnent au leur. La
-  // colonne « À l'échec » retrouve ainsi la structure interne d'une
-  // `ParameterField` — bloc supérieur, écart, cadre — donc la même position
-  // de cadre, sans dépendre d'un alignement approché.
-  toFailureLabelSpacer: {
-    height: type.parameterColumnLabel.lineHeight,
-  },
   // Fond TRANSPARENT (et non blanc) : ce cadre n'est pas un contrôle
   // ouvrable, rien n'y est sélectionnable (D-111) — il ne doit donc pas
   // reprendre la surface blanche des `Forms / Select Field` réellement
@@ -1132,7 +1227,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
   },
-  parameterValueToFailure: {
+  // Valeur d'une colonne INFORMATIVE (badge « À l'échec », `Durée totale`
+  // des modes non chronométrés) : violet `colors.selection`, seul token
+  // « violet » canonique du DSF — jamais la couleur d'une valeur
+  // modifiable, précisément pour que la différence se voie.
+  parameterValueStatic: {
     ...type.label,
     color: colors.selection,
   },
@@ -1201,9 +1300,24 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.textPrimary,
   },
-  primaryAction: {
+  //
+  // T02-S02 (seconde recette visuelle, points 5 et 6) : conteneur de
+  // POSITIONNEMENT de l'action finale — aucune surface visible propre.
+  //
+  // - `marginTop` crée l'espace vertical VISIBLE entre le cadre de synthèse
+  //   et le bouton, qui se touchaient jusqu'ici ;
+  // - `position: "relative"` en fait le repère de la notification temporaire
+  //   qu'il héberge, laquelle le recouvre exactement — donc recouvre le
+  //   bouton, centrée verticalement sur lui ;
+  // - les marges horizontale et basse, jusqu'ici portées par le bouton,
+  //   REMONTENT ici sans changer de valeur : la géométrie du bouton est
+  //   rigoureusement conservée, seul son porteur de marges change.
+  finishActionSlot: {
+    position: "relative",
+    marginTop: spacing[16],
     marginHorizontal: spacing[24],
-    marginBottom: spacing[16],
+  },
+  primaryAction: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: spacing[12],

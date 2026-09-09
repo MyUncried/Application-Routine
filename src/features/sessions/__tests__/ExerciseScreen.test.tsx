@@ -672,22 +672,36 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
   });
 
   /**
-   * **T02-S02 (continuation après recette visuelle)** : le badge n'a pas de
-   * libellé au-dessus, contrairement à `Séries` et `Pause`. Sans consigne
-   * d'alignement, son cadre se posait en HAUT de la colonne, visiblement
-   * décalé des deux autres contrôles.
+   * **T02-S02 (seconde recette visuelle, point 2)** — le cadre devait
+   * REMONTER. La cale de hauteur FIXE posée à la continuation précédente
+   * présumait qu'un `Text` de style `parameterColumnLabel` occupe exactement
+   * sa `lineHeight` ; la mesure réelle du moteur de texte ne le garantit pas,
+   * d'où un décalage résiduel visible. La réservation est désormais un `Text`
+   * RÉEL du MÊME style : mêmes métriques, donc même hauteur mesurée que le
+   * libellé de `Séries`/`Pause`, et alignement vrai par construction.
    */
   it("aligns the À l'échec badge on the SAME baseline as Séries and Pause, and makes its background transparent", () => {
     renderScreen(null);
     fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
 
-    // La colonne réserve, au-dessus du cadre, la hauteur EXACTE d'un libellé
-    // de colonne : sa structure interne devient identique à celle des
-    // colonnes `Séries`/`Pause`, donc la position de son cadre aussi.
-    const spacerStyle = StyleSheet.flatten(
-      screen.getByTestId("exercise-field-toFailure-label-spacer").props.style,
+    // Réservation de place = un `Text` du MÊME style que les libellés
+    // voisins, et non une boîte de hauteur devinée.
+    const spacer = screen.getByTestId("exercise-field-toFailure-label-spacer", {
+      includeHiddenElements: true,
+    });
+    expect(spacer.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(spacer.props.style)).toEqual(
+      StyleSheet.flatten(
+        within(screen.getByTestId("exercise-field-pauseSeconds")).getByText(
+          t.pauseSeconds.compactLabel,
+        ).props.style,
+      ),
     );
-    expect(spacerStyle.height).toBe(type.parameterColumnLabel.lineHeight);
+    // Aucun contenu lisible, et retiré de l'arbre d'accessibilité : c'est une
+    // réservation de place, jamais un libellé fantôme.
+    expect(String(spacer.props.children).trim()).toBe("");
+    expect(spacer.props.accessible).toBe(false);
+
     // Même écart libellé/cadre que ses voisines.
     expect(
       StyleSheet.flatten(screen.getByTestId("exercise-field-toFailure").props.style).gap,
@@ -708,6 +722,104 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
       StyleSheet.flatten(screen.getByTestId("exercise-field-pauseSeconds-control").props.style)
         .height,
     );
+  });
+});
+
+/**
+ * **T02-S02 (seconde recette visuelle, point 9)** — `Durée totale` reste
+ * AFFICHÉE dans les modes non chronométrés, mais purement INFORMATIVE : la
+ * durée d'une Série y est inconnue, le calcul inverse n'a donc aucun sens.
+ * Cette règle remplace la demande antérieure de MASQUER ce champ.
+ */
+describe("ExerciseScreen — Durée totale informative en Répétitions et À l'échec (T02-S02)", () => {
+  const nonTimedModes = [
+    ["Répétitions", () => strings.screens.exercise.executionMode.repetitions] as const,
+    ["À l'échec", () => strings.screens.exercise.executionMode.toFailure] as const,
+  ];
+
+  for (const [modeName, modeLabel] of nonTimedModes) {
+    it(`keeps Durée totale VISIBLE in ${modeName} mode, labelled with the ≥ lower bound`, () => {
+      renderScreen(null);
+      fireEvent.press(screen.getByLabelText(modeLabel()));
+
+      const field = screen.getByTestId("exercise-field-totalDuration");
+      expect(field).toBeTruthy();
+      expect(within(field).getByText(t.totalDuration.compactLabelLowerBound)).toBeTruthy();
+      expect(t.totalDuration.compactLabelLowerBound).toBe("Durée totale ≥");
+      // Le libellé du mode Durée n'est plus celui affiché.
+      expect(within(field).queryByText(t.totalDuration.compactLabel)).toBeNull();
+    });
+
+    it(`makes Durée totale non-modifiable in ${modeName} mode: no chevron, no press, no wheel`, () => {
+      renderScreen(null);
+      fireEvent.press(screen.getByLabelText(modeLabel()));
+
+      const control = screen.getByTestId("exercise-field-totalDuration-control");
+      // Ni bouton, ni geste : il n'y a RIEN à presser — le champ n'expose
+      // aucun gestionnaire, donc aucune roulette ne peut s'ouvrir.
+      expect(control.props.accessibilityRole).not.toBe("button");
+      expect(control.props.onPress).toBeUndefined();
+      expect(control.props.onStartShouldSetResponder).toBeUndefined();
+      // Aucun chevron.
+      expect(screen.queryByTestId("exercise-field-totalDuration-chevron")).toBeNull();
+      expect(screen.queryByTestId("exercise-field-totalDuration-chevron-box")).toBeNull();
+
+      // Aucune roulette associée n'est montée.
+      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+      expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    });
+
+    it(`renders Durée totale with a transparent background and violet text in ${modeName} mode`, () => {
+      renderScreen(null);
+      fireEvent.press(screen.getByLabelText(modeLabel()));
+
+      const controlStyle = StyleSheet.flatten(
+        screen.getByTestId("exercise-field-totalDuration-control").props.style,
+      );
+      expect(controlStyle.backgroundColor).toBe("transparent");
+      expect(controlStyle.backgroundColor).not.toBe(colors.background);
+
+      // Texte violet — le seul token « violet » canonique du DSF.
+      const value = within(screen.getByTestId("exercise-field-totalDuration-control")).getByText(
+        /min/u,
+      );
+      expect(StyleSheet.flatten(value.props.style).color).toBe(colors.selection);
+    });
+  }
+
+  it("keeps the value informative and up to date — it still reflects the derived total", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Squats",
+      executionMode: "REPETITIONS",
+      repetitionCount: 12,
+      durationSeconds: null,
+      seriesCount: 3,
+      pauseSeconds: 20,
+    });
+
+    // Aucune durée d'Exercice : 3 × 20 = 60 s de Pause.
+    expect(
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("01 min 00 s"),
+    ).toBeTruthy();
+  });
+
+  it("restores the fully interactive Durée totale as soon as the Durée mode is selected again", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+    expect(screen.queryByTestId("exercise-field-totalDuration-chevron")).toBeNull();
+
+    fireEvent.press(screen.getByLabelText(t.executionMode.duration));
+
+    const control = screen.getByTestId("exercise-field-totalDuration-control");
+    expect(control.props.accessibilityRole).toBe("button");
+    expect(screen.getByTestId("exercise-field-totalDuration-chevron")).toBeTruthy();
+    expect(within(screen.getByTestId("exercise-field-totalDuration")).getByText(
+      t.totalDuration.compactLabel,
+    )).toBeTruthy();
+
+    fireEvent.press(control);
+    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
   });
 });
 
@@ -1130,6 +1242,65 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     // Plus aucun message permanent dans le corps de l'écran.
     expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
     expect(within(screen.getByTestId("exercise-body")).queryByText(/Durée ajustée/u)).toBeNull();
+  });
+
+  /**
+   * **T02-S02 (seconde recette visuelle, point 5)** : la notification doit
+   * être exactement centrée verticalement SUR le bouton `Terminer`, qu'elle
+   * masque le temps de son affichage.
+   */
+  it("covers the Terminer button exactly, centred on it — never anchored to the screen bottom", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 30);
+
+    // Elle est rendue DANS le conteneur qui porte l'action finale : c'est ce
+    // parent, et lui seul, qui définit sa position.
+    const slot = screen.getByTestId("exercise-finish-action-slot");
+    const notification = within(slot).getByTestId("exercise-adjustment-notification");
+    expect(within(slot).getByLabelText(t.finishAction)).toBeTruthy();
+
+    // Recouvrement EXACT du conteneur — donc du bouton, et centré sur lui.
+    const style = StyleSheet.flatten(notification.props.style);
+    expect(style.position).toBe("absolute");
+    expect(style.top).toBe(0);
+    expect(style.bottom).toBe(0);
+    expect(style.left).toBe(0);
+    expect(style.right).toBe(0);
+    expect(style.alignItems).toBe("center");
+    // Elle passe au-dessus du bouton qu'elle masque.
+    expect(style.zIndex).toBeGreaterThan(0);
+  });
+
+  /**
+   * **T02-S02 (seconde recette visuelle, point 6)** : un espace vertical
+   * VISIBLE sépare désormais le cadre de synthèse du bouton `Terminer`.
+   */
+  it("separates the summary card from the Terminer button with a visible vertical gap", () => {
+    renderScreen(null);
+
+    const slotStyle = StyleSheet.flatten(
+      screen.getByTestId("exercise-finish-action-slot").props.style,
+    );
+    expect(slotStyle.marginTop).toBeGreaterThan(0);
+    expect(slotStyle.marginTop).toBe(16);
+
+    // La géométrie du bouton lui-même est conservée : ses marges ont
+    // simplement remonté sur son conteneur.
+    const actionStyle = StyleSheet.flatten(screen.getByLabelText(t.finishAction).props.style);
+    expect(slotStyle.marginHorizontal).toBe(24);
+    expect(actionStyle.borderRadius).toBe(24);
+    expect(actionStyle.paddingVertical).toBe(12);
+    // Et l'espace bas (encoche incluse) reste appliqué une seule fois.
+    expect(slotStyle.marginBottom).toBeGreaterThanOrEqual(16);
+    expect(actionStyle.marginBottom).toBeUndefined();
   });
 
   it("Annuler on the notification restores the series count that preceded the adjustment, and closes it", () => {

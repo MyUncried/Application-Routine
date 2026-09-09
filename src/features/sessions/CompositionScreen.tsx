@@ -1147,6 +1147,38 @@ function CompositionActivityRow({
     [trackMovement],
   );
 
+  /**
+   * **T02-S02 (seconde recette visuelle, point 3)** — mémorisation du
+   * balayage INDÉPENDANTE du responder.
+   *
+   * `onTouchMove`, comme `onTouchStart`/`onTouchEnd`, est dispatché à la vue
+   * touchée ET à tous ses ancêtres, que le responder soit ou non détenu par
+   * cette carte. C'est la seule voie qui reste vraie dans le cas resté
+   * défaillant : lorsque les actions sont révélées, le balayage droit
+   * commence SUR le groupe d'actions superposé, dont les `Pressable`
+   * (`Dupliquer`/`Supprimer`) revendiquent le responder dès le contact. Les
+   * deux enregistrements précédents — `onMoveShouldSetResponderCapture` et
+   * `onResponderMove` — dépendent l'un et l'autre de l'obtention du
+   * responder par le conteneur : le sens du balayage n'était alors jamais
+   * mémorisé, et `onTouchEnd` n'avait rien à appliquer.
+   *
+   * Le dernier sens franchi l'emporte : l'utilisateur peut revenir sur son
+   * geste avant de relâcher.
+   */
+  const handleTouchMove = useCallback(
+    (event: GestureResponderEvent) => {
+      const { dx, dy } = trackMovement(event);
+      if (isDraggingRef.current) {
+        return;
+      }
+      const kind = classifyMovement(dx, dy);
+      if (isCompletedHorizontalSwipe(kind)) {
+        pendingSwipeRef.current = kind;
+      }
+    },
+    [trackMovement],
+  );
+
   const handleResponderMove = useCallback(
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
@@ -1156,8 +1188,6 @@ function CompositionActivityRow({
       }
       const kind = classifyMovement(dx, dy);
       if (isCompletedHorizontalSwipe(kind)) {
-        // Mémorisation seule : le dernier sens franchi l'emporte, ce qui
-        // permet à l'utilisateur de revenir sur son geste avant de relâcher.
         pendingSwipeRef.current = kind;
       }
     },
@@ -1224,16 +1254,31 @@ function CompositionActivityRow({
     [],
   );
 
+  /**
+   * Le responder est repris par une autre vue (typiquement le `ScrollView`
+   * parent). Le DÉPLACEMENT est annulé — aucun changement d'ordre
+   * (CE-T02-02) — mais le balayage mémorisé est **CONSERVÉ** : le toucher,
+   * lui, n'est pas terminé, et `onTouchEnd` (dispatché indépendamment du
+   * responder) l'appliquera. L'effacer ici perdait un balayage que
+   * l'utilisateur avait pourtant mené à son terme.
+   */
   const handleResponderTerminate = useCallback(() => {
-    originRef.current = null;
     setDragTranslationY(0);
-    pendingSwipeRef.current = null;
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      // Geste interrompu sans dépose : aucun changement d'ordre (CE-T02-02).
       onDragCancel();
     }
   }, [onDragCancel]);
+
+  /**
+   * Le TOUCHER lui-même est annulé (appel entrant, geste système…) : là, plus
+   * aucun `onTouchEnd` ne suivra — tout est remis à zéro, balayage compris.
+   */
+  const handleTouchCancel = useCallback(() => {
+    originRef.current = null;
+    pendingSwipeRef.current = null;
+    handleResponderTerminate();
+  }, [handleResponderTerminate]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
@@ -1271,8 +1316,9 @@ function CompositionActivityRow({
       style={[styles.activityRowContainer, isDragged ? styles.activityRowContainerDragged : null]}
       onLayout={onLayout}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleResponderTerminate}
+      onTouchCancel={handleTouchCancel}
       onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
       onResponderMove={handleResponderMove}
       onResponderRelease={handleResponderRelease}
@@ -1700,6 +1746,19 @@ function CompositionEditState({
 const COMPOSITION_ROW_GAP = spacing[6];
 
 /**
+ * **Marge intérieure verticale d'une carte d'Activité** (T02-S02, seconde
+ * recette visuelle, point 7) — l'ancienne valeur `spacing/8` RÉDUITE D'UN
+ * TIERS, arrondie au point entier le plus proche (`8 × 2/3 = 5,33 → 5`).
+ *
+ * Valeur DÉRIVÉE, jamais un littéral : la règle demandée (« réduire d'un
+ * tiers ») reste lisible dans le code, et `5` n'est pas un échelon de
+ * `spacing` — écart disclosé dans le rapport de mission, l'échelle DSF
+ * n'offrant que `4` (réduction de moitié) et `6` (réduction d'un quart), ni
+ * l'un ni l'autre égal au tiers demandé.
+ */
+const ACTIVITY_CARD_PADDING_VERTICAL = Math.round((spacing[8] * 2) / 3);
+
+/**
  * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
  * de sa hauteur visible canonique (`34`, D-130) à `minTouchTarget` (`48`).
  * Dérivé des deux constantes, jamais codé en dur.
@@ -1913,12 +1972,22 @@ const styles = StyleSheet.create({
   // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
   // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
   // hauteur canonique prime, elle est publiée par CE-T01-09.
+  //
+  // **T02-S02 (seconde recette visuelle, point 7)** : marges intérieures
+  // HAUTE et BASSE réduites d'un tiers (`ACTIVITY_CARD_PADDING_VERTICAL`).
+  // Le bloc ayant une hauteur FIXE (`69`/`93`), ces marges ne changent pas
+  // sa taille — elles rendent au contenu la place qui lui manquait : nom
+  // (`16/20`) + Zones corporelles (`11/14`) + synthèse (`11/14`) et leurs
+  // deux écarts de `2` totalisent `52`, contre `67` de hauteur utile ; avec
+  // `8` de marge haute et basse, l'ensemble atteignait `68` et débordait
+  // d'un point. Les marges HORIZONTALES et toutes les autres géométries
+  // validées restent strictement inchangées.
   activityMainCard: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: spacing[16],
-    paddingVertical: spacing[8],
+    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
     gap: spacing[8],
   },
   // Sous-carte `Récupération X min Y s` — `24` points attachés sous la carte
@@ -1950,12 +2019,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  // Graisse SEMI BOLD (`type.captionStrong`) : la recette visuelle demande un
-  // libellé `Récupération` en gras, pour le distinguer des deux lignes
-  // secondaires régulières de la carte principale. Dimensions strictement
-  // identiques à `type.caption` (`11/14`) — seule la graisse change.
+  // Graisse SEMI BOLD, pour distinguer le libellé `Récupération` des deux
+  // lignes secondaires régulières de la carte principale.
+  //
+  // **T02-S02 (seconde recette visuelle, point 8)** : taille AUGMENTÉE de
+  // `11/14` à `14/18` — `type.compactCardTitle`, token DSF déjà canonique
+  // (`KODJO / Card / Title`, `14/18` Semi Bold), plutôt qu'un nouveau token
+  // local. La graisse (`600`) et l'alignement à gauche sont strictement
+  // conservés ; seule la taille change. `18` de hauteur de ligne tient dans
+  // la sous-carte de `24` points, dont la géométrie est inchangée.
+  // `type.captionStrong`, introduit à la continuation précédente pour ce
+  // seul usage, est supprimé avec lui plutôt que laissé mort.
   activityRecoveryLabel: {
-    ...type.captionStrong,
+    ...type.compactCardTitle,
     color: colors.textSecondary,
   },
   // D-129/CE-T02-02 : état soulevé — `362 × 97` avec Récupération (contre

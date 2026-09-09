@@ -79,9 +79,34 @@ export function insertActivityInZone(
   const zoneRank = (zone: StructuralPosition): number => STRUCTURAL_ZONES.indexOf(zone);
   const targetRank = zoneRank(activity.structuralPosition);
 
-  // Premier élément appartenant à une zone STRICTEMENT postérieure : la
-  // nouvelle Activité se glisse juste avant lui, donc après la dernière de sa
-  // propre zone (les zones sont contiguës dans la collection).
+  // **Règle principale** : juste après la DERNIÈRE Activité de la même zone.
+  //
+  // Cette recherche par la fin remplace celle, indirecte, de la première
+  // Activité d'une zone postérieure — qui présupposait une collection
+  // CONTIGUË par zone. Or elle ne l'est pas nécessairement : déplacer une
+  // Activité (`moveActivity`) réordonne la collection, et une Composition
+  // comme `[in-1, before-1]` est parfaitement légitime. L'ancienne règle
+  // insérait alors la nouvelle Activité `BEFORE_TOUR` juste avant `in-1`,
+  // donc AVANT `before-1` — elle apparaissait en tête de sa zone,
+  // immédiatement sous le `Compte à rebours initial`, au lieu d'en fermer la
+  // liste. Chercher la dernière de sa propre zone est vrai quelle que soit
+  // la disposition de la collection.
+  let lastIndexInZone = -1;
+  for (let index = activities.length - 1; index >= 0; index -= 1) {
+    if (activities[index]!.structuralPosition === activity.structuralPosition) {
+      lastIndexInZone = index;
+      break;
+    }
+  }
+  if (lastIndexInZone !== -1) {
+    const next = [...activities];
+    next.splice(lastIndexInZone + 1, 0, activity);
+    return next;
+  }
+
+  // **Zone encore vide** : aucune Activité de référence — l'Activité se place
+  // avant la première d'une zone STRICTEMENT postérieure, et en fin de
+  // collection s'il n'en existe aucune.
   const firstLaterZoneIndex = activities.findIndex(
     (existing) => zoneRank(existing.structuralPosition) > targetRank,
   );

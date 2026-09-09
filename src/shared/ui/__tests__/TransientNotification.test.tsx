@@ -59,7 +59,27 @@ describe("TransientNotification", () => {
       screen.getByTestId("transient-notification").props.style,
     );
     expect(style.position).toBe("absolute");
-    expect(style.bottom).toBeDefined();
+  });
+
+  /**
+   * **T02-S02 (seconde recette visuelle, point 5)** : elle recouvre
+   * EXACTEMENT son parent — les quatre côtés à zéro — au lieu d'être ancrée
+   * au bas de l'écran. C'est le parent qui décide de sa position : l'écran
+   * Activité l'enveloppe autour de son bouton `Terminer`, elle y est donc
+   * centrée verticalement et le masque, sans qu'aucune coordonnée ne soit
+   * calculée ni recopiée depuis la géométrie du bouton.
+   */
+  it("covers its parent exactly, on all four sides, and centres its content vertically", () => {
+    render(<TransientNotification {...renderProps()} />);
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId("transient-notification").props.style,
+    );
+    expect(style.top).toBe(0);
+    expect(style.bottom).toBe(0);
+    expect(style.left).toBe(0);
+    expect(style.right).toBe(0);
+    expect(style.alignItems).toBe("center");
   });
 
   it("keeps a real touch target on its action", () => {

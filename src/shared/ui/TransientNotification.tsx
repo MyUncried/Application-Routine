@@ -49,6 +49,14 @@ export type TransientNotificationProps = {
  * donc à AUCUNE mise en page et ne déplace jamais le contenu qu'il recouvre
  * — exigence explicite de la recette (« ne pas conserver ce message en
  * permanence dans l'écran »).
+ *
+ * **T02-S02 (seconde recette visuelle, point 5)** — il RECOUVRE désormais
+ * exactement son parent (quatre côtés à zéro) au lieu d'être ancré au bas de
+ * l'écran. C'est le parent qui décide de la position : dans l'écran Activité,
+ * il enveloppe l'action `Terminer`, la notification est donc centrée
+ * verticalement sur ce bouton et le masque le temps de son affichage,
+ * exactement comme demandé — sans qu'aucune coordonnée ne soit calculée, ni
+ * recopiée depuis la géométrie du bouton.
  */
 export function TransientNotification({
   message,
@@ -92,14 +100,21 @@ export function TransientNotification({
 
 const styles = StyleSheet.create({
   // Superposée, jamais dans le flux : `position: "absolute"` garantit qu'elle
-  // ne repousse aucun contenu. Ancrée en bas de la zone utile de l'écran
-  // hôte, au-dessus de l'action finale — `bottom` est repris du même token
-  // d'espacement que les marges d'action des écrans de ce projet.
+  // ne repousse aucun contenu.
+  //
+  // T02-S02 (seconde recette, point 5) : les QUATRE côtés à zéro — elle
+  // recouvre exactement son parent, qui est donc seul à décider de sa
+  // position et de ses marges. Dans l'écran Activité, ce parent enveloppe
+  // l'action `Terminer` : la notification est ainsi centrée verticalement
+  // sur le bouton et le masque, par construction plutôt que par un calcul
+  // d'ancrage. `alignItems: "center"` centre son contenu dans cette même
+  // boîte. `minHeight` reste la cible tactile canonique de son action.
   container: {
     position: "absolute",
-    left: spacing[16],
-    right: spacing[16],
-    bottom: spacing[16],
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 2,
     flexDirection: "row",
     alignItems: "center",

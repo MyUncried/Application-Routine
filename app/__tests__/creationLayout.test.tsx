@@ -53,6 +53,13 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
     });
   });
 
+  /**
+   * **T02-S02 (seconde recette visuelle, point 4)** : cette désactivation est
+   * nécessaire mais NON SUFFISANTE — sur le premier écran de ce navigateur
+   * imbriqué, c'est le navigateur PARENT qui traite le geste. Le contrat de
+   * ce dernier est vérifié par `rootLayoutGesture.test.tsx`, et les deux
+   * tests sont indissociables.
+   */
   it("covers composition, exercise AND categories — no route of the flow is left with the native gesture", () => {
     stackCalls.length = 0;
     screenCalls.length = 0;

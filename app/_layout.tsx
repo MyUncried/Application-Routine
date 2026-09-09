@@ -45,6 +45,20 @@ void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
  * propre `SessionDraftProvider` et son propre `Stack` imbriqué (voir
  * `app/(creation)/_layout.tsx`) — `headerShown: false` n'est pas hérité par
  * ce navigateur imbriqué, il y est donc répété explicitement.
+ *
+ * **T02-S02 (seconde recette visuelle, point 4)** — `gestureEnabled: false`
+ * sur `(creation)`. Le geste natif de retour par glissement horizontal était
+ * déjà désactivé dans le `Stack` IMBRIQUÉ, sans effet observable : sur le
+ * PREMIER écran de ce navigateur imbriqué (`composition`), la pile interne
+ * n'a rien à dépiler, et c'est le navigateur PARENT — celui-ci — qui traite
+ * le geste, pour revenir de `(creation)` vers `(tabs)`. Désactiver l'option
+ * uniquement sur l'enfant ne pouvait donc pas neutraliser le geste ; les deux
+ * niveaux doivent la porter.
+ *
+ * `(tabs)` conserve son comportement de navigation par défaut : seul le
+ * parcours de création est concerné. Aucune navigation EXPLICITE n'est
+ * touchée — `Retour`, `Terminer`, `Continuer`, `Enregistrer la séance` et
+ * `router.dismissTo` restent identiques.
  */
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -111,7 +125,7 @@ export default function RootLayout() {
           {fontsSettled && databaseReady ? (
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(creation)" />
+              <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
             </Stack>
           ) : null}
           {showAppSplash ? (

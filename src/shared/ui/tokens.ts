@@ -152,15 +152,12 @@ export const type = {
   // `11/16`, jamais consommé ailleurs. Même remarque que `compactCardTitle`
   // ci-dessus.
   caption: { ...regular, fontSize: 11, lineHeight: 14 },
-  // T02-S02 (continuation après recette visuelle) : variante GRASSE de
-  // `caption`, aux dimensions strictement identiques (`11/14`) — seule la
-  // graisse change. Consommée par le libellé de la sous-carte `Récupération`
-  // d'une carte de Composition, que la recette demande en gras pour le
-  // distinguer des lignes secondaires (Zones corporelles, synthèse) qui
-  // l'entourent. Ce n'est PAS un duplicat interdit : le garde-fou DSF
-  // proscrit un second token aux MÊMES dimensions ET même graisse, pas une
-  // graisse distincte d'une même échelle typographique.
-  captionStrong: { ...semiBold, fontSize: 11, lineHeight: 14 },
+  // `captionStrong` (`11/14` Semi Bold) a existé le temps d'une continuation,
+  // pour le libellé `Récupération` d'une carte de Composition. La seconde
+  // recette visuelle (T02-S02, point 8) en demande une taille SUPÉRIEURE :
+  // ce libellé consomme désormais `compactCardTitle` (`14/18` Semi Bold,
+  // token déjà canonique, même graisse), et `captionStrong` est supprimé
+  // plutôt que laissé sans consommateur.
   navLabel: { ...regular, fontSize: 11, lineHeight: 16 },
   // REWORK09 (mission directe utilisateur, 2026-09-04) — vérifiés sur les
   // nœuds Figma actuels de `Activity / Parameter Row — Source exact`
