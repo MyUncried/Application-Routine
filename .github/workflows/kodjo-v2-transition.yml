@@ -34,8 +34,6 @@ jobs:
     env:
       KODJO_EVIDENCE_REPOSITORY: MyUncried/Application-Routine-KODJO-Evidence
       KODJO_EVIDENCE_BRANCH: kodjo/protocol-evidence-v2
-      KODJO_WRITER_ROOT: ${{ runner.temp }}/kodjo-writer
-      GIT_SSH_COMMAND: ssh -i ${{ runner.temp }}/kodjo-writer/ssh/id_ed25519 -o IdentitiesOnly=yes -o UserKnownHostsFile=${{ runner.temp }}/kodjo-writer/ssh/known_hosts
     steps:
       - name: Checkout immutable control source without credentials
         uses: actions/checkout@v4
@@ -46,7 +44,12 @@ jobs:
           fetch-depth: 1
 
       - name: Prepare isolated writer directories
-        run: mkdir -p "${RUNNER_TEMP}/kodjo-writer/evidence" "${RUNNER_TEMP}/kodjo-writer/ssh"
+        run: |
+          {
+            echo "KODJO_WRITER_ROOT=${RUNNER_TEMP}/kodjo-writer"
+            echo "GIT_SSH_COMMAND=ssh -i ${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519 -o IdentitiesOnly=yes -o UserKnownHostsFile=${RUNNER_TEMP}/kodjo-writer/ssh/known_hosts"
+          } >> "$GITHUB_ENV"
+          mkdir -p "${RUNNER_TEMP}/kodjo-writer/evidence" "${RUNNER_TEMP}/kodjo-writer/ssh"
 
       - name: Install repository-scoped evidence deploy key
         env:
