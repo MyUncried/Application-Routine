@@ -93,7 +93,6 @@ function isFixedEvidenceWriterOperation(filePath, line, patternId, root) {
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
   if (rel !== '.github/workflows/kodjo-v2-transition.yml') return false;
   const value = line.trim();
-  if (patternId === 'CONTENTS_WRITE') return value === 'contents: write';
   if (patternId === 'GIT_BRANCH_CREATE') return value === 'git checkout -b evidence refs/remotes/origin/evidence';
   if (patternId === 'GIT_COMMIT') return value === 'git commit -m "chore(evidence): append writer smoke ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"';
   if (patternId === 'GIT_PUSH') return value === 'run: git push origin "HEAD:refs/heads/kodjo/protocol-evidence-v2"';

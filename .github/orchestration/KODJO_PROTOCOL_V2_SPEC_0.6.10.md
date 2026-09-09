@@ -6,8 +6,8 @@
 |---|---|
 | Statut | Spécification corrigée ; arbitrage de stockage clos par décision utilisateur |
 | Phase | Phase 1 — spécification et architecture uniquement |
-| Version du document | 0.6.9 |
-| Date | 2026-09-09 |
+| Version du document | 0.6.10 |
+| Date | 2026-09-10 |
 | Dépôt de référence | `MyUncried/Application-Routine` |
 | Branche analysée | `main` |
 | HEAD initialement analysé | `358347ffe572ef72002046926dc6952a83e8f70c` |
@@ -18,6 +18,10 @@
 | Tranche protégée pendant la conception | `T01-S10`, Issue `#42` |
 
 > Ce document spécifie la cible V2. Il n’active aucun workflow, ne modifie aucun manifeste, ne lance aucune IA et ne migre pas S10.
+
+### Historique 0.6.10
+
+La version 0.6.10 sépare physiquement le stockage des preuves du dépôt applicatif. Le writer cible exclusivement le dépôt privé fixe `MyUncried/Application-Routine-KODJO-Evidence` et sa branche fixe `kodjo/protocol-evidence-v2`, au moyen d'une deploy key propre à ce seul dépôt. Le job reste en `contents: read` sur `MyUncried/Application-Routine`, n'utilise plus `github.token` pour écrire et ne possède donc aucun identifiant capable de modifier une branche fonctionnelle. Cette évolution répond à l'absence d'application des protections de branches sur le dépôt privé avec la formule GitHub courante.
 
 ### Historique 0.6.9
 
@@ -55,7 +59,7 @@ La version 0.6.1 simplifie définitivement le parcours local. Le protocole ne go
 
 La version 0.6.0 applique l’arbitrage utilisateur définitif : `/Dev local → vérification locale → commit local → push local → observation et revue distantes`. Actions et les agents distants sont en lecture seule sur le dépôt fonctionnel et ne créent aucun commit applicatif, même temporaire. Le workflow Claude développeur, les branches de tentative distantes, leur promotion et le transfert Actions/CLI du droit d’écrire le produit sont supprimés. La coordination des appels IA et des preuves demeure, sans capacité d’écriture fonctionnelle distante.
 
-Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.9`.
+Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.10`.
 
 ### Historique 0.5.0
 
@@ -324,7 +328,7 @@ Après un push local confirmé, une commande explicite d’observation/revue peu
 
 ### 4.5 Stockage autoritatif
 
-Le stockage retenu est une branche Git dédiée aux preuves, nommée conventionnellement `kodjo/protocol-evidence-v2`. Elle est distincte des branches applicatives et ne peut pas être réécrite par force-push dans l’exploitation nominale.
+Le stockage retenu est le dépôt privé dédié `MyUncried/Application-Routine-KODJO-Evidence`, sur la branche Git fixe `kodjo/protocol-evidence-v2`. Ce dépôt est distinct du dépôt applicatif `MyUncried/Application-Routine`. La deploy key du writer est enregistrée uniquement sur le dépôt de preuves et ne confère aucun droit au dépôt applicatif.
 
 Elle contient, sous `slices/<slice_id>/`, un journal append-only logique composé d’un fichier immuable par événement, ainsi que les paquets bruts et validés. Un chemin canonique est dérivé de `operation_id`, `attempt_id` et `publication_id`; un chemin existant ne peut pas être remplacé. Les commits de preuve sont techniques et ne contiennent jamais de code fonctionnel. Ils sont construits depuis l’arbre de preuves, jamais depuis un checkout applicatif. Un producteur local ou distant autorisé aux seules preuves peut les écrire.
 
@@ -332,7 +336,7 @@ Les rôles sont :
 
 | Support | Autorité |
 |---|---|
-| Branche Git de preuves | Journal, commandes, tentatives, sorties brutes, résultats validés, diagnostics, gates et publications |
+| Dépôt et branche Git de preuves dédiés | Journal, commandes, tentatives, sorties brutes, résultats validés, diagnostics, gates et publications |
 | Branche applicative | HEAD et commits créés dans `/Dev` puis poussés exclusivement depuis le poste local |
 | Commentaire d’Issue | Vue humaine dérivée et lien vers le paquet canonique |
 | Artefact Actions | Logs volumineux temporaires et transport d'une livraison récupérable ; **jamais** preuve canonique unique |
@@ -351,22 +355,22 @@ L'arbitrage A du §16 n'est pas rouvert. La répartition des rôles est la suiva
 | Support | Rôle exact |
 |---|---|
 | Artefact GitHub Actions | **Barrière immédiate de récupération** et **moyen de transport temporaire**. Jamais la preuve canonique définitive, ni par défaut, ni par expiration du writer |
-| Branche `kodjo/protocol-evidence-v2` | Enregistrement **durable** du patch et de son manifeste, ajouté par le writer dédié |
+| `MyUncried/Application-Routine-KODJO-Evidence` / `kodjo/protocol-evidence-v2` | Enregistrement **durable** du patch et de son manifeste, ajouté par le writer dédié |
 
 Le writer de preuves est un composant technique dédié, soumis à huit règles cumulatives :
 
 1. il travaille dans un espace **séparé du checkout fonctionnel** ;
-2. il ne reçoit **aucun nom de branche en entrée** ;
-3. il cible exclusivement la branche fixe `kodjo/protocol-evidence-v2` ;
+2. il ne reçoit **aucun nom de dépôt ni de branche en entrée** ;
+3. il cible exclusivement le dépôt fixe `MyUncried/Application-Routine-KODJO-Evidence` et la branche fixe `kodjo/protocol-evidence-v2` ;
 4. il ne peut ajouter que des objets protocolaires, sous des chemins **append-only prédéfinis** ;
 5. il ne peut ni modifier ni supprimer une preuve existante ;
-6. il ne possède **aucune** autorisation de modification d'une branche fonctionnelle ;
+6. sa deploy key est limitée au dépôt de preuves et il ne possède **aucune** autorisation de modification du dépôt applicatif ou d'une branche fonctionnelle ;
 7. aucun commit de preuve ne contient de fichier applicatif directement intégré ;
 8. il n'applique rien : le patch reste un objet de preuve et de transport, jamais transformé en commit fonctionnel à distance.
 
 Le workflow d'implémentation reste en `contents: read`. Toute capacité d'écriture de preuves appartient **exclusivement** au writer séparé, et doit être qualifiée avant l'activation de V2.
 
-**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : branche cible fixe, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.9` valide cette demande avant tout ajout. Tant que son smoke test distant et les règles effectives du dépôt ne sont pas qualifiés, son statut reste **implémenté localement mais non activé**.
+**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : dépôt et branche cibles fixes, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.10` valide cette demande avant tout ajout. Sa qualification distante doit démontrer le dépôt dans le dépôt dédié, l'absence de droit d'écriture applicatif et la restitution exacte du reçu.
 
 Tant que le writer n'a pas réussi sa qualification complète, le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste actif au sens « aucun writer qualifié disponible », et **l'activation de V2 est interdite**. L'artefact Actions ne devient jamais la preuve canonique définitive par défaut. Les obligations d'exploitation intérimaires demeurent : rétention déclarée au moins égale à la durée de la tranche, récupération et validation dans `/Dev` avant expiration, et `OUTPUT_NOT_RECOVERABLE` — jamais un statut implémenté — en cas d'expiration d'un artefact non récupéré.
 

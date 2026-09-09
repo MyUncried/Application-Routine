@@ -980,6 +980,8 @@ test('T02-PRES-018 — l artefact reste un transport : la preuve durable est dem
 
   // Branche fixe : le writer ne recoit AUCUN nom de branche en entree.
   assert.equal(request.target_branch, 'kodjo/protocol-evidence-v2');
+  assert.equal(request.target_repository, 'MyUncried/Application-Routine-KODJO-Evidence');
+  assert.equal(request.target_repository_is_fixed, true);
   assert.equal(request.target_branch_is_fixed, true);
 
   // Append-only, aucune preuve existante modifiee ou supprimee.

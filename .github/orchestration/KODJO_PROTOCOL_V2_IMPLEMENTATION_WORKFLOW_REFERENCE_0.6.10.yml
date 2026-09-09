@@ -1,10 +1,11 @@
-name: KODJO V2 implementation artifact — reference 0.6.9
+name: KODJO V2 implementation artifact — reference 0.6.10
 
-# Reference normative alignee sur le workflow executable — KODJO V2 0.6.9
+# Reference normative alignee sur le workflow executable — KODJO V2 0.6.10
 #
 # Cloture MAJ-03 : ce job reste en contents: read et n'ecrit AUCUNE preuve. Il
 # produit une EvidenceDepositRequest decrivant ce que le writer de preuves dedie
-# devra ajouter sur la branche fixe kodjo/protocol-evidence-v2. L'artefact
+# devra ajouter dans le dépôt fixe MyUncried/Application-Routine-KODJO-Evidence,
+# sur la branche fixe kodjo/protocol-evidence-v2. L'artefact
 # Actions est la barriere immediate de recuperation et un transport temporaire ;
 # il ne devient jamais la preuve canonique definitive.
 #

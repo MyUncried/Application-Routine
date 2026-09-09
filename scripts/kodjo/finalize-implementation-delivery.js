@@ -81,6 +81,7 @@ function buildComment(manifest) {
  * EVIDENCE_WRITER_ABSENT observable instead of merely documented.
  */
 const EVIDENCE_BRANCH = 'kodjo/protocol-evidence-v2';
+const EVIDENCE_REPOSITORY = 'MyUncried/Application-Routine-KODJO-Evidence';
 const RECOVERY_MEMBERS = [
   'implementation.patch',
   'implementation.patch.sha256',
@@ -121,9 +122,11 @@ function buildEvidenceDepositRequest(deliveryDir, manifest) {
     });
   }
   return {
-    schema_version: 'kodjo.protocol.v2.evidence-deposit.0.6.8',
+    schema_version: 'kodjo.protocol.v2.evidence-deposit.0.6.10',
     created_at: new Date().toISOString(),
     // Fixed target: the writer receives NO branch name as input.
+    target_repository: EVIDENCE_REPOSITORY,
+    target_repository_is_fixed: true,
     target_branch: EVIDENCE_BRANCH,
     target_branch_is_fixed: true,
     append_only: true,
@@ -137,7 +140,7 @@ function buildEvidenceDepositRequest(deliveryDir, manifest) {
     note:
       'The GitHub artifact is the immediate recovery barrier and a temporary transport. ' +
       'It never becomes the canonical evidence by default. Until a qualified writer deposits ' +
-      'these members on ' + EVIDENCE_BRANCH + ', V2 activation stays forbidden.',
+      'these members in ' + EVIDENCE_REPOSITORY + ' on ' + EVIDENCE_BRANCH + ', V2 activation stays forbidden.',
     slice_id: manifest.slice_id || null,
     operation_id: manifest.operation_id || null,
     attempt_id: manifest.attempt_id || null,

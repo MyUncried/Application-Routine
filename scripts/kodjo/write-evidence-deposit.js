@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const EVIDENCE_REPOSITORY = 'MyUncried/Application-Routine-KODJO-Evidence';
 const EVIDENCE_BRANCH = 'kodjo/protocol-evidence-v2';
 const ALLOWED_MEMBERS = new Set([
   'implementation.patch', 'implementation.patch.sha256', 'modified-files.json',
@@ -30,6 +31,8 @@ function safeRelative(value) {
 }
 
 function validateRequest(request) {
+  if (request.target_repository !== EVIDENCE_REPOSITORY || request.target_repository_is_fixed !== true)
+    fail('EVIDENCE_REPOSITORY_INVALID', 'The evidence repository is fixed and cannot be supplied or changed.');
   if (request.target_branch !== EVIDENCE_BRANCH || request.target_branch_is_fixed !== true)
     fail('EVIDENCE_BRANCH_INVALID', 'The evidence branch is fixed and cannot be supplied or changed.');
   if (request.append_only !== true || request.replaces_existing_path !== false)
@@ -68,7 +71,8 @@ function stageDeposit(requestFile, sourceDir, evidenceTree) {
   const receiptPath = path.join(evidenceTree, request.canonical_base, 'deposit-receipt.json');
   if (fs.existsSync(receiptPath)) fail('EVIDENCE_PATH_EXISTS', request.canonical_base + '/deposit-receipt.json');
   fs.writeFileSync(receiptPath, JSON.stringify({
-    schema_version: 'kodjo.protocol.v2.evidence-receipt.0.6.9',
+    schema_version: 'kodjo.protocol.v2.evidence-receipt.0.6.10',
+    target_repository: EVIDENCE_REPOSITORY,
     target_branch: EVIDENCE_BRANCH,
     canonical_base: request.canonical_base,
     deposited_members: staged,
@@ -92,4 +96,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { ALLOWED_MEMBERS, EVIDENCE_BRANCH, safeRelative, stageDeposit, validateRequest };
+module.exports = { ALLOWED_MEMBERS, EVIDENCE_BRANCH, EVIDENCE_REPOSITORY, safeRelative, stageDeposit, validateRequest };

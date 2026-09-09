@@ -1,15 +1,15 @@
-# Manifeste du paquet KODJO V2 0.6.9 — writer de preuves borné
+# Manifeste du paquet KODJO V2 0.6.10 — writer isolé dans un dépôt dédié
 
 ## Objet
 
-Ce paquet est la version `0.6.9` du protocole KODJO V2. Il ajoute à la baseline validée `0.6.8` le writer de preuves borné, son workflow de transition et ses tests de qualification locale.
+Ce paquet est la version `0.6.10` du protocole KODJO V2. Il isole le writer dans le dépôt privé dédié `MyUncried/Application-Routine-KODJO-Evidence` avec une deploy key qui ne possède aucun droit sur le dépôt applicatif.
 
 ## Sources primaires normatives
 
 | Fichier | Rôle |
 |---|---|
-| `primary/KODJO_PROTOCOL_V2_SPEC_0.6.9.md` | Spécification normative courante |
-| `primary/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.9.yml` | Workflow d'implémentation de référence ; contenu fonctionnel inchangé |
+| `primary/KODJO_PROTOCOL_V2_SPEC_0.6.10.md` | Spécification normative courante |
+| `primary/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.10.yml` | Workflow d'implémentation de référence ; cible de preuves dédiée |
 
 ## Éléments de preuve et d’implémentation
 
@@ -19,6 +19,8 @@ Ce paquet est la version `0.6.9` du protocole KODJO V2. Il ajoute à la baseline
 | `evidence/t02/KODJO_PROTOCOL_V2_T02_CHANGE_REPORT_0.6.3.md` | Rapport de la correction de conservation/reprise |
 | `evidence/t02/KODJO_PROTOCOL_V2_T02_TEST_MATRIX_0.6.8.md` | Matrice T02 à 18 scénarios, exécutée |
 | `CHANGE_REPORT_0.6.8.md` | Rapport de changement `0.6.4` → `0.6.5` → `0.6.8` |
+| `CHANGE_REPORT_0.6.9.md` | Rapport d'introduction du premier writer borné |
+| `CHANGE_REPORT_0.6.10.md` | Rapport d'isolation du writer dans le dépôt de preuves dédié |
 | `evidence/pilot/2026-09-08_kodjo-v2-preservation-pilot-0.6.3-rev4.md` | Rapport du pilote local et du smoke test GitHub réel |
 | `evidence/workflows/kodjo-v2-implementation-artifact.yml` | Workflow exécutable d'implémentation, inchangé fonctionnellement depuis la baseline `0.6.8` |
 | `evidence/workflows/kodjo-v2-preservation-smoke.yml` | Smoke test réel : upload depuis `${RUNNER_TEMP}` avant échec, téléchargement sous `${RUNNER_TEMP}` et restauration dans un second job |
@@ -40,9 +42,9 @@ Ce paquet est la version `0.6.9` du protocole KODJO V2. Il ajoute à la baseline
 
 ## Contrôle du paquet avant transmission
 
-Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vierge puis exécutés le 9 septembre 2026, après ajout du writer `0.6.9` :
+Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vierge puis exécutés le 10 septembre 2026, après isolation du writer `0.6.10` :
 
-- `63` tests du pilote réussis sur `63` ;
+- `66` tests du pilote réussis sur `66` ;
 - validation structurelle des trois workflows réussie ;
 - scanner de capacités distantes : `NO_REMOTE_FUNCTIONAL_WRITE_CAPABILITY` ;
 - aucune ancienne revue OpenAI ou Claude incluse dans le paquet.
@@ -51,14 +53,14 @@ Les scripts, tests et workflows inclus ont été reconstruits dans un dossier vi
 
 En cas d’écart :
 
-1. la spécification `0.6.9` définit la règle ;
-2. le workflow de référence `0.6.9` montre l’ordre attendu ;
+1. la spécification `0.6.10` définit la règle ;
+2. le workflow de référence `0.6.10` montre l’ordre attendu ;
 3. les workflows, scripts et tests constituent la preuve d’implémentation du pilote ;
 4. les rapports et matrices décrivent les résultats constatés, mais ne remplacent pas le code ni la spécification.
 
 ## Interdiction d'activation en vigueur
 
-Le writer est implémenté et qualifié localement, mais son dépôt GitHub réel et les autorisations effectives des branches ne sont pas encore qualifiés. Le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste donc actif au sens « aucun writer qualifié disponible » et **l'activation de V2 reste interdite** jusqu'au smoke test distant et au contrôle des règles du dépôt.
+Le writer isolé est implémenté et qualifié localement, mais son dépôt GitHub réel avec la deploy key dédiée n'est pas encore qualifié. Le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste donc actif au sens « aucun writer qualifié disponible » et **l'activation de V2 reste interdite** jusqu'au nouveau smoke test distant.
 
 ## Limite de périmètre
 

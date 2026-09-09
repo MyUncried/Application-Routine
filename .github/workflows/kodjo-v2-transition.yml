@@ -30,9 +30,12 @@ jobs:
     if: github.event_name == 'push' || inputs.command == 'EVIDENCE_WRITER_SMOKE'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     env:
+      KODJO_EVIDENCE_REPOSITORY: MyUncried/Application-Routine-KODJO-Evidence
       KODJO_EVIDENCE_BRANCH: kodjo/protocol-evidence-v2
+      KODJO_WRITER_ROOT: ${{ runner.temp }}/kodjo-writer
+      GIT_SSH_COMMAND: ssh -i ${{ runner.temp }}/kodjo-writer/ssh/id_ed25519 -o IdentitiesOnly=yes -o UserKnownHostsFile=${{ runner.temp }}/kodjo-writer/ssh/known_hosts
     steps:
       - name: Checkout immutable control source without credentials
         uses: actions/checkout@v4
@@ -43,7 +46,16 @@ jobs:
           fetch-depth: 1
 
       - name: Prepare isolated writer directories
-        run: mkdir -p "${RUNNER_TEMP}/kodjo-writer/evidence"
+        run: mkdir -p "${RUNNER_TEMP}/kodjo-writer/evidence" "${RUNNER_TEMP}/kodjo-writer/ssh"
+
+      - name: Install repository-scoped evidence deploy key
+        env:
+          KODJO_EVIDENCE_DEPLOY_KEY: ${{ secrets.KODJO_EVIDENCE_DEPLOY_KEY }}
+        run: |
+          test -n "${KODJO_EVIDENCE_DEPLOY_KEY}"
+          printf '%s\n' "${KODJO_EVIDENCE_DEPLOY_KEY}" > "${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519"
+          chmod 600 "${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519"
+          ssh-keyscan -H github.com > "${RUNNER_TEMP}/kodjo-writer/ssh/known_hosts"
 
       - name: Prepare harmless protocol-only smoke request
         run: node control/scripts/kodjo/prepare-evidence-writer-smoke.js "${RUNNER_TEMP}/kodjo-writer/input"
@@ -52,14 +64,12 @@ jobs:
         working-directory: ${{ runner.temp }}/kodjo-writer/evidence
         run: |
           git init
-          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git remote add origin "git@github.com:MyUncried/Application-Routine-KODJO-Evidence.git"
           if git fetch --depth=1 origin "refs/heads/${KODJO_EVIDENCE_BRANCH}:refs/remotes/origin/evidence"; then
             git checkout -b evidence refs/remotes/origin/evidence
           else
             git checkout --orphan evidence
           fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Stage append-only evidence after validation
         run: >-

@@ -17,6 +17,7 @@ function fixture() {
   const content = 'diff --git a/a b/a\n';
   fs.writeFileSync(path.join(source, 'implementation.patch'), content);
   const request = {
+    target_repository: 'MyUncried/Application-Routine-KODJO-Evidence', target_repository_is_fixed: true,
     target_branch: 'kodjo/protocol-evidence-v2', target_branch_is_fixed: true,
     append_only: true, replaces_existing_path: false,
     contains_applicative_file: false, functional_ref_write_allowed: false,
@@ -39,6 +40,12 @@ test('writer — une branche fonctionnelle est refusee', () => {
   const f = fixture(); f.request.target_branch = 'feat/creation-seance-catalogue';
   fs.writeFileSync(f.requestFile, JSON.stringify(f.request));
   assert.throws(() => stageDeposit(f.requestFile, f.source, f.tree), { code: 'EVIDENCE_BRANCH_INVALID' });
+});
+
+test('writer — le depot applicatif comme destination est refuse', () => {
+  const f = fixture(); f.request.target_repository = 'MyUncried/Application-Routine';
+  fs.writeFileSync(f.requestFile, JSON.stringify(f.request));
+  assert.throws(() => stageDeposit(f.requestFile, f.source, f.tree), { code: 'EVIDENCE_REPOSITORY_INVALID' });
 });
 
 test('writer — remplacer une preuve existante est refuse', () => {
@@ -71,4 +78,12 @@ test('writer — la garde enumere chaque fichier non suivi au lieu du seul reper
   const root = path.resolve(__dirname, '..', '..');
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-transition.yml'), 'utf8');
   assert.match(workflow, /git status --short --untracked-files=all/);
+});
+
+test('writer — le job reste read-only sur le depot applicatif et fixe le depot de preuves', () => {
+  const root = path.resolve(__dirname, '..', '..');
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-transition.yml'), 'utf8');
+  assert.doesNotMatch(workflow, /contents\s*:\s*write/);
+  assert.match(workflow, /git@github\.com:MyUncried\/Application-Routine-KODJO-Evidence\.git/);
+  assert.doesNotMatch(workflow, /x-access-token|github\.token|GITHUB_TOKEN/);
 });

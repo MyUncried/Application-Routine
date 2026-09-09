@@ -15,7 +15,8 @@ const member = 'development-report.md';
 fs.writeFileSync(path.join(source, member), content);
 const sha256 = crypto.createHash('sha256').update(content).digest('hex');
 const request = {
-  schema_version: 'kodjo.protocol.v2.evidence-deposit.0.6.9',
+  schema_version: 'kodjo.protocol.v2.evidence-deposit.0.6.10',
+  target_repository: 'MyUncried/Application-Routine-KODJO-Evidence', target_repository_is_fixed: true,
   target_branch: 'kodjo/protocol-evidence-v2', target_branch_is_fixed: true,
   append_only: true, replaces_existing_path: false,
   contains_applicative_file: false, functional_ref_write_allowed: false,
