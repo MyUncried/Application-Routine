@@ -72,7 +72,7 @@ jobs:
         working-directory: ${{ runner.temp }}/kodjo-writer/evidence
         run: |
           test -z "$(git diff --name-only --diff-filter=MD)"
-          if git status --short | awk '{print $2}' | grep -Ev '^slices/[^/]+/operations/[^/]+/attempts/[^/]+/implementation/(implementation\.patch|implementation\.patch\.sha256|modified-files\.json|manifest\.json|development-report\.md|validation\.json|deposit-receipt\.json)$'; then
+          if git status --short --untracked-files=all | awk '{print $2}' | grep -Ev '^slices/[^/]+/operations/[^/]+/attempts/[^/]+/implementation/(implementation\.patch|implementation\.patch\.sha256|modified-files\.json|manifest\.json|development-report\.md|validation\.json|deposit-receipt\.json)$'; then
             echo 'EVIDENCE_APPLICATIVE_CONTENT_FORBIDDEN'
             exit 1
           fi

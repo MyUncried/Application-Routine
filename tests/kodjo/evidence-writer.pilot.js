@@ -66,3 +66,9 @@ test('writer — seule la commande de push vers la branche fixe est exemptee', (
   assert.equal(isFixedEvidenceWriterOperation(workflow, 'run: git push origin "HEAD:refs/heads/feat/creation-seance-catalogue"', 'GIT_PUSH', root), false);
   assert.equal(isFixedEvidenceWriterOperation(workflow, 'run: git push origin "HEAD:refs/heads/${{ inputs.branch }}"', 'GIT_PUSH', root), false);
 });
+
+test('writer — la garde enumere chaque fichier non suivi au lieu du seul repertoire parent', () => {
+  const root = path.resolve(__dirname, '..', '..');
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-transition.yml'), 'utf8');
+  assert.match(workflow, /git status --short --untracked-files=all/);
+});
