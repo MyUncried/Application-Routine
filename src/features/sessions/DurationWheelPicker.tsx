@@ -81,22 +81,29 @@ const SECONDS_VALUES = Array.from({ length: WHEEL_SECONDS_ITEM_COUNT }, (_, inde
  * largeurs explicites (`min 76`, unité `min` `32`, intervalle central `22`,
  * `s` `76`, unité `s` `20`, écart chiffre/unité `4`).
  *
- * **Tension documentaire non silencieuse** (conservée de REWORK04) : le
- * paragraphe « Contrat complet du picker » de l'autorisation REWORK04
- * donnait `toolbar 48` et `zone roue 196` (panneau `354×244`), tandis que
- * `D-098` (Registre des décisions, rang de préséance le plus élevé selon
- * `docs/INDEX.md` §6) donne `40 + 150 = 190`. Résolu par un rapprochement :
- * la cible tactile de chaque action reste `48×48` (les deux sources
- * s'accordent), obtenue via `hitSlop` autour d'une boîte visuelle de
- * `28×28` dans une rangée de hauteur VISUELLE `40` (`D-098`). Pour la zone
- * roue, `150` (`D-098`) est retenu, appliqué en `minHeight` (pas une
- * hauteur figée, pour ne pas contraindre artificiellement le rendu natif).
+ * **Tension documentaire — désormais RÉSOLUE PAR LA SOURCE (T02-S02)** : le
+ * paragraphe « Contrat complet du picker » de REWORK04 donnait `toolbar 48`
+ * et `zone roue 196` ; `D-098` donnait alors `40 + 150 = 190`. Le
+ * rapprochement local (`28×28` + `hitSlop` dans une rangée de `40`) devient
+ * caduc : `D-098` est révisée par `D-142` et la documentation publie
+ * désormais une géométrie unique — panneau `330 × 203` pour
+ * `Type=Duration`, barre d'actions `53`, zone roue `150`, cercle visible
+ * `38 × 38`, icône `24 × 24`, cible tactile `48 × 48` (conteneur de mise en
+ * page `48 × 53`, `7,5` points de respiration verticale, qui n'agrandit
+ * jamais la cible). La cible tactile reste obtenue par `hitSlop` autour du
+ * cercle, mécanisme inchangé ; seules les VALEURS bougent.
+ *
+ * La zone roue reste appliquée en `minHeight` (pas une hauteur figée, pour
+ * ne pas contraindre artificiellement le rendu natif — défaut `D-04`).
  */
 const WHEEL_TOOLBAR_HEIGHT = dimensions.wheelPicker.toolbarHeight;
 const WHEEL_CONTENT_MIN_HEIGHT = dimensions.wheelPicker.wheelContentMinHeight;
 const WHEEL_ACTION_VISUAL_CIRCLE = dimensions.wheelPicker.actionVisualCircle;
+const WHEEL_ACTION_ICON = dimensions.wheelPicker.actionIcon;
 const WHEEL_ACTION_TOUCH_TARGET = dimensions.wheelPicker.actionTouchTarget;
 const WHEEL_ACTION_HIT_SLOP = (WHEEL_ACTION_TOUCH_TARGET - WHEEL_ACTION_VISUAL_CIRCLE) / 2;
+/** Largeur canonique du panneau `Type=Duration` (`330`, CE-T01-07/CE-T01-14). */
+const WHEEL_DURATION_WIDTH = dimensions.wheelPicker.durationWidth;
 
 const NATIVE_MINUTES_COLUMN_WIDTH = 76;
 const NATIVE_MINUTES_UNIT_WIDTH = 32;
@@ -326,7 +333,11 @@ function PickerToolbar({
         style={styles.actionCancel}
         testID="duration-wheel-cancel"
       >
-        <KodjoIcon name="wheel-action-cancel" testID="duration-wheel-cancel-icon" />
+        <KodjoIcon
+          name="wheel-action-cancel"
+          size={WHEEL_ACTION_ICON}
+          testID="duration-wheel-cancel-icon"
+        />
       </Pressable>
       <Pressable
         onPress={onValidate}
@@ -336,7 +347,11 @@ function PickerToolbar({
         style={styles.actionValidate}
         testID="duration-wheel-validate"
       >
-        <KodjoIcon name="wheel-action-validate" testID="duration-wheel-validate-icon" />
+        <KodjoIcon
+          name="wheel-action-validate"
+          size={WHEEL_ACTION_ICON}
+          testID="duration-wheel-validate-icon"
+        />
       </Pressable>
     </View>
   );
@@ -580,7 +595,13 @@ const styles = StyleSheet.create({
   // D-02 : surface opaque blanche, arrondie, bordée, ombrée — masque
   // totalement le contenu sous-jacent (le `Host` lui-même n'a et ne doit
   // avoir aucun fond propre, c'est cette surface qui le porte).
+  //
+  // T02-S02 : largeur canonique `330` publiée pour `Type=Duration`
+  // (CE-T01-07/CE-T01-14). La HAUTEUR reste dérivée (`53` de barre +
+  // `minHeight 150` de zone roue = `203` au repos), jamais figée — figer la
+  // hauteur reproduirait le défaut `D-04` en contraignant le rendu natif.
   nativeSurface: {
+    width: WHEEL_DURATION_WIDTH,
     backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,
@@ -605,9 +626,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     paddingHorizontal: spacing[12],
   },
-  // R4-09 : toolbar en haut, hauteur visuelle `40` (`D-098`) — les actions
-  // atteignent `48×48` de cible tactile via `hitSlop`, pas via cette
-  // hauteur de rangée (voir la note de tête du fichier).
+  // R4-09, révisé T02-S02 (D-142) : toolbar en haut, hauteur de MISE EN
+  // PAGE `53` — les actions atteignent `48×48` de cible tactile via
+  // `hitSlop` autour du cercle `38×38`, jamais via cette hauteur de rangée
+  // (voir la note de tête du fichier).
   toolbar: {
     flexDirection: "row",
     alignItems: "center",

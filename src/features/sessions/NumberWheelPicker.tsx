@@ -73,8 +73,17 @@ const VALUES = Array.from(
 const WHEEL_TOOLBAR_HEIGHT = dimensions.wheelPicker.toolbarHeight;
 const WHEEL_CONTENT_MIN_HEIGHT = dimensions.wheelPicker.wheelContentMinHeight;
 const WHEEL_ACTION_VISUAL_CIRCLE = dimensions.wheelPicker.actionVisualCircle;
+const WHEEL_ACTION_ICON = dimensions.wheelPicker.actionIcon;
 const WHEEL_ACTION_TOUCH_TARGET = dimensions.wheelPicker.actionTouchTarget;
 const WHEEL_ACTION_HIT_SLOP = (WHEEL_ACTION_TOUCH_TARGET - WHEEL_ACTION_VISUAL_CIRCLE) / 2;
+/**
+ * T02-S02 : largeur canonique du panneau `Type=Numeric wheel` (`144`,
+ * CE-T01-14/D-104) — « largeur déterminée par deux cibles tactiles de
+ * largeur `48` et une colonne sélectionnée `56 × 34` centrée »
+ * (`48 + 48 + 48 = 144`, `12 – Architecture technique.md`). La hauteur reste
+ * dérivée (`53` + `minHeight 150` = `203`), jamais figée.
+ */
+const WHEEL_NUMERIC_WIDTH = dimensions.wheelPicker.numericWidth;
 
 export type NumberWheelPickerProps = {
   value: number;
@@ -189,7 +198,11 @@ function PickerToolbar({
         style={styles.actionCancel}
         testID="number-wheel-cancel"
       >
-        <KodjoIcon name="wheel-action-cancel" testID="number-wheel-cancel-icon" />
+        <KodjoIcon
+          name="wheel-action-cancel"
+          size={WHEEL_ACTION_ICON}
+          testID="number-wheel-cancel-icon"
+        />
       </Pressable>
       <Pressable
         onPress={onValidate}
@@ -199,7 +212,11 @@ function PickerToolbar({
         style={styles.actionValidate}
         testID="number-wheel-validate"
       >
-        <KodjoIcon name="wheel-action-validate" testID="number-wheel-validate-icon" />
+        <KodjoIcon
+          name="wheel-action-validate"
+          size={WHEEL_ACTION_ICON}
+          testID="number-wheel-validate-icon"
+        />
       </Pressable>
     </View>
   );
@@ -317,6 +334,7 @@ function LegacyNumberWheelPicker({
 
 const styles = StyleSheet.create({
   nativeSurface: {
+    width: WHEEL_NUMERIC_WIDTH,
     backgroundColor: colors.background,
     borderRadius: 16,
     borderWidth: 1,

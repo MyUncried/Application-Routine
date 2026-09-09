@@ -250,7 +250,16 @@ export const dimensions = {
   // R4-02 (`Action / Back`, `2624:3105`) : cible tactile inchangée
   // (`minTouchTarget`), cercle visuel et chevron réduits — auparavant un
   // cercle unique confondu avec la cible tactile elle-même.
-  backAction: { visualCircle: 28, chevron: 14 },
+  // T02-S02 (D-142, `12 – Architecture technique.md` § « Action / Back ») :
+  // les actions CIRCULAIRES (Retour, Annuler, Confirmer) partagent une
+  // géométrie unique — cercle visible `38 × 38`
+  // (`component/action/circular-visual-box`), icône `24 × 24`
+  // (`component/action/circular-icon`) et cible tactile `48 × 48`
+  // (`size/touch-target-min`). Révise R4-02, qui donnait un cercle `28 × 28`
+  // et un chevron `14 × 14` : ces deux valeurs sont antérieures à D-142 et
+  // ne sont plus canoniques. La cible tactile, elle, est INCHANGÉE — c'est
+  // toujours le `hitSlop` autour du cercle qui la porte, jamais le cercle.
+  backAction: { visualCircle: 38, icon: 24, touchTarget: 48 },
   // R4-07/R4-09 (`Picker / Popover — Source exact`, variante
   // `Type=Duration`) : géométrie canonique de la roulette compacte —
   // D-098 (`07 – Registre des décisions`, « Validée post-Figma ») pour la
@@ -259,10 +268,24 @@ export const dimensions = {
   // pas une hauteur figée — voir `DurationWheelPicker.tsx` pour la
   // justification (ne pas reproduire le défaut D-04 corrigé au cycle
   // précédent).
+  //
+  // **T02-S02 — alignement DSF (D-098 révisée par D-142, `13 – Contrats
+  // d'écran.md` CE-T01-07/CE-T01-14)** : la tension documentaire résolue en
+  // REWORK04 (`toolbar 48`/`zone roue 196` contre `40 + 150`) est tranchée
+  // par la documentation mise à jour — la barre d'actions mesure `53` et la
+  // zone roue `150`, soit une hauteur canonique de `203`. `53` est une
+  // hauteur de MISE EN PAGE (conteneur Figma `48 × 53`, `7,5` points de
+  // respiration verticale autour du cercle) : elle n'agrandit jamais la
+  // cible tactile, qui reste `48 × 48`. Largeurs canoniques publiées :
+  // `330` pour `Type=Duration`, `144` pour `Type=Numeric wheel`.
   wheelPicker: {
-    toolbarHeight: 40,
+    toolbarHeight: 53,
     wheelContentMinHeight: 150,
-    actionVisualCircle: 28,
+    totalHeight: 203,
+    durationWidth: 330,
+    numericWidth: 144,
+    actionVisualCircle: 38,
+    actionIcon: 24,
     actionTouchTarget: 48,
   },
   // R4-12 (`Composition / Tour Section`, `3067:270`) : le conteneur Tour
@@ -399,10 +422,28 @@ export const dimensions = {
   // exprimable tel quel — `draggedElevation` porte l'équivalent Android
   // (`elevation`), iOS s'appuyant sur `shadowOffset`/`Opacity`/`Radius`
   // exacts. Écart à vérifier sur appareil réel.
+  //
+  // **T02-S02 — géométries CONDITIONNELLES du bloc Activité + Récupération**
+  // (D-095/D-128/D-129, révisées par D-138 ; CE-T01-09 « carte au repos
+  // `354 × 69` sans Récupération ou bloc `354 × 93` avec Récupération » ;
+  // CE-T02-02 « Le bloc avec Récupération passe de `354 × 93` à
+  // `362 × 97` … un rayon `12` ») :
+  //
+  // - `restHeight` (`69`) : carte seule, SANS Récupération ;
+  // - `recoveryCardHeight` (`24`) : sous-carte `Récupération X min Y s`
+  //   attachée ; `69 + 24 = 93` par construction, jamais un second littéral ;
+  // - `heightDelta` (`4`) : agrandissement de l'état soulevé — `93 → 97`
+  //   avec Récupération (valeur explicitement approuvée), donc `69 → 73`
+  //   sans elle par application du MÊME écart. `362 × 97` est ainsi
+  //   structurellement impossible sans Récupération ;
+  // - `draggedRadius` (`12`) : rayon de l'état soulevé publié par D-129 —
+  //   révise le `8` de T02-S01, antérieur à la publication de la décision.
   compositionActivityRow: {
+    restHeight: 69,
+    recoveryCardHeight: 24,
     widthDelta: 8,
-    heightDelta: 2,
-    draggedRadius: 8,
+    heightDelta: 4,
+    draggedRadius: 12,
     draggedShadowOpacity: 0.22,
     draggedShadowRadius: 10,
     draggedElevation: 8,
@@ -417,7 +458,23 @@ export const dimensions = {
   // `x` ni `×`), AUCUN chevron de repli. Remplace la géométrie `78 × 44`
   // avec carré violet de chevron issue de REWORK06 (T-04a/b/c), antérieure
   // à la publication de D-130.
-  compositionTourControl: { width: 66, height: 34, radius: 10 },
+  //
+  // T02-S02 : `12 – Architecture technique.md` (« Sélecteur du nombre de
+  // tours ») publie l'anatomie complète — « carré violet `28 × 28` avec `3`
+  // points de marge en haut, à droite et en bas ; icône `#CDCEFA` issue de
+  // la référence `2028:12051` ; aucun chevron de repli ». Les deux règles
+  // coexistent sans se contredire : le carré porte le CHEVRON D'OUVERTURE
+  // de la roulette (`Forms / Select Field`), jamais un chevron de REPLI
+  // (haut/bas) — c'est ce dernier, et lui seul, qui reste proscrit.
+  // `28 + 3 + 3 = 34` : la hauteur du cadre est dérivée, jamais recodée.
+  compositionTourControl: {
+    width: 66,
+    height: 34,
+    radius: 10,
+    chevronBox: 28,
+    chevronBoxRadius: 6,
+    chevronBoxMargin: 3,
+  },
 } as const;
 
 export const minTouchTarget = 48;

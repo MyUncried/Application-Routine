@@ -5,7 +5,6 @@ import {
   duplicateActivity,
   groupActivitiesByZone,
   moveActivity,
-  nextCopyName,
   orderActivitiesByZone,
   removeActivity,
 } from "@/domain/sessions/composition";
@@ -169,32 +168,7 @@ describe("removeActivity (AC-07)", () => {
   });
 });
 
-describe("nextCopyName (D-124)", () => {
-  it("uses the plain '(copie)' suffix when it is free", () => {
-    expect(nextCopyName("Gainage", ["Gainage"])).toBe("Gainage (copie)");
-  });
-
-  it("numbers from 2 upwards, returning the first available suffix", () => {
-    expect(nextCopyName("Gainage", ["Gainage", "Gainage (copie)"])).toBe("Gainage (copie 2)");
-    expect(
-      nextCopyName("Gainage", ["Gainage", "Gainage (copie)", "Gainage (copie 2)"]),
-    ).toBe("Gainage (copie 3)");
-  });
-
-  it("fills a gap in the numbering rather than always appending after the highest", () => {
-    expect(
-      nextCopyName("Gainage", ["Gainage", "Gainage (copie)", "Gainage (copie 3)"]),
-    ).toBe("Gainage (copie 2)");
-  });
-
-  it("derives the candidate from the SOURCE name, without stripping an existing suffix", () => {
-    expect(nextCopyName("Gainage (copie)", ["Gainage", "Gainage (copie)"])).toBe(
-      "Gainage (copie) (copie)",
-    );
-  });
-});
-
-describe("duplicateActivity (AC-06)", () => {
+describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
   const activities = [
     anActivity("before-1", "BEFORE_TOUR", { name: "Échauffement" }),
     anActivity("in-1", "IN_TOUR", {
@@ -202,6 +176,7 @@ describe("duplicateActivity (AC-06)", () => {
       durationSeconds: 45,
       seriesCount: 3,
       pauseSeconds: 20,
+      recoverySeconds: 90,
       instruction: "Dos droit",
       bodyZoneIds: ["dos"],
     }),
@@ -214,20 +189,27 @@ describe("duplicateActivity (AC-06)", () => {
     expect(next[2]?.structuralPosition).toBe("IN_TOUR");
   });
 
-  it("gives the copy a new identifier and a collision-free name, leaving the source untouched", () => {
+  /**
+   * T02-S02 : le titre de la copie est STRICTEMENT IDENTIQUE à celui de la
+   * source. `D-124` (suffixe `(copie)`) est marquée « Révisée par D-138 »,
+   * et `D-138` ne réintroduit aucune règle de renommage — elle pose au
+   * contraire que la copie forme un bloc indivisible identique à sa source.
+   * Seul l'identifiant distingue les deux.
+   */
+  it("gives the copy a new identifier and the SAME title, leaving the source untouched", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
     expect(next[2]?.id).toBe("copy-1");
-    expect(next[2]?.name).toBe("Gainage (copie)");
+    expect(next[2]?.name).toBe("Gainage");
+    expect(next[2]?.name).toBe(activities[1]!.name);
+    expect(next[2]?.name).not.toMatch(/copie/u);
     expect(next[1]).toBe(activities[1]);
   });
 
-  it("copies every parameter and association of the source", () => {
+  it("copies every parameter and association of the source, Récupération attachée included", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
-    expect(next[2]).toEqual({
-      ...activities[1],
-      id: "copy-1",
-      name: "Gainage (copie)",
-    });
+    expect(next[2]).toEqual({ ...activities[1], id: "copy-1" });
+    expect(next[2]?.recoverySeconds).toBe(90);
+    expect(next[2]?.pauseSeconds).toBe(20);
   });
 
   it("makes the copy independent: its body zones never share the source's array", () => {
@@ -236,16 +218,19 @@ describe("duplicateActivity (AC-06)", () => {
     expect(next[2]?.bodyZoneIds).toEqual(activities[1]?.bodyZoneIds);
   });
 
-  it("numbers successive copies without collision", () => {
+  it("keeps every successive copy identical in title, distinguished only by its identifier", () => {
     const once = duplicateActivity(activities, "in-1", "copy-1");
     const twice = duplicateActivity(once, "in-1", "copy-2");
     expect(twice.map((activity) => activity.name)).toEqual([
       "Échauffement",
       "Gainage",
-      "Gainage (copie 2)",
-      "Gainage (copie)",
+      "Gainage",
+      "Gainage",
       "Squats",
     ]);
+    expect(ids(twice)).toEqual(["before-1", "in-1", "copy-2", "copy-1", "in-2"]);
+    // Les identifiants, eux, restent uniques — c'est la seule distinction.
+    expect(new Set(ids(twice)).size).toBe(twice.length);
   });
 
   it("returns the collection unchanged for an unknown identifier", () => {

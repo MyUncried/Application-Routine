@@ -36,7 +36,14 @@ describe("FixedHeader", () => {
     expect(screen.queryByTestId("screen-header-back")).toBeNull();
   });
 
-  it("renders a Retour circle (pale-fill, 28×28 visual, R4-02) with a 48×48 touch target via hitSlop, calling it on press", () => {
+  /**
+   * **T02-S02 (D-142)** : « Les actions circulaires Retour, Annuler et
+   * Valider/Confirmer utilisent un cercle visible `38 × 38`, une icône
+   * `24 × 24` et une cible tactile `48 × 48` ». Révise R4-02 (`28 × 28`),
+   * antérieur à cette décision. La cible tactile, elle, est INCHANGÉE —
+   * elle reste portée par `hitSlop`, jamais par la boîte visuelle.
+   */
+  it("renders a Retour circle (pale-fill, 38×38 visual, D-142) with a 48×48 touch target via hitSlop, calling it on press", () => {
     const onBack = jest.fn();
     renderWithSafeArea(
       <FixedHeader title="Composition" onBack={onBack} backAccessibilityLabel="Retour" />,
@@ -44,12 +51,11 @@ describe("FixedHeader", () => {
 
     const back = screen.getByTestId("screen-header-back");
     const flattened = StyleSheet.flatten(back.props.style);
-    // R4-02 : cercle visuel réduit à `28×28` — la cible tactile `48×48`
-    // reste inchangée, portée par `hitSlop`, jamais par la boîte visuelle
-    // elle-même.
-    expect(flattened.width).toBe(28);
-    expect(flattened.height).toBe(28);
+    expect(flattened.width).toBe(38);
+    expect(flattened.height).toBe(38);
+    expect(flattened.borderRadius).toBe(19);
     expect(flattened.width + back.props.hitSlop * 2).toBe(minTouchTarget);
+    expect(minTouchTarget).toBe(48);
     expect(flattened.backgroundColor).toBe(colors.selectionSurface);
     expect(back.props.accessibilityLabel).toBe("Retour");
 
@@ -57,7 +63,7 @@ describe("FixedHeader", () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it("REWORK07B — the Retour chevron itself renders at the canonical 24×24 (up from 14×14 — `Action / Back`, `2624:3105`, registered 24×24 in the manifest), inside the unchanged 28×28 circle / 48×48 touch target", () => {
+  it("D-142 — the Retour icon renders at the canonical 24×24 inside the 38×38 circle / 48×48 touch target", () => {
     renderWithSafeArea(
       <FixedHeader title="Composition" onBack={jest.fn()} backAccessibilityLabel="Retour" />,
     );

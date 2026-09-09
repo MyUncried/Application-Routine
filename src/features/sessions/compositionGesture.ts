@@ -35,35 +35,59 @@ export const LONG_PRESS_DELAY_MS = 500;
 export const TOUCH_SLOP = 8;
 
 /**
- * Déplacement horizontal VERS LA GAUCHE à partir duquel les actions glissées
- * sont révélées (CE-T02-01). Positif dans le sens du geste : un `dx` de
- * `-40 pt` ou plus à gauche révèle `Dupliquer`/`Supprimer`.
+ * Déplacement horizontal à partir duquel un balayage est reconnu comme
+ * ACHEVÉ (CE-T02-01). Le seuil vaut dans les deux sens : `dx ≤ -40` est un
+ * balayage gauche (révèle `Dupliquer`/`Supprimer`), `dx ≥ +40` un balayage
+ * droit (les masque).
  */
 export const SWIPE_REVEAL_DISTANCE = 40;
 
-export type GestureKind = "TAP" | "SWIPE_LEFT" | "VERTICAL" | "NONE";
+export type GestureKind = "TAP" | "SWIPE_LEFT" | "SWIPE_RIGHT" | "VERTICAL" | "NONE";
 
 /**
  * Classe un déplacement `(dx, dy)` tant que l'appui long n'a pas encore
  * abouti :
  *
  * - `NONE` tant que le mouvement reste dans la tolérance (l'appui long peut
- *   donc encore aboutir) ;
- * - `SWIPE_LEFT` pour un geste franchement horizontal vers la gauche ayant
- *   atteint `SWIPE_REVEAL_DISTANCE` ;
+ *   donc encore aboutir) ou qu'un geste horizontal n'a pas atteint le seuil ;
+ * - `SWIPE_LEFT` / `SWIPE_RIGHT` pour un geste franchement horizontal ayant
+ *   atteint `SWIPE_REVEAL_DISTANCE` dans le sens correspondant ;
  * - `VERTICAL` pour un geste à dominante verticale — il appartient alors au
  *   défilement de la liste, jamais à la carte ;
  * - `TAP` n'est jamais renvoyé ici : un appui est reconnu à la RELÂCHE, en
  *   l'absence de tout mouvement significatif (`isTap`).
+ *
+ * **T02-S02 — balayage ACHEVÉ, sans suivi progressif.** Cette classification
+ * ne décrit qu'un état instantané ; c'est l'appelant qui décide QUAND agir.
+ * `CompositionScreen.tsx` n'applique plus le résultat au fil du mouvement :
+ * il mémorise le dernier sens franchi et n'affiche/masque les actions qu'à
+ * la RELÂCHE. Rien ne suit donc le doigt — ni translation partielle de la
+ * carte, ni apparition proportionnelle des actions.
  */
 export function classifyMovement(dx: number, dy: number): GestureKind {
   if (Math.abs(dx) <= TOUCH_SLOP && Math.abs(dy) <= TOUCH_SLOP) {
     return "NONE";
   }
   if (Math.abs(dx) > Math.abs(dy)) {
-    return dx <= -SWIPE_REVEAL_DISTANCE ? "SWIPE_LEFT" : "NONE";
+    if (dx <= -SWIPE_REVEAL_DISTANCE) {
+      return "SWIPE_LEFT";
+    }
+    if (dx >= SWIPE_REVEAL_DISTANCE) {
+      return "SWIPE_RIGHT";
+    }
+    return "NONE";
   }
   return "VERTICAL";
+}
+
+/**
+ * `true` pour un geste horizontal ayant atteint le seuil dans l'un ou
+ * l'autre sens — le seul cas où la carte doit CAPTER le responder (et donc
+ * annuler l'appui du `Pressable` interne) avant même de savoir ce qu'elle en
+ * fera à la relâche.
+ */
+export function isCompletedHorizontalSwipe(kind: GestureKind): boolean {
+  return kind === "SWIPE_LEFT" || kind === "SWIPE_RIGHT";
 }
 
 /** `true` tant que le geste n'a pas dépassé la tolérance d'appui (D-127 : l'appui court reste possible). */

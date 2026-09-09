@@ -29,8 +29,8 @@ describe("classifyMovement / isTap (arbitrage appui / glissement / défilement)"
     expect(classifyMovement(-(TOUCH_SLOP + 2), 0)).toBe("NONE");
   });
 
-  it("never recognizes a RIGHTWARD swipe as the reveal gesture", () => {
-    expect(classifyMovement(SWIPE_REVEAL_DISTANCE + 20, 0)).toBe("NONE");
+  it("recognizes a RIGHTWARD swipe as the closing gesture", () => {
+    expect(classifyMovement(SWIPE_REVEAL_DISTANCE + 20, 0)).toBe("SWIPE_RIGHT");
   });
 
   it("leaves a vertically dominant movement to the scrolling list", () => {

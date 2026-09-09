@@ -137,45 +137,25 @@ export function removeActivity(
   return activities.filter((activity) => activity.id !== activityId);
 }
 
-/** Fragment de suffixe de duplication (D-124/CE-T02-01) — `{nom} (copie)`, puis `{nom} (copie 2)`… */
-const COPY_SUFFIX = "copie";
-
 /**
- * Premier nom de copie DISPONIBLE pour `sourceName` (D-124) : `{nom} (copie)`,
- * puis `{nom} (copie 2)`, `{nom} (copie 3)`, etc.
+ * Duplique une Activité (D-138, révisant D-124 ; CE-T02-01) : la copie est
+ * INDÉPENDANTE, porte `newId` (fourni par l'appelant — ce module reste pur,
+ * sans `expo-crypto`), reprend TOUS les paramètres et associations de la
+ * source — Pause et **Récupération attachée** comprises — et s'insère
+ * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle.
  *
- * Le nom de base est TOUJOURS celui de la source, jamais un nom « décopié » :
- * dupliquer `Gainage (copie)` produit donc `Gainage (copie) (copie)`. Aucune
- * règle de dé-suffixage n'est documentée — en inventer une reviendrait à
- * créer une règle métier absente des sources.
- *
- * `existingNames` sont les noms déjà présents dans la Séance ; la recherche
- * est bornée par leur nombre (au plus un candidat de plus qu'il n'existe de
- * noms pris peut être nécessaire).
- */
-export function nextCopyName(sourceName: string, existingNames: readonly string[]): string {
-  const taken = new Set(existingNames);
-  const firstCandidate = `${sourceName} (${COPY_SUFFIX})`;
-  if (!taken.has(firstCandidate)) {
-    return firstCandidate;
-  }
-  for (let index = 2; index <= taken.size + 2; index += 1) {
-    const candidate = `${sourceName} (${COPY_SUFFIX} ${index})`;
-    if (!taken.has(candidate)) {
-      return candidate;
-    }
-  }
-  // Inatteignable : `taken.size + 1` candidats distincts au plus sont
-  // nécessaires pour en trouver un libre parmi `taken.size` noms pris.
-  return `${sourceName} (${COPY_SUFFIX} ${taken.size + 2})`;
-}
-
-/**
- * Duplique une Activité (D-124/CE-T02-01) : la copie est INDÉPENDANTE, porte
- * `newId` (fourni par l'appelant — ce module reste pur, sans `expo-crypto`),
- * reprend tous les paramètres et associations de la source, s'insère
- * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle, et reçoit le
- * premier nom de copie disponible dans la Séance.
+ * **T02-S02 — titre strictement identique.** La copie conserve le nom exact
+ * de la source ; aucun suffixe n'est appliqué. `D-124` prescrivait
+ * `{nom} (copie)`, puis `{nom} (copie 2)`… mais elle est explicitement
+ * marquée « Révisée par D-138 » dans le Registre, et `D-138` — la décision
+ * qui la remplace — ne réintroduit AUCUNE règle de renommage : elle pose au
+ * contraire que « la Récupération appartient à l'Activité et forme avec elle
+ * un bloc indivisible pour la Composition, la copie, la duplication… ». La
+ * copie est donc rigoureusement identique à sa source, à l'identifiant près.
+ * L'ancienne fonction `nextCopyName` est supprimée plutôt que laissée sans
+ * consommateur. Écart documentaire disclosé dans le rapport de mission :
+ * `13 – Contrats d'écran.md` (CE-T02-01) porte encore la formulation
+ * suffixée de D-124, non mise à jour après la publication de D-138.
  *
  * La source reste inchangée. Un identifiant inconnu retourne la collection
  * inchangée.
@@ -194,10 +174,6 @@ export function duplicateActivity(
   const copy: SessionDraftExercise = {
     ...source,
     id: newId,
-    name: nextCopyName(
-      source.name,
-      activities.map((activity) => activity.name),
-    ),
     // Les Zones corporelles sont recopiées comme une NOUVELLE collection :
     // la copie ne doit jamais partager la référence de tableau de sa source.
     bodyZoneIds: [...source.bodyZoneIds],

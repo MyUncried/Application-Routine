@@ -38,11 +38,18 @@ export type FixedHeaderProps = {
  * Correction **R4-02** (`Action / Back`, `2624:3105`, `[ChatGPT] REWORK04
  * IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03) :
  * la cible tactile (`minTouchTarget`, `48×48`) reste inchangée, mais n'est
- * plus la boîte visuelle elle-même — le cercle visible est désormais
- * `dimensions.backAction.visualCircle` (`28×28`, centré dans la cible via
- * `hitSlop`, même patron que `addActivityAction`/`CreateAction` déjà
- * établi dans ce projet) et le chevron `dimensions.backAction.chevron`
- * (`14×14`, `KodjoIcon`'s taille d'affichage propre).
+ * plus la boîte visuelle elle-même — le cercle visible est
+ * `dimensions.backAction.visualCircle`, centré dans la cible via `hitSlop`
+ * (même patron que `addActivityAction`/`CreateAction` déjà établi dans ce
+ * projet).
+ *
+ * **T02-S02 (D-142)** : ce cercle passe de `28 × 28` à `38 × 38` et l'icône
+ * est fixée à `24 × 24` — « Les actions circulaires Retour, Annuler et
+ * Valider/Confirmer utilisent un cercle visible `38 × 38`, une icône
+ * `24 × 24` et une cible tactile `48 × 48` ». Seule la valeur du token
+ * change : ni la structure de l'en-tête, ni la cible tactile, ni le
+ * mécanisme de `hitSlop` ne sont touchés (`hitSlop` se réduit
+ * mécaniquement de `10` à `5`, la cible restant exactement `48`).
  */
 export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
@@ -65,7 +72,11 @@ export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHead
           style={styles.backCircle}
           testID="screen-header-back"
         >
-          <KodjoIcon name="control-back" testID="screen-header-back-icon" />
+          <KodjoIcon
+            name="control-back"
+            size={dimensions.backAction.icon}
+            testID="screen-header-back-icon"
+          />
         </Pressable>
       ) : null}
       <Text style={styles.title} accessibilityRole="header">
@@ -111,8 +122,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingHorizontal: spacing[24],
   },
-  // R4-02 : cercle visuel `28×28` — la cible tactile `48×48` est obtenue
-  // via `hitSlop` (voir `FixedHeader`), jamais en agrandissant ce cercle.
+  // R4-02, révisé T02-S02 (D-142) : cercle visuel `38×38` — la cible
+  // tactile `48×48` reste obtenue via `hitSlop` (voir `FixedHeader`),
+  // jamais en agrandissant ce cercle.
   backCircle: {
     width: dimensions.backAction.visualCircle,
     height: dimensions.backAction.visualCircle,

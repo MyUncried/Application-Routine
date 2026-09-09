@@ -151,6 +151,13 @@ export const fr = {
       // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
       // `Supprimer` sont ceux, exacts, du groupe `144 × 69` de la frame
       // `2028:11808`.
+      // T02-S02 (D-095/D-128/D-138) : sous-carte `Récupération X min Y s`
+      // attachée à la carte d'Activité — jamais une Activité, jamais une
+      // ligne de plus dans le compte (`computeActivityCount` inchangé).
+      activityRecovery: {
+        label: "Récupération",
+        accessibilityLabel: "Récupération attachée",
+      },
       activityActions: {
         duplicate: "Dupliquer",
         delete: "Supprimer",

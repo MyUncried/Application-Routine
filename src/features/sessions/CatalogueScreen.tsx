@@ -223,6 +223,24 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+/**
+ * Liste du Catalogue (CE-T01-03).
+ *
+ * **T02-S02** — deux garanties rendues EXPLICITES plutôt que laissées aux
+ * défauts de `FlatList` :
+ *
+ * - `scrollEnabled` : la liste reste TOUJOURS défilable. Le Catalogue n'a
+ *   aucun état où le défilement serait neutralisé (contrairement à la
+ *   Composition, qui le désarme pendant qu'une carte est soulevée) — le
+ *   déclarer ici l'ancre dans le contrat testable de l'écran ;
+ * - `showsVerticalScrollIndicator={false}` : l'indicateur vertical est
+ *   masqué, la barre native se superposant aux cartes.
+ *
+ * La LARGEUR et la POSITION des cartes ne changent pas : `contentContainerStyle`
+ * (`styles.list`) est repris strictement tel quel, et `SessionCard` conserve
+ * sa propre géométrie — aucune marge, aucun padding horizontal n'est ajouté
+ * ici.
+ */
 function ReadyBody({
   sessions,
   onOpenSession,
@@ -237,7 +255,10 @@ function ReadyBody({
       renderItem={({ item }) => (
         <SessionCard session={item} onOpen={() => onOpenSession(item.id)} />
       )}
+      scrollEnabled
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.list}
+      testID="catalogue-session-list"
     />
   );
 }

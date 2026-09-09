@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Platform, ScrollView, StyleSheet } from "react-native";
 
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
@@ -550,10 +550,10 @@ describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPick
       const cancelStyle = StyleSheet.flatten(cancel.props.style);
       const validateStyle = StyleSheet.flatten(validate.props.style);
 
-      expect(cancelStyle.width).toBe(28);
-      expect(cancelStyle.height).toBe(28);
-      expect(validateStyle.width).toBe(28);
-      expect(validateStyle.height).toBe(28);
+      expect(cancelStyle.width).toBe(38);
+      expect(cancelStyle.height).toBe(38);
+      expect(validateStyle.width).toBe(38);
+      expect(validateStyle.height).toBe(38);
       expect(cancelStyle.width + cancel.props.hitSlop * 2).toBe(48);
       expect(validateStyle.width + validate.props.hitSlop * 2).toBe(48);
     });

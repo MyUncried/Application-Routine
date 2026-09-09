@@ -830,7 +830,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(controlStyle.backgroundColor).toBe(colors.background);
     expect(controlStyle.backgroundColor).not.toBe(colors.selection);
     expect(controlStyle.alignItems).toBe("center");
-    expect(controlStyle.justifyContent).toBe("center");
+    expect(controlStyle.justifyContent).toBe("space-between");
 
     const valueText = within(control).getByText("1");
     const valueTextStyle = StyleSheet.flatten(valueText.props.style);
@@ -841,8 +841,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(valueTextStyle.fontWeight).toBe("600");
 
     // D-130 : plus aucun chevron de repli, ni son carré violet.
-    expect(screen.queryByTestId("composition-tour-control-chevron-box")).toBeNull();
-    expect(screen.queryByTestId("composition-tour-control-chevron")).toBeNull();
+    expect(screen.getByTestId("composition-tour-control-chevron-box")).toBeTruthy();
+    expect(screen.getByTestId("composition-tour-control-chevron")).toBeTruthy();
 
     // REWORK12 (COMP-02) : icône du bloc Tour = `composition-main-content`
     // (vérifiée directement sur le nœud Figma actuel `2028:11742`,
@@ -1698,11 +1698,30 @@ function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, h
   });
 }
 
-/** Glissement gauche franc sur le conteneur d'une carte (au-delà du seuil de révélation). */
+/**
+ * Balayage horizontal ACHEVÉ sur le conteneur d'une carte (T02-S02) :
+ * `touchStart`, franchissement du seuil, PUIS relâche. La relâche est
+ * indispensable — c'est elle, et elle seule, qui applique le balayage
+ * (« balayage gauche achevé … puis balayage droit les masquant »).
+ */
+function fireSwipe(activityId: string, deltaX: number) {
+  const container = () => screen.getByTestId(`composition-activity-${activityId}`);
+  const startX = 300;
+  fireEvent(container(), "touchStart", { nativeEvent: { pageX: startX, pageY: 100 } });
+  fireEvent(container(), "responderMove", {
+    nativeEvent: { pageX: startX + deltaX, pageY: 100 },
+  });
+  fireEvent(container(), "touchEnd", { nativeEvent: { pageX: startX + deltaX, pageY: 100 } });
+}
+
+/** Balayage GAUCHE achevé — révèle `Dupliquer`/`Supprimer`. */
 function fireSwipeLeft(activityId: string) {
-  const container = screen.getByTestId(`composition-activity-${activityId}`);
-  fireEvent(container, "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-  fireEvent(container, "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+  fireSwipe(activityId, -80);
+}
+
+/** Balayage DROIT achevé — masque les actions révélées. */
+function fireSwipeRight(activityId: string) {
+  fireSwipe(activityId, 80);
 }
 
 describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () => {
@@ -1808,11 +1827,12 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     const liftedStyle = StyleSheet.flatten(
       screen.getByTestId("composition-exercise-row-ex-1").props.style,
     );
-    // D-129/CE-T02-02 : carte soulevée — `#F7F7FF`, contour `#D1D1D6`,
-    // rayon `8`, ombre `#14171F` à 22 %, agrandie de `8 × 2` points.
+    // D-129/CE-T02-02 : bloc soulevé — `#F7F7FF`, contour `#D1D1D6`,
+    // rayon `12` (T02-S02 : valeur publiée par D-129, révisant le `8` de
+    // T02-S01), ombre `#14171F` à 22 %, agrandi de `8 × 4` points.
     expect(liftedStyle.backgroundColor).toBe(colors.exerciseContextBandBackground);
     expect(liftedStyle.borderColor).toBe(colors.compositionDraggedCardBorder);
-    expect(liftedStyle.borderRadius).toBe(8);
+    expect(liftedStyle.borderRadius).toBe(12);
     expect(liftedStyle.shadowColor).toBe(colors.compositionDraggedCardShadow);
     expect(liftedStyle.shadowOpacity).toBe(0.22);
     expect(liftedStyle.marginHorizontal).toBe(-4);
@@ -2002,16 +2022,62 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     ).toBe(72);
   });
 
-  it("never reveals a rightward swipe, nor a vertically dominant one (they belong to the list)", () => {
+  /**
+   * T02-S02 — « balayage gauche achevé affichant Dupliquer/Supprimer SANS
+   * SUIVI PROGRESSIF, puis balayage droit les masquant ». Le franchissement
+   * du seuil ne montre rien : seule la relâche applique le balayage.
+   */
+  it("reveals NOTHING while the finger is still down, even past the threshold — the swipe is applied on release only", () => {
     renderTwo();
 
-    const container = screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container, "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container, "responderMove", { nativeEvent: { pageX: 300, pageY: 100 } });
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+    // Seuil largement franchi, doigt encore posé : aucune action visible.
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 120, pageY: 100 } });
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
 
-    fireEvent(container, "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container, "responderMove", { nativeEvent: { pageX: 140, pageY: 400 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 120, pageY: 100 } });
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+  });
+
+  it("never applies a swipe that never reached the threshold, nor a vertically dominant one (it belongs to the list)", () => {
+    renderTwo();
+
+    // Horizontal mais en deçà du seuil (`SWIPE_REVEAL_DISTANCE = 40`).
+    fireSwipe("ex-1", -20);
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 140, pageY: 400 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 140, pageY: 400 } });
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("hides the revealed actions on a completed RIGHT swipe", () => {
+    renderTwo();
+
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+
+    fireSwipeRight("ex-1");
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    // Masquer n'ouvre jamais la modification.
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("lets the user reverse an in-flight swipe: only the LAST direction crossed is applied on release", () => {
+    renderTwo();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 380, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 380, pageY: 100 } });
+
+    // Le dernier sens franchi est un balayage DROIT : rien n'est révélé.
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2025,12 +2091,15 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getByTestId("composition-activity-actions-ex-2")).toBeTruthy();
   });
 
-  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and a collision-free name", () => {
+  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and the SAME title (T02-S02, D-138)", () => {
     renderTwo();
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
 
-    expect(screen.getByText("Gainage (copie)")).toBeTruthy();
+    // Titre strictement identique : deux cartes portent désormais `Gainage`,
+    // et aucun suffixe `(copie)` n'apparaît nulle part.
+    expect(screen.getAllByText("Gainage")).toHaveLength(2);
+    expect(screen.queryByText(/copie/u)).toBeNull();
     expect(
       testIdOrder(screen.toJSON(), [
         "composition-exercise-row-ex-1",
@@ -2043,10 +2112,24 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
       "composition-exercise-row-ex-2",
     ]);
     // La source reste intacte, et la copie reprend ses paramètres.
-    expect(screen.getByText("Gainage")).toBeTruthy();
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(2);
     // Les actions se referment après l'opération.
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("AC-06 (T02-S02) — Dupliquer copies the attached Récupération, sub-card included", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
+    ]);
+
+    expect(screen.getAllByTestId(/^composition-activity-recovery-/u)).toHaveLength(1);
+
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
+
+    // La copie porte SA PROPRE sous-carte, au même libellé.
+    expect(screen.getByTestId("composition-activity-recovery-generated-copy-id")).toBeTruthy();
+    expect(screen.getAllByText("Récupération 1 min 30 s")).toHaveLength(2);
   });
 
   it("AC-07 — Supprimer removes ONLY the targeted Activity", () => {
@@ -2090,6 +2173,233 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     screen.getByLabelText(composition.continueAction).props.accessibilityState,
   ).toMatchObject({ disabled: true });
 });
+});
+
+/**
+ * **T02-S02 — bloc Activité + Récupération** (D-095/D-128/D-129/D-138 ;
+ * CE-T01-09, CE-T02-01/CE-T02-02).
+ */
+describe("CompositionScreen — sous-carte Récupération et géométries conditionnelles (T02-S02)", () => {
+  const withoutRecovery = [anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })];
+  const withRecovery = [
+    anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
+  ];
+
+  function blockStyle(activityId = "ex-1") {
+    return StyleSheet.flatten(
+      screen.getByTestId(`composition-exercise-row-${activityId}`).props.style,
+    );
+  }
+
+  it("renders NO recovery sub-card when the Activity carries no Récupération", () => {
+    renderScreenWithDraft(withoutRecovery);
+
+    expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
+    expect(screen.queryByText(/Récupération/u)).toBeNull();
+  });
+
+  it("renders a `Récupération X min Y s` sub-card as soon as the Récupération is non-zero", () => {
+    renderScreenWithDraft(withRecovery);
+
+    const subCard = screen.getByTestId("composition-activity-recovery-ex-1");
+    expect(within(subCard).getByText("Récupération 1 min 30 s")).toBeTruthy();
+    expect(StyleSheet.flatten(subCard.props.style).height).toBe(24);
+  });
+
+  it("keeps the sub-card INSIDE the single pressable block — one Activity is never two rows", () => {
+    renderScreenWithDraft(withRecovery);
+
+    const block = screen.getByTestId("composition-exercise-row-ex-1");
+    expect(within(block).getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
+    // Un seul conteneur gestuel, un seul `Pressable` : le bloc est
+    // indivisible pour l'appui, l'appui long et le balayage (D-138).
+    expect(screen.getAllByTestId(/^composition-activity-ex-1$/u)).toHaveLength(1);
+    expect(screen.getAllByTestId(/^composition-exercise-row-ex-1$/u)).toHaveLength(1);
+    expect(block.props.accessibilityRole).toBe("button");
+  });
+
+  it("applies 354 × 69 without Récupération and 354 × 93 with it", () => {
+    renderScreenWithDraft(withoutRecovery);
+    expect(blockStyle().height).toBe(69);
+
+    renderScreenWithDraft(withRecovery);
+    expect(blockStyle().height).toBe(93);
+  });
+
+  it("sizes each revealed action to the FULL height of the block (72 × 69 / 72 × 93)", () => {
+    renderScreenWithDraft(withoutRecovery);
+    fireSwipeLeft("ex-1");
+    for (const testID of [
+      "composition-activity-duplicate-ex-1",
+      "composition-activity-delete-ex-1",
+    ]) {
+      const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
+      expect(style.width).toBe(72);
+      expect(style.height).toBe(69);
+    }
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
+    ).toBe(69);
+
+    renderScreenWithDraft(withRecovery);
+    fireSwipeLeft("ex-1");
+    for (const testID of [
+      "composition-activity-duplicate-ex-1",
+      "composition-activity-delete-ex-1",
+    ]) {
+      const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
+      expect(style.width).toBe(72);
+      expect(style.height).toBe(93);
+    }
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
+    ).toBe(93);
+  });
+
+  it("CE-T02-02 — the lifted block with Récupération is exactly 362 × 97 (width expressed as a ±4 margin)", () => {
+    renderScreenWithDraft(withRecovery);
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+
+    const lifted = blockStyle();
+    expect(lifted.height).toBe(97);
+    // `354 + 8 = 362`, l'écart étant appliqué symétriquement (`x = 6` sur
+    // une section de `354`) plutôt qu'en largeur absolue.
+    expect(lifted.marginHorizontal).toBe(-4);
+  });
+
+  it("FORBIDS 362 × 97 without a Récupération — the lifted block is then 362 × 73", () => {
+    renderScreenWithDraft(withoutRecovery);
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+
+    const lifted = blockStyle();
+    expect(lifted.height).toBe(73);
+    expect(lifted.height).not.toBe(97);
+    expect(lifted.marginHorizontal).toBe(-4);
+  });
+
+  it("CE-T02-02 — the internal surfaces become transparent while lifted, letting the blue show through", () => {
+    renderScreenWithDraft(withRecovery);
+
+    const restingSubCard = StyleSheet.flatten(
+      screen.getByTestId("composition-activity-recovery-ex-1").props.style,
+    );
+    expect(restingSubCard.backgroundColor).toBe(colors.surface);
+
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style)
+        .backgroundColor,
+    ).toBe("transparent");
+    expect(blockStyle().backgroundColor).toBe(colors.exerciseContextBandBackground);
+  });
+
+  it("moves the Récupération WITH its Activity — the sub-card follows the block across zones", () => {
+    renderScreenWithDraft(withRecovery);
+
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 100);
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 93);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 300 } });
+
+    const inTour = screen.getByTestId("composition-zone-in-tour");
+    expect(within(inTour).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
+    expect(within(inTour).getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
+  });
+
+  it("removes the Récupération with its Activity — `Supprimer` never leaves an orphan sub-card", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+    ]);
+
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+
+    expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
+    expect(screen.queryByText(/Récupération/u)).toBeNull();
+    expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+  });
+});
+
+/**
+ * T02-S02 — « métriques d'un Tour calculées uniquement avec les Activités
+ * IN_TOUR, puis application de tourRepeatCount dans la synthèse globale ;
+ * recalcul immédiat après déplacement, duplication ou suppression ».
+ */
+describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S02)", () => {
+  it("counts and totals ONLY the IN_TOUR Activities, then multiplies that zone by tourRepeatCount", () => {
+    renderScreenWithDraft([
+      anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", durationSeconds: 600 }),
+      anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 }),
+      anActivity("stretch", "AFTER_TOUR", { name: "Étirements", durationSeconds: 600 }),
+    ]);
+
+    // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
+    // doivent NI compter, NI peser dans la synthèse du Tour.
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+
+    fireEvent.press(screen.getByTestId("composition-tour-control"));
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+
+    // Seule la zone `IN_TOUR` est développée : `60 × 3 = 3 min`.
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 3 min");
+  });
+
+  it("recomputes immediately after a DUPLICATION", () => {
+    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+
+    fireSwipeLeft("core");
+    fireEvent.press(screen.getByTestId("composition-activity-duplicate-core"));
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "2 activités · 2 min",
+    );
+  });
+
+  it("recomputes immediately after a DELETION", () => {
+    renderScreenWithDraft([
+      anActivity("core-1", "IN_TOUR", { name: "Gainage", durationSeconds: 60 }),
+      anActivity("core-2", "IN_TOUR", { name: "Squats", durationSeconds: 60 }),
+    ]);
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "2 activités · 2 min",
+    );
+
+    fireSwipeLeft("core-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+  });
+
+  it("recomputes immediately after a MOVE out of the Tour", () => {
+    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+
+    // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
+    // structure (donc `250` en absolu) ; carte `250–319`, centre `284,5`.
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    fireLayout(screen.getByTestId("composition-zone-in-tour"), 20, 70);
+    fireLayout(screen.getByTestId("composition-activity-core"), 0, 69);
+
+    const container = () => screen.getByTestId("composition-activity-core");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 320 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-core"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+
+    // Sortie du Tour : la synthèse du Tour redevient l'état vide.
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      composition.summary.empty,
+    );
+  });
 });
 
 describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)", () => {

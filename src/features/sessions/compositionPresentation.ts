@@ -406,3 +406,28 @@ export function formatExerciseBodyZones(bodyZoneIds: readonly string[]): string 
   const names = BODY_ZONES.filter((zone) => selected.has(zone.id)).map((zone) => zone.name);
   return names.length === 0 ? null : names.join(COMPACT_LIST_SEPARATOR);
 }
+
+/**
+ * Libellé de la SOUS-CARTE `Récupération X min Y s` attachée à une carte
+ * d'Activité dans la Composition (T02-S02, D-095/D-128/D-138 ; CE-T01-09
+ * « carte au repos `354 × 69` sans Récupération ou bloc `354 × 93` avec
+ * Récupération »).
+ *
+ * `null` — jamais une chaîne vide — lorsque la Récupération est nulle :
+ * l'appelant omet alors entièrement la sous-carte, et le bloc conserve sa
+ * hauteur de repos `69`. C'est ce `null` qui rend la géométrie CONDITIONNELLE
+ * décidable en un point unique, plutôt que par un test de valeur répété dans
+ * l'écran.
+ *
+ * La durée réutilise `formatCompactDuration` — exactement le format déjà
+ * employé par la Pause dans la synthèse de la même carte (`30 s`, `1 min`,
+ * `1 min 30 s`). Rendre ici `01 min 30 s` (format de roulette,
+ * `formatDurationRowValue`) juxtaposerait deux écritures différentes de la
+ * même grandeur dans une même carte.
+ */
+export function formatActivityRecoveryLabel(recoverySeconds: number): string | null {
+  if (recoverySeconds <= 0) {
+    return null;
+  }
+  return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(recoverySeconds)}`;
+}

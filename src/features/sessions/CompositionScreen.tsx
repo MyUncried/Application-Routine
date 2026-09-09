@@ -34,13 +34,16 @@ import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
   classifyMovement,
+  isCompletedHorizontalSwipe,
   isTap,
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
   type ActivityRowLayout,
   type CompositionDragLayout,
+  type GestureKind,
 } from "@/features/sessions/compositionGesture";
 import {
+  formatActivityRecoveryLabel,
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
@@ -1016,11 +1019,42 @@ type CompositionActivityRowProps = {
  *
  * **Poignée (AC-03)** : `Icon / Structure / Movable` (`3066:4676`) reste
  * affichée dans son slot `28 × 28` comme AFFORDANCE — elle n'est pas une
- * cible tactile propre : le reconnaisseur couvre toute la carte.
+ * cible tactile propre : le reconnaisseur couvre tout le bloc.
  *
- * **Actions glissées (D-128)** : le groupe `144 × 69` est SUPERPOSÉ à la
- * partie droite de la carte, qui ne se déplace pas (`position: "absolute"`,
- * jamais une translation de la carte).
+ * **Actions glissées (D-128)** : le groupe est SUPERPOSÉ à la partie droite
+ * du bloc, qui ne se déplace pas (`position: "absolute"`, jamais une
+ * translation de la carte).
+ *
+ * ---
+ *
+ * **T02-S02 — bloc Activité + Récupération (D-095/D-128/D-138, CE-T01-09,
+ * CE-T02-01/CE-T02-02).**
+ *
+ * 1. **Sous-carte attachée.** Lorsque `recoverySeconds > 0`, une sous-carte
+ *    `Récupération X min Y s` de `24` points est attachée sous la carte
+ *    principale. Les deux ne forment qu'UN SEUL `Pressable` : le bloc est
+ *    donc pressable et déplaçable comme un tout — « la Récupération
+ *    appartient à l'Activité et forme avec elle un bloc indivisible pour la
+ *    Composition, la copie, la duplication, le déplacement et la
+ *    suppression » (D-138). Elle n'est jamais une Activité de plus.
+ * 2. **Géométries conditionnelles.** Bloc `354 × 69` sans Récupération,
+ *    `354 × 93` avec ; actions glissées `72 × 69` / `72 × 93`, couvrant
+ *    toute la hauteur du bloc. L'état soulevé applique un écart CONSTANT
+ *    (`widthDelta 8`, `heightDelta 4`) : `362 × 97` avec Récupération —
+ *    valeur explicitement approuvée — et `362 × 73` sans elle. `362 × 97`
+ *    sans Récupération est donc structurellement impossible, jamais interdit
+ *    par une simple convention de relecture.
+ * 3. **Balayage ACHEVÉ, sans suivi progressif.** Le sens du balayage est
+ *    mémorisé pendant le geste mais n'est APPLIQUÉ qu'à la relâche : un
+ *    balayage gauche achevé révèle `Dupliquer`/`Supprimer`, un balayage
+ *    droit les masque. Rien ne suit le doigt — ni translation partielle du
+ *    bloc, ni apparition proportionnelle des actions. Ceci révise T02-S01,
+ *    qui révélait les actions dès le franchissement du seuil, au fil du
+ *    mouvement.
+ * 4. **Appui long, seul déclencheur du déplacement.** Inchangé : `Pressable`
+ *    n'appelle jamais `onPress` après `onLongPress`, et un balayage capte le
+ *    responder en phase de CAPTURE, ce qui annule l'appui en cours. Aucun
+ *    autre chemin n'appelle `onDragStart`.
  */
 function CompositionActivityRow({
   activity,
@@ -1041,6 +1075,12 @@ function CompositionActivityRow({
   const translationYRef = useRef(0);
   const isDraggingRef = useRef(false);
   /**
+   * T02-S02 : dernier sens de balayage ACHEVÉ pendant le geste courant —
+   * mémorisé, jamais appliqué au fil du mouvement. `handleTouchEnd` seul le
+   * consomme, ce qui réalise le « balayage achevé, sans suivi progressif ».
+   */
+  const pendingSwipeRef = useRef<GestureKind | null>(null);
+  /**
    * Décalage vertical visuel de la carte soulevée, pour qu'elle SUIVE le
    * doigt pendant le déplacement (CE-T02-02, « état transitoire avant et
    * pendant le déplacement »). État LOCAL à la carte : seule celle-ci se
@@ -1059,6 +1099,7 @@ function CompositionActivityRow({
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
     originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
     translationYRef.current = 0;
+    pendingSwipeRef.current = null;
   }, []);
 
   const trackMovement = useCallback((event: GestureResponderEvent) => {
@@ -1078,8 +1119,10 @@ function CompositionActivityRow({
    * jamais) :
    *
    * - un déplacement déjà engagé par appui long capte tout mouvement ;
-   * - un glissement franchement horizontal vers la gauche est capté pour
-   *   révéler les actions ;
+   * - un balayage franchement horizontal AYANT ATTEINT LE SEUIL est capté,
+   *   dans l'un ou l'autre sens, et son sens est MÉMORISÉ — rien n'est
+   *   révélé ni masqué à cet instant (T02-S02 : le balayage n'agit qu'une
+   *   fois ACHEVÉ, voir `handleTouchEnd`) ;
    * - tout le reste est laissé au `Pressable` (appui court/long) et, pour un
    *   geste vertical, au `ScrollView` parent, qui reste seul maître du
    *   défilement de la liste.
@@ -1093,17 +1136,14 @@ function CompositionActivityRow({
       if (isTap(dx, dy)) {
         return false;
       }
-      if (classifyMovement(dx, dy) !== "SWIPE_LEFT") {
+      const kind = classifyMovement(dx, dy);
+      if (!isCompletedHorizontalSwipe(kind)) {
         return false;
       }
-      // Révélé dès la décision de capture : le mouvement qui la déclenche ne
-      // produit pas de `onResponderMove` (le responder vient seulement de
-      // changer), et l'utilisateur verrait sinon les actions apparaître un
-      // événement trop tard.
-      onRevealActions();
+      pendingSwipeRef.current = kind;
       return true;
     },
-    [onRevealActions, trackMovement],
+    [trackMovement],
   );
 
   const handleResponderMove = useCallback(
@@ -1113,31 +1153,47 @@ function CompositionActivityRow({
         setDragTranslationY(dy);
         return;
       }
-      if (classifyMovement(dx, dy) === "SWIPE_LEFT") {
-        onRevealActions();
+      const kind = classifyMovement(dx, dy);
+      if (isCompletedHorizontalSwipe(kind)) {
+        // Mémorisation seule : le dernier sens franchi l'emporte, ce qui
+        // permet à l'utilisateur de revenir sur son geste avant de relâcher.
+        pendingSwipeRef.current = kind;
       }
     },
-    [onRevealActions, trackMovement],
+    [trackMovement],
   );
 
   /**
-   * Fin du toucher — reçue quel que soit le porteur du responder. Une dépose
-   * après appui long applique le déplacement ; tout autre relâchement laisse
-   * le brouillon rigoureusement inchangé (CE-T02-02 : « l'entrée dans cet
-   * état ne persiste rien »).
+   * Fin du toucher — reçue quel que soit le porteur du responder.
+   *
+   * - une dépose après appui long applique le déplacement ;
+   * - sinon, un balayage ACHEVÉ est appliqué ici, et seulement ici : gauche
+   *   révèle `Dupliquer`/`Supprimer`, droit les masque (T02-S02) ;
+   * - tout autre relâchement laisse le brouillon rigoureusement inchangé
+   *   (CE-T02-02 : « l'entrée dans cet état ne persiste rien »).
    */
   const handleTouchEnd = useCallback(() => {
     originRef.current = null;
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      pendingSwipeRef.current = null;
       onDragEnd(translationYRef.current);
+      return;
     }
-  }, [onDragEnd]);
+    const swipe = pendingSwipeRef.current;
+    pendingSwipeRef.current = null;
+    if (swipe === "SWIPE_LEFT") {
+      onRevealActions();
+    } else if (swipe === "SWIPE_RIGHT") {
+      onHideActions();
+    }
+  }, [onDragEnd, onHideActions, onRevealActions]);
 
   const handleResponderTerminate = useCallback(() => {
     originRef.current = null;
     setDragTranslationY(0);
+    pendingSwipeRef.current = null;
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
       // Geste interrompu sans dépose : aucun changement d'ordre (CE-T02-02).
@@ -1166,6 +1222,15 @@ function CompositionActivityRow({
   }, [onDragStart]);
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds);
+  /**
+   * Décision UNIQUE de la géométrie conditionnelle : `null` ⇒ aucune
+   * sous-carte, bloc au repos `354 × 69` ; non `null` ⇒ sous-carte `24`
+   * attachée, bloc `354 × 93`. Le libellé et la hauteur sont ainsi
+   * gouvernés par la même donnée, jamais par deux tests séparés qui
+   * pourraient diverger.
+   */
+  const recoveryLabel = formatActivityRecoveryLabel(activity.recoverySeconds);
+  const blockHeight = blockHeightFor(recoveryLabel !== null, isDragged);
 
   return (
     <View
@@ -1189,41 +1254,67 @@ function CompositionActivityRow({
         accessibilityHint={composition.activityActions.reorderAccessibilityHint}
         accessibilityState={{ selected: isDragged }}
         style={[
-          styles.limitCardBase,
-          styles.boundaryRow,
-          isDragged ? styles.activityRowDragged : null,
-          // La carte soulevée suit le doigt ; au repos, aucune transformation
-          // n'est appliquée (le tableau de styles reste alors strictement
-          // celui des cartes limites).
+          styles.activityBlock,
+          isDragged ? styles.activityBlockDragged : null,
+          // Hauteur conditionnelle dérivée en un point unique — jamais un
+          // littéral par état.
+          { height: blockHeight },
+          // Le bloc soulevé suit le doigt ; au repos, aucune transformation
+          // n'est appliquée.
           isDragged ? { transform: [{ translateY: dragTranslationY }] } : null,
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
-        <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-          <KodjoIcon name="composition-reorder" testID="composition-boundary-handle-icon" />
-        </View>
-        <View style={styles.boundaryRowTitleSlot}>
-          <Text style={styles.rowLabel} numberOfLines={1}>
-            {activity.name}
-          </Text>
-          {bodyZones !== null ? (
-            <Text
-              style={styles.boundaryRowSecondaryLine}
-              numberOfLines={1}
-              testID="composition-exercise-body-zones"
-            >
-              {bodyZones}
+        {/*
+         * Carte principale — anatomie strictement conservée depuis T02-S01
+         * (slot structure `28 × 28`, titre, ligne de Zones corporelles,
+         * synthèse). CE-T02-02 : son fond devient TRANSPARENT à l'état
+         * soulevé, « le bleu reste donc visible derrière le nom, les Zones
+         * corporelles et la synthèse » — jamais une opacité appliquée
+         * séparément aux textes.
+         */}
+        <View style={styles.activityMainCard} testID="composition-activity-main-card">
+          <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
+            <KodjoIcon name="composition-reorder" testID="composition-boundary-handle-icon" />
+          </View>
+          <View style={styles.boundaryRowTitleSlot}>
+            <Text style={styles.rowLabel} numberOfLines={1}>
+              {activity.name}
             </Text>
-          ) : null}
-          <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-            {formatExerciseRowSummary(activity)}
-          </Text>
+            {bodyZones !== null ? (
+              <Text
+                style={styles.boundaryRowSecondaryLine}
+                numberOfLines={1}
+                testID="composition-exercise-body-zones"
+              >
+                {bodyZones}
+              </Text>
+            ) : null}
+            <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
+              {formatExerciseRowSummary(activity)}
+            </Text>
+          </View>
         </View>
+
+        {recoveryLabel !== null ? (
+          <View
+            style={[
+              styles.activityRecoveryCard,
+              isDragged ? styles.activityRecoveryCardDragged : null,
+            ]}
+            accessibilityLabel={composition.activityRecovery.accessibilityLabel}
+            testID={`composition-activity-recovery-${activity.id}`}
+          >
+            <Text style={styles.activityRecoveryLabel} numberOfLines={1}>
+              {recoveryLabel}
+            </Text>
+          </View>
+        ) : null}
       </Pressable>
 
       {areActionsRevealed ? (
         <View
-          style={styles.activityRowActions}
+          style={[styles.activityRowActions, { height: blockHeight }]}
           accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
           testID={`composition-activity-actions-${activity.id}`}
         >
@@ -1231,7 +1322,11 @@ function CompositionActivityRow({
             onPress={onDuplicate}
             accessibilityRole="button"
             accessibilityLabel={composition.activityActions.duplicate}
-            style={[styles.activityRowAction, styles.activityRowDuplicateAction]}
+            style={[
+              styles.activityRowAction,
+              styles.activityRowDuplicateAction,
+              { height: blockHeight },
+            ]}
             testID={`composition-activity-duplicate-${activity.id}`}
           >
             <Text style={styles.activityRowDuplicateLabel}>
@@ -1242,7 +1337,11 @@ function CompositionActivityRow({
             onPress={onDelete}
             accessibilityRole="button"
             accessibilityLabel={composition.activityActions.delete}
-            style={[styles.activityRowAction, styles.activityRowDeleteAction]}
+            style={[
+              styles.activityRowAction,
+              styles.activityRowDeleteAction,
+              { height: blockHeight },
+            ]}
             testID={`composition-activity-delete-${activity.id}`}
           >
             <Text style={styles.activityRowDeleteLabel}>{composition.activityActions.delete}</Text>
@@ -1251,6 +1350,26 @@ function CompositionActivityRow({
       ) : null}
     </View>
   );
+}
+
+/**
+ * Hauteur du bloc Activité (+ Récupération) selon les deux seules variables
+ * qui la gouvernent (T02-S02) :
+ *
+ * | Récupération | repos | soulevé |
+ * | --- | --- | --- |
+ * | absente | `69` | `73` |
+ * | présente | `93` | `97` |
+ *
+ * `93 = 69 + 24` et l'état soulevé applique `+4` (`heightDelta`) dans les
+ * deux cas : `362 × 97` ne peut donc JAMAIS être produit sans Récupération,
+ * par construction et non par convention.
+ */
+function blockHeightFor(hasRecovery: boolean, isDragged: boolean): number {
+  const rest =
+    dimensions.compositionActivityRow.restHeight +
+    (hasRecovery ? dimensions.compositionActivityRow.recoveryCardHeight : 0);
+  return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
 
 /**
@@ -1414,14 +1533,17 @@ function TourCard({
          * valeur numérique SEULE (jamais `x` ni `×`), bord droit aligné sur
          * celui des cartes, et **aucun chevron de repli**.
          *
-         * Ceci révise explicitement `T-04a/b/c`/`T-05` (REWORK06) — cadre
-         * `78 × 44` contenant la valeur ET un carré violet dédié au chevron —
-         * qui datait d'avant la publication de D-130 : la décision
-         * canonique postérieure supprime le chevron et fixe la géométrie ; ce
-         * n'est pas un abandon silencieux d'un acquis, mais l'application
-         * d'une décision `Validée post-Figma` qui porte précisément sur ce
-         * contrôle. Le fond blanc du cadre et son alignement à droite,
-         * eux, sont conservés.
+         * **T02-S02 — cadre et chevron d'OUVERTURE rétablis.** `12 –
+         * Architecture technique.md` (« Sélecteur du nombre de tours »)
+         * publie l'anatomie complète : « carré violet `28 × 28` avec `3`
+         * points de marge en haut, à droite et en bas ; icône `#CDCEFA`
+         * issue de la référence `2028:12051` ; aucun chevron de repli ». Les
+         * deux règles ne se contredisent pas — ce carré porte le chevron
+         * d'OUVERTURE de la roulette (le contrôle est un déclencheur), le
+         * chevron proscrit étant celui de REPLI (haut/bas) d'un conteneur
+         * dépliable, que ce contrôle n'est pas. T02-S01 avait supprimé le
+         * carré ENTIER en même temps que le chevron de repli, laissant un
+         * déclencheur sans aucune affordance d'ouverture.
          *
          * `accessibilityState.disabled` disparaît : le contrôle n'est plus
          * inerte, il ouvre la roulette `1..99`.
@@ -1438,6 +1560,16 @@ function TourCard({
           <Text style={styles.tourCardControlValue} testID="composition-tour-control-value">
             {repeatCount}
           </Text>
+          <View
+            style={styles.tourCardControlChevronBox}
+            testID="composition-tour-control-chevron-box"
+          >
+            <KodjoIcon
+              name="select-field-chevron"
+              tintColor={colors.tourSurface}
+              testID="composition-tour-control-chevron"
+            />
+          </View>
         </Pressable>
       </View>
       {children}
@@ -1678,17 +1810,76 @@ const styles = StyleSheet.create({
   activityRowContainerDragged: {
     zIndex: 1,
   },
-  // D-129/CE-T02-02 : état soulevé — `362 × 71` (contre `354 × 69` au
-  // repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau supérieur,
-  // contour `1` point `#D1D1D6`, rayon `8`, ombre périphérique `#14171F` à
-  // `22 %` (`0 / 0`, flou `10`, étalement `2`).
+  // T02-S02 — BLOC Activité (+ Récupération), D-095/D-128/D-138.
   //
-  // L'agrandissement est exprimé en ÉCART (marges négatives et surcroît de
-  // padding vertical), jamais en largeur absolue : la carte au repos occupe
-  // la largeur utile réelle de l'écran, pas une constante de canevas.
-  activityRowDragged: {
+  // Le `Pressable` porte désormais la surface du BLOC ENTIER (fond, liseré,
+  // rayon), la carte principale et la sous-carte n'étant que ses deux
+  // enfants : c'est ce qui rend le bloc indivisible pour l'appui, l'appui
+  // long et le balayage. Les valeurs visuelles sont EXACTEMENT celles de
+  // `limitCardBase`/`boundaryRow` (fond blanc, liseré `colors.border`, rayon
+  // `12`) — l'anatomie des cartes limites reste donc la référence, seule sa
+  // localisation dans l'arbre change. `overflow: "hidden"` fait suivre au
+  // coin bas de la sous-carte le rayon du bloc.
+  //
+  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`), pas ici : elle
+  // dépend de la présence d'une Récupération et de l'état soulevé.
+  activityBlock: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    overflow: "hidden",
+  },
+  // Carte principale du bloc — `flex: 1` : elle occupe tout ce que la
+  // sous-carte (`24`, hauteur fixe) laisse, ce qui reproduit exactement la
+  // décomposition `69 + 24 = 93` de D-128 sans jamais coder `69` une
+  // seconde fois. `paddingVertical` réduit de `12` à `8` par rapport à
+  // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
+  // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
+  // hauteur canonique prime, elle est publiée par CE-T01-09.
+  activityMainCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    gap: spacing[8],
+  },
+  // Sous-carte `Récupération X min Y s` — `24` points attachés sous la carte
+  // principale (D-095/D-128). Séparée par un simple liseré supérieur, jamais
+  // par un second bloc détaché : le bord bas et les coins arrondis restent
+  // ceux du bloc.
+  //
+  // NON VÉRIFIÉ sur Figma (`3572:64`) : l'accès MCP Figma n'était pas
+  // disponible dans cette session — même limite que celle déjà disclosée
+  // pour `2028:11808` (actions glissées). Seules des valeurs DÉJÀ CANONIQUES
+  // du DSF sont employées (`colors.surface` pour la surface secondaire,
+  // `colors.border` pour le liseré, `type.caption`/`colors.textSecondary`
+  // pour le libellé — exactement ceux de `boundaryRowSecondaryLine`) :
+  // aucune couleur ni typographie locale n'est introduite.
+  activityRecoveryCard: {
+    height: dimensions.compositionActivityRow.recoveryCardHeight,
+    justifyContent: "center",
+    paddingHorizontal: spacing[16],
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  activityRecoveryLabel: {
+    ...type.caption,
+    color: colors.textSecondary,
+  },
+  // D-129/CE-T02-02 : état soulevé — `362 × 97` avec Récupération (contre
+  // `354 × 93` au repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // supérieur, contour `1` point `#D1D1D6`, rayon `12`, ombre périphérique
+  // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
+  //
+  // L'agrandissement horizontal est exprimé en ÉCART (marges négatives),
+  // jamais en largeur absolue : le bloc au repos occupe la largeur utile
+  // réelle de l'écran, pas une constante de canevas. L'écart vertical, lui,
+  // est porté par `blockHeightFor` (voir ci-dessus).
+  activityBlockDragged: {
     marginHorizontal: -dimensions.compositionActivityRow.widthDelta / 2,
-    paddingVertical: spacing[12] + dimensions.compositionActivityRow.heightDelta / 2,
     backgroundColor: colors.exerciseContextBandBackground,
     borderColor: colors.compositionDraggedCardBorder,
     borderRadius: dimensions.compositionActivityRow.draggedRadius,
@@ -1698,15 +1889,25 @@ const styles = StyleSheet.create({
     shadowRadius: dimensions.compositionActivityRow.draggedShadowRadius,
     elevation: dimensions.compositionActivityRow.draggedElevation,
   },
-  // D-128 : groupe `144 × 69` superposé à droite, deux actions `72 × 69`
-  // aux libellés centrés horizontalement et verticalement. Les coins droits
-  // suivent le rayon de la carte qu'il recouvre (`limitCardBase`), jamais un
-  // rayon local inventé.
+  // CE-T02-02 : « Le fond interne `Informations` est transparent : le bleu
+  // reste donc visible derrière le nom, les Zones corporelles et la
+  // synthèse ». La sous-carte perd donc sa surface grise et son liseré au
+  // profit du bleu du bloc soulevé — jamais une opacité appliquée aux
+  // textes.
+  activityRecoveryCardDragged: {
+    backgroundColor: "transparent",
+    borderTopColor: colors.compositionDraggedCardBorder,
+  },
+  // D-128 : groupe superposé à droite, deux actions `72 × H` aux libellés
+  // centrés horizontalement et verticalement, `H` valant la hauteur du BLOC
+  // (`69` sans Récupération, `93` avec) — « `Dupliquer` et `Supprimer`
+  // couvrent toute la hauteur du bloc ». La hauteur est appliquée par
+  // l'écran (`blockHeightFor`), pas ici. Les coins droits suivent le rayon
+  // du bloc, jamais un rayon local inventé.
   activityRowActions: {
     position: "absolute",
     top: 0,
     right: 0,
-    bottom: 0,
     width: dimensions.compositionSwipeActions.groupWidth,
     flexDirection: "row",
     borderTopRightRadius: 12,
@@ -1823,21 +2024,44 @@ const styles = StyleSheet.create({
   // pas affiché ». Le bord droit reste aligné sur celui des cartes par
   // construction (dernier enfant de `tourHeader`, dont le padding horizontal
   // est celui de la structure Tour).
+  //
+  // T02-S02 : le cadre redevient une RANGÉE (`row`) — valeur à gauche, carré
+  // violet du chevron d'ouverture à droite, avec `3` points de marge en
+  // haut, à droite et en bas (`12 – Architecture technique.md`). La hauteur
+  // `34` est exactement `28 + 3 + 3`, obtenue ici par `alignItems: "center"`
+  // (marges haut/bas mécaniques) et `paddingRight` (marge droite explicite)
+  // — jamais par un second littéral.
   tourCardControl: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     width: dimensions.compositionTourControl.width,
     height: dimensions.compositionTourControl.height,
     backgroundColor: colors.background,
     borderRadius: dimensions.compositionTourControl.radius,
+    paddingLeft: spacing[8],
+    paddingRight: dimensions.compositionTourControl.chevronBoxMargin,
   },
-  // Valeur numérique seule, centrée horizontalement et verticalement, en
+  // Valeur numérique seule (jamais `x` ni `×`), centrée verticalement, en
   // `type.cardTitle` (`16/20` Semi Bold — graisse et taille conservées de
   // REWORK06).
   tourCardControlValue: {
     ...type.cardTitle,
     color: colors.textPrimary,
     textAlign: "center",
+  },
+  // Carré violet `28 × 28`, rayon `6` — même anatomie canonique que le carré
+  // de chevron de `Forms / Select Field` (`exerciseParameterRow.chevronBox`,
+  // `ExerciseScreen.tsx`). L'icône est teintée `#CDCEFA` (`colors
+  // .tourSurface`, référence `2028:12051`) plutôt que blanche : c'est la
+  // seule différence documentée entre les deux occurrences.
+  tourCardControlChevronBox: {
+    width: dimensions.compositionTourControl.chevronBox,
+    height: dimensions.compositionTourControl.chevronBox,
+    borderRadius: dimensions.compositionTourControl.chevronBoxRadius,
+    backgroundColor: colors.selection,
+    alignItems: "center",
+    justifyContent: "center",
   },
   // R4-03 (cycle REWORK04) : `type.compactCardTitle` (`14/18` Semi Bold),
   // auparavant `type.body` (`14/20` Regular). REWORK06 (addendum « titres
