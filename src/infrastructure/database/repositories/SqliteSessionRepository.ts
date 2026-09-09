@@ -110,26 +110,37 @@ ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
  * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
  * testée (`SqliteSessionRepository.test.ts`).
  *
- * **T02-S02** : la formule canonique devient `C × A + (C − 1) × B + R`
- * (RM-129) — deux corrections par rapport à T02-S01 :
+ * **T02-S02** : la formule canonique est CONDITIONNELLE — la Récupération
+ * REMPLACE la dernière Pause lorsqu'elle existe :
  *
- * - la Pause est multipliée par `max(series_count − 1, 0)` et non par
- *   `series_count` : aucune Pause n'est exécutée après la dernière Série
- *   (`max(X, Y)` à deux arguments est la fonction SCALAIRE de SQLite, jamais
- *   l'agrégat `max(X)` à un argument) ;
- * - `recovery_seconds` est ajouté une seule fois, quel que soit le mode
- *   (RM-132 : en Répétitions et « À l'échec », la borne minimale se compose
- *   des Pauses connues ET de la Récupération).
+ * - `recovery_seconds = 0` : `C × A + C × B` ;
+ * - `recovery_seconds > 0` : `C × A + (C − 1) × B + R`.
+ *
+ * Le nombre d'occurrences de Pause est donc lui-même un `CASE`, transcription
+ * exacte de `computePauseOccurrences`. `MAX(X, Y)` à deux arguments est la
+ * fonction SCALAIRE de SQLite, jamais l'agrégat `max(X)` à un argument.
+ *
+ * `recovery_seconds` est ajouté une seule fois, quel que soit le mode
+ * (RM-132 : en Répétitions et « À l'échec », la borne minimale se compose des
+ * Pauses connues ET de la Récupération).
  *
  * La branche `RECOVERY` reste une défense en profondeur sur une donnée
  * ancienne : `migration004` a converti puis supprimé toutes ces lignes.
  */
+const ACTIVITY_PAUSE_OCCURRENCES_SQL = `
+  CASE
+    WHEN activities.recovery_seconds > 0
+      THEN MAX(COALESCE(activities.series_count, 0) - 1, 0)
+    ELSE MAX(COALESCE(activities.series_count, 0), 0)
+  END
+`;
+
 const ACTIVITY_DURATION_SQL = `
   CASE
     WHEN activities.type = 'RECOVERY'
       THEN COALESCE(activities.duration_seconds, 0)
     ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
-       + MAX(COALESCE(activities.series_count, 0) - 1, 0) * activities.pause_seconds
+       + (${ACTIVITY_PAUSE_OCCURRENCES_SQL}) * activities.pause_seconds
        + activities.recovery_seconds
   END
 `;

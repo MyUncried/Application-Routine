@@ -29,20 +29,24 @@
  *    explicitement « sur toute formulation contradictoire », les exclut. La
  *    contradiction documentaire est consignée dans le rapport de mission.)
  *
- * **T02-S02 — formule canonique unique** (RM-129, DM-015, `04 – Modèle
- * fonctionnel.md`, `08` §« Durée totale calculée », CE-T01-13) :
+ * **T02-S02 — formule canonique CONDITIONNELLE** (RM-129, DM-015, `04 –
+ * Modèle fonctionnel.md`, `08` §« Durée totale calculée », CE-T01-13 ; règle
+ * confirmée par l'autorisation de continuation après recette visuelle) :
  *
  * ```text
- * D = C × A + (C − 1) × B + R
+ * R = 0 :  D = C × A + C × B
+ * R > 0 :  D = C × A + (C − 1) × B + R
  * ```
  *
  * avec `A` la durée d'une Série, `B` la Pause, `C` le nombre de Séries et `R`
- * la Récupération ATTACHÉE. Deux corrections par rapport à T02-S01 :
+ * la Récupération ATTACHÉE.
  *
- * 1. la Pause est développée `max(C − 1, 0)` fois — **jamais `C`** : « Une
- *    Pause ne s'exécute qu'entre deux Séries, jamais après la dernière »
- *    (RM-129/CE-T02-01). L'ancienne formule (`C × B`) comptait une Pause
- *    finale inexistante ;
+ * 1. **La Récupération REMPLACE la dernière Pause**, elle ne s'y ajoute
+ *    jamais. Sans Récupération, la Pause est donc développée `C` fois — le
+ *    repos qui suit la dernière Série existe toujours, il est simplement
+ *    porté par l'autre paramètre selon les cas. Ceci révise la règle
+ *    intermédiaire de cette même tranche (`C − 1` sans condition), qui
+ *    supprimait ce repos final lorsque `R = 0` ;
  * 2. la Récupération attachée `R` est ajoutée **une seule fois**, après
  *    toutes les Séries, et ne compte jamais comme une Activité
  *    supplémentaire (`computeActivityCount` inchangé).
@@ -81,22 +85,38 @@ export type ActivityDurationFacts = {
 };
 
 /**
- * Nombre de Pauses réellement exécutées pour `seriesCount` Séries :
- * `max(C − 1, 0)`.
+ * Nombre de Pauses réellement exécutées pour `seriesCount` Séries, selon que
+ * l'Activité porte ou non une Récupération attachée.
  *
- * Une Pause s'exécute UNIQUEMENT ENTRE deux Séries — une Série unique n'en
- * produit donc aucune, et la dernière Série n'est jamais suivie d'une Pause
- * (RM-129, CE-T02-01 « La Pause est développée `C − 1` fois »). Extraite en
- * fonction nommée pour que cette règle soit prouvable en un point unique
- * plutôt que réécrite à chaque appelant.
+ * **Règle métier confirmée (T02-S02, continuation après recette visuelle) —
+ * la Récupération REMPLACE la dernière Pause lorsqu'elle existe :**
+ *
+ * | Récupération | Pauses développées | Durée |
+ * | --- | --- | --- |
+ * | `R = 0` | `C` | `D = C × A + C × B` |
+ * | `R > 0` | `C − 1` | `D = C × A + (C − 1) × B + R` |
+ *
+ * Elle remplace la règle précédente (`C − 1` sans condition), qui supprimait
+ * la Pause finale même en l'absence de Récupération : le temps de repos après
+ * la dernière Série disparaissait alors purement et simplement. Désormais, ce
+ * repos existe toujours — il est porté par la Pause quand aucune Récupération
+ * n'est définie, et par la Récupération sinon. Les deux ne se cumulent JAMAIS.
+ *
+ * Extraite en fonction nommée pour que cette règle soit prouvable en un point
+ * unique plutôt que réécrite à chaque appelant (Domaine, projection SQL,
+ * présentation).
  */
-export function computePauseOccurrences(seriesCount: number | null): number {
-  return Math.max((seriesCount ?? 0) - 1, 0);
+export function computePauseOccurrences(
+  seriesCount: number | null,
+  recoverySeconds: number,
+): number {
+  const series = Math.max(seriesCount ?? 0, 0);
+  return recoverySeconds > 0 ? Math.max(series - 1, 0) : series;
 }
 
 /**
- * Durée estimée d'UNE Activité, hors répétitions du Tour — la formule
- * canonique `D = C × A + (C − 1) × B + R` (voir la note de tête).
+ * Durée estimée d'UNE Activité, hors répétitions du Tour — voir
+ * `computePauseOccurrences` pour la formule conditionnelle exacte.
  *
  * En modes Répétitions et « À l'échec », le terme `C × A` est omis (aucune
  * durée conventionnelle n'est inventée) ; les Pauses et la Récupération
@@ -115,7 +135,7 @@ export function computeActivityDurationSeconds(activity: ActivityDurationFacts):
     : seriesCount * (activity.durationSeconds ?? 0);
   return (
     targetSeconds +
-    computePauseOccurrences(seriesCount) * activity.pauseSeconds +
+    computePauseOccurrences(seriesCount, activity.recoverySeconds) * activity.pauseSeconds +
     activity.recoverySeconds
   );
 }
@@ -140,9 +160,14 @@ export const SERIES_COUNT_MIN = 1;
 export const SERIES_COUNT_MAX = 99;
 
 /**
- * `D = C × A + (C − 1) × B + R` — Durée totale d'une occurrence d'Activité en
- * mode Durée (RM-129). Sens DIRECT : `Séries` pilote, `Durée totale` est
- * dérivée.
+ * Durée totale d'une occurrence d'Activité en mode Durée. Sens DIRECT :
+ * `Séries` pilote, `Durée totale` est dérivée.
+ *
+ * - `R = 0` : `D = C × A + C × B` ;
+ * - `R > 0` : `D = C × A + (C − 1) × B + R`.
+ *
+ * Voir `computePauseOccurrences` — la Récupération remplace la dernière
+ * Pause, elle ne s'y ajoute jamais.
  */
 export function computeTotalDurationSeconds(
   seriesCount: number,
@@ -150,14 +175,22 @@ export function computeTotalDurationSeconds(
 ): number {
   return (
     seriesCount * facts.durationSeconds +
-    computePauseOccurrences(seriesCount) * facts.pauseSeconds +
+    computePauseOccurrences(seriesCount, facts.recoverySeconds) * facts.pauseSeconds +
     facts.recoverySeconds
   );
 }
 
 /**
- * `Cth = (D − R + B) / (A + B)` — calcul INVERSE (RM-130, API-ACT-02) :
- * `Durée totale` pilote, `Séries` est dérivé.
+ * Calcul INVERSE (RM-130, API-ACT-02) : `Durée totale` pilote, `Séries` est
+ * dérivé. Il inverse EXACTEMENT la formule conditionnelle directe :
+ *
+ * - `R = 0` : `D = C × (A + B)` donc `Cth = D / (A + B)` ;
+ * - `R > 0` : `D = C × A + (C − 1) × B + R` donc
+ *   `Cth = (D − R + B) / (A + B)`.
+ *
+ * Le terme `+ B` du numérateur n'existe donc QUE dans la branche avec
+ * Récupération : l'appliquer inconditionnellement (règle précédente)
+ * surestimerait `C` d'une Série entière dès que `B > 0` et `R = 0`.
  *
  * Arrondi à l'entier le PLUS PROCHE, `.5` VERS LE HAUT, puis borné à
  * `[1, 99]` (D-092). `Math.floor(x + 0.5)` — jamais `Math.round`, dont le
@@ -178,9 +211,11 @@ export function computeSeriesCountForTotalDuration(
   if (denominator <= 0) {
     return SERIES_COUNT_MIN;
   }
-  const theoretical =
-    (targetTotalSeconds - facts.recoverySeconds + facts.pauseSeconds) / denominator;
-  const rounded = Math.floor(theoretical + 0.5);
+  const numerator =
+    facts.recoverySeconds > 0
+      ? targetTotalSeconds - facts.recoverySeconds + facts.pauseSeconds
+      : targetTotalSeconds;
+  const rounded = Math.floor(numerator / denominator + 0.5);
   if (rounded < SERIES_COUNT_MIN) {
     return SERIES_COUNT_MIN;
   }

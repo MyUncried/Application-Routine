@@ -70,8 +70,9 @@ export const WHEEL_RECOVERY_SECONDS_MAX = 5999;
  * T02-S02 : borne haute de la Durée totale CIBLE saisissable, en secondes —
  * même contrat de roulette que ci-dessus.
  *
- * Limite disclosée : la Durée totale CALCULÉE (`D = C × A + (C − 1) × B + R`)
- * peut légitimement dépasser cette borne (jusqu'à `99` Séries de `99 min 59 s`)
+ * Limite disclosée : la Durée totale CALCULÉE (formule canonique
+ * conditionnelle, `calculations.ts`) peut légitimement dépasser cette borne
+ * (jusqu'à `99` Séries de `99 min 59 s`)
  * ; elle est alors AFFICHÉE intégralement, seule la valeur que l'utilisateur
  * peut CONFIRMER dans la roulette étant bornée par le composant canonique.
  * Aucune source ne documente une seconde variante de roulette pour ce cas.

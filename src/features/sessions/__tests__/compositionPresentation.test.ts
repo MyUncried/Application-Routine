@@ -104,13 +104,13 @@ describe("formatCompositionSummary", () => {
     it("prefixes the duration with '≥' and ignores the exercise's own duration entirely (only the pause contributes)", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(12, 20)] }),
-      ).toBe("1 activité · ≥ 1 min"); // 20s (pause) -> ceil(20/60) = 1 min
+      ).toBe("1 activité · ≥ 1 min"); // 2 Séries × 20 s = 40 s -> ceil(40/60) = 1 min
     });
 
     it("still applies Math.ceil to the pause sum alone", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(20, 65)] }),
-      ).toBe("1 activité · ≥ 2 min"); // 65s -> ceil(65/60) = 2 min
+      ).toBe("1 activité · ≥ 3 min"); // 2 Séries × 65 s = 130 s -> ceil(130/60) = 3 min
     });
 
     it("never underestimates: a repetition count change alone never changes the displayed minimum", () => {
@@ -129,7 +129,7 @@ describe("formatCompositionSummary", () => {
   });
 
   describe("Séries et Pause après Série (T01-S08, revue PR #9 — RM-036/RM-037/RM-071/RM-072)", () => {
-    it("mode Durée : multiplie durationSeconds par seriesCount et la Pause par (seriesCount − 1) (90s, 3 Séries, pause 15s -> 300s -> 5 min)", () => {
+    it("mode Durée, SANS Récupération : multiplie durationSeconds ET la Pause par seriesCount (90s, 3 Séries, pause 15s -> 315s -> 6 min)", () => {
       expect(
         formatCompositionSummary({
           exercises: [
@@ -142,7 +142,44 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · 5 min"); // 3*90 + 2*15 = 300s -> ceil(300/60) = 5 min (RM-129)
+      ).toBe("1 activité · 6 min"); // 3*90 + 3*15 = 315s -> ceil(315/60) = 6 min
+    });
+
+    it("mode Durée, AVEC une Récupération ÉGALE à la Pause : total inchangé — elle REMPLACE la dernière Pause au lieu de s'y ajouter", () => {
+      expect(
+        formatCompositionSummary({
+          exercises: [
+            {
+              ...inTourExercise("ex-1"),
+              name: "Gainage",
+              durationSeconds: 90,
+              seriesCount: 3,
+              pauseSeconds: 15,
+              recoverySeconds: 15,
+            },
+          ],
+        }),
+        // 3*90 + 2*15 + 15 = 315 s — strictement la même valeur que sans
+        // Récupération (3*90 + 3*15). Un cumul aurait donné 330 s.
+      ).toBe("1 activité · 6 min");
+    });
+
+    it("mode Durée, AVEC une Récupération PLUS LONGUE que la Pause : le total augmente exactement de l'écart", () => {
+      expect(
+        formatCompositionSummary({
+          exercises: [
+            {
+              ...inTourExercise("ex-1"),
+              name: "Gainage",
+              durationSeconds: 90,
+              seriesCount: 3,
+              pauseSeconds: 15,
+              recoverySeconds: 75,
+            },
+          ],
+        }),
+        // 3*90 + 2*15 + 75 = 375 s, soit `315 + (75 − 15)`.
+      ).toBe("1 activité · 7 min");
     });
 
     it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 40s -> ≥ 1 min)", () => {
@@ -160,7 +197,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · ≥ 1 min"); // 2*20 = 40s -> ceil(40/60) = 1 min
+      ).toBe("1 activité · ≥ 1 min"); // 3*20 = 60s -> ceil(60/60) = 1 min
     });
 
     it("Pause nulle : n'ajoute rien à la durée estimée, quel que soit seriesCount", () => {
@@ -230,17 +267,14 @@ describe("formatCompositionSummary", () => {
             name: "Gainage",
             durationSeconds: 45,
             seriesCount: 2,
-            // T02-S02 : `30` ne produisait plus d'écart observable — avec
-            // `C − 1 = 1` occurrence, `90 + 30 = 120 s` retombe sur les
-            // mêmes `2 min` arrondies que la version sans pause. La valeur
-            // est portée à `60` pour que ce test mesure encore ce qu'il
-            // annonce : l'effet PROPRE de la Pause.
             pauseSeconds: 60,
           },
         ],
       });
       expect(noPause).toBe("1 activité · 2 min"); // 2*45 = 90s -> ceil(90/60) = 2 min
-      expect(withPause).toBe("1 activité · 3 min"); // 2*45 + 1*60 = 150s -> ceil(150/60) = 3 min
+      // Aucune Récupération : la Pause suit chacune des 2 Séries —
+      // 2*45 + 2*60 = 210s -> ceil(210/60) = 4 min.
+      expect(withPause).toBe("1 activité · 4 min");
       expect(noPause).not.toBe(withPause);
     });
   });
@@ -276,10 +310,10 @@ describe("formatCompositionSummary", () => {
           },
         ],
       });
-      // 90 + (0 + 0*20) = 90s -> ceil(90/60) = 2 min — la seconde Activité
-      // n'a qu'UNE Série, donc aucune Pause exécutée (RM-129). Au moins une
-      // Activité en mode Répétitions -> préfixe '≥' même si l'autre est en
-      // mode Durée.
+      // 90 + (0 + 1*20) = 110s -> ceil(110/60) = 2 min — la seconde Activité
+      // n'a qu'UNE Série, mais aucune Récupération ne remplace sa Pause :
+      // celle-ci est donc bien exécutée. Au moins une Activité en mode
+      // Répétitions -> préfixe '≥' même si l'autre est en mode Durée.
       expect(result).toBe("2 activités · ≥ 2 min");
     });
 
@@ -369,8 +403,8 @@ describe("formatCompositionSummary", () => {
         seriesCount: 3,
         pauseSeconds: 20,
       };
-      // Aucune durée conventionnelle : seules les pauses comptent,
-      // (3 − 1) × 20 = 40 s (RM-129).
+      // Aucune durée conventionnelle : seules les pauses comptent — et sans
+      // Récupération, la Pause suit chacune des 3 Séries, soit 60 s.
       expect(formatCompositionSummary({ exercises: [toFailure] })).toBe("1 activité · ≥ 1 min");
     });
 
@@ -895,7 +929,7 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
  * (DM-015/DM-016) : toujours recalculée depuis les paramètres affichés.
  */
 describe("formatExerciseDurationLine (T02-S02)", () => {
-  it("shows the exact total in Durée mode, applying D = C × A + (C − 1) × B + R", () => {
+  it("shows the exact total in Durée mode, applying the conditional canonical formula", () => {
     expect(
       formatExerciseDurationLine({
         name: "Gainage",
@@ -906,7 +940,9 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 15,
         recoverySeconds: 20,
       }),
-    ).toBe("Durée totale : 2 min 20 s"); // 3×30 + 2×15 + 20 = 140 s
+      // Récupération présente : elle remplace la dernière Pause —
+      // 3×30 + 2×15 + 20 = 140 s.
+    ).toBe("Durée totale : 2 min 20 s");
   });
 
   it("shows a '≥' lower bound in Répétitions mode, counting only the pauses and the Récupération", () => {
@@ -920,7 +956,24 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 10,
         recoverySeconds: 25,
       }),
-    ).toBe("Durée minimale : ≥ 55 s"); // 3×10 + 25 = 55 s
+      // Récupération présente : 3×10 + 25 = 55 s.
+    ).toBe("Durée minimale : ≥ 55 s");
+  });
+
+  it("counts the pause after EVERY series when no Récupération replaces the last one", () => {
+    expect(
+      formatExerciseDurationLine({
+        name: "Squats",
+        executionMode: "REPETITIONS",
+        durationSeconds: null,
+        repetitionCount: 12,
+        seriesCount: 4,
+        pauseSeconds: 10,
+        recoverySeconds: 0,
+      }),
+      // 4 × 10 = 40 s — une Pause de plus que la variante avec Récupération
+      // ci-dessus, exactement celle que la Récupération remplaçait.
+    ).toBe("Durée minimale : ≥ 40 s");
   });
 
   it("shows a '≥' lower bound in À l'échec mode as well (D-112)", () => {
@@ -934,7 +987,8 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 30,
         recoverySeconds: 0,
       }),
-    ).toBe("Durée minimale : ≥ 30 s");
+      // Aucune Récupération : la Pause suit CHAQUE Série — 2 × 30 = 60 s.
+    ).toBe("Durée minimale : ≥ 1 min");
   });
 
   it("never invents a conventional duration for the Exercise itself in a non-timed mode", () => {

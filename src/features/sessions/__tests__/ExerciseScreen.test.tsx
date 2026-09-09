@@ -8,7 +8,7 @@ import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftC
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { colors, dimensions, type } from "@/shared/ui/tokens";
+import { colors, dimensions, minTouchTarget, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -335,6 +335,57 @@ describe("ExerciseScreen — écran unifié et sections repliables (T02-S02, D-1
     expect(screen.queryByLabelText(t.instruction.label)).toBeNull();
   });
 
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : le chevron de la
+   * section `Mode d'exécution` replie et déploie D'UN SEUL GESTE le contrôle
+   * segmenté ET l'intégralité du cadre de paramètres — les deux forment un
+   * bloc fonctionnel unique (le mode choisi détermine le paramètre affiché
+   * par la première rangée).
+   */
+  it("collapses the segmented control AND the whole parameter card together, from the Mode d'exécution chevron", () => {
+    renderScreen(null);
+
+    // Déployée par défaut : les deux sont visibles, et le cadre de
+    // paramètres est bien DANS le contenu de la section.
+    const content = screen.getByTestId("exercise-section-execution-mode-content");
+    expect(within(content).getByLabelText(t.executionMode.label)).toBeTruthy();
+    expect(within(content).getByTestId("exercise-parameter-card")).toBeTruthy();
+
+    expandSection("exercise-section-execution-mode");
+
+    // Repliée : ni le segment, ni AUCUN champ de paramètre ne subsiste.
+    expect(screen.queryByTestId("exercise-section-execution-mode-content")).toBeNull();
+    expect(screen.queryByLabelText(t.executionMode.label)).toBeNull();
+    expect(screen.queryByTestId("exercise-parameter-card")).toBeNull();
+    for (const field of [
+      "exercise-field-seriesCount",
+      "exercise-field-duration",
+      "exercise-field-pauseSeconds",
+      "exercise-field-recoverySeconds",
+      "exercise-field-totalDuration",
+    ]) {
+      expect(screen.queryByTestId(field)).toBeNull();
+    }
+
+    // Redéployée : tout revient ensemble.
+    expandSection("exercise-section-execution-mode");
+    expect(screen.getByTestId("exercise-parameter-card")).toBeTruthy();
+    expect(screen.getByLabelText(t.executionMode.label)).toBeTruthy();
+  });
+
+  it("keeps a REDUCED vertical gap between the segmented control and the parameter card, not the structural section gap", () => {
+    renderScreen(null);
+
+    const groupStyle = StyleSheet.flatten(
+      screen.getByTestId("exercise-execution-mode-group").props.style,
+    );
+    // `8` — le même token que l'écart interne du cadre de paramètres, et non
+    // l'écart structurel `24` de `bodyContent` qui séparait auparavant les
+    // deux éléments.
+    expect(groupStyle.gap).toBe(8);
+    expect(groupStyle.gap).toBeLessThan(24);
+  });
+
   it("reports the expanded state on each header, and reflects the toggle", () => {
     renderScreen(null);
 
@@ -399,12 +450,28 @@ describe("ExerciseScreen — unicité des noms accessibles des sections (T02-S02
     expect(() => screen.getByLabelText(t.instruction.label)).not.toThrow();
   });
 
-  it("keeps EXACTLY ONE node named « Zone corporelle d'exécution » and ONE named « Mode d'exécution »", () => {
+  it("keeps EXACTLY ONE node named « Zones corporelles » and ONE named « Mode d'exécution »", () => {
     renderScreen(null);
     expandSection("exercise-section-body-zones");
 
     expect(screen.getAllByLabelText(t.bodyZones.accessibilityLabel)).toHaveLength(1);
     expect(screen.getAllByLabelText(t.executionMode.label)).toHaveLength(1);
+  });
+
+  /**
+   * T02-S02 (continuation après recette visuelle) : « Zone corporelle
+   * d'exécution » devient « Zones corporelles ». Le titre de section et le
+   * libellé du sélecteur restent la MÊME chaîne — l'unicité du nom accessible
+   * continue de reposer sur la composition du nom de l'en-tête.
+   */
+  it("renames the body-zones section to « Zones corporelles », title and selector alike", () => {
+    renderScreen(null);
+
+    expect(t.sections.bodyZones).toBe("Zones corporelles");
+    expect(t.bodyZones.accessibilityLabel).toBe("Zones corporelles");
+    expect(t.bodyZones.label).toBe(t.sections.bodyZones);
+    expect(screen.getByText("Zones corporelles")).toBeTruthy();
+    expect(screen.queryByText(/Zone corporelle d/u)).toBeNull();
   });
 
   it("names each section header with the ACTION and its target, never with the bare title", () => {
@@ -603,6 +670,45 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
     expect(StyleSheet.flatten(label.props.style).color).toBe(colors.selection);
     expect(StyleSheet.flatten(control.props.style).width).toBe(124);
   });
+
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : le badge n'a pas de
+   * libellé au-dessus, contrairement à `Séries` et `Pause`. Sans consigne
+   * d'alignement, son cadre se posait en HAUT de la colonne, visiblement
+   * décalé des deux autres contrôles.
+   */
+  it("aligns the À l'échec badge on the SAME baseline as Séries and Pause, and makes its background transparent", () => {
+    renderScreen(null);
+    fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
+
+    // La colonne réserve, au-dessus du cadre, la hauteur EXACTE d'un libellé
+    // de colonne : sa structure interne devient identique à celle des
+    // colonnes `Séries`/`Pause`, donc la position de son cadre aussi.
+    const spacerStyle = StyleSheet.flatten(
+      screen.getByTestId("exercise-field-toFailure-label-spacer").props.style,
+    );
+    expect(spacerStyle.height).toBe(type.parameterColumnLabel.lineHeight);
+    // Même écart libellé/cadre que ses voisines.
+    expect(
+      StyleSheet.flatten(screen.getByTestId("exercise-field-toFailure").props.style).gap,
+    ).toBe(
+      StyleSheet.flatten(screen.getByTestId("exercise-field-pauseSeconds").props.style).gap,
+    );
+
+    // Fond TRANSPARENT : ce cadre n'ouvre rien, il ne reprend donc pas la
+    // surface blanche des contrôles réellement pressables.
+    const controlStyle = StyleSheet.flatten(
+      screen.getByTestId("exercise-field-toFailure-control").props.style,
+    );
+    expect(controlStyle.backgroundColor).toBe("transparent");
+    expect(controlStyle.backgroundColor).not.toBe(colors.background);
+    // Même hauteur de cadre que les contrôles voisins — l'alignement est
+    // réel, pas approché.
+    expect(controlStyle.height).toBe(
+      StyleSheet.flatten(screen.getByTestId("exercise-field-pauseSeconds-control").props.style)
+        .height,
+    );
+  });
 });
 
 describe("ExerciseScreen — bouton média désactivé, aucune section Médias (T01-S10, doc13 §8)", () => {
@@ -701,6 +807,38 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
     ).toEqual(["exercise-field-recoverySeconds", "exercise-field-totalDuration"]);
   });
 
+  /**
+   * T02-S02 (continuation après recette visuelle) : la seconde rangée est
+   * décalée d'une colonne, pour aligner `Récupération` sous le contrôle du
+   * mode (`Durée`/`Répétitions`) et `Durée totale` sous `Pause`.
+   */
+  it("offsets the second row by exactly one Séries column, aligning Récupération under the mode control and Durée totale under Pause", () => {
+    renderScreen(null);
+
+    const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
+    const spacer = within(secondRow).getByTestId("exercise-parameter-row-spacer");
+    // La cale précède les deux champs et vaut EXACTEMENT la largeur de la
+    // colonne `Séries` : `74 + gap` décale la rangée d'une colonne pleine.
+    expect(StyleSheet.flatten(spacer.props.style).width).toBe(74);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("exercise-field-seriesCount").props.style).width,
+    ).toBe(74);
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "exercise-parameter-row-spacer",
+        "exercise-field-recoverySeconds",
+        "exercise-field-totalDuration",
+      ]),
+    ).toEqual([
+      "exercise-parameter-row-spacer",
+      "exercise-field-recoverySeconds",
+      "exercise-field-totalDuration",
+    ]);
+    // La cale est purement structurelle : ni nom accessible, ni rôle.
+    expect(spacer.props.accessibilityRole).toBeUndefined();
+    expect(spacer.props.accessibilityLabel).toBeUndefined();
+  });
+
   it("gives Durée, Pause, Récupération and Durée totale a 124pt column and Séries a 74pt column, with labels above each control", () => {
     renderScreen(null);
 
@@ -755,11 +893,33 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
     }
   });
 
-  it("keeps a real touch target and the button role on each control", () => {
+  /**
+   * **T02-S02 (continuation après recette visuelle, point DSF)** : le cadre
+   * visible garde sa hauteur canonique `42` (`Forms / Select Field`), mais il
+   * OUVRE une roulette — sa cible tactile doit atteindre `48`
+   * (`size/touch-target-min`), obtenue par `hitSlop` comme partout ailleurs
+   * dans ce projet, jamais en agrandissant la boîte visuelle.
+   */
+  it("keeps the 42pt visible frame but reaches the canonical 48pt touch target on every wheel-opening control", () => {
     renderScreen(null);
-    const control = screen.getByTestId("exercise-field-duration-control");
-    expect(control.props.accessibilityRole).toBe("button");
-    expect(StyleSheet.flatten(control.props.style).height).toBe(42);
+
+    for (const testID of [
+      "exercise-field-seriesCount-control",
+      "exercise-field-duration-control",
+      "exercise-field-pauseSeconds-control",
+      "exercise-field-recoverySeconds-control",
+      "exercise-field-totalDuration-control",
+    ]) {
+      const control = screen.getByTestId(testID);
+      expect(control.props.accessibilityRole).toBe("button");
+
+      const visualHeight = StyleSheet.flatten(control.props.style).height;
+      expect(visualHeight).toBe(42);
+
+      const hitSlop = control.props.hitSlop as { top: number; bottom: number };
+      expect(visualHeight + hitSlop.top + hitSlop.bottom).toBe(minTouchTarget);
+      expect(minTouchTarget).toBe(48);
+    }
   });
 });
 
@@ -870,9 +1030,9 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
       pauseSeconds: 15,
     });
 
-    // 3 × 30 + 2 × 15 = 120 s.
+    // Aucune Récupération : 3 × 30 + 3 × 15 = 135 s.
     expect(
-      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 00 s"),
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 15 s"),
     ).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("exercise-field-seriesCount-control"));
@@ -881,9 +1041,37 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     });
     fireEvent.press(screen.getByTestId("number-wheel-validate"));
 
-    // 4 × 30 + 3 × 15 = 165 s.
+    // 4 × 30 + 4 × 15 = 180 s.
     expect(
-      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 45 s"),
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("03 min 00 s"),
+    ).toBeTruthy();
+  });
+
+  /**
+   * T02-S02 (règle métier confirmée) : confirmer une Récupération retire la
+   * dernière Pause du total — la Durée totale dérivée baisse donc de `B` et
+   * remonte de `R`, jamais des deux à la fois.
+   */
+  it("recomputes the derived total the moment a Récupération replaces the last pause", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    });
+
+    expect(
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 15 s"),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    confirmDuration(0, 15); // Récupération ÉGALE à la Pause
+
+    // 3 × 30 + 2 × 15 + 15 = 135 s — inchangé : la Récupération a REMPLACÉ
+    // la dernière Pause, elle ne s'y est pas ajoutée (sinon 150 s).
+    expect(
+      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 15 s"),
     ).toBeTruthy();
   });
 
@@ -897,15 +1085,54 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     });
 
     fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
-    confirmDuration(2, 30); // 150 s ⇒ (150 + 10) / 40 = 4 Séries exactement
+    // `A + B = 40`, aucune Récupération : `160 / 40 = 4` Séries exactement.
+    confirmDuration(2, 40);
 
     expect(
       within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("4"),
     ).toBeTruthy();
+    expect(screen.queryByTestId("exercise-adjustment-notification")).toBeNull();
+  });
+
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : le message
+   * d'ajustement est rendu dans la NOTIFICATION NOIRE TEMPORAIRE canonique,
+   * porteuse de son action `Annuler` — plus jamais comme un texte permanent
+   * inséré dans le corps de l'écran.
+   */
+  it("announces the adjustment in the canonical transient notification, with its Annuler action (RM-130, D-136)", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 1,
+      pauseSeconds: 10,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
+    confirmDuration(2, 30); // 150 s ⇒ 3,75 Séries → 4 → 4 × 40 = 160 s
+
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("4"),
+    ).toBeTruthy();
+
+    const notification = screen.getByTestId("exercise-adjustment-notification");
+    expect(
+      within(notification).getByTestId("exercise-adjustment-notification-message").props.children,
+    ).toBe("Durée ajustée à 2 min 40 s pour respecter un nombre entier de Séries.");
+    expect(within(notification).getByLabelText(t.adjustedTotalDurationUndoAction)).toBeTruthy();
+
+    // Fond noir canonique des messages temporaires (`color.snackbar`), et
+    // superposition : elle ne participe à aucune mise en page.
+    const style = StyleSheet.flatten(notification.props.style);
+    expect(style.backgroundColor).toBe(colors.snackbar);
+    expect(style.position).toBe("absolute");
+    // Plus aucun message permanent dans le corps de l'écran.
     expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
+    expect(within(screen.getByTestId("exercise-body")).queryByText(/Durée ajustée/u)).toBeNull();
   });
 
-  it("announces the adjustment when the target is not reachable with a whole number of Séries (RM-130)", () => {
+  it("Annuler on the notification restores the series count that preceded the adjustment, and closes it", () => {
     renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Gainage",
@@ -915,19 +1142,22 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     });
 
     fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
-    confirmDuration(2, 10); // 130 s ⇒ 3,5 Séries → 4 (arrondi .5 vers le haut) → 150 s
-
+    confirmDuration(2, 30);
     expect(
       within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("4"),
     ).toBeTruthy();
-    const message = screen.getByTestId("exercise-adjustment-message");
-    expect(message).toBeTruthy();
-    expect(message.props.children).toBe(
-      "Durée ajustée à 2 min 30 s pour respecter un nombre entier de Séries.",
-    );
+
+    fireEvent.press(screen.getByTestId("exercise-adjustment-notification-action"));
+
+    // `Annuler` est une action de CORRECTION : elle restitue `1`, la valeur
+    // d'avant l'ajustement — jamais un simple bouton de fermeture.
+    expect(
+      within(screen.getByTestId("exercise-field-seriesCount-control")).getByText("1"),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("exercise-adjustment-notification")).toBeNull();
   });
 
-  it("clears the adjustment message as soon as any other parameter changes", () => {
+  it("clears the adjustment notification as soon as any other parameter changes", () => {
     renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Gainage",
@@ -937,11 +1167,11 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     });
 
     fireEvent.press(screen.getByTestId("exercise-field-totalDuration-control"));
-    confirmDuration(2, 10);
-    expect(screen.getByTestId("exercise-adjustment-message")).toBeTruthy();
+    confirmDuration(2, 30);
+    expect(screen.getByTestId("exercise-adjustment-notification")).toBeTruthy();
 
     fireEvent.changeText(screen.getByLabelText(t.name), "Gainage renommé");
-    expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
+    expect(screen.queryByTestId("exercise-adjustment-notification")).toBeNull();
   });
 
   it("never persists the total duration itself — only seriesCount reaches the shared draft (DM-015/DM-016)", () => {
@@ -1143,6 +1373,44 @@ describe("ExerciseScreen — synthèse fixe (recap + ligne de durée)", () => {
     expect(screen.queryByTestId("exercise-summary-card-header")).toBeNull();
   });
 
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : « La synthèse est
+   * immuable : le déploiement d'une section fait défiler le contenu sans
+   * déplacer sa zone ni l'action finale `Terminer` » (CE-T01-13). Elle doit
+   * donc être un FRÈRE du corps défilant, jamais son dernier enfant.
+   */
+  it("is FIXED and non-scrolling: it sits outside the scrollable body, between it and the final action", () => {
+    renderScreen(null);
+
+    const body = screen.getByTestId("exercise-body");
+    expect(within(body).queryByTestId("exercise-summary-card")).toBeNull();
+    expect(screen.getByTestId("exercise-summary-card")).toBeTruthy();
+
+    // Ordre à l'écran : corps défilant, puis synthèse, puis action finale.
+    expect(
+      testIdOrder(screen.toJSON(), ["exercise-body", "exercise-summary-card"]),
+    ).toEqual(["exercise-body", "exercise-summary-card"]);
+    // La cale flexible qui la poussait au bas du contenu défilant n'a plus
+    // d'objet : la synthèse n'est plus dans ce contenu.
+    expect(screen.queryByTestId("exercise-recap-spacer")).toBeNull();
+  });
+
+  it("never moves when a section is expanded or collapsed", () => {
+    renderScreen(null);
+
+    const before = StyleSheet.flatten(screen.getByTestId("exercise-summary-card").props.style);
+    expandSection("exercise-section-description");
+    expandSection("exercise-section-body-zones");
+
+    expect(
+      StyleSheet.flatten(screen.getByTestId("exercise-summary-card").props.style),
+    ).toEqual(before);
+    // Et elle reste hors du corps défilant, quel que soit l'état déployé.
+    expect(
+      within(screen.getByTestId("exercise-body")).queryByTestId("exercise-summary-card"),
+    ).toBeNull();
+  });
+
   it("shows 'Durée totale : {D}' in Durée mode and 'Durée minimale : ≥ {D}' in the non-timed modes", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
@@ -1327,6 +1595,60 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
       exercises: [
         expect.objectContaining({ id: "ex-existing", name: "Gainage" }),
         expect.objectContaining({ id: "generated-exercise-id", name: "Squats" }),
+      ],
+    });
+  });
+
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : une nouvelle Activité
+   * s'insère APRÈS la dernière Activité DE SA ZONE, pas en fin de collection.
+   * Une nouvelle Activité naît `BEFORE_TOUR` (`DEFAULT_STRUCTURAL_POSITION`) :
+   * elle doit donc précéder les Activités `IN_TOUR` et `AFTER_TOUR` déjà
+   * composées, jamais les suivre.
+   */
+  it("inserts a NEW Activity after the last Activity of ITS OWN zone, never at the end of the collection", () => {
+    const updateDraft = jest.fn();
+    mockSearchParams = {};
+    const existing: readonly SessionDraftExercise[] = [
+      { ...createExerciseDraft("before-1"), name: "Échauffement", structuralPosition: "BEFORE_TOUR" },
+      { ...createExerciseDraft("in-1"), name: "Gainage", structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("after-1"), name: "Étirements", structuralPosition: "AFTER_TOUR" },
+    ];
+    render(
+      <TestSafeAreaProvider>
+        <SessionDraftContext.Provider
+          value={{
+            draft: {
+              name: "Séance simple",
+              color: "#3B82F6",
+              initialCountdownSeconds: 10,
+              finalPhaseSeconds: 5,
+              exercises: existing,
+              categoryDrafts: [],
+              selectedCategoryIds: [],
+            },
+            updateDraft,
+            resetDraft: jest.fn(),
+          }}
+        >
+          <ExerciseScreen />
+        </SessionDraftContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    // L'ORDRE du tableau est la preuve : la nouvelle Activité `BEFORE_TOUR`
+    // s'intercale entre `before-1` et `in-1`, jamais après `after-1`. Le
+    // tableau attendu est exhaustif — aucune Activité n'est perdue.
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        expect.objectContaining({ id: "before-1" }),
+        expect.objectContaining({ id: "generated-exercise-id", name: "Squats" }),
+        expect.objectContaining({ id: "in-1" }),
+        expect.objectContaining({ id: "after-1" }),
       ],
     });
   });

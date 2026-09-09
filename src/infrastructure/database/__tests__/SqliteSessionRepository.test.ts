@@ -1,5 +1,5 @@
-import { render, screen as rnScreen } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { render, screen as rnScreen } from "@testing-library/react-native";
 import * as Crypto from "expo-crypto";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
@@ -11,8 +11,8 @@ import { StyleSheet } from "react-native";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   DEFAULT_SESSION_COLOR,
-  type CreateSessionInput,
   type CreateSessionExerciseInput,
+  type CreateSessionInput,
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
 } from "@/domain/sessions/Session";
@@ -772,7 +772,7 @@ describe("SqliteSessionRepository", () => {
       expect(summaries[0]?.isEstimatedDurationApproximate).toBe(true);
     });
 
-    it("applies the canonical formula D = C × A + (C − 1) × B + R in SQL, exactly like the Domain (T02-S02)", async () => {
+    it("applies the canonical formula D = C × A + C × B in SQL when there is no Récupération, exactly like the Domain (T02-S02)", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
@@ -786,13 +786,58 @@ describe("SqliteSessionRepository", () => {
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
-      // (2×30 + 1×5) + (1×20 + 0) = 65 + 20 = 85 s d'Activités. L'ancienne
-      // projection SQL développait la Pause `C` fois (`90`), en désaccord
-      // avec le Domaine : la Pause finale n'existe pas (RM-129). T02-S01
-      // exclut par ailleurs le Compte à rebours initial et la Fin de séance
-      // de la durée affichée. Secondes brutes, aucun arrondi à ce niveau.
-      expect(summary?.estimatedDurationSeconds).toBe(85);
+      // Aucune Récupération : (2×30 + 2×5) + (1×20 + 1×0) = 70 + 20 = 90 s
+      // d'Activités. T02-S01 exclut par ailleurs le Compte à rebours initial
+      // et la Fin de séance de la durée affichée. Secondes brutes, aucun
+      // arrondi à ce niveau.
+      expect(summary?.estimatedDurationSeconds).toBe(90);
       expect(summary?.activityCount).toBe(2);
+    });
+
+    /**
+     * Parité SQL / Domaine du CAS CHARNIÈRE de la règle conditionnelle : deux
+     * Activités identiques à la Récupération près doivent différer d'exactement
+     * `B − R` — c'est la preuve que SQL applique bien la MÊME bascule que
+     * `computePauseOccurrences`, et non une formule voisine.
+     */
+    it("switches the pause count in SQL on the presence of a Récupération, exactly like computePauseOccurrences", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const withoutRecovery = await repository.create({
+        ...validInput(),
+        name: "Sans récupération",
+        exercises: [
+          { ...anExercise(), durationSeconds: 30, seriesCount: 3, pauseSeconds: 10 },
+        ],
+      });
+      const withRecoveryRepository = new SqliteSessionRepository(
+        database,
+        secondUuidFactory(),
+      );
+      const withRecovery = await withRecoveryRepository.create({
+        ...validInput(),
+        name: "Avec récupération",
+        exercises: [
+          {
+            ...anExercise(),
+            durationSeconds: 30,
+            seriesCount: 3,
+            pauseSeconds: 10,
+            recoverySeconds: 10,
+          },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      // Sans Récupération : 3×30 + 3×10 = 120.
+      expect(
+        summaries.find((item) => item.id === withoutRecovery.id)?.estimatedDurationSeconds,
+      ).toBe(120);
+      // Avec une Récupération ÉGALE à la Pause : 3×30 + 2×10 + 10 = 120 —
+      // rigoureusement identique, puisque la Récupération REMPLACE la
+      // dernière Pause au lieu de s'y ajouter.
+      expect(summaries.find((item) => item.id === withRecovery.id)?.estimatedDurationSeconds).toBe(
+        120,
+      );
     });
 
     it("adds the attached Récupération once per Activity in the SQL projection (T02-S02)", async () => {
@@ -836,7 +881,7 @@ describe("SqliteSessionRepository", () => {
       });
 
       const summary = (await repository.listActive()).find((item) => item.id === created.id);
-      // 3 × 10 + 25 = 55 s, borne minimale.
+      // Récupération présente : 3 × 10 + 25 = 55 s, borne minimale.
       expect(summary?.estimatedDurationSeconds).toBe(55);
       expect(summary?.isEstimatedDurationApproximate).toBe(true);
     });

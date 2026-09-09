@@ -25,25 +25,33 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * la séance` réinitialise le brouillon partagé (`resetDraft`) puis quitte
  * ce `Stack` entièrement (`router.dismissTo("/")`) vers le Catalogue.
  *
- * `composition` : `gestureEnabled: false` (correctif T02, 2026-09-08, point
- * 3) — le geste natif iOS de retour par glissement horizontal (bord gauche
- * vers la droite) de `react-native-screens`/native-stack est un
- * reconnaisseur de gestes NATIF, extérieur à l'arbre React Native ; il
- * n'est jamais arrêté par la capture de responder JS de
- * `compositionGesture.ts` (glissement gauche des cartes d'Activité,
- * `SWIPE_REVEAL_DISTANCE`). Sans cette option, un glissement horizontal
- * commencé près du bord gauche de l'écran de Composition pouvait déclencher
- * le retour à l'écran précédent au lieu de — ou en plus de — l'action de
- * carte visée. Les gestes horizontaux propres aux cartes (glissement gauche
- * pour révéler `Dupliquer`/`Supprimer`, glissement inverse pour refermer)
- * restent inchangés : ils ne dépendent jamais de ce geste natif de
- * navigation, uniquement du responder system interne à l'écran.
+ * `gestureEnabled: false` (correctif T02, 2026-09-08, point 3 ; **étendu à
+ * TOUT le parcours par T02-S02, continuation après recette visuelle**) — le
+ * geste natif iOS de retour par glissement horizontal (bord gauche vers la
+ * droite) de `react-native-screens`/native-stack est un reconnaisseur de
+ * gestes NATIF, extérieur à l'arbre React Native ; il n'est jamais arrêté par
+ * la capture de responder JS de `compositionGesture.ts` (balayage des cartes
+ * d'Activité, `SWIPE_REVEAL_DISTANCE`).
+ *
+ * L'option n'était posée que sur `composition`. La recette a montré que cela
+ * ne suffit pas : `exercise` et `categories` appartiennent au même parcours
+ * de création, portent eux aussi des gestes horizontaux (roulettes,
+ * sélections) et un brouillon non enregistré — un retour natif déclenché par
+ * inadvertance y contourne la garde de sortie, qui n'est armée que sur une
+ * navigation explicite. Elle est donc portée par `screenOptions`, au niveau
+ * du `Stack` : toute route AJOUTÉE PLUS TARD en hérite par défaut, sans
+ * qu'il faille penser à la déclarer.
+ *
+ * **La navigation explicite reste entière** : `Retour` de l'en-tête,
+ * `Terminer`, `Continuer`, `Enregistrer la séance` et `router.dismissTo`
+ * fonctionnent à l'identique — seul le geste natif de bord d'écran est
+ * neutralisé.
  */
 export default function CreationLayout() {
   return (
     <SessionDraftProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="composition" options={{ gestureEnabled: false }} />
+      <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
+        <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
         <Stack.Screen name="categories" />
       </Stack>

@@ -514,12 +514,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * **T02-S01 (CE-T02-01, AC-01)** : les Activités ne forment plus une
          * seule liste implicitement « dans le Tour » — elles sont réparties
          * dans les TROIS zones structurelles réelles, dont deux encadrent la
-         * structure Tour et une lui est INTÉRIEURE. Chaque zone conserve le
-         * conteneur à écart réduit de la correction compacte LOT_3_OF_3
-         * (`exerciseList`, `gap: 8`, contre le `gap: 16` structurel de
-         * `bodyContent`) et sa règle : rendue uniquement si elle contient au
-         * moins une Activité, pour ne jamais ajouter un `gap` structurel à
-         * vide. Presser une carte ouvre `/exercise` avec son propre
+         * structure Tour et une lui est INTÉRIEURE. Chaque zone conserve son
+         * conteneur (`exerciseList`) et sa règle : rendue uniquement si elle
+         * contient au moins une Activité, pour ne jamais ajouter un `gap`
+         * structurel à vide. **T02-S02 (continuation)** : cet écart et celui
+         * de `bodyContent` partagent désormais `COMPOSITION_ROW_GAP`, ce qui
+         * rend le rythme vertical régulier de bout en bout. Presser une carte
+         * ouvre `/exercise` avec son propre
          * `exerciseId` (édition ciblée par identifiant) — jamais celui d'une
          * autre Activité.
          */}
@@ -1190,6 +1191,39 @@ function CompositionActivityRow({
     }
   }, [onDragEnd, onHideActions, onRevealActions]);
 
+  /**
+   * **T02-S02 (continuation après recette visuelle)** — le balayage droit ne
+   * refermait PAS les actions sur appareil.
+   *
+   * Cause : `handleTouchEnd` était le seul consommateur du balayage mémorisé,
+   * et `onResponderTerminationRequest` retournait `true` hors déplacement —
+   * le `ScrollView` parent pouvait donc réclamer et obtenir le responder au
+   * milieu d'un balayage horizontal. `onResponderTerminate` effaçait alors
+   * `pendingSwipeRef` avant toute relâche, et le geste était perdu. Deux
+   * verrous complémentaires ferment ce défaut :
+   *
+   * 1. `onResponderTerminationRequest` refuse désormais aussi de céder le
+   *    responder tant qu'un balayage horizontal est engagé (ci-dessous) ;
+   * 2. la relâche du responder applique le balayage au même titre que la fin
+   *    de toucher. `pendingSwipeRef` étant consommé (remis à `null`) par le
+   *    premier des deux qui survient, l'opération reste IDEMPOTENTE — jamais
+   *    appliquée deux fois si les deux événements arrivent.
+   */
+  const handleResponderRelease = useCallback(() => {
+    handleTouchEnd();
+  }, [handleTouchEnd]);
+
+  /**
+   * Le responder n'est cédé ni pendant un déplacement engagé (acquis
+   * T02-S01), ni pendant un balayage horizontal déjà reconnu — sans quoi le
+   * défilement vertical parent pourrait annuler un geste que l'utilisateur a
+   * pourtant mené à son terme.
+   */
+  const handleResponderTerminationRequest = useCallback(
+    () => !isDraggingRef.current && pendingSwipeRef.current === null,
+    [],
+  );
+
   const handleResponderTerminate = useCallback(() => {
     originRef.current = null;
     setDragTranslationY(0);
@@ -1241,8 +1275,9 @@ function CompositionActivityRow({
       onTouchCancel={handleResponderTerminate}
       onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
       onResponderMove={handleResponderMove}
+      onResponderRelease={handleResponderRelease}
       onResponderTerminate={handleResponderTerminate}
-      onResponderTerminationRequest={() => !isDraggingRef.current}
+      onResponderTerminationRequest={handleResponderTerminationRequest}
       testID={`composition-activity-${activity.id}`}
     >
       <Pressable
@@ -1554,6 +1589,11 @@ function TourCard({
           accessibilityLabel={label}
           accessibilityValue={{ text: String(repeatCount) }}
           accessibilityState={{ disabled: false, expanded: isOpen }}
+          // T02-S02 (continuation) : cadre visible `66 × 34` INCHANGÉ
+          // (D-130), mais cible tactile portée à `48` — ce contrôle ouvre la
+          // roulette `Nombre de tours`, il doit donc respecter
+          // `size/touch-target-min` comme toute action du DSF.
+          hitSlop={TOUR_CONTROL_HIT_SLOP}
           style={styles.tourCardControl}
           testID="composition-tour-control"
         >
@@ -1645,6 +1685,32 @@ function CompositionEditState({
   );
 }
 
+/**
+ * **Écart vertical UNIQUE du corps de la Composition** (T02-S02,
+ * continuation après recette visuelle).
+ *
+ * Une seule constante gouverne les trois interstices que la recette exige
+ * identiques : `Compte à rebours initial` → première carte, carte → carte, et
+ * dernière carte → `Fin de séance`. Les deux premiers relèvent de conteneurs
+ * DIFFÉRENTS (`bodyContent` pour les éléments structurels, `exerciseList`
+ * pour les cartes d'une même zone) — les faire dépendre d'un token partagé
+ * est le seul moyen de garantir leur égalité autrement que par la vigilance
+ * de relecture.
+ */
+const COMPOSITION_ROW_GAP = spacing[6];
+
+/**
+ * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
+ * de sa hauteur visible canonique (`34`, D-130) à `minTouchTarget` (`48`).
+ * Dérivé des deux constantes, jamais codé en dur.
+ */
+const TOUR_CONTROL_HIT_SLOP = {
+  top: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
+  bottom: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
+  left: 0,
+  right: 0,
+} as const;
+
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
   editStateBody: {
@@ -1695,11 +1761,22 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
+  //
+  // **T02-S02 (continuation après recette visuelle)** : `gap` passe de `16`
+  // à `COMPOSITION_ROW_GAP` (`6`), la MÊME valeur que l'écart entre deux
+  // cartes d'Activité (`exerciseList`). La recette a constaté un rythme
+  // vertical irrégulier — `Compte à rebours` → première carte et dernière
+  // carte → `Fin de séance` étaient nettement plus espacés que deux cartes
+  // consécutives, parce que ces deux interstices relèvent de `bodyContent`
+  // (structurel) tandis que l'interstice inter-cartes relève de
+  // `exerciseList`. Les deux partagent désormais la même constante : la
+  // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
+  // littéraux.
   bodyContent: {
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
-    gap: spacing[16],
+    gap: COMPOSITION_ROW_GAP,
   },
   // CMP-02 : champ unique regroupant Nom et Sélecteur de couleur — acquis
   // préservé (fusion, géométrie, gap, padding, rayon inchangés).
@@ -1787,14 +1864,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing[2],
   },
-  // Correction compacte LOT_3_OF_3 : écart RÉDUIT (`8`, token DSF
-  // `spacing/8`) entre deux cartes Activité consécutives UNIQUEMENT. Ce
-  // conteneur est lui-même un enfant unique de `bodyContent` : les
-  // espacements structurels portés par le `gap: 16` de ce dernier
-  // (`Compte à rebours initial` → groupe, groupe → `Tour`, `Tour` → `Fin
-  // de séance`) restent inchangés par construction.
+  // Correction compacte LOT_3_OF_3 : écart RÉDUIT entre deux cartes
+  // Activité consécutives. T02-S02 (continuation) : porté de `8` à
+  // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6`) — légère réduction
+  // demandée par la recette visuelle — et PARTAGÉ avec `bodyContent`, dont
+  // il devient la source unique (voir la note de `bodyContent`).
   exerciseList: {
-    gap: spacing[8],
+    gap: COMPOSITION_ROW_GAP,
   },
   // T02-S01 : conteneur de position d'une carte d'Activité — support du
   // groupe d'actions glissées, SUPERPOSÉ à la partie droite de la carte
@@ -1854,19 +1930,32 @@ const styles = StyleSheet.create({
   // disponible dans cette session — même limite que celle déjà disclosée
   // pour `2028:11808` (actions glissées). Seules des valeurs DÉJÀ CANONIQUES
   // du DSF sont employées (`colors.surface` pour la surface secondaire,
-  // `colors.border` pour le liseré, `type.caption`/`colors.textSecondary`
-  // pour le libellé — exactement ceux de `boundaryRowSecondaryLine`) :
-  // aucune couleur ni typographie locale n'est introduite.
+  // `colors.border` pour le liseré, `colors.textSecondary` pour le libellé) :
+  // aucune couleur locale n'est introduite.
+  //
+  // **T02-S02 (continuation après recette visuelle)** : le libellé
+  // s'alignait sur le bord gauche du bloc (`paddingHorizontal: 16`), alors
+  // que le nom de l'Activité, ses Zones corporelles et sa synthèse
+  // commencent APRÈS le slot de la poignée. `paddingLeft` est donc dérivé de
+  // la géométrie réelle de la carte principale — padding + slot `28` + écart
+  // `8` — plutôt que recopié en littéral : déplacer la poignée réalignerait
+  // automatiquement la sous-carte.
   activityRecoveryCard: {
     height: dimensions.compositionActivityRow.recoveryCardHeight,
     justifyContent: "center",
-    paddingHorizontal: spacing[16],
+    paddingLeft:
+      spacing[16] + dimensions.structureMovableIcon.slot + spacing[8],
+    paddingRight: spacing[16],
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  // Graisse SEMI BOLD (`type.captionStrong`) : la recette visuelle demande un
+  // libellé `Récupération` en gras, pour le distinguer des deux lignes
+  // secondaires régulières de la carte principale. Dimensions strictement
+  // identiques à `type.caption` (`11/14`) — seule la graisse change.
   activityRecoveryLabel: {
-    ...type.caption,
+    ...type.captionStrong,
     color: colors.textSecondary,
   },
   // D-129/CE-T02-02 : état soulevé — `362 × 97` avec Récupération (contre

@@ -4,6 +4,7 @@ import {
   activitiesInZone,
   duplicateActivity,
   groupActivitiesByZone,
+  insertActivityInZone,
   moveActivity,
   orderActivitiesByZone,
   removeActivity,
@@ -165,6 +166,80 @@ describe("removeActivity (AC-07)", () => {
 
   it("supports removing the very last Activity", () => {
     expect(removeActivity([activities[0]!], "before-1")).toEqual([]);
+  });
+});
+
+/**
+ * T02-S02 (continuation après recette visuelle) : une nouvelle Activité
+ * s'insère APRÈS la dernière Activité DE SA ZONE, pas en fin de collection.
+ */
+describe("insertActivityInZone", () => {
+  const composed = [
+    anActivity("before-1", "BEFORE_TOUR"),
+    anActivity("in-1", "IN_TOUR"),
+    anActivity("after-1", "AFTER_TOUR"),
+  ];
+
+  it("inserts right after the last Activity of the SAME zone, never at the end of the collection", () => {
+    expect(ids(insertActivityInZone(composed, anActivity("before-2", "BEFORE_TOUR")))).toEqual([
+      "before-1",
+      "before-2",
+      "in-1",
+      "after-1",
+    ]);
+    expect(ids(insertActivityInZone(composed, anActivity("in-2", "IN_TOUR")))).toEqual([
+      "before-1",
+      "in-1",
+      "in-2",
+      "after-1",
+    ]);
+  });
+
+  it("appends at the very end for the last zone, where no later zone exists", () => {
+    expect(ids(insertActivityInZone(composed, anActivity("after-2", "AFTER_TOUR")))).toEqual([
+      "before-1",
+      "in-1",
+      "after-1",
+      "after-2",
+    ]);
+  });
+
+  it("inserts before the first Activity of a later zone when its own zone is still empty", () => {
+    const onlyAfterTour = [anActivity("after-1", "AFTER_TOUR")];
+    expect(ids(insertActivityInZone(onlyAfterTour, anActivity("before-1", "BEFORE_TOUR")))).toEqual([
+      "before-1",
+      "after-1",
+    ]);
+    expect(ids(insertActivityInZone(onlyAfterTour, anActivity("in-1", "IN_TOUR")))).toEqual([
+      "in-1",
+      "after-1",
+    ]);
+  });
+
+  it("returns a NEW collection and never mutates the source", () => {
+    const next = insertActivityInZone(composed, anActivity("before-2", "BEFORE_TOUR"));
+    expect(next).not.toBe(composed);
+    expect(ids(composed)).toEqual(["before-1", "in-1", "after-1"]);
+  });
+
+  it("handles an empty composition", () => {
+    expect(ids(insertActivityInZone([], anActivity("in-1", "IN_TOUR")))).toEqual(["in-1"]);
+  });
+
+  it("keeps the collection order equal to the structural reading order after several insertions", () => {
+    const built = [
+      anActivity("in-1", "IN_TOUR"),
+      anActivity("before-1", "BEFORE_TOUR"),
+      anActivity("after-1", "AFTER_TOUR"),
+      anActivity("before-2", "BEFORE_TOUR"),
+      anActivity("in-2", "IN_TOUR"),
+    ].reduce<readonly SessionDraftExercise[]>(
+      (collection, activity) => insertActivityInZone(collection, activity),
+      [],
+    );
+
+    expect(ids(built)).toEqual(["before-1", "before-2", "in-1", "in-2", "after-1"]);
+    expect(ids(built)).toEqual(ids(orderActivitiesByZone(built)));
   });
 });
 

@@ -54,6 +54,43 @@ export function groupActivitiesByZone(
   return { beforeTour, inTour, afterTour };
 }
 
+/**
+ * Insère une NOUVELLE Activité immédiatement APRÈS la dernière Activité déjà
+ * présente dans SA PROPRE zone structurelle (T02-S02, continuation après
+ * recette visuelle).
+ *
+ * Ajouter en fin de collection — comportement précédent — plaçait une
+ * nouvelle Activité `BEFORE_TOUR` derrière les Activités `IN_TOUR` et
+ * `AFTER_TOUR` déjà composées : son rang DANS SA ZONE restait correct, mais
+ * l'ordre de la collection cessait de refléter l'ordre structurel affiché, et
+ * toute lecture linéaire du brouillon (tests, futurs consommateurs) devenait
+ * trompeuse. L'insertion par zone rétablit l'invariant « ordre de la
+ * collection = ordre de lecture de la Composition ».
+ *
+ * Zone encore vide : l'Activité est insérée AVANT la première Activité d'une
+ * zone postérieure (ordre canonique `STRUCTURAL_ZONES`), et en fin de
+ * collection s'il n'en existe aucune. Une Activité déjà présente (même `id`)
+ * n'est jamais dupliquée — l'appelant gère la modification séparément.
+ */
+export function insertActivityInZone(
+  activities: readonly SessionDraftExercise[],
+  activity: SessionDraftExercise,
+): readonly SessionDraftExercise[] {
+  const zoneRank = (zone: StructuralPosition): number => STRUCTURAL_ZONES.indexOf(zone);
+  const targetRank = zoneRank(activity.structuralPosition);
+
+  // Premier élément appartenant à une zone STRICTEMENT postérieure : la
+  // nouvelle Activité se glisse juste avant lui, donc après la dernière de sa
+  // propre zone (les zones sont contiguës dans la collection).
+  const firstLaterZoneIndex = activities.findIndex(
+    (existing) => zoneRank(existing.structuralPosition) > targetRank,
+  );
+
+  const next = [...activities];
+  next.splice(firstLaterZoneIndex === -1 ? next.length : firstLaterZoneIndex, 0, activity);
+  return next;
+}
+
 /** Activités d'une seule zone, dans l'ordre (raccourci de `groupActivitiesByZone`). */
 export function activitiesInZone(
   activities: readonly SessionDraftExercise[],

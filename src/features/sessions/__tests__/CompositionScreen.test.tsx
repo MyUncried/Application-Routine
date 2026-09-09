@@ -12,7 +12,7 @@ import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { colors, dimensions } from "@/shared/ui/tokens";
+import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -853,6 +853,26 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(tourCard).getByTestId("composition-tour-icon")).toBeTruthy();
   });
 
+  /**
+   * **T02-S02 (continuation après recette visuelle, point DSF)** : le cadre
+   * visible reste `66 × 34` (D-130), mais il OUVRE la roulette `Nombre de
+   * tours` — sa cible tactile doit donc atteindre `48`
+   * (`size/touch-target-min`), portée par `hitSlop` et jamais par un
+   * agrandissement du cadre.
+   */
+  it("keeps the 66×34 visible frame but reaches the canonical 48pt touch target on the Tour control", () => {
+    renderScreen();
+
+    const control = screen.getByTestId("composition-tour-control");
+    const controlStyle = StyleSheet.flatten(control.props.style);
+    expect(controlStyle.height).toBe(34);
+    expect(controlStyle.width).toBe(66);
+
+    const hitSlop = control.props.hitSlop as { top: number; bottom: number };
+    expect(controlStyle.height + hitSlop.top + hitSlop.bottom).toBe(minTouchTarget);
+    expect(minTouchTarget).toBe(48);
+  });
+
   it("REWORK08-C — shows the activity-count/duration summary directly under 'Nombre de tours', same block as the title, styled exactly like the Boundary Activity rows' secondary line, without touching the frozen outer structure or the white/violet control", () => {
     renderScreen();
 
@@ -1509,39 +1529,52 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
 });
 
 /**
- * **Correction compacte LOT_3_OF_3 — espacement des cartes.** L'écart entre
- * DEUX cartes Activité consécutives passe à `8` ; tous les espacements
- * structurels (`Compte à rebours initial` ↔ Activité, Activité ↔ `Tour`,
- * `Tour` ↔ `Fin de séance`) restent à `16`. La preuve est STRUCTURELLE : le
- * groupe d'Activités est un enfant UNIQUE du contenu défilant, dont le `gap`
- * uniforme de `16` reste inchangé et continue donc de porter, seul, tous les
- * interstices structurels.
+ * **Correction compacte LOT_3_OF_3 — espacement des cartes**, puis **T02-S02
+ * (continuation après recette visuelle, points 2 et 11)** : l'écart entre
+ * deux cartes Activité consécutives est encore réduit (`8` → `6`), et il
+ * gouverne DÉSORMAIS AUSSI les interstices structurels (`Compte à rebours
+ * initial` ↔ première carte, dernière carte ↔ `Fin de séance`). Les deux
+ * conteneurs — le groupe d'Activités et le contenu défilant — partagent une
+ * constante unique, ce qui rend leur égalité vraie par construction.
  */
-describe("CompositionScreen — espacement Activité/Activité (correction compacte LOT_3_OF_3)", () => {
+describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, révisé T02-S02)", () => {
   const twoActivities = [
     { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
     { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
   ];
 
-  it("reduces the gap between two consecutive Activity cards to 8pt, carried by their own dedicated container", () => {
+  it("reduces the gap between two consecutive Activity cards to 6pt, carried by their own dedicated container", () => {
     renderScreenWithDraft(twoActivities);
 
     const list = screen.getByTestId("composition-zone-before-tour");
-    expect(StyleSheet.flatten(list.props.style).gap).toBe(8);
+    expect(StyleSheet.flatten(list.props.style).gap).toBe(spacing[6]);
+    expect(StyleSheet.flatten(list.props.style).gap).toBeLessThan(spacing[8]);
     expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
   });
 
-  it("keeps the structural 16pt gap of the scrollable content untouched — never a global, indistinct gap reduction", () => {
+  /**
+   * **T02-S02 (continuation après recette visuelle, point 11)** — révise la
+   * règle précédente (« garder l'écart structurel `16` intact ») : la recette
+   * a constaté que le rythme vertical était irrégulier, `Compte à rebours` →
+   * première carte étant nettement plus espacé que deux cartes consécutives.
+   * L'écart structurel s'aligne donc sur celui des cartes, tous deux réduits.
+   */
+  it("aligns the structural gap of the scrollable content on the Activity-card gap — one single vertical rhythm", () => {
     renderScreenWithDraft(twoActivities);
 
     const content = StyleSheet.flatten(
       screen.getByTestId("composition-body").props.contentContainerStyle,
     );
-    expect(content.gap).toBe(16);
+    const cards = StyleSheet.flatten(
+      screen.getByTestId("composition-zone-before-tour").props.style,
+    );
+    expect(content.gap).toBe(cards.gap);
+    expect(content.gap).toBe(spacing[6]);
+    expect(content.gap).not.toBe(16);
   });
 
-  it("keeps Compte à rebours initial, the Tour section and Fin de séance OUTSIDE the reduced-gap container — their structural spacing is therefore still the body's 16pt, by construction", () => {
+  it("keeps Compte à rebours initial, the Tour section and Fin de séance OUTSIDE the reduced-gap container — they are direct children of the scrollable content, which now carries the SAME gap", () => {
     renderScreenWithDraft(twoActivities);
 
     const list = screen.getByTestId("composition-zone-before-tour");
@@ -2068,6 +2101,55 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  /**
+   * **T02-S02 (continuation après recette visuelle)** — le balayage droit ne
+   * refermait PAS les actions sur appareil. Deux verrous ferment la cause :
+   * le responder n'est plus cédé pendant un balayage engagé, et la RELÂCHE DU
+   * RESPONDER applique le balayage au même titre que la fin de toucher.
+   */
+  it("hides the actions even when only onResponderRelease is dispatched (no onTouchEnd)", () => {
+    renderTwo();
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 280, pageY: 100 } });
+    fireEvent(container(), "responderRelease", { nativeEvent: { pageX: 280, pageY: 100 } });
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("applies a completed swipe exactly ONCE when both onResponderRelease and onTouchEnd are dispatched", () => {
+    renderTwo();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+    fireEvent(container(), "responderRelease", { nativeEvent: { pageX: 220, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 220, pageY: 100 } });
+
+    // Le balayage mémorisé est CONSOMMÉ par le premier des deux : le second
+    // ne rejoue rien, les actions restent simplement révélées.
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+  });
+
+  it("never yields the responder to the parent scroll view while a horizontal swipe is engaged", () => {
+    renderTwo();
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    // Au repos, la carte cède volontiers le responder — le défilement
+    // vertical de la liste doit rester possible.
+    expect(container().props.onResponderTerminationRequest()).toBe(true);
+
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+
+    // Balayage engagé : la carte refuse de céder, sinon `onResponderTerminate`
+    // effacerait le geste avant toute relâche — cause exacte du défaut.
+    expect(container().props.onResponderTerminationRequest()).toBe(false);
+  });
+
   it("lets the user reverse an in-flight swipe: only the LAST direction crossed is applied on release", () => {
     renderTwo();
 
@@ -2176,6 +2258,38 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
 });
 
 /**
+ * **T02-S02 (continuation après recette visuelle)** — rythme vertical du
+ * corps de la Composition : le même écart entre `Compte à rebours initial` et
+ * la première carte, entre deux cartes, et entre la dernière carte et `Fin de
+ * séance`. Ces interstices relèvent de DEUX conteneurs distincts — le
+ * partage d'une constante unique est ce qui les rend égaux.
+ */
+describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
+  it("uses ONE reduced gap for the structural rows and for consecutive Activity cards alike", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+    ]);
+
+    const bodyContentGap = StyleSheet.flatten(
+      screen.getByTestId("composition-body").props.contentContainerStyle,
+    ).gap;
+    const cardsGap = StyleSheet.flatten(
+      screen.getByTestId("composition-zone-before-tour").props.style,
+    ).gap;
+
+    // Égalité stricte : `Compte à rebours` → première carte, carte → carte,
+    // dernière carte → `Fin de séance` partagent le même interstice.
+    expect(bodyContentGap).toBe(cardsGap);
+    // Écart RÉDUIT — `spacing/6`, en deçà du `8` précédent entre cartes et
+    // très en deçà du `16` structurel.
+    expect(cardsGap).toBe(spacing[6]);
+    expect(cardsGap).toBeLessThan(spacing[8]);
+    expect(bodyContentGap).toBeLessThan(spacing[16]);
+  });
+});
+
+/**
  * **T02-S02 — bloc Activité + Récupération** (D-095/D-128/D-129/D-138 ;
  * CE-T01-09, CE-T02-01/CE-T02-02).
  */
@@ -2204,6 +2318,52 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     const subCard = screen.getByTestId("composition-activity-recovery-ex-1");
     expect(within(subCard).getByText("Récupération 1 min 30 s")).toBeTruthy();
     expect(StyleSheet.flatten(subCard.props.style).height).toBe(24);
+  });
+
+  /**
+   * **T02-S02 (continuation après recette visuelle)** : le libellé
+   * `Récupération` s'alignait sur le bord gauche du bloc, alors que le nom de
+   * l'Activité, ses Zones corporelles et sa synthèse commencent APRÈS le slot
+   * de la poignée. Il est désormais aligné avec eux, et affiché en gras.
+   */
+  it("left-aligns the Récupération label with the rest of the Activity text, and renders it bold", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", {
+        name: "Gainage",
+        recoverySeconds: 90,
+        bodyZoneIds: ["dos"],
+      }),
+    ]);
+
+    const block = screen.getByTestId("composition-exercise-row-ex-1");
+
+    // Retrait gauche = padding de la carte + slot de la poignée + écart :
+    // exactement l'origine du bloc de texte de la carte principale.
+    const subCardStyle = StyleSheet.flatten(
+      within(block).getByTestId("composition-activity-recovery-ex-1").props.style,
+    );
+    const mainCardStyle = StyleSheet.flatten(
+      within(block).getByTestId("composition-activity-main-card").props.style,
+    );
+    const handleStyle = StyleSheet.flatten(
+      within(block).getByTestId("composition-boundary-handle-slot").props.style,
+    );
+    expect(subCardStyle.paddingLeft).toBe(
+      mainCardStyle.paddingHorizontal + handleStyle.width + mainCardStyle.gap,
+    );
+    expect(subCardStyle.paddingLeft).toBe(52);
+
+    // Gras : même échelle typographique que les lignes secondaires
+    // (`11/14`), graisse distincte.
+    const labelStyle = StyleSheet.flatten(
+      within(screen.getByTestId("composition-activity-recovery-ex-1")).getByText(
+        "Récupération 1 min 30 s",
+      ).props.style,
+    );
+    expect(labelStyle.fontWeight).toBe(type.captionStrong.fontWeight);
+    expect(labelStyle.fontSize).toBe(type.caption.fontSize);
+    expect(labelStyle.lineHeight).toBe(type.caption.lineHeight);
+    expect(labelStyle.fontWeight).not.toBe(type.caption.fontWeight);
   });
 
   it("keeps the sub-card INSIDE the single pressable block — one Activity is never two rows", () => {

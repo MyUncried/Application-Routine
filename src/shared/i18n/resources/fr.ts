@@ -226,9 +226,14 @@ export const fr = {
       // `instruction.label`, et deux nœuds portant ce même nom rendraient
       // toute requête d'accessibilité ambiguë (le champ multiligne porte
       // déjà ce libellé, qui est le sien).
+      //
+      // T02-S02 (continuation après recette visuelle) : « Zone corporelle
+      // d'exécution » devient « Zones corporelles » — la section accepte
+      // PLUSIEURS Zones (sélection multiple, D-093), le singulier était donc
+      // trompeur, et « d'exécution » redondant sur un écran d'Activité.
       sections: {
         description: "Description de l’activité",
-        bodyZones: "Zone corporelle d’exécution",
+        bodyZones: "Zones corporelles",
         executionMode: "Mode d’exécution",
         expandAction: "Déployer la section",
         collapseAction: "Replier la section",
@@ -353,6 +358,11 @@ export const fr = {
       // l'annonce explicitement plutôt que de corriger silencieusement.
       adjustedTotalDurationMessage:
         "Durée ajustée à {duration} pour respecter un nombre entier de Séries.",
+      // T02-S02 (continuation) : ce message est désormais rendu dans la
+      // notification noire temporaire canonique (`color.snackbar`, RM-010),
+      // qui exige une action de CORRECTION — `Annuler` restitue le nombre de
+      // Séries d'avant l'ajustement, il ne se contente pas de refermer.
+      adjustedTotalDurationUndoAction: "Annuler",
       // T02-S02 (CE-T01-13) : le champ multiligne de la section repliable
       // « Description de l'activité » — même chaîne que `sections.description`,
       // qui est le titre de la section qui le contient. Le nom accessible de
@@ -361,9 +371,14 @@ export const fr = {
       instruction: {
         label: "Description de l’activité",
       },
+      // T02-S02 (continuation) : même chaîne que `sections.bodyZones`, qui
+      // est le titre de la section contenant ce sélecteur — l'unicité du nom
+      // accessible reste assurée par la composition du nom de l'en-tête
+      // (`expandAction`/`collapseAction`), jamais par une divergence de
+      // libellé entre le titre et son contenu.
       bodyZones: {
-        label: "Zone corporelle d’exécution",
-        accessibilityLabel: "Zone corporelle d’exécution",
+        label: "Zones corporelles",
+        accessibilityLabel: "Zones corporelles",
       },
       // T01-S10 (doc13 §8, frame `1992:9132`) : bouton centré, VISIBLE mais
       // DÉSACTIVÉ dans le MVP — aucune section Médias, aucun import/galerie/

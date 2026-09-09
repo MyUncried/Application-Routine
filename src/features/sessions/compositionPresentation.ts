@@ -111,7 +111,9 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   // **T02-S02** : la durée d'UNE occurrence du Tour est calculée par la
   // fonction du Domaine (`computeZoneDurationFacts`), jamais par une boucle
   // équivalente locale — c'est elle qui porte la formule canonique
-  // `C × A + (C − 1) × B + R` et la détection de borne minimale. La parité
+  // canonique CONDITIONNELLE (voir `computePauseOccurrences` : la
+  // Récupération remplace la dernière Pause) et la détection de borne
+  // minimale. La parité
   // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
   // par ressemblance de deux implémentations.
   const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
@@ -341,8 +343,10 @@ function formatRecoveryClause(recoverySeconds: number): string {
 /**
  * Seconde ligne de la synthèse d'Activité (T02-S02, `06` Écran 4) :
  *
- * - mode Durée : `Durée totale : {D}`, avec `D = C × A + (C − 1) × B + R`
- *   (RM-129) — la valeur DÉRIVÉE, jamais une donnée persistée (DM-015) ;
+ * - mode Durée : `Durée totale : {D}`, `D` suivant la formule canonique
+ *   CONDITIONNELLE de `calculations.ts` (`C × B` sans Récupération,
+ *   `(C − 1) × B + R` avec) — la valeur DÉRIVÉE, jamais une donnée persistée
+ *   (DM-015) ;
  * - modes Répétitions et « À l'échec » : `Durée minimale : ≥ {durée connue}`,
  *   borne composée des seules parts déterminables — Pauses entre Séries et
  *   Récupération (RM-132). Aucune durée conventionnelle n'est inventée pour

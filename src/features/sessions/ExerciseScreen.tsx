@@ -9,6 +9,7 @@ import {
   computeTotalDurationSeconds,
   type TotalDurationFacts,
 } from "@/domain/sessions/calculations";
+import { insertActivityInZone } from "@/domain/sessions/composition";
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_REPETITION_COUNT,
@@ -50,7 +51,8 @@ import { strings } from "@/shared/i18n";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { TransientNotification } from "@/shared/ui/TransientNotification";
+import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind =
   | "duration"
@@ -88,7 +90,7 @@ function isActivityValid(exercise: SessionDraftExercise): boolean {
   return exercise.repetitionCount !== null && validateRepetitionCount(exercise.repetitionCount).ok;
 }
 
-/** Facteurs `A`/`B`/`R` de la formule canonique `D = C × A + (C − 1) × B + R` (RM-129). */
+/** Facteurs `A`/`B`/`R` de la formule canonique conditionnelle (`calculations.ts`). */
 function totalDurationFacts(exercise: SessionDraftExercise): TotalDurationFacts {
   return {
     // Modes `Répétitions`/« À l'échec » : `A` est INDÉTERMINÉ, donc `0` — la
@@ -126,10 +128,10 @@ function totalDurationFacts(exercise: SessionDraftExercise): TotalDurationFacts 
  *
  * **Pilotage `Séries` ↔ `Durée totale`** (RM-129/RM-130, DM-015/DM-016) : la
  * `Durée totale` est DÉRIVÉE, jamais persistée. La modifier applique le
- * calcul inverse `Cth = (D − R + B) / (A + B)` (arrondi `.5` vers le haut,
- * bornes `[1, 99]`) et n'écrit QUE `seriesCount` ; si la durée atteignable
- * diffère de la cible, `adjustmentMessage` l'annonce explicitement plutôt
- * que de corriger silencieusement.
+ * calcul inverse conditionnel de `calculations.ts` (arrondi `.5` vers le
+ * haut, bornes `[1, 99]`) et n'écrit QUE `seriesCount` ; si la durée
+ * atteignable diffère de la cible, une NOTIFICATION TEMPORAIRE l'annonce et
+ * propose `Annuler`, plutôt que de corriger silencieusement.
  *
  * **Unicité des noms accessibles** : le titre d'une section repliable
  * (`sections.description` = « Description de l'activité ») est identique au
@@ -173,10 +175,21 @@ export function ExerciseScreen() {
     bodyZones: false,
     executionMode: true,
   });
-  // Message d'ajustement de la Durée totale — non persisté, effacé dès que
-  // n'importe quel autre paramètre change (il ne décrirait alors plus la
-  // valeur affichée).
-  const [adjustmentMessage, setAdjustmentMessage] = useState<string | null>(null);
+  /**
+   * Ajustement de la `Durée totale` à un nombre entier de Séries (D-136) —
+   * non persisté, effacé dès que n'importe quel autre paramètre change (il
+   * ne décrirait alors plus la valeur affichée), automatiquement après son
+   * délai, ou immédiatement par son action `Annuler`.
+   *
+   * `previousSeriesCount` mémorise la valeur qui précédait l'ajustement :
+   * c'est ce que `Annuler` restitue. Sans elle, l'action serait un simple
+   * bouton de fermeture — la notification canonique exige une action de
+   * CORRECTION (RM-010).
+   */
+  const [adjustment, setAdjustment] = useState<{
+    readonly message: string;
+    readonly previousSeriesCount: number;
+  } | null>(null);
 
   const shouldBlockExit = !isFinishing && !exerciseEquals(local, initialSnapshot);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
@@ -211,7 +224,7 @@ export function ExerciseScreen() {
   }
 
   function patchLocal(patch: Partial<SessionDraftExercise>) {
-    setAdjustmentMessage(null);
+    setAdjustment(null);
     setLocal((current) => ({ ...current, ...patch }));
   }
 
@@ -256,20 +269,37 @@ export function ExerciseScreen() {
    * Confirmation d'une `Durée totale` CIBLE : n'écrit jamais la durée
    * elle-même (DM-015/DM-016) — elle pilote `seriesCount` par le calcul
    * inverse, puis la durée réellement atteignable est recalculée par la
-   * formule directe. `setAdjustmentMessage` est positionné APRÈS
-   * `patchLocal` (qui l'efface systématiquement), l'ordre étant significatif.
+   * formule directe. `setAdjustment` est positionné APRÈS `patchLocal` (qui
+   * l'efface systématiquement), l'ordre étant significatif.
    */
   function handleTotalDurationConfirmed(targetTotalSeconds: number) {
+    const previousSeriesCount = local.seriesCount;
     const adjusted = applyTargetTotalDuration(targetTotalSeconds, totalDurationFacts(local));
     patchLocal({ seriesCount: adjusted.seriesCount });
     closeOverlay();
     if (adjusted.wasAdjusted) {
-      setAdjustmentMessage(
-        strings.screens.exercise.adjustedTotalDurationMessage.replace(
+      setAdjustment({
+        message: strings.screens.exercise.adjustedTotalDurationMessage.replace(
           "{duration}",
           formatCompactDuration(adjusted.totalDurationSeconds),
         ),
-      );
+        previousSeriesCount,
+      });
+    }
+  }
+
+  /**
+   * `Annuler` de la notification temporaire : restitue le nombre de Séries
+   * qui précédait l'ajustement. `setLocal` est appelé DIRECTEMENT plutôt que
+   * `patchLocal` — ce dernier efface l'ajustement, ce qui est bien le but,
+   * mais l'ordre inverse laisserait un instant un message décrivant une
+   * valeur déjà annulée.
+   */
+  function handleUndoAdjustment() {
+    const restored = adjustment?.previousSeriesCount;
+    setAdjustment(null);
+    if (restored !== undefined) {
+      setLocal((current) => ({ ...current, seriesCount: restored }));
     }
   }
 
@@ -282,14 +312,15 @@ export function ExerciseScreen() {
       return;
     }
     finishingRef.current = true;
-    // Remplace l'élément existant par `id` (parcours modification) ou ajoute
-    // `local` en fin de collection (parcours ajout) — jamais un remplacement
-    // complet de `draft.exercises`, pour ne jamais perdre les autres
-    // Activités déjà présentes.
+    // Remplace l'élément existant par `id` (parcours modification) ou insère
+    // `local` APRÈS la dernière Activité DE SA ZONE (parcours ajout,
+    // `insertActivityInZone`) — jamais un remplacement complet de
+    // `draft.exercises`, pour ne jamais perdre les autres Activités déjà
+    // présentes.
     const alreadyPresent = draft.exercises.some((exercise) => exercise.id === local.id);
     const nextExercises = alreadyPresent
       ? draft.exercises.map((exercise) => (exercise.id === local.id ? local : exercise))
-      : [...draft.exercises, local];
+      : insertActivityInZone(draft.exercises, local);
     updateDraft({ exercises: nextExercises });
     setIsFinishing(true);
   }
@@ -401,160 +432,179 @@ export function ExerciseScreen() {
           />
         </CollapsibleSection>
 
-        {/* Section 3 — Mode d'exécution (DÉPLOYÉE par défaut). */}
+        {/*
+         * Section 3 — Mode d'exécution (DÉPLOYÉE par défaut).
+         *
+         * **T02-S02 (continuation après recette visuelle)** : le cadre de
+         * paramètres est désormais un ENFANT de cette section. Son chevron
+         * replie donc d'un seul geste le contrôle segmenté ET l'intégralité
+         * des paramètres qui en dépendent — les deux formaient déjà un bloc
+         * fonctionnel unique (le mode choisi détermine quel paramètre la
+         * première rangée affiche), mais le chevron ne repliait que le
+         * segment, laissant les paramètres orphelins à l'écran.
+         */}
         <CollapsibleSection
           testID="exercise-section-execution-mode"
           title={t.sections.executionMode}
           expanded={expandedSections.executionMode}
           onToggle={() => toggleSection("executionMode")}
         >
-          <View
-            style={styles.segmentedControl}
-            accessibilityRole="tablist"
-            accessibilityLabel={t.executionMode.label}
-          >
-            <SegmentButton
-              label={t.executionMode.duration}
-              selected={local.executionMode === "DURATION"}
-              onPress={() => handleExecutionModeChange("DURATION")}
-            />
-            <SegmentButton
-              label={t.executionMode.repetitions}
-              selected={local.executionMode === "REPETITIONS"}
-              onPress={() => handleExecutionModeChange("REPETITIONS")}
-            />
-            <SegmentButton
-              label={t.executionMode.toFailure}
-              selected={local.executionMode === "TO_FAILURE"}
-              onPress={() => handleExecutionModeChange("TO_FAILURE")}
-            />
+          {/*
+           * `executionModeGroup` porte l'écart RÉDUIT entre le contrôle
+           * segmenté et le cadre de paramètres — auparavant l'écart
+           * structurel de `bodyContent` (`24`), disproportionné entre deux
+           * éléments d'un même bloc.
+           */}
+          <View style={styles.executionModeGroup} testID="exercise-execution-mode-group">
+            <View
+              style={styles.segmentedControl}
+              accessibilityRole="tablist"
+              accessibilityLabel={t.executionMode.label}
+            >
+              <SegmentButton
+                label={t.executionMode.duration}
+                selected={local.executionMode === "DURATION"}
+                onPress={() => handleExecutionModeChange("DURATION")}
+              />
+              <SegmentButton
+                label={t.executionMode.repetitions}
+                selected={local.executionMode === "REPETITIONS"}
+                onPress={() => handleExecutionModeChange("REPETITIONS")}
+              />
+              <SegmentButton
+                label={t.executionMode.toFailure}
+                selected={local.executionMode === "TO_FAILURE"}
+                onPress={() => handleExecutionModeChange("TO_FAILURE")}
+              />
+            </View>
+
+            {/*
+             * Paramètres — `Activity / Parameter Row — Source exact`, sur
+             * DEUX rangées (CE-T01-13/CE-T01-14) et sans titre `Paramètres
+             * de l'activité` (supprimé, D-137) :
+             * - rangée 1 : `Séries`, puis le paramètre du mode
+             *   (`Durée`/`Répétitions`/badge « À l'échec »), puis `Pause` ;
+             * - rangée 2 : `Récupération` sous le paramètre de mode, puis
+             *   `Durée totale` sous `Pause` — l'alignement en colonnes est
+             *   obtenu par une CALE de la largeur de `Séries`, jamais par des
+             *   largeurs de colonne différentes entre les deux rangées.
+             */}
+            <View style={styles.parameterCard} testID="exercise-parameter-card">
+              <View style={styles.parameterRow} testID="exercise-parameter-row">
+                <ParameterField
+                  testID="exercise-field-seriesCount"
+                  width={dimensions.exerciseParameterRow.narrowColumnWidth}
+                  label={t.seriesCount.compactLabel}
+                  accessibilityLabel={t.seriesCount.accessibilityLabel}
+                  value={String(local.seriesCount)}
+                  isOpen={openOverlay === "seriesCount"}
+                  onPress={() => toggleOverlay("seriesCount")}
+                />
+                {local.executionMode === "DURATION" ? (
+                  <ParameterField
+                    testID="exercise-field-duration"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={t.duration.label}
+                    accessibilityLabel={t.duration.accessibilityLabel}
+                    value={formatDurationRowValue(
+                      local.durationSeconds ?? 0,
+                      WHEEL_EXERCISE_DURATION_SECONDS_MAX,
+                    )}
+                    isOpen={openOverlay === "duration"}
+                    onPress={() => toggleOverlay("duration")}
+                  />
+                ) : null}
+                {local.executionMode === "REPETITIONS" ? (
+                  <ParameterField
+                    testID="exercise-field-repetitionCount"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    label={t.repetitionCount.compactLabel}
+                    accessibilityLabel={t.repetitionCount.accessibilityLabel}
+                    value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
+                    isOpen={openOverlay === "repetitionCount"}
+                    onPress={() => toggleOverlay("repetitionCount")}
+                  />
+                ) : null}
+                {local.executionMode === "TO_FAILURE" ? (
+                  <ToFailureField
+                    testID="exercise-field-toFailure"
+                    width={dimensions.exerciseParameterRow.wideColumnWidth}
+                    value={t.executionMode.toFailure}
+                  />
+                ) : null}
+                <ParameterField
+                  testID="exercise-field-pauseSeconds"
+                  width={dimensions.exerciseParameterRow.wideColumnWidth}
+                  label={t.pauseSeconds.compactLabel}
+                  accessibilityLabel={t.pauseSeconds.accessibilityLabel}
+                  value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
+                  isOpen={openOverlay === "pauseSeconds"}
+                  onPress={() => toggleOverlay("pauseSeconds")}
+                />
+              </View>
+
+              <View style={styles.parameterRow} testID="exercise-parameter-row-secondary">
+                {/*
+                 * Cale de la largeur EXACTE de la colonne `Séries` : elle
+                 * décale la seconde rangée d'une colonne, ce qui place
+                 * `Récupération` sous le contrôle `Durée`/`Répétitions` et
+                 * `Durée totale` sous `Pause`. Purement structurelle —
+                 * aucun contenu, aucun rôle d'accessibilité.
+                 */}
+                <View
+                  style={styles.parameterRowLeadingSpacer}
+                  testID="exercise-parameter-row-spacer"
+                />
+                <ParameterField
+                  testID="exercise-field-recoverySeconds"
+                  width={dimensions.exerciseParameterRow.wideColumnWidth}
+                  label={t.recoverySeconds.compactLabel}
+                  accessibilityLabel={t.recoverySeconds.accessibilityLabel}
+                  value={formatDurationRowValue(local.recoverySeconds, WHEEL_RECOVERY_SECONDS_MAX)}
+                  isOpen={openOverlay === "recoverySeconds"}
+                  onPress={() => toggleOverlay("recoverySeconds")}
+                />
+                <ParameterField
+                  testID="exercise-field-totalDuration"
+                  width={dimensions.exerciseParameterRow.wideColumnWidth}
+                  label={t.totalDuration.compactLabel}
+                  accessibilityLabel={t.totalDuration.accessibilityLabel}
+                  // La durée CALCULÉE peut légitimement dépasser la borne de
+                  // la roulette (jusqu'à 99 Séries de 99 min 59 s) : elle est
+                  // AFFICHÉE intégralement, la borne ne s'appliquant qu'à la
+                  // valeur saisissable — limite disclosée dans
+                  // `wheelPickerMath.ts`.
+                  value={formatDurationRowValue(
+                    totalDurationSeconds,
+                    Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
+                  )}
+                  isOpen={openOverlay === "totalDuration"}
+                  onPress={() => toggleOverlay("totalDuration")}
+                />
+              </View>
+            </View>
           </View>
         </CollapsibleSection>
-
-        {/*
-         * Paramètres — `Activity / Parameter Row — Source exact`, désormais
-         * sur DEUX rangées (CE-T01-13/CE-T01-14) et sans titre
-         * `Paramètres de l'activité` (supprimé, D-137) :
-         * - rangée 1 : `Séries`, puis le paramètre du mode
-         *   (`Durée`/`Répétitions`/badge « À l'échec »), puis `Pause` ;
-         * - rangée 2 : `Récupération` (attachée, T02-S02), puis
-         *   `Durée totale` (dérivée et PILOTE, jamais persistée).
-         */}
-        <View style={styles.parameterCard} testID="exercise-parameter-card">
-          <View style={styles.parameterRow} testID="exercise-parameter-row">
-            <ParameterField
-              testID="exercise-field-seriesCount"
-              width={dimensions.exerciseParameterRow.narrowColumnWidth}
-              label={t.seriesCount.compactLabel}
-              accessibilityLabel={t.seriesCount.accessibilityLabel}
-              value={String(local.seriesCount)}
-              isOpen={openOverlay === "seriesCount"}
-              onPress={() => toggleOverlay("seriesCount")}
-            />
-            {local.executionMode === "DURATION" ? (
-              <ParameterField
-                testID="exercise-field-duration"
-                width={dimensions.exerciseParameterRow.wideColumnWidth}
-                label={t.duration.label}
-                accessibilityLabel={t.duration.accessibilityLabel}
-                value={formatDurationRowValue(
-                  local.durationSeconds ?? 0,
-                  WHEEL_EXERCISE_DURATION_SECONDS_MAX,
-                )}
-                isOpen={openOverlay === "duration"}
-                onPress={() => toggleOverlay("duration")}
-              />
-            ) : null}
-            {local.executionMode === "REPETITIONS" ? (
-              <ParameterField
-                testID="exercise-field-repetitionCount"
-                width={dimensions.exerciseParameterRow.wideColumnWidth}
-                label={t.repetitionCount.compactLabel}
-                accessibilityLabel={t.repetitionCount.accessibilityLabel}
-                value={String(local.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
-                isOpen={openOverlay === "repetitionCount"}
-                onPress={() => toggleOverlay("repetitionCount")}
-              />
-            ) : null}
-            {local.executionMode === "TO_FAILURE" ? (
-              <ToFailureField
-                testID="exercise-field-toFailure"
-                width={dimensions.exerciseParameterRow.wideColumnWidth}
-                value={t.executionMode.toFailure}
-              />
-            ) : null}
-            <ParameterField
-              testID="exercise-field-pauseSeconds"
-              width={dimensions.exerciseParameterRow.wideColumnWidth}
-              label={t.pauseSeconds.compactLabel}
-              accessibilityLabel={t.pauseSeconds.accessibilityLabel}
-              value={formatDurationRowValue(local.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
-              isOpen={openOverlay === "pauseSeconds"}
-              onPress={() => toggleOverlay("pauseSeconds")}
-            />
-          </View>
-
-          <View style={styles.parameterRow} testID="exercise-parameter-row-secondary">
-            <ParameterField
-              testID="exercise-field-recoverySeconds"
-              width={dimensions.exerciseParameterRow.wideColumnWidth}
-              label={t.recoverySeconds.compactLabel}
-              accessibilityLabel={t.recoverySeconds.accessibilityLabel}
-              value={formatDurationRowValue(local.recoverySeconds, WHEEL_RECOVERY_SECONDS_MAX)}
-              isOpen={openOverlay === "recoverySeconds"}
-              onPress={() => toggleOverlay("recoverySeconds")}
-            />
-            <ParameterField
-              testID="exercise-field-totalDuration"
-              width={dimensions.exerciseParameterRow.wideColumnWidth}
-              label={t.totalDuration.compactLabel}
-              accessibilityLabel={t.totalDuration.accessibilityLabel}
-              // La durée CALCULÉE peut légitimement dépasser la borne de la
-              // roulette (jusqu'à 99 Séries de 99 min 59 s) : elle est
-              // AFFICHÉE intégralement, la borne ne s'appliquant qu'à la
-              // valeur saisissable — limite disclosée dans
-              // `wheelPickerMath.ts`.
-              value={formatDurationRowValue(
-                totalDurationSeconds,
-                Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
-              )}
-              isOpen={openOverlay === "totalDuration"}
-              onPress={() => toggleOverlay("totalDuration")}
-            />
-          </View>
-        </View>
-
-        {/*
-         * Message d'ajustement (RM-130) — rendu uniquement lorsque la Durée
-         * totale confirmée n'était pas atteignable exactement avec un nombre
-         * entier de Séries dans `[1, 99]`.
-         */}
-        {adjustmentMessage !== null ? (
-          <Text style={styles.adjustmentMessage} testID="exercise-adjustment-message">
-            {adjustmentMessage}
-          </Text>
-        ) : null}
-
-        {/*
-         * Espace flexible (`3261:4156`/`3261:4165`) : pousse la synthèse au
-         * bas du contenu défilant lorsque celui-ci tient dans la hauteur
-         * visible (`bodyContent.flexGrow: 1`) ; s'efface silencieusement dès
-         * que le contenu la dépasse — le défilement normal reprend alors.
-         */}
-        <View style={styles.recapSpacer} />
-
-        {/*
-         * Synthèse FIXE (jamais repliable, CE-T01-13) : phrase récapitulative
-         * calculée, puis ligne de durée `Durée totale : {D}` (mode Durée) ou
-         * `Durée minimale : ≥ {D}` (modes non chronométrés, RM-132).
-         */}
-        <View style={styles.summaryCard} testID="exercise-summary-card">
-          <Text style={styles.summaryText}>{formatExerciseRecap(recapFacts)}</Text>
-          <Text style={styles.summaryDurationText} testID="exercise-summary-duration">
-            {formatExerciseDurationLine(recapFacts)}
-          </Text>
-        </View>
       </ScrollView>
+
+      {/*
+       * **Synthèse FIXE et NON DÉFILANTE** (CE-T01-13 : « La synthèse est
+       * immuable : le déploiement d'une section fait défiler le contenu sans
+       * déplacer sa zone ni l'action finale `Terminer` »).
+       *
+       * T02-S02 (continuation) : elle était jusqu'ici le DERNIER ENFANT du
+       * `ScrollView`, poussé en bas par une cale flexible — donc défilante
+       * dès que le contenu dépassait la hauteur visible. Elle devient un
+       * FRÈRE du corps défilant, entre lui et l'action finale : sa zone ne
+       * bouge plus jamais, quel que soit l'état de déploiement des sections.
+       * La cale flexible (`recapSpacer`) disparaît avec ce déplacement.
+       */}
+      <View style={styles.summaryCard} testID="exercise-summary-card">
+        <Text style={styles.summaryText}>{formatExerciseRecap(recapFacts)}</Text>
+        <Text style={styles.summaryDurationText} testID="exercise-summary-duration">
+          {formatExerciseDurationLine(recapFacts)}
+        </Text>
+      </View>
 
       {/*
        * Action finale unique (D-137) : `Terminer`. L'ancien `Valider`, qui
@@ -575,6 +625,20 @@ export function ExerciseScreen() {
       >
         <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
       </Pressable>
+
+      {/*
+       * **Notification noire temporaire** (D-136, RM-010) — remplace le texte
+       * permanent inséré dans le corps défilant : elle est superposée (ne
+       * déplace aucun contenu), s'efface d'elle-même et porte l'action
+       * `Annuler`, qui restitue le nombre de Séries d'avant l'ajustement.
+       */}
+      <TransientNotification
+        message={adjustment?.message ?? null}
+        actionLabel={t.adjustedTotalDurationUndoAction}
+        onAction={handleUndoAdjustment}
+        onDismiss={() => setAdjustment(null)}
+        testID="exercise-adjustment-notification"
+      />
 
       {/*
        * Superposition plein écran TRANSVERSALE partagée par les six
@@ -750,6 +814,19 @@ function CollapsibleSection({
  * `#CDCEFA`, rayon `6`) aligné à droite, chevron blanc `14×14`
  * (`select-field-chevron`).
  */
+/**
+ * Complément vertical portant la cible tactile d'un contrôle de paramètre de
+ * `42` (hauteur visible canonique) à `minTouchTarget` (`48`). Dérivé, jamais
+ * codé en dur : ajuster l'une des deux valeurs canoniques recalcule le
+ * complément.
+ */
+const PARAMETER_CONTROL_HIT_SLOP = {
+  top: (minTouchTarget - dimensions.exerciseParameterRow.controlHeight) / 2,
+  bottom: (minTouchTarget - dimensions.exerciseParameterRow.controlHeight) / 2,
+  left: 0,
+  right: 0,
+} as const;
+
 function ParameterField({
   testID,
   width,
@@ -777,6 +854,13 @@ function ParameterField({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityState={{ expanded: isOpen }}
+        // T02-S02 (continuation) : le cadre visible reste à sa hauteur
+        // canonique `42` (`Forms / Select Field`), mais il OUVRE une
+        // roulette — sa cible tactile doit donc atteindre `48`
+        // (`size/touch-target-min`), comme toute action du DSF. Même patron
+        // que `Action / Back` et que les actions de roulette : `hitSlop`
+        // autour de la boîte visuelle, jamais un agrandissement de celle-ci.
+        hitSlop={PARAMETER_CONTROL_HIT_SLOP}
         style={[styles.parameterControl, { width }]}
         testID={`${testID}-control`}
       >
@@ -796,6 +880,17 @@ function ParameterField({
  * 4) — occupe exactement l'emplacement du contrôle `Durée`/`Répétitions`
  * dans `Activity / Parameter Row`, mais sans chevron ni action : ce mode ne
  * porte aucune cible chiffrée à ouvrir (D-111), rien n'y est sélectionnable.
+ *
+ * **T02-S02 (continuation après recette visuelle)** : il n'a pas de libellé
+ * au-dessus, contrairement à `Séries` et `Pause` — son cadre se posait donc
+ * en HAUT de la colonne, visiblement décalé de ses voisins, que leur libellé
+ * pousse vers le bas. Une CALE de la hauteur exacte d'un libellé rétablit
+ * l'alignement : la colonne a désormais la même structure interne qu'une
+ * `ParameterField` (bloc supérieur + écart + cadre), donc la même position
+ * de cadre par construction — jamais un alignement approché.
+ *
+ * Son fond devient par ailleurs TRANSPARENT : la surface blanche des
+ * `Forms / Select Field` est réservée aux contrôles réellement ouvrables.
  */
 function ToFailureField({
   testID,
@@ -808,6 +903,7 @@ function ToFailureField({
 }) {
   return (
     <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
+      <View style={styles.toFailureLabelSpacer} testID={`${testID}-label-spacer`} />
       <View
         style={[styles.parameterControl, styles.parameterControlStatic, { width }]}
         accessibilityRole="text"
@@ -989,6 +1085,15 @@ const styles = StyleSheet.create({
     height: dimensions.exerciseParameterRow.rowHeight,
     gap: dimensions.exerciseParameterRow.columnGap,
   },
+  // T02-S02 (continuation) : cale de la seconde rangée, de la largeur EXACTE
+  // de la colonne `Séries`. Elle aligne `Récupération` sous le contrôle du
+  // mode (`Durée`/`Répétitions`) et `Durée totale` sous `Pause`. Exprimée en
+  // cale plutôt qu'en `justifyContent: "flex-end"` : la rangée conserve ainsi
+  // exactement la même grille de colonnes que la première, y compris son
+  // `columnGap`.
+  parameterRowLeadingSpacer: {
+    width: dimensions.exerciseParameterRow.narrowColumnWidth,
+  },
   parameterLabel: {
     ...type.parameterColumnLabel,
     color: colors.exerciseParameterLabelText,
@@ -1011,8 +1116,21 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.exerciseParameterValueText,
   },
+  // T02-S02 (continuation) : cale de la hauteur EXACTE d'un libellé de
+  // colonne, occupant la place que `Séries` et `Pause` donnent au leur. La
+  // colonne « À l'échec » retrouve ainsi la structure interne d'une
+  // `ParameterField` — bloc supérieur, écart, cadre — donc la même position
+  // de cadre, sans dépendre d'un alignement approché.
+  toFailureLabelSpacer: {
+    height: type.parameterColumnLabel.lineHeight,
+  },
+  // Fond TRANSPARENT (et non blanc) : ce cadre n'est pas un contrôle
+  // ouvrable, rien n'y est sélectionnable (D-111) — il ne doit donc pas
+  // reprendre la surface blanche des `Forms / Select Field` réellement
+  // pressables. Le fond du cadre de paramètres reste visible au travers.
   parameterControlStatic: {
     justifyContent: "center",
+    backgroundColor: "transparent",
   },
   parameterValueToFailure: {
     ...type.label,
@@ -1026,16 +1144,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // T02-S02 (RM-130) : message d'ajustement de la Durée totale — texte
-  // simple sous le cadre de paramètres, teinté `colors.selection` (seul
-  // token « violet » canonique du Design System), jamais un bandeau
-  // d'erreur : l'ajustement est un comportement normal, pas un défaut.
-  adjustmentMessage: {
-    ...type.body,
-    color: colors.selection,
-  },
-  recapSpacer: {
-    flex: 1,
+  // T02-S02 (continuation) : écart RÉDUIT entre le contrôle segmenté et le
+  // cadre de paramètres, qui appartiennent au même bloc fonctionnel — ils
+  // héritaient jusqu'ici de l'écart STRUCTUREL de `bodyContent` (`24`),
+  // destiné à séparer des sections entières. `spacing/8` est le même token
+  // que l'écart interne du cadre de paramètres (`columnGap`) : aucune valeur
+  // nouvelle n'est introduite.
+  executionModeGroup: {
+    gap: spacing[8],
   },
   // T01-S10 (doc13 §8) : `+ Ajouter un média` — bouton centré, désactivé
   // (Médias V2 hors périmètre), rendu dans la zone bleue sous le Nom.
@@ -1061,7 +1177,15 @@ const styles = StyleSheet.create({
   // le cadre grandit avec le texte. T02-S02 : il porte désormais DEUX lignes
   // (phrase récapitulative + ligne de durée), séparées par le même écart que
   // les marges verticales du cadre.
+  //
+  // T02-S02 (continuation) : la synthèse étant sortie du `ScrollView`, elle
+  // porte désormais elle-même ses marges horizontales — auparavant héritées
+  // du `paddingHorizontal` de `bodyContent`. Sa marge haute la sépare du
+  // corps défilant, sans quoi le dernier élément défilant viendrait la
+  // toucher.
   summaryCard: {
+    marginHorizontal: spacing[24],
+    marginTop: spacing[8],
     borderWidth: 1,
     borderColor: colors.tourSurface,
     borderRadius: dimensions.exerciseSummaryCard.radius,

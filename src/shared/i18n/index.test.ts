@@ -145,6 +145,13 @@ describe("strings", () => {
     });
   });
 
+  it("T02-S02 — exposes the attached-Récupération sub-card label of a Composition card (D-095/D-128/D-138)", () => {
+    expect(strings.screens.composition.activityRecovery).toEqual({
+      label: "Récupération",
+      accessibilityLabel: "Récupération attachée",
+    });
+  });
+
   it("exposes the Exercise screen texts (T01-S08)", () => {
     // REWORK09 (mission directe utilisateur, 2026-09-04) : `titleAdd`/
     // `titleEdit` (grand titre local, remplacé par le nom réel de la
@@ -172,13 +179,17 @@ describe("strings", () => {
     // `validateAction` est supprimé, `Terminer` est la seule action finale.
     expect(strings.screens.exercise).not.toHaveProperty("validateAction");
     expect(strings.screens.exercise.instruction.label).toBe("Description de l’activité");
-    expect(strings.screens.exercise.bodyZones.label).toBe("Zone corporelle d’exécution");
+    // T02-S02 (continuation après recette visuelle) : « Zone corporelle
+    // d'exécution » → « Zones corporelles » — la section accepte PLUSIEURS
+    // Zones (D-093), le singulier était trompeur.
+    expect(strings.screens.exercise.bodyZones.label).toBe("Zones corporelles");
+    expect(strings.screens.exercise.bodyZones.accessibilityLabel).toBe("Zones corporelles");
   });
 
   it("T02-S02 — exposes the collapsible section titles and composes header names with an action verb, keeping the description field label unique (CE-T01-13/CE-T01-15)", () => {
     expect(strings.screens.exercise.sections).toEqual({
       description: "Description de l’activité",
-      bodyZones: "Zone corporelle d’exécution",
+      bodyZones: "Zones corporelles",
       executionMode: "Mode d’exécution",
       expandAction: "Déployer la section",
       collapseAction: "Replier la section",
@@ -215,6 +226,9 @@ describe("strings", () => {
       "Durée ajustée à {duration} pour respecter un nombre entier de Séries.",
     );
     expect(strings.screens.exercise.adjustedTotalDurationMessage).toContain("{duration}");
+    // T02-S02 (continuation) : le message est rendu dans la notification
+    // noire temporaire canonique, qui exige une action de CORRECTION.
+    expect(strings.screens.exercise.adjustedTotalDurationUndoAction).toBe("Annuler");
   });
 
   it("exposes the disabled add-media button label (T01-S10, doc13 §8 — Médias V2 hors périmètre ; correctif T02 2026-09-08 — le '+' n'est plus un caractère de texte, porté par l'icône DSF)", () => {
