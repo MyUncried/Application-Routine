@@ -62,10 +62,10 @@ if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PUSH_FAILED' }
 $body = @"
 Automated KODJO V2 delivery.
 
-- Slice: `$($queue.slice_id)`
-- Authorized source: `$($queue.source_head)`
-- Queue request: `$QueueFile`
-- Verdict: `IMPLEMENTED_AND_VERIFIED`
+Slice: $($queue.slice_id)
+Authorized source: $($queue.source_head)
+Queue request: $QueueFile
+Verdict: IMPLEMENTED_AND_VERIFIED
 
 Human review remains required before merge.
 "@
