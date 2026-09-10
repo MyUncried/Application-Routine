@@ -22,6 +22,10 @@ jobs:
       run:
         shell: powershell
     steps:
+      - name: Enable Windows long paths
+        shell: powershell
+        run: git config --global core.longpaths true
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -39,3 +43,15 @@ jobs:
           if ($changed.Count -ne 1) { throw "KODJO_QUEUE_CARDINALITY_REFUSED: $($changed.Count)" }
           & scripts/kodjo/run-queued-request.ps1 -QueueFile $changed[0]
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Preserve KODJO diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ~/.kodjo-v2/runs/**/result.json
+            ~/.kodjo-v2/runs/**/claude-stderr.txt
+            ~/.kodjo-v2/runs/**/claude-output.json
+          if-no-files-found: warn
+          retention-days: 14
