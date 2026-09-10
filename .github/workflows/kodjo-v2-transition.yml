@@ -1,0 +1,112 @@
+name: KODJO V2 transition
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Explicit bounded transition command
+        required: true
+        type: choice
+        options:
+          - EVIDENCE_WRITER_SMOKE
+  push:
+    branches:
+      - chore/kodjo-v2-pilot
+    paths:
+      - .github/workflows/kodjo-v2-transition.yml
+
+permissions:
+  contents: read
+
+env:
+  KODJO_WORKFLOW_KIND: TRANSITION
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  evidence_writer:
+    if: github.event_name == 'push' || inputs.command == 'EVIDENCE_WRITER_SMOKE'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      KODJO_EVIDENCE_REPOSITORY: MyUncried/Application-Routine-KODJO-Evidence
+      KODJO_EVIDENCE_BRANCH: kodjo/protocol-evidence-v2
+    steps:
+      - name: Checkout immutable control source without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Prepare isolated writer directories
+        run: |
+          {
+            echo "KODJO_WRITER_ROOT=${RUNNER_TEMP}/kodjo-writer"
+            echo "GIT_SSH_COMMAND=ssh -i ${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519 -o IdentitiesOnly=yes -o UserKnownHostsFile=${RUNNER_TEMP}/kodjo-writer/ssh/known_hosts"
+          } >> "$GITHUB_ENV"
+          mkdir -p "${RUNNER_TEMP}/kodjo-writer/evidence" "${RUNNER_TEMP}/kodjo-writer/ssh"
+
+      - name: Install repository-scoped evidence deploy key
+        env:
+          KODJO_EVIDENCE_DEPLOY_KEY: ${{ secrets.KODJO_EVIDENCE_DEPLOY_KEY }}
+        run: |
+          test -n "${KODJO_EVIDENCE_DEPLOY_KEY}"
+          printf '%s\n' "${KODJO_EVIDENCE_DEPLOY_KEY}" > "${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519"
+          chmod 600 "${RUNNER_TEMP}/kodjo-writer/ssh/id_ed25519"
+          ssh-keyscan -H github.com > "${RUNNER_TEMP}/kodjo-writer/ssh/known_hosts"
+
+      - name: Prepare harmless protocol-only smoke request
+        run: node control/scripts/kodjo/prepare-evidence-writer-smoke.js "${RUNNER_TEMP}/kodjo-writer/input"
+
+      - name: Fetch fixed evidence branch only
+        working-directory: ${{ runner.temp }}/kodjo-writer/evidence
+        run: |
+          git init
+          git remote add origin "git@github.com:MyUncried/Application-Routine-KODJO-Evidence.git"
+          if git fetch --depth=1 origin "refs/heads/${KODJO_EVIDENCE_BRANCH}:refs/remotes/origin/evidence"; then
+            git checkout -b evidence refs/remotes/origin/evidence
+          else
+            git checkout --orphan evidence
+          fi
+
+      - name: Stage append-only evidence after validation
+        run: >-
+          node control/scripts/kodjo/write-evidence-deposit.js
+          "${RUNNER_TEMP}/kodjo-writer/input/evidence-deposit-request.json"
+          "${RUNNER_TEMP}/kodjo-writer/input/source"
+          "${RUNNER_TEMP}/kodjo-writer/evidence"
+
+      - name: Refuse modification or deletion and applicative paths
+        working-directory: ${{ runner.temp }}/kodjo-writer/evidence
+        run: |
+          test -z "$(git diff --name-only --diff-filter=MD)"
+          if git status --short --untracked-files=all | awk '{print $2}' | grep -Ev '^slices/[^/]+/operations/[^/]+/attempts/[^/]+/implementation/(implementation\.patch|implementation\.patch\.sha256|modified-files\.json|manifest\.json|development-report\.md|validation\.json|deposit-receipt\.json)$'; then
+            echo 'EVIDENCE_APPLICATIVE_CONTENT_FORBIDDEN'
+            exit 1
+          fi
+
+      - name: Commit proof objects in isolated evidence tree
+        working-directory: ${{ runner.temp }}/kodjo-writer/evidence
+        run: |
+          git config user.name 'kodjo-evidence-writer'
+          git config user.email 'kodjo-evidence-writer@users.noreply.github.com'
+          git add -- slices/
+          git diff --cached --diff-filter=MD --quiet
+          git commit -m "chore(evidence): append writer smoke ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Push exclusively to the fixed evidence ref
+        working-directory: ${{ runner.temp }}/kodjo-writer/evidence
+        run: git push origin "HEAD:refs/heads/kodjo/protocol-evidence-v2"
+
+      - name: Verify remote fixed ref contains the deposited receipt
+        working-directory: ${{ runner.temp }}/kodjo-writer/evidence
+        run: |
+          git fetch origin "refs/heads/kodjo/protocol-evidence-v2:refs/remotes/origin/verified"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/verified)"
+          test "$(find slices -name deposit-receipt.json -type f | wc -l)" -ge 1
+          echo 'EVIDENCE_WRITER_REMOTE_DEPOSIT=PASS'

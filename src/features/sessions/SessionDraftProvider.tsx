@@ -1,6 +1,7 @@
 import {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -45,7 +46,9 @@ export type SessionDraftProviderProps = {
 export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
   const service = useContext(SessionServiceContext);
   const serviceRef = useRef(service);
-  serviceRef.current = service;
+  useEffect(() => {
+    serviceRef.current = service;
+  }, [service]);
 
   const [draft, setDraft] = useState<SessionDraft>(() => createEmptyDraft());
   const [editStatus, setEditStatusState] = useState<SessionDraftEditStatus>("creating");

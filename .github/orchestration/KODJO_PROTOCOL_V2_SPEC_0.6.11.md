@@ -4,10 +4,10 @@
 
 | Métadonnée | Valeur |
 |---|---|
-| Statut | Spécification finale corrigée — conservation et reprise ciblée intégrées |
+| Statut | Spécification corrigée ; arbitrage de stockage clos par décision utilisateur |
 | Phase | Phase 1 — spécification et architecture uniquement |
-| Version du document | 0.6.3 |
-| Date | 2026-09-07 |
+| Version du document | 0.6.11 |
+| Date | 2026-09-10 |
 | Dépôt de référence | `MyUncried/Application-Routine` |
 | Branche analysée | `main` |
 | HEAD initialement analysé | `358347ffe572ef72002046926dc6952a83e8f70c` |
@@ -17,7 +17,35 @@
 | Protocole existant analysé | `KODJO_SLICE_PROTOCOL_V1.md` |
 | Tranche protégée pendant la conception | `T01-S10`, Issue `#42` |
 
-> Ce document spécifie la cible V2. Il n’active aucun workflow, ne modifie aucun manifeste, ne lance aucune IA et ne migre pas S10.
+> Ce document spécifie et instrumente le pilote V2. Il ne migre pas S10 et ne lance aucune IA lors de son installation.
+
+### Historique 0.6.11
+
+La version 0.6.11 implémente l’adaptateur Claude Code local prévu au §10 sans réintroduire de développement distant. Elle fixe Claude Code `2.1.263`, limite l’exécution à une invocation, douze tours et une heure, restreint les outils aux lectures/modifications locales et aux trois commandes de contrôle déterministes, interdit Git, GitHub, le réseau, les MCP et les commandes destructives, puis vérifie après exécution que les références Git et le périmètre sont intacts. Claude reçoit l’obligation d’exécuter les contrôles ciblés, d’en lire lui-même les erreurs, de corriger la cause et de relancer le contrôle au sein de la même invocation bornée. Les contrôles déterministes sont rejoués par le superviseur après Claude. Le jeton OAuth long terme est conservé localement sous Windows par DPAPI, injecté uniquement dans le processus enfant et retiré aussitôt après l’exécution.
+
+### Historique 0.6.10
+
+La version 0.6.10 sépare physiquement le stockage des preuves du dépôt applicatif. Le writer cible exclusivement le dépôt privé fixe `MyUncried/Application-Routine-KODJO-Evidence` et sa branche fixe `kodjo/protocol-evidence-v2`, au moyen d'une deploy key propre à ce seul dépôt. Le job reste en `contents: read` sur `MyUncried/Application-Routine`, n'utilise plus `github.token` pour écrire et ne possède donc aucun identifiant capable de modifier une branche fonctionnelle. Cette évolution répond à l'absence d'application des protections de branches sur le dépôt privé avec la formule GitHub courante.
+
+### Historique 0.6.9
+
+La version 0.6.9 implémente le premier writer de preuves borné dans un job dédié de `kodjo-v2-transition.yml`. Le writer vérifie la branche cible fixe, les chemins canoniques, l'allowlist des objets protocolaires et leurs hash, refuse tout remplacement, toute suppression et tout fichier applicatif intégré, puis pousse exclusivement vers `refs/heads/kodjo/protocol-evidence-v2`. Les permissions effectives sur les branches restent une condition de qualification du dépôt : le workflow seul ne transforme pas un jeton `contents: write` en autorisation limitée à une branche.
+
+### Historique 0.6.8
+
+La version 0.6.8 clôt `MAJ-03` par décision utilisateur. L'artefact GitHub Actions est **la barrière immédiate de récupération et un moyen de transport temporaire** ; il ne devient jamais, par défaut, la preuve canonique définitive. Le patch et son manifeste sont ensuite enregistrés durablement sur la branche de preuves par un **writer technique dédié**, séparé du checkout fonctionnel, ne recevant aucun nom de branche en entrée, ciblant exclusivement `kodjo/protocol-evidence-v2`, restreint à des chemins append-only prédéfinis, incapable de modifier ou de supprimer une preuve existante, dépourvu de toute autorisation sur une branche fonctionnelle et n'intégrant aucun fichier applicatif. Le workflow d'implémentation reste en `contents: read`. En l'absence de writer qualifié, le diagnostic est `EVIDENCE_WRITER_ABSENT` et **l'activation de V2 est interdite**. Pour rendre cet écart observable plutôt que documentaire, le job d'implémentation produit désormais une **demande de dépôt de preuves** décrivant exactement ce que le writer devra ajouter, sans lui conférer la moindre capacité d'écriture.
+
+### Historique 0.6.6
+
+La version 0.6.6 applique la contre-analyse OpenAI de la revue `0.6.4`. Trois écarts sont corrigés par rapport à la `0.6.5`. Premièrement, les répertoires techniques du protocole sont **implantés hors de la copie de travail** et une implantation invalide est désormais **refusée bruyamment** avant toute production : les exclusions de chemin restent une défense secondaire et ne doivent jamais faire passer silencieusement une mauvaise configuration. Deuxièmement, l'arbitrage de stockage n'est **pas** rouvert : la branche de preuves reste le support canonique durable, l'artefact Actions ne devient pas la copie unique autorisée, et la §4.5 définit à la place un writer de preuves distant, séparé du job d'implémentation. Troisièmement, la déclaration de statut d'un adaptateur devient un **contrat structuré** ; le code de sortie `75` n'est que la liaison de ce pilote, pas une obligation d'architecture. La sélection des workflows à valider repose enfin sur un **type déclaré**, et une dérivation non déclarée est refusée.
+
+### Historique 0.6.5
+
+La version 0.6.5 intègre les constats de la revue indépendante Claude portant sur le paquet `0.6.4`. Quatre corrections normatives : le delta conservé exclut désormais explicitement les répertoires d'orchestration matérialisés dans la copie de travail, qui faisaient échouer le contrôle de périmètre à chaque exécution réelle et rendaient `IMPLEMENTED_AND_VERIFIED` inatteignable ; un téléversement de récupération en échec est un échec de préservation et produit `IMPLEMENTATION_FAILED`, jamais un statut annonçant une reprise ciblée sans artefact source ; une reprise `TARGETED_FIX` privée des contrôles repris relance l'ensemble des contrôles requis afin de pouvoir converger ; et la durabilité réelle de l'artefact de récupération sur le chemin distant éphémère est énoncée sans contradiction avec le §4.5. Six corrections documentaires accompagnent ces changements. Aucun arbitrage d'architecture n'est rouvert.
+
+### Historique 0.6.4
+
+La version 0.6.4 aligne le workflow de référence sur l’invariant déjà normatif et sur le pilote GitHub Actions validé : l’artefact immuable de récupération est téléversé immédiatement après la validation du patch et **avant** Jest, TypeScript, lint et le contrôle de périmètre. L’artefact de résultat, distinct, est produit après les contrôles. Une interruption du runner pendant un contrôle ne peut donc plus supprimer l’unique copie récupérable des modifications.
 
 ### Historique 0.6.3
 
@@ -35,7 +63,7 @@ La version 0.6.1 simplifie définitivement le parcours local. Le protocole ne go
 
 La version 0.6.0 applique l’arbitrage utilisateur définitif : `/Dev local → vérification locale → commit local → push local → observation et revue distantes`. Actions et les agents distants sont en lecture seule sur le dépôt fonctionnel et ne créent aucun commit applicatif, même temporaire. Le workflow Claude développeur, les branches de tentative distantes, leur promotion et le transfert Actions/CLI du droit d’écrire le produit sont supprimés. La coordination des appels IA et des preuves demeure, sans capacité d’écriture fonctionnelle distante.
 
-Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version n’active rien et ne prouve aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la 0.6.0.
+Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.11`.
 
 ### Historique 0.5.0
 
@@ -271,7 +299,8 @@ Après un push local confirmé, une commande explicite d’observation/revue peu
 .github/
 ├── workflows/
 │   ├── kodjo-v2-transition.yml
-│   └── kodjo-v2-openai.yml
+│   ├── kodjo-v2-openai.yml
+│   └── kodjo-v2-implementation-artifact.yml
 └── orchestration/
     ├── KODJO_PROTOCOL_INCIDENT_REGISTER.md
     └── v2/
@@ -303,7 +332,7 @@ Après un push local confirmé, une commande explicite d’observation/revue peu
 
 ### 4.5 Stockage autoritatif
 
-Le stockage retenu est une branche Git dédiée aux preuves, nommée conventionnellement `kodjo/protocol-evidence-v2`. Elle est distincte des branches applicatives et ne peut pas être réécrite par force-push dans l’exploitation nominale.
+Le stockage retenu est le dépôt privé dédié `MyUncried/Application-Routine-KODJO-Evidence`, sur la branche Git fixe `kodjo/protocol-evidence-v2`. Ce dépôt est distinct du dépôt applicatif `MyUncried/Application-Routine`. La deploy key du writer est enregistrée uniquement sur le dépôt de preuves et ne confère aucun droit au dépôt applicatif.
 
 Elle contient, sous `slices/<slice_id>/`, un journal append-only logique composé d’un fichier immuable par événement, ainsi que les paquets bruts et validés. Un chemin canonique est dérivé de `operation_id`, `attempt_id` et `publication_id`; un chemin existant ne peut pas être remplacé. Les commits de preuve sont techniques et ne contiennent jamais de code fonctionnel. Ils sont construits depuis l’arbre de preuves, jamais depuis un checkout applicatif. Un producteur local ou distant autorisé aux seules preuves peut les écrire.
 
@@ -311,10 +340,10 @@ Les rôles sont :
 
 | Support | Autorité |
 |---|---|
-| Branche Git de preuves | Journal, commandes, tentatives, sorties brutes, résultats validés, diagnostics, gates et publications |
+| Dépôt et branche Git de preuves dédiés | Journal, commandes, tentatives, sorties brutes, résultats validés, diagnostics, gates et publications |
 | Branche applicative | HEAD et commits créés dans `/Dev` puis poussés exclusivement depuis le poste local |
 | Commentaire d’Issue | Vue humaine dérivée et lien vers le paquet canonique |
-| Artefact Actions | Logs volumineux temporaires, jamais preuve canonique unique |
+| Artefact Actions | Logs volumineux temporaires et transport d'une livraison récupérable ; **jamais** preuve canonique unique |
 | Snapshot | Vue dérivée reconstructible, jamais source de vérité |
 
 L’état courant est la réduction déterministe des entrées valides de la branche de preuves, liées par causalité et intégrité de contenu. L’ordre de date seul ne suffit pas. Toute modification, suppression, duplication ou rupture de chaîne est détectée et bloque la réduction.
@@ -322,6 +351,34 @@ L’état courant est la réduction déterministe des entrées valides de la bra
 Chaque événement contient `sequence`, `previous_event_sha256`, son propre `content_sha256` et le hash du `SliceIdentity`. La racine de confiance est le commit d’activation V2 approuvé. Le reducer suit une chaîne unique depuis cette racine ; deux événements portant la même séquence, un prédécesseur absent, un hash faux, un remplacement de chemin canonique ou un commit non signé par un principal autorisé produisent `EVIDENCE_INTEGRITY` et l’arrêt. Aucun tri chronologique ne résout un conflit.
 
 Les règles de protection interdisent force-push et suppression sur la branche de preuves, exigent le principal moteur autorisé et un contrôle CI refusant toute modification/suppression d’un chemin existant. Le moteur ajoute exclusivement de nouveaux chemins de preuves. Chaque ajout compare le HEAD de preuves attendu ; un conflit impose relecture puis revalidation de la séquence, causalité et idempotence avant un nouvel ajout, sans répéter l’effet IA/applicatif. Aucun merge applicatif ne résout un conflit de journal. Une vérification depuis un clone vierge repart de la racine d’activation, vérifie toute la chaîne, recalcule l’état puis retrouve le paquet par `operation_id`.
+
+#### Writer de preuves dédié — rôle de l'artefact Actions
+
+L'arbitrage A du §16 n'est pas rouvert. La répartition des rôles est la suivante, et elle est normative :
+
+| Support | Rôle exact |
+|---|---|
+| Artefact GitHub Actions | **Barrière immédiate de récupération** et **moyen de transport temporaire**. Jamais la preuve canonique définitive, ni par défaut, ni par expiration du writer |
+| `MyUncried/Application-Routine-KODJO-Evidence` / `kodjo/protocol-evidence-v2` | Enregistrement **durable** du patch et de son manifeste, ajouté par le writer dédié |
+
+Le writer de preuves est un composant technique dédié, soumis à huit règles cumulatives :
+
+1. il travaille dans un espace **séparé du checkout fonctionnel** ;
+2. il ne reçoit **aucun nom de dépôt ni de branche en entrée** ;
+3. il cible exclusivement le dépôt fixe `MyUncried/Application-Routine-KODJO-Evidence` et la branche fixe `kodjo/protocol-evidence-v2` ;
+4. il ne peut ajouter que des objets protocolaires, sous des chemins **append-only prédéfinis** ;
+5. il ne peut ni modifier ni supprimer une preuve existante ;
+6. sa deploy key est limitée au dépôt de preuves et il ne possède **aucune** autorisation de modification du dépôt applicatif ou d'une branche fonctionnelle ;
+7. aucun commit de preuve ne contient de fichier applicatif directement intégré ;
+8. il n'applique rien : le patch reste un objet de preuve et de transport, jamais transformé en commit fonctionnel à distance.
+
+Le workflow d'implémentation reste en `contents: read`. Toute capacité d'écriture de preuves appartient **exclusivement** au writer séparé, et doit être qualifiée avant l'activation de V2.
+
+**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : dépôt et branche cibles fixes, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.10` valide cette demande avant tout ajout. Sa qualification distante du 10 septembre 2026 a démontré le dépôt dans le dépôt dédié et l'absence de droit d'écriture applicatif.
+
+Tant que le writer n'a pas réussi sa qualification complète, le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste actif au sens « aucun writer qualifié disponible », et **l'activation de V2 est interdite**. L'artefact Actions ne devient jamais la preuve canonique définitive par défaut. Les obligations d'exploitation intérimaires demeurent : rétention déclarée au moins égale à la durée de la tranche, récupération et validation dans `/Dev` avant expiration, et `OUTPUT_NOT_RECOVERABLE` — jamais un statut implémenté — en cas d'expiration d'un artefact non récupéré.
+
+**Hébergement du writer.** Le writer est un **job dédié**, distinct de celui de l'implémentation, et non un quatrième workflow : il est hébergé par `kodjo-v2-transition.yml`, auquel le §4.3 confie déjà la republication de preuves. La limite normative de trois workflows du §1.2 est ainsi préservée.
 
 Le choix de cette branche ne constitue pas, à lui seul, une preuve de claim atomique. Le mécanisme de claim est défini au §7.2 et doit être qualifié techniquement avant activation.
 
@@ -362,7 +419,9 @@ Un commit créé localement puis poussé depuis le poste est une preuve durable 
 
 Un paquet durable minimal contient : version du schéma et du moteur, `operation_id`, `attempt_id`, causalité, commande canonique et hash, sortie brute et hash, résultat validé ou diagnostic, HEAD d’entrée, HEAD produit éventuel, incrément, identité du producteur, autorisation applicable et références des preuves obligatoires. Une machine vierge doit pouvoir retrouver ce paquet depuis GitHub seul.
 
-Pour une implémentation distante éphémère, une barrière supplémentaire s’applique dès qu’au moins un fichier diffère du `source_head` : le workflow fabrique et fige l’`ImplementationDeliveryArtifact` du §6.13-B **avant** Jest, TypeScript, lint, contrôle de périmètre, revue ou publication. Les contrôles lisent ensuite cette livraison figée ou le worktree correspondant ; ils ne précèdent jamais sa conservation. La préparation, l’upload et la publication du résultat s’exécutent même après erreur (`if: always()` ou mécanisme équivalent). Le code de sortie rendant le run rouge n’est émis qu’après ces tentatives de conservation et de publication.
+Pour une implémentation distante éphémère, une barrière supplémentaire s’applique dès qu’au moins un fichier diffère du `source_head` : le workflow fabrique, valide, fige **et téléverse** l’`ImplementationDeliveryArtifact` de récupération du §6.13-B **avant** Jest, TypeScript, lint, contrôle de périmètre, revue ou publication. Sa seule présence dans le workspace du runner ne constitue pas une conservation durable. Les contrôles lisent ensuite cette livraison figée ou le worktree correspondant ; ils ne précèdent jamais son téléversement. Le téléversement est un **fait observé, jamais présumé** : l'issue de l'étape de dépôt est transmise à la synthèse. Si aucun dépôt durable n'a abouti — ni le dépôt initial, ni sa tentative de secours obligatoire —, la préservation a échoué au sens du §5.2-A et le statut est `IMPLEMENTATION_FAILED` avec le diagnostic `RECOVERY_NOT_DURABLE`. Il est interdit d'annoncer un statut récupérable, une coordonnée d'artefact ou une reprise `TARGETED_FIX` lorsque l'artefact source n'existe pas.
+
+Après les contrôles, un artefact de résultat distinct porte leurs verdicts et le statut métier. La préparation et la publication de ce résultat s’exécutent même après erreur (`if: always()` ou mécanisme équivalent). Le code de sortie rendant le run rouge n’est émis qu’après les tentatives de conservation, de synthèse et de publication.
 
 ---
 
@@ -401,9 +460,9 @@ Ces statuts décrivent le résultat récupérable du travail, indépendamment du
 | `IMPLEMENTED_AND_VERIFIED` | Un correctif récupérable est préservé et tous les contrôles requis réussissent | Restauration dans `/Dev`, vérification locale, commit/push locaux, puis revue |
 | `IMPLEMENTED_WITH_FAILED_CHECKS` | Un correctif récupérable est préservé et au moins un contrôle échoue | `START_IMPLEMENTATION_RECOVERY` en mode `TARGETED_FIX` |
 | `CLARIFICATION_REQUIRED` | Le développement est suspendu avant livraison complète à cause d’une ambiguïté fonctionnelle attestée | Réponse causale, puis reprise explicitement autorisée |
-| `IMPLEMENTATION_FAILED` | Aucun correctif exploitable n’a été produit ou la préservation elle-même a échoué | Diagnostic ; nouvelle implémentation seulement après décision explicite |
+| `IMPLEMENTATION_FAILED` | Aucun correctif exploitable n’a été produit, la préservation elle-même a échoué, ou le patch n’a pu être déposé durablement (`RECOVERY_NOT_DURABLE`) | Diagnostic ; nouvelle implémentation seulement après décision explicite |
 
-Un contrôle en échec bloque la validation, jamais la conservation. Dès qu’un patch exploitable a été préservé, le statut ne peut pas être rétrogradé en `IMPLEMENTATION_FAILED` à cause de Jest, TypeScript, lint, du contrôle de périmètre, de la revue ou de la publication du commentaire.
+Un contrôle en échec bloque la validation, jamais la conservation. Dès qu’un patch exploitable a été préservé **et déposé durablement**, le statut ne peut pas être rétrogradé en `IMPLEMENTATION_FAILED` à cause de Jest, TypeScript, lint, du contrôle de périmètre, de la revue ou de la publication du commentaire. L’échec du dépôt durable lui-même n’est pas un contrôle : c’est une préservation incomplète, et il produit `IMPLEMENTATION_FAILED`. Un patch présent dans le seul workspace éphémère n’est pas un patch conservé.
 
 ### 5.3 Table des transitions
 
@@ -781,9 +840,9 @@ Seul l’utilisateur accorde les Gates et toute première autorisation d’écri
 - `checks/*.json`, un résultat structuré par contrôle exécuté ;
 - facultativement `changed-files.tar`, archive des seuls chemins listés, avec hash dans le manifeste.
 
-Le patch est construit sans commit. Pour inclure les fichiers non suivis, le workflow utilise un index Git temporaire isolé (`GIT_INDEX_FILE`), y ajoute la totalité du delta autorisé, puis produit `git diff --cached --binary --full-index` depuis `source_head`. Il ne modifie pas l’index fonctionnel, ne crée pas de commit et ne pousse aucune référence. Avant publication, un espace vierge au `source_head` DOIT réussir `git apply --check implementation.patch`; l’échec de ce contrôle rend la préservation invalide et produit `IMPLEMENTATION_FAILED`.
+Le patch est construit sans commit. Pour inclure les fichiers non suivis, le workflow utilise un index Git temporaire isolé (`GIT_INDEX_FILE`), y ajoute la totalité du delta autorisé, puis produit `git diff --cached --binary --full-index` depuis `source_head`. **Les répertoires techniques du protocole — répertoire de livraison et répertoires de téléchargement d'artefacts source — sont implantés hors de la copie de travail.** Sur un runner, ils vivent sous le répertoire temporaire fourni par la plateforme. Une implantation à l'intérieur de la copie de travail est **refusée avant toute production**, avec le diagnostic `DELIVERY_LOCATION_INVALID` : elle est une erreur de configuration et doit être signalée comme telle, non contournée. Les exclusions de chemin appliquées à la fabrication du patch, ainsi que la garde `DELIVERY_DIR_IN_DELTA` qui rejette un chemin technique présent malgré tout dans le delta, sont des **défenses secondaires** ; elles ne rendent jamais une implantation invalide acceptable. La validation structurelle du workflow refuse également toute implantation figée dans l'environnement et tout chemin d'artefact relatif à la copie de travail. Il ne modifie pas l’index fonctionnel, ne crée pas de commit et ne pousse aucune référence. Avant publication, un espace vierge au `source_head` DOIT réussir `git apply --check implementation.patch`; l’échec de ce contrôle rend la préservation invalide et produit `IMPLEMENTATION_FAILED`.
 
-Les contrôles sont exécutés avec capture individuelle de leur code de sortie afin que Jest, TypeScript, lint ou le contrôle de périmètre ne court-circuitent ni la synthèse ni l’upload. La dernière étape peut restituer un échec au run GitHub après publication. L’échec du commentaire ne supprime pas l’artefact : il crée `publication_status=FAILED` et autorise uniquement `REPUBLISH_EXISTING`.
+L’artefact de récupération contient uniquement la livraison figée et validée avant contrôles ; il n’est jamais réécrit pour y ajouter leurs résultats. Son nom, son URL, son identifiant et son digest sont transmis à la synthèse. Les contrôles sont ensuite exécutés avec capture individuelle de leur code de sortie afin que Jest, TypeScript, lint ou le contrôle de périmètre ne court-circuitent ni la synthèse ni l’artefact de résultat. La dernière étape peut restituer un échec au run GitHub après ces publications. L’échec du commentaire ne supprime ni ne masque l’artefact de récupération : il crée un reçu séparé `publication_status=FAILED` et autorise uniquement `REPUBLISH_EXISTING`.
 
 Commentaire dérivé obligatoire :
 
@@ -801,6 +860,8 @@ passed_tests=<nombre>
 recovery=<NONE|TARGETED_FIX|CLARIFICATION|REIMPLEMENT>
 ```
 
+**Contrat de statut de l'adaptateur.** Un adaptateur d'implémentation borné DOIT pouvoir déclarer son issue de manière **structurée** : un statut parmi `COMPLETED`, `CLARIFICATION_REQUIRED` et `INTERRUPTED`, accompagné pour une clarification de la question canonique du §6.13. C'est cette déclaration structurée qui est normative, et elle prime sur toute autre indication. Une liaison par code de sortie PEUT être définie par une implémentation donnée pour les adaptateurs qui ne produisent pas de déclaration — le présent pilote lie `0`, `75`, `78` et les autres valeurs aux statuts correspondants — mais aucune valeur numérique n'est imposée par l'architecture. Quel que soit le mécanisme, le delta déjà produit est conservé et déposé selon le §4.7.
+
 ### 6.13-C Commande de reprise ciblée
 
 ```text
@@ -812,7 +873,7 @@ mode=TARGETED_FIX
 failed_checks=<liste>
 ```
 
-La reprise : (1) télécharge et vérifie le paquet existant ; (2) restaure le patch dans un espace de contrôle propre au `source_head` ; (3) corrige uniquement les erreurs attestées ; (4) relance les contrôles échoués et ceux directement impactés ; (5) produit un nouvel artefact **cumulatif par rapport au `source_head` d’origine** ; (6) soumet ce résultat complet à la revue après application, vérification, commit et push locaux. Elle n’exécute jamais automatiquement une nouvelle implémentation complète. Une correction locale déterministe n’appelle aucune nouvelle session Claude ; un nouvel appel IA exige une justification et une autorisation explicites.
+La reprise : (1) télécharge et vérifie le paquet existant ; (2) restaure le patch dans un espace de contrôle propre au `source_head` ; (3) corrige uniquement les erreurs attestées ; (4) relance les contrôles échoués et ceux directement impactés ; (5) produit un nouvel artefact **cumulatif par rapport au `source_head` d’origine** ; (6) soumet ce résultat complet à la revue après application, vérification, commit et push locaux. Les contrôles non relancés sont repris de l'artefact de **résultat** du run source. Si cet artefact est absent ou vide, la reprise relance l'ensemble des contrôles requis : un contrôle jamais exécuté reste `NOT_RUN`, et une reprise incapable d'exécuter tous les contrôles requis ne pourrait jamais atteindre `IMPLEMENTED_AND_VERIFIED` — la boucle de reprise ne convergerait pas. Elle n’exécute jamais automatiquement une nouvelle implémentation complète. Une correction locale déterministe n’appelle aucune nouvelle session Claude ; un nouvel appel IA exige une justification et une autorisation explicites.
 
 ### 6.14 Preuves minimales par contrat
 
@@ -1251,6 +1312,7 @@ Tout diagnostic contient :
 | `KODJO-V2-CORE-FAILURE` | Noyau commun défaillant ; arrêt conservatoire obligatoire |
 | `KODJO-V2-EFFECT-UNKNOWN` | Effet ou consommation IA non réconcilié |
 | `KODJO-V2-EVIDENCE-INTEGRITY` | Journal ou paquet canonique altéré/incomplet |
+| `KODJO-V2-EVIDENCE-WRITER-ABSENT` | Aucun writer de preuves qualifié : le dépôt durable n'a pas eu lieu et l'activation de V2 reste interdite |
 | `KODJO-V2-NO-JOB-OBSERVED` | Aucun job observé dans le délai configuré par le pilote ou la CLI |
 
 Les messages `exit 1`, `baseline`, `skipped` ou une erreur brute ne sont jamais suffisants.
@@ -1275,6 +1337,7 @@ Chaque ligne ci-dessous correspond à un invariant V2 regroupant un ou plusieurs
 | Transformations textuelles littérales sûres | 035, 075, 076, 078 | Renforcé | moteur + outillage documentaire | `$&`, ``$` ``, `$'`, `$n`, YAML final et sentinelles | NON VÉRIFIABLE |
 | Chemins Git Unicode sûrs | 017 | Conservé | git-causality | Accents, espaces, caractères Unicode | NON VÉRIFIABLE |
 | Travail préservé avant transport | 018, 026, 038, 077 | Renforcé | evidence-store | Sortie/worktree puis panne de publication/quota | NON VÉRIFIABLE |
+| Conservation avant contrôles et reprise ciblée | 079 | Introduit en 0.6.3, corrigé en 0.6.5 | delivery + status + workflow d'implémentation | Matrice `T02-PRES-001` à `T02-PRES-018` | PASS en exécution locale ; primitives GitHub vérifiées ; cycle complet NON VÉRIFIABLE |
 | Recovery qualifié jusqu’à l’effet final | 022, 038, 039, 042 | Remplacé par trois reprises | recovery | E2E de chaque reprise | NON VÉRIFIABLE |
 | API et capacités non supposées | 033, 034, 041, 043 | Simplifié | adaptateurs | Capacité absente et environnement vierge | NON VÉRIFIABLE |
 | Incrément propagé bout en bout | 037, 040, 049, 065 | Renforcé | envelope + git-causality | Descendant, divergence, rollback, SHA invalide | NON VÉRIFIABLE |
@@ -1377,7 +1440,18 @@ Plusieurs incidents peuvent partager une fixture lorsque le même invariant les 
 - fichier nouvellement créé et non suivi : présent dans `implementation.patch`, dans `modified-files.json`, restauré dans un espace vierge et hash identique ;
 - publication du commentaire en échec : artefact accessible, `publication_status=FAILED`, republication sans appel IA ;
 - reprise `TARGETED_FIX` : restauration depuis l’artefact source, correction bornée, contrôles concernés relancés, nouvel artefact cumulatif applicable sur le `source_head` initial ;
-- tentative de `git commit`, `git push`, écriture de ref ou création de branche fonctionnelle par le workflow distant : refus avant effet.
+- tentative de `git commit`, `git push`, écriture de ref ou création de branche fonctionnelle par le workflow distant : refus avant effet ;
+- répertoire de livraison ou de téléchargement situé dans la copie de travail : refus `DELIVERY_LOCATION_INVALID` avant toute production, aucun patch fabriqué, statut `IMPLEMENTATION_FAILED` ;
+- implantation nominale hors de la copie de travail : le delta ne contient que la modification fonctionnelle, le contrôle de périmètre passe, et la restauration ne crée aucun répertoire de protocole ;
+- workflow déclarant un type KODJO, et copie non déclarée présentant la même structure : la première est validée, la seconde est refusée ; un workflow ordinaire ne produit aucun faux positif ;
+- adaptateur déclarant un statut structuré : la déclaration prime sur la liaison par code de sortie ;
+- demande de dépôt de preuves : branche fixe non paramétrable, chemins append-only uniques, hashes exacts, patch marqué transport et preuve, aucun fichier applicatif, `writer_status=PENDING` et `EVIDENCE_WRITER_ABSENT` ;
+- job d'implémentation tentant d'écrire une référence de preuves ou élevant `contents` : refus à la validation structurelle ;
+- téléversement de l'artefact de récupération en échec, puis dépôt de secours également en échec : `IMPLEMENTATION_FAILED` avec `RECOVERY_NOT_DURABLE`, aucune coordonnée d'artefact publiée, aucune reprise ciblée annoncée ;
+- téléversement initial en échec et dépôt de secours réussi : contrôles exécutés, statut métier normal, artefact effectivement applicable ;
+- reprise `TARGETED_FIX` sans artefact de résultat source : l'ensemble des contrôles requis est relancé et la reprise peut converger ;
+- adaptateur sortant en `75` après avoir modifié des fichiers : statut `CLARIFICATION_REQUIRED`, delta conservé et déposé ;
+- workflow d'implémentation renommé : les règles normatives s'appliquent toujours grâce au type déclaré `KODJO_WORKFLOW_KIND`; une structure KODJO d'implémentation non déclarée est refusée sous `UNDECLARED_KODJO_WORKFLOW`.
 
 ### 13.5 Simulations
 
@@ -1410,7 +1484,14 @@ V2 ne peut être activée que si :
 - intégrité de la branche de preuves et détection d’altération sont `PASS`.
 - matrice de conservation T02 (Jest, TypeScript, scope, fichier non suivi, commentaire indisponible et reprise ciblée) est `PASS` ;
 - aucun chemin d’échec post-modification ne précède la fabrication et la validation du patch ;
-- aucun job distant ne dispose d’un droit effectif de commit ou push sur une référence fonctionnelle.
+- aucun job distant ne dispose d’un droit effectif de commit ou push sur une référence fonctionnelle ;
+- aucun chemin d'orchestration n'apparaît dans un delta conservé, et le contrôle de périmètre est exécutable avec un verdict utile ;
+- toute implantation d'un répertoire technique dans la copie de travail est refusée avant production ;
+- chaque workflow KODJO déclare son type, et toute duplication ou dérivation non déclarée présentant la structure du workflow d'implémentation est refusée ;
+- le writer de preuves dédié est implémenté, séparé du job d'implémentation et **qualifié** : branche fixe, chemins append-only, refus de tout remplacement, absence d'autorisation fonctionnelle et absence de fichier applicatif démontrées. Sans cette qualification, le diagnostic `EVIDENCE_WRITER_ABSENT` est actif et **l'activation de V2 est interdite** — aucune décision d'exploitation ne peut lever cette interdiction ;
+- une `EvidenceDepositRequest` est produite pour toute livraison récupérable, et son contenu est vérifié : branche fixe, chemins canoniques uniques, hashes exacts, aucun fichier applicatif ;
+- un échec du dépôt durable est détecté et ne produit jamais un statut annonçant une récupération possible ;
+- une reprise ciblée converge en un nombre borné d'itérations dans tous les scénarios de la matrice T02.
 
 ---
 
@@ -1499,6 +1580,8 @@ La conception est prête pour revue indépendante lorsque :
 
 **Décision :** branche Git dédiée aux preuves et au journal. Les commentaires et artefacts Actions sont dérivés ou complémentaires. Le mécanisme de claim reste à qualifier séparément.
 
+**Confirmation `0.6.8`.** Cet arbitrage a été réexaminé à l'occasion du constat `MAJ-03` et **confirmé sans modification**. L'artefact Actions reste une barrière de récupération et un transport ; il n'acquiert jamais le statut de preuve canonique définitive. Le dépôt durable relève d'un writer dédié dont les règles et la qualification obligatoire figurent au §4.5.
+
 ### B — Interfaces du mode manuel — DÉCIDÉ
 
 | Option | Avantage | Limite |
@@ -1564,6 +1647,8 @@ Options :
 | Authentification OpenAI/Claude | Préflight et arrêt avant appel | NON VÉRIFIABLE |
 | Quota Claude | Aucun retry, reprise après reset ou rollover autorisé | NON VÉRIFIABLE |
 | Rétention des artefacts | Branche Git de preuves canonique ; artefacts non autoritatifs | NON VÉRIFIABLE |
+| `EVIDENCE_WRITER_ABSENT` — aucun writer de preuves qualifié | Writer dédié spécifié au §4.5, huit règles cumulatives ; `EvidenceDepositRequest` produite par le job d'implémentation en lecture seule ; obligations intérimaires de rétention et de récupération | **ACTIVATION DE V2 INTERDITE** tant que le writer n'est pas qualifié |
+| Échec du dépôt durable de l'artefact de récupération | Détection par l'issue observée de l'étape, dépôt de secours obligatoire, sinon `IMPLEMENTATION_FAILED` / `RECOVERY_NOT_DURABLE` | PASS en exécution locale |
 | Qualité d’une sortie IA valide | Revue indépendante et critères de fond | NON VÉRIFIABLE |
 | Concurrence rapports / journal | Claim distant limité, CAS du journal et idempotence | NON VÉRIFIABLE |
 | Concurrence locale / HEAD changé | Exclusion locale, validations avant/après et vérification du push ; arrêt sur divergence | NON VÉRIFIABLE |
@@ -1652,4 +1737,6 @@ Sa réussite ne sera pas démontrée par la seule rédaction de ce document. Ell
 - le coupe-circuit et le manuel soient exercés ;
 - un pilote E2E isolé soit réussi avant activation.
 
-Jusqu’à ces preuves, l’architecture est **proposée** et sa conformité opérationnelle demeure **NON VÉRIFIABLE**.
+La version `0.6.11` étend le pilote à l’implémentation locale. L’adaptateur réel est présent, sa configuration effective est hashée, sa version figée, ses outils restreints et ses propriétés de sécurité testées sans consommation IA. Le superviseur vérifie après l’appel l’absence de mutation des références et tout dépassement de périmètre. L’invariant reste strict : aucun agent distant ne modifie le produit et Claude local ne committe ni ne pousse.
+
+La dernière preuve avant activation est l’exécution réelle de cet adaptateur sur le poste `/Dev`, avec authentification OAuth long terme, sur une petite modification fonctionnelle et ses contrôles. Jusqu’à cette preuve E2E unique, l’adaptateur reste **IMPLÉMENTÉ — QUALIFICATION RÉELLE EN ATTENTE**.
