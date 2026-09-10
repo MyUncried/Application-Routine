@@ -92,7 +92,7 @@ function normalizeRequest(raw, repoRoot) {
   const bootstrapFile = String(raw.slice_bootstrap_file || '');
   const identity = loadAndValidate(repoRoot, bootstrapFile);
   if (identity.bootstrap.slice_id !== String(raw.slice_id)) throw new Error('SLICE_BOOTSTRAP_SLICE_MISMATCH');
-  if (identity.bootstrap.source_head !== String(raw.source_head)) throw new Error('SLICE_BOOTSTRAP_SOURCE_HEAD_MISMATCH');
+  if (identity.bootstrap.baseline_head !== String(raw.baseline_head || '')) throw new Error('SLICE_BOOTSTRAP_BASELINE_MISMATCH');
   if (identity.hash !== String(raw.slice_bootstrap_sha256 || '')) throw new Error('SLICE_BOOTSTRAP_REQUEST_HASH_MISMATCH');
 
   const promptFile = path.resolve(repoRoot, String(raw.prompt_file || ''));
@@ -118,6 +118,7 @@ function normalizeRequest(raw, repoRoot) {
     schema_version: raw.schema_version,
     slice_id: String(raw.slice_id),
     source_head: String(raw.source_head),
+    baseline_head: identity.bootstrap.baseline_head,
     slice_bootstrap_file: bootstrapFile,
     slice_bootstrap_sha256: identity.hash,
     mode, session_id: sessionId,
@@ -148,6 +149,7 @@ function buildPrompt(request, taskText, configDir) {
     'KODJO V2 LOCAL IMPLEMENTATION — ' + request.mode,
     'Slice: ' + request.slice_id,
     'Source HEAD: ' + request.source_head,
+    'Baseline HEAD: ' + request.baseline_head,
     'Slice bootstrap SHA-256: ' + request.slice_bootstrap_sha256,
     '',
     'Mission:',
