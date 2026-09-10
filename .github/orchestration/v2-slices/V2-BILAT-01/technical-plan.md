@@ -78,7 +78,7 @@ Activité : contrôle `Côtés` après le segment de mode et avant les paramètr
 
 États : `Unilatéral`, `D→G`, `G→D`. Accessibilité : `Unilatéral`, `Bilatéral droite-gauche`, `Bilatéral gauche-droite`.
 
-Sous Tour bilatéral, enfant visible, désactivé, proprement `UNILATERAL`. Activation : dialogue déterministe avec titre `Activer le mode bilatéral ?`, texte `Les réglages Côtés des activités du Tour seront réinitialisés sur Unilatéral. Cette action est irréversible.`, actions exactes `Annuler` et `Confirmer`. `Annuler` ne produit aucune mutation ; `Confirmer` applique une transition unique avec remise des enfants. Retour unilatéral sans restauration.
+Sous Tour bilatéral, enfant visible, désactivé, proprement `UNILATERAL`. Activation : dialogue déterministe avec titre `Voulez-vous exécuter ce Tour de manière bilatérale ?`, texte `À chaque répétition du Tour, toutes ses Activités seront exécutées une première fois d’un côté, puis une seconde fois de l’autre, selon l’ordre choisi. Les réglages de côtés propres aux Activités seront remplacés par celui du Tour.`, actions exactes `Annuler` et `Confirmer`. `Annuler` ne produit aucune mutation ; `Confirmer` applique une transition unique avec remise des enfants. Retour unilatéral sans restauration.
 
 ## Fichiers exhaustifs et scope_allow exact
 
