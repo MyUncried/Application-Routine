@@ -131,7 +131,7 @@ Les contre-revues et revues transverses fonctionnelles et techniques ont été i
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Activités en Répétitions ou À l’échec ;
 - Durée totale d’une Activité en mode Durée, dépendance avec le nombre de Séries et règle d’arrondi ;
-- distinction entre Pause entre Séries et Récupération après toutes les Séries ;
+- distinction entre Pause entre Séries d’un même côté et Récupération après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Activités de la Composition, Nombre total d’Activités à exécuter et Nombre d’Activités exécutées ;
 - progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
@@ -149,9 +149,11 @@ La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 
 
 ## 10. État de référence après unification de l’Activité
 
-La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité, exécutée une fois après toutes les Séries. La Pause reste distincte et n’existe qu’entre les Séries. En mode Durée, la Durée totale est calculée par `D = C × A + (C − 1) × B + R` et peut piloter le nombre entier de Séries selon l’arrondi validé. Les contrats T01, T02 et T03, le modèle de données, les API, l’architecture, le DSF et les captures Figma sont alignés sur cette structure. T03 demeure limité à une Série et un Tour ; l’exécution multi-Séries relève de T04.
+La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité. La Pause reste distincte et n’existe qu’entre les Séries. La mise à jour Bilatéralité du 10 septembre 2026 ajoute les états techniques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` aux Activités et aux Tours. Avec `L = 1` en unilatéral et `L = 2` en bilatéral, une Activité autonome en mode Durée suit `D = L × [C × A + (C − 1) × B] + R` : ses Séries sont exécutées par côté, sans Pause entre les côtés, puis sa Récupération une seule fois. Un Tour bilatéral exécute toutes ses Activités pour le premier côté puis pour le second à chaque répétition du Tour ; les réglages propres des Activités sont remis à `UNILATERAL`, désactivés et remplacés à l’Exécution par la direction du Tour. T03 est révisée pour exécuter ces plans bilatéraux, conserver des résultats séparés par côté et afficher uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité.
 
 ## 11. Livrables de traçabilité
 
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
+- [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
+- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)

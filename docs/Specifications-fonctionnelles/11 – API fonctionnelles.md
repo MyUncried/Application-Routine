@@ -67,8 +67,8 @@ Les API fonctionnelles respectent les principes suivants :
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
 |API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, mode d’exécution, durée ou répétitions éventuelles, nombre de Séries, Pause, Récupération, zones corporelles|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; valeur obligatoire uniquement selon le mode ; nombre de Séries entier de 1 à 99 ; Pause et Récupération ≥ 0 ; aucun média fonctionnel dans le MVP|Activité|
-|API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, Récupération `R`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée totale réalisable|Pilote Séries : `D = C × A + (C − 1) × B + R`. Pilote Durée totale : `Cth = (D − R + B)/(A + B)`, arrondi au plus proche avec `.5` vers le haut, minimum `1`, puis recalcul de `D`|Activité, calcul sans entité supplémentaire|
-|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|Pause insérée uniquement entre Séries ; Récupération insérée une fois après la dernière Série ; valeurs nulles ne créent aucune phase|Activité|
+|API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, Récupération `R`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée totale réalisable|Avec `L = 1` ou `2`, pilote Séries : `D = L × [C × A + (C − 1) × B] + R`. Pilote Durée totale : `Cth = ((D − R) / L + B)/(A + B)`, arrondi au plus proche avec `.5` vers le haut, minimum `1`, puis recalcul de `D`|Activité, calcul sans entité supplémentaire|
+|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|Pause uniquement entre Séries d’un même côté ; Récupération une fois après tous les côtés d’une Activité autonome ou une fois par passage de Tour bilatéral|Activité|
 |API-ACT-04|Associer un média|—|—|Hors MVP ; V2 autorise `0..n` associations ordonnées par Activité|—|
 |API-ACT-05|Associer des zones corporelles|ID Activité, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel prédéfini|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Activité, nombre de Séries|Activité mise à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Activité|
@@ -265,3 +265,16 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-CIR-EXE-03` | V2 | ID Exécution, confirmation | Interrompt le Circuit et l’étape courante ; conserve les résultats existants. |
 
 `API-EXE-05` couvre aussi `TO_FAILURE` : comme pour `REPETITIONS`, `Suivant` constitue une fin normale de Série sans confirmation. Les DTO d’Activité acceptent `DURATION`, `REPETITIONS`, `TO_FAILURE` et appliquent les contraintes d’exclusivité du chapitre 09.
+
+## API de bilatéralité
+
+| ID | Commande | Entrée | Effet et garanties |
+|---|---|---|---|
+| `API-SIDE-01` | Modifier le côté d’une Activité | ID, `sideMode` | Valide les trois valeurs ; recalcule les durées et synthèses ; interdit l’action si l’Activité appartient à un Tour bilatéral. |
+| `API-SIDE-02` | Modifier le côté d’un Tour | ID, `sideMode`, confirmation | En bilatéral confirmé, met à jour le Tour et remet atomiquement tous ses enfants à `UNILATERAL`; sans confirmation, aucune écriture. |
+| `API-SIDE-03` | Dupliquer | ID Activité ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
+| `API-SIDE-04` | Insérer une Activité persistante | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
+| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
+| `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
+| `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
+| `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |

@@ -327,7 +327,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Routine` : planification d’une Séance ;
 - `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et Récupération facultatives ;
 - `Exercice` : Activité physique ;
-- `Récupération` : phase chronométrée facultative attachée à une Activité et exécutée une seule fois après toutes ses Séries ;
+- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Activités exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Activités placées avant le Tour, le Tour et les Activités placées après le Tour ;
@@ -773,13 +773,13 @@ En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’e
 
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour toute nouvelle Activité, sa valeur par défaut est `1`.
 
-Une Série correspond à l’Exécution de la cible du mode. La Pause est exécutée uniquement entre les Séries. La Récupération est exécutée une seule fois après toutes les Séries.
+Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
 ### Dépendance Séries / Durée totale
 
 Avant toute interaction, tous les contrôles sont utilisables et aucun contour pilote n’est affiché. `Séries` est néanmoins le pilote interne par défaut. Après confirmation d’une roulette, le contrôle modifié devient pilote et reçoit un contour `2` points lié à `color/selection`; le contrôle calculé conserve son contour standard et reste tactile. Ce choix n’est pas persisté : à la réouverture, `Séries` redevient pilote implicite.
 
-La formule d’une occurrence est `D = C × A + (C − 1) × B + R`, avec `A` durée par Série, `B` Pause, `C` nombre entier de Séries, `R` Récupération et `D` Durée totale. Si `D` pilote, `C théorique = (D − R + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
+La formule d’une occurrence autonome est `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `A` durée par Série, `B` Pause, `C` nombre entier de Séries par côté, `R` Récupération et `D` Durée totale globale. Si `D` pilote, `C théorique = ((D − R) / L + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
 
 La Description et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel prédéfini et ne sont ni créées, ni renommées, ni supprimées ici.
 
@@ -1039,18 +1039,18 @@ L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action n
 
 ### Séries
 
-Lorsqu’une Activité possède plusieurs Séries — comportement livré en T04 :
+Lorsqu’une Activité possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
 - la Pause est appliquée uniquement entre deux Séries ;
 - après la dernière Série, la Récupération non nulle est exécutée une fois.
 
-T03 refuse avant démarrage toute Séance contenant une Activité à plusieurs Séries et ne crée aucune Exécution partielle dans ce cas.
+T03 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
 
 ### Récupération
 
-Une Récupération non nulle crée une phase `RECOVERY` chronométrée après toutes les Séries. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
+Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés d’une Activité autonome, ou après chaque passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
 
 La zone `À suivre` permet de préparer l’Activité suivante ou la Fin de séance. `Activité suivante` avant zéro demande confirmation ; l’Exercice reste `Terminé`, tandis que `recoveryElapsedSeconds` conserve le temps partiel de Récupération.
 
@@ -1577,3 +1577,13 @@ Le contrôle supérieur du Catalogue contient `Activités / Séances / Circuits`
 Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans toutes les frames MVP, `Ajouter un média` reste visible mais désactivé, utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`; la section Médias est masquée. Les composants Média du DSF constituent la référence post-T04.
 
 La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Récupération` avec emplacement Durée totale vide, sans cible chiffrée. Toutes les roulettes ouvertes conservent cet ordre et utilisent le voile grisé commun.
+
+## Mise à jour Bilatéralité — 10 septembre 2026
+
+Le contrôle `Côtés` cycle entre Unilatéral, `D→G` et `G→D`. Il est disponible dans les trois modes d’Activité. Un Tour possède le même contrôle après son nombre de répétitions. Si son activation rend le Tour bilatéral, afficher la modale : titre `Voulez-vous exécuter ce Tour de manière bilatérale ?`, texte `À chaque répétition du Tour, toutes ses Activités seront exécutées une première fois d’un côté, puis une seconde fois de l’autre, selon l’ordre choisi. Les réglages de côtés propres aux Activités seront remplacés par celui du Tour.`, actions `Annuler` et `Confirmer`.
+
+Sous un Tour bilatéral, chaque contrôle Activité reste visible en état Unilatéral désactivé. Aucune propriété « latéralisable » ni validation de mélange n’existe. Un Tour bilatéral entraîne l’exécution de toutes ses Activités pour chaque côté.
+
+Dans l’Écran 9, une Activité effectivement bilatérale affiche immédiatement sous son nom un sous-titre centré `Côté droit` ou `Côté gauche`. Une Activité unilatérale n’affiche aucun sous-titre. Les indicateurs `Activité X/Y`, `Série X/Y` et `Tour X/Y` gardent leur sémantique ; aucun compteur de côté `1/2` ou `2/2` n’est affiché. Les frames Figma mises à jour sont `1992:8626`, `1992:8132`, `1992:8530`, `1992:8428`, `1992:8224` et `1992:8326`; leurs captures associées sont les six fichiers `execution-*.png` existants.
+
+La modale `Passer à l’activité suivante ?` reste générique et inchangée. Sur le premier côté, confirmer conserve son résultat partiel et conduit au second côté ; sur le second côté, confirmer conduit à la prochaine étape effective. `Réinitialiser l’activité` ne réinitialise que le côté courant et préserve tout résultat déjà acquis pour l’autre côté.

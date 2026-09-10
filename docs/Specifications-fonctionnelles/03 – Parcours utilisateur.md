@@ -394,3 +394,12 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 6. Après la dernière Séance, afficher la fin du Circuit et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
 
 En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.
+
+## Parcours bilatéral
+
+1. Dans l’éditeur d’Activité ou la Composition, l’utilisateur fait cycler `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`.
+2. Lorsqu’il rend un Tour bilatéral, une confirmation demande : **Voulez-vous exécuter ce Tour de manière bilatérale ?** Le texte précise qu’à chaque répétition toutes les Activités sont exécutées d’un côté puis de l’autre et que leurs réglages propres seront remplacés par celui du Tour.
+3. `Annuler` ne modifie rien. `Confirmer` applique la direction au Tour, remet les Activités à `UNILATERAL` et désactive leur contrôle.
+4. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
+5. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
+6. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.

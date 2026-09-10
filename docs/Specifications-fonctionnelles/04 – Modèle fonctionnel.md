@@ -79,7 +79,7 @@ Chaque activité possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative appliquée entre les Séries ;
-- une Récupération facultative exécutée une fois après toutes les Séries, `0 s` signifiant absence de phase ;
+- une Récupération facultative exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, `0 s` signifiant absence de phase ;
 - une Durée totale calculée en mode Durée ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
@@ -298,8 +298,16 @@ L’Activité possède deux formes distinctes : la **référence autonome** de V
 
 Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-La nouvelle structure est préparatoire à T03, mais T03 n’exécute qu’une seule Série par Activité. Toute Séance comportant une Activité à plusieurs Séries est refusée avant la création d’une Exécution ; la boucle multi-Séries relève de T04.
+La nouvelle structure est exécutée par T03, y compris les Séries multiples, les Tours multiples et les passages bilatéraux décrits dans le Plan d’Exécution.
 
 Le Média est un actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations peuvent référencer le même fichier sans duplication physique. Une suppression d’association ou de référence ne supprime le fichier que lorsqu’aucune entité ni aucun instantané ne le référence.
 
 Le Circuit est une racine persistante V2 possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Circuit. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Le Circuit reflète les modifications de ses Séances jusqu’au lancement, puis l’Exécution de Circuit utilise un instantané immuable.
+
+## Modèle fonctionnel de bilatéralité
+
+Une Activité persistante, son occurrence copiée dans une Séance et un Tour portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
+
+La direction effective est résolue une seule fois : celle du Tour si celui-ci est bilatéral, sinon celle de l’Activité. L’activation bilatérale d’un Tour est atomique après confirmation et remet tous les `sideMode` propres de ses Activités à `UNILATERAL`. Leur contrôle reste visible, désactivé et présenté comme unilatéral tant que le Tour est bilatéral. La désactivation ultérieure du Tour ne restaure aucune ancienne valeur.
+
+Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée`.

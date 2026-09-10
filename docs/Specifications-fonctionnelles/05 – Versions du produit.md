@@ -14,7 +14,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
   - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée une fois après toutes les Séries ;
+  - une Récupération éventuelle exécutée après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
 - ordonner les activités d’un Tour ;
@@ -192,7 +192,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
 - bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
-- modèle et calculs de Récupération après l’Activité préparés avant T03 ; T03 reste limité à une Série et refuse explicitement les Séances multi-Séries.
+- modèle et calculs de Récupération après l’Activité préparés avant T03.
 
 ### V2
 
@@ -205,3 +205,9 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### V3
 
 - planification, récurrences, calendrier, rappels et notifications des Circuits.
+
+## Tranche Bilatéralité et révision de T03
+
+Une tranche spécifique précède l’Exécution T03. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+
+T03 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T03.

@@ -219,7 +219,7 @@ Une activité possède notamment :
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause entre Séries** facultative, appliquée uniquement entre deux Séries successives ;
-- une **Récupération** facultative, exécutée une seule fois après toutes les Séries ;
+- une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
 - une Description et des Zones corporelles d’exécution facultatives ;
 - des Médias dans le périmètre cible post-T04. Dans le MVP, l’action `Ajouter un média` reste visible mais désactivée et la section Médias n’est pas affichée.
 
@@ -941,8 +941,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer |
 | Pause entre Séries        | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Insérée uniquement entre deux Séries ; jamais après la dernière Série |
 | Nombre de Séries          | Roulette native compacte | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer ; valeur canonique persistée |
-| Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Phase `RECOVERY` exécutée une seule fois après toutes les Séries |
-| Durée totale              | Roulette durée calculée/pilotable | Mode Durée uniquement | Non | Calculée | Valeur réalisable selon la formule | Calcul | Sélection | Valeur `D = C × A + (C − 1) × B + R` ; peut devenir le pilote après confirmation |
+| Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
+| Durée totale              | Roulette durée calculée/pilotable | Mode Durée uniquement | Non | Calculée | Valeur réalisable selon la formule | Calcul | Sélection | Valeur globale `D = L × [C × A + (C − 1) × B] + R` pour une Activité autonome ; peut devenir le pilote après confirmation |
 | Médias                    | Section repliable + galerie | Cible post-T04 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
@@ -958,10 +958,10 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Mode Durée        | Affiche le sélecteur de durée.                                                                                                                                                                                                                                                                                                                                                             |
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
 | Mode À l’échec    | N’affiche aucune cible chiffrée ; conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause`. |
-| Séries            | Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092). Une Série exécute la cible du mode ; une Pause éventuelle n’est insérée qu’entre deux Séries. |
-| Récupération      | Durée facultative, canonique `0 s`, exécutée une seule fois après la dernière Série, y compris lorsque l’Activité est la dernière de la Séance. Elle précède alors `SESSION_END`. |
-| Durée totale calculée | En mode Durée, `D = C × A + (C − 1) × B + R`, avec `A` Durée, `B` Pause, `C` Séries et `R` Récupération. Toute modification de `A`, `B`, `C` ou `R` recalcule `D` lorsque Séries est le pilote. |
-| Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = (D − R + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
+| Séries            | Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; une Pause éventuelle n’est insérée qu’entre deux Séries du même côté. |
+| Récupération      | Durée facultative, canonique `0 s`. Elle est exécutée après le second côté d’une Activité autonome bilatérale, ou après chaque passage de côté d’un Tour bilatéral. Elle précède `SESSION_END` lorsqu’elle est la dernière phase utile. |
+| Durée totale calculée | En mode Durée, pour une Activité autonome, `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` ou `2`. Toute modification de `A`, `B`, `C`, `R` ou du réglage de côté recalcule `D` lorsque Séries est le pilote. |
+| Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = ((D − R) / L + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
 | Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si la durée saisie est ajustée, un message bref annonce la valeur réalisable. |
 | Modes non chronométrés | En Répétitions et À l’échec, `Durée totale` est masquée et son emplacement reste vide sans déplacer les autres contrôles. La synthèse affiche une borne minimale `≥` composée des seules Pauses connues et de la Récupération. |
 | Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
@@ -1139,7 +1139,7 @@ La vue Séances charge toutes les Séances non archivées et les trie par derni�
 | Modèle | Aucun type d’Activité dans l’interface ou le modèle cible. |
 | Mode | Trois segments égaux : Durée, Répétitions, À l’échec. |
 | Paramètres | `Séries` → cible du mode → `Pause`, puis `Récupération` → `Durée totale` en mode Durée. |
-| Récupération | Durée facultative, exécutée une fois après toutes les Séries ; ce n’est pas une Activité distincte. |
+| Récupération | Durée facultative, exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral ; ce n’est pas une Activité distincte. |
 | Durée totale | Dépendance bidirectionnelle avec Séries selon les règles de pilote et d’arrondi ; masquée en Répétitions et À l’échec. |
 | À l’échec | Aucun objectif chiffré ; ordre `Séries` → cadre informatif `à l’échec` → `Pause`. |
 | Sections | Description, Zone corporelle d’exécution, Mode d’exécution et Médias sont repliables ; Mode est déployé par défaut. |
@@ -1159,3 +1159,13 @@ L’utilisateur capture ou choisit dans la photothèque une photo ou une vidéo.
 Le formulaire exige nom, couleur et au moins deux étapes. Chaque étape référence une Séance existante et une même Séance peut apparaître plusieurs fois. La transition globale est manuelle ou automatique ; en automatique, la durée commune vaut `30 s` par défaut. L’écran de transition est toujours visible, puis le compte à rebours initial de la Séance suivante est exécuté.
 
 Le lancement crée un instantané. Une Exécution de Circuit relie les Exécutions de Séance des étapes commencées. Les fins intermédiaires sont remplacées par l’écran de transition ; la fin globale apparaît après la dernière étape. L’arrêt confirmé conserve les résultats produits et marque l’ensemble interrompu.
+
+## Conception détaillée de la bilatéralité
+
+`sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Le contrôle cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. L’Activité unilatérale n’affiche aucun indicateur court ; les deux états bilatéraux affichent `D→G` ou `G→D`. Le nom accessible annonce respectivement « Unilatéral », « Bilatéral droite-gauche » ou « Bilatéral gauche-droite ».
+
+Pour une Activité autonome, le générateur produit un bloc de `C` Séries et `C−1` Pauses pour le premier côté, le même bloc pour le second si nécessaire, puis une seule Récupération. Pour un Tour bilatéral, chaque répétition produit toutes les phases de toutes ses Activités pour le premier côté, y compris leur Récupération, puis le même passage pour le second. Les Activités du Tour sont propres `UNILATERAL` mais effectives selon le Tour.
+
+La progression globale est calculée sur le Plan développé : chaque passage chronométré est pondéré par sa durée planifiée ; chaque passage Répétitions ou À l’échec acquiert sa part avec `Suivant`. Le lancement annonce le premier côté, la transition annonce le second, et un Tour n’annonce le côté qu’au début de chaque passage complet, pas à chaque Activité.
+
+Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.

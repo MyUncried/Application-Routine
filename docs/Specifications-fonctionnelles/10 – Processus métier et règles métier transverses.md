@@ -57,17 +57,17 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 | --- | --- |
 | RM-033 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
-| RM-034 | Une Activité porte une Pause entre Séries et une durée de Récupération après toutes les Séries ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
+| RM-034 | Une Activité porte une Pause entre Séries d’un même côté et une durée de Récupération positionnée selon sa direction effective ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
 | RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
 | RM-036 | Une Série correspond à l’exécution de la cible du mode. Une Pause éventuelle est insérée uniquement entre deux Séries successives ; une Série n’est pas une entité métier autonome. |
-| RM-037 | Une phase `RECOVERY` est insérée une seule fois après la dernière Série lorsque la durée de Récupération est positive. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
+| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
 | RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
 | RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
 | RM-041 | Une Activité ne possède aucun média fonctionnel dans le MVP. Le modèle prévoit `0..n` médias ordonnés par Activité en V2. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
-| RM-129 | En mode Durée, avec `A` la Durée d’une Série, `B` la Pause, `C` le nombre de Séries et `R` la Récupération, la Durée totale est `D = C × A + (C − 1) × B + R`. |
-| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C` ou `R` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = (D − R + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
+| RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, la Durée totale globale d’une Activité autonome est `D = L × [C × A + (C − 1) × B] + R`. |
+| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, `R` ou `L` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = ((D − R) / L + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
 | RM-132 | En Répétitions et À l’échec, Durée totale est masquée sans déplacer Séries, cible et Pause. Les durées de synthèse deviennent une borne minimale `≥` composée des Pauses connues et de la Récupération. |
 
@@ -136,7 +136,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-101 | La Durée synthétique des Activités, affichée dans le Catalogue et la Composition, additionne les occurrences déterminables d’Activités, les Pauses entre Séries et les Récupérations attachées après développement des Séries et répétitions du Tour ; elle exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
 | RM-125 | La fin de la dernière Activité déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T03, puis la Synthèse dans la tranche qui la livre. |
 | RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T03, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent RM-077 et leur part est acquise avec `Suivant`. Les Pauses manuelles sont exclues de l’avancement. |
-| RM-127 | T03 accepte les Activités en Durée, Répétitions ou À l’échec avec une seule Série et un seul Tour. Toute Séance comportant une Activité à plusieurs Séries ou plusieurs Tours est refusée explicitement avant la création de l’Exécution, sans écriture partielle. La prise en charge complète des séries relève de T04. |
+| RM-127 | T03 accepte les Activités en Durée, Répétitions ou À l’échec, les Séries multiples, les Tours multiples et les passages bilatéraux. Elle refuse avant toute écriture uniquement un Plan invalide ou impossible à développer. |
 | RM-128 | Dans T03, Sons et Annonces vocales sont activés par défaut. Aucun réglage utilisateur ni aucune préférence correspondante ne sont lus ou persistés par cette tranche ; la configuration depuis le Profil est hors T03. |
 
 ## 10. Synthèse, Suivi et historique
@@ -195,3 +195,11 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-118 | Chaque Séance conserve son compte à rebours initial. Une fin intermédiaire est remplacée par la transition et seule la dernière étape ouvre la fin du Circuit. |
 | RM-119 | L’Exécution de Circuit et ses Exécutions de Séance liées utilisent un instantané immuable ; un arrêt confirmé conserve l’exécution partielle et ne crée rien pour les étapes futures. |
 | RM-120 | Activités, Séances et Circuits peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
+| RM-143 | Le réglage de côté cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`; `UNILATERAL` est le défaut et la valeur de migration. |
+| RM-144 | Une Activité autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
+| RM-145 | Un Tour bilatéral exécute à chaque répétition tout son contenu du premier côté puis du second. Chaque Récupération est exécutée une fois par passage de côté. |
+| RM-146 | Un Tour bilatéral impose sa direction à toutes ses Activités. Leur réglage propre est `UNILATERAL`, visible et désactivé ; aucune capacité « latéralisable » n’existe. |
+| RM-147 | Activer un Tour bilatéral demande confirmation et remet atomiquement ses Activités à `UNILATERAL`. Désactiver le Tour ne restaure aucun réglage antérieur. |
+| RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Activité, sans compteur de côté. La progression `Activité X/Y` ne change pas de rang entre les deux passages. |
+| RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
+| RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
