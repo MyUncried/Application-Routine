@@ -19,13 +19,13 @@ Synthèse du produit, du périmètre du MVP, des concepts structurants, des prin
 
 Ce document permet de comprendre rapidement ce qui doit être développé, mais ne remplace pas les spécifications détaillées.
 
-### [README.md](../README.md)
+### [README.md](./README.md)
 
 Présentation générale du dépôt et indications de démarrage du projet.
 
 ### Revue Claude
 
-Les documents de travail relatifs aux revues de Claude sont regroupés dans le dossier [`Revue-claude`](./Revue-claude/).
+Les documents de travail relatifs aux revues de Claude sont normalement regroupés dans un dossier `Revue-claude`. Ce dossier n’est pas inclus dans la présente archive documentaire.
 
 Ils constituent un historique et un registre de travail des remarques traitées. Ils ne constituent pas des spécifications de référence.
 
@@ -38,31 +38,32 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | Ordre | Document                                                                                                                                                                    | Rôle                                                                                                                                  | État actuel                                    |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | 00    | [Glossaire](./Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md)                                                                                                  | Définit les termes fonctionnels et les conventions de vocabulaire du projet.                                                          | Baseline MVP                                   |
-| 01    | [Vision générale](./Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale%20mise%20%C3%A0%20jour.md)                                                   | Présente la finalité, la vision du produit et ses principes directeurs.                                                               | Baseline MVP                                   |
+| 01    | [Vision générale](./Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md)                                                                       | Présente la finalité, la vision du produit et ses principes directeurs.                                                               | Baseline MVP                                   |
 | 02    | [Utilisateurs et besoins](./Specifications-fonctionnelles/02%20%E2%80%93%20Utilisateurs%20et%20besoins.md)                                                                  | Décrit les utilisateurs visés, leurs besoins et les situations d’usage.                                                               | Baseline MVP                                   |
 | 03    | [Parcours utilisateur](./Specifications-fonctionnelles/03%20%E2%80%93%20Parcours%20utilisateur.md)                                                                          | Décrit les parcours principaux et complémentaires du MVP.                                                                             | Baseline MVP                                   |
 | 04    | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md)                                                                         | Définit les concepts fonctionnels et leurs relations.                                                                                 | Baseline MVP                                   |
 | 05    | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md)                                                                          | Répartit les fonctionnalités entre le MVP et les versions futures.                                                                    | Baseline MVP                                   |
 | 06    | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md)                                                | Décrit les écrans, les modales, leur objectif, leur contenu et la navigation.                                                         | Baseline MVP                                   |
-| 07    | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20-%20Registre%20des%20d%C3%A9cisions%20de%20conception.md)                                       | Enregistre les décisions validées et leur intégration dans la documentation.                                                          | Baseline MVP                                   |
+| 07    | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md)                               | Enregistre les décisions validées et leur intégration dans la documentation.                                                          | Baseline MVP                                   |
 | 08    | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md)                                  | Décrit le fonctionnement détaillé de la composition, de l’exécution, de la planification, du suivi et les règles de calcul associées. | Baseline MVP                                   |
 | 09    | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md)                                          | Définit les entités, attributs, relations, cycles de vie et règles de cohérence des données.                                          | Baseline MVP                                   |
 | 10    | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et les règles de calcul identifiées par un ID.                                                           | Baseline MVP                                   |
 | 11    | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md)                                                                              | Décrit les opérations et services fonctionnels nécessaires au développement.                                                          | Baseline MVP                                   |
 | 12    | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md)                                                                      | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les validations techniques à réaliser.  | Baseline MVP avec spikes techniques identifiés |
+| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | T01 révisée ; T02 et T03 couverts |
 
 
 ## 4. Images et maquettes
 
 Les captures intégrées aux spécifications sont stockées dans :
 
-[`docs/Specifications-fonctionnelles/Images`](./Specifications-fonctionnelles/Images/)
+[`docs/Specifications-fonctionnelles/images`](./Specifications-fonctionnelles/images/)
 
-Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08.
+Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. Le chapitre 13 référence chaque frame Figma par son ID et précise les critères permettant de comparer l’implémentation à cette référence visuelle.
 
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
 
-En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents.
+En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents. Un ajustement cosmétique mineur explicitement validé peut toutefois être développé avant son report dans Figma ; il doit être tracé puis réaligné ultérieurement, sans devenir une règle fonctionnelle ni imposer une mise à jour préalable de Figma à chaque correction cosmétique.
 
 ## 5. Ordre de lecture recommandé
 
@@ -82,11 +83,14 @@ Pour préparer le développement fonctionnel :
 5. 08 – Conception fonctionnelle détaillée ;
 6. 09 – Modèle de données fonctionnel ;
 7. 10 – Processus métier et règles métier transverses.
+8. 13 – Contrats d’écran applicables à la tranche développée.
 
 Pour préparer l’implémentation technique :
-1. 11 – API fonctionnelles ;
-2. 12 – Architecture technique ;
-3. `README.md` et les fichiers de configuration du projet.
+1. 06 – Écrans et navigation ;
+2. 13 – Contrats d’écran applicables à la tranche développée ;
+3. 11 – API fonctionnelles ;
+4. 12 – Architecture technique ;
+5. `README.md` et les fichiers de configuration du projet.
 
 ## 6. Ordre de référence en cas de contradiction
 
@@ -95,8 +99,9 @@ En cas de contradiction, appliquer l’ordre suivant :
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
 4. écrans et navigation ;
-5. versions du produit et vision générale ;
-6. documents de travail, historiques et revues externes.
+5. contrats d’écran ;
+6. versions du produit et vision générale ;
+7. documents de travail, historiques et revues externes.
 
 `PRODUCT.md` est une synthèse du périmètre et ne prévaut pas sur les spécifications détaillées.
 
@@ -108,6 +113,7 @@ Toute évolution fonctionnelle doit identifier son impact sur :
 - le registre des décisions ;
 - Figma ;
 - les écrans et la navigation ;
+- les contrats d’écran concernés ;
 - la conception fonctionnelle détaillée ;
 - le modèle de données ;
 - les règles métier et les règles de calcul ;
@@ -123,14 +129,29 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 Les contre-revues et revues transverses fonctionnelles et techniques ont été intégrées dans la documentation de référence.
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétition ;
+- Durée estimée et borne minimale `≥` en présence d’Activités en Répétitions ou À l’échec ;
+- Durée totale d’une Activité en mode Durée, dépendance avec le nombre de Séries et règle d’arrondi ;
+- distinction entre Pause entre Séries et Récupération après toutes les Séries ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Activités de la Composition, Nombre total d’Activités à exécuter et Nombre d’Activités exécutées ;
-- progression hybride des Activités chronométrées et des Exercices en Répétition ;
+- progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 12 constituent désormais la **baseline documentaire du MVP** pour le développement.
+Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète cette baseline par les contrats opérationnels T01 révisés, T02 et T03. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
 
 Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
 
 Toute modification fonctionnelle ultérieure doit être traitée comme une évolution explicite de cette baseline et répercutée conformément à la section 7.
+
+## 9. État de référence après décisions Activités, Médias et Circuits
+
+La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 13 : troisième mode `À l’échec` dans le MVP ; contrôle de Catalogue `Activités / Séances / Circuits` avec seule la vue Séances active dans le MVP ; bibliothèque d’Activités, médias multiples et Circuits en V2 ; planification des Circuits en V3. Les captures Catalogue et Activité ont été réexportées depuis les frames Figma courantes. La capture `creation-activite-a-l-echec.png` complète la couverture existante.
+
+## 10. État de référence après unification de l’Activité
+
+La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité, exécutée une fois après toutes les Séries. La Pause reste distincte et n’existe qu’entre les Séries. En mode Durée, la Durée totale est calculée par `D = C × A + (C − 1) × B + R` et peut piloter le nombre entier de Séries selon l’arrondi validé. Les contrats T01, T02 et T03, le modèle de données, les API, l’architecture, le DSF et les captures Figma sont alignés sur cette structure. T03 demeure limité à une Série et un Tour ; l’exécution multi-Séries relève de T04.
+
+## 11. Livrables de traçabilité
+
+- [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
+- [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)

@@ -1,12 +1,6 @@
-import { PlaceholderScreen } from "@/shared/ui/PlaceholderScreen";
-import { strings } from "@/shared/i18n";
+import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 
-/** Onglet « Mes séances » — écran d’accueil par défaut du MVP. */
+/** Onglet « Mes séances » — écran d’accueil par défaut du MVP (T01-S06). */
 export default function SessionsScreen() {
-  return (
-    <PlaceholderScreen
-      title={strings.screens.sessions.title}
-      description={strings.screens.sessions.placeholder}
-    />
-  );
+  return <CatalogueScreen />;
 }

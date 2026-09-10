@@ -1,0 +1,125 @@
+name: KODJO V2 implementation artifact — reference 0.6.3
+
+# Modèle normatif à adapter aux commandes réelles du dépôt.
+# Il ne possède aucun droit contents:write et ne committe/pousse jamais.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [IMPLEMENT, TARGETED_FIX]
+        required: true
+      slice_id: {type: string, required: true}
+      source_head: {type: string, required: true}
+      source_run_id: {type: string, required: false}
+      source_artifact_name: {type: string, required: false}
+      failed_checks: {type: string, required: false}
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  implementation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_head }}
+          persist-credentials: false
+
+      - name: Restore source artifact for TARGETED_FIX
+        if: inputs.mode == 'TARGETED_FIX'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source_artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify and restore source patch
+        if: inputs.mode == 'TARGETED_FIX'
+        shell: bash
+        run: |
+          sha256sum -c recovery/implementation.patch.sha256
+          git apply --check --binary recovery/implementation.patch
+          git apply --binary recovery/implementation.patch
+
+      - name: Run bounded implementation or targeted correction
+        id: agent
+        shell: bash
+        env:
+          KODJO_MODE: ${{ inputs.mode }}
+          KODJO_FAILED_CHECKS: ${{ inputs.failed_checks }}
+        run: ./scripts/kodjo/run-implementation-agent.sh
+
+      - name: Preserve implementation before checks
+        id: preserve
+        if: always() && steps.agent.outcome != 'skipped'
+        shell: bash
+        env:
+          KODJO_SLICE_ID: ${{ inputs.slice_id }}
+          KODJO_SOURCE_HEAD: ${{ inputs.source_head }}
+          KODJO_SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          KODJO_SESSION_ID: ${{ steps.agent.outputs.session_id }}
+        run: ./scripts/kodjo/preserve-implementation.sh delivery
+
+      - name: Validate patch recovery before checks
+        id: patch_check
+        if: always() && steps.preserve.outcome == 'success'
+        shell: bash
+        run: ./scripts/kodjo/verify-delivery.sh delivery
+
+      - name: Jest
+        id: jest
+        if: always() && steps.patch_check.outcome == 'success'
+        continue-on-error: true
+        run: ./scripts/kodjo/run-check.sh jest delivery/checks/jest.json
+
+      - name: TypeScript
+        id: typescript
+        if: always() && steps.patch_check.outcome == 'success'
+        continue-on-error: true
+        run: ./scripts/kodjo/run-check.sh typescript delivery/checks/typescript.json
+
+      - name: Lint
+        id: lint
+        if: always() && steps.patch_check.outcome == 'success'
+        continue-on-error: true
+        run: ./scripts/kodjo/run-check.sh lint delivery/checks/lint.json
+
+      - name: Scope
+        id: scope
+        if: always() && steps.patch_check.outcome == 'success'
+        continue-on-error: true
+        run: ./scripts/kodjo/run-check.sh scope delivery/checks/scope.json
+
+      - name: Finalize business status and manifest
+        id: summarize
+        if: always()
+        shell: bash
+        run: ./scripts/kodjo/finalize-implementation-delivery.sh delivery
+
+      - name: Upload recoverable implementation
+        id: upload
+        if: always() && steps.preserve.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-${{ inputs.slice_id }}-${{ github.run_id }}
+          path: delivery/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish structured issue result
+        id: publish
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/kodjo/publish-implementation-output.sh delivery
+
+      - name: Return run status after preservation and publication
+        if: always()
+        shell: bash
+        run: ./scripts/kodjo/exit-from-business-status.sh delivery/manifest.json
+

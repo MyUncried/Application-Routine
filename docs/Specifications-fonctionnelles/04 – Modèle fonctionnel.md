@@ -67,27 +67,27 @@ Il est toujours contenu dans un cycle.
 Un Tour possède un nombre de répétitions propre, supérieur ou égal à 1.
 ## Activité
 
-Une **activité** représente une action élémentaire exécutée pendant une séance.
+Une **Activité** représente un Exercice élémentaire exécuté pendant une Séance. Le modèle cible ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
 
-Il existe deux types d'activités :
-- **Exercice** ;
-- **Récupération**.
+Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
-Une activité de type **Exercice** possède un nombre de **Séries** propre, supérieur ou égal à 1.
-
-Une Série correspond à une réalisation de l'Exercice selon son mode d'exécution (**Durée** ou **Répétitions**), suivie de sa pause éventuelle. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+Une Série correspond à une réalisation de l’Activité selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Une Pause éventuelle est insérée uniquement entre deux Séries. Après l’ensemble des Séries, une Récupération facultative peut être exécutée une seule fois. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
 
 Chaque activité possède notamment :
 - un nom ;
 - un mode d'exécution ;
-- une durée ou un nombre de répétitions selon le mode ;
+- une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
-- une pause facultative appliquée après chaque Série ;
+- une Pause facultative appliquée entre les Séries ;
+- une Récupération facultative exécutée une fois après toutes les Séries, `0 s` signifiant absence de phase ;
+- une Durée totale calculée en mode Durée ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
-- aucun média dans le MVP ; le modèle reste extensible afin d’autoriser au plus un média par Activité dans une version ultérieure.
+- aucun média fonctionnel dans le MVP ; le modèle autorise `0..n` médias ordonnés par Activité en V2.
 
-Après la dernière Série, la pause n'est pas exécutée si l'étape suivante du plan d'exécution est une Activité de type **Récupération** explicite.
+La Pause n’est jamais exécutée après la dernière Série. La Récupération, lorsqu’elle est supérieure à `0 s`, est toujours exécutée après la dernière Série, y compris pour la dernière Activité de la Séance avant `SESSION_END`.
+
+Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séries − 1) × Pause + Récupération`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale est utilisée comme entrée, `Séries théoriques = (Durée totale cible − Récupération + Pause) / (Durée + Pause)`, arrondi à l’entier le plus proche avec `.5` vers le haut et un minimum de `1`, puis la Durée totale atteignable est recalculée.
 ## Routine
 
 Une routine est une **planification d'une séance**.
@@ -168,7 +168,11 @@ Une séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Activités après le Tour ;
 6. une Fin de séance.
 
+Dans le Plan d’Exécution, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. `RECOVERY` est une phase appartenant à l’Activité qui la précède, jamais une Activité autonome. Après la dernière Série, la Récupération non nulle est exécutée avant l’Activité suivante ou avant `SESSION_END`. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine l’Exécution et autorise son enregistrement final.
+
 Le compte à rebours initial et la fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
+
+Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, y compris ces deux phases, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
 Le **Cycle** contient un **Tour unique** et peut également contenir des Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
@@ -176,11 +180,7 @@ Le **Tour** possède également son propre nombre de répétitions.
 
 Chaque **Tour** regroupe une suite ordonnée d'Activités. Les Activités placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position.
 
-Une **activité** est de type :
-- **Exercice** ;
-- **Récupération**.
-
-Une activité de type **Exercice** possède un nombre de Séries propre et peut intégrer une pause facultative après chaque Série.
+Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre les Séries et une Récupération facultative après l’ensemble des Séries.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
@@ -213,6 +213,8 @@ Exécuter une fois le Cycle technique :
 ```
 
 Cette organisation permet de construire des séances simples comme des séances complexes tout en conservant un nombre limité de concepts métier.
+
+Dans l’interface de Composition, un appui long sur la carte d’une Activité amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Activité en modification.
 
 # 4.5 Déroulement d'une séance
 
@@ -289,3 +291,15 @@ Ne sont pas inclus dans le MVP :
 - exceptions de planification ;
 - notifications avancées ;
 - intelligence artificielle.
+
+# 4.9 Extension validée du modèle
+
+L’Activité possède deux formes distinctes : la **référence autonome** de V2 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier, dont la Pause et la Récupération, ainsi que ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
+
+Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
+
+La nouvelle structure est préparatoire à T03, mais T03 n’exécute qu’une seule Série par Activité. Toute Séance comportant une Activité à plusieurs Séries est refusée avant la création d’une Exécution ; la boucle multi-Séries relève de T04.
+
+Le Média est un actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations peuvent référencer le même fichier sans duplication physique. Une suppression d’association ou de référence ne supprime le fichier que lorsqu’aucune entité ni aucun instantané ne le référence.
+
+Le Circuit est une racine persistante V2 possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Circuit. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Le Circuit reflète les modifications de ses Séances jusqu’au lancement, puis l’Exécution de Circuit utilise un instantané immuable.

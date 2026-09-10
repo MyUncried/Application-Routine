@@ -35,7 +35,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Hors MVP ; extension future limitée à un média par Activité |
+| Médias | Hors MVP ; V2 avec `0..n` photos ou vidéos ordonnées par Activité |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -136,7 +136,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée, Durée réelle, nombres d’Activités, progression hybride et occurrences périodiques sont implémentés comme des règles déterministes du Domaine conformément au chapitre 10. Ils ne doivent pas être redéfinis différemment dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T03, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -155,9 +155,9 @@ Cette séparation facilite :
 
 ### Principe
 
-Les données structurées du MVP sont persistées dans une **base SQLite locale**, via `expo-sqlite`.
+Les données structurées du MVP sont persistées dans une **base SQLite locale**, via un accès direct à `expo-sqlite` encapsulé derrière les Repositories.
 
-**Drizzle ORM** est utilisé pour la définition typée du schéma, les requêtes et la gestion des migrations, sous réserve de validation de sa compatibilité avec la version Expo retenue.
+Le spike RT-002 réalisé en T01-S01 a écarté Drizzle ORM en raison d’une compatibilité insuffisamment stable avec la version Expo retenue. Drizzle n’est donc ni une dépendance ni une option active du MVP. Le schéma, les requêtes et les migrations SQLite sont gérés directement par la couche de persistance, sans exposer `expo-sqlite` au domaine.
 
 Le stockage doit notamment permettre :
 - les relations entre les entités ;
@@ -282,17 +282,20 @@ Au démarrage d’une Exécution :
 Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
-- les Séries propres à chaque Exercice ;
-- l'insertion de la pause éventuelle après chaque Série, avec suppression de la pause finale lorsque l'étape suivante est une Récupération explicite ;
+- les Séries propres à chaque Activité ;
+- l’insertion d’une étape `SERIES_PAUSE` uniquement entre deux Séries successives ;
+- l’insertion d’une étape `RECOVERY` une seule fois après la dernière Série lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
 - la pause et la reprise ;
-- la réinitialisation de l’Activité courante ;
+- la réinitialisation de l’Activité, de la Série ou de la Récupération courante ;
 - le passage à l’étape suivante ;
 - l’arrêt anticipé ;
 - la terminaison normale.
+
+Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T03, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -350,7 +353,7 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
 - 30 minutes après la fin théorique d’une Activité chronométrée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions.
+- 2 heures après le démarrage d’une Activité en Répétitions ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -382,15 +385,15 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Activités dans cette version.
 
-L’architecture doit néanmoins permettre une évolution limitée à un média maximum par Activité. Lors de cette évolution, la duplication d’une Activité ou d’une Séance ne devra pas nécessairement dupliquer le fichier physique : plusieurs associations Média pourront référencer le même fichier local.
+L’architecture doit permettre `0..n` associations média ordonnées par Activité en V2. La copie d’une Activité ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
-Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les médias ne seront pas intégrés aux Instantanés historiques.
+Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
 
 Le schéma MVP peut réserver l’extension future sans imposer de table ou de fichier Média tant que la fonctionnalité n’est pas développée.
 
 Les fichiers binaires volumineux ne sont pas stockés directement dans les entités métier.
 
-Les futurs médias ne seront pas copiés dans les Instantanés d’Exécution.
+Les futurs fichiers médias ne seront pas copiés dans les Instantanés d’Exécution ; les associations ordonnées et références stables nécessaires à l’historique y seront conservées.
 
 La suppression ou la modification ultérieure d’un média ne doit pas compromettre la lisibilité fonctionnelle de l’historique.
 
@@ -405,7 +408,7 @@ Cet Instantané est :
 - indépendant des modifications futures de la Séance ;
 - suffisamment complet pour restituer l’historique ;
 - volontairement léger ;
-- dépourvu de copie des médias.
+- dépourvu de copie physique des fichiers médias, tout en conservant leurs références stables après leur introduction.
 
 Le format physique de stockage doit permettre de relire les anciens Instantanés même après une évolution du modèle de données.
 
@@ -420,7 +423,7 @@ Les opérations modifiant plusieurs objets liés doivent être atomiques lorsque
 Exemples :
 - création d’une Séance et de sa structure initiale ;
 - archivage d’une Séance et suppression de ses Routines ;
-- suppression d’une Catégorie et retrait de ses associations ;
+- à partir du MVP bis, suppression d’une Catégorie et retrait de ses associations ;
 - création d’une Exécution et de son Instantané.
 
 Une opération atomique :
@@ -570,7 +573,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Langage | **TypeScript strict** | Sécurise les contrats, les objets métier et facilite le développement assisté par IA |
 | Navigation | **Expo Router** | Navigation structurée et typée, compatible iOS/Android et préparant un Web futur |
 | Base locale | **SQLite via `expo-sqlite`** | Stockage relationnel, transactions, historique et migrations |
-| ORM | **Drizzle ORM**, sous réserve de validation de compatibilité stable | Schéma et requêtes TypeScript typés, migrations ; possibilité de revenir à `expo-sqlite` direct derrière les Repositories si nécessaire |
+| ORM | **Aucun** | RT-002 a écarté Drizzle ORM ; accès direct à `expo-sqlite` derrière les Repositories |
 | État UI temporaire | **React state / reducer / Context** | Suffisant au MVP ; évite une dépendance globale prématurée |
 | Moteur d’exécution | **Module TypeScript indépendant de React** | Fiabilité, testabilité et indépendance de l’interface |
 | Notifications | **`expo-notifications`** | Notifications locales cross-platform sans backend |
@@ -582,6 +585,15 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
+
+### Contraintes techniques propres à T03
+
+- Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T03 ; aucun spike ni prototype séparé ne précède ce lot.
+- Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T03.
+- L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
+- T02-S02 consomme définitivement la migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Cette migration ajoute la Récupération attachée à l’Activité, corrige les données nécessaires au calcul des Pauses et migre les anciennes lignes techniques `RECOVERY` vers l’Activité précédente compatible ; une ligne orpheline est ignorée. Elle ne persiste ni la Durée totale ni le pilote d’interface.
+- La persistance propre à T03 utilise ensuite la migration SQLite additive `005` et fixe `DATABASE_VERSION = 5`. Elle ajoute uniquement les données d’Exécution et de Résultats, notamment les Résultats de Récupération, sans revendiquer de nouveau la migration `004`. Les migrations conservent sans perte les Séances existantes et sont testées depuis chaque version de base encore supportée.
+- L’archivage, la restauration et la suppression restent hors du périmètre de livraison T03 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
@@ -621,17 +633,11 @@ Il fournit :
 
 Les fichiers JSON ou un stockage de type préférences ne constituent pas un stockage métier principal adapté au modèle.
 
-### Drizzle ORM
+### Accès direct à `expo-sqlite`
 
-Drizzle ORM est retenu sous réserve de validation de compatibilité stable avec la version Expo utilisée au démarrage du développement.
+RT-002 a conclu que la combinaison Drizzle ORM / Expo n’était pas suffisamment stable. Le MVP utilise donc directement `expo-sqlite`, sans ORM. La couche Repository demeure la seule frontière d’accès à la persistance : elle protège le domaine d’une dépendance à SQLite et permet une évolution ultérieure de la source de données sans modifier les contrats métier.
 
-Son intérêt principal est de :
-- définir le schéma en TypeScript ;
-- disposer de requêtes typées ;
-- gérer les migrations ;
-- faciliter la correspondance entre le chapitre 09 et le schéma technique.
-
-La couche Repository protège néanmoins l’application contre une dépendance forte à cet ORM. En cas de difficulté de compatibilité, `expo-sqlite` peut être utilisé directement sans remettre en cause l’architecture métier.
+Le schéma, les requêtes, les transactions et les migrations sont définis et testés dans la couche de persistance. La décision historique d’évaluer puis d’écarter Drizzle est conservée dans D-043 et RT-002 ; elle ne constitue plus un choix ouvert.
 
 ### Gestion d’état
 
@@ -694,7 +700,7 @@ La stack retenue est **Jest + `jest-expo`** pour les tests unitaires, **React Na
 
 ## 12.26 Mise en page adaptative et bornes sûres
 
-Le gabarit Figma de référence mesure `402 × 874` pixels de maquette, interprétés comme des points logiques pour l’implémentation. Il ne constitue pas une taille fixe. Les composants utilisent la largeur disponible et sont contrôlés au minimum autour de `360`, `390`, `402` et `430–440` points logiques, sur iOS et Android en portrait.
+Le gabarit Figma de référence mesure `402 × 874` pixels de maquette, interprétés comme des points logiques pour l’implémentation. Il ne constitue pas une taille fixe. Les trois modes Figma de référence sont `Compact 360`, `Standard 402` et `Grand téléphone 440`. L’implémentation reste contrôlée à des largeurs intermédiaires, notamment `390` et `430`, sur iOS et Android en portrait.
 
 Les règles techniques suivantes rendent cette adaptation opératoire :
 
@@ -725,9 +731,109 @@ Ces exigences font l’objet de tests visuels et d’interaction sur les largeur
 
 La largeur minimale officiellement supportée par le MVP est `360`. Une largeur inférieure peut rester fonctionnelle, mais ne constitue pas un critère de recette avant décision explicite d’élargir la cible.
 
+### Architecture canonique de spécification UI
+
+La construction et la vérification d’un écran suivent obligatoirement la chaîne suivante :
+
+`Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`
+
+- Le **Screen Shell** définit la structure générale, les zones fixes et les slots disponibles.
+- Le **composant ou contrôle du Design System** définit les propriétés communes réutilisables : géométrie, style, états génériques, cible tactile et comportement d’interaction commun.
+- La **règle spécifique et le contrat d’écran** définissent le contenu, les valeurs, les états métier, les conditions d’affichage, la navigation et les résultats observables propres à l’écran.
+
+Une valeur contextuelle, un libellé métier ou une condition fonctionnelle ne devient pas une propriété générique du composant. Inversement, une règle commune portée par un Shell ou un composant n’est pas recopiée dans chaque contrat d’écran. Toute exception locale est explicitement identifiée et reliée à une évidence Figma ou à une décision fonctionnelle validée.
+
+### Screen Shells
+
+Les dimensions ci-dessous décrivent le gabarit Figma de référence. Les insets système réels remplacent les réserves de Safe Area lors de l’implémentation ; ils ne sont jamais déduits d’une coordonnée fixe du gabarit.
+
+#### `Shell / Screen` — `402 × 874`
+
+| Variante Figma | Header | Context | Body | Zone basse |
+| --- | ---: | ---: | ---: | ---: |
+| `Context=On, Bottom=Navigation` | `0–92` | `92–207` | `207–797` | Navigation `797–874` |
+| `Context=Off, Bottom=Navigation` | `0–92` | — | `92–797` | Navigation `797–874` |
+| `Context=On, Bottom=Action` | `0–92` | `92–207` | `207–790` | Action `790–874` |
+| `Context=Off, Bottom=Action` | `0–92` | — | `92–790` | Action `790–874` |
+
+#### `Shell / Modal Fullscreen` — `378 × 822`
+
+| Zone | Bornes Figma | Dimension |
+| --- | ---: | ---: |
+| Header | `0–60` | `60` |
+| Content | `60–752` | `692` |
+| Bottom Action | `752–822` | `70` |
+
+Le Bottom Action contient un bouton `354 × 48` placé à `x=12`, avec un espace inférieur de référence de `22`. La réaction du prototype et le libellé du bouton restent propres à chaque instance.
+
+#### `Shell / Execution` — `402 × 874`
+
+| Variante Figma | Header | Content | Footer |
+| --- | ---: | ---: | ---: |
+| `Mode=Run` | `0–92` | `92–782` | `782–874` |
+| `Mode=Summary` | `0–92` | `92–874` | — |
+
+La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle du 1er septembre 2026 établit que `73` utilisent au moins un Screen Shell ; le Splash `1992:469` est l’unique exception. Les neuf états de planification concernés utilisent également `Shell / Modal Fullscreen` à l’intérieur de leur écran de contexte.
+
+### Composants et contrôles réutilisables
+
+Les composants ci-dessous constituent le catalogue structurel actuellement vérifié dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+
+| Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
+| --- | --- | --- |
+| Navigation | `Navigation / Bottom — Source exact` | destination active : Sessions, Calendar, History, Profile ou Search |
+| En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
+| Retour | `Action / Back` (`2624:3105`) | cible `48 × 48` liée à `size/touch-target-min`, cercle `38 × 38` (`2624:3106`) lié à `component/action/circular-visual-box`, cadre d’icône `24 × 24` (`3089:61`) lié à `component/action/circular-icon` |
+| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
+| Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
+| Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
+| Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
+| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed` (`2537:1033`) / `State=Expanded` (`2537:1038`) |
+| Segmented | `Controls / Segmented` (`2586:2759`) | nombre d’items et position sélectionnée ; trois options égales pour `Durée / Répétitions / À l’échec` |
+| Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
+| Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
+| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
+| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
+| Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
+| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
+| Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
+| Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
+| Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
+| Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des activités et répétition contextuelle |
+| Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
+| Activité | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
+| Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
+| Activité | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
+| Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
+| Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
+| Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
+| Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
+| Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
+| Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
+| Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
+
+Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+
+Le contrôle `Controls / Disclosure — Source exact` est la référence normative de tout bouton de déploiement ou de repli utilisant cette famille. Chaque occurrence est une instance de la variante appropriée, sans copie graphique locale : cible tactile `48 × 48`, cadre visible centré `28 × 28`, rayon `6`, fond `#FBFCFF` et chevron `8 × 4` tracé en violet sur `2` points. La variante `State=Collapsed` (`2537:1033`) utilise une bordure grise `#D6D9E3` sur `1` point et un chevron bas `#8282F2`. La variante `State=Expanded` (`2537:1038`) utilise une bordure violette `#8283F2` sur `2` points et un chevron haut de même couleur. Les destinations et réactions de prototype restent définies par l’écran hôte ; elles ne sont pas héritées comme comportement métier du composant.
+
+### Règles de réutilisation et de contrôle
+
+1. Réutiliser une instance du composant existant lorsqu’il couvre le besoin ; ne pas recréer localement une copie visuelle.
+2. Utiliser les propriétés de variante uniquement pour des états génériques et réutilisables.
+3. Conserver les libellés, valeurs, bornes, règles de validation et destinations dans le contrat d’écran lorsqu’ils dépendent du contexte.
+4. Ne pas détacher une instance pour contourner une propriété manquante sans identifier d’abord si le besoin relève du composant ou d’une exception locale.
+5. Toute modification d’un composant partagé impose un contrôle de ses instances et des contrats qui le référencent.
+6. Toute différence locale doit être qualifiée : contenu d’instance, état métier, exception visuelle validée ou non-conformité.
+7. Les réactions du prototype restent locales lorsqu’elles dépendent du parcours ; le composant générique ne porte pas une destination métier arbitraire.
+8. L’absence de liaison d’une propriété à une variable Figma ne permet pas d’inventer une nouvelle valeur : le token canonique et l’intention du composant restent la référence.
+
 ### Design tokens canoniques
 
-Le Figma contient désormais les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`, ainsi que les Text Styles `KODJO` correspondant à la hiérarchie typographique ci-dessous. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente les modes `Compact 360`, `Standard 402` et `Grand téléphone 440` pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail. Le `Prototype MVP` n’est pas encore intégralement relié à toutes les variables, mais la couleur des sélections actives, les niveaux typographiques, les espacements, les rayons, les cibles tactiles et les icônes audités y ont été corrigés. Les autres valeurs historiques répétées dans ses frames sont normalisées vers les tokens ci-dessous lors du développement. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 4 septembre 2026, elles contiennent respectivement `59`, `62` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+
+Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+
+Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La table de correspondance doit rester bijective ; deux tokens de code ne peuvent pas représenter silencieusement une même variable Figma.
 
 #### Couleurs
 
@@ -750,6 +856,14 @@ Le Figma contient désormais les collections locales `KODJO / Primitives`, `KODJ
 | `color.warning` | `#FF8D28` | Ressenti intermédiaire et avertissement non destructif |
 | `color.danger` | `#D92D20` | Action destructive et état négatif |
 | `color.dangerSurface` | `#FFF1F0` | Fond destructif léger |
+| `color.wheelActionCancelBackground` | `#F5F7FA` | Cercle d’annulation d’une roulette ; alias de `color.surface` |
+| `color.wheelActionConfirmBackground` | `#0508E5` | Cercle de confirmation d’une roulette ; alias de `color.primary` |
+| `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
+| `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
+| `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
+| `color.mediaSurface` | `#F6F6FF` | Surface des aperçus Média ; variable sémantique Figma `color/media/surface`, alias exact de la primitive `color/media/surface-F6F6FF` |
+| `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
+| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile bloquant des roulettes ouvertes ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -758,6 +872,8 @@ L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de t
 #### Typographie
 
 La famille du MVP est `Inter`. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
+
+Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Screen title`, `Modal title`, `Section title`, `Body`, `Label`, `Button`, `Supporting` et `Navigation label`. Ils ne couvrent pas encore à eux seuls toute la gamme fonctionnelle ci-dessous et ne sont pas appliqués aux 2 614 nœuds texte de `Prototype MVP`. La gamme suivante constitue donc le contrat typographique canonique d’implémentation et de rationalisation ; elle ne doit pas être présentée comme une liaison Figma déjà exhaustive.
 
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
@@ -787,7 +903,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | Token | Taille visuelle | Usage |
 | --- | ---: | --- |
 | `icon.control` | `14 × 14` | Chevrons et indicateurs de sélecteurs compacts |
-| `icon.compact` | `16 × 16` | Réorganisation, coches et commandes compactes |
+| `icon.compact` | `16 × 16` | Icônes fonctionnelles incorporées à un contrôle compact, par exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`). Ne s’applique jamais aux icônes structurelles de carte |
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
@@ -795,6 +911,10 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | `icon.status` | `32 × 32` | Statuts illustrés nécessitant une présence visuelle renforcée |
 
 Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
+
+`icon.compact` décrit exclusivement la boîte visuelle d’une petite icône fonctionnelle intégrée à un contrôle. L’exemple DSF canonique est le signe d’ajout vectoriel `icon/ajouter` (`2884:4315`), de `16 × 16`, dans le composant `Action / Add Activity — Source exact` (`2537:1484`, contrôle `174 × 32`). Ce token ne définit ni la taille de la cible tactile ni celle d’un slot structurel.
+
+La poignée de déplacement constitue une exception structurelle explicite : `Icon / Structure / Movable` (`3066:4676`) utilise un dessin `20 × 20`, centré dans un slot `28 × 28`, avec une opacité de `50 %` et la couleur `color.iconNeutral`. L’ancien dessin local `icon/réorganiser` en `16 × 16` est obsolète et interdit comme source ou comme implémentation de cette poignée. Il ne doit jamais être déduit de `icon.compact`.
 
 Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas utilisés comme icônes dans l’application. Ils sont remplacés par des tracés vectoriels nommés, centrés dans la boîte visuelle appropriée et colorés avec les tokens d’icône ou d’action.
 
@@ -834,7 +954,7 @@ Les valeurs `10`, `14`, `18`, `26`, `29` et `30` observées historiquement dans 
 | Suivi — groupes de dates successifs | `16` |
 | Suivi — groupe `Filtrer / Trier` vers la liste | `32` |
 | Catalogue — action `Créer une séance` vers le début de la liste | `32` |
-| Bottom sheet — message de confirmation vers la première action | `16` |
+| Dialogue de décision — dernière ligne de message vers la première action | `16` |
 | Exécution — libellé du temps écoulé vers la progression par Tours | `24` |
 | Synthèse — statut vers date et heure | `16` |
 | Synthèse — résumé vers section Ressenti | `32` |
@@ -849,7 +969,7 @@ Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structu
 | ---: | --- |
 | `6` | Petit indicateur ou contrôle très compact |
 | `8` | Petit champ ou contrôle compact |
-| `10` | Options de contrôles segmentés, options de rappel et pull-down compact de répétitions |
+| `10` | Options de contrôles segmentés et options de rappel |
 | `12` | Carte et champ standard |
 | `16` | Bouton secondaire compact, calendrier contextuel et message temporaire |
 | `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
@@ -867,11 +987,50 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
 | Minimum natif Android | `48 × 48 dp` |
 | En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
-| Action finale | Bouton de `48` dans un conteneur intégrant marges, espacement supérieur et inset inférieur |
-| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée au-dessus de l’inset inférieur |
+| Région d’en-tête du gabarit | `92` ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
+| Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
+| Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
+| Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
+| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
+| Roulette compacte à deux colonnes — `Type=Duration` | `330 × 203` = barre d’actions `53` + contenu natif `150` ; overlay centré dans la zone utile, indépendant du déclencheur et du défilement. Les sélecteurs de Planification gardent leur géométrie Figma propre, d’environ `310 × 201`. |
+| Roulette numérique compacte à une colonne | `144 × 203` ; largeur déterminée par deux cibles tactiles de largeur `48` et une colonne sélectionnée `56 × 34` centrée ; même overlay d’écran bloquant |
+| Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
+| Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
+| Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
+| Champ Nom de la séance | `354 × 42`, fond transparent, liseré blanc intérieur `1`; token `color.sessionNameBorder` |
+| Bandeau contextuel Activité | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
+| Champ Nom de l’Activité | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
+| Synthèse de l’Activité | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
+| Tag de Catégorie | Composant DSF `Selection / Category Tag` (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
+| Conteneur Tour | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
+| Sélecteur du nombre de tours | `66 × 34` ; valeur numérique sans `x` ni `×` ; bord droit aligné avec celui des cartes d’Activité ; carré violet `28 × 28` avec `3` points de marge en haut, à droite et en bas ; icône `#CDCEFA` issue de la référence `2028:12051` ; aucun chevron de repli |
+| Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
+
+Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Activités et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+
+##### Source canonique de l’icône Tour
+
+Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autorisée. Son dessin provient de l’icône validée dans la frame `Nouvelle séance — Nom renseigné` (`2028:12003`), ancien nœud graphique local `2028:12040`, désormais remplacé dans l’écran par une instance du composant DSF. La référence exportable unique est `assets/icons/icon-tour.svg`, déclarée sous la clé `icon.tour` dans `assets/icons/manifest.json` et destinée à `KodjoIcon name="icon-tour"`. L’ancienne géométrie `20 × 20`, les copies `icon/contenu-principal` et toute autre entrée de manifeste concurrente ne sont plus canoniques.
+
+| Écran concerné | Frame | Instance `Icon / Tour` |
+| --- | --- | --- |
+| Nouvelle séance — État initial | `2028:11137` | `I3067:4835;3067:247` |
+| Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
+| Modal — Paramétrer le compte à rebours initial | `2028:11375` | `3272:4131` |
+| Modal — Paramétrer la fin de séance | `2028:11457` | `3272:4136` |
+| Composition — Nombre de tours — roulette compacte ouverte | `2028:11580` | `3272:4141` |
+| Composition d’une séance — sans Cycle | `2028:11700` | `3272:4146` |
+| Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
+| Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
+| Nouvelle séance — Nom renseigné | `2028:12003` | `3272:4161` |
+| Composition d'une séance — Appui long — carte soulevée | `3518:4576` | État transitoire du bloc `Composition / Activity Row with Recovery` (`3572:64`) |
+
+L’état de déplacement par appui long ne crée pas un second composant. Il applique temporairement au bloc Activité + Récupération les dimensions `362 × 97`, le bleu du bandeau supérieur, un fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, le bloc reprend `354 × 93`; sans Récupération, la carte conserve `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
+
+Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `component/wheel/action-icon`, `component/action/circular-visual-box`, `component/action/circular-icon`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Les primitives `dimension/38` (`VariableID:3641:68`), `dimension/53` (`VariableID:3644:68`), `dimension/144` (`VariableID:3644:69`) et `dimension/203` (`VariableID:3644:70`) valent respectivement `38`, `53`, `144` et `203`. `component/action/circular-visual-box` (`VariableID:3641:69`) aliasse `dimension/38`, puis `component/wheel/action-visual-box` (`VariableID:3078:61`) aliasse ce token sémantique. `component/wheel/action-bar-height` (`VariableID:3072:4056`) aliasse `dimension/53`; `component/wheel/numeric-compact-width` (`VariableID:3218:4021`) aliasse `dimension/144`; `component/wheel/compact-height` (`VariableID:3072:4060`) aliasse `dimension/203`. `component/wheel/action-hit-target` (`VariableID:3072:4057`) et `size/touch-target-min` (`VariableID:2612:10`) restent aliasés à `dimension/48` (`VariableID:2290:37`). `component/action/circular-icon` (`VariableID:3648:68`) et `component/wheel/action-icon` (`VariableID:3072:4058`) aliasent `dimension/24` (`VariableID:2290:30`). Ces tokens décrivent `Action / Back` (`2624:3105`) et le component set unique `Picker / Popover — Source exact` (`2537:1174`), notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
 ### Règles de dimensionnement des composants
 
@@ -891,6 +1050,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 - La navigation basse est composée d’une barre principale flexible et d’une recherche de diamètre fixe `58`. La barre principale contient quatre emplacements de poids égal avec marges internes constantes. Le calcul de ces emplacements exclut la largeur de la recherche et son espacement.
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
+- Dans le formulaire Activité, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.
 - Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.
 - La barre de jours du Calendrier utilise `width: '100%'` et sept cellules de même poids (`flex: 1`). Les espacements sont inclus dans la largeur disponible : aucune cellule ne conserve la largeur ou la position du gabarit `402`.
 - Le groupe `Série / Tour` de l’Exécution comporte deux zones flexibles symétriques et un séparateur central fixe. Il ne repose sur aucune coordonnée absolue et reste sur une ligne à partir de `360` points avec le texte à `100 %` ou `135 %` ; à une taille d’accessibilité supérieure, son conteneur peut grandir verticalement sans rendre les valeurs ambiguës.
@@ -941,14 +1101,9 @@ Ce point constitue le principal risque technique identifié du MVP et une condit
 
 ### RT-002 — Drizzle ORM / Expo
 
-Avant de figer la couche de persistance, la compatibilité entre :
-- la version stable d’Expo retenue ;
-- `expo-sqlite` ;
-- la version stable de Drizzle ORM ;
+**Statut : réalisé et clôturé en T01-S01.**
 
-doit être vérifiée.
-
-Si cette combinaison n’est pas suffisamment stable, le projet conserve SQLite et les Repositories mais utilise directement `expo-sqlite`.
+Le spike a évalué la compatibilité entre la version stable d’Expo retenue, `expo-sqlite` et Drizzle ORM. La combinaison Drizzle ORM / Expo a été jugée insuffisamment stable. Le repli prévu a été appliqué : SQLite et les Repositories sont conservés, avec accès direct à `expo-sqlite` et sans Drizzle ORM. Cette conclusion est normative et enregistrée par D-043.
 
 ### RT-003 — Comportement audio réel
 
@@ -1040,7 +1195,7 @@ Principes :
 
 ## 12.31 Architecture UI, accessibilité et responsive
 
-Le MVP utilise un seul layout de référence, issu des écrans Figma validés.
+Le MVP utilise un seul système UI de référence, issu des écrans Figma validés et décliné par les Screen Shells documentés au §12.26. Les Shells sont des variantes structurelles de ce système commun, et non des Design Systems concurrents.
 
 L’architecture UI sépare :
 - la logique fonctionnelle ;
@@ -1089,4 +1244,37 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 ## 12.33 Réconciliation après interruption technique
 
-Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la Synthèse.
+Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T03 ; la Synthèse appartient à la tranche qui la livre.
+
+## 12.34 Architecture cible — Activités, Médias et Circuits
+
+SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Circuits, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
+
+Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
+
+Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries et la Récupération après toutes les Séries. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent les attributs fonctionnels `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T04 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+
+### Sources de données du Catalogue
+
+| Segment | MVP | V2 |
+|---|---|---|
+| Activités | désactivé, aucune requête | `ActivityDefinitionRepository` |
+| Séances | `SessionRepository` | `SessionRepository` |
+| Circuits | désactivé, aucune requête | `CircuitRepository` |
+
+Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
+
+### Composants et tokens Figma
+
+Les composants `Activity / Name Field — Source exact` (`3382:4303`), `Action / Add Media — Source exact` (`3382:60`), `Media / Preview` (`3382:59`), `Media / Gallery — Source exact` (`3382:64`), `Media / Section — Source exact` (`3382:71`), `Controls / Segmented` (`2586:2759`) et `Composition / Activity Row with Recovery` (`3572:64`) constituent la cible. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+
+Les alias Figma sont bijectifs et explicites :
+
+| Primitive Figma | Token sémantique Figma | Rôle |
+| --- | --- | --- |
+| `color/media/surface-F6F6FF` | `color/media/surface` | Surface Média |
+| `color/media/border-CDCEFA` | `color/media/border` | Bordure Média |
+| `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile bloquant des roulettes ouvertes |
+| `color/blue/selection-5F60EE` | `color/selection` | Contour du contrôle pilote après confirmation ; alias exact `VariableID:2290:52` → `VariableID:2290:3` |
+
+Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.

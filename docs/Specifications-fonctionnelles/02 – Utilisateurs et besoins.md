@@ -35,16 +35,17 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Ouvrir une carte directement en mode modification.
 - Planifier, dupliquer ou archiver une Séance active.
 - Consulter les Séances archivées, les restaurer ou les supprimer après confirmation.
-- Ne jamais supprimer directement une Séance depuis les vues `Toutes` ou `Planifiées`.
+- Ne jamais supprimer directement une Séance non archivée ; elle doit d’abord être archivée, puis supprimée depuis le résultat du filtre `Archivées`.
 - Comprendre l’état vide du Catalogue et pouvoir créer sa première Séance.
 
 #### Créer une Séance
 
 - Saisir le nom et choisir une couleur dans le même écran de Composition.
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
-- Ajouter des Exercices ou des Récupérations.
-- Définir un Exercice par une durée ou un nombre de Répétitions.
-- Définir le nombre de Séries et une Pause après Série éventuelle.
+- Ajouter des Activités et définir, si nécessaire, une Récupération après l’ensemble de leurs Séries.
+- Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
+- Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
+- Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
 - Répéter le Tour de 1 à 99 fois.
 - Réordonner manuellement les Activités par glisser-déposer.
@@ -70,7 +71,7 @@ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 - Être guidé visuellement, par des sons et par des annonces vocales.
 - Voir l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression.
 - Mettre l’Exécution en pause, reprendre, réinitialiser l’Activité courante ou passer à l’Activité suivante.
-- Terminer normalement un Exercice en Répétitions avec `Activité suivante`.
+- Terminer normalement chaque Série d’un Exercice en Répétitions ou À l’échec avec `Suivant`.
 - Être averti avant de quitter une Activité chronométrée non terminée, qui devient alors `Partielle` après confirmation.
 - Continuer l’Exécution lorsque l’application est en arrière-plan ou l’écran verrouillé.
 - Retrouver un état temporel recalculé au retour.
@@ -166,8 +167,16 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Quelles fonctions nécessiteront un compte ou une synchronisation distante ?
 - Comment partager une Séance tout en maîtrisant les droits et la confidentialité ?
 - Comment gérer les versions lorsqu’une Séance partagée évolue ?
-- Quel média unique pourra être associé à une Activité et comment sera-t-il stocké ?
+- Quelles limites techniques de taille, de durée et de formats appliquer aux médias multiples en V2 ?
 - Quelles statistiques et quels filtres apporteront une valeur réelle ?
 - Quelles intégrations calendrier, santé ou sport seront prioritaires ?
 - Quelles langues seront proposées après le français ?
 
+## 8. Besoins validés pour les évolutions
+
+- Créer en V2 une Activité de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
+- Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
+- Associer `0..n` photos ou vidéos à une Activité, les réordonner et les consulter hors ligne.
+- Créer en V2 un Circuit d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
+- Planifier les Circuits seulement en V3.
+- Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.

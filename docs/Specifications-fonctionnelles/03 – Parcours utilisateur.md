@@ -59,13 +59,13 @@ Les référentiels utilisés dans le MVP sont de deux natures :
 ## Gestion des catégories
 
 Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
-Une séance peut appartenir à zéro, une ou plusieurs catégories.
+Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
 
 L'utilisateur peut :
 - consulter les catégories existantes ;
 - créer une nouvelle catégorie ;
 - modifier son nom ;
-- supprimer une catégorie.
+- supprimer une catégorie dans la gestion dédiée, à partir du MVP bis.
 
 Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
 
@@ -73,13 +73,13 @@ Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle e
 
 1. Ouvrir la gestion ou la sélection des catégories.
 2. Consulter les catégories existantes.
-3. Créer, modifier ou supprimer une catégorie selon le besoin.
-4. Les modifications sont immédiatement disponibles dans l'ensemble de l'application, sans modification des Instantanés historiques.
+3. Créer ou modifier une catégorie selon le besoin ; sa suppression est disponible à partir du MVP bis.
+4. Dans la création d’une Séance, une nouvelle Catégorie reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
 
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
-Une activité de type **Exercice** peut être associée à zéro, une ou plusieurs zones corporelles.
+Une Activité peut être associée à zéro, une ou plusieurs zones corporelles.
 
 Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
 
@@ -105,7 +105,9 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque activité de type Exercice, il définit d'abord ses paramètres essentiels (type, nom, mode Durée ou Répétitions, valeur d'exécution, pause éventuelle et nombre de Séries), puis peut renseigner sur un second écran les informations facultatives telles que la consigne et les zones corporelles. Il définit également les paramètres généraux de la séance.
+Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération après l’ensemble des Séries, ainsi que les informations facultatives. `Description de l’activité` et `Zone corporelle` sont repliables ; `Mode d’exécution` est déployé par défaut. L’action `Terminer` enregistre l’Activité.
+
+En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
 `Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
 ### 2. Réorganiser une séance
@@ -116,11 +118,13 @@ Il peut notamment :
 - ajouter une activité ;
 - supprimer une activité ;
 - modifier une activité ;
-- déplacer une activité ;
+- déplacer une activité par appui long sur sa carte, puis glissement vers la position cible ;
 - modifier le nombre de répétitions du Tour ;
 - modifier les paramètres généraux de la séance.
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
+
+La Récupération éventuelle est affichée comme une carte attachée sous l’Activité. Le déplacement, la duplication et la suppression portent toujours sur le bloc Activité–Récupération complet.
 ### 3. Démarrer une séance
 
 L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
@@ -218,7 +222,7 @@ Les modifications s'appliquent uniquement aux occurrences futures.
 ### Supprimer une routine
 
 1. Depuis la vue Semaine, révéler l’action **Supprimer** par glissement gauche.
-2. Pour une planification périodique, choisir **Cette occurrence** ou **Cette occurrence et les suivantes**.
+2. Pour une planification périodique, choisir **Seulement cette occurrence** ou **Toutes les occurrences à venir** ; **Annuler** occupe une seconde ligne en pleine largeur.
 3. Confirmer la suppression.
 
 Les occurrences futures cessent d'être générées. Les Exécutions déjà enregistrées sont conservées. Les occurrences planifiées passées non exécutées ne sont pas présentées dans l'interface du MVP.
@@ -226,9 +230,9 @@ Les exécutions déjà réalisées sont conservées.
 
 # Parcours complémentaire 3 — Archiver puis supprimer une Séance
 
-1. Depuis `Toutes` ou `Planifiées`, révéler les actions d’une Séance active par glissement gauche.
+1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
-3. Ouvrir `Archivées`.
+3. Activer le filtre `Archivées` depuis le futur bouton Filtrer.
 4. Glisser la carte vers la gauche : l’action `Supprimer` se superpose à la carte sans la déplacer.
 5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
 
@@ -273,9 +277,9 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - son statut.
 6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.
 7. La séance est enregistrée dans l'historique avec son statut :
-- Terminée : la séance a été exécutée jusqu'à son terme et toutes les activités ont été terminées.
-- Partielle : la séance a été exécutée jusqu'à son terme, mais au moins une activité a été interrompue ou ignorée.
-- Interrompue : la séance a été arrêtée avant la fin prévue.
+- Terminée : toutes les Activités ont été terminées normalement et la phase `SESSION_END` a été achevée.
+- Partielle : la phase `SESSION_END` a été achevée, mais au moins une Activité a été interrompue ou ignorée.
+- Interrompue : l'Exécution a été arrêtée avant l'achèvement de `SESSION_END`, y compris pendant cette phase.
 ## Points d'attention
 
 - Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours. Au retour dans l’application, si une Exécution était `En cours`, l’utilisateur doit choisir **Reprendre la séance** ou **Arrêter la séance** avant de pouvoir démarrer une nouvelle Exécution.
@@ -363,3 +367,30 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - comparer les performances entre différentes séances ;
 - produire des tableaux de bord personnalisés ;
 - partager certaines statistiques avec un professionnel.
+
+# Parcours validés — bibliothèque d’Activités et Circuits
+
+## Utiliser une Activité de référence — V2
+
+1. Ouvrir `Activités` dans le Catalogue.
+2. Créer une référence d’Activité non exécutable seule.
+3. Depuis une Composition, choisir une référence existante.
+4. L’application copie ses données et ses associations média dans la Séance.
+5. Modifier librement la copie sans modifier la référence ni les autres copies.
+
+Une Activité créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes activités` est reportée au-delà de la première version de la bibliothèque.
+
+## Exécuter un Exercice À l’échec — MVP
+
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute avant la Série suivante. Après la dernière Série, la Récupération configurée s’exécute une seule fois ; si elle vaut `0 s`, l’Activité suivante commence immédiatement.
+
+## Créer et exécuter un Circuit — V2
+
+1. Renseigner un nom et une couleur.
+2. Ajouter au moins deux étapes, chacune référençant une Séance ; une même Séance peut être ajoutée plusieurs fois.
+3. Choisir une transition manuelle ou automatique ; l’automatique utilise une durée commune, `30 s` par défaut.
+4. Lancer manuellement le Circuit. Le lancement fige un instantané.
+5. Après chaque Séance intermédiaire, remplacer son écran de fin par l’écran de transition ; conserver ensuite le compte à rebours initial de la Séance suivante.
+6. Après la dernière Séance, afficher la fin du Circuit et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
+
+En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.

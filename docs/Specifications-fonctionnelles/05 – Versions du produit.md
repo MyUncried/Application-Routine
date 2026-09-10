@@ -7,22 +7,24 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 ### Fonctionnalités
 
 - créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
-- créer des activités de type Exercice ou Récupération ;
+- créer des Activités sans sélection de type ;
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
-  - une durée ou un nombre de répétitions ;
+  - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-  - une pause éventuelle appliquée après chaque Série ;
-- ne pas associer de média à une Activité dans le MVP ; préparer l’évolution vers au plus un média par Activité ;
+  - une Pause éventuelle appliquée uniquement entre les Séries ;
+  - une Récupération éventuelle exécutée une fois après toutes les Séries ;
+  - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
+- ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
 - ordonner les activités d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
 - ordonner les Activités dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
-- annoncer vocalement le nom de chaque activité au moment où elle commence ; pour une Récupération générée par une pause après Série, l’annonce peut utiliser le libellé « Pause » ;
+- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage de sa phase de Récupération éventuelle ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
-- ne pas émettre de bip de rythme pendant les activités de type Récupération, qu’elles aient été ajoutées explicitement ou générées par une pause après Série ;
+- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant la phase de Récupération après l’Activité ;
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
@@ -32,7 +34,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - utiliser une minuterie pour les exercices définis par une durée ;
 - mettre la séance en pause et la reprendre ;
 - maintenir, dans la mesure permise par le système d’exploitation, le guidage sonore lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan ;
-- terminer normalement un Exercice en Répétition ou passer manuellement à l’Activité suivante ;
+- terminer normalement chaque Série d’un Exercice en Répétitions ou À l’échec avec `Suivant`, ou passer manuellement à l’Activité suivante ;
 - afficher la Série et le Tour en cours, sans afficher le Cycle ;
 - interrompre ou terminer une séance ;
 - enregistrer localement :
@@ -64,6 +66,10 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ---
 
+## MVP bis – Compléments immédiats
+
+- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
+
 ## V2 – Réutilisation avancée des séances
 
 ### Objectif
@@ -77,12 +83,12 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - copier son contenu afin qu’il devienne indépendant de la séance source ;
 - développer, replier et modifier une séance intégrée ;
 - enrichir les structures d’échauffement et de fin de séance si les tests montrent ce besoin ;
-- calculer la durée estimée des structures complexes ;
+- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Activités affichée dans le Catalogue et la Composition ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
 - ajouter la Vue d’ensemble analytique et activer les commandes `Filtrer` et `Trier` déjà visibles dans le MVP ;
-- permettre l’association d’au plus un média par Activité ;
+- permettre l’association de `0..n` photos ou vidéos ordonnées par Activité ;
 - l'activation/la désactivation du bip grave à chaque seconde pendant les exercices chronométrés devient paramétrable dans les Préférences.
 
 #### Internationalisation
@@ -104,7 +110,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou Activités réutilisables entre plusieurs Séances. Chaque élément reste propre à la Séance dans laquelle il a été créé.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. La bibliothèque V2 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -177,3 +183,25 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### V1 (MVP)
 - Gestion des séances actives et archivées.
 - Gestion des routines de planification.
+
+## Répartition validée — 6 septembre 2026
+
+### MVP
+
+- troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
+- Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
+- bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
+- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- modèle et calculs de Récupération après l’Activité préparés avant T03 ; T03 reste limité à une Série et refuse explicitement les Séances multi-Séries.
+
+### V2
+
+- catalogue et CRUD des Activités de référence ;
+- ajout dans une Séance par copie indépendante ; pas d’action `Enregistrer dans mes activités` dans la première livraison ;
+- `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
+- création, modification, archivage, suppression et exécution manuelle des Circuits ;
+- écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
+
+### V3
+
+- planification, récurrences, calendrier, rappels et notifications des Circuits.

@@ -1,1 +1,67 @@
-@AGENTS.md
+@docs/AGENTS.md
+@.github/AI_ORCHESTRATION.md
+@.github/AI_ORCHESTRATION_CONTINUITY.md
+
+## Livraison documentaire obligatoire de chaque mission
+
+Toute mission Claude, quelle que soit sa nature — diagnostic, audit, développement, correction, revue, test ou investigation — doit produire ou mettre à jour un rapport Markdown versionné dans le répertoire de rapports défini par le projet (`.github/orchestration/reports/`).
+
+Cette obligation est une condition de clôture permanente.
+
+Une réponse affichée uniquement dans la conversation, le terminal, une synthèse GitHub ou un commentaire ne constitue pas un livrable.
+
+Le rapport doit contenir au minimum :
+
+- identifiant et objectif de la mission ;
+- branche et commit de départ ;
+- périmètre demandé ;
+- périmètre réellement traité ;
+- constats ;
+- preuves et tests ;
+- hypothèses non démontrées ;
+- modifications réalisées ;
+- éléments non corrigés ou hors périmètre ;
+- vérifications restant à effectuer sur appareil réel ;
+- fichiers modifiés ;
+- commit final ;
+- état Git.
+
+Règles selon le type de mission :
+
+- **diagnostic, audit, revue ou test sans correction** : aucun fichier applicatif ne doit être modifié ; le rapport Markdown constitue une modification documentaire expressément autorisée et doit être committé ;
+- **développement ou correction** : le rapport Markdown doit être inclus dans le commit de livraison ou dans un commit documentaire final explicitement rattaché au commit de code ;
+- **mission bloquée ou interrompue** : un rapport d'état doit être produit et committé avant l'arrêt, sauf impossibilité technique démontrée.
+
+Aucune instruction ponctuelle interdisant les modifications, les commits ou les livraisons ne suspend implicitement cette obligation.
+
+Les expressions telles que :
+
+- « ne modifier aucun fichier » ;
+- « diagnostic seul » ;
+- « ne créer aucun commit » ;
+- « analyse uniquement » ;
+
+doivent être interprétées comme :
+
+- ne modifier aucun fichier applicatif ;
+- ne committer aucune modification applicative ;
+- créer et committer néanmoins le rapport documentaire obligatoire.
+
+Cette obligation ne peut être suspendue que par une instruction explicite contenant exactement :
+
+`EXCEPTION EXPRESSE — AUCUN RAPPORT DE MISSION`
+
+En cas de contradiction ou d'ambiguïté, Claude doit demander un arbitrage avant de clôturer la mission.
+
+Claude ne peut déclarer une mission terminée qu'après avoir fourni :
+
+1. le chemin exact du rapport ;
+2. le hash du commit qui contient le rapport ;
+3. l'état Git final ;
+4. les résultats des tests ou la mention explicite qu'aucun test n'était applicable.
+
+Convention de nommage : `YYYY-MM-DD_<identifiant-de-mission>.md`.
+
+Ne pas remplacer ou écraser les rapports antérieurs correspondant à une autre mission.
+
+> Note de consolidation (2026-09-03) : cette section remplace et rend normative la règle jusqu'ici uniquement conversationnelle appliquée depuis `T01_S01_S08_CONFORMITY_AUDIT_20260902.md` (jamais écrite dans un fichier suivi avant ce jour). Les deux rapports déjà produits sous l'ancienne convention informelle (`<PERIMETRE>_<TYPE>_YYYYMMDD.md` : `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`, `T01_INTERACTIVE_CONTROLS_DIAGNOSTIC_20260903.md`) n'ont pas été renommés — un renommage changerait des chemins déjà référencés ailleurs et n'a pas été explicitement demandé. La convention `YYYY-MM-DD_<identifiant-de-mission>.md` ci-dessus s'applique à tout nouveau rapport à partir de cette consolidation.

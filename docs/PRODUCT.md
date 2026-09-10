@@ -39,13 +39,9 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 ### Activité
 
-Une Activité est un élément exécutable de la Séance.
+Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance. En V2, elle peut aussi exister comme référence persistante autonome dans le catalogue Activités ; son ajout à une Séance crée une copie indépendante.
 
-Le MVP distingue :
-- Exercice ;
-- Récupération.
-
-Un Exercice est défini soit par une Durée, soit par un Nombre de répétitions. Une Récupération est chronométrée.
+Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle peut définir une Pause entre les Séries et une Récupération optionnelle exécutée une seule fois après toutes ses Séries. `Récupération` n’est plus un type d’Activité.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -55,7 +51,9 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Une Pause après Série peut être définie pour un Exercice. Lorsqu’elle est renseignée, elle s’applique après chaque Série selon les règles détaillées. Les Récupérations techniques effectivement générées font partie du plan d’Exécution, mais pas du nombre d’Activités de la Composition.
+Une Pause entre Séries peut être définie pour une Activité. Lorsqu’elle est renseignée, elle s’applique uniquement entre deux Séries : elle n’est jamais ajoutée après la dernière Série. Une Récupération distincte peut être définie ; elle s’exécute une seule fois après toutes les Séries, appartient à l’Activité et n’augmente jamais le nombre d’Activités de la Composition.
+
+En mode Durée, la Durée totale d’une occurrence d’Activité est calculée par `Séries × Durée + (Séries − 1) × Pause + Récupération`. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
 
 ### Tour et Cycle
 
@@ -78,7 +76,8 @@ Chaque Exécution repose sur un instantané JSON immuable de la Séance au déma
 Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
-- associer des catégories ;
+- associer zéro, une ou plusieurs Catégories ;
+- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
@@ -97,9 +96,9 @@ Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Aucune Récupération n’est ajoutée implicitement entre deux Activités, hors Récupérations techniques explicitement générées par une Pause après Série configurée.
+Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après toutes ses Séries, y compris pour la dernière Activité avant `SESSION_END`.
 
-Une Activité ne possède aucun média dans le MVP. Le modèle et l’architecture doivent permettre d’ajouter au plus un média par Activité dans une version ultérieure.
+Une Activité ne possède aucun média fonctionnel dans le MVP. Le bouton `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2, une Activité peut associer `0..n` photos ou vidéos ordonnées.
 
 ### Exécution d’une Séance
 
@@ -116,7 +115,9 @@ Le MVP permet de :
 
 Pour une Activité chronométrée passée avant son terme, une confirmation est demandée et le Résultat d’Activité est enregistré `Partielle` si le passage est confirmé.
 
-Pour un Exercice en mode Répétition, `Activité suivante` constitue la fin normale de l’Activité et ne demande pas de confirmation.
+Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
+
+Une Récupération d’Activité est une phase chronométrée. Elle annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Activité suivante` après confirmation. L’Exercice reste alors terminé et la Récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement cette phase. Un arrêt pendant la Récupération produit une Exécution `Interrompue`.
 
 Un arrêt volontaire confirmé produit une Exécution `Interrompue` et ouvre la Synthèse. Une interruption technique ou système peut produire une Exécution `Interrompue` sans affichage de la Synthèse et donc sans Ressenti.
 
@@ -124,9 +125,9 @@ Aucun retour à l’Activité précédente n’est inclus dans le MVP.
 
 ### Calculs et progression
 
-La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution.
+La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution, Récupérations d’Activité comprises.
 
-Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétition. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`.
+Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`, qui additionne les Pauses et Récupérations connues.
 
 Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
 
@@ -137,7 +138,7 @@ Trois indicateurs d’Activités sont distingués :
 
 La barre de progression utilise une pondération hybride :
 - les Activités chronométrées sont pondérées proportionnellement à leur durée ;
-- chaque occurrence d’Exercice en mode Répétition reçoit un poids `1/N`, où `N` est le Nombre total d’Activités à exécuter ;
+- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Activités à exécuter ;
 - la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée.
 
 La barre est visuellement continue, sans frontière de segment visible.
@@ -155,7 +156,7 @@ Le guidage comprend :
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
-En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
+En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’une Activité chronométrée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
 
 ### Planification et Calendrier
 
@@ -249,7 +250,7 @@ Le MVP comporte quatre onglets :
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. Les catégories qualifient les Séances.
-8. Les zones corporelles qualifient uniquement les Exercices.
+8. Les zones corporelles qualifient les Activités ; elles restent facultatives.
 9. La couleur appartient à la Séance et est reprise par ses Routines.
 10. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 11. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
@@ -264,8 +265,7 @@ Les principaux écrans du MVP sont :
 - Catalogue des Séances ;
 - création du nom et de la couleur d’une Séance ;
 - Composition d’une Séance ;
-- création ou modification d’un Exercice ;
-- création ou modification d’une Récupération ;
+- création ou modification d’une Activité ;
 - options d’une Activité ;
 - catégories de la Séance ;
 - Calendrier semaine et mois ;
@@ -275,7 +275,7 @@ Les principaux écrans du MVP sont :
 - Synthèse de Séance ;
 - Suivi — Séances.
 
-Les maquettes Figma validées définissent la présentation de référence. Les règles fonctionnelles détaillées sont décrites dans `docs/Specifications-fonctionnelles`.
+Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et les contrats d’écran concernés. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
 ## 9. Contraintes techniques initiales
 
@@ -309,11 +309,26 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
-- association d’au plus un média par Activité ;
+- bibliothèque d’Activités persistantes, réutilisées par copie indépendante ;
+- association de `0..n` photos ou vidéos ordonnées par Activité ;
+- Circuits persistants composés d’au moins deux Séances ordonnées, exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
-- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
+- intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
+- suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.
 
-## 11. Gouvernance documentaire
+## 11. Évolution Activités, Catalogue et Circuits — décision du 6 septembre 2026
+
+Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les anciens segments `Toutes`, `Planifiées` et `Archivées` ne sont plus une navigation principale : ces états deviennent des filtres dédiés.
+
+Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni durée ni répétitions cibles et utilise exactement le mécanisme du mode Répétitions : l’utilisateur termine chaque Série avec `Suivant`. La durée affichée est une borne minimale fondée sur les seuls temps connus.
+
+En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
+
+La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03. T03 continue toutefois à refuser le démarrage d’une Séance contenant une Activité à plusieurs Séries ; leur exécution complète relève de T04.
+
+Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées. Il référence les Séances existantes, autorise plusieurs occurrences d’une même Séance et ne possède pas de compteur de répétition d’étape. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance de ses étapes. La planification des Circuits relève de la V3.
+
+## 12. Gouvernance documentaire
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
@@ -333,3 +348,5 @@ Toute évolution fonctionnelle doit préciser son impact sur :
 - API ou services ;
 - architecture technique ;
 - version du produit.
+
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.

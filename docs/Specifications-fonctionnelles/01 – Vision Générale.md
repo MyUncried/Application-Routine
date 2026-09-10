@@ -22,7 +22,7 @@ KODJO réunit dans une même application :
 - un Catalogue des séances ;
 - la création et la modification de Séances structurées ;
 - un calendrier et la planification individuelle ;
-- une Exécution guidée, adaptée aux Activités chronométrées ou en Répétitions ;
+- une Exécution guidée, adaptée aux Activités chronométrées, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
@@ -60,7 +60,9 @@ Une Séance contient :
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est un Exercice ou une Récupération. Un Exercice est défini par une durée ou un nombre de répétitions, comprend au moins une Série et peut inclure une Pause après Série. Une Récupération est toujours chronométrée.
+Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries et une Récupération chronométrée facultative exécutée une seule fois après toutes ses Séries. `Récupération` n’est plus un type d’Activité distinct.
+
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires et la Récupération finale. Cette évolution prépare le moteur d’Exécution sans étendre T03 à plusieurs Séries, prise en charge reportée à T04.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
 
@@ -72,7 +74,7 @@ Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendri
 
 L’Exécution présente l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression. Le Cycle n’est jamais exposé.
 
-L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’une Activité chronométrée, ou après 2 heures sans interaction pour un Exercice en Répétitions.
+L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’une Activité chronométrée, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec.
 
 ### Suivi
 
@@ -105,10 +107,15 @@ Les évolutions envisagées comprennent notamment :
 - comptes, synchronisation et sauvegarde distante ;
 - partage de Séances et groupes ;
 - interface destinée aux professionnels ;
-- ajout d’au plus un média par Activité ;
+- ajout de `0..n` photos ou vidéos ordonnées par Activité ;
 - statistiques, filtres et tableaux de bord ;
 - connexions à des calendriers et services de santé ;
 - prise en charge de langues supplémentaires.
 
 Ces perspectives orientent l’architecture, mais ne doivent pas être présentées comme des fonctions disponibles dans le MVP.
 
+## Cible fonctionnelle confirmée
+
+Le MVP reste centré sur les Séances, tout en intégrant le mode d’Exercice `À l’échec`. Le sélecteur du Catalogue annonce l’architecture future `Activités / Séances / Circuits`, mais seules les Séances sont actives dans le MVP.
+
+La V2 apporte une bibliothèque d’Activités persistantes réutilisables par copie, des médias multiples ordonnés et des Circuits persistants exécutables manuellement. La V3 étend la planification aux Circuits. Cette trajectoire préserve l’autonomie des copies de Séance et l’immutabilité de l’historique.
