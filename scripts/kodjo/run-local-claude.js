@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 'use strict';
 
 const fs = require('node:fs');
@@ -73,7 +73,7 @@ function main() {
   const repoRoot = git(['rev-parse', '--show-toplevel'], process.cwd());
   let request;
   try {
-    request = normalizeRequest(JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8')), repoRoot);
+    request = normalizeRequest(JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, '')), repoRoot);
   } catch (err) {
     return die('REQUEST_REFUSED', err.message);
   }
@@ -92,11 +92,11 @@ function main() {
   if (fetch.error || fetch.status !== 0) return die('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
   let upstream;
   try { upstream = git(['rev-parse', '@{upstream}'], repoRoot); }
-  catch (_) { return die('UPSTREAM_NOT_CONFIGURED', 'la branche courante ne possède pas de branche distante de suivi'); }
-  if (upstream !== head) return die('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi après fetch');
+  catch (_) { return die('UPSTREAM_NOT_CONFIGURED', 'la branche courante ne possÃ¨de pas de branche distante de suivi'); }
+  if (upstream !== head) return die('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi aprÃ¨s fetch');
 
   const token = process.env.CLAUDE_CODE_OAUTH_TOKEN || '';
-  if (!token) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exécutez setup-kodjo-claude-auth.ps1 une fois');
+  if (!token) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
 
   const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
   const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : 'claude';
@@ -104,7 +104,7 @@ function main() {
   if (version.error || version.status !== 0) return die('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
   const versionText = String(version.stdout || version.stderr).trim();
   if (!new RegExp('(^|\\s)' + CLAUDE_CODE_VERSION.replace(/\./g, '\\.') + '(\\s|$)').test(versionText)) {
-    return die('CLAUDE_VERSION_REFUSED', 'attendu ' + CLAUDE_CODE_VERSION + ', reçu ' + versionText);
+    return die('CLAUDE_VERSION_REFUSED', 'attendu ' + CLAUDE_CODE_VERSION + ', reÃ§u ' + versionText);
   }
 
   const stateRoot = process.env.KODJO_STATE_ROOT
@@ -159,9 +159,9 @@ function main() {
   delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
   delete process.env.ANTHROPIC_API_KEY;
   const afterRefs = refs(repoRoot);
-  if (beforeRefs !== afterRefs) return die('FUNCTIONAL_REF_MUTATION_DETECTED', 'Claude a modifié une référence Git');
+  if (beforeRefs !== afterRefs) return die('FUNCTIONAL_REF_MUTATION_DETECTED', 'Claude a modifiÃ© une rÃ©fÃ©rence Git');
   if (sha256(fs.readFileSync(request.prompt_file)) !== promptHashBefore) {
-    return die('PROMPT_MUTATION_DETECTED', 'le fichier de mission a été modifié');
+    return die('PROMPT_MUTATION_DETECTED', 'le fichier de mission a Ã©tÃ© modifiÃ©');
   }
   const files = changedFiles(repoRoot).filter((f) => {
     const normalized = f.replace(/\\/g, '/');
@@ -182,7 +182,7 @@ function main() {
   };
   fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(summary, null, 2) + '\n', 'utf8');
   process.stdout.write('\n[KODJO_V2] ' + summary.status + '\n');
-  process.stdout.write('[KODJO_V2] fichiers modifiés: ' + (files.join(', ') || 'aucun') + '\n');
+  process.stdout.write('[KODJO_V2] fichiers modifiÃ©s: ' + (files.join(', ') || 'aucun') + '\n');
   for (const c of checks) process.stdout.write('[KODJO_V2] ' + c.check + '=' + c.status + '\n');
   if (outside.length) process.stderr.write('[KODJO_V2] SCOPE_VIOLATION: ' + outside.join(', ') + '\n');
   process.stdout.write('[KODJO_V2] diagnostic: ' + path.join(runDir, 'result.json') + '\n');
@@ -194,3 +194,4 @@ if (require.main === module) {
 }
 
 module.exports = { inScope, changedFiles, refs };
+

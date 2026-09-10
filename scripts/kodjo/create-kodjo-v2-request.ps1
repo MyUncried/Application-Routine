@@ -49,5 +49,6 @@ $request = [ordered]@{
     max_rollovers = 0
   }
 }
-$request | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $Output -Encoding UTF8
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[IO.File]::WriteAllText([IO.Path]::GetFullPath($Output), ($request | ConvertTo-Json -Depth 5), $utf8NoBom)
 Write-Host "KODJO_V2_REQUEST_CREATED=$Output"
