@@ -82,9 +82,11 @@ function restoreRecovery(stateRoot, repoRoot, request) {
   if (request.mode !== 'RESUME_DELTA') return [];
   const runsRoot = path.join(stateRoot, 'runs');
   if (!fs.existsSync(runsRoot)) throw new Error('RECOVERY_NOT_FOUND');
-  const candidates = fs.readdirSync(runsRoot, { withFileTypes: true })
+  const runDirs = fs.readdirSync(runsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(runsRoot, entry.name, 'recovery.json'))
+    .map((entry) => path.join(runsRoot, entry.name));
+  const candidates = runDirs
+    .map((dir) => path.join(dir, 'recovery.json'))
     .filter((file) => fs.existsSync(file))
     .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
   let recovery = null;
@@ -98,7 +100,41 @@ function restoreRecovery(stateRoot, repoRoot, request) {
       break;
     }
   }
-  if (!recovery) throw new Error('RECOVERY_NOT_FOUND');
+  if (!recovery) {
+    if (!request.allow_legacy_recovery_bootstrap) throw new Error('RECOVERY_NOT_FOUND');
+    const legacyResults = runDirs
+      .map((dir) => path.join(dir, 'result.json'))
+      .filter((file) => fs.existsSync(file))
+      .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    let legacy = null;
+    for (const file of legacyResults) {
+      const candidate = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
+      if (candidate.session_id === request.session_id &&
+          String(candidate.run_id || '').startsWith(request.slice_id + '-') &&
+          Array.isArray(candidate.modified_files)) {
+        legacy = candidate;
+        break;
+      }
+    }
+    if (!legacy) throw new Error('LEGACY_RECOVERY_SOURCE_NOT_FOUND');
+    const markerRoot = path.join(stateRoot, 'legacy-recovery-bootstrap');
+    const markerPath = path.join(markerRoot, request.slice_id + '-' + request.session_id + '.json');
+    fs.mkdirSync(markerRoot, { recursive: true });
+    try {
+      fs.writeFileSync(markerPath, JSON.stringify({
+        schema_version: 'kodjo.protocol.v2.legacy-recovery-bootstrap.0.6.15',
+        slice_id: request.slice_id,
+        session_id: request.session_id,
+        prior_run_id: legacy.run_id,
+        lost_modified_files: legacy.modified_files,
+        created_at: new Date().toISOString(),
+      }, null, 2) + '\n', { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+    } catch (err) {
+      if (err && err.code === 'EEXIST') throw new Error('LEGACY_RECOVERY_BOOTSTRAP_ALREADY_USED');
+      throw err;
+    }
+    return [];
+  }
   for (const entry of recovery.entries || []) {
     const normalized = String(entry.path || '').replace(/\\/g, '/');
     if (!inScope(normalized, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + normalized);
