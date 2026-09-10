@@ -99,8 +99,10 @@ function main() {
   if (!token) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
 
   const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
-  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : 'claude';
-  const version = command(claudeBin, ['--version'], repoRoot, process.env, 30000);
+  const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js') : null;
+  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli ? process.execPath : 'claude');
+  const claudePrefix = claudeCli ? [claudeCli] : [];
+  const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
   if (version.error || version.status !== 0) return die('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
   const versionText = String(version.stdout || version.stderr).trim();
   if (!new RegExp('(^|\\s)' + CLAUDE_CODE_VERSION.replace(/\./g, '\\.') + '(\\s|$)').test(versionText)) {
@@ -145,10 +147,10 @@ function main() {
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const args = buildArgs(request, runDir, prompt);
     intent.state = 'EXTERNAL_CALL_SENT';
-    intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...args.slice(0, -1), '[PROMPT]']));
+    intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const claudeEnv = { ...process.env };
-    result = command(claudeBin, args, repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
+    result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
     fs.writeFileSync(path.join(runDir, 'claude-output.json'), redact(result.stdout || ''), 'utf8');
     fs.writeFileSync(path.join(runDir, 'claude-stderr.txt'), redact(result.stderr || ''), 'utf8');
   } finally {
