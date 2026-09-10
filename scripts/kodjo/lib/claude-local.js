@@ -3,6 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const { loadAndValidate } = require('./slice-identity');
 
 const CLAUDE_CODE_VERSION = '2.1.263';
 const MODES = new Set(['INITIAL', 'RESUME_DELTA']);
@@ -54,7 +55,7 @@ function sha256(value) {
 
 function adapterConfig() {
   return {
-    bridge_logical_id: 'kodjo-v2-claude-local-0.6.11',
+    bridge_logical_id: 'kodjo-v2-claude-local-0.6.12',
     claude_code_version: CLAUDE_CODE_VERSION,
     non_interactive: true,
     output_format: 'json',
@@ -75,7 +76,7 @@ function adapterConfigHash() {
 
 function normalizeRequest(raw, repoRoot) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('REQUEST_INVALID');
-  if (raw.schema_version !== 'kodjo.protocol.v2.local-implementation.0.6.11') {
+  if (raw.schema_version !== 'kodjo.protocol.v2.local-implementation.0.6.12') {
     throw new Error('REQUEST_SCHEMA_UNSUPPORTED');
   }
   const mode = String(raw.mode || '').toUpperCase();
@@ -87,6 +88,12 @@ function normalizeRequest(raw, repoRoot) {
   }
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(String(raw.slice_id || ''))) throw new Error('SLICE_ID_INVALID');
   if (!/^[0-9a-f]{40}$/.test(String(raw.source_head || ''))) throw new Error('SOURCE_HEAD_INVALID');
+
+  const bootstrapFile = String(raw.slice_bootstrap_file || '');
+  const identity = loadAndValidate(repoRoot, bootstrapFile);
+  if (identity.bootstrap.slice_id !== String(raw.slice_id)) throw new Error('SLICE_BOOTSTRAP_SLICE_MISMATCH');
+  if (identity.bootstrap.baseline_head !== String(raw.baseline_head || '')) throw new Error('SLICE_BOOTSTRAP_BASELINE_MISMATCH');
+  if (identity.hash !== String(raw.slice_bootstrap_sha256 || '')) throw new Error('SLICE_BOOTSTRAP_REQUEST_HASH_MISMATCH');
 
   const promptFile = path.resolve(repoRoot, String(raw.prompt_file || ''));
   if (!promptFile.startsWith(repoRoot + path.sep) || !fs.statSync(promptFile).isFile()) {
@@ -111,6 +118,9 @@ function normalizeRequest(raw, repoRoot) {
     schema_version: raw.schema_version,
     slice_id: String(raw.slice_id),
     source_head: String(raw.source_head),
+    baseline_head: identity.bootstrap.baseline_head,
+    slice_bootstrap_file: bootstrapFile,
+    slice_bootstrap_sha256: identity.hash,
     mode, session_id: sessionId,
     prompt_file: promptFile,
     scope_allow: scopes,
@@ -139,6 +149,8 @@ function buildPrompt(request, taskText, configDir) {
     'KODJO V2 LOCAL IMPLEMENTATION — ' + request.mode,
     'Slice: ' + request.slice_id,
     'Source HEAD: ' + request.source_head,
+    'Baseline HEAD: ' + request.baseline_head,
+    'Slice bootstrap SHA-256: ' + request.slice_bootstrap_sha256,
     '',
     'Mission:',
     taskText.trim(),

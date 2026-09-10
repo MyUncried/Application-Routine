@@ -1,8 +1,9 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9._-]{1,80}$')][string]$SliceId,
   [Parameter(Mandatory = $true)][string]$PromptFile,
   [Parameter(Mandatory = $true)][string[]]$ScopeAllow,
+  [Parameter(Mandatory = $true)][string]$SliceBootstrapFile,
   [ValidateSet('INITIAL', 'RESUME_DELTA')][string]$Mode = 'INITIAL',
   [string]$SessionId = '',
   [string[]]$Checks = @('jest', 'typescript', 'lint'),
@@ -13,6 +14,19 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = (git rev-parse --show-toplevel).Trim()
 if (-not $repoRoot) { throw 'KODJO_V2_REPOSITORY_NOT_FOUND' }
 $head = (git rev-parse HEAD).Trim()
+$repoAbsolute = [IO.Path]::GetFullPath($repoRoot)
+$bootstrapAbsolute = if ([IO.Path]::IsPathRooted($SliceBootstrapFile)) {
+  [IO.Path]::GetFullPath($SliceBootstrapFile)
+} else {
+  [IO.Path]::GetFullPath((Join-Path $repoRoot $SliceBootstrapFile))
+}
+if (-not $bootstrapAbsolute.StartsWith($repoAbsolute + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+  throw 'SLICE_BOOTSTRAP_FILE_MUST_BE_INSIDE_REPOSITORY'
+}
+$bootstrapRelative = $bootstrapAbsolute.Substring($repoAbsolute.TrimEnd('\').Length).TrimStart('\').Replace('\', '/')
+$bootstrapHash = (& node (Join-Path $PSScriptRoot 'validate-slice-bootstrap.js') $repoRoot $bootstrapRelative $head).Trim()
+if ($LASTEXITCODE -ne 0 -or $bootstrapHash -notmatch '^[0-9a-f]{64}$') { throw 'KODJO_V2_IDENTITY_REFUSED' }
+$bootstrap = Get-Content -LiteralPath $bootstrapAbsolute -Raw -Encoding UTF8 | ConvertFrom-Json
 $promptAbsolute = if ([IO.Path]::IsPathRooted($PromptFile)) {
   [IO.Path]::GetFullPath($PromptFile)
 } else {
@@ -32,9 +46,12 @@ if (-not $Output) {
 }
 
 $request = [ordered]@{
-  schema_version = 'kodjo.protocol.v2.local-implementation.0.6.11'
+  schema_version = 'kodjo.protocol.v2.local-implementation.0.6.12'
   slice_id = $SliceId
   source_head = $head
+  baseline_head = $bootstrap.baseline_head
+  slice_bootstrap_file = $bootstrapRelative
+  slice_bootstrap_sha256 = $bootstrapHash
   mode = $Mode
   session_id = $(if ($SessionId) { $SessionId } else { $null })
   prompt_file = $relativePrompt

@@ -1,12 +1,20 @@
 {
-  "schema_version": "kodjo.protocol.v2.local-implementation.0.6.11",
+  "schema_version": "kodjo.protocol.v2.local-implementation.0.6.12",
   "slice_id": "EXAMPLE",
   "source_head": "0000000000000000000000000000000000000000",
   "mode": "INITIAL",
   "session_id": null,
   "prompt_file": "docs/kodjo-task.md",
-  "scope_allow": ["app/**", "src/**", "tests/**"],
-  "checks": ["jest", "typescript", "lint"],
+  "scope_allow": [
+    "app/**",
+    "src/**",
+    "tests/**"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
   "limits": {
     "max_ai_calls": 1,
     "max_turns": 12,
@@ -14,5 +22,8 @@
     "max_prompt_bytes": 32768,
     "max_total_prompt_bytes": 32768,
     "max_rollovers": 0
-  }
+  },
+  "baseline_head": "0000000000000000000000000000000000000000",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/EXAMPLE/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
 }

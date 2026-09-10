@@ -342,6 +342,8 @@ test('exception shell — aucune entree de workflow ne peut remplacer les comman
       'failed_checks',
       'issue_number',
       'mode',
+      'slice_bootstrap_file',
+      'slice_bootstrap_sha256',
       'scope_allow',
       'source_artifact_sha256',
       'source_head',
