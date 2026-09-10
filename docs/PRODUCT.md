@@ -41,7 +41,7 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance. En V2, elle peut aussi exister comme référence persistante autonome dans le catalogue Activités ; son ajout à une Séance crée une copie indépendante.
 
-Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle peut définir une Pause entre les Séries et une Récupération optionnelle exécutée une seule fois après toutes ses Séries. `Récupération` n’est plus un type d’Activité.
+Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle. Pour une Activité autonome, cette Récupération est exécutée une seule fois après tous ses côtés ; dans un Tour bilatéral, elle est exécutée une fois après chaque passage de côté. `Récupération` n’est plus un type d’Activité.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -51,15 +51,15 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Une Pause entre Séries peut être définie pour une Activité. Lorsqu’elle est renseignée, elle s’applique uniquement entre deux Séries : elle n’est jamais ajoutée après la dernière Série. Une Récupération distincte peut être définie ; elle s’exécute une seule fois après toutes les Séries, appartient à l’Activité et n’augmente jamais le nombre d’Activités de la Composition.
+Une Pause entre Séries peut être définie pour une Activité. Lorsqu’elle est renseignée, elle s’applique uniquement entre deux Séries d’un même côté : elle n’est jamais ajoutée après la dernière Série d’un côté ni entre les deux côtés. Une Récupération distincte peut être définie ; elle appartient à l’Activité, n’augmente jamais le nombre d’Activités de la Composition et s’exécute après tous les côtés d’une Activité autonome ou après chaque passage de côté dans un Tour bilatéral.
 
-En mode Durée, la Durée totale d’une occurrence d’Activité est calculée par `Séries × Durée + (Séries − 1) × Pause + Récupération`. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
+Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa Durée totale globale est calculée par `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée par Série, `B` la Pause et `R` la Récupération. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
 
 ### Tour et Cycle
 
 Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois.
+Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Il porte lui aussi un réglage de côté. À chaque répétition, un Tour bilatéral exécute toutes ses Activités pour le premier côté, puis toutes pour le second, selon la direction choisie. Le Tour porte alors seul la direction effective : les réglages propres de ses Activités sont remis à `UNILATERAL`, affichés désactivés et ne sont pas restaurés si le Tour redevient unilatéral.
 
 Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
@@ -68,6 +68,8 @@ Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre d
 Une Exécution est la réalisation effective d’une Séance.
 
 Chaque Exécution repose sur un instantané JSON immuable de la Séance au démarrage. Cet instantané garantit que l’historique reste lisible même si la Séance est ensuite modifiée ou supprimée.
+
+Pour un plan bilatéral, cet instantané conserve la direction effective et chaque Résultat d’Activité conserve son côté. L’interface affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité pendant le passage concerné, sans compteur `1/2` ou `2/2`.
 
 ## 4. Périmètre du MVP
 
@@ -96,7 +98,9 @@ Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après toutes ses Séries, y compris pour la dernière Activité avant `SESSION_END`.
+Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, y compris pour la dernière Activité avant `SESSION_END`.
+
+Le contrôle `Côtés` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. L’activation bilatérale d’un Tour demande confirmation, puis applique atomiquement la direction au Tour et remet ses Activités à `UNILATERAL`. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
 
 Une Activité ne possède aucun média fonctionnel dans le MVP. Le bouton `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2, une Activité peut associer `0..n` photos ou vidéos ordonnées.
 
@@ -107,6 +111,7 @@ Le MVP permet de :
 - construire le plan d’Exécution à partir de l’instantané ;
 - afficher l’Activité en cours, l’Activité suivante, le temps et la progression ;
 - afficher les informations de Série et de Tour, sans jamais exposer le Cycle ;
+- afficher le côté courant sous le nom de l’Activité lorsque la direction effective est bilatérale ;
 - réinitialiser l’Activité courante ;
 - mettre la Séance en Pause et la reprendre ;
 - passer à l’Activité suivante ;
@@ -117,6 +122,8 @@ Pour une Activité chronométrée passée avant son terme, une confirmation est 
 
 Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
+Une Activité bilatérale autonome exécute toutes ses Séries du premier côté puis toutes celles du second. Un Tour bilatéral exécute, à chaque répétition, tout son contenu du premier côté puis tout son contenu du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
+
 Une Récupération d’Activité est une phase chronométrée. Elle annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Activité suivante` après confirmation. L’Exercice reste alors terminé et la Récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement cette phase. Un arrêt pendant la Récupération produit une Exécution `Interrompue`.
 
 Un arrêt volontaire confirmé produit une Exécution `Interrompue` et ouvre la Synthèse. Une interruption technique ou système peut produire une Exécution `Interrompue` sans affichage de la Synthèse et donc sans Ressenti.
@@ -125,7 +132,7 @@ Aucun retour à l’Activité précédente n’est inclus dans le MVP.
 
 ### Calculs et progression
 
-La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution, Récupérations d’Activité comprises.
+La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution développé, passages bilatéraux et Récupérations d’Activité compris.
 
 Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`, qui additionne les Pauses et Récupérations connues.
 
@@ -143,10 +150,13 @@ La barre de progression utilise une pondération hybride :
 
 La barre est visuellement continue, sans frontière de segment visible.
 
+La progression globale tient compte de tous les passages développés. `Activité X/Y` conserve néanmoins le rang logique de l’Activité et ne change pas entre ses deux côtés.
+
 ### Guidage
 
 Le guidage comprend :
 - l’annonce vocale du nom de l’Activité au démarrage ;
+- l’annonce du côté au début du premier passage et une seule fois lors du passage au second côté ;
 - les sons prévus pendant les Activités chronométrées, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
 - un réglage global des sons dans le MVP ;
@@ -186,6 +196,7 @@ Chaque Exécution conserve notamment :
 - la Durée réelle ;
 - le statut ;
 - les Résultats d’Activités exécutées ;
+- le côté de chaque Résultat lorsque l’Activité est effectivement bilatérale ;
 - le Ressenti éventuel ;
 - un Commentaire facultatif limité à 200 caractères.
 
@@ -257,6 +268,8 @@ Le MVP comporte quatre onglets :
 12. Les occurrences du Calendrier sont calculées dynamiquement.
 13. Toutes les données du MVP sont stockées localement sur l’appareil.
 14. Les règles de calcul fonctionnelles sont déterministes et centralisées dans les spécifications.
+15. Une direction bilatérale n’est appliquée qu’à un seul niveau : celle du Tour prévaut, sinon celle de l’Activité.
+16. Les Résultats bilatéraux sont séparés par côté ; un seul côté partiellement réalisé rend l’Activité globale partielle.
 
 ## 8. Écrans de référence
 
@@ -324,7 +337,11 @@ Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni
 
 En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
 
-La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03. T03 continue toutefois à refuser le démarrage d’une Séance contenant une Activité à plusieurs Séries ; leur exécution complète relève de T04.
+La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03.
+
+Une tranche Configuration préalable à T03 livre les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, leur persistance, leur copie et leur duplication, les calculs et synthèses, les contrôles Activité et Tour, la confirmation d’activation d’un Tour et la résolution de la direction propre ou effective. Cette tranche n’exécute pas encore les passages bilatéraux.
+
+T03 est révisée pour exécuter les modes Durée, Répétitions et À l’échec, les Séries multiples, les répétitions du Tour et les passages bilatéraux. Elle développe le Plan d’Exécution, affiche le côté courant, pondère la progression, annonce les changements de côté, limite la réinitialisation au passage courant et conserve des Résultats séparés par côté. Les anciennes exclusions limitant T03 à une Série ou reportant cette exécution à T04 sont supprimées.
 
 Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées. Il référence les Séances existantes, autorise plusieurs occurrences d’une même Séance et ne possède pas de compteur de répétition d’étape. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance de ses étapes. La planification des Circuits relève de la V3.
 

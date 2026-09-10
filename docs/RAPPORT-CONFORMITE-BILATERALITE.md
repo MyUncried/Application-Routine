@@ -4,86 +4,76 @@ Date : 10 septembre 2026.
 
 ## Baseline et périmètre
 
-La seule baseline physique utilisée pour les écritures est `Documentation 08092026 - 19h05 - Avant MAJ avec bilatéralité.zip`. L’archive d’origine n’a pas été modifiée. La nouvelle archive conserve tous ses fichiers et ajoute uniquement les deux livrables explicitement attendus : la matrice Bilatéralité et le présent rapport.
+La correction finale a été contrôlée sur `main@a904c16dc2f77189c42012071ba8ff481f122410` et sur la copie de `docs/PRODUCT.md` issue de `/Dev` fournie le 10 septembre 2026.
 
-`PRODUCT.md` n’est pas présent dans la baseline ZIP. Il n’a donc pas été reconstruit ni ajouté depuis Git ou depuis une version antérieure. Son alignement physique est `NON VÉRIFIABLE` dans cette livraison. Les règles produit nécessaires sont néanmoins propagées dans `INDEX.md` et les chapitres `00` à `13` du corpus fourni.
+Le corpus documentaire contrôlé comprend `docs/PRODUCT.md`, `docs/INDEX.md`, les spécifications `00` à `13`, la matrice Bilatéralité et le présent rapport. Les manifestes historiques de tranches clôturées ne font pas partie du périmètre d’écriture et n’ont pas été modifiés.
+
+L’archive `Documentation 08092026 - 19h05 - Avant MAJ avec bilatéralité.zip` reste une preuve de provenance de la livraison initiale. Son absence de `PRODUCT.md` n’est plus une limite : la copie issue de `/Dev` a été fournie séparément, contrôlée et alignée.
 
 ## Résultat par axe
 
 | Axe | Résultat | Évidence |
 |---|---|---|
-| États et libellés | CONFORME | Valeurs techniques et libellés définis dans 00, 04, 08, 09, 12, 13. |
-| Activité bilatérale | CONFORME | Ordre par côté, Pauses, Récupération et formules alignés dans INDEX, 00, 06, 08–11, 13. |
-| Tour bilatéral | CONFORME | Héritage global, confirmation, remise à unilatéral et absence de capacité « latéralisable » dans 03, 04, 06–10, 13. |
-| Exécution | CONFORME | Plan développé, progression, annonces, reset et passage anticipé documentés dans 03, 06, 08, 10–13. |
-| Résultats | CONFORME | Côté persisté, idempotence et agrégation partielle définis dans 04, 09–13. |
-| Persistance et migration | CONFORME | Champs, défauts, copie, duplication, transaction et migration définis dans 04, 09, 11, 12. |
-| Découpage | CONFORME | Tranche Configuration puis T03 révisée dans INDEX, 05, 07, 10, 13. |
+| États et libellés | CONFORME | Valeurs techniques et libellés alignés dans PRODUCT, INDEX, 00, 04, 08, 09, 12 et 13. |
+| Activité bilatérale | CONFORME | Ordre par côté, Pauses, Récupération et formules alignés dans PRODUCT, INDEX, 00, 06, 08–11 et 13. |
+| Tour bilatéral | CONFORME | Héritage global, confirmation, remise à unilatéral et absence de capacité « latéralisable » dans PRODUCT, 03, 04, 06–10 et 13. |
+| Exécution | CONFORME | Plan développé, côté courant, progression, annonces, réinitialisation et passage anticipé documentés dans PRODUCT, 03, 06, 08 et 10–13. |
+| Résultats | CONFORME | Côté persisté, idempotence et agrégation partielle définis dans PRODUCT, 04 et 09–13. |
+| Persistance et migration | CONFORME | Champs, défauts, copie, duplication, transaction et migration définis dans 04, 09, 11 et 12. |
+| Découpage | CONFORME | Tranche Configuration puis T03 révisée dans PRODUCT, INDEX, 05, 07, 10 et 13. |
 | Figma | CONFORME | Six frames d’Exécution actualisées avec `Côté droit` sous le nom de l’Activité. |
-| `PRODUCT.md` physique | NON VÉRIFIABLE | Fichier absent de la baseline ZIP, donc volontairement non ajouté. |
+| `PRODUCT.md` | CONFORME | Ancienne formule, ancienne portée de Récupération et ancienne restriction T03 remplacées. |
+| Manifestes historiques | INCHANGÉS | Exclus explicitement du périmètre d’écriture. |
 
 ## Règles historiques remplacées
 
-- La formule unilatérale seule est remplacée par la formule paramétrée par `L`.
-- La Récupération « une fois après toutes les Séries » est contextualisée selon Activité autonome ou Tour bilatéral.
-- Les exclusions T03 « une seule Série » et « un seul Tour » sont supprimées.
-- La restriction supposant des Activités « latéralisables » dans un Tour est rejetée : toutes les Activités héritent du Tour.
-- L’indicateur envisagé `1/2` ou `2/2` est remplacé par le seul sous-titre de côté.
-- La création d’une nouvelle modale de passage anticipé est abandonnée ; la modale générique existante est conservée.
+- La formule unilatérale seule est remplacée par `D = L × [C × A + (C − 1) × B] + R`.
+- Le nombre de Séries d’une Activité autonome bilatérale s’entend par côté et la Durée totale est globale.
+- La Pause reste limitée aux Séries d’un même côté ; aucune Pause n’est ajoutée entre côtés.
+- La Récupération intervient une fois après tous les côtés d’une Activité autonome ou une fois par passage de côté dans un Tour bilatéral.
+- Un Tour bilatéral impose sa direction à toutes ses Activités ; aucune notion « latéralisable » n’existe.
+- Les exclusions T03 limitant l’Exécution à une Série ou reportant les Séries multiples à T04 sont supprimées.
+- Le côté courant est affiché uniquement par `Côté droit` ou `Côté gauche`, sans compteur `1/2` ou `2/2`.
+- La modale générique de passage anticipé reste inchangée.
+
+## Vérification transverse
+
+La recherche a porté sur les formulations actives relatives aux états de côté, à la formule de Durée totale, aux Pauses, aux Récupérations, à la priorité Tour/Activité, à la progression, aux Résultats, à T03 et aux références Figma.
+
+Aucune contradiction active n’a été trouvée dans `INDEX.md` ni dans les chapitres `00` à `13`. Les mentions de `1/2`, `2/2` et « latéralisable » qui subsistent y expriment explicitement leur exclusion. La référence post-T04 relevée dans le chapitre 09 concerne les associations média et non l’exécution bilatérale.
 
 ## Figma
 
 Frames actualisées : `1992:8626`, `1992:8132`, `1992:8530`, `1992:8428`, `1992:8224`, `1992:8326`.
 
-Le sous-titre est centré immédiatement sous `Squats assistés`, en texte secondaire de 16 points. Il reste visible derrière les voiles des trois modales. Les six captures `execution-*.png` correspondantes ont été réexportées.
+Le sous-titre est centré immédiatement sous le nom de l’Activité, en texte secondaire de 16 points. Il reste visible derrière les voiles des trois modales. Les six captures `execution-*.png` correspondantes ont été réexportées.
 
 ## Conclusion
 
-Les décisions `BIL-001` à `BIL-060` sont documentées et traçables dans le périmètre fourni. Aucune clarification fonctionnelle restante n’est identifiée. La seule limite est l’absence physique de `PRODUCT.md` dans la baseline, qui empêche d’en produire une mise à jour conforme aux règles de provenance.
+Les décisions `BIL-001` à `BIL-060` sont documentées et cohérentes dans l’ensemble du corpus canonique. `docs/PRODUCT.md` est aligné. Aucune clarification fonctionnelle ni contradiction documentaire active ne reste ouverte.
 
-## Fichiers modifiés
+La documentation Bilatéralité peut servir de source au protocole V2, sous réserve que la future tranche référence la baseline Git exacte utilisée à son ouverture.
 
-- `INDEX.md`
-- `Specifications-fonctionnelles/00 – Glossaire.md`
-- `Specifications-fonctionnelles/01 – Vision Générale.md`
-- `Specifications-fonctionnelles/02 – Utilisateurs et besoins.md`
-- `Specifications-fonctionnelles/03 – Parcours utilisateur.md`
-- `Specifications-fonctionnelles/04 – Modèle fonctionnel.md`
-- `Specifications-fonctionnelles/05 – Versions du produit.md`
-- `Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md`
-- `Specifications-fonctionnelles/07 – Registre des décisions de conception.md`
-- `Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md`
-- `Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md`
-- `Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md`
-- `Specifications-fonctionnelles/11 – API fonctionnelles.md`
-- `Specifications-fonctionnelles/12 – Architecture technique.md`
-- `Specifications-fonctionnelles/13 – Contrats d’écran.md`
-- `Specifications-fonctionnelles/images/execution-etat-initial.png`
-- `Specifications-fonctionnelles/images/execution-seance.png`
-- `Specifications-fonctionnelles/images/execution-bips-vocal-desactives.png`
-- `Specifications-fonctionnelles/images/execution-pause.png`
-- `Specifications-fonctionnelles/images/execution-reinitialiser.png`
-- `Specifications-fonctionnelles/images/execution-activite-suivante.png`
+## Fichiers modifiés par cette correction finale
 
-## Fichiers ajoutés
+- `docs/PRODUCT.md`
+- `docs/MATRICE-TRACABILITE-BILATERALITE.md`
+- `docs/RAPPORT-CONFORMITE-BILATERALITE.md`
 
-- `MATRICE-TRACABILITE-BILATERALITE.md`
-- `RAPPORT-CONFORMITE-BILATERALITE.md`
-
-Aucun fichier n’est supprimé. Tous les autres fichiers de la baseline sont conservés à l’identique.
+Aucun fichier n’est ajouté ou supprimé. Aucun manifeste historique n’est modifié. Aucun commit ni push n’est effectué.
 
 ## Contrôles de livraison
 
 - couverture de `BIL-001` à `BIL-060` : 60 identifiants uniques ;
-- six captures Figma : PNG valides de `402 × 874` ;
-- anciennes formules unilatérales seules : aucune occurrence active restante ;
-- anciennes exclusions T03 d’une Série ou d’un Tour : aucune occurrence active restante ;
-- noms de fichiers Unicode : conservés en UTF-8 ;
-- fins de ligne des documents : CRLF conservées ;
-- archive finale : test d’intégrité obligatoire avant livraison.
+- ancienne formule unilatérale seule dans les documents actifs : aucune occurrence contradictoire ;
+- anciennes exclusions T03 d’une Série ou d’un Tour : aucune occurrence active ;
+- clarifications `Q1` à `Q4` : clôturées ;
+- fichiers modifiés : Markdown UTF-8 ;
+- manifestes historiques : inchangés.
 
 ## Nom de commit recommandé
 
-`docs: documenter la bilatéralité et aligner les écrans d’exécution`
+`docs: finaliser l’alignement documentaire de la bilatéralité`
 
-Ce nom est fourni à titre de recommandation uniquement. Aucun commit ni push n’est effectué dans cette livraison.
+Ce nom est fourni à titre de recommandation uniquement. Aucun commit ni push n’est effectué dans cette correction.
+
