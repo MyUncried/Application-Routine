@@ -148,6 +148,7 @@ function buildPrompt(request, taskText, configDir) {
     '- Ne lancer aucune commande git, gh, réseau, publication, suppression globale ou shell indirect.',
     '- Ne créer ni commit, branche, tag, stash ou push.',
     '- Exécuter les contrôles autorisés: ' + checkCommands.join(' ; '),
+    '- Exécuter chaque commande de contrôle exactement telle qu’affichée, seule dans son appel Bash, sans redirection, pipe, point-virgule, echo, cd ni commande supplémentaire.',
     '- Si un contrôle échoue, lire son erreur, corriger uniquement la cause dans le périmètre, puis relancer ce contrôle.',
     '- Répéter dans cette invocation bornée jusqu’au succès ou jusqu’à un blocage réel.',
     '- Ne jamais affaiblir, supprimer ou contourner un test pour obtenir artificiellement PASS.',

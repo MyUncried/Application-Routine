@@ -65,6 +65,7 @@ test('prompt impose la boucle interne test diagnostic correction relance', () =>
   assert.match(prompt, /Ne jamais affaiblir, supprimer ou contourner un test/);
   assert.match(prompt, /Ne créer ni commit, branche, tag, stash ou push/);
   assert.match(prompt, /kodjo-check-runner\.js/);
+  assert.match(prompt, /exactement telle .*sans redirection.*commande supplémentaire/);
 });
 
 test('les commandes autorisées passent uniquement par le runner externe figé', () => {
