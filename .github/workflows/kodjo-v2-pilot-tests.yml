@@ -1,0 +1,26 @@
+name: KODJO V2 pilot tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/orchestration/**'
+      - '.github/workflows/kodjo-v2-*.yml'
+      - 'scripts/kodjo/**'
+      - 'tests/kodjo/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run complete KODJO pilot suite
+        run: node tests/kodjo/run-all.js
+      - name: Validate executable workflow invariants
+        run: node scripts/kodjo/validate-workflows.js
