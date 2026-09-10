@@ -435,17 +435,16 @@ export const dimensions = {
   // CE-T02-02 « Le bloc avec Récupération passe de `354 × 93` à
   // `362 × 97` … un rayon `12` ») :
   //
-  // - `restHeight` (`69`) : carte seule, SANS Récupération ;
-  // - `recoveryCardHeight` (`24`) : sous-carte `Récupération X min Y s`
-  //   attachée ; `69 + 24 = 93` par construction, jamais un second littéral ;
-  // - `heightDelta` (`4`) : agrandissement de l'état soulevé — `93 → 97`
-  //   avec Récupération (valeur explicitement approuvée), donc `69 → 73`
-  //   sans elle par application du MÊME écart. `362 × 97` est ainsi
-  //   structurellement impossible sans Récupération ;
+  // - `restHeight` (`65`) : carte principale seule, réduite de `4` points
+  //   pour rendre visible le retrait de padding (`2` en haut et en bas) ;
+  // - `recoveryCardHeight` (`24`) : sous-carte `Récupération X min Y s`,
+  //   strictement inchangée ; le bloc complet vaut donc `65 + 24 = 89` ;
+  // - `heightDelta` (`4`) : état soulevé `89 → 93` avec Récupération et
+  //   `65 → 69` sans elle ;
   // - `draggedRadius` (`12`) : rayon de l'état soulevé publié par D-129 —
   //   révise le `8` de T02-S01, antérieur à la publication de la décision.
   compositionActivityRow: {
-    restHeight: 69,
+    restHeight: 65,
     recoveryCardHeight: 24,
     widthDelta: 8,
     heightDelta: 4,
@@ -455,9 +454,10 @@ export const dimensions = {
     draggedElevation: 8,
   },
   // T02-S01 — `Composition d'une séance — actions glissées` (`2028:11808`,
-  // D-128) : groupe superposé `144 × 69` sur la partie DROITE de la carte
+  // D-128) : groupe superposé `144 × 65` sur la partie DROITE de la carte
   // (qui ne se déplace pas), composé de `Dupliquer` et `Supprimer`, chacun
-  // `72 × 69`, libellés centrés horizontalement et verticalement.
+  // `72 × 65`, libellés centrés horizontalement et verticalement. La
+  // sous-carte Récupération conserve sa hauteur propre de `24` points.
   compositionSwipeActions: { groupWidth: 144, actionWidth: 72 },
   // T02-S01 — sélecteur `Nombre de tours` (D-130/CE-T02-01) : `66 × 34`,
   // bord droit aligné sur celui des cartes, valeur numérique seule (jamais

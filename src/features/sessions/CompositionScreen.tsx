@@ -1038,11 +1038,11 @@ type CompositionActivityRowProps = {
  *    appartient à l'Activité et forme avec elle un bloc indivisible pour la
  *    Composition, la copie, la duplication, le déplacement et la
  *    suppression » (D-138). Elle n'est jamais une Activité de plus.
- * 2. **Géométries conditionnelles.** Bloc `354 × 69` sans Récupération,
- *    `354 × 93` avec ; actions glissées `72 × 69` / `72 × 93`, couvrant
+ * 2. **Géométries conditionnelles.** Bloc `354 × 65` sans Récupération,
+ *    `354 × 89` avec ; actions glissées `72 × 65` / `72 × 89`, couvrant
  *    toute la hauteur du bloc. L'état soulevé applique un écart CONSTANT
- *    (`widthDelta 8`, `heightDelta 4`) : `362 × 97` avec Récupération —
- *    valeur explicitement approuvée — et `362 × 73` sans elle. `362 × 97`
+ *    (`widthDelta 8`, `heightDelta 4`) : `362 × 93` avec Récupération —
+ *    valeur explicitement approuvée — et `362 × 69` sans elle. `362 × 93`
  *    sans Récupération est donc structurellement impossible, jamais interdit
  *    par une simple convention de relecture.
  * 3. **Balayage ACHEVÉ, sans suivi progressif.** Le sens du balayage est
@@ -1303,8 +1303,8 @@ function CompositionActivityRow({
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds);
   /**
    * Décision UNIQUE de la géométrie conditionnelle : `null` ⇒ aucune
-   * sous-carte, bloc au repos `354 × 69` ; non `null` ⇒ sous-carte `24`
-   * attachée, bloc `354 × 93`. Le libellé et la hauteur sont ainsi
+   * sous-carte, bloc au repos `354 × 65` ; non `null` ⇒ sous-carte `24`
+   * attachée, bloc `354 × 89`. Le libellé et la hauteur sont ainsi
    * gouvernés par la même donnée, jamais par deux tests séparés qui
    * pourraient diverger.
    */
@@ -1443,7 +1443,7 @@ function CompositionActivityRow({
  * | présente | `93` | `97` |
  *
  * `93 = 69 + 24` et l'état soulevé applique `+4` (`heightDelta`) dans les
- * deux cas : `362 × 97` ne peut donc JAMAIS être produit sans Récupération,
+ * deux cas : `362 × 93` ne peut donc JAMAIS être produit sans Récupération,
  * par construction et non par convention.
  */
 function blockHeightFor(hasRecovery: boolean, isDragged: boolean): number {
@@ -1981,7 +1981,7 @@ const styles = StyleSheet.create({
   },
   // Carte principale du bloc — `flex: 1` : elle occupe tout ce que la
   // sous-carte (`24`, hauteur fixe) laisse, ce qui reproduit exactement la
-  // décomposition `69 + 24 = 93` de D-128 sans jamais coder `69` une
+  // décomposition `65 + 24 = 89` de D-128 sans jamais coder `69` une
   // seconde fois. `paddingVertical` réduit de `12` à `8` par rapport à
   // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
   // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
@@ -1990,18 +1990,17 @@ const styles = StyleSheet.create({
   // **T02-S02 (seconde puis troisième recette visuelle)** : marges
   // intérieures HAUTE et BASSE réduites d'un tiers, deux fois
   // (`ACTIVITY_CARD_PADDING_VERTICAL`, `8 → 5 → 3`). Le bloc ayant une
-  // hauteur FIXE (`69`/`93`), ces marges ne changent pas sa taille — elles
+  // hauteur FIXE (`65`/`89`), ces marges ne changent pas sa taille — elles
   // rendent au contenu la place qui lui manquait : nom (`16/20`) + Zones
   // corporelles (`11/14`) + synthèse (`11/14`) et leurs deux écarts de `2`
-  // totalisent `52`, contre `67` de hauteur utile ; avec `8` de marge haute
+  // totalisent `52`, contre `63` de hauteur utile ; avec `8` de marge haute
   // et basse, l'ensemble atteignait `68` et débordait d'un point.
   //
-  // LIMITE DISCLOSÉE : la carte étant `alignItems: "center"` dans un bloc de
-  // hauteur fixe, cette marge BORNE la boîte de contenu plutôt qu'elle ne
-  // définit le blanc visible. Réduire davantage le blanc PERÇU exigerait de
-  // toucher à la hauteur de bloc gelée — hors périmètre. Le contrat
-  // vérifiable est donc la valeur numérique du style, ce que teste
-  // explicitement la suite `CompositionScreen`.
+  // CORRECTION DIRECTE POST-RECETTE : avec `alignItems: "center"` dans un
+  // bloc fixe, réduire seulement le padding ne modifiait pas le blanc perçu.
+  // La hauteur principale est donc réduite de `69` à `65`, exactement les
+  // `4` points retirés par le padding. La sous-carte Récupération reste à
+  // `24` points ; le bloc complet passe mécaniquement de `93` à `89`.
   //
   // Les marges HORIZONTALES et toutes les autres géométries validées restent
   // strictement inchangées.
@@ -2057,8 +2056,8 @@ const styles = StyleSheet.create({
     ...type.compactCardTitle,
     color: colors.textSecondary,
   },
-  // D-129/CE-T02-02 : état soulevé — `362 × 97` avec Récupération (contre
-  // `354 × 93` au repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // D-129/CE-T02-02 : état soulevé — `362 × 93` avec Récupération (contre
+  // `354 × 89` au repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
   // supérieur, contour `1` point `#D1D1D6`, rayon `12`, ombre périphérique
   // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
   //
@@ -2088,7 +2087,7 @@ const styles = StyleSheet.create({
   },
   // D-128 : groupe superposé à droite, deux actions `72 × H` aux libellés
   // centrés horizontalement et verticalement, `H` valant la hauteur du BLOC
-  // (`69` sans Récupération, `93` avec) — « `Dupliquer` et `Supprimer`
+  // (`65` sans Récupération, `89` avec) — « `Dupliquer` et `Supprimer`
   // couvrent toute la hauteur du bloc ». La hauteur est appliquée par
   // l'écran (`blockHeightFor`), pas ici. Les coins droits suivent le rayon
   // du bloc, jamais un rayon local inventé.
