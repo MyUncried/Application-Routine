@@ -42,6 +42,9 @@ if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
 git switch -c $branch
 if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 
+$githubToken = $env:GH_TOKEN
+if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
+Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
 try {
   & (Join-Path $PSScriptRoot 'start-kodjo-v2.ps1') -Request $tempRequest
@@ -50,6 +53,9 @@ try {
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $tempRequest -Force -ErrorAction SilentlyContinue
 }
+$env:GH_TOKEN = $githubToken
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
+git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $auth"
 
 $modified = @(git status --porcelain=v1 --untracked-files=all)
 if ($modified.Count -eq 0) { throw 'KODJO_QUEUE_NO_DELIVERY' }
