@@ -89,8 +89,10 @@ test('requête refuse un périmètre parent ou absolu', () => {
   }
 });
 
-test('requête refuse un budget supérieur au plafond', () => {
-  const f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 13 } });
+test('requête accepte une extension bornée et refuse un budget supérieur au plafond', () => {
+  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 40 } });
+  assert.equal(C.normalizeRequest(f.request, f.root).limits.max_turns, 40);
+  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 41 } });
   assert.throws(() => C.normalizeRequest(f.request, f.root), /BUDGET_INVALID_MAX_TURNS/);
 });
 
