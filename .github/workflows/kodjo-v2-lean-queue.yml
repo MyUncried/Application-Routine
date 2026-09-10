@@ -1,0 +1,40 @@
+name: KODJO V2 Lean Queue
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/orchestration/queue/v2/*.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: kodjo-v2-lean-windows
+  cancel-in-progress: false
+
+jobs:
+  execute:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Select and execute immutable request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_EVENT_BEFORE: ${{ github.event.before }}
+          KODJO_EVENT_AFTER: ${{ github.event.after }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $changed = @(git diff --name-only $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER -- '.github/orchestration/queue/v2/*.json')
+          if ($changed.Count -ne 1) { throw "KODJO_QUEUE_CARDINALITY_REFUSED: $($changed.Count)" }
+          & scripts/kodjo/run-queued-request.ps1 -QueueFile $changed[0]
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
