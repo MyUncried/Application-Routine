@@ -1,6 +1,6 @@
-name: KODJO V2 implementation artifact — reference 0.6.11
+name: KODJO V2 implementation artifact — reference 0.6.12
 
-# Reference normative alignee sur le workflow executable — KODJO V2 0.6.11
+# Reference normative alignee sur le workflow executable — KODJO V2 0.6.12
 #
 # Cloture MAJ-03 : ce job reste en contents: read et n'ecrit AUCUNE preuve. Il
 # produit une EvidenceDepositRequest decrivant ce que le writer de preuves dedie
