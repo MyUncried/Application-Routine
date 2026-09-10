@@ -26,6 +26,7 @@ jobs:
         with:
           fetch-depth: 0
           clean: true
+          persist-credentials: false
 
       - name: Select and execute immutable request
         env:
