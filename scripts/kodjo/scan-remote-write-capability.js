@@ -102,6 +102,26 @@ function isFixedEvidenceWriterOperation(filePath, line, patternId, root) {
   return false;
 }
 
+/**
+ * The lean supervisor is a post-agent deterministic writer. Claude receives no
+ * GH_TOKEN and run-local-claude.js proves that it did not mutate Git refs.
+ * Allowances stay file- and line-exact so no other remote writer is opened.
+ */
+function isFixedLeanSupervisorOperation(filePath, line, patternId, root) {
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  const value = line.trim();
+  if (rel === '.github/workflows/kodjo-v2-lean-queue.yml' && patternId === 'CONTENTS_WRITE') {
+    return value === 'contents: write';
+  }
+  if (rel !== 'scripts/kodjo/run-queued-request.ps1') return false;
+  if (patternId === 'GIT_BRANCH_CREATE') return value === 'git switch -c $branch';
+  if (patternId === 'GIT_COMMIT') {
+    return value === 'git -c user.name=\'KODJO Windows Supervisor\' -c user.email=\'kodjo-supervisor@users.noreply.github.com\' commit -m ("feat({0}): verified implementation" -f $queue.slice_id)';
+  }
+  if (patternId === 'GIT_PUSH') return value === 'git push --set-upstream origin $branch';
+  return false;
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -117,6 +137,7 @@ function main() {
       for (const p of PATTERNS) {
         if (!p.re.test(code)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
+        if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;
         if (p.id === 'SHELL_EXECUTION' && SHELL_TRUE_EXEMPTIONS[rel]) {
           exemptionsUsed.add(rel);
           continue;
@@ -143,4 +164,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, main };
+module.exports = { collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
