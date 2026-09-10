@@ -435,16 +435,16 @@ export const dimensions = {
   // CE-T02-02 « Le bloc avec Récupération passe de `354 × 93` à
   // `362 × 97` … un rayon `12` ») :
   //
-  // - `restHeight` (`65`) : carte principale seule, réduite de `4` points
-  //   pour rendre visible le retrait de padding (`2` en haut et en bas) ;
+  // - `restHeight` (`60`) : carte principale seule, réduite de `5` points
+  //   supplémentaires après recette visuelle pour produire un changement perceptible ;
   // - `recoveryCardHeight` (`24`) : sous-carte `Récupération X min Y s`,
-  //   strictement inchangée ; le bloc complet vaut donc `65 + 24 = 89` ;
-  // - `heightDelta` (`4`) : état soulevé `89 → 93` avec Récupération et
-  //   `65 → 69` sans elle ;
+  //   strictement inchangée ; le bloc complet vaut donc `60 + 24 = 84` ;
+  // - `heightDelta` (`4`) : état soulevé `84 → 88` avec Récupération et
+  //   `60 → 64` sans elle ;
   // - `draggedRadius` (`12`) : rayon de l'état soulevé publié par D-129 —
   //   révise le `8` de T02-S01, antérieur à la publication de la décision.
   compositionActivityRow: {
-    restHeight: 65,
+    restHeight: 60,
     recoveryCardHeight: 24,
     widthDelta: 8,
     heightDelta: 4,
@@ -454,9 +454,9 @@ export const dimensions = {
     draggedElevation: 8,
   },
   // T02-S01 — `Composition d'une séance — actions glissées` (`2028:11808`,
-  // D-128) : groupe superposé `144 × 65` sur la partie DROITE de la carte
+  // D-128) : groupe superposé `144 × 60` sur la partie DROITE de la carte
   // (qui ne se déplace pas), composé de `Dupliquer` et `Supprimer`, chacun
-  // `72 × 65`, libellés centrés horizontalement et verticalement. La
+  // `72 × 60`, libellés centrés horizontalement et verticalement. La
   // sous-carte Récupération conserve sa hauteur propre de `24` points.
   compositionSwipeActions: { groupWidth: 144, actionWidth: 72 },
   // T02-S01 — sélecteur `Nombre de tours` (D-130/CE-T02-01) : `66 × 34`,
