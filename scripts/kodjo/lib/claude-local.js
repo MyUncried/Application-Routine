@@ -40,6 +40,10 @@ const DEFAULT_LIMITS = Object.freeze({
   max_total_prompt_bytes: 32768,
   max_rollovers: 0,
 });
+const LIMIT_CEILINGS = Object.freeze({
+  ...DEFAULT_LIMITS,
+  max_turns: 40,
+});
 
 function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
@@ -107,7 +111,7 @@ function normalizeRequest(raw, repoRoot) {
   if (!checks.length || checks.some((c) => !CHECKS.has(c))) throw new Error('CHECKS_INVALID');
 
   const limits = { ...DEFAULT_LIMITS, ...(raw.limits || {}) };
-  for (const [key, ceiling] of Object.entries(DEFAULT_LIMITS)) {
+  for (const [key, ceiling] of Object.entries(LIMIT_CEILINGS)) {
     if (!Number.isInteger(limits[key]) || limits[key] < 0 || limits[key] > ceiling) {
       throw new Error('BUDGET_INVALID_' + key.toUpperCase());
     }
@@ -207,6 +211,7 @@ function redact(text) {
 module.exports = {
   CLAUDE_CODE_VERSION,
   DEFAULT_LIMITS,
+  LIMIT_CEILINGS,
   TOOL_SURFACE,
   ALLOWED_TOOLS,
   DISALLOWED_TOOLS,
