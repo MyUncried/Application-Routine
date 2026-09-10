@@ -1234,20 +1234,27 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     ).toBe("Durée ajustée à 2 min 40 s pour respecter un nombre entier de Séries.");
     expect(within(notification).getByLabelText(t.adjustedTotalDurationUndoAction)).toBeTruthy();
 
-    // Fond noir canonique des messages temporaires (`color.snackbar`), et
-    // superposition : elle ne participe à aucune mise en page.
-    const style = StyleSheet.flatten(notification.props.style);
-    expect(style.backgroundColor).toBe(colors.snackbar);
-    expect(style.position).toBe("absolute");
+    // Fond noir canonique des messages temporaires (`color.snackbar`), porté
+    // par la SURFACE, et superposition portée par le calque : elle ne
+    // participe à aucune mise en page.
+    expect(
+      StyleSheet.flatten(
+        within(notification).getByTestId("exercise-adjustment-notification-card").props.style,
+      ).backgroundColor,
+    ).toBe(colors.snackbar);
+    expect(StyleSheet.flatten(notification.props.style).position).toBe("absolute");
     // Plus aucun message permanent dans le corps de l'écran.
     expect(screen.queryByTestId("exercise-adjustment-message")).toBeNull();
     expect(within(screen.getByTestId("exercise-body")).queryByText(/Durée ajustée/u)).toBeNull();
   });
 
   /**
-   * **T02-S02 (seconde recette visuelle, point 5)** : la notification doit
-   * être exactement centrée verticalement SUR le bouton `Terminer`, qu'elle
-   * masque le temps de son affichage.
+   * **T02-S02 (seconde recette visuelle, point 5 — préservé par la
+   * troisième)** : la notification doit être exactement centrée verticalement
+   * SUR le bouton `Terminer`, qu'elle masque le temps de son affichage. Le
+   * centrage est désormais porté par `justifyContent` du calque : la surface
+   * noire, plus haute que le bouton pour accueillir deux lignes, déborde donc
+   * symétriquement de part et d'autre de lui.
    */
   it("covers the Terminer button exactly, centred on it — never anchored to the screen bottom", () => {
     renderScreen({
@@ -1274,7 +1281,10 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     expect(style.bottom).toBe(0);
     expect(style.left).toBe(0);
     expect(style.right).toBe(0);
-    expect(style.alignItems).toBe("center");
+    expect(style.justifyContent).toBe("center");
+    // La surface noire peut être PLUS HAUTE que le bouton (deux lignes) : le
+    // débordement reste visible, symétrique, plutôt que rogné.
+    expect(style.overflow).toBe("visible");
     // Elle passe au-dessus du bouton qu'elle masque.
     expect(style.zIndex).toBeGreaterThan(0);
   });
@@ -1771,20 +1781,14 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
   });
 
   /**
-   * **T02-S02 (continuation après recette visuelle)** : une nouvelle Activité
-   * s'insère APRÈS la dernière Activité DE SA ZONE, pas en fin de collection.
-   * Une nouvelle Activité naît `BEFORE_TOUR` (`DEFAULT_STRUCTURAL_POSITION`) :
-   * elle doit donc précéder les Activités `IN_TOUR` et `AFTER_TOUR` déjà
-   * composées, jamais les suivre.
+   * **T02-S02 (troisième recette visuelle, point 1)** — insertion DYNAMIQUE :
+   * la nouvelle Activité se place après la dernière carte AFFICHÉE et en
+   * reprend la zone, l'ordre du brouillon étant relu au moment exact de
+   * `Terminer`.
    */
-  it("inserts a NEW Activity after the last Activity of ITS OWN zone, never at the end of the collection", () => {
+  function renderAddScreenWith(exercises: readonly SessionDraftExercise[]) {
     const updateDraft = jest.fn();
     mockSearchParams = {};
-    const existing: readonly SessionDraftExercise[] = [
-      { ...createExerciseDraft("before-1"), name: "Échauffement", structuralPosition: "BEFORE_TOUR" },
-      { ...createExerciseDraft("in-1"), name: "Gainage", structuralPosition: "IN_TOUR" },
-      { ...createExerciseDraft("after-1"), name: "Étirements", structuralPosition: "AFTER_TOUR" },
-    ];
     render(
       <TestSafeAreaProvider>
         <SessionDraftContext.Provider
@@ -1794,7 +1798,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
               color: "#3B82F6",
               initialCountdownSeconds: 10,
               finalPhaseSeconds: 5,
-              exercises: existing,
+              exercises,
               categoryDrafts: [],
               selectedCategoryIds: [],
             },
@@ -1806,20 +1810,115 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
         </SessionDraftContext.Provider>
       </TestSafeAreaProvider>,
     );
+    return { updateDraft };
+  }
+
+  function anExisting(id: string, zone: SessionDraftExercise["structuralPosition"]) {
+    return { ...createExerciseDraft(id), name: id, structuralPosition: zone };
+  }
+
+  it("appends a NEW Activity right after the last DISPLAYED card, taking that card's zone", () => {
+    const { updateDraft } = renderAddScreenWith([
+      anExisting("before-1", "BEFORE_TOUR"),
+      anExisting("in-1", "IN_TOUR"),
+      anExisting("after-1", "AFTER_TOUR"),
+    ]);
 
     fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
-    // L'ORDRE du tableau est la preuve : la nouvelle Activité `BEFORE_TOUR`
-    // s'intercale entre `before-1` et `in-1`, jamais après `after-1`. Le
-    // tableau attendu est exhaustif — aucune Activité n'est perdue.
+    // Dernière carte affichée : `after-1`. La nouvelle la suit et hérite de
+    // sa zone `AFTER_TOUR` — elle se place donc avant `Fin de séance`. Le
+    // tableau attendu est exhaustif : aucune Activité n'est perdue.
     expect(updateDraft).toHaveBeenCalledWith({
       exercises: [
         expect.objectContaining({ id: "before-1" }),
-        expect.objectContaining({ id: "generated-exercise-id", name: "Squats" }),
         expect.objectContaining({ id: "in-1" }),
         expect.objectContaining({ id: "after-1" }),
+        expect.objectContaining({
+          id: "generated-exercise-id",
+          name: "Squats",
+          structuralPosition: "AFTER_TOUR",
+        }),
+      ],
+    });
+  });
+
+  it("makes the new Activity the LAST of the Tour when the last displayed card is IN_TOUR", () => {
+    const { updateDraft } = renderAddScreenWith([
+      anExisting("before-1", "BEFORE_TOUR"),
+      anExisting("in-1", "IN_TOUR"),
+    ]);
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        expect.objectContaining({ id: "before-1" }),
+        expect.objectContaining({ id: "in-1" }),
+        expect.objectContaining({
+          id: "generated-exercise-id",
+          structuralPosition: "IN_TOUR",
+        }),
+      ],
+    });
+  });
+
+  it("places it just after the last BEFORE_TOUR card — therefore before the Tour", () => {
+    const { updateDraft } = renderAddScreenWith([anExisting("before-1", "BEFORE_TOUR")]);
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        expect.objectContaining({ id: "before-1" }),
+        expect.objectContaining({
+          id: "generated-exercise-id",
+          structuralPosition: "BEFORE_TOUR",
+        }),
+      ],
+    });
+  });
+
+  /**
+   * Le placement est décidé au moment de `Terminer`, PAS à l'ouverture de
+   * l'écran : la zone que `createExerciseDraft` fige au montage
+   * (`BEFORE_TOUR`) ne doit jamais l'emporter sur la Composition réelle.
+   */
+  it("never uses the zone memorised when the screen opened", () => {
+    const { updateDraft } = renderAddScreenWith([anExisting("in-1", "IN_TOUR")]);
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    const written = updateDraft.mock.calls[0]?.[0] as { exercises: SessionDraftExercise[] };
+    const added = written.exercises.find((exercise) => exercise.id === "generated-exercise-id");
+    expect(added?.structuralPosition).toBe("IN_TOUR");
+    expect(added?.structuralPosition).not.toBe(createExerciseDraft("x").structuralPosition);
+  });
+
+  it("reads the CURRENT reading order, not the raw collection order", () => {
+    // Collection délibérément NON contiguë : la dernière carte AFFICHÉE est
+    // `after-1`, bien qu'elle soit le premier élément du tableau.
+    const { updateDraft } = renderAddScreenWith([
+      anExisting("after-1", "AFTER_TOUR"),
+      anExisting("in-1", "IN_TOUR"),
+    ]);
+
+    fireEvent.changeText(screen.getByLabelText(t.name), "Squats");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [
+        expect.objectContaining({ id: "after-1" }),
+        expect.objectContaining({
+          id: "generated-exercise-id",
+          structuralPosition: "AFTER_TOUR",
+        }),
+        expect.objectContaining({ id: "in-1" }),
       ],
     });
   });

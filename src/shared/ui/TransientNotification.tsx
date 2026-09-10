@@ -16,6 +16,26 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  */
 export const TRANSIENT_NOTIFICATION_DURATION_MS = 5000;
 
+/**
+ * Nombre de lignes PLEINES autorisées au message (T02-S02, troisième recette
+ * visuelle, point 2). Deux lignes couvrent les messages réels de
+ * l'application — le plus long, `adjustedTotalDurationMessage`, en occupe
+ * exactement deux à la largeur utile d'un iPhone.
+ */
+export const TRANSIENT_NOTIFICATION_MESSAGE_LINES = 2;
+
+/**
+ * Hauteur MINIMALE de la surface noire — de quoi afficher les deux lignes
+ * pleines sans troncature, marges internes comprises. DÉRIVÉE des tokens qui
+ * la composent (`type.body` pour le texte, `spacing/12` pour les marges
+ * verticales) plutôt que codée en dur : changer l'un recalcule l'autre.
+ *
+ * Elle remplace l'ancien plancher `minTouchTarget` (`48`), qui suffisait à
+ * une ligne mais tronquait la seconde.
+ */
+export const TRANSIENT_NOTIFICATION_MIN_HEIGHT =
+  type.body.lineHeight * TRANSIENT_NOTIFICATION_MESSAGE_LINES + spacing[12] * 2;
+
 export type TransientNotificationProps = {
   /** Message affiché. `null` = aucune notification (le composant ne rend rien). */
   message: string | null;
@@ -57,6 +77,13 @@ export type TransientNotificationProps = {
  * verticalement sur ce bouton et le masque le temps de son affichage,
  * exactement comme demandé — sans qu'aucune coordonnée ne soit calculée, ni
  * recopiée depuis la géométrie du bouton.
+ *
+ * **T02-S02 (troisième recette visuelle, point 2)** — le CALQUE DE POSITION et
+ * la SURFACE NOIRE sont désormais deux vues distinctes. Tant qu'elles n'en
+ * formaient qu'une, la surface était contrainte à la hauteur de son parent —
+ * le bouton — et le message y était tronqué au-delà d'une ligne. Le calque
+ * conserve seul le positionnement ; la surface, libre en hauteur, réserve de
+ * quoi afficher DEUX lignes pleines et reste centrée sur le bouton.
  */
 export function TransientNotification({
   message,
@@ -80,58 +107,88 @@ export function TransientNotification({
   }
 
   return (
-    <View style={styles.container} accessibilityLiveRegion="polite" testID={testID}>
-      <Text style={styles.message} testID={`${testID}-message`}>
-        {message}
-      </Text>
-      <Pressable
-        onPress={onAction}
-        accessibilityRole="button"
-        accessibilityLabel={actionLabel}
-        hitSlop={spacing[8]}
-        style={styles.action}
-        testID={`${testID}-action`}
-      >
-        <Text style={styles.actionLabel}>{actionLabel}</Text>
-      </Pressable>
+    <View style={styles.layer} accessibilityLiveRegion="polite" testID={testID}>
+      <View style={styles.card} testID={`${testID}-card`}>
+        <Text
+          style={styles.message}
+          numberOfLines={TRANSIENT_NOTIFICATION_MESSAGE_LINES}
+          testID={`${testID}-message`}
+        >
+          {message}
+        </Text>
+        <Pressable
+          onPress={onAction}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+          hitSlop={spacing[8]}
+          style={styles.action}
+          testID={`${testID}-action`}
+        >
+          <Text style={styles.actionLabel} numberOfLines={1}>
+            {actionLabel}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Superposée, jamais dans le flux : `position: "absolute"` garantit qu'elle
-  // ne repousse aucun contenu.
+  // **Calque de POSITION** — superposé, jamais dans le flux :
+  // `position: "absolute"` garantit qu'il ne repousse aucun contenu, et les
+  // QUATRE côtés à zéro le font recouvrir exactement son parent. Dans l'écran
+  // Activité, ce parent enveloppe l'action `Terminer` : la notification est
+  // donc centrée verticalement sur le bouton et le masque, par construction
+  // plutôt que par un calcul d'ancrage.
   //
-  // T02-S02 (seconde recette, point 5) : les QUATRE côtés à zéro — elle
-  // recouvre exactement son parent, qui est donc seul à décider de sa
-  // position et de ses marges. Dans l'écran Activité, ce parent enveloppe
-  // l'action `Terminer` : la notification est ainsi centrée verticalement
-  // sur le bouton et le masque, par construction plutôt que par un calcul
-  // d'ancrage. `alignItems: "center"` centre son contenu dans cette même
-  // boîte. `minHeight` reste la cible tactile canonique de son action.
-  container: {
+  // T02-S02 (troisième recette, point 2) : le calque et la SURFACE NOIRE sont
+  // désormais deux vues distinctes. Le calque, de la hauteur du bouton,
+  // CENTRE (`justifyContent`) une surface qui peut être PLUS HAUTE que lui —
+  // deux lignes de message la font légitimement dépasser. `overflow: visible`
+  // laisse ce débordement s'afficher, symétriquement de part et d'autre du
+  // bouton : la notification reste exactement centrée sur lui, sans être
+  // tronquée par la hauteur de son ancre.
+  layer: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     zIndex: 2,
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  // Surface noire canonique des messages temporaires (`color.snackbar`,
+  // rayon `16`). Sa hauteur est LIBRE — bornée par le bas par de quoi
+  // afficher DEUX lignes pleines de message, marges comprises — et ne dépend
+  // donc plus de celle du bouton qu'elle recouvre.
+  card: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing[12],
-    minHeight: minTouchTarget,
+    minHeight: TRANSIENT_NOTIFICATION_MIN_HEIGHT,
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[12],
     borderRadius: 16,
     backgroundColor: colors.snackbar,
   },
+  // Le message prend TOUTE la largeur que l'action laisse (`flex: 1`), et
+  // s'y répartit sur deux lignes au plus — jamais sous l'action, jamais
+  // par-dessus : les deux largeurs sont disjointes par construction.
   message: {
     ...type.body,
     flex: 1,
     color: colors.background,
   },
+  // L'action ne rétrécit JAMAIS (`flexShrink: 0`) : sa largeur est celle de
+  // son libellé, réservée avant que le message ne prenne le reste. Sans
+  // cela, un message long la comprimait jusqu'à la faire passer à la ligne
+  // ou la tronquer. `minWidth` lui garantit en outre la largeur tactile
+  // canonique.
   action: {
+    flexShrink: 0,
+    minWidth: minTouchTarget,
     alignItems: "center",
     justifyContent: "center",
   },

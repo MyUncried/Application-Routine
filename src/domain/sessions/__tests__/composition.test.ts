@@ -2,9 +2,9 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   activitiesInZone,
+  appendActivityAfterLastDisplayed,
   duplicateActivity,
   groupActivitiesByZone,
-  insertActivityInZone,
   moveActivity,
   orderActivitiesByZone,
   removeActivity,
@@ -170,123 +170,125 @@ describe("removeActivity (AC-07)", () => {
 });
 
 /**
- * T02-S02 (continuation après recette visuelle) : une nouvelle Activité
- * s'insère APRÈS la dernière Activité DE SA ZONE, pas en fin de collection.
+ * **T02-S02 (troisième recette visuelle, point 1)** — insertion DYNAMIQUE :
+ * une nouvelle Activité se place immédiatement APRÈS la dernière carte
+ * ACTUELLEMENT AFFICHÉE et en reprend la zone structurelle. Aucune position ni
+ * zone mémorisée à l'ouverture de l'écran n'intervient : la fonction ne
+ * consulte que la collection qu'on lui passe.
  */
-describe("insertActivityInZone", () => {
+describe("appendActivityAfterLastDisplayed", () => {
   const composed = [
     anActivity("before-1", "BEFORE_TOUR"),
     anActivity("in-1", "IN_TOUR"),
     anActivity("after-1", "AFTER_TOUR"),
   ];
 
-  it("inserts right after the last Activity of the SAME zone, never at the end of the collection", () => {
-    expect(ids(insertActivityInZone(composed, anActivity("before-2", "BEFORE_TOUR")))).toEqual([
-      "before-1",
-      "before-2",
-      "in-1",
-      "after-1",
-    ]);
-    expect(ids(insertActivityInZone(composed, anActivity("in-2", "IN_TOUR")))).toEqual([
-      "before-1",
-      "in-1",
-      "in-2",
-      "after-1",
-    ]);
+  /** Zone effectivement attribuée à l'Activité ajoutée. */
+  function zoneOfAdded(
+    activities: readonly SessionDraftExercise[],
+    id: string,
+  ): StructuralPosition | undefined {
+    return activities.find((activity) => activity.id === id)?.structuralPosition;
+  }
+
+  it("places the new Activity right after the last DISPLAYED card, taking that card's zone", () => {
+    // Dernière carte affichée : `after-1` (`AFTER_TOUR`). La nouvelle la suit
+    // et hérite de sa zone — elle se place donc avant `Fin de séance`, même
+    // si elle est née `BEFORE_TOUR`.
+    const next = appendActivityAfterLastDisplayed(
+      composed,
+      anActivity("new-1", "BEFORE_TOUR"),
+    );
+
+    expect(ids(next)).toEqual(["before-1", "in-1", "after-1", "new-1"]);
+    expect(zoneOfAdded(next, "new-1")).toBe("AFTER_TOUR");
   });
 
-  it("appends at the very end for the last zone, where no later zone exists", () => {
-    expect(ids(insertActivityInZone(composed, anActivity("after-2", "AFTER_TOUR")))).toEqual([
-      "before-1",
-      "in-1",
-      "after-1",
-      "after-2",
-    ]);
+  it("makes it the LAST of the Tour when the last displayed card is IN_TOUR", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [anActivity("before-1", "BEFORE_TOUR"), anActivity("in-1", "IN_TOUR")],
+      anActivity("new-1", "AFTER_TOUR"),
+    );
+
+    expect(ids(next)).toEqual(["before-1", "in-1", "new-1"]);
+    expect(zoneOfAdded(next, "new-1")).toBe("IN_TOUR");
+    // Dernière du Tour : aucune Activité `IN_TOUR` ne la suit.
+    expect(ids(activitiesInZone(next, "IN_TOUR"))).toEqual(["in-1", "new-1"]);
   });
 
-  it("inserts before the first Activity of a later zone when its own zone is still empty", () => {
-    const onlyAfterTour = [anActivity("after-1", "AFTER_TOUR")];
-    expect(ids(insertActivityInZone(onlyAfterTour, anActivity("before-1", "BEFORE_TOUR")))).toEqual([
-      "before-1",
-      "after-1",
-    ]);
-    expect(ids(insertActivityInZone(onlyAfterTour, anActivity("in-1", "IN_TOUR")))).toEqual([
-      "in-1",
-      "after-1",
-    ]);
-  });
+  it("places it just after the last BEFORE_TOUR card — therefore before the Tour", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [anActivity("before-1", "BEFORE_TOUR")],
+      anActivity("new-1", "IN_TOUR"),
+    );
 
-  it("returns a NEW collection and never mutates the source", () => {
-    const next = insertActivityInZone(composed, anActivity("before-2", "BEFORE_TOUR"));
-    expect(next).not.toBe(composed);
-    expect(ids(composed)).toEqual(["before-1", "in-1", "after-1"]);
+    expect(ids(next)).toEqual(["before-1", "new-1"]);
+    expect(zoneOfAdded(next, "new-1")).toBe("BEFORE_TOUR");
   });
 
   /**
-   * **T02-S02 (seconde recette visuelle, point 1)** — la collection n'est pas
-   * nécessairement CONTIGUË par zone : `moveActivity` la réordonne, et
-   * `[in-1, before-1]` est une Composition parfaitement légitime.
-   *
-   * La règle précédente cherchait la PREMIÈRE Activité d'une zone
-   * postérieure ; sur une collection non contiguë, elle plaçait la nouvelle
-   * Activité `BEFORE_TOUR` avant `in-1`, donc AVANT `before-1` — en tête de
-   * sa zone, immédiatement sous le `Compte à rebours initial`, exactement le
-   * symptôme relevé par la recette. Chercher la DERNIÈRE de sa propre zone
-   * est vrai quelle que soit la disposition de la collection.
+   * « Dernière carte affichée » est celle de l'ORDRE DE LECTURE, pas celle de
+   * la fin du tableau : `moveActivity` peut rendre la collection NON contiguë
+   * par zone, et `[after-1, in-1]` est une Composition parfaitement légitime
+   * dont la dernière carte affichée reste `after-1`.
    */
-  it("still appends after the last Activity of its zone when the collection is NOT contiguous by zone", () => {
-    const reordered = [anActivity("in-1", "IN_TOUR"), anActivity("before-1", "BEFORE_TOUR")];
+  it("reads the CURRENT reading order, never the raw tail of the collection", () => {
+    const reordered = [anActivity("after-1", "AFTER_TOUR"), anActivity("in-1", "IN_TOUR")];
 
-    expect(ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR")))).toEqual([
-      "in-1",
-      "before-1",
-      "before-2",
-    ]);
-    // Et jamais en tête de sa zone.
-    expect(
-      ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR"))).indexOf(
-        "before-2",
-      ),
-    ).toBeGreaterThan(
-      ids(insertActivityInZone(reordered, anActivity("before-2", "BEFORE_TOUR"))).indexOf(
-        "before-1",
-      ),
-    );
+    const next = appendActivityAfterLastDisplayed(reordered, anActivity("new-1", "BEFORE_TOUR"));
+
+    expect(ids(next)).toEqual(["after-1", "new-1", "in-1"]);
+    expect(zoneOfAdded(next, "new-1")).toBe("AFTER_TOUR");
+    // Et elle est bien la dernière carte AFFICHÉE, malgré sa position dans le
+    // tableau.
+    expect(ids(orderActivitiesByZone(next)).at(-1)).toBe("new-1");
   });
 
-  it("appends after the last of its zone even when a later zone's Activity sits BEFORE it in the collection", () => {
-    const reordered = [
-      anActivity("after-1", "AFTER_TOUR"),
-      anActivity("in-1", "IN_TOUR"),
-      anActivity("in-2", "IN_TOUR"),
+  it("always makes the new Activity the LAST displayed card, whatever the collection", () => {
+    const collections: readonly (readonly SessionDraftExercise[])[] = [
+      composed,
+      [anActivity("in-1", "IN_TOUR"), anActivity("before-1", "BEFORE_TOUR")],
+      [anActivity("after-1", "AFTER_TOUR"), anActivity("in-1", "IN_TOUR")],
+      [anActivity("before-1", "BEFORE_TOUR"), anActivity("before-2", "BEFORE_TOUR")],
     ];
 
-    expect(ids(insertActivityInZone(reordered, anActivity("in-3", "IN_TOUR")))).toEqual([
-      "after-1",
-      "in-1",
-      "in-2",
-      "in-3",
-    ]);
+    for (const collection of collections) {
+      const next = appendActivityAfterLastDisplayed(collection, anActivity("new-1", "BEFORE_TOUR"));
+      expect(ids(orderActivitiesByZone(next)).at(-1)).toBe("new-1");
+    }
   });
 
-  it("handles an empty composition", () => {
-    expect(ids(insertActivityInZone([], anActivity("in-1", "IN_TOUR")))).toEqual(["in-1"]);
+  it("keeps the Activity's own zone on an empty composition", () => {
+    const next = appendActivityAfterLastDisplayed([], anActivity("in-1", "IN_TOUR"));
+
+    expect(ids(next)).toEqual(["in-1"]);
+    expect(zoneOfAdded(next, "in-1")).toBe("IN_TOUR");
   });
 
-  it("keeps the collection order equal to the structural reading order after several insertions", () => {
-    const built = [
-      anActivity("in-1", "IN_TOUR"),
-      anActivity("before-1", "BEFORE_TOUR"),
-      anActivity("after-1", "AFTER_TOUR"),
-      anActivity("before-2", "BEFORE_TOUR"),
-      anActivity("in-2", "IN_TOUR"),
-    ].reduce<readonly SessionDraftExercise[]>(
-      (collection, activity) => insertActivityInZone(collection, activity),
-      [],
-    );
+  it("returns a NEW collection and never mutates the source", () => {
+    const next = appendActivityAfterLastDisplayed(composed, anActivity("new-1", "BEFORE_TOUR"));
 
-    expect(ids(built)).toEqual(["before-1", "before-2", "in-1", "in-2", "after-1"]);
-    expect(ids(built)).toEqual(ids(orderActivitiesByZone(built)));
+    expect(next).not.toBe(composed);
+    expect(ids(composed)).toEqual(["before-1", "in-1", "after-1"]);
+    // La source garde sa zone d'origine : seule la COPIE insérée est
+    // rezonée.
+    expect(composed[0]!.structuralPosition).toBe("BEFORE_TOUR");
+  });
+
+  it("copies every other parameter of the added Activity unchanged", () => {
+    const added = anActivity("new-1", "BEFORE_TOUR", {
+      name: "Squats",
+      durationSeconds: 45,
+      seriesCount: 3,
+      pauseSeconds: 15,
+    });
+
+    const next = appendActivityAfterLastDisplayed(composed, added);
+
+    expect(next.find((activity) => activity.id === "new-1")).toEqual({
+      ...added,
+      structuralPosition: "AFTER_TOUR",
+    });
   });
 });
 

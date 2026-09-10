@@ -2454,20 +2454,33 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
   });
 
   /**
-   * **T02-S02 (seconde recette visuelle, point 7)** : marges intérieures
-   * haute et basse RÉDUITES D'UN TIERS. Les marges horizontales et la
-   * géométrie du bloc restent inchangées.
+   * **T02-S02 (troisième recette visuelle, point 3)** : le `paddingVertical`
+   * de la carte principale est réduit D'UN TIERS de plus, EFFECTIVEMENT — la
+   * seconde recette l'avait déjà porté de `8` à `5`, cette troisième le porte
+   * de `5` à `3`. Le tiers se retranche donc de la valeur RÉELLEMENT LIVRÉE,
+   * pas une seconde fois de la valeur d'origine, qui n'aurait rien changé.
+   *
+   * Les marges horizontales et la géométrie du bloc restent inchangées.
    */
-  it("reduces the Activity card's top and bottom inner padding by a third, leaving every other geometry untouched", () => {
+  it("reduces the Activity card's top and bottom inner padding by a third again, leaving every other geometry untouched", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })]);
 
     const mainCardStyle = StyleSheet.flatten(
       screen.getByTestId("composition-activity-main-card").props.style,
     );
 
-    // `8 × 2/3 = 5,33`, arrondi au point entier.
-    expect(mainCardStyle.paddingVertical).toBe(Math.round((spacing[8] * 2) / 3));
-    expect(mainCardStyle.paddingVertical).toBe(5);
+    // Valeur livrée par la seconde recette : `8 × 2/3 = 5,33` → `5`.
+    const previousPadding = Math.round((spacing[8] * 2) / 3);
+    expect(previousPadding).toBe(5);
+
+    // Nouveau retrait d'un tiers : `5 × 2/3 = 3,33` → `3`.
+    expect(mainCardStyle.paddingVertical).toBe(Math.round((previousPadding * 2) / 3));
+
+    // Assertion sur la VALEUR NUMÉRIQUE elle-même, exigée par la recette pour
+    // garantir un changement visible : la marge a réellement diminué depuis
+    // la valeur précédemment livrée, et depuis la valeur d'origine.
+    expect(mainCardStyle.paddingVertical).toBe(3);
+    expect(mainCardStyle.paddingVertical).toBeLessThan(previousPadding);
     expect(mainCardStyle.paddingVertical).toBeLessThan(spacing[8]);
 
     // Marges HORIZONTALES et écart interne strictement conservés.

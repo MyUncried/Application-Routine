@@ -9,7 +9,7 @@ import {
   computeTotalDurationSeconds,
   type TotalDurationFacts,
 } from "@/domain/sessions/calculations";
-import { insertActivityInZone } from "@/domain/sessions/composition";
+import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_REPETITION_COUNT,
@@ -312,15 +312,20 @@ export function ExerciseScreen() {
       return;
     }
     finishingRef.current = true;
-    // Remplace l'élément existant par `id` (parcours modification) ou insère
-    // `local` APRÈS la dernière Activité DE SA ZONE (parcours ajout,
-    // `insertActivityInZone`) — jamais un remplacement complet de
-    // `draft.exercises`, pour ne jamais perdre les autres Activités déjà
-    // présentes.
+    // Remplace l'élément existant par `id` (parcours modification) ou ajoute
+    // `local` APRÈS la dernière carte ACTUELLEMENT AFFICHÉE, dont il reprend
+    // la zone (parcours ajout, `appendActivityAfterLastDisplayed`) — jamais un
+    // remplacement complet de `draft.exercises`, pour ne jamais perdre les
+    // autres Activités déjà présentes.
+    //
+    // `draft.exercises` est relu ICI, à l'instant exact où l'utilisateur
+    // termine sa création : ni la position, ni la zone observées à l'OUVERTURE
+    // de l'écran ne sont utilisées. La zone que `createExerciseDraft` a figée
+    // dans `local` au montage n'est donc jamais consultée pour ce placement.
     const alreadyPresent = draft.exercises.some((exercise) => exercise.id === local.id);
     const nextExercises = alreadyPresent
       ? draft.exercises.map((exercise) => (exercise.id === local.id ? local : exercise))
-      : insertActivityInZone(draft.exercises, local);
+      : appendActivityAfterLastDisplayed(draft.exercises, local);
     updateDraft({ exercises: nextExercises });
     setIsFinishing(true);
   }

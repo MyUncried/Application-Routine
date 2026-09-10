@@ -55,64 +55,51 @@ export function groupActivitiesByZone(
 }
 
 /**
- * Insère une NOUVELLE Activité immédiatement APRÈS la dernière Activité déjà
- * présente dans SA PROPRE zone structurelle (T02-S02, continuation après
- * recette visuelle).
+ * Ajoute une NOUVELLE Activité immédiatement APRÈS la DERNIÈRE CARTE
+ * ACTUELLEMENT AFFICHÉE, dont elle reprend la zone structurelle (T02-S02,
+ * troisième recette visuelle, point 1).
  *
- * Ajouter en fin de collection — comportement précédent — plaçait une
- * nouvelle Activité `BEFORE_TOUR` derrière les Activités `IN_TOUR` et
- * `AFTER_TOUR` déjà composées : son rang DANS SA ZONE restait correct, mais
- * l'ordre de la collection cessait de refléter l'ordre structurel affiché, et
- * toute lecture linéaire du brouillon (tests, futurs consommateurs) devenait
- * trompeuse. L'insertion par zone rétablit l'invariant « ordre de la
- * collection = ordre de lecture de la Composition ».
+ * **Le placement est décidé au moment de l'ajout, jamais à l'ouverture de
+ * l'écran.** La zone portée par le brouillon local — figée au montage par
+ * `createExerciseDraft` — n'est PAS consultée : seule compte la Composition
+ * telle qu'elle est affichée à l'instant où l'utilisateur termine sa
+ * création. C'est ce qui rend le résultat conforme à ce que l'utilisateur
+ * voit :
  *
- * Zone encore vide : l'Activité est insérée AVANT la première Activité d'une
- * zone postérieure (ordre canonique `STRUCTURAL_ZONES`), et en fin de
- * collection s'il n'en existe aucune. Une Activité déjà présente (même `id`)
- * n'est jamais dupliquée — l'appelant gère la modification séparément.
+ * | Dernière carte affichée | Nouvelle Activité |
+ * | --- | --- |
+ * | `BEFORE_TOUR` | juste après elle, donc avant le Tour |
+ * | `IN_TOUR` | juste après elle, donc dernière du Tour |
+ * | `AFTER_TOUR` | juste après elle, donc avant `Fin de séance` |
+ *
+ * « Dernière carte affichée » est bien celle de l'ORDRE DE LECTURE
+ * (`orderActivitiesByZone`), pas celle de la fin du tableau : la collection
+ * n'est pas nécessairement contiguë par zone — `moveActivity` la réordonne —
+ * et `[in-1, before-1]` est une Composition parfaitement légitime, dont la
+ * dernière carte affichée est `in-1`.
+ *
+ * L'insertion se fait ensuite juste après cette Activité DANS LA COLLECTION :
+ * la nouvelle devient ainsi la dernière de sa zone, donc la dernière
+ * affichée. Une Composition encore vide conserve la zone par défaut de
+ * l'Activité fournie.
  */
-export function insertActivityInZone(
+export function appendActivityAfterLastDisplayed(
   activities: readonly SessionDraftExercise[],
   activity: SessionDraftExercise,
 ): readonly SessionDraftExercise[] {
-  const zoneRank = (zone: StructuralPosition): number => STRUCTURAL_ZONES.indexOf(zone);
-  const targetRank = zoneRank(activity.structuralPosition);
+  const displayed = orderActivitiesByZone(activities);
+  const lastDisplayed = displayed[displayed.length - 1];
 
-  // **Règle principale** : juste après la DERNIÈRE Activité de la même zone.
-  //
-  // Cette recherche par la fin remplace celle, indirecte, de la première
-  // Activité d'une zone postérieure — qui présupposait une collection
-  // CONTIGUË par zone. Or elle ne l'est pas nécessairement : déplacer une
-  // Activité (`moveActivity`) réordonne la collection, et une Composition
-  // comme `[in-1, before-1]` est parfaitement légitime. L'ancienne règle
-  // insérait alors la nouvelle Activité `BEFORE_TOUR` juste avant `in-1`,
-  // donc AVANT `before-1` — elle apparaissait en tête de sa zone,
-  // immédiatement sous le `Compte à rebours initial`, au lieu d'en fermer la
-  // liste. Chercher la dernière de sa propre zone est vrai quelle que soit
-  // la disposition de la collection.
-  let lastIndexInZone = -1;
-  for (let index = activities.length - 1; index >= 0; index -= 1) {
-    if (activities[index]!.structuralPosition === activity.structuralPosition) {
-      lastIndexInZone = index;
-      break;
-    }
-  }
-  if (lastIndexInZone !== -1) {
-    const next = [...activities];
-    next.splice(lastIndexInZone + 1, 0, activity);
-    return next;
+  if (lastDisplayed === undefined) {
+    return [activity];
   }
 
-  // **Zone encore vide** : aucune Activité de référence — l'Activité se place
-  // avant la première d'une zone STRICTEMENT postérieure, et en fin de
-  // collection s'il n'en existe aucune.
-  const firstLaterZoneIndex = activities.findIndex(
-    (existing) => zoneRank(existing.structuralPosition) > targetRank,
-  );
-
+  const anchorIndex = activities.indexOf(lastDisplayed);
   const next = [...activities];
-  next.splice(firstLaterZoneIndex === -1 ? next.length : firstLaterZoneIndex, 0, activity);
+  next.splice(anchorIndex + 1, 0, {
+    ...activity,
+    structuralPosition: lastDisplayed.structuralPosition,
+  });
   return next;
 }
 

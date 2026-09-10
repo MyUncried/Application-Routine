@@ -1746,17 +1746,31 @@ function CompositionEditState({
 const COMPOSITION_ROW_GAP = spacing[6];
 
 /**
- * **Marge intérieure verticale d'une carte d'Activité** (T02-S02, seconde
- * recette visuelle, point 7) — l'ancienne valeur `spacing/8` RÉDUITE D'UN
- * TIERS, arrondie au point entier le plus proche (`8 × 2/3 = 5,33 → 5`).
- *
- * Valeur DÉRIVÉE, jamais un littéral : la règle demandée (« réduire d'un
- * tiers ») reste lisible dans le code, et `5` n'est pas un échelon de
- * `spacing` — écart disclosé dans le rapport de mission, l'échelle DSF
- * n'offrant que `4` (réduction de moitié) et `6` (réduction d'un quart), ni
- * l'un ni l'autre égal au tiers demandé.
+ * Marge intérieure verticale LIVRÉE par la seconde recette visuelle (point 7)
+ * — `spacing/8` réduit d'un tiers, arrondi au point entier (`8 × 2/3 = 5,33
+ * → 5`). Conservée nommée pour que la réduction suivante s'y enchaîne
+ * visiblement.
  */
-const ACTIVITY_CARD_PADDING_VERTICAL = Math.round((spacing[8] * 2) / 3);
+const PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL = Math.round((spacing[8] * 2) / 3);
+
+/**
+ * **Marge intérieure verticale d'une carte d'Activité** (T02-S02, troisième
+ * recette visuelle, point 3) — la valeur précédente RÉDUITE D'UN TIERS à son
+ * tour, arrondie au point entier le plus proche (`5 × 2/3 = 3,33 → 3`).
+ *
+ * Le tiers se retranche de la valeur RÉELLEMENT LIVRÉE, pas une seconde fois
+ * de `spacing/8` : ré-appliquer la règle à la valeur d'origine aurait redonné
+ * `5`, donc AUCUN changement — contraire à l'exigence « réduire
+ * EFFECTIVEMENT ».
+ *
+ * Valeur DÉRIVÉE, jamais un littéral : la règle demandée reste lisible dans le
+ * code. Ni `5` ni `3` ne sont des échelons de `spacing` — écart disclosé dans
+ * le rapport de mission, l'échelle DSF n'offrant aucun palier égal au tiers
+ * demandé.
+ */
+const ACTIVITY_CARD_PADDING_VERTICAL = Math.round(
+  (PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL * 2) / 3,
+);
 
 /**
  * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
@@ -1973,15 +1987,24 @@ const styles = StyleSheet.create({
   // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
   // hauteur canonique prime, elle est publiée par CE-T01-09.
   //
-  // **T02-S02 (seconde recette visuelle, point 7)** : marges intérieures
-  // HAUTE et BASSE réduites d'un tiers (`ACTIVITY_CARD_PADDING_VERTICAL`).
-  // Le bloc ayant une hauteur FIXE (`69`/`93`), ces marges ne changent pas
-  // sa taille — elles rendent au contenu la place qui lui manquait : nom
-  // (`16/20`) + Zones corporelles (`11/14`) + synthèse (`11/14`) et leurs
-  // deux écarts de `2` totalisent `52`, contre `67` de hauteur utile ; avec
-  // `8` de marge haute et basse, l'ensemble atteignait `68` et débordait
-  // d'un point. Les marges HORIZONTALES et toutes les autres géométries
-  // validées restent strictement inchangées.
+  // **T02-S02 (seconde puis troisième recette visuelle)** : marges
+  // intérieures HAUTE et BASSE réduites d'un tiers, deux fois
+  // (`ACTIVITY_CARD_PADDING_VERTICAL`, `8 → 5 → 3`). Le bloc ayant une
+  // hauteur FIXE (`69`/`93`), ces marges ne changent pas sa taille — elles
+  // rendent au contenu la place qui lui manquait : nom (`16/20`) + Zones
+  // corporelles (`11/14`) + synthèse (`11/14`) et leurs deux écarts de `2`
+  // totalisent `52`, contre `67` de hauteur utile ; avec `8` de marge haute
+  // et basse, l'ensemble atteignait `68` et débordait d'un point.
+  //
+  // LIMITE DISCLOSÉE : la carte étant `alignItems: "center"` dans un bloc de
+  // hauteur fixe, cette marge BORNE la boîte de contenu plutôt qu'elle ne
+  // définit le blanc visible. Réduire davantage le blanc PERÇU exigerait de
+  // toucher à la hauteur de bloc gelée — hors périmètre. Le contrat
+  // vérifiable est donc la valeur numérique du style, ce que teste
+  // explicitement la suite `CompositionScreen`.
+  //
+  // Les marges HORIZONTALES et toutes les autres géométries validées restent
+  // strictement inchangées.
   activityMainCard: {
     flex: 1,
     flexDirection: "row",
