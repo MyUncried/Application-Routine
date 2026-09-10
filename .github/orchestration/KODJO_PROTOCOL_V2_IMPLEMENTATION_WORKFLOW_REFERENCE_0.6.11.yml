@@ -58,6 +58,14 @@ on:
       issue_number:
         type: string
         required: false
+      slice_bootstrap_file:
+        description: Chemin canonique de la SliceBootstrapIdentity V2
+        type: string
+        required: true
+      slice_bootstrap_sha256:
+        description: Empreinte canonique attendue de la SliceBootstrapIdentity
+        type: string
+        required: true
       scope_allow:
         description: Perimetre autorise de l'increment, globs separes par des virgules
         type: string
@@ -100,6 +108,8 @@ env:
   KODJO_FAILED_CHECKS: ${{ inputs.failed_checks }}
   KODJO_SOURCE_ARTIFACT_SHA256: ${{ inputs.source_artifact_sha256 }}
   KODJO_ISSUE_NUMBER: ${{ inputs.issue_number }}
+  KODJO_SLICE_BOOTSTRAP_FILE: ${{ inputs.slice_bootstrap_file }}
+  KODJO_SLICE_BOOTSTRAP_SHA256: ${{ inputs.slice_bootstrap_sha256 }}
   KODJO_REPOSITORY: ${{ github.repository }}
   KODJO_SCOPE_ALLOW: ${{ inputs.scope_allow }}
   KODJO_AGENT_ADAPTER: ${{ inputs.agent_adapter }}
@@ -132,6 +142,12 @@ jobs:
             echo "KODJO_SOURCE_RESULT_DIR=${RUNNER_TEMP}/kodjo/source-result"
           } >> "$GITHUB_ENV"
           mkdir -p "${RUNNER_TEMP}/kodjo"
+
+      - name: Validate activated V2 slice identity
+        id: slice_identity
+        run: |
+          actual="$(node scripts/kodjo/validate-slice-bootstrap.js . "${KODJO_SLICE_BOOTSTRAP_FILE}" "${KODJO_SOURCE_HEAD}")"
+          test "${actual}" = "${KODJO_SLICE_BOOTSTRAP_SHA256}"
 
       - name: Reject invalid orchestration paths before any production
         id: orchestration_preflight
