@@ -143,15 +143,15 @@ jobs:
           } >> "$GITHUB_ENV"
           mkdir -p "${RUNNER_TEMP}/kodjo"
 
+      - name: Reject invalid orchestration paths before any production
+        id: orchestration_preflight
+        run: node scripts/kodjo/validate-orchestration-paths.js
+
       - name: Validate activated V2 slice identity
         id: slice_identity
         run: |
           actual="$(node scripts/kodjo/validate-slice-bootstrap.js . "${KODJO_SLICE_BOOTSTRAP_FILE}" "${KODJO_SOURCE_HEAD}")"
           test "${actual}" = "${KODJO_SLICE_BOOTSTRAP_SHA256}"
-
-      - name: Reject invalid orchestration paths before any production
-        id: orchestration_preflight
-        run: node scripts/kodjo/validate-orchestration-paths.js
 
       - name: Refuse any remote functional write capability
         id: guard
