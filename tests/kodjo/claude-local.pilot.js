@@ -133,6 +133,39 @@ test('contrôle de périmètre reconnaît récursif, direct et refuse le voisin'
   assert.equal(L.inScope('scripts/a.js', ['src/**', 'tests/**']), false);
 });
 
+test('RESUME_DELTA restaure exactement le paquet de reprise de la même session', () => {
+  const f = fixture();
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-state-'));
+  const runDir = path.join(stateRoot, 'runs', 'SMOKE-1');
+  const target = path.join(f.root, 'src', 'restored.ts');
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.writeFileSync(target, 'version-restaurée\n');
+  f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  L.writeRecovery(runDir, f.root, f.request, ['src/restored.ts']);
+  fs.writeFileSync(target, 'version-propre\n');
+  const resume = { ...f.request, mode: 'RESUME_DELTA', session_id: f.request.generated_session_id };
+  delete resume.generated_session_id;
+  assert.deepEqual(L.restoreRecovery(stateRoot, f.root, resume), ['src/restored.ts']);
+  assert.equal(fs.readFileSync(target, 'utf8'), 'version-restaurée\n');
+});
+
+test('RESUME_DELTA refuse un paquet absent, altéré ou hors périmètre', () => {
+  const f = fixture({ mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000' });
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-refusal-'));
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_NOT_FOUND/);
+  const runDir = path.join(stateRoot, 'runs', 'SMOKE-1');
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.writeFileSync(path.join(runDir, 'recovery.json'), JSON.stringify({
+    schema_version: L.RECOVERY_SCHEMA,
+    slice_id: 'SMOKE',
+    session_id: f.request.session_id,
+    baseline_head: f.request.baseline_head,
+    entries: [{ path: 'docs/task.md', deleted: false, sha256: '0'.repeat(64), content_base64: '' }],
+  }));
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_SCOPE_VIOLATION/);
+});
+
 test('le jeton OAuth est expurgé des traces', () => {
   const before = process.env.CLAUDE_CODE_OAUTH_TOKEN;
   process.env.CLAUDE_CODE_OAUTH_TOKEN = 'secret-token-never-log';

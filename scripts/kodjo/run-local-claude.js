@@ -49,6 +49,73 @@ function inScope(file, scopes) {
   });
 }
 
+const RECOVERY_SCHEMA = 'kodjo.protocol.v2.local-recovery.0.6.15';
+
+function recoveryPayload(repoRoot, request, files) {
+  const entries = [...new Set(files)].sort().filter((file) => inScope(file, request.scope_allow)).map((file) => {
+    const normalized = file.replace(/\\/g, '/');
+    const absolute = path.resolve(repoRoot, normalized);
+    if (!absolute.startsWith(repoRoot + path.sep)) throw new Error('RECOVERY_PATH_INVALID: ' + normalized);
+    if (!fs.existsSync(absolute)) return { path: normalized, deleted: true };
+    const stat = fs.statSync(absolute);
+    if (!stat.isFile()) throw new Error('RECOVERY_NOT_A_FILE: ' + normalized);
+    const content = fs.readFileSync(absolute);
+    return { path: normalized, deleted: false, sha256: sha256(content), content_base64: content.toString('base64') };
+  });
+  return {
+    schema_version: RECOVERY_SCHEMA,
+    slice_id: request.slice_id,
+    session_id: request.generated_session_id,
+    baseline_head: request.baseline_head,
+    created_at: new Date().toISOString(),
+    entries,
+  };
+}
+
+function writeRecovery(runDir, repoRoot, request, files) {
+  const payload = recoveryPayload(repoRoot, request, files);
+  fs.writeFileSync(path.join(runDir, 'recovery.json'), JSON.stringify(payload, null, 2) + '\n', { encoding: 'utf8', mode: 0o600 });
+  return payload.entries.map((entry) => entry.path);
+}
+
+function restoreRecovery(stateRoot, repoRoot, request) {
+  if (request.mode !== 'RESUME_DELTA') return [];
+  const runsRoot = path.join(stateRoot, 'runs');
+  if (!fs.existsSync(runsRoot)) throw new Error('RECOVERY_NOT_FOUND');
+  const candidates = fs.readdirSync(runsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(runsRoot, entry.name, 'recovery.json'))
+    .filter((file) => fs.existsSync(file))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  let recovery = null;
+  for (const file of candidates) {
+    const candidate = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
+    if (candidate.schema_version === RECOVERY_SCHEMA &&
+        candidate.slice_id === request.slice_id &&
+        candidate.session_id === request.session_id &&
+        candidate.baseline_head === request.baseline_head) {
+      recovery = candidate;
+      break;
+    }
+  }
+  if (!recovery) throw new Error('RECOVERY_NOT_FOUND');
+  for (const entry of recovery.entries || []) {
+    const normalized = String(entry.path || '').replace(/\\/g, '/');
+    if (!inScope(normalized, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + normalized);
+    const absolute = path.resolve(repoRoot, normalized);
+    if (!normalized || !absolute.startsWith(repoRoot + path.sep)) throw new Error('RECOVERY_PATH_INVALID: ' + normalized);
+    if (entry.deleted === true) {
+      if (fs.existsSync(absolute)) fs.unlinkSync(absolute);
+      continue;
+    }
+    const content = Buffer.from(String(entry.content_base64 || ''), 'base64');
+    if (sha256(content) !== entry.sha256) throw new Error('RECOVERY_HASH_MISMATCH: ' + normalized);
+    fs.mkdirSync(path.dirname(absolute), { recursive: true });
+    fs.writeFileSync(absolute, content);
+  }
+  return (recovery.entries || []).map((entry) => entry.path);
+}
+
 const CHECK_RUNNER_SOURCE = `'use strict';
 const { spawnSync } = require('node:child_process');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -120,6 +187,12 @@ function main() {
     ? path.resolve(process.env.KODJO_STATE_ROOT)
     : path.join(os.homedir(), '.kodjo-v2');
   fs.mkdirSync(stateRoot, { recursive: true });
+  let recoveredFiles = [];
+  try {
+    recoveredFiles = restoreRecovery(stateRoot, repoRoot, request);
+  } catch (err) {
+    return die('RECOVERY_REFUSED', err.message);
+  }
   const lockPath = path.join(stateRoot, 'claude-local.lock');
   let lock;
   try {
@@ -177,6 +250,12 @@ function main() {
     return normalized !== promptRelative && path.resolve(f) !== path.resolve(requestPath);
   });
   const outside = files.filter((f) => !inScope(f, request.scope_allow));
+  let recoveryFiles = [];
+  try {
+    recoveryFiles = writeRecovery(runDir, repoRoot, request, files);
+  } catch (err) {
+    return die('RECOVERY_WRITE_FAILED', err.message);
+  }
   const checks = request.checks.map((name) => runCheck(name, { cwd: repoRoot }));
   const summary = {
     schema_version: 'kodjo.protocol.v2.local-result.0.6.11', run_id: runId,
@@ -184,7 +263,7 @@ function main() {
     claude_exit_code: result.status, claude_error: result.error ? result.error.message : null,
     claude_failure: classifyClaudeFailure(result),
     timed_out: result.status === null, source_head: request.source_head,
-    modified_files: files, out_of_scope_files: outside, checks,
+    modified_files: files, recovered_files: recoveredFiles, recovery_files: recoveryFiles, out_of_scope_files: outside, checks,
     status: result.status === 0 && !outside.length && checks.every((c) => c.status === 'PASS')
       ? 'IMPLEMENTED_AND_VERIFIED'
       : (result.status !== 0 || result.error ? 'IMPLEMENTATION_FAILED' : 'IMPLEMENTED_WITH_FAILED_CHECKS'),
@@ -202,5 +281,5 @@ if (require.main === module) {
   try { process.exitCode = main(); } catch (err) { process.exitCode = die('LOCAL_ADAPTER_FAILURE', err.stack || err.message); }
 }
 
-module.exports = { inScope, changedFiles, refs };
+module.exports = { inScope, changedFiles, refs, recoveryPayload, writeRecovery, restoreRecovery, RECOVERY_SCHEMA };
 
