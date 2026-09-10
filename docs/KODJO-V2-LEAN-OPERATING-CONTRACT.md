@@ -1,6 +1,6 @@
 # KODJO V2 — contrat d'exploitation lean
 
-Version : 0.6.13
+Version : 0.6.14
 
 ## Principe opposable
 
@@ -44,3 +44,72 @@ Le runner Windows :
 Un runner hors ligne est une indisponibilité d'infrastructure, pas une étape utilisateur. Le protocole conserve la demande en file et signale `INFRASTRUCTURE_UNAVAILABLE`. Le service Windows est configuré pour démarrer automatiquement et récupérer les travaux après redémarrage. Une intervention administrateur n'est demandée qu'en maintenance exceptionnelle, séparée de la tranche métier.
 
 Le clone `C:\Dev\Application-routine` reste un espace de consultation/développement humain. Sa synchronisation n'est ni une précondition ni un mécanisme d'exécution du protocole.
+
+
+## Voie rapide documentaire `DOC_ONLY_FAST_PATH`
+
+### Finalité
+
+`DOC_ONLY_FAST_PATH` autorise ChatGPT Conception / documentaire à livrer de bout en bout une correction documentaire ciblée déjà décidée, sans intervention Git, GitHub ou PowerShell de l’utilisateur. Cette voie constitue l’unique exception contrôlée à l’interdiction des écritures distantes ; elle ne s’étend jamais au code fonctionnel.
+
+### Conditions d’entrée cumulatives
+
+La voie rapide est autorisée uniquement lorsque :
+
+- la décision métier ou la formulation à reporter a déjà été explicitement validée ;
+- tous les fichiers à modifier sont des fichiers Markdown `.md` situés sous `docs/` ;
+- aucun arbitrage fonctionnel, UX, technique ou de périmètre ne subsiste ;
+- le HEAD actuel de `main` est lu et enregistré immédiatement avant la création de la branche.
+
+Si une condition manque, le traitement s’arrête avant toute écriture et demande uniquement l’arbitrage nécessaire.
+
+### Exécution automatique obligatoire
+
+ChatGPT Conception / documentaire réalise lui-même, au moyen des capacités GitHub autorisées :
+
+1. la lecture du HEAD courant de `main` ;
+2. la création d’une branche dédiée `docs/<objet-court>` depuis ce HEAD exact ;
+3. la modification exclusive des fichiers Markdown autorisés sous `docs/` ;
+4. le commit et le push sur cette branche ;
+5. la création d’une PR vers `main` ;
+6. le contrôle du diff et de la liste exhaustive des fichiers modifiés ;
+7. la fusion automatique uniquement si tous les contrôles sont conformes ;
+8. la suppression automatique de la branche source après fusion, lorsque la plateforme l’expose directement ou que le dépôt la supprime automatiquement ;
+9. la relecture du nouveau HEAD de `main` ;
+10. une confirmation finale concise comprenant la PR et le nouveau HEAD.
+
+L’utilisateur ne réalise aucune de ces opérations et ne reçoit aucune commande PowerShell, Git ou GitHub.
+
+### Contrôles opposables avant fusion
+
+La fusion est interdite si l’une des conditions suivantes n’est pas démontrée :
+
+- la base de la PR correspond au HEAD de `main` lu au démarrage, ou le delta intervenu depuis a été revalidé sans contradiction ;
+- chaque chemin modifié correspond à `docs/**/*.md` ;
+- aucun fichier n’est supprimé ou renommé ;
+- le diff correspond exclusivement à la correction explicitement validée ;
+- aucun code applicatif, workflow, script, fichier de configuration, artefact protocolaire hors `docs/` ou manifeste historique n’est modifié ;
+- la PR est fusionnable sans conflit ;
+- les contrôles automatiques applicables sont réussis.
+
+Tout dépassement produit un arrêt `ARBITRAGE_REQUIRED` sans tentative d’élargissement silencieux du périmètre.
+
+### Limites
+
+Cette voie ne peut ni :
+
+- créer ou modifier un comportement applicatif ;
+- modifier `.github/workflows/`, `scripts/`, `.github/orchestration/`, les manifestes ou les artefacts d’une tranche ;
+- transformer une décision non validée en règle canonique ;
+- corriger un échec technique en élargissant le périmètre ;
+- utiliser le clone local `C:\\Dev\\Application-routine` comme mécanisme obligatoire de livraison.
+
+Une modification documentaire transverse, ambiguë ou indissociable d’un changement technique revient au processus normal.
+
+### Reprise courte
+
+La demande utilisateur peut être formulée simplement :
+
+`Applique cette correction documentaire validée avec DOC_ONLY_FAST_PATH.`
+
+ChatGPT Conception / documentaire retrouve alors le dépôt, lit `main`, applique la présente procédure et ne revient vers l’utilisateur qu’avec le résultat final ou un véritable arbitrage métier.
