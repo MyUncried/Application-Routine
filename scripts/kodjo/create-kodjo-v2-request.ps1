@@ -16,7 +16,8 @@ if (-not $repoRoot) { throw 'KODJO_V2_REPOSITORY_NOT_FOUND' }
 $head = (git rev-parse HEAD).Trim()
 $bootstrapAbsolute = [IO.Path]::GetFullPath((Join-Path $repoRoot $SliceBootstrapFile))
 $bootstrapRelative = $bootstrapAbsolute.Substring([IO.Path]::GetFullPath($repoRoot).TrimEnd('\\').Length).TrimStart('\\').Replace('\\', '/')
-$bootstrapHash = (& node (Join-Path $PSScriptRoot 'validate-slice-bootstrap.js') $repoRoot $bootstrapRelative).Trim()
+$bootstrapHash = (& node (Join-Path $PSScriptRoot 'validate-slice-bootstrap.js') $repoRoot $bootstrapRelative $head).Trim()
+$bootstrap = Get-Content -LiteralPath $bootstrapAbsolute -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $bootstrapHash -notmatch '^[0-9a-f]{64}$promptAbsolute = if ([IO.Path]::IsPathRooted($PromptFile)) {
   [IO.Path]::GetFullPath($PromptFile)
 } else {
@@ -39,6 +40,7 @@ $request = [ordered]@{
   schema_version = 'kodjo.protocol.v2.local-implementation.0.6.12'
   slice_id = $SliceId
   source_head = $head
+  baseline_head = $bootstrap.baseline_head
   slice_bootstrap_file = $bootstrapRelative
   slice_bootstrap_sha256 = $bootstrapHash
   mode = $Mode
