@@ -27,7 +27,7 @@ function command(bin, args, cwd, env, timeout) {
 function git(args, cwd) {
   const r = command('git', args, cwd, process.env, 60000);
   if (r.error || r.status !== 0) throw new Error('GIT_READ_FAILED: ' + (r.error ? r.error.message : r.stderr));
-  return String(r.stdout).trim();
+  return String(r.stdout).trimEnd();
 }
 
 function refs(cwd) {
