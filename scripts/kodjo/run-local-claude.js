@@ -70,7 +70,7 @@ process.exit(result.error || result.status === null ? 78 : result.status);
 function main() {
   const requestPath = process.argv[2];
   if (!requestPath) return die('USAGE', 'node scripts/kodjo/run-local-claude.js <request.json>');
-  const repoRoot = git(['rev-parse', '--show-toplevel'], process.cwd());
+  const repoRoot = path.resolve(git(['rev-parse', '--show-toplevel'], process.cwd()));
   let request;
   try {
     request = normalizeRequest(JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, '')), repoRoot);
