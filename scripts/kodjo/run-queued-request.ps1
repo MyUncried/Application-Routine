@@ -21,21 +21,8 @@ if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_
 
 $tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 $branch = "kodjo/v2-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID
-$request = [ordered]@{
-  schema_version = 'kodjo.protocol.v2.local-implementation.0.6.12'
-  slice_id = $queue.slice_id
-  source_head = $queue.source_head
-  baseline_head = $queue.baseline_head
-  slice_bootstrap_file = $queue.slice_bootstrap_file
-  slice_bootstrap_sha256 = $queue.slice_bootstrap_sha256
-  mode = $queue.mode
-  session_id = $queue.session_id
-  prompt_file = $queue.prompt_file
-  scope_allow = @($queue.scope_allow)
-  checks = @($queue.checks)
-  limits = $queue.limits
-}
-[IO.File]::WriteAllText($tempRequest, ($request | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
+& node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
+if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 
 git switch --detach $queue.source_head
 if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
