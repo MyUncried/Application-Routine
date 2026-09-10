@@ -9,6 +9,7 @@
 - Issue : [#52](https://github.com/MyUncried/Application-Routine/issues/52)
 - Dépôt : `MyUncried/Application-Routine`
 - Révision applicative à analyser : `04a15580f65d2b3702776447c3574dee988e5b83`
+- Baseline documentaire corrigée : `7e4f6984a8aefb6018e908e183dd7dda56e2482d` (PR #56)
 - Branche cible future : `main`
 - Identité : `.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json`
 - Empreinte d’identité : `6646d159c0e5e9c0293146e272a176d31d7b90c9019bc83e0cb20601edfbc6a2`
@@ -100,6 +101,16 @@ Répondre en français avec un plan comprenant obligatoirement :
 10. **Verdict de planification** — `PLAN_READY_FOR_INDEPENDENT_REVIEW` ou `CLARIFICATION_REQUIRED`.
 
 Le livrable ne doit contenir ni code d’implémentation complet ni commande destinée à l’utilisateur.
+
+## Clarification migrations — CLÔTURÉE
+
+Décision canonique intégrée au plan :
+
+- `migration004` reste attribuée à T02-S02 avec `DATABASE_VERSION = 4` ;
+- `migration005` appartient à `V2-BILAT-01`, ajoute les `side_mode` de configuration et fixe `DATABASE_VERSION = 5` ;
+- `migration006` est réservée à T03 pour la persistance d’Exécution et de Résultats avec `DATABASE_VERSION = 6`.
+
+Cette décision ne constitue plus une question ouverte et ne doit pas être soumise à une nouvelle validation métier.
 
 ## Suite obligatoire
 
