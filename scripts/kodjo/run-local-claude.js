@@ -99,9 +99,9 @@ function main() {
   if (!token) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
 
   const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
-  const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js') : null;
-  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli ? process.execPath : 'claude');
-  const claudePrefix = claudeCli ? [claudeCli] : [];
+  const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') : null;
+  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli || 'claude');
+  const claudePrefix = [];
   const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
   if (version.error || version.status !== 0) return die('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
   const versionText = String(version.stdout || version.stderr).trim();
