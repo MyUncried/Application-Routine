@@ -8,14 +8,21 @@ const path = require('node:path');
 
 const C = require('../../scripts/kodjo/lib/claude-local');
 const L = require('../../scripts/kodjo/run-local-claude');
+const I = require('../../scripts/kodjo/lib/slice-identity');
 
 function fixture(overrides) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-claude-local-'));
   fs.mkdirSync(path.join(root, 'docs'));
   fs.writeFileSync(path.join(root, 'docs', 'task.md'), 'Corriger la fonction ciblée.\n');
+  const bootstrapDir = path.join(root, '.github', 'orchestration', 'v2-slices', 'SMOKE');
+  fs.mkdirSync(bootstrapDir, { recursive: true });
+  const bootstrap = { schema_version: I.BOOTSTRAP_SCHEMA, slice_id: 'SMOKE', issue_number: 1, repository: 'MyUncried/Application-Routine', target_branch: 'main', baseline_head: 'a'.repeat(40), protocol_version: '0.6.12', protocol_commit: 'b'.repeat(40), activation_registry: '.github/orchestration/v2-activation-registry.json', previous_slice_id: null, previous_checkpoint: null, product_sources: [{ path: 'docs/task.md', sha256: 'c'.repeat(64) }], authorized_actors: ['user', 'claude-local'], created_at: '2026-09-10T18:00:00.000Z' };
+  bootstrap.slice_bootstrap_sha256 = I.sha256(I.canonical(bootstrap));
+  fs.writeFileSync(path.join(bootstrapDir, 'slice-bootstrap.json'), JSON.stringify(bootstrap));
+  fs.writeFileSync(path.join(root, '.github', 'orchestration', 'v2-activation-registry.json'), JSON.stringify({ schema_version: I.REGISTRY_SCHEMA, activations: [{ slice_id: 'SMOKE', status: 'ACTIVE', issue_number: 1, baseline_head: 'a'.repeat(40), bootstrap_path: '.github/orchestration/v2-slices/SMOKE/slice-bootstrap.json', slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 }] }));
   const request = {
-    schema_version: 'kodjo.protocol.v2.local-implementation.0.6.11',
-    slice_id: 'SMOKE', source_head: 'a'.repeat(40), mode: 'INITIAL',
+    schema_version: 'kodjo.protocol.v2.local-implementation.0.6.12',
+    slice_id: 'SMOKE', source_head: 'a'.repeat(40), baseline_head: 'a'.repeat(40), slice_bootstrap_file: '.github/orchestration/v2-slices/SMOKE/slice-bootstrap.json', slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256, mode: 'INITIAL',
     session_id: null,
     prompt_file: 'docs/task.md', scope_allow: ['src/**', 'tests/**'],
     checks: ['jest', 'typescript', 'lint'], limits: { ...C.DEFAULT_LIMITS },
