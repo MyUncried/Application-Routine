@@ -602,7 +602,7 @@ Tests bloquants : distinction toucher court/appui long ; état visuel exact `362
 
 ### Périmètre commun T03
 
-T03 exécute les Séances actives comportant des Activités en mode Durée, Répétitions ou À l’échec, avec une seule Série par Activité et un seul Tour. Une Récupération positive produit une phase `RECOVERY` après l’unique Série. Les Séries multiples, les Tours multiples et la navigation vers une étape précédente relèvent de T04. Les modes Répétitions et À l’échec restent exécutables dans T03 lorsqu’ils respectent cette structure.
+T03 exécute les Séances actives comportant des Activités en mode Durée, Répétitions ou À l’échec, avec leurs Séries, Tours et passages bilatéraux. Une Récupération positive produit une phase `RECOVERY` après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral. La navigation vers une étape précédente reste hors périmètre.
 
 Les écrans réutilisent `Shell / Execution` et les captures `execution-etat-initial.png`, `execution-seance.png`, `execution-bips-vocal-desactives.png`, `execution-reinitialiser.png`, `execution-activite-suivante.png` et `execution-pause.png`. L’absence d’une frame propre à un état purement temporel n’autorise aucune invention visuelle : cet état hérite du Shell et des composants documentés au chapitre 06.
 
@@ -617,7 +617,7 @@ Les écrans réutilisent `Shell / Execution` et les captures `execution-etat-ini
 
 La zone principale de la carte ouvre la Composition. `Déployer` ouvre ou ferme le détail de la carte et `Démarrer` ouvre l’Exécution avec l’identifiant exact de la Séance. Ces trois cibles sont indépendantes : la zone tactile principale s’arrête avant les boutons `Déployer` et `Démarrer`, sans chevauchement. Une Séance sans Activité valide ne peut normalement pas être enregistrée ; `Démarrer` désactivé constitue uniquement une protection défensive contre des données anciennes, importées ou corrompues et ne produit aucune navigation.
 
-Avant toute création d’Exécution, l’application refuse atomiquement une Séance comportant plusieurs Séries pour au moins une Activité ou plusieurs Tours. Elle affiche un message compréhensible indiquant que cette structure sera prise en charge dans T04. Le refus ne crée ni Exécution, ni Instantané, ni Résultat partiel et ne modifie jamais la Séance. L’archivage, la restauration et la suppression ne font pas partie de T03 ; la garde contre une Séance archivée demeure une protection d’intégrité si une telle donnée préexiste.
+Avant toute création d’Exécution, l’application développe atomiquement toutes les Séries, répétitions de Tour et passages de côté. Elle refuse uniquement une structure invalide ou impossible à développer. Le refus ne crée ni Exécution, ni Instantané, ni Résultat partiel et ne modifie jamais la Séance. L’archivage, la restauration et la suppression ne font pas partie de T03 ; la garde contre une Séance archivée demeure une protection d’intégrité si une telle donnée préexiste.
 
 Tests bloquants : routage distinct Composition/Déployer/Démarrer ; bon identifiant ; cibles sans chevauchement ; aucune navigation si `Démarrer` est désactivé ; refus avant toute écriture ; absence de mutation de la Séance ; message explicite ; aucun contournement des fonctions d’édition T01/T02.
 
@@ -825,11 +825,11 @@ Dans Mode, la première rangée conserve l’ordre `Séries` → cible (`Durée`
 
 Le contrôle de Mode divise strictement sa largeur intérieure en trois parts égales. La rangée des trois paramètres conserve son ordre dans tous les modes et états de roulette. Le récapitulatif occupe la largeur utile et reste à `spacing/24` au-dessus de l’action finale.
 
-Le parcours accepte Durée, Répétitions et À l’échec. `Séries` vaut de `1` à `99`; le nom est obligatoire, ainsi que la durée ou les répétitions uniquement lorsque le mode l’exige. Pause et Récupération peuvent valoir `0 s`. Une Récupération positive est exécutée une fois après toutes les Séries.
+Le parcours accepte Durée, Répétitions et À l’échec. `Séries` vaut de `1` à `99`; le nom est obligatoire, ainsi que la durée ou les répétitions uniquement lorsque le mode l’exige. Pause et Récupération peuvent valoir `0 s`. Une Récupération positive est exécutée après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral.
 
 Les contrôles `Séries`, `Durée`, `Répétitions`, `Pause`, `Récupération` et `Durée totale` ouvrent les variantes définies par CE-T01-14. `Terminer` reste désactivé tant que l’Activité est invalide ; lorsqu’elle est valide, il l’enregistre atomiquement puis revient à la Composition. Il n’existe plus de second écran d’informations complémentaires.
 
-En mode Durée, la Durée totale est calculée par `D = C × A + (C − 1) × B + R`. Séries est le pilote implicite initial, sans contour. Après confirmation d’un contrôle pilote, le pilote actif reçoit le contour `color/selection`. Si l’utilisateur confirme une Durée totale cible, `Cth = (D − R + B) / (A + B)` est arrondi au plus proche, `.5` vers le haut, puis borné à `1`; le nombre de Séries canonique et la Durée totale réalisable sont réévalués. Le pilote est un état local non persisté. Les références Figma sont `3580:4733`, `3580:4845` et `3580:4957`.
+En mode Durée, la Durée totale globale d’une Activité autonome est calculée par `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` ou `2`. Séries est le pilote implicite initial, sans contour. Après confirmation d’un contrôle pilote, le pilote actif reçoit le contour `color/selection`. Si l’utilisateur confirme une Durée totale cible, `Cth = ((D − R) / L + B) / (A + B)` est arrondi au plus proche, `.5` vers le haut, puis borné à `1`; le nombre de Séries canonique et la Durée totale réalisable sont réévalués. Le pilote est un état local non persisté. Les références Figma sont `3580:4733`, `3580:4845` et `3580:4957`.
 
 Le récapitulatif est calculé et suit les valeurs confirmées. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. À l’échec : `{N} série(s) de {activité}, jusqu’à l’échec`. Si la Pause est positive, ajouter `, avec {pause} de pause entre les séries` uniquement lorsque `N > 1`. Si la Récupération est positive, ajouter la récupération après l’Activité. En Répétitions et À l’échec, toute durée affichée est une borne minimale `≥` composée des Pauses et de la Récupération connues. Retour avec modifications non enregistrées ouvre CE-T01-16.
 
@@ -1149,3 +1149,21 @@ Les captures `catalogue-*.png`, `composition-*.png` et `creation-activite-*.png`
 ## 9. Contrat fonctionnel futur — Circuit V2
 
 Le Circuit requiert nom, couleur et au moins deux étapes référençant des Séances. L’écran de transition apparaît entre toutes les étapes, attend l’utilisateur en manuel ou décompte la durée globale en automatique (`30 s` par défaut), puis laisse s’exécuter le compte à rebours initial de la Séance suivante. Aucun contrat de planification de Circuit n’est actif avant la V3.
+
+## 10. Contrats Bilatéralité
+
+### CE-BIL-01 — Contrôle Activité
+
+Le contrôle `Côtés` cycle entre Unilatéral, `D→G` et `G→D` dans les modes Durée, Répétitions et À l’échec. Son nom accessible développe l’état. Une Activité persistante transmet la valeur à son insertion ; duplication et réouverture la conservent.
+
+### CE-BIL-02 — Contrôle Tour et confirmation
+
+Le Tour expose le même cycle. Le passage d’Unilatéral à une direction bilatérale ouvre un dialogue bloquant : titre `Voulez-vous exécuter ce Tour de manière bilatérale ?`; texte `À chaque répétition du Tour, toutes ses Activités seront exécutées une première fois d’un côté, puis une seconde fois de l’autre, selon l’ordre choisi. Les réglages de côtés propres aux Activités seront remplacés par celui du Tour.`; actions `Annuler` et `Confirmer`. Après confirmation, les Activités sont propres `UNILATERAL` et leurs contrôles restent visibles désactivés. Aucun filtrage fondé sur une capacité « latéralisable » n’existe.
+
+### CE-BIL-03 — Exécution
+
+Quand la direction effective est bilatérale, afficher `Côté droit` ou `Côté gauche` immédiatement sous le nom de l’Activité. Ne pas afficher `1/2` ou `2/2`. Sur une Activité unilatérale, masquer le sous-titre. Dans un Tour bilatéral, le sous-titre suit le côté courant du Tour pour chaque Activité du passage. Les références Figma sont `1992:8626`, `1992:8132`, `1992:8530`, `1992:8428`, `1992:8224` et `1992:8326`.
+
+### CE-BIL-04 — Commandes et résultats
+
+La modale générique `Passer à l’activité suivante ?` est inchangée. Après confirmation sur le premier côté, elle conserve un résultat partiel pour ce côté et ouvre le second ; après le second, elle ouvre la prochaine étape effective. `Réinitialiser l’activité` ne touche que le côté courant. Les résultats droit et gauche sont indépendants ; l’agrégation globale reflète tout passage partiel ou manquant.

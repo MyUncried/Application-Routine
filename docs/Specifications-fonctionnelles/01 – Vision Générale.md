@@ -60,9 +60,9 @@ Une Séance contient :
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries et une Récupération chronométrée facultative exécutée une seule fois après toutes ses Séries. `Récupération` n’est plus un type d’Activité distinct.
+Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries d’un même côté et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires et la Récupération finale. Cette évolution prépare le moteur d’Exécution sans étendre T03 à plusieurs Séries, prise en charge reportée à T04.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T03 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
 
@@ -119,3 +119,7 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 Le MVP reste centré sur les Séances, tout en intégrant le mode d’Exercice `À l’échec`. Le sélecteur du Catalogue annonce l’architecture future `Activités / Séances / Circuits`, mais seules les Séances sont actives dans le MVP.
 
 La V2 apporte une bibliothèque d’Activités persistantes réutilisables par copie, des médias multiples ordonnés et des Circuits persistants exécutables manuellement. La V3 étend la planification aux Circuits. Cette trajectoire préserve l’autonomie des copies de Séance et l’immutabilité de l’historique.
+
+## Vision de la bilatéralité
+
+La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.

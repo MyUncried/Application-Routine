@@ -30,7 +30,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
 - Un Tour contient une suite ordonnée d'activités.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
-- Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries et une Récupération facultative après toutes les Séries.
+- Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
 - Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
 - Chaque exécution conserve un **instantané fonctionnel** immuable et allégé de la séance utilisée.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
@@ -60,7 +60,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité porte un mode d’exécution et une durée de Récupération facultative. | Prérequis T03 |
-| DM-002 | La Pause est une durée entre deux Séries successives. La Récupération est une durée distincte, exécutée une seule fois après la dernière Série ; aucune Activité technique n’est créée pour l’une ou l’autre. | Prérequis T03 |
+| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté. La Récupération est une durée distincte, exécutée après tous les côtés d’une Activité autonome ou après chaque passage d’un Tour bilatéral ; aucune Activité technique n’est créée pour l’une ou l’autre. | Prérequis T03 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -72,8 +72,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` V2 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP / V2 |
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
-| DM-014 | Pour `C` Séries, la Pause est insérée `C − 1` fois et la Récupération une fois après la dernière Série. | Prérequis T03 |
-| DM-015 | En mode Durée, la Durée totale `D` est dérivée de `A`, `B`, `C`, `R` par `D = C × A + (C − 1) × B + R`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 |
+| DM-014 | Pour `C` Séries, la Pause est insérée `C − 1` fois par côté. La Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T03 |
+| DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T03 |
 
 ## Relations principales
@@ -510,7 +510,7 @@ Une activité possède directement :
 - sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée en mode À l’échec ;
 - son nombre de Séries ;
 - sa Pause entre Séries ;
-- sa durée de Récupération après toutes les Séries ;
+- sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
 - ses zones corporelles ;
 - aucun média fonctionnel dans le MVP ; `0..n` associations ordonnées seront disponibles en V2 ;
 - sa position structurelle dans la Séance et son ordre au sein de cette position.
@@ -548,10 +548,10 @@ Elle ne contient pas directement :
 - Une Activité peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une Activité possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - La Pause est insérée uniquement entre deux Séries successives. Pour `C` Séries, elle apparaît `C − 1` fois.
-- La Récupération est insérée une seule fois après la dernière Série lorsque sa durée est strictement positive, y compris pour la dernière Activité avant `SESSION_END`.
+- La Récupération est insérée après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral, lorsque sa durée est strictement positive ; elle précède `SESSION_END` le cas échéant.
 - Ni la Pause ni la Récupération ne créent une entité Activité associée.
-- En mode Durée, `D = C × A + (C − 1) × B + R` ; `D` est recalculée à partir des valeurs canoniques.
-- Si l’utilisateur pilote par une Durée totale cible, `Cth = (D − R + B) / (A + B)`, arrondi à l’entier le plus proche avec `.5` vers le haut et minimum `1`; la valeur atteignable de `D` est ensuite recalculée. Seul `C` est persisté.
+- En mode Durée, `D = L × [C × A + (C − 1) × B] + R` pour une Activité autonome ; `D` est recalculée à partir des valeurs canoniques.
+- Si l’utilisateur pilote par une Durée totale cible, `Cth = ((D − R) / L + B) / (A + B)`, arrondi à l’entier le plus proche avec `.5` vers le haut et minimum `1`; la valeur atteignable de `D` est ensuite recalculée. Seul `C` est persisté.
 - Toutes les Activités peuvent être associées à des zones corporelles.
 - Les activités peuvent être ajoutées, déplacées, dupliquées et supprimées.
 - Leur ordre est conservé à l’intérieur de leur position structurelle. Une Activité peut être déplacée manuellement d’une position structurelle à une autre.
@@ -780,7 +780,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - La fin de la dernière Activité active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les répétitions du Tour et du cycle sont résolues lors de la génération.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` est insérée uniquement entre deux Séries ; une phase `RECOVERY` est insérée une fois après la dernière Série lorsque sa durée est positive.
-- T03 refuse avant démarrage toute Séance contenant une Activité à plusieurs Séries ; le développement complet de ces phases multi-Séries relève de T04. La structure de données décrite ici constitue néanmoins le modèle cible requis avant T03.
+- T03 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
 
@@ -818,7 +818,7 @@ Elles ne contiennent pas directement :
 | Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
 | Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
-| Récupération par défaut                            | Durée proposée après toutes les Séries d’une Activité                      | Facultatif  | Création uniquement ; `0 s` si absente                                  |
+| Récupération par défaut                            | Durée proposée après l’Activité selon sa direction effective               | Facultatif  | Création uniquement ; `0 s` si absente                                  |
 | Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'une Activité                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
@@ -1067,3 +1067,15 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
+
+## Données de bilatéralité
+
+| Donnée | Type et règle |
+|---|---|
+| `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Activité persistante et sur son occurrence de Séance. |
+| `tour.sideMode` | Même domaine et même défaut. Une valeur bilatérale impose la direction effective à tout le contenu du Tour. |
+| `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis le Tour bilatéral ou, à défaut, depuis l’Activité. |
+| `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
+| `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Activité, le Tour et la Série. |
+
+La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. L’activation bilatérale d’un Tour et la remise à `UNILATERAL` de ses enfants s’effectuent dans une seule transaction. Aucun état antérieur des enfants n’est conservé pour restauration.

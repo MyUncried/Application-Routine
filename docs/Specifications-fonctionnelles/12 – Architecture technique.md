@@ -284,7 +284,7 @@ Le moteur gère ensuite :
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
 - l’insertion d’une étape `SERIES_PAUSE` uniquement entre deux Séries successives ;
-- l’insertion d’une étape `RECOVERY` une seule fois après la dernière Série lorsque sa durée est positive ;
+- l’insertion d’une étape `RECOVERY` après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -1252,7 +1252,7 @@ SQLite porte les définitions d’Activités, les copies de Séance, les associa
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
-Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries et la Récupération après toutes les Séries. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent les attributs fonctionnels `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T04 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries, la Récupération et `sideMode`. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent `executionSide`, `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T04 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
@@ -1278,3 +1278,13 @@ Les alias Figma sont bijectifs et explicites :
 | `color/blue/selection-5F60EE` | `color/selection` | Contour du contrôle pilote après confirmation ; alias exact `VariableID:2290:52` → `VariableID:2290:3` |
 
 Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.
+
+## Architecture de la bilatéralité
+
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants ajoutent `side_mode` à l’Activité de catalogue, à l’occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut. Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
+
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La transaction d’activation d’un Tour met à jour le parent et tous ses enfants. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Activité/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
+
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
