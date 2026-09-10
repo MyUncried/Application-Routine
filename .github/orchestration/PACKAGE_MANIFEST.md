@@ -1,8 +1,8 @@
-# Manifeste du paquet KODJO V2 0.6.11 — adaptateur Claude local borné
+# Manifeste du paquet KODJO V2 0.6.11 — identité de tranche et adaptateur local borné
 
 ## Objet
 
-Cette version ajoute l’exécution Claude locale supervisée, la boucle interne de correction des tests et l’authentification OAuth durable chiffrée sous Windows. Elle conserve l’architecture validée : Claude modifie uniquement `/Dev`, ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Cette version ajoute l’identité de tranche V2 opposable, puis conserve l’exécution Claude locale supervisée, la boucle interne de correction des tests et l’authentification OAuth durable chiffrée sous Windows. Elle conserve l’architecture validée : Claude modifie uniquement `/Dev`, ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
@@ -12,7 +12,17 @@ Cette version ajoute l’exécution Claude locale supervisée, la boucle interne
 | `primary/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.11.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `CHANGE_REPORT_0.6.11.md` | Rapport de l’adaptateur Claude local |
 
-## Nouveaux composants locaux
+## Composants d’activation V2
+
+| Chemin | Rôle |
+|---|---|
+| `.github/orchestration/slice-bootstrap.schema.json` | Schéma fermé de `SliceBootstrapIdentity` |
+| `.github/orchestration/v2-activation-registry.json` | Registre explicite des tranches V2 actives |
+| `scripts/kodjo/activate-kodjo-v2-slice.ps1` | Commande bornée de préparation d’une activation |
+| `scripts/kodjo/validate-slice-bootstrap.js` | Validation du bootstrap, du registre, du hash et de l’ascendance Git |
+| `tests/kodjo/slice-identity.pilot.js` | Tests positifs, altération, absence, divergence et refus V1 |
+
+## Composants locaux
 
 | Chemin | Rôle |
 |---|---|
