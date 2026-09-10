@@ -1,160 +1,193 @@
-# Plan technique consolidé — V2-BILAT-01
+# Plan technique révisé — V2-BILAT-01
 
-## Verdict et bornes
+## Identité et verdict
 
 - Mode : `PLAN_ONLY`
-- Révision applicative analysée : `04a15580f65d2b3702776447c3574dee988e5b83`
-- Baseline documentaire corrigée : `7e4f6984a8aefb6018e908e183dd7dda56e2482d`
-- Décision migrations : **fermée**
-  - `migration004` = T02-S02, `DATABASE_VERSION = 4`
-  - `migration005` = `V2-BILAT-01`, `DATABASE_VERSION = 5`
-  - `migration006` = T03 Exécution/Résultats, `DATABASE_VERSION = 6`
-- Implémentation : **non autorisée**
-- Verdict de planification : `PLAN_READY_FOR_INDEPENDENT_REVIEW`
+- Révision applicative : `04a15580f65d2b3702776447c3574dee988e5b83`
+- Baseline documentaire : `7e4f6984a8aefb6018e908e183dd7dda56e2482d`
+- Implémentation autorisée : **NON**
+- Verdict : `PLAN_READY_FOR_INDEPENDENT_REVIEW`
 
-La baseline documentaire et la révision applicative sont volontairement distinctes : le code est planifié depuis `04a155…`, tandis que les exigences corrigées proviennent de `7e4f698…`.
+Décision fermée : `migration004` = T02-S02/v4 ; `migration005` = V2-BILAT-01/v5 ; `migration006` = T03/v6.
 
-## 1. Constat de l’existant
+## Constat vérifié
 
-### Domaine et brouillon
+| Fichier | Symboles | Écart |
+|---|---|---|
+| `src/domain/sessions/Session.ts` | `Activity`, `Session`, DTO Create/Update | aucun côté |
+| `SessionDraft.ts` | `SessionDraftExercise`, `SessionDraft`, conversions/égalité | aucun transport |
+| `defaults.ts`, `validation.ts` | défauts et validateurs | aucun `SideMode` |
+| `composition.ts` | `moveActivity`, `duplicateActivity` | aucune priorité Tour |
+| `calculations.ts` | fonctions de durée/Séries | aucun multiplicateur L |
+| `ExerciseScreen.tsx`, `CompositionScreen.tsx` | écrans Activité/Tour | aucun contrôle |
+| `compositionPresentation.ts` | synthèses | unilatérales |
+| `constants.ts`, `migrateDatabase.ts`, `migration004.ts` | version 4/chaîne 001–004 | migration005 absente |
+| `SqliteSessionRepository.ts` | `AGGREGATE_QUERY`, `ACTIVITY_ROW_COLUMNS`, `insertActivities`, `mergeActivities`, `toActivitySqlValues`, `toActivity`, `assembleSession`, create/update | aucun SQL de côté |
+| `DatabaseRows.ts` | `SessionAggregateRow` | aucune projection côté |
 
-- `src/domain/sessions/Session.ts` : `Activity`, le Tour et les DTO ne portent aucun côté.
-- `src/domain/sessions/SessionDraft.ts` : aucun réglage de côté ; les conversions, l’égalité et l’état modifié devront le préserver.
-- `src/domain/sessions/defaults.ts` et `validation.ts` : aucun défaut ni validation des trois valeurs.
-- `src/domain/sessions/composition.ts` : `duplicateActivity` copie les propriétés par étalement, mais aucune résolution propre/effective ni transition atomique du Tour.
-- `src/domain/sessions/calculations.ts` : les fonctions de durée et de Séries ignorent `L = 1 | 2`.
+## Modèle à livrer
 
-### Présentation
+Créer `sideMode.ts` avec `SideMode`, `SIDE_MODES`, `cycleSideMode`, `sideMultiplier`, `resolveEffectiveSideMode`, `applyTourSideModeTransition`.
 
-- `src/features/sessions/compositionPresentation.ts` : synthèses sans bilatéralité.
-- `CompositionScreen.tsx` : Tour sans contrôle `Côtés` ni confirmation.
-- `ExerciseScreen.tsx` : aucun contrôle `Côtés` ni état hérité désactivé.
-- `src/shared/i18n/resources/fr.ts` : aucun libellé correspondant.
+Ajouter :
 
-### Persistance
+- `Activity.sideMode`
+- `Session.cycle.tour.sideMode`
+- `CreateSessionActivityInput.sideMode`
+- `UpdateSessionActivityInput.sideMode`
+- `CreateSessionInput.tourSideMode`
+- `UpdateSessionInput.tourSideMode`
+- `SessionDraftExercise.sideMode`
+- `SessionDraft.tourSideMode`
 
-- `DATABASE_VERSION = 4`.
-- Le runner de migrations s’arrête à `migration004`.
-- `migration004.ts` appartient définitivement à T02-S02 et reste intouchable.
-- Le repository SQLite et ses types ne lisent ni n’écrivent `side_mode`.
-- Aucun repository d’Activité de catalogue n’existe : il ne doit pas être créé ici.
+Défauts : `DEFAULT_SIDE_MODE = DEFAULT_TOUR_SIDE_MODE = "UNILATERAL"`. Aucun `executionSide` ni `effectiveSideMode` persisté.
 
-### Source documentaire corrigée
+## Migration 005
 
-Le chapitre 12 fixe : `004/T02-S02/v4`, `005/V2-BILAT-01/v5`, `006/T03/v6`, les trois `sideMode`, la persistance `side_mode`, la priorité du Tour et la séparation avec `executionSide`.
+Créer `MIGRATION_005` :
 
-## 2. Affectation des exigences
+- `activities.side_mode TEXT NOT NULL DEFAULT 'UNILATERAL'`
+- `tours.side_mode TEXT NOT NULL DEFAULT 'UNILATERAL'`
+- contrainte `CHECK` limitée à `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`
+- passer `DATABASE_VERSION` à 5 après transaction réussie
+- conserver migrations 001–004 intactes et le rejet des versions futures
+- ne créer aucune donnée Exécution/Résultat.
 
-- `BIL-001–007` : modèle, libellés, cycle, défaut, trois modes, Tour.
-- `BIL-008–009` : non-régression ; aucune latéralisation des Récupérations techniques ou Zones.
-- `BIL-010–024` : configuration, calculs et synthèses uniquement ; aucun passage d’Exécution.
-- `BIL-025–031` : héritage du Tour, confirmation, remise atomique, résolution effective, désactivation et absence de restauration.
-- `BIL-032` : duplication d’Activité conserve le côté.
-- `BIL-033` : aucune duplication de Tour n’existe ou n’est définie ; ne pas la créer. Une future duplication devra conserver le côté.
-- `BIL-034–048` : réservés à T03.
-- `BIL-049–052` : persistance dans les Activités de Séance ; catalogue, insertion depuis catalogue et copie de Séance non inventés.
-- `BIL-053–054` : modèles Activité et Tour.
-- `BIL-055–056` : Plan et Résultat réservés à T03/`migration006`.
-- `BIL-057–058` : tranche actuelle.
-- `BIL-059–060` : séparation T03.
+Tests : v0–v4→v5, v5 sans rejeu, v6 refusée, défaut historique, valeur invalide, rollback, absence de donnée T03.
 
-## 3. Périmètre exhaustif
+## SQL et atomicité
 
-### À créer
+Étendre `AGGREGATE_QUERY`, insert/update Tour, `ACTIVITY_ROW_COLUMNS`, `toActivitySqlValues`, `insertActivities`, `mergeActivities`, `toActivity`, `assembleSession`, `SessionAggregateRow`.
 
-- `src/domain/sessions/sideMode.ts`
-- `src/domain/sessions/__tests__/sideMode.test.ts`
-- `src/features/sessions/SideModeControl.tsx`
-- `src/features/sessions/__tests__/SideModeControl.test.tsx`
-- `src/infrastructure/database/migrations/migration005.ts`
+L’activation du Tour produit d’abord un unique nouveau brouillon cohérent, puis `SqliteSessionRepository.update()` scelle Tour et enfants dans sa transaction existante. `Annuler` produit zéro mutation.
 
-### À modifier
+## Calculs
 
-- `src/domain/sessions/Session.ts`
-- `src/domain/sessions/SessionDraft.ts`
-- `src/domain/sessions/defaults.ts`
-- `src/domain/sessions/validation.ts`
-- `src/domain/sessions/calculations.ts`
-- `src/domain/sessions/composition.ts`
-- `src/domain/sessions/index.ts`
-- `src/features/sessions/CompositionScreen.tsx`
-- `src/features/sessions/ExerciseScreen.tsx`
-- `src/features/sessions/compositionPresentation.ts`
-- `src/shared/i18n/resources/fr.ts`
-- `src/infrastructure/database/constants.ts`
-- `src/infrastructure/database/migrateDatabase.ts`
-- `src/infrastructure/database/repositories/SqliteSessionRepository.ts`
-- `src/infrastructure/database/types/DatabaseRows.ts`
-- les tests existants correspondants sous `src/domain/sessions/__tests__`, `src/features/sessions/__tests__` et `src/infrastructure/database/__tests__`.
+- autonome : `D = L × [C × A + (C − 1) × B] + R`
+- inverse : `Cth = ((D − R) / L + B) / (A + B)`, arrondi .5 vers le haut, borné 1–99, puis D recalculée
+- Répétitions/Échec : `Dmin = L × [(C − 1) × B] + R`
+- Tour bilatéral : `Dtour = Ltour × Σ[Ci×Ai + (Ci−1)×Bi + Ri]`
+- jamais de double multiplicateur ; BEFORE/AFTER utilisent leur côté propre ; seul IN_TOUR dépend du Tour et de `tourRepeatCount`.
 
-### À supprimer
+## UI
 
-Aucun fichier.
+Activité : contrôle `Côtés` après le segment de mode et avant les paramètres, dans les trois modes. Tour : contrôle après `Nombre de tours`.
 
-### Intouchables
+États : `Unilatéral`, `D→G`, `G→D`. Accessibilité : `Unilatéral`, `Bilatéral droite-gauche`, `Bilatéral gauche-droite`.
 
-- `migration001.ts` à `migration004.ts`
-- manifestes historiques
-- fichiers d’Exécution, Historique, Instantané et Résultat.
+Sous Tour bilatéral, enfant visible, désactivé, proprement `UNILATERAL`. Activation : dialogue canonique, Annuler sans mutation, Confirmer par transition unique avec remise des enfants. Retour unilatéral sans restauration.
 
-## 4. Plan séquencé
+## Fichiers exhaustifs et scope_allow exact
 
-1. **Source de vérité** — créer `SideMode`, valeurs, multiplicateur, cycle, résolution effective et transition pure du Tour.
-2. **Modèle/brouillon** — ajouter les champs Activité/Tour/DTO, défauts, réhydratation, égalité et conversions.
-3. **Validation** — accepter uniquement les trois valeurs, sans notion « latéralisable » ni dépendance aux Zones.
-4. **Migration 005** — ajouter `activities.side_mode` et `tours.side_mode`, `NOT NULL DEFAULT 'UNILATERAL'`, passer à v5, sans donnée T03.
-5. **Repository** — étendre requêtes, écritures et mappings ; conserver la transaction parent/enfants.
-6. **Calculs** — appliquer la formule canonique, l’arrondi, les bornes, les Récupérations et empêcher le double multiplicateur.
-7. **Contrôle Activité** — contrôle partagé, trois libellés, accessibilité, trois modes, visible/désactivé sous Tour bilatéral.
-8. **Tour** — contrôle et confirmation ; Annuler sans effet ; Confirmer avec remise atomique des enfants ; aucune restauration.
-9. **Duplication/mouvements** — conserver le côté de l’Activité ; normaliser à `UNILATERAL` lors de l’entrée sous un Tour bilatéral ; ne pas créer de duplication de Tour.
-10. **Synthèses** — durée globale des côtés et direction du Tour appliquée une seule fois, sans concept d’Exécution.
+```json
+[
+"src/domain/sessions/Session.ts",
+"src/domain/sessions/SessionDraft.ts",
+"src/domain/sessions/defaults.ts",
+"src/domain/sessions/validation.ts",
+"src/domain/sessions/calculations.ts",
+"src/domain/sessions/composition.ts",
+"src/domain/sessions/index.ts",
+"src/domain/sessions/sideMode.ts",
+"src/domain/sessions/__tests__/SessionDraft.test.ts",
+"src/domain/sessions/__tests__/calculations.test.ts",
+"src/domain/sessions/__tests__/composition.test.ts",
+"src/domain/sessions/__tests__/validation.test.ts",
+"src/domain/sessions/__tests__/sideMode.test.ts",
+"src/features/sessions/CompositionScreen.tsx",
+"src/features/sessions/ExerciseScreen.tsx",
+"src/features/sessions/SideModeControl.tsx",
+"src/features/sessions/compositionPresentation.ts",
+"src/features/sessions/__tests__/CompositionScreen.test.tsx",
+"src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+"src/features/sessions/__tests__/SideModeControl.test.tsx",
+"src/features/sessions/__tests__/compositionPresentation.test.ts",
+"src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+"src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+"src/infrastructure/database/constants.ts",
+"src/infrastructure/database/migrateDatabase.ts",
+"src/infrastructure/database/migrations/migration005.ts",
+"src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+"src/infrastructure/database/types/DatabaseRows.ts",
+"src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+"src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+"src/shared/i18n/resources/fr.ts"
+]
+```
 
-## 5. Tests obligatoires
+Aucun fichier supprimé. Tout autre chemin est interdit, notamment migrations 001–004, Exécution, Historique et manifestes clôturés.
 
-- valeurs, cycle, multiplicateur, priorité, remise atomique, absence de restauration ;
-- duplication et déplacement ;
-- trois modes, formules `L=1/L=2`, arrondi, bornes, Récupération, absence de double multiplicateur ;
-- migration v4→v5, installation v0→v5, versions supportées, défaut, valeurs invalides, rejeu idempotent, absence de colonnes T03, rollback ;
-- repository create/read/update ;
-- libellés/accessibilité, contrôle désactivé, confirmation Annuler/Confirmer, sauvegarde/réouverture, synthèses ;
-- Jest complet, TypeScript, lint, scope ;
-- inspection manuelle limitée aux contrôles Activité/Tour et à la confirmation.
+## Matrice BIL individuelle
 
-## 6. Critères essentiels
+| ID | Statut | Preuve |
+|---|---|---|
+|001|IN_SCOPE|SideMode|
+|002|IN_SCOPE|Control/fr|
+|003|IN_SCOPE|accessibilité|
+|004|IN_SCOPE|cycleSideMode|
+|005|IN_SCOPE|defaults/migration005|
+|006|IN_SCOPE|3 modes|
+|007|IN_SCOPE|Tour|
+|008|NON_REGRESSION|aucune UI RECOVERY|
+|009|NON_REGRESSION|Zones inchangées|
+|010|DEFERRED_T03|ordre réel|
+|011|IN_SCOPE|formule C−1|
+|012|IN_SCOPE|aucune Pause inter-côtés|
+|013|IN_SCOPE|autonome +R|
+|014|IN_SCOPE|C par côté|
+|015|IN_SCOPE|synthèse globale|
+|016|IN_SCOPE|multiplicateur|
+|017|IN_SCOPE|formule directe|
+|018|IN_SCOPE|formule inverse|
+|019|IN_SCOPE|arrondi/bornes|
+|020|IN_SCOPE|recalcul D|
+|021|DEFERRED_T03|contenu par côté|
+|022|DEFERRED_T03|paire/répétition|
+|023|IN_SCOPE|ordre/calcul invariant|
+|024|IN_SCOPE|formule Tour|
+|025|IN_SCOPE|priorité Tour|
+|026|IN_SCOPE|dialogue|
+|027|IN_SCOPE|transition atomique|
+|028|IN_SCOPE|résolution effective|
+|029|IN_SCOPE|enfant désactivé|
+|030|IN_SCOPE|enfant unilatéral|
+|031|IN_SCOPE|aucune restauration|
+|032|IN_SCOPE|duplicateActivity|
+|033|DEFERRED_FUTURE|duplication Tour absente|
+|034|DEFERRED_T03|passages|
+|035|DEFERRED_T03|résultats|
+|036|DEFERRED_T03|partiel|
+|037|DEFERRED_T03|rang|
+|038|DEFERRED_T03|sous-titre|
+|039|DEFERRED_T03|progression|
+|040|DEFERRED_T03|annonce 1|
+|041|DEFERRED_T03|annonce 2|
+|042|DEFERRED_T03|annonce Tour|
+|043|DEFERRED_T03|réinitialisation|
+|044|DEFERRED_T03|préservation|
+|045|DEFERRED_T03|modale|
+|046|DEFERRED_T03|partiel côté|
+|047|DEFERRED_T03|nœud suivant|
+|048|DEFERRED_T03|exécution|
+|049|DEFERRED_FUTURE|catalogue absent|
+|050|DEFERRED_FUTURE|API-SIDE-04 absente|
+|051|DEFERRED_FUTURE|copie Séance absente|
+|052|DEFERRED_FUTURE|propagation future|
+|053|IN_SCOPE|Activity.sideMode|
+|054|IN_SCOPE|tour.sideMode|
+|055|DEFERRED_T03|Plan|
+|056|DEFERRED_T03|Résultat|
+|057|IN_SCOPE|tranche Configuration|
+|058|IN_SCOPE|persistance/calcul/UI|
+|059|DEFERRED_T03|exécution réelle|
+|060|DEFERRED_T03|T03 révisée|
 
-| Exigence | Preuve |
-|---|---|
-| Modèle exact | Tests `SideMode` + TypeScript |
-| Défaut historique | Tests `migration005` |
-| Persistance | Tests repository |
-| Duplication | Test `duplicateActivity` |
-| Priorité du Tour | Tests `resolveEffectiveSideMode` |
-| Confirmation atomique | Tests écran + rollback |
-| Enfants | Rendu visible/désactivé |
-| Calculs | Table `L=1/L=2`, arrondi, bornes, Récupération |
-| Pas de double multiplicateur | Test Activité sous Tour bilatéral |
-| Séparation T03 | Aucun fichier Exécution/Résultat, aucune `execution_side` en v5 |
-| Historique | Aucun changement migrations 001–004 ou manifestes |
+Les lignes sont préfixées implicitement `BIL-`. BIL-049–052/API-SIDE-04 ne sont pas livrées : seul le `side_mode` de l’occurrence de Séance et du Tour est persisté.
 
-## 7. Risques et questions
+## Sortie
 
-Risques encadrés : formule historique de Pause terminale, atomicité parent/enfants, double multiplicateur, migration contrainte, déplacement dans un Tour bilatéral.
+Jest complet, TypeScript, lint, scope exact, tests migration/repository/domaine/UI, absence de code T03 et inspection manuelle limitée aux contrôles Activité/Tour et confirmation.
 
-Aucune question métier bloquante. Catalogue d’Activités, insertion depuis catalogue, copie de Séance et duplication de Tour restent hors périmètre et ne doivent pas être inventés.
-
-## 8. Scope autorisé proposé
-
-- `src/domain/sessions/**`
-- `src/features/sessions/**`
-- `src/infrastructure/database/constants.ts`
-- `src/infrastructure/database/migrateDatabase.ts`
-- `src/infrastructure/database/migrations/migration005.ts`
-- `src/infrastructure/database/repositories/SqliteSessionRepository.ts`
-- `src/infrastructure/database/types/DatabaseRows.ts`
-- tests SQLite correspondants
-- `src/shared/i18n/resources/fr.ts`
-
-Exclusions absolues : migrations 001–004, Exécution, Historique et manifestes clôturés.
+Aucune question métier bloquante.
 
 `PLAN_READY_FOR_INDEPENDENT_REVIEW`
