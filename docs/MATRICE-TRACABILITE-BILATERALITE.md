@@ -1,8 +1,8 @@
 # Matrice de traçabilité — Bilatéralité
 
-Date de consolidation : 10 septembre 2026. Baseline physique exclusive : `Documentation 08092026 - 19h05 - Avant MAJ avec bilatéralité.zip`.
+Date de consolidation : 10 septembre 2026. Correction finale contrôlée sur `main@a904c16dc2f77189c42012071ba8ff481f122410` et sur la copie de `docs/PRODUCT.md` issue de `/Dev` fournie le 10 septembre 2026.
 
-Les statuts portent sur la documentation mise à jour dans la présente archive. `CONFORME` signifie que la décision validée est explicitement couverte sans ancienne règle contradictoire connue dans le corpus physique.
+Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODUCT.md`, `docs/INDEX.md`, des chapitres `00` à `13`, de la présente matrice et du rapport de conformité. `CONFORME` signifie que la décision validée est explicitement couverte sans ancienne règle contradictoire active connue. L’archive initiale reste une preuve de provenance historique ; elle n’est plus la limite du contrôle final.
 
 | ID | Décision consolidée | Évidence principale | Statut |
 |---|---|---|---|
@@ -67,6 +67,10 @@ Les statuts portent sur la documentation mise à jour dans la présente archive.
 | BIL-059 | Exécution réelle et résultats dans T03 révisée | INDEX, 01, 05, 08–13 | CONFORME |
 | BIL-060 | T03 explicitement révisée | INDEX, 04–07, 10, 13 | CONFORME |
 
+## Contrôle de cohérence final
+
+`docs/PRODUCT.md` reprend désormais la synthèse des états, de l’ordre des passages, des Pauses, des Récupérations, des calculs, de la priorité du Tour, de l’Exécution, des Résultats par côté et du découpage Configuration puis T03 révisée. Les manifestes historiques de tranches clôturées ont été exclus du périmètre d’écriture et restent inchangés.
+
 ## Formules canoniques
 
 Pour une Activité autonome en mode Durée :
@@ -77,3 +81,4 @@ Pour une Activité autonome en mode Durée :
 - arrondi au plus proche, `.5` vers le haut, minimum `1`, puis recalcul de `D`.
 
 Dans un Tour bilatéral, la direction du Tour développe deux passages complets de son contenu. Le multiplicateur d’une Activité n’est jamais appliqué une seconde fois.
+
