@@ -435,16 +435,17 @@ export const dimensions = {
   // CE-T02-02 « Le bloc avec Récupération passe de `354 × 93` à
   // `362 × 97` … un rayon `12` ») :
   //
-  // - `restHeight` (`60`) : carte principale seule, réduite de `5` points
-  //   supplémentaires après recette visuelle pour produire un changement perceptible ;
+  // - `restHeight` (`60`) : carte principale à trois lignes, avec Zones corporelles ;
+  // - `compactRestHeight` (`44`) : carte principale à deux lignes lorsque les Zones,
+  //   facultatives, sont absentes ; elle conserve exactement le même padding vertical ;
   // - `recoveryCardHeight` (`24`) : sous-carte `Récupération X min Y s`,
-  //   strictement inchangée ; le bloc complet vaut donc `60 + 24 = 84` ;
-  // - `heightDelta` (`4`) : état soulevé `84 → 88` avec Récupération et
-  //   `60 → 64` sans elle ;
+  //   strictement inchangée ; les blocs complets valent donc `84` ou `68` ;
+  // - `heightDelta` (`4`) : agrandissement constant de l'état soulevé ;
   // - `draggedRadius` (`12`) : rayon de l'état soulevé publié par D-129 —
   //   révise le `8` de T02-S01, antérieur à la publication de la décision.
   compositionActivityRow: {
     restHeight: 60,
+    compactRestHeight: 44,
     recoveryCardHeight: 24,
     widthDelta: 8,
     heightDelta: 4,

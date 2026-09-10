@@ -1691,6 +1691,9 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
+    expect(StyleSheet.flatten(row.props.style).height).toBe(
+      dimensions.compositionActivityRow.compactRestHeight,
+    );
   });
 
   it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", () => {
@@ -1702,6 +1705,12 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(within(finalPhase).queryByTestId("composition-exercise-body-zones")).toBeNull();
     // Une seule occurrence dans tout l'écran : celle de l'Activité.
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(1);
+
+    for (const row of [countdown, finalPhase]) {
+      const style = StyleSheet.flatten(row.props.style);
+      expect(style.height).toBe(dimensions.compositionActivityRow.compactRestHeight);
+      expect(style.paddingVertical).toBe(3);
+    }
   });
 });
 
@@ -2490,7 +2499,8 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     // Géométrie du bloc inchangée : `354 × 60` sans Récupération.
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).height,
-    ).toBe(60);
+    ).toBe(44);
+    expect(dimensions.compositionActivityRow.compactRestHeight).toBe(44);
     expect(dimensions.compositionActivityRow.restHeight).toBe(60);
     expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
   });
@@ -2527,15 +2537,33 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(block.props.accessibilityRole).toBe("button");
   });
 
-  it("applies 354 × 60 without Récupération and 354 × 84 with it", () => {
+  it("applies 354 × 44 without Zones/Récupération and 354 × 68 with Récupération", () => {
     renderScreenWithDraft(withoutRecovery);
-    expect(blockStyle().height).toBe(60);
+    expect(blockStyle().height).toBe(44);
 
     renderScreenWithDraft(withRecovery);
-    expect(blockStyle().height).toBe(84);
+    expect(blockStyle().height).toBe(68);
   });
 
-  it("sizes each revealed action to the FULL height of the block (72 × 60 / 72 × 84)", () => {
+  it("uses the optional Zones line to select 44/60, while Recovery always adds exactly 24", () => {
+    const cases = [
+      { bodyZoneIds: [], recoverySeconds: 0, expected: 44 },
+      { bodyZoneIds: [], recoverySeconds: 90, expected: 68 },
+      { bodyZoneIds: ["dos"], recoverySeconds: 0, expected: 60 },
+      { bodyZoneIds: ["dos"], recoverySeconds: 90, expected: 84 },
+    ];
+
+    for (const { bodyZoneIds, recoverySeconds, expected } of cases) {
+      renderScreenWithDraft([
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds, recoverySeconds }),
+      ]);
+      expect(blockStyle().height).toBe(expected);
+    }
+
+    expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
+  });
+
+  it("sizes each revealed action to the FULL height of the block (72 × 44 / 72 × 68)", () => {
     renderScreenWithDraft(withoutRecovery);
     fireSwipeLeft("ex-1");
     for (const testID of [
@@ -2544,11 +2572,11 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(60);
+      expect(style.height).toBe(44);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(60);
+    ).toBe(44);
 
     renderScreenWithDraft(withRecovery);
     fireSwipeLeft("ex-1");
@@ -2558,31 +2586,31 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(84);
+      expect(style.height).toBe(68);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(84);
+    ).toBe(68);
   });
 
-  it("CE-T02-02 — the lifted block with Récupération is exactly 362 × 88 (width expressed as a ±4 margin)", () => {
+  it("CE-T02-02 — the lifted block with Récupération is exactly 362 × 72 (width expressed as a ±4 margin)", () => {
     renderScreenWithDraft(withRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(88);
+    expect(lifted.height).toBe(72);
     // `354 + 8 = 362`, l'écart étant appliqué symétriquement (`x = 6` sur
     // une section de `354`) plutôt qu'en largeur absolue.
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
-  it("FORBIDS 362 × 88 without a Récupération — the lifted block is then 362 × 64", () => {
+  it("without Zones or Récupération, the lifted block is 362 × 48", () => {
     renderScreenWithDraft(withoutRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(64);
-    expect(lifted.height).not.toBe(88);
+    expect(lifted.height).toBe(48);
+    expect(lifted.height).not.toBe(72);
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
@@ -2607,7 +2635,7 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     renderScreenWithDraft(withRecovery);
 
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 100);
-    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 84);
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 68);
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
@@ -2696,7 +2724,7 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
     // structure (donc `250` en absolu) ; carte `250–310`, centre `280`.
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
     fireLayout(screen.getByTestId("composition-zone-in-tour"), 20, 70);
-    fireLayout(screen.getByTestId("composition-activity-core"), 0, 60);
+    fireLayout(screen.getByTestId("composition-activity-core"), 0, 44);
 
     const container = () => screen.getByTestId("composition-activity-core");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 320 } });

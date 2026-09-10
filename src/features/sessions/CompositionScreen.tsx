@@ -1302,14 +1302,12 @@ function CompositionActivityRow({
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds);
   /**
-   * Décision UNIQUE de la géométrie conditionnelle : `null` ⇒ aucune
-   * sous-carte, bloc au repos `354 × 60` ; non `null` ⇒ sous-carte `24`
-   * attachée, bloc `354 × 84`. Le libellé et la hauteur sont ainsi
-   * gouvernés par la même donnée, jamais par deux tests séparés qui
-   * pourraient diverger.
+   * La hauteur est dérivée des deux éléments réellement optionnels : la ligne
+   * de Zones corporelles (`44` sans / `60` avec) et la Récupération attachée
+   * (`+24`, strictement inchangée).
    */
   const recoveryLabel = formatActivityRecoveryLabel(activity.recoverySeconds);
-  const blockHeight = blockHeightFor(recoveryLabel !== null, isDragged);
+  const blockHeight = blockHeightFor(bodyZones !== null, recoveryLabel !== null, isDragged);
 
   return (
     <View
@@ -1434,21 +1432,29 @@ function CompositionActivityRow({
 }
 
 /**
- * Hauteur du bloc Activité (+ Récupération) selon les deux seules variables
- * qui la gouvernent (T02-S02) :
+ * Hauteur du bloc Activité selon les deux lignes toujours présentes
+ * (titre + synthèse), la ligne optionnelle de Zones corporelles, la
+ * Récupération attachée et l'état soulevé :
  *
- * | Récupération | repos | soulevé |
- * | --- | --- | --- |
- * | absente | `60` | `64` |
- * | présente | `84` | `88` |
+ * | Zones | Récupération | repos | soulevé |
+ * | --- | --- | --- | --- |
+ * | absentes | absente | `44` | `48` |
+ * | absentes | présente | `68` | `72` |
+ * | présentes | absente | `60` | `64` |
+ * | présentes | présente | `84` | `88` |
  *
- * `84 = 60 + 24` et l'état soulevé applique `+4` (`heightDelta`) dans les
- * deux cas : `362 × 88` ne peut donc JAMAIS être produit sans Récupération,
- * par construction et non par convention.
+ * La sous-carte Récupération reste toujours à `24` points.
  */
-function blockHeightFor(hasRecovery: boolean, isDragged: boolean): number {
+function blockHeightFor(
+  hasBodyZones: boolean,
+  hasRecovery: boolean,
+  isDragged: boolean,
+): number {
+  const mainCardHeight = hasBodyZones
+    ? dimensions.compositionActivityRow.restHeight
+    : dimensions.compositionActivityRow.compactRestHeight;
   const rest =
-    dimensions.compositionActivityRow.restHeight +
+    mainCardHeight +
     (hasRecovery ? dimensions.compositionActivityRow.recoveryCardHeight : 0);
   return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
@@ -1915,6 +1921,8 @@ const styles = StyleSheet.create({
   // C-01 — `Boundary Activity` : fond blanc avec liseré gris visible
   // (`limitCardBase.borderColor`), auparavant `colors.surface` (gris).
   boundaryRow: {
+    height: dimensions.compositionActivityRow.compactRestHeight,
+    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
     backgroundColor: colors.background,
   },
   // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06 (addendum
@@ -1970,8 +1978,8 @@ const styles = StyleSheet.create({
   // localisation dans l'arbre change. `overflow: "hidden"` fait suivre au
   // coin bas de la sous-carte le rayon du bloc.
   //
-  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`), pas ici : elle
-  // dépend de la présence d'une Récupération et de l'état soulevé.
+  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la présence
+  // des Zones, de la Récupération et de l'état soulevé.
   activityBlock: {
     borderRadius: 12,
     borderWidth: 1,
