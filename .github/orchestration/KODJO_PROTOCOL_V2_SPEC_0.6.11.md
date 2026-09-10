@@ -6,7 +6,7 @@
 |---|---|
 | Statut | Spécification corrigée ; arbitrage de stockage clos par décision utilisateur |
 | Phase | Phase 1 — spécification et architecture uniquement |
-| Version du document | 0.6.10 |
+| Version du document | 0.6.11 |
 | Date | 2026-09-10 |
 | Dépôt de référence | `MyUncried/Application-Routine` |
 | Branche analysée | `main` |
@@ -17,7 +17,11 @@
 | Protocole existant analysé | `KODJO_SLICE_PROTOCOL_V1.md` |
 | Tranche protégée pendant la conception | `T01-S10`, Issue `#42` |
 
-> Ce document spécifie la cible V2. Il n’active aucun workflow, ne modifie aucun manifeste, ne lance aucune IA et ne migre pas S10.
+> Ce document spécifie et instrumente le pilote V2. Il ne migre pas S10 et ne lance aucune IA lors de son installation.
+
+### Historique 0.6.11
+
+La version 0.6.11 implémente l’adaptateur Claude Code local prévu au §10 sans réintroduire de développement distant. Elle fixe Claude Code `2.1.263`, limite l’exécution à une invocation, douze tours et une heure, restreint les outils aux lectures/modifications locales et aux trois commandes de contrôle déterministes, interdit Git, GitHub, le réseau, les MCP et les commandes destructives, puis vérifie après exécution que les références Git et le périmètre sont intacts. Claude reçoit l’obligation d’exécuter les contrôles ciblés, d’en lire lui-même les erreurs, de corriger la cause et de relancer le contrôle au sein de la même invocation bornée. Les contrôles déterministes sont rejoués par le superviseur après Claude. Le jeton OAuth long terme est conservé localement sous Windows par DPAPI, injecté uniquement dans le processus enfant et retiré aussitôt après l’exécution.
 
 ### Historique 0.6.10
 
@@ -59,7 +63,7 @@ La version 0.6.1 simplifie définitivement le parcours local. Le protocole ne go
 
 La version 0.6.0 applique l’arbitrage utilisateur définitif : `/Dev local → vérification locale → commit local → push local → observation et revue distantes`. Actions et les agents distants sont en lecture seule sur le dépôt fonctionnel et ne créent aucun commit applicatif, même temporaire. Le workflow Claude développeur, les branches de tentative distantes, leur promotion et le transfert Actions/CLI du droit d’écrire le produit sont supprimés. La coordination des appels IA et des preuves demeure, sans capacité d’écriture fonctionnelle distante.
 
-Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.10`.
+Les choix de la 0.5.0 restent inchangés : événement interne `REVISION_AUTHORIZED`, PLAN/binding figés après Gate 1, nouvelle tranche pour toute évolution du PLAN, `CausalWorkDescriptor` et table d’héritage, JSON explicitement présentés comme gabarits/fragments. Cette version historique n’activait rien et ne prouvait aucune exécution. Les historiques suivants décrivent les versions antérieures ; les règles courantes sont celles de la version la plus récente du présent document, soit `0.6.11`.
 
 ### Historique 0.5.0
 
@@ -370,7 +374,7 @@ Le writer de preuves est un composant technique dédié, soumis à huit règles 
 
 Le workflow d'implémentation reste en `contents: read`. Toute capacité d'écriture de preuves appartient **exclusivement** au writer séparé, et doit être qualifiée avant l'activation de V2.
 
-**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : dépôt et branche cibles fixes, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.10` valide cette demande avant tout ajout. Sa qualification distante doit démontrer le dépôt dans le dépôt dédié, l'absence de droit d'écriture applicatif et la restitution exacte du reçu.
+**Demande de dépôt et état actuel.** Le job d'implémentation, qui n'a et ne doit avoir aucun droit d'écriture, produit une `EvidenceDepositRequest` jointe à l'artefact de résultat : dépôt et branche cibles fixes, chemins canoniques append-only dérivés de la seule identité protocolaire — `slice_id`, `operation_id`, `attempt_id` —, liste des membres avec leur hash et absence de fichier applicatif. Le writer `0.6.10` valide cette demande avant tout ajout. Sa qualification distante du 10 septembre 2026 a démontré le dépôt dans le dépôt dédié et l'absence de droit d'écriture applicatif.
 
 Tant que le writer n'a pas réussi sa qualification complète, le diagnostic normatif `EVIDENCE_WRITER_ABSENT` reste actif au sens « aucun writer qualifié disponible », et **l'activation de V2 est interdite**. L'artefact Actions ne devient jamais la preuve canonique définitive par défaut. Les obligations d'exploitation intérimaires demeurent : rétention déclarée au moins égale à la durée de la tranche, récupération et validation dans `/Dev` avant expiration, et `OUTPUT_NOT_RECOVERABLE` — jamais un statut implémenté — en cas d'expiration d'un artefact non récupéré.
 
@@ -1733,6 +1737,6 @@ Sa réussite ne sera pas démontrée par la seule rédaction de ce document. Ell
 - le coupe-circuit et le manuel soient exercés ;
 - un pilote E2E isolé soit réussi avant activation.
 
-La revue indépendante du paquet `0.6.4` et la contre-analyse qui l'a suivie ont par ailleurs établi une limite qui reste vraie en `0.6.8` : le pilote couvre la **conservation et la reprise**, pas l'implémentation. Le registre d'adaptateurs de production est vide, et le garde d'état Git détecte une mutation sans l'empêcher. Que le dispositif actuel empêche le push fonctionnel, borne les permissions et détecte les mutations est établi ; qu'un adaptateur réel soit incapable de créer un commit local éphémère en contournant le wrapper Git ne l'est pas. Cette limite demeure **NON VÉRIFIABLE** jusqu'à la qualification d'un adaptateur réel. L'invariant à préserver reste strict et non négociable : aucun agent ni workflow distant ne crée ou ne pousse une référence fonctionnelle durable.
+La version `0.6.11` étend le pilote à l’implémentation locale. L’adaptateur réel est présent, sa configuration effective est hashée, sa version figée, ses outils restreints et ses propriétés de sécurité testées sans consommation IA. Le superviseur vérifie après l’appel l’absence de mutation des références et tout dépassement de périmètre. L’invariant reste strict : aucun agent distant ne modifie le produit et Claude local ne committe ni ne pousse.
 
-Jusqu’à ces preuves, l’architecture est **proposée** et sa conformité opérationnelle demeure **NON VÉRIFIABLE**.
+La dernière preuve avant activation est l’exécution réelle de cet adaptateur sur le poste `/Dev`, avec authentification OAuth long terme, sur une petite modification fonctionnelle et ses contrôles. Jusqu’à cette preuve E2E unique, l’adaptateur reste **IMPLÉMENTÉ — QUALIFICATION RÉELLE EN ATTENTE**.
