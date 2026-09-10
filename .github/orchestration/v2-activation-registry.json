@@ -7,7 +7,9 @@
       "issue_number": 52,
       "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "6646d159c0e5e9c0293146e272a176d31d7b90c9019bc83e0cb20601edfbc6a2"
+      "slice_bootstrap_sha256": "5360bd4a77170739649a94b12f28f66d7fe424d4a73b61db11a661891543e76c",
+      "planning_application_head": "04a15580f65d2b3702776447c3574dee988e5b83",
+      "planning_documentary_head": "7e4f6984a8aefb6018e908e183dd7dda56e2482d"
     }
   ]
 }
