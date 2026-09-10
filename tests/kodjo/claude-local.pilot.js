@@ -150,6 +150,27 @@ test('RESUME_DELTA restaure exactement le paquet de reprise de la même session'
   assert.equal(fs.readFileSync(target, 'utf8'), 'version-restaurée\n');
 });
 
+test('migration autorise une seule amorce explicite depuis un résultat antérieur sans recovery', () => {
+  const session = '550e8400-e29b-41d4-a716-446655440000';
+  const f = fixture({ mode: 'RESUME_DELTA', session_id: session, allow_legacy_recovery_bootstrap: true });
+  const request = C.normalizeRequest(f.request, f.root);
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-legacy-recovery-'));
+  const runDir = path.join(stateRoot, 'runs', 'SMOKE-legacy');
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+    run_id: 'SMOKE-123',
+    session_id: session,
+    modified_files: ['src/legacy.ts'],
+  }));
+  assert.deepEqual(L.restoreRecovery(stateRoot, f.root, request), []);
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, request), /LEGACY_RECOVERY_BOOTSTRAP_ALREADY_USED/);
+});
+
+test('amorce historique exige un booléen explicite', () => {
+  const f = fixture({ allow_legacy_recovery_bootstrap: 'yes' });
+  assert.throws(() => C.normalizeRequest(f.request, f.root), /LEGACY_RECOVERY_BOOTSTRAP_INVALID/);
+});
+
 test('RESUME_DELTA refuse un paquet absent, altéré ou hors périmètre', () => {
   const f = fixture({ mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000' });
   const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-refusal-'));
