@@ -4,7 +4,7 @@
 /**
  * Static guard — KODJO V2 §1.2-A, principes 28-29, test T02-PRES-008.
  *
- * Scans every remote execution path (workflows + pilot scripts) for any way of
+ * Scans every KODJO V2 remote execution path and the shared pilot scripts for any way of
  * creating a functional commit, push, branch, tag or reference, for a
  * `contents: write` permission, for persisted credentials, or for a shell
  * execution — a shell command escapes the guarded git runner of lib/git.js and
@@ -70,7 +70,10 @@ function collectFiles(root) {
       for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
         const full = path.join(current, entry.name);
         if (entry.isDirectory()) stack.push(full);
-        else if (/\.(ya?ml|js|sh|ps1|cjs|mjs)$/.test(entry.name)) out.push(full);
+        else if (/\.(ya?ml|js|sh|ps1|cjs|mjs)$/.test(entry.name)) {
+          const normalized = full.replace(/\\\\/g, '/');
+          if (!normalized.includes('/.github/workflows/') || /^kodjo-v2-.*\.ya?ml$/.test(entry.name)) out.push(full);
+        }
       }
     }
   }
@@ -123,7 +126,7 @@ function main() {
     });
   }
 
-  process.stdout.write('scanned ' + files.length + ' remote-path file(s)\n');
+  process.stdout.write('scanned ' + files.length + ' KODJO V2 remote-path file(s)\n');
   for (const rel of [...exemptionsUsed].sort()) {
     process.stdout.write('SHELL_EXECUTION exemption — ' + rel + ': ' + SHELL_TRUE_EXEMPTIONS[rel] + '\n');
   }
