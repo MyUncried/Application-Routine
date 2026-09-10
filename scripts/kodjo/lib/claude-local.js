@@ -117,6 +117,10 @@ function normalizeRequest(raw, repoRoot) {
     }
   }
   if (limits.max_ai_calls !== 1 || limits.max_rollovers !== 0) throw new Error('BUDGET_NOT_SINGLE_INVOCATION');
+  if (raw.allow_legacy_recovery_bootstrap !== undefined &&
+      typeof raw.allow_legacy_recovery_bootstrap !== 'boolean') {
+    throw new Error('LEGACY_RECOVERY_BOOTSTRAP_INVALID');
+  }
 
   return {
     schema_version: raw.schema_version,
@@ -130,6 +134,7 @@ function normalizeRequest(raw, repoRoot) {
     scope_allow: scopes,
     checks,
     limits,
+    allow_legacy_recovery_bootstrap: raw.allow_legacy_recovery_bootstrap === true,
   };
 }
 
