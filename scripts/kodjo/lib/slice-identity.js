@@ -35,13 +35,13 @@ function validateBootstrap(raw) {
   if (!Number.isInteger(raw.issue_number) || raw.issue_number < 1) fail('SLICE_BOOTSTRAP_ISSUE_INVALID');
   if (typeof raw.repository !== 'string' || !/^[^/\s]+\/[^/\s]+$/.test(raw.repository)) fail('SLICE_BOOTSTRAP_REPOSITORY_INVALID');
   if (typeof raw.target_branch !== 'string' || !raw.target_branch) fail('SLICE_BOOTSTRAP_TARGET_BRANCH_INVALID');
-  if (!SHA40.test(String(raw.source_head || ''))) fail('SLICE_BOOTSTRAP_SOURCE_HEAD_INVALID');
+  if (!SHA40.test(String(raw.baseline_head || ''))) fail('SLICE_BOOTSTRAP_BASELINE_HEAD_INVALID');
   if (raw.protocol_version !== '0.6.12') fail('SLICE_BOOTSTRAP_PROTOCOL_VERSION_INVALID');
   if (!SHA40.test(String(raw.protocol_commit || ''))) fail('SLICE_BOOTSTRAP_PROTOCOL_COMMIT_INVALID');
   if (raw.activation_registry !== '.github/orchestration/v2-activation-registry.json') fail('SLICE_BOOTSTRAP_REGISTRY_PATH_INVALID');
   if (raw.previous_slice_id !== null && !SLICE_ID.test(String(raw.previous_slice_id || ''))) fail('SLICE_BOOTSTRAP_PREVIOUS_SLICE_INVALID');
   if (raw.previous_checkpoint !== null && !SHA64.test(String(raw.previous_checkpoint || ''))) fail('SLICE_BOOTSTRAP_PREVIOUS_CHECKPOINT_INVALID');
-  strings(raw.product_sources, 'SLICE_BOOTSTRAP_PRODUCT_SOURCES_INVALID');
+  if (!Array.isArray(raw.product_sources) || raw.product_sources.length === 0 || raw.product_sources.some((v) => !v || typeof v.path !== 'string' || !v.path || !SHA64.test(String(v.sha256 || '')))) fail('SLICE_BOOTSTRAP_PRODUCT_SOURCES_INVALID');
   strings(raw.authorized_actors, 'SLICE_BOOTSTRAP_AUTHORIZED_ACTORS_INVALID');
   if (typeof raw.created_at !== 'string' || Number.isNaN(Date.parse(raw.created_at))) fail('SLICE_BOOTSTRAP_CREATED_AT_INVALID');
   const copy = JSON.parse(JSON.stringify(raw));
@@ -57,7 +57,7 @@ function validateRegistry(raw, bootstrap) {
   if (matches.length !== 1) fail(matches.length ? 'ACTIVATION_REGISTRY_DUPLICATE' : 'SLICE_NOT_ACTIVATED');
   const a = matches[0];
   if (a.status !== 'ACTIVE') fail('SLICE_NOT_ACTIVE');
-  if (a.issue_number !== bootstrap.issue_number || a.source_head !== bootstrap.source_head || a.bootstrap_path !== `.github/orchestration/v2-slices/${bootstrap.slice_id}/slice-bootstrap.json` || a.slice_bootstrap_sha256 !== bootstrap.slice_bootstrap_sha256) fail('ACTIVATION_BINDING_MISMATCH');
+  if (a.issue_number !== bootstrap.issue_number || a.baseline_head !== bootstrap.baseline_head || a.bootstrap_path !== `.github/orchestration/v2-slices/${bootstrap.slice_id}/slice-bootstrap.json` || a.slice_bootstrap_sha256 !== bootstrap.slice_bootstrap_sha256) fail('ACTIVATION_BINDING_MISMATCH');
   return a;
 }
 
