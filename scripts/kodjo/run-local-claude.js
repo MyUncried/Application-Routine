@@ -88,15 +88,18 @@ function main() {
   });
   if (initialChanges.length) return die('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
 
+  const supervisedQueue = process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true';
   const fetch = command('git', ['fetch', '--quiet'], repoRoot, process.env, 120000);
   if (fetch.error || fetch.status !== 0) return die('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
-  let upstream;
-  try { upstream = git(['rev-parse', '@{upstream}'], repoRoot); }
-  catch (_) { return die('UPSTREAM_NOT_CONFIGURED', 'la branche courante ne possÃ¨de pas de branche distante de suivi'); }
-  if (upstream !== head) return die('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi aprÃ¨s fetch');
+  if (!supervisedQueue) {
+    let upstream;
+    try { upstream = git(['rev-parse', '@{upstream}'], repoRoot); }
+    catch (_) { return die('UPSTREAM_NOT_CONFIGURED', 'la branche courante ne possÃ¨de pas de branche distante de suivi'); }
+    if (upstream !== head) return die('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi aprÃ¨s fetch');
+  }
 
   const token = process.env.CLAUDE_CODE_OAUTH_TOKEN || '';
-  if (!token) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
+  if (!token && !supervisedQueue) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
 
   const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
   const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') : null;
@@ -105,6 +108,10 @@ function main() {
   const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
   if (version.error || version.status !== 0) return die('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
   const versionText = String(version.stdout || version.stderr).trim();
+  if (supervisedQueue && !token) {
+    const auth = command(claudeBin, [...claudePrefix, 'auth', 'status'], repoRoot, process.env, 30000);
+    if (auth.error || auth.status !== 0) return die('KODJO-V2-CLAUDE-AUTH', 'session Claude du runner indisponible');
+  }
   if (!new RegExp('(^|\\s)' + CLAUDE_CODE_VERSION.replace(/\./g, '\\.') + '(\\s|$)').test(versionText)) {
     return die('CLAUDE_VERSION_REFUSED', 'attendu ' + CLAUDE_CODE_VERSION + ', reÃ§u ' + versionText);
   }
