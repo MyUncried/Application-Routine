@@ -149,3 +149,13 @@ test('scripts PowerShell stockent le jeton via DPAPI et le retirent après exéc
   assert.match(start, /Remove-Item Env:CLAUDE_CODE_OAUTH_TOKEN/);
   assert.doesNotMatch(setup, /SetEnvironmentVariable/);
 });
+
+test('constructeur PowerShell 0.6.12 est syntaxiquement intact et lie le bootstrap une seule fois', () => {
+  const root = path.resolve(__dirname, '..', '..');
+  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'create-kodjo-v2-request.ps1'), 'utf8');
+  assert.equal((source.match(/\$promptAbsolute\s*=\s*if/g) || []).length, 1);
+  assert.equal((source.match(/slice_bootstrap_sha256\s*=\s*\$bootstrapHash/g) || []).length, 1);
+  assert.match(source, /validate-slice-bootstrap\.js.*\$bootstrapRelative.*\$head/);
+  assert.doesNotMatch(source, /\{64\}\$promptAbsolute/);
+});
+
