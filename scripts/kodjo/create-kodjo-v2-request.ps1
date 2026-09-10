@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9._-]{1,80}$')][string]$SliceId,
   [Parameter(Mandatory = $true)][string]$PromptFile,
@@ -22,7 +22,7 @@ $repoAbsolute = [IO.Path]::GetFullPath($repoRoot)
 if (-not $promptAbsolute.StartsWith($repoAbsolute, [StringComparison]::OrdinalIgnoreCase)) {
   throw 'PROMPT_FILE_MUST_BE_INSIDE_REPOSITORY'
 }
-$relativePrompt = [IO.Path]::GetRelativePath($repoAbsolute, $promptAbsolute).Replace('\', '/')
+$relativePrompt = $promptAbsolute.Substring($repoAbsolute.TrimEnd('\').Length).TrimStart('\').Replace('\', '/')
 if ($Mode -eq 'INITIAL' -and $SessionId) { throw 'INITIAL_SESSION_MUST_BE_NULL' }
 if ($Mode -eq 'RESUME_DELTA' -and -not $SessionId) { throw 'RESUME_SESSION_ID_REQUIRED' }
 if (-not $Output) {
