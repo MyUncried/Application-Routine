@@ -66,8 +66,11 @@ L’activation du Tour produit d’abord un unique nouveau brouillon cohérent, 
 - autonome : `D = L × [C × A + (C − 1) × B] + R`
 - inverse : `Cth = ((D − R) / L + B) / (A + B)`, arrondi .5 vers le haut, borné 1–99, puis D recalculée
 - Répétitions/Échec : `Dmin = L × [(C − 1) × B] + R`
-- Tour bilatéral : `Dtour = Ltour × Σ[Ci×Ai + (Ci−1)×Bi + Ri]`
-- jamais de double multiplicateur ; BEFORE/AFTER utilisent leur côté propre ; seul IN_TOUR dépend du Tour et de `tourRepeatCount`.
+- Tour : pour chaque Activité `i`, `Li = sideMultiplier(resolveEffectiveSideMode(activity.sideMode, tour.sideMode))`, puis somme selon sa direction effective.
+- Tour bilatéral : la direction du Tour prévaut, les enfants propres sont `UNILATERAL`, et `Ri` est comptée une fois par passage de côté.
+- Tour unilatéral + Activité bilatérale : `Li = 2` pour cette Activité et `Ri` est comptée une seule fois après ses deux côtés.
+- Tour et Activité unilatéraux : `Li = 1`.
+- jamais de double multiplicateur ; BEFORE/AFTER utilisent leur côté propre ; dans le Tour, la direction du Tour prévaut lorsqu’elle est bilatérale, sinon chaque Activité conserve sa direction propre. `tourRepeatCount` multiplie ensuite le contenu complet du Tour.
 
 ## UI
 
@@ -75,7 +78,7 @@ Activité : contrôle `Côtés` après le segment de mode et avant les paramètr
 
 États : `Unilatéral`, `D→G`, `G→D`. Accessibilité : `Unilatéral`, `Bilatéral droite-gauche`, `Bilatéral gauche-droite`.
 
-Sous Tour bilatéral, enfant visible, désactivé, proprement `UNILATERAL`. Activation : dialogue canonique, Annuler sans mutation, Confirmer par transition unique avec remise des enfants. Retour unilatéral sans restauration.
+Sous Tour bilatéral, enfant visible, désactivé, proprement `UNILATERAL`. Activation : dialogue déterministe avec titre `Activer le mode bilatéral ?`, texte `Les réglages Côtés des activités du Tour seront réinitialisés sur Unilatéral. Cette action est irréversible.`, actions exactes `Annuler` et `Confirmer`. `Annuler` ne produit aucune mutation ; `Confirmer` applique une transition unique avec remise des enfants. Retour unilatéral sans restauration.
 
 ## Fichiers exhaustifs et scope_allow exact
 
@@ -186,7 +189,7 @@ Les lignes sont préfixées implicitement `BIL-`. BIL-049–052/API-SIDE-04 ne s
 
 ## Sortie
 
-Jest complet, TypeScript, lint, scope exact, tests migration/repository/domaine/UI, absence de code T03 et inspection manuelle limitée aux contrôles Activité/Tour et confirmation.
+Jest complet, TypeScript, lint, scope exact, tests migration/repository/domaine/UI, absence de code T03 et inspection manuelle limitée aux contrôles Activité/Tour et confirmation. Les tests de calcul couvrent explicitement : Tour bilatéral prioritaire avec récupération par passage ; Tour unilatéral + Activité bilatérale avec récupération unique après les deux côtés ; Tour et Activité unilatéraux ; absence de double multiplicateur.
 
 Aucune question métier bloquante.
 
