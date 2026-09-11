@@ -65,6 +65,7 @@ function Get-Inventory {
   foreach ($item in (Get-ChildItem -LiteralPath $RepositoryRoot -Recurse -File -Force)) {
     $relative = $item.FullName.Substring($RepositoryRoot.Length).TrimStart('\').Replace('\', '/')
     if ($relative -eq '.git' -or $relative.StartsWith('.git/')) { continue }
+    if ($relative -eq 'node_modules' -or $relative.StartsWith('node_modules/')) { continue }
     if ($relative -eq 'tests/fixtures/qualif' -or $relative.StartsWith('tests/fixtures/qualif/')) { continue }
     $map[$relative] = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
   }
@@ -89,7 +90,7 @@ try {
   if ($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1) {
     throw ('WINDOWS_POWERSHELL_5_1_REQUIRED: ' + $PSVersionTable.PSVersion)
   }
-  foreach ($tool in @('git', 'node', 'claude')) {
+  foreach ($tool in @('git', 'node', 'npm.cmd', 'claude')) {
     if ($null -eq (Get-Command $tool -ErrorAction SilentlyContinue)) { throw ('TOOL_MISSING: ' + $tool) }
   }
   $manifest.observed_head = (Invoke-Native 'git' @('rev-parse', 'HEAD') $source).Output
@@ -108,6 +109,11 @@ try {
   Invoke-Native 'git' @('push', '--quiet', '--set-upstream', 'origin', 'qualification-local') $work | Out-Null
   $remote = (Invoke-Native 'git' @('remote', 'get-url', 'origin') $work).Output
   if ($remote -match '^(https?://|git@|ssh://)') { throw ('REMOTE_ORIGIN_FORBIDDEN: ' + $remote) }
+
+  $beforeDependencies = (Invoke-Native 'git' @('status', '--porcelain=v2', '--untracked-files=all') $work).Output
+  Invoke-Native 'npm.cmd' @('ci', '--no-audit', '--no-fund') $work | Out-Null
+  $afterDependencies = (Invoke-Native 'git' @('status', '--porcelain=v2', '--untracked-files=all') $work).Output
+  if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
 
   $before = Get-Inventory $work
   $baselineDirectory = Join-Path $evidence 'baseline'
@@ -156,7 +162,8 @@ try {
   }
 
   $after = Get-Inventory $work
-  $manifest.tree_drift_outside_fixture = Compare-Inventory $before $after
+  $outsideDrift = @(Compare-Inventory $before $after)
+  $manifest.tree_drift_outside_fixture = $outsideDrift
   $expectedFile = Join-Path $work 'tests\fixtures\qualif\result.txt'
   $manifest.fixture_result_exists = Test-Path -LiteralPath $expectedFile
   $manifest.fixture_result_sha256 = if ($manifest.fixture_result_exists) { (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash } else { $null }
@@ -167,7 +174,7 @@ try {
   if (-not $manifest.claude_invoked) { throw 'CLAUDE_NOT_INVOKED' }
   if (-not $manifest.local_delta) { throw 'DELTA_NOT_PRODUCED' }
   if (-not $manifest.recovery_preserved) { throw 'RECOVERY_NOT_PRESERVED' }
-  if (@($manifest.tree_drift_outside_fixture).Count -ne 0) { throw ('OUT_OF_SCOPE_DRIFT: ' + ($manifest.tree_drift_outside_fixture -join ', ')) }
+  if ($outsideDrift.Count -gt 0) { throw ('OUT_OF_SCOPE_DRIFT: ' + ($outsideDrift -join ', ')) }
   if (-not $manifest.fixture_result_exists) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
   if (-not $manifest.fixture_result_content_valid) { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
