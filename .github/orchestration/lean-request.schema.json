@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kodjo.protocol.v2.lean-request.0.6.13",
+  "title": "KODJO V2 — demande de file lean",
+  "description": "Projection du contrat executable scripts/kodjo/lib/queue-contract.js. Ne pas editer a la main : regenerer avec generate-queue-schema.js --write.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorized_plan",
+    "baseline_head",
+    "checks",
+    "created_at",
+    "independent_review",
+    "issue_number",
+    "mode",
+    "prompt_file",
+    "request_id",
+    "schema_version",
+    "scope_allow",
+    "session_id",
+    "slice_bootstrap_file",
+    "slice_bootstrap_sha256",
+    "slice_id",
+    "source_head",
+    "user_gate"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_SCHEMA_REFUSED"
+    },
+    "slice_id": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_SLICE_ID_REFUSED"
+    },
+    "issue_number": {
+      "type": "integer",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_ISSUE_NUMBER_REFUSED"
+    },
+    "source_head": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_SOURCE_HEAD_REFUSED"
+    },
+    "baseline_head": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_BASELINE_HEAD_REFUSED"
+    },
+    "slice_bootstrap_file": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_BOOTSTRAP_FILE_REFUSED"
+    },
+    "slice_bootstrap_sha256": {
+      "type": "string",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_BOOTSTRAP_HASH_REFUSED"
+    },
+    "mode": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_MODE_REFUSED"
+    },
+    "session_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_SESSION_ID_REFUSED"
+    },
+    "prompt_file": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_PROMPT_FILE_REFUSED"
+    },
+    "scope_allow": {
+      "type": "array",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_SCOPE_ALLOW_REFUSED"
+    },
+    "checks": {
+      "type": "array",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_CHECKS_REFUSED"
+    },
+    "limits": {
+      "type": "object",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_LIMITS_REFUSED"
+    },
+    "allow_legacy_recovery_bootstrap": {
+      "type": "boolean",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_LEGACY_RECOVERY_BOOTSTRAP_INVALID"
+    },
+    "request_id": {
+      "type": "string",
+      "x-kodjo-nature": "TRACEABILITY",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_REQUEST_ID_INVALID"
+    },
+    "created_at": {
+      "type": "string",
+      "x-kodjo-nature": "TRACEABILITY",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_CREATED_AT_INVALID"
+    },
+    "authorized_plan": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_AUTHORIZED_PLAN_REFUSED"
+    },
+    "independent_review": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_INDEPENDENT_REVIEW_REFUSED"
+    },
+    "user_gate": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_USER_GATE_REFUSED"
+    },
+    "retry_of_run_id": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_RETRY_SOURCE_MISSING",
+      "x-kodjo-required-when": "mode=RESUME_DELTA"
+    },
+    "retry_reason": {
+      "type": "object",
+      "x-kodjo-nature": "TRACEABILITY",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_RETRY_REASON_INVALID",
+      "x-kodjo-required-when": "mode=RESUME_DELTA"
+    }
+  }
+}

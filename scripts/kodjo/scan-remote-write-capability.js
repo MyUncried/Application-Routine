@@ -28,6 +28,9 @@ const PATTERNS = [
   { id: 'GIT_MERGE', re: /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/ },
   { id: 'CONTENTS_WRITE', re: /contents\s*:\s*write/ },
   { id: 'PERSIST_CREDENTIALS_TRUE', re: /persist-credentials\s*:\s*true/ },
+  // KV2-09 : un en-tete d'autorisation ecrit dans .git/config echappait au
+  // scanner, alors qu'il annule l'intention de persist-credentials: false.
+  { id: 'GIT_CREDENTIAL_HEADER', re: /extraheader/ },
   { id: 'GH_API_REF_WRITE', re: /gh\s+api\b[^\n]*\/git\/refs/ },
   { id: 'CREATE_PULL_REQUEST_ACTION', re: /uses\s*:\s*[^\n]*create-pull-request/ },
   { id: 'GIT_AUTO_COMMIT_ACTION', re: /uses\s*:\s*[^\n]*git-auto-commit/ },
@@ -114,6 +117,13 @@ function isFixedLeanSupervisorOperation(filePath, line, patternId, root) {
     return value === 'contents: write';
   }
   if (rel !== 'scripts/kodjo/run-queued-request.ps1') return false;
+  // KV2-09 : l'en-tete d'autorisation est pose PUIS retire dans un `finally`.
+  // Les deux lignes sont declarees, exactes, et le retrait est obligatoire :
+  // le scanner refuserait la pose sans le retrait.
+  if (patternId === 'GIT_CREDENTIAL_HEADER') {
+    return value === 'git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $auth"' ||
+      value === 'git config --local --unset-all http.https://github.com/.extraheader 2>$null';
+  }
   if (patternId === 'GIT_BRANCH_CREATE') return value === 'git switch -c $branch';
   if (patternId === 'GIT_COMMIT') {
     return value === 'git -c user.name=\'KODJO Windows Supervisor\' -c user.email=\'kodjo-supervisor@users.noreply.github.com\' commit -m ("feat({0}): verified implementation" -f $queue.slice_id)';
@@ -158,7 +168,7 @@ function main() {
     }
     return 1;
   }
-  process.stdout.write('NO_REMOTE_FUNCTIONAL_WRITE_CAPABILITY\n');
+  process.stdout.write('NO_UNDECLARED_REMOTE_WRITE_CAPABILITY\n');
   return 0;
 }
 

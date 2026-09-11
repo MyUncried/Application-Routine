@@ -135,6 +135,7 @@ function normalizeRequest(raw, repoRoot) {
     checks,
     limits,
     allow_legacy_recovery_bootstrap: raw.allow_legacy_recovery_bootstrap === true,
+    retry_of_run_id: raw.retry_of_run_id === undefined ? null : String(raw.retry_of_run_id),
   };
 }
 

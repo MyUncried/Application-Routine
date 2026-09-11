@@ -304,7 +304,8 @@ test('exception shell — le scanner signale shell:true sauf l exception justifi
   const scan = H.runScript('scan-remote-write-capability.js', [H.REPO_ROOT], {});
   assert.equal(scan.status, 0, scan.stderr);
   assert.match(scan.stdout, /SHELL_EXECUTION exemption — scripts\/kodjo\/lib\/checks\.js/);
-  assert.match(scan.stdout, /NO_REMOTE_FUNCTIONAL_WRITE_CAPABILITY/);
+  // KV2-14 : verdict requalifie — aucune ecriture distante NON DECLAREE.
+  assert.match(scan.stdout, /NO_UNDECLARED_REMOTE_WRITE_CAPABILITY/);
 
   // Un shell:true non exempte serait bien signale.
   const fakeRoot = H.tmp('kodjo-scanfixture-');
