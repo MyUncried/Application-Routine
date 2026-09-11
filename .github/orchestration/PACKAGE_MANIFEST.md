@@ -11,7 +11,7 @@ Cette version conserve les invariants 0.6.20, rend le registre réellement canon
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.13.0 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.14.0 |
 
 ## Composants d’activation V2
 

@@ -451,7 +451,10 @@ test('un paquet non vide migre sur un descendant contenant seulement du protocol
   fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v1\n');
   fs.mkdirSync(path.join(g.root, 'scripts', 'kodjo'), { recursive: true });
   fs.writeFileSync(path.join(g.root, 'scripts', 'kodjo', 'protocol.js'), 'module.exports = true;\n');
-  g.git(['add', 'scripts/kodjo/protocol.js']); g.git(['commit', '-qm', 'protocol only']);
+  fs.mkdirSync(path.join(g.root, 'tests', 'fixtures', 'qualif'), { recursive: true });
+  fs.writeFileSync(path.join(g.root, 'tests', 'fixtures', 'qualif', '.gitkeep'), '');
+  g.git(['add', 'scripts/kodjo/protocol.js', 'tests/fixtures/qualif/.gitkeep']);
+  g.git(['commit', '-qm', 'protocol only']);
   const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id,
     source_head: g.git(['rev-parse', 'HEAD']) };
   delete resume.generated_session_id;
@@ -460,7 +463,8 @@ test('un paquet non vide migre sur un descendant contenant seulement du protocol
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v2\n');
   assert.equal(evidence.status, 'PASS');
   assert.equal(evidence.mode, 'PROTOCOL_ONLY_FAST_FORWARD');
-  assert.deepEqual(evidence.intervening_paths, ['scripts/kodjo/protocol.js']);
+  assert.deepEqual(evidence.intervening_paths,
+    ['scripts/kodjo/protocol.js', 'tests/fixtures/qualif/.gitkeep']);
 });
 
 test('une migration de paquet non vide refuse toute évolution applicative intermédiaire', () => {

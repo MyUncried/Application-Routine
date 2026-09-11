@@ -14,6 +14,7 @@ La contre-qualification de la source complète au HEAD `7236b7446ad68451db7009f4
 - tests T-067 à T-069 et incidents INC-094 à INC-096.
 - génération obligatoire du `request_id` par le constructeur local, INC-097/T-070.
 - qualification multiplateforme des fins de ligne et preuve systématique sur arrêt préflight, INC-098/099 et T-071/072.
+- migration protocolaire explicitement compatible avec le seul sous-arbre jetable `tests/fixtures/qualif/**`, INC-100/T-073.
 
 ## Qualification locale
 

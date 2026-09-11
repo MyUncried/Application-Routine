@@ -240,6 +240,7 @@ function writeRecovery(runDir, repoRoot, request, files, meta) {
 const RECOVERY_PACKAGE_SCHEMA = 'kodjo.protocol.v2.recovery-package.0.6.16';
 const RECOVERY_MIGRATION_PROTOCOL_PREFIXES = Object.freeze([
   '.github/orchestration/', '.github/workflows/kodjo-v2-', 'scripts/kodjo/', 'tests/kodjo/',
+  'tests/fixtures/qualif/',
 ]);
 
 function isProtocolMigrationPath(file) {
