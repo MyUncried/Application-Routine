@@ -108,10 +108,31 @@ function changedFiles(cwd) {
   return entryPaths(changedEntries(cwd));
 }
 
+function normalizeScopeCandidate(file) {
+  if (typeof file !== 'string' || file.length === 0 || file.includes('\0')) return null;
+  if (file.includes('\\') || file.startsWith('/') || /^[A-Za-z]:/.test(file)) return null;
+  const parts = file.split('/');
+  if (parts.some((part) => part === '' || part === '.' || part === '..')) return null;
+  return parts.join('/');
+}
+
+function normalizeScopeRule(raw) {
+  if (typeof raw !== 'string' || raw.length === 0 || raw.includes('\0')) return null;
+  const normalized = raw.replace(/\\/g, '/');
+  const suffix = normalized.endsWith('/**') ? '/**' : normalized.endsWith('/*') ? '/*' : '';
+  const base = suffix ? normalized.slice(0, -suffix.length) : normalized;
+  if (!base || base.startsWith('/') || /^[A-Za-z]:/.test(base)) return null;
+  const parts = base.split('/');
+  if (parts.some((part) => part === '' || part === '.' || part === '..')) return null;
+  return parts.join('/') + suffix;
+}
+
 function inScope(file, scopes) {
-  const f = file.replace(/\\/g, '/');
+  const f = normalizeScopeCandidate(file);
+  if (!f || !Array.isArray(scopes)) return false;
   return scopes.some((raw) => {
-    const s = raw.replace(/\\/g, '/');
+    const s = normalizeScopeRule(raw);
+    if (!s) return false;
     if (s.endsWith('/**')) return f === s.slice(0, -3) || f.startsWith(s.slice(0, -2));
     if (s.endsWith('/*')) return f.startsWith(s.slice(0, -1)) && !f.slice(s.length - 1).includes('/');
     return f === s;
@@ -788,7 +809,7 @@ function main() {
   }
   fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(summary, null, 2) + '\n', 'utf8');
   process.stdout.write('\n[KODJO_V2] ' + summary.status + '\n');
-  process.stdout.write('[KODJO_V2] fichiers modifiÃ©s: ' + (files.join(', ') || 'aucun') + '\n');
+  process.stdout.write('[KODJO_V2] fichiers modifiés: ' + (files.join(', ') || 'aucun') + '\n');
   for (const c of checks) process.stdout.write('[KODJO_V2] ' + c.check + '=' + c.status + '\n');
   if (summary.out_of_scope_files.length) {
     process.stderr.write('[KODJO_V2] SCOPE_VIOLATION: ' + summary.out_of_scope_files.join(', ') + '\n');
