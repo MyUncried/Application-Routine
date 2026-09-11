@@ -41,9 +41,31 @@ test('la projection réelle transmet explicitement l’amorce historique', () =>
   assert.equal(enabled.result.status, 0, enabled.result.stderr);
   assert.equal(enabled.output.allow_legacy_recovery_bootstrap, true);
 
-  const disabled = project(queue());
-  assert.equal(disabled.result.status, 0, disabled.result.stderr);
-  assert.equal(disabled.output.allow_legacy_recovery_bootstrap, false);
+  const refused = project(queue({ allow_legacy_recovery_bootstrap: false }));
+  assert.equal(refused.result.status, 0, refused.result.stderr);
+  assert.equal(refused.output.allow_legacy_recovery_bootstrap, false);
+});
+
+test('un champ absent de la file reste absent de la requête locale', () => {
+  // « Non spécifié » et « explicitement refusé » ne sont pas la même décision
+  // protocolaire : projeter un `false` inscrirait une décision qu'aucun acteur
+  // n'a prise. Décision de revue ChatGPT Protocole, §2.4.
+  const absent = project(queue());
+  assert.equal(absent.result.status, 0, absent.result.stderr);
+  assert.equal('allow_legacy_recovery_bootstrap' in absent.output, false);
+});
+
+test('absent et false produisent le même comportement en aval', () => {
+  const { normalizeRequest } = require(path.join(root, 'scripts', 'kodjo', 'lib', 'claude-local.js'));
+  const shape = (raw) => {
+    try { return normalizeRequest(raw, root).allow_legacy_recovery_bootstrap; }
+    catch (error) { return 'REFUSED:' + error.message; }
+  };
+  // Les deux formes doivent être traitées à l'identique par le superviseur ;
+  // seule la trace diffère.
+  const absent = project(queue()).output;
+  const explicit = project(queue({ allow_legacy_recovery_bootstrap: false })).output;
+  assert.equal(shape({ ...absent, mode: 'INITIAL' }), shape({ ...explicit, mode: 'INITIAL' }));
 });
 
 test('la projection réelle refuse une amorce historique non booléenne', () => {
@@ -53,10 +75,10 @@ test('la projection réelle refuse une amorce historique non booléenne', () => 
 });
 
 test('la projection ne perd aucun champ du contrat local', () => {
-  const actual = project(queue({ allow_legacy_recovery_bootstrap: true }));
+  const actual = project(queue({ allow_legacy_recovery_bootstrap: true, retry_of_run_id: '123' }));
   assert.deepEqual(Object.keys(actual.output).sort(), [
     'allow_legacy_recovery_bootstrap', 'baseline_head', 'checks', 'limits', 'mode',
     'prompt_file', 'schema_version', 'scope_allow', 'session_id', 'slice_bootstrap_file',
-    'slice_bootstrap_sha256', 'slice_id', 'source_head',
+    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'retry_of_run_id',
   ].sort());
 });

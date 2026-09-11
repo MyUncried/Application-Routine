@@ -10,6 +10,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: read
 
 concurrency:
   group: kodjo-v2-lean-windows
@@ -32,30 +33,77 @@ jobs:
           clean: true
           persist-credentials: false
 
-      - name: Install locked dependencies
-        shell: powershell
-        run: npm ci --no-audit --no-fund
+      # KV2-03 : paquet de reprise du run source, quand la demande en declare un.
+      - name: Resolve recovery source run
+        id: recovery_source
+        env:
+          KODJO_EVENT_BEFORE: ${{ github.event.before }}
+          KODJO_EVENT_AFTER: ${{ github.event.after }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          $runId = & node scripts/kodjo/resolve-recovery-source.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER
+          if ($LASTEXITCODE -ne 0) { $runId = '' }
+          "run_id=$runId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Download recovery package of the source run
+        if: steps.recovery_source.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-recovery-${{ steps.recovery_source.outputs.run_id }}-1
+          path: ${{ runner.temp }}/kodjo-source-recovery
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.recovery_source.outputs.run_id }}
 
       - name: Select and execute immutable request
         env:
           GH_TOKEN: ${{ github.token }}
           KODJO_EVENT_BEFORE: ${{ github.event.before }}
           KODJO_EVENT_AFTER: ${{ github.event.after }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          KODJO_SOURCE_RECOVERY_DIR: ${{ runner.temp }}/kodjo-source-recovery
+          # Verification des preuves GitHub obligatoire : une reaction absente,
+          # illisible ou non verifiee bloque l'admission.
+          KODJO_VERIFY_GITHUB: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          $changed = @(git diff --name-only $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER -- '.github/orchestration/queue/v2/*.json')
-          if ($changed.Count -ne 1) { throw "KODJO_QUEUE_CARDINALITY_REFUSED: $($changed.Count)" }
-          & scripts/kodjo/run-queued-request.ps1 -QueueFile $changed[0]
+          # KV2-10 : admission avant toute operation. Ajout seul, request_id unique,
+          # relance de workflow refusee. Aucun etat local, aucune purge manuelle.
+          $selected = & node scripts/kodjo/verify-queue-admission.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & scripts/kodjo/run-queued-request.ps1 -QueueFile $selected
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Preserve KODJO diagnostic
+      # KV2-18 : le diagnostic ne remonte que le run courant. Le glob precedent
+      # exportait l'historique de toutes les tranches presentes sur le runner.
+      - name: Resolve current run diagnostic directory
         if: always()
+        id: diag
+        run: |
+          $dir = & node scripts/kodjo/resolve-run-directory.js
+          if ($LASTEXITCODE -ne 0) { $dir = '' }
+          "dir=$dir" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Preserve KODJO diagnostic
+        if: always() && steps.diag.outputs.dir != ''
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ~/.kodjo-v2/runs/**/result.json
-            ~/.kodjo-v2/runs/**/claude-stderr.txt
-            ~/.kodjo-v2/runs/**/claude-output.json
+            ${{ steps.diag.outputs.dir }}/result.json
+            ${{ steps.diag.outputs.dir }}/claude-stderr.txt
+            ${{ steps.diag.outputs.dir }}/claude-output.json
+            ${{ steps.diag.outputs.dir }}/invocation.json
           if-no-files-found: warn
           retention-days: 14
+
+      # KV2-03 : le paquet de reprise quitte le disque du runner. Sans lui, une
+      # reinstallation du runner detruisait definitivement le delta produit.
+      - name: Preserve KODJO recovery package
+        if: always() && steps.diag.outputs.dir != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.diag.outputs.dir }}/recovery-package/
+          if-no-files-found: warn
+          retention-days: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}

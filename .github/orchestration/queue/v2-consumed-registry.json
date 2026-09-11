@@ -1,0 +1,56 @@
+{
+  "schema_version": "kodjo.protocol.v2.queue-consumed-registry.0.6.16",
+  "description": "Demandes de file definitivement non rejouables. Une entree lie un chemin ET son blob OID : renommer ou recopier le contenu ne le rend pas rejouable.",
+  "recorded_at": "2026-09-11T00:00:00.000Z",
+  "recorded_by": "KODJO Protocole — arbitrage post-audit 2026-09-11",
+  "entries": [
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-initial-aeff8a1e.json",
+      "blob_oid": "812021df938b62fb3818d0cd13182c0dbe033aa6",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "aeff8a1eadfacd8f59555df049b3031e24b4c74b",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-resume-delta-920f719c.json",
+      "blob_oid": "9520229caee5f88b03acc3db922c252fe46986b6",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "9341c43f73ccaf0566bc3ad0b13568e4327f09bb",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-resume-delta2-920f719c.json",
+      "blob_oid": "6af4c84774ef24b00761bd0fe5175e3b83189a61",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "055b64a9a701fd391a2f01ee8774fba255194d46",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-retry1-81adf83f.json",
+      "blob_oid": "ef042e7b3ba7caf38e0166c54add5ea938860e9e",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "aeff8a1eadfacd8f59555df049b3031e24b4c74b",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-retry2-57a0916e.json",
+      "blob_oid": "cb2307bd5b3355731e634ba86d10ce4c54aed90d",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "aeff8a1eadfacd8f59555df049b3031e24b4c74b",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-retry3-1a3faf24.json",
+      "blob_oid": "09a21795fcafbe7d8c6e524455e0c97fd147fcee",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "1a3faf24c81c3254bc634c3071bb6987cfb11af6",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    }
+  ]
+}

@@ -551,7 +551,10 @@ test('T02-PRES-008 — ecriture fonctionnelle distante refusee avant effet', () 
 
   const scan = H.runScript('scan-remote-write-capability.js', [H.REPO_ROOT], {});
   assert.equal(scan.status, 0, scan.stderr);
-  assert.match(scan.stdout, /NO_REMOTE_FUNCTIONAL_WRITE_CAPABILITY/);
+  // KV2-14 : le verdict ne pretend plus qu'aucune ecriture distante n'existe.
+  // Il atteste qu'aucune ecriture NON DECLAREE n'existe, et les ecritures
+  // declarees du superviseur lean sont enumerees ligne a ligne.
+  assert.match(scan.stdout, /NO_UNDECLARED_REMOTE_WRITE_CAPABILITY/);
 
   const { parse } = require(path.join(H.SCRIPTS, 'lib', 'yaml.js'));
   const wfPath = path.join(H.REPO_ROOT, '.github', 'workflows', 'kodjo-v2-implementation-artifact.yml');

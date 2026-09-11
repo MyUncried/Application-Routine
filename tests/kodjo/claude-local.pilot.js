@@ -142,12 +142,88 @@ test('RESUME_DELTA restaure exactement le paquet de reprise de la même session'
   fs.mkdirSync(runDir, { recursive: true });
   fs.writeFileSync(target, 'version-restaurée\n');
   f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
-  L.writeRecovery(runDir, f.root, f.request, ['src/restored.ts']);
+  L.writeRecovery(runDir, f.root, f.request, ['src/restored.ts'], { runId: 'SMOKE-1' });
   fs.writeFileSync(target, 'version-propre\n');
   const resume = { ...f.request, mode: 'RESUME_DELTA', session_id: f.request.generated_session_id };
   delete resume.generated_session_id;
-  assert.deepEqual(L.restoreRecovery(stateRoot, f.root, resume), ['src/restored.ts']);
+  const restored = L.restoreRecovery(stateRoot, f.root, resume);
+  assert.deepEqual(restored.files, ['src/restored.ts']);
+  assert.equal(restored.legacyBootstrap, null);
   assert.equal(fs.readFileSync(target, 'utf8'), 'version-restaurée\n');
+});
+
+test('RESUME_DELTA refuse un paquet capté sur un autre source_head', () => {
+  // KV2-05 : les entrées sont des contenus de fichiers entiers. Restaurer un
+  // paquet d'une autre révision écrasait silencieusement une évolution amont.
+  const f = fixture();
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-head-'));
+  const runDir = path.join(stateRoot, 'runs', 'SMOKE-1');
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.mkdirSync(path.join(f.root, 'src'), { recursive: true });
+  fs.writeFileSync(path.join(f.root, 'src', 'restored.ts'), 'x\n');
+  f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  L.writeRecovery(runDir, f.root, f.request, ['src/restored.ts'], { runId: 'SMOKE-1' });
+  const resume = {
+    ...f.request, mode: 'RESUME_DELTA', session_id: f.request.generated_session_id,
+    source_head: 'd'.repeat(40),
+  };
+  delete resume.generated_session_id;
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, resume), /RECOVERY_NOT_FOUND/);
+});
+
+test('un paquet tronqué est ignoré au profit d’un paquet valide antérieur', () => {
+  // KV2-04 : une écriture partielle du paquet le plus récent empoisonnait
+  // définitivement la reprise, y compris quand un paquet valide subsistait.
+  const f = fixture();
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-trunc-'));
+  const target = path.join(f.root, 'src', 'restored.ts');
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, 'version-valide\n');
+  f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  const older = path.join(stateRoot, 'runs', 'SMOKE-old');
+  fs.mkdirSync(older, { recursive: true });
+  L.writeRecovery(older, f.root, f.request, ['src/restored.ts'], { runId: 'SMOKE-old' });
+  const newer = path.join(stateRoot, 'runs', 'SMOKE-new');
+  fs.mkdirSync(newer, { recursive: true });
+  const truncated = fs.readFileSync(path.join(older, 'recovery.json'), 'utf8').slice(0, 120);
+  fs.writeFileSync(path.join(newer, 'recovery.json'), truncated);
+  fs.utimesSync(path.join(newer, 'recovery.json'), new Date(), new Date(Date.now() + 10000));
+  fs.writeFileSync(target, 'version-écrasée\n');
+  const resume = { ...f.request, mode: 'RESUME_DELTA', session_id: f.request.generated_session_id };
+  delete resume.generated_session_id;
+  assert.deepEqual(L.restoreRecovery(stateRoot, f.root, resume).files, ['src/restored.ts']);
+  assert.equal(fs.readFileSync(target, 'utf8'), 'version-valide\n');
+});
+
+test('un paquet REFS_MUTATED est conservé mais jamais restauré', () => {
+  const f = fixture();
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-mutated-'));
+  const runDir = path.join(stateRoot, 'runs', 'SMOKE-1');
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.mkdirSync(path.join(f.root, 'src'), { recursive: true });
+  fs.writeFileSync(path.join(f.root, 'src', 'restored.ts'), 'x\n');
+  f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  L.writeRecovery(runDir, f.root, f.request, ['src/restored.ts'],
+    { runId: 'SMOKE-1', integrityStatus: 'REFS_MUTATED' });
+  assert.equal(fs.existsSync(path.join(runDir, 'recovery.json')), true, 'le paquet reste conservé');
+  const resume = { ...f.request, mode: 'RESUME_DELTA', session_id: f.request.generated_session_id };
+  delete resume.generated_session_id;
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, resume), /RECOVERY_INTEGRITY_REFUSED/);
+});
+
+test('un lien symbolique dans le périmètre est refusé, jamais capturé', () => {
+  // KV2-15 : `statSync` suivait le lien et embarquait un contenu hors dépôt.
+  const f = fixture();
+  const outside = path.join(os.tmpdir(), 'kodjo-outside-' + Date.now() + '.txt');
+  fs.writeFileSync(outside, 'SECRET\n');
+  fs.mkdirSync(path.join(f.root, 'src'), { recursive: true });
+  const link = path.join(f.root, 'src', 'lien.ts');
+  try { fs.symlinkSync(outside, link); } catch (_) { return; }
+  f.request.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  assert.throws(
+    () => L.recoveryPayload(f.root, f.request, ['src/lien.ts'], { runId: 'X' }),
+    /RECOVERY_NOT_A_REGULAR_FILE/
+  );
 });
 
 test('migration autorise une seule amorce explicite depuis un résultat antérieur sans recovery', () => {
@@ -162,8 +238,28 @@ test('migration autorise une seule amorce explicite depuis un résultat antérie
     session_id: session,
     modified_files: ['src/legacy.ts'],
   }));
-  assert.deepEqual(L.restoreRecovery(stateRoot, f.root, request), []);
+  fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+    run_id: 'SMOKE-123',
+    session_id: session,
+    source_head: request.source_head,
+    modified_files: ['src/legacy.ts'],
+  }));
+
+  // KV2-08 : l'amorce est disponible mais N'EST PAS consommée par la restauration.
+  // Un échec avant production du premier paquet ne doit pas la brûler.
+  const first = L.restoreRecovery(stateRoot, f.root, request);
+  assert.deepEqual(first.files, []);
+  assert.notEqual(first.legacyBootstrap, null);
+  const second = L.restoreRecovery(stateRoot, f.root, request);
+  assert.notEqual(second.legacyBootstrap, null, 'toujours disponible après un échec précoce');
+
+  // Elle n'est consommée qu'après production, et une seule fois.
+  L.consumeLegacyBootstrap(stateRoot, request, first.legacyBootstrap, 'SMOKE-run-1');
   assert.throws(() => L.restoreRecovery(stateRoot, f.root, request), /LEGACY_RECOVERY_BOOTSTRAP_ALREADY_USED/);
+  assert.throws(
+    () => L.consumeLegacyBootstrap(stateRoot, request, first.legacyBootstrap, 'SMOKE-run-2'),
+    /LEGACY_RECOVERY_BOOTSTRAP_ALREADY_USED/
+  );
 });
 
 test('amorce historique exige un booléen explicite', () => {
@@ -182,6 +278,8 @@ test('RESUME_DELTA refuse un paquet absent, altéré ou hors périmètre', () =>
     slice_id: 'SMOKE',
     session_id: f.request.session_id,
     baseline_head: f.request.baseline_head,
+    source_head: f.request.source_head,
+    integrity_status: 'INTACT',
     entries: [{ path: 'docs/task.md', deleted: false, sha256: '0'.repeat(64), content_base64: '' }],
   }));
   assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_SCOPE_VIOLATION/);
@@ -215,3 +313,108 @@ test('constructeur PowerShell 0.6.12 est syntaxiquement intact et lie le bootstr
   assert.doesNotMatch(source, /\{64\}\$promptAbsolute/);
 });
 
+
+/** Dépôt Git réel : le paquet transportable manipule un vrai index. */
+function gitFixture() {
+  const { spawnSync } = require('node:child_process');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-git-fixture-'));
+  const git = (args) => {
+    const r = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+    assert.equal(r.status, 0, 'git ' + args.join(' ') + ': ' + r.stderr);
+    return r.stdout.trim();
+  };
+  git(['init', '-q', '.']);
+  git(['config', 'user.email', 'pkg@test.local']);
+  git(['config', 'user.name', 'pkg']);
+  git(['config', 'core.autocrlf', 'false']);
+  fs.mkdirSync(path.join(root, 'src'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'secrets'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'src', 'app.ts'), 'v1\n');
+  fs.writeFileSync(path.join(root, 'secrets', '.gitkeep'), '');
+  git(['add', '-A']);
+  git(['commit', '-qm', 'base']);
+  return {
+    root,
+    request: {
+      slice_id: 'PKG', source_head: git(['rev-parse', 'HEAD']),
+      baseline_head: 'e'.repeat(40), scope_allow: ['src/**'],
+    },
+  };
+}
+
+/* ================================================================== *
+ * Paquet de reprise transportable — KV2-03
+ * ================================================================== */
+
+test('le paquet de reprise est un patch borné, hashé et lié à sa révision', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
+  fs.writeFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'neuf\n');
+  fs.writeFileSync(path.join(g.root, 'secrets', 'intrus.ts'), 'hors\n');
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-run-'));
+  const built = L.writeRecoveryPackage(runDir, g.root, request,
+    ['src/app.ts', 'src/nouveau.ts', 'secrets/intrus.ts'], { runId: 'PKG-1' });
+
+  // Le patch est borné au périmètre : l'intrus n'y figure pas.
+  assert.deepEqual(built.manifest.paths, ['src/app.ts', 'src/nouveau.ts']);
+  const patch = fs.readFileSync(path.join(built.dir, 'implementation.patch'), 'utf8');
+  assert.equal(patch.includes('secrets/intrus.ts'), false);
+  assert.match(patch, /src\/nouveau\.ts/);
+  assert.equal(built.manifest.source_head, request.source_head);
+  assert.equal(built.manifest.patch_sha256.length, 64);
+});
+
+test('la reprise depuis l’artefact restaure exactement le delta', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'modifié\n');
+  fs.writeFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'neuf\n');
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-run-'));
+  const built = L.writeRecoveryPackage(runDir, g.root, request,
+    ['src/app.ts', 'src/nouveau.ts'], { runId: 'PKG-1' });
+
+  // Le dépôt est ramené à son état d'origine : le disque local a « disparu ».
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v1\n');
+  fs.unlinkSync(path.join(g.root, 'src', 'nouveau.ts'));
+
+  const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id };
+  delete resume.generated_session_id;
+  assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume).sort(),
+    ['src/app.ts', 'src/nouveau.ts']);
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'modifié\n');
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'utf8'), 'neuf\n');
+});
+
+test('un paquet transportable altéré ou d’une autre révision est refusé', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-run-'));
+  const built = L.writeRecoveryPackage(runDir, g.root, request, ['src/app.ts'], { runId: 'PKG-1' });
+  const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id };
+  delete resume.generated_session_id;
+
+  assert.throws(
+    () => L.restoreFromPackage(built.dir, g.root, { ...resume, source_head: 'd'.repeat(40) }),
+    /RECOVERY_SOURCE_HEAD_MISMATCH/
+  );
+
+  fs.appendFileSync(path.join(built.dir, 'implementation.patch'), '\n');
+  assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume), /RECOVERY_PACKAGE_DIGEST_MISMATCH/);
+});
+
+test('une application partielle est refusée, jamais tentée en 3-way', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-run-'));
+  const built = L.writeRecoveryPackage(runDir, g.root, request, ['src/app.ts'], { runId: 'PKG-1' });
+  // Le fichier a diverge : le patch ne s'applique plus proprement.
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'contenu-amont-different\n');
+  const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id };
+  delete resume.generated_session_id;
+  assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume), /RECOVERY_PARTIAL_APPLY_REFUSED/);
+  // Le dépôt n'a pas été modifié par la tentative.
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'contenu-amont-different\n');
+});

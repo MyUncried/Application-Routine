@@ -24,3 +24,47 @@ jobs:
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
+
+  protocol-windows-preflight:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: _qualification/${{ github.run_id }}
+      - name: Record Windows toolchain
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $PSVersionTable.PSVersion.ToString()
+          git --version
+          node --version
+      - name: Parse every PowerShell protocol script with Windows PowerShell
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $failed = $false
+          Get-ChildItem scripts/kodjo -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              $errors | ForEach-Object { Write-Error ("{0}: {1}" -f $_.Extent.File, $_.Message) }
+            }
+          }
+          if ($failed) { exit 1 }
+      - name: Run complete KODJO pilot suite on Windows
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: node tests/kodjo/run-all.js
+      - name: Run isolated queue path with Windows PowerShell 5.1
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          if (-not (Test-Path -LiteralPath $bash)) { throw 'GIT_BASH_NOT_FOUND' }
+          $env:PWSH = 'powershell.exe'
+          & $bash tests/kodjo/queue-integration/run-bench.sh
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
