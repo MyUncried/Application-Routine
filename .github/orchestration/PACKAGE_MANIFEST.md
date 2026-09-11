@@ -64,4 +64,4 @@ En cas d’écart : spécification `0.6.18` complétant `0.6.17`, configuration 
 
 ## Qualification
 
-La qualification 0.6.18 exige T-058 sur le véritable runner Windows persistant et son état local. Un succès d'une suite mockée ne suffit plus à qualifier une dépendance système. Les IDs de preuve sont inscrits dans `CHANGE_REPORT_0.6.18.md` après le run PR, sans appel Claude.
+La qualification 0.6.18 est démontrée par le run `34604146149` : Ubuntu `103278373251` PASS, Windows PowerShell 5.1 `103278373498` PASS et artefact réel T-058 `10264893697` PASS, sans appel Claude. Un succès d'une suite mockée ne suffit plus à qualifier une dépendance système.

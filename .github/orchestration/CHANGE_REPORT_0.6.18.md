@@ -17,9 +17,11 @@ Le scanner 0.6.17 assimilait tout `claude.exe` au propriétaire possible du verr
 - certification T-058 obligatoire sur le runner Windows persistant réel ;
 - artefact de certification sans contenu sensible et avec `claude_invoked:false`.
 
-## Qualification attendue
+## Qualification
 
-La PR ne peut être déclarée prête qu'après succès de la suite complète Ubuntu, de la suite Windows PowerShell 5.1 et de T-058 sur `KODJO-LOCAL-RUNNER`. Le rapport sera complété avec les IDs du run, du job et de l'artefact après exécution.
+Le run PR `34604146149` est PASS : job Ubuntu `103278373251`, job Windows PowerShell 5.1 `103278373498`, artefact T-058 `10264893697`.
+
+L'artefact prouve `claude_invoked:false`, deux Claude externes laissés vivants, le verrou historique vide remplacé avec la disposition `LEGACY_STALE_REPLACED`, l'acquisition/libération réelle, le refus avec préservation face au processus KODJO contrôlé et l'absence finale de verrou. La suite complète et le parcours isolé de file sont également PASS.
 
 ## Périmètre
 
