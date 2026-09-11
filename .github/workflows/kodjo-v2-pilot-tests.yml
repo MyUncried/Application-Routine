@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   protocol:
@@ -82,3 +83,28 @@ jobs:
           $env:PWSH = 'powershell.exe'
           & $bash tests/kodjo/queue-integration/run-bench.sh
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Download the real run 16 recovery package
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-recovery-34606534268-1
+          path: ${{ runner.temp }}/kodjo-real-run-16-recovery
+          github-token: ${{ github.token }}
+          run-id: 34606534268
+      - name: Dry-run the real run 16 recovery on the exact candidate HEAD
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          node scripts/kodjo/certify-recovery-artifact.js `
+            "${{ runner.temp }}/kodjo-real-run-16-recovery" `
+            "$PWD" `
+            "${{ github.event.pull_request.head.sha || github.sha }}" `
+            "real-recovery-certification.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve real recovery certification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/real-recovery-certification.json
+          if-no-files-found: error
+          retention-days: 90
