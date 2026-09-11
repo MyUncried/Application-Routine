@@ -464,3 +464,9 @@ test('le workflow lean isole le checkout du runner persistant', () => {
   assert.match(workflow, /working-directory:\s*_kodjo\/\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /path:\s*_kodjo\/\$\{\{ github\.run_id \}\}/);
 });
+
+
+test('le mode INITIAL neutralise le code de sortie attendu de la sonde de reprise', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
+  assert.match(workflow, /\$global:LASTEXITCODE\s*=\s*0/);
+});
