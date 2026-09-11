@@ -397,6 +397,20 @@ test('la reprise depuis l’artefact restaure exactement le delta', () => {
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'utf8'), 'neuf\n');
 });
 
+test('un paquet strictement vide permet de reprendre la session sur le HEAD protocolaire corrige', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-empty-'));
+  const built = L.writeRecoveryPackage(runDir, g.root, request, [], { runId: 'PKG-empty' });
+  const resume = {
+    ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id,
+    source_head: 'd'.repeat(40),
+  };
+  delete resume.generated_session_id;
+  assert.equal(fs.readFileSync(path.join(built.dir, 'implementation.patch')).length, 0);
+  assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume), []);
+});
+
 test('un paquet transportable altéré ou d’une autre révision est refusé', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };

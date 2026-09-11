@@ -311,14 +311,20 @@ function restoreFromPackage(packageDir, repoRoot, request) {
       manifest.baseline_head !== request.baseline_head) {
     throw new Error('RECOVERY_PACKAGE_PROVENANCE_MISMATCH');
   }
-  if (manifest.source_head !== request.source_head) throw new Error('RECOVERY_SOURCE_HEAD_MISMATCH');
   if (manifest.integrity_status && manifest.integrity_status !== 'INTACT') {
     throw new Error('RECOVERY_INTEGRITY_REFUSED: ' + manifest.integrity_status);
   }
   const patch = fs.readFileSync(patchPath, 'utf8');
   if (sha256(patch) !== manifest.patch_sha256) throw new Error('RECOVERY_PACKAGE_DIGEST_MISMATCH');
-  for (const file of manifest.paths || []) {
+  const paths = Array.isArray(manifest.paths) ? manifest.paths : [];
+  for (const file of paths) {
     if (!inScope(file, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + file);
+  }
+  // Une reprise de session peut avancer vers un HEAD protocolaire plus recent
+  // uniquement quand le paquet source est strictement vide : aucun octet de
+  // travail ne peut alors etre ecrase ou applique sur une autre base.
+  if (manifest.source_head !== request.source_head && (paths.length !== 0 || patch.length !== 0)) {
+    throw new Error('RECOVERY_SOURCE_HEAD_MISMATCH');
   }
   if (!patch.trim()) return [];
   const apply = (extra) => command('git', ['apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
