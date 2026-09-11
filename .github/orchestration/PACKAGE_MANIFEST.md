@@ -11,7 +11,7 @@ Cette version conserve les invariants 0.6.20, rend le registre réellement canon
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.21.0 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.22.0 |
 
 ## Composants d’activation V2
 
@@ -74,4 +74,8 @@ En cas d’écart : spécification `0.6.21` complétant `0.6.20`, configuration 
 
 ## Qualification
 
-La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1. Les runs jetables #65 et #69 prouvent l’invocation Claude, la fixture et la préservation, mais pas encore le verdict global PASS ; une dernière qualification groupée reste requise après INC-105/106/107.
+La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1.
+
+Le run #73 `34648194736`, au HEAD exact `8a7b9e018c2a0a7cedd9c27f3dbe1ac0afdadd0f`, qualifie la tranche jetable INITIAL réelle : workflow `SUCCESS`, verdict protocolaire `PASS`, Claude invoqué une fois, delta limité à `tests/fixtures/qualif/result.txt`, `request_id` propagé, paquet de reprise intact, aucune publication distante et nettoyage `PASS`. L’artefact opposable est `10283681378`, SHA-256 `3defbea095d0adcfbfcac55bed02a39ad0fa3dd319763325cbb59b00c35e1a53`.
+
+La santé applicative absolue reste `FAIL` à cause des deux timeouts Jest préexistants ; les contrôles sont exécutables et la non-régression causale est `PASS`. L’interruption contrôlée puis la reprise réelle `RESUME_DELTA` de la même session restent `NON RETESTÉES`.

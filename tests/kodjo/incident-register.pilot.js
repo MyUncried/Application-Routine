@@ -25,8 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.21.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.21\.0\*\*/);
+test('registre canonique 3.22.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.22\.0\*\*/);
+  assert.match(text, /run #73 `34648194736`/);
+  assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
   assertSequence(incidents, 'INC', 109);
   for (const id of incidents) {

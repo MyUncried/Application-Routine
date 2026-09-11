@@ -31,6 +31,19 @@ Le run `34644068082` démontre ensuite le préflight jetable complet PASS sous P
 
 Les résultats locaux sont inscrits uniquement après exécution de la suite complète, validation de tous les workflows et validation croisée du registre. Ils ne valent pas invocation Claude réelle.
 
-## Qualification réelle attendue
+## Qualification réelle
 
-Le workflow doit publier un artefact propre au run contenant au minimum le manifeste de qualification, `result.json`, `invocation.json`, `run-context.json`, la certification du verrou et le paquet de reprise. Aucun résultat réel n’est déclaré avant observation du run GitHub correspondant.
+Le run #73 `34648194736` a été exécuté au HEAD exact `8a7b9e018c2a0a7cedd9c27f3dbe1ac0afdadd0f` sous Windows PowerShell 5.1. Les jobs `protocol`, `protocol-windows-preflight` et `disposable-qualification` sont `SUCCESS`.
+
+L’artefact `10283681378`, SHA-256 `3defbea095d0adcfbfcac55bed02a39ad0fa3dd319763325cbb59b00c35e1a53`, démontre :
+
+- verdict de qualification `PASS` et statut protocolaire local `IMPLEMENTED_WITH_FAILED_CHECKS` ;
+- invocation Claude INITIAL réelle, sortie 0, sans timeout, avec un appel IA au maximum et aucun `--max-turns` ;
+- même `request_id` dans l’invocation, le résultat et le paquet de reprise ;
+- delta unique `tests/fixtures/qualif/result.txt`, contenu `KODJO V2 QUALIFICATION PASS` ;
+- collections de dérive vides, paquet de reprise `INTACT`, nettoyage `PASS` et verrou final absent ;
+- aucune branche distante, aucune PR, aucune entrée Lean Queue et aucune intégration dans `main`.
+
+Jest reste en échec absolu sur les deux mêmes timeouts applicatifs préexistants, avant et après Claude ; TypeScript et lint passent. Le comparateur publie `absolute_status:FAIL`, `executable_status:PASS`, `regression_status:PASS` et `verdict:PASS`.
+
+L’artefact historique séparé `10283262254` demeure `FAIL` sur la migration du paquet #16, sans bloquer la tranche jetable : le découplage INC-109/T-082 est donc démontré. L’interruption contrôlée suivie d’une reprise réelle `RESUME_DELTA` de la même session reste `NON RETESTÉE`.
