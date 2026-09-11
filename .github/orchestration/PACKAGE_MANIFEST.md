@@ -62,6 +62,6 @@ Cette version conserve l’identité de tranche et l’exécution locale supervi
 
 En cas d’écart : spécification `0.6.17` complétant `0.6.16`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
-## Qualification requise
+## Qualification
 
-Les invariants 0.6.17 sont qualifiés sans appel Claude par la suite pilote. Les incidents INC-080 à INC-084 restent ouverts tant que le job Windows PowerShell 5.1 de la PR n’est pas PASS.
+Les invariants 0.6.17 sont qualifiés sans appel Claude : run PR `34599962140`, Ubuntu `103264569038` PASS et Windows PowerShell 5.1 `103264569377` PASS.

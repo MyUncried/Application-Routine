@@ -14,7 +14,7 @@ Origine : runs #12 `34584903053` et #13 `34587778681`, diagnostics `10193178795`
 
 ## Qualification
 
-La suite couvre T-053 à T-057, la reprise vide sur HEAD corrigé et le refus d'un paquet non vide sur un autre `source_head`. Les jobs Ubuntu et Windows/PowerShell 5.1 doivent réussir sans appel Claude avant clôture des incidents.
+La suite couvre T-053 à T-057, la reprise vide sur HEAD corrigé et le refus d'un paquet non vide sur un autre `source_head`. Le run PR `34599962140` est PASS : job Ubuntu `103264569038`, job Windows/PowerShell 5.1 `103264569377`, incluant la suite complète et le parcours isolé de file. Aucun appel Claude n'a été effectué.
 
 ## Hors périmètre
 
