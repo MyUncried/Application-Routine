@@ -3,9 +3,21 @@ name: KODJO V2 disposable qualification
 on:
   workflow_dispatch:
     inputs:
+      stage:
+        description: 'INITIAL creates the recovery package; RESUME_DELTA restores and resumes it'
+        required: true
+        type: choice
+        options:
+          - INITIAL
+          - RESUME_DELTA
+        default: INITIAL
       expected_head:
         description: 'Exact protocol commit to qualify'
         required: true
+        type: string
+      source_run_id:
+        description: 'Successful INITIAL run id (required for RESUME_DELTA)'
+        required: false
         type: string
 
 permissions:
@@ -23,12 +35,14 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.expected_head }}
           path: _qualification/${{ github.run_id }}
+
       - name: Require the exact dispatched HEAD
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |
           $observed = (git rev-parse HEAD).Trim()
           if ($observed -ne '${{ inputs.expected_head }}') { throw "HEAD_MISMATCH: $observed" }
+
       - name: Refuse any active Lean Queue run
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -42,7 +56,27 @@ jobs:
             $active | ForEach-Object { Write-Error ("Lean Queue active: {0} ({1})" -f $_.id, $_.status) }
             exit 1
           }
-      - name: Execute real disposable qualification
+
+      - name: Validate stage inputs
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          if ('${{ inputs.stage }}' -eq 'RESUME_DELTA' -and '${{ inputs.source_run_id }}' -notmatch '^\d+$') {
+            throw 'RESUME_SOURCE_RUN_ID_REQUIRED'
+          }
+
+      - name: Download INITIAL evidence
+        if: inputs.stage == 'RESUME_DELTA'
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-disposable-qualification-${{ inputs.source_run_id }}-1
+          path: _source-qualification-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+
+      - name: Execute real INITIAL qualification
+        if: inputs.stage == 'INITIAL'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |
@@ -50,6 +84,19 @@ jobs:
             -ExpectedHead '${{ inputs.expected_head }}' `
             -EvidenceDirectory 'qualification-evidence'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Execute real RESUME_DELTA qualification
+        if: inputs.stage == 'RESUME_DELTA'
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-resume-qualification.ps1 `
+            -ExpectedHead '${{ inputs.expected_head }}' `
+            -SourceRunId '${{ inputs.source_run_id }}' `
+            -SourceEvidenceDirectory '${{ github.workspace }}\_source-qualification-evidence' `
+            -EvidenceDirectory 'qualification-evidence'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Preserve disposable qualification evidence
         if: always()
         uses: actions/upload-artifact@v4
