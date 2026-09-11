@@ -364,6 +364,7 @@ function gitFixture() {
   git(['commit', '-qm', 'base']);
   return {
     root,
+    git,
     request: {
       slice_id: 'PKG', source_head: git(['rev-parse', 'HEAD']),
       baseline_head: 'e'.repeat(40), scope_allow: ['src/**'],
@@ -429,7 +430,45 @@ test('un paquet strictement vide permet de reprendre la session sur le HEAD prot
   assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume), []);
 });
 
-test('un paquet transportable altéré ou d’une autre révision est refusé', () => {
+test('un paquet non vide migre sur un descendant contenant seulement du protocole', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
+  const built = L.writeRecoveryPackage(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-migration-')),
+    g.root, request, ['src/app.ts'], { runId: 'PKG-migrate' });
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v1\n');
+  fs.mkdirSync(path.join(g.root, 'scripts', 'kodjo'), { recursive: true });
+  fs.writeFileSync(path.join(g.root, 'scripts', 'kodjo', 'protocol.js'), 'module.exports = true;\n');
+  g.git(['add', 'scripts/kodjo/protocol.js']); g.git(['commit', '-qm', 'protocol only']);
+  const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id,
+    source_head: g.git(['rev-parse', 'HEAD']) };
+  delete resume.generated_session_id;
+  const evidence = {};
+  assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume, evidence), ['src/app.ts']);
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v2\n');
+  assert.equal(evidence.status, 'PASS');
+  assert.equal(evidence.mode, 'PROTOCOL_ONLY_FAST_FORWARD');
+  assert.deepEqual(evidence.intervening_paths, ['scripts/kodjo/protocol.js']);
+});
+
+test('une migration de paquet non vide refuse toute évolution applicative intermédiaire', () => {
+  const g = gitFixture();
+  const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
+  const built = L.writeRecoveryPackage(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-pkg-refusal-')),
+    g.root, request, ['src/app.ts'], { runId: 'PKG-refuse' });
+  fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v1\n');
+  fs.writeFileSync(path.join(g.root, 'src', 'other.ts'), 'upstream\n');
+  g.git(['add', 'src/other.ts']); g.git(['commit', '-qm', 'application change']);
+  const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id,
+    source_head: g.git(['rev-parse', 'HEAD']) };
+  delete resume.generated_session_id;
+  assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume),
+    /RECOVERY_MIGRATION_NON_PROTOCOL_CHANGE: src\/other.ts/);
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v1\n');
+});
+
+test('un paquet transportable altéré ou sans HEAD cible vérifié est refusé', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
   fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
@@ -440,7 +479,7 @@ test('un paquet transportable altéré ou d’une autre révision est refusé', 
 
   assert.throws(
     () => L.restoreFromPackage(built.dir, g.root, { ...resume, source_head: 'd'.repeat(40) }),
-    /RECOVERY_SOURCE_HEAD_MISMATCH/
+    /RECOVERY_TARGET_HEAD_NOT_CHECKED_OUT/
   );
 
   fs.appendFileSync(path.join(built.dir, 'implementation.patch'), '\n');
