@@ -26,17 +26,20 @@ function isDescendant(pid, rootPid, byPid) {
   return false;
 }
 
-function classifyClaudeProcesses(rows, inspectorPid = process.pid) {
+function managedClaudeMarkers(env = process.env) {
+  if (process.platform !== 'win32' && !env.APPDATA) return ['@anthropic-ai/claude-code/'];
+  const root = path.join(env.APPDATA || '', 'npm', 'node_modules', '@anthropic-ai', 'claude-code');
+  return [root, path.join(root, 'bin', 'claude.exe')].map((value) => value.replace(/\//g, '\\').toLowerCase());
+}
+
+function classifyClaudeProcesses(rows, inspectorPid = process.pid, markers = managedClaudeMarkers()) {
   const byPid = new Map(rows.map((row) => [Number(row.ProcessId), row]));
   return rows.filter((row) => {
     const pid = Number(row.ProcessId);
     if (!Number.isInteger(pid) || isDescendant(pid, inspectorPid, byPid)) return false;
-    const name = String(row.Name || '');
-    const executable = String(row.ExecutablePath || '');
-    const command = String(row.CommandLine || '');
-    if (/^claude\.exe$/i.test(name)) return true;
-    return /@anthropic-ai[\\/]claude-code[\\/]/i.test(executable) ||
-      /@anthropic-ai[\\/]claude-code[\\/]/i.test(command);
+    const executable = String(row.ExecutablePath || '').replace(/\//g, '\\').toLowerCase();
+    const command = String(row.CommandLine || '').replace(/\//g, '\\').toLowerCase();
+    return markers.some((marker) => executable.includes(marker) || command.includes(marker));
   });
 }
 
@@ -72,9 +75,10 @@ function claudeProcessState() {
     const snapshot = windowsProcessSnapshot();
     if (snapshot.state !== 'OK') return snapshot;
     const matches = classifyClaudeProcesses(snapshot.rows);
+    const externalClaude = snapshot.rows.filter((row) => /^claude\.exe$/i.test(String(row.Name || '')) && !matches.includes(row));
     return matches.length
       ? { state: 'ACTIVE', evidence: matches.map((row) => String(row.ProcessId) + '|' + String(row.CreationDate || '') + '|' + String(row.Name || '') + '|' + String(row.CommandLine || '')).join('\n') }
-      : { state: 'NONE', evidence: 'CIM_NO_CLAUDE' };
+      : { state: 'NONE', evidence: 'CIM_NO_MANAGED_CLAUDE', external_claude_count: externalClaude.length };
   }
   const r = spawnSync('ps', ['-eo', 'pid=,lstart=,args='], { encoding: 'utf8', shell: false });
   if (r.error || r.status !== 0) return { state: 'AMBIGUOUS', evidence: String(r.stderr || r.error || 'PS_UNREADABLE') };
@@ -143,5 +147,5 @@ function release(handle) {
 
 module.exports = {
   LOCK_SCHEMA, processIdentity, claudeProcessState, acquire, release,
-  parseWindowsSnapshot, classifyClaudeProcesses, windowsProcessSnapshot,
+  parseWindowsSnapshot, classifyClaudeProcesses, windowsProcessSnapshot, managedClaudeMarkers,
 };

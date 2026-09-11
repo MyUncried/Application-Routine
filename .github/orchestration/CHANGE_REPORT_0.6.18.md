@@ -4,12 +4,13 @@ Origine : run Lean Queue #14 `34602213649`, job `103272027821`, diagnostic `1026
 
 ## Cause démontrée
 
-Le scanner PowerShell 0.6.17 recherchait le motif Claude dans toutes les lignes de commande alors que ce motif figurait dans sa propre commande. Le test T-053 simulait la réponse du scanner et n'exerçait donc pas ce comportement réel.
+Le scanner 0.6.17 assimilait tout `claude.exe` au propriétaire possible du verrou KODJO. La première certification réelle, run `34603741701`, job `103277049720`, artefact `10264798262`, a démontré deux Claude légitimes de l'extension VS Code sous `.vscode\\extensions`, étrangers au binaire KODJO installé sous `%APPDATA%\\npm\\node_modules`. Elle a échoué sans modifier le verrou historique vide et sans arrêter ces processus. Le test T-053 simulait la réponse du scanner et ne couvrait pas cette coexistence réelle.
 
 ## Correction
 
 - inventaire CIM brut sans motif Claude dans PowerShell ;
-- classification positive dans Node ;
+- classification dans Node par chemin d'installation KODJO, et non par le seul nom `claude.exe` ;
+- observation sans blocage ni arrêt des Claude externes, notamment VS Code ;
 - exclusion de l'inspecteur et de ses descendants ;
 - suppression du motif générique `claude` ;
 - refus conservateur inchangé en cas d'ambiguïté ;

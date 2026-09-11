@@ -74,14 +74,16 @@ test('verrou hérité vide: remplacé seulement si aucun Claude n est actif', ()
 
 test('scanner Windows: ne se détecte pas lui-même et reconnaît seulement une identité Claude positive', () => {
   const inspector = 700;
+  const markers = ['c:\\users\\hadjo\\appdata\\roaming\\npm\\node_modules\\@anthropic-ai\\claude-code'];
   const rows = [
     { ProcessId: inspector, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node run-local-claude.js' },
     { ProcessId: 701, ParentProcessId: inspector, Name: 'powershell.exe', CommandLine: "scanner avec @anthropic-ai\\claude-code\\ dans son argument" },
     { ProcessId: 702, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node ordinary-claude-notes.js' },
+    { ProcessId: 704, ParentProcessId: 1, Name: 'claude.exe', ExecutablePath: 'C:\\Users\\hadjo\\.vscode\\extensions\\anthropic.claude-code\\claude.exe', CommandLine: 'claude.exe --resume=foreign' },
   ];
-  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector), []);
-  rows.push({ ProcessId: 703, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node C:\\npm\\node_modules\\@anthropic-ai\\claude-code\\cli.js' });
-  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector).map((row) => row.ProcessId), [703]);
+  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector, markers), []);
+  rows.push({ ProcessId: 703, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node C:\\Users\\hadjo\\AppData\\Roaming\\npm\\node_modules\\@anthropic-ai\\claude-code\\cli.js' });
+  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector, markers).map((row) => row.ProcessId), [703]);
   assert.doesNotMatch(Lock.windowsProcessSnapshot.toString(), /anthropic-ai|claude-code|claude\\.exe/i);
 });
 

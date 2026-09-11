@@ -27,7 +27,7 @@ function waitForState(expected, attempts = 20) {
 }
 
 function detachedClaudeMarker() {
-  const marker = path.join(os.tmpdir(), '@anthropic-ai', 'claude-code', 'certification-marker.js');
+  const marker = Lock.managedClaudeMarkers()[0] + '\\certification-marker.js';
   const payload = "const {spawn}=require('node:child_process'); const c=spawn(process.execPath,['-e','setTimeout(()=>{},30000)',process.argv[1]],{detached:true,stdio:'ignore'}); c.unref(); process.stdout.write(String(c.pid));";
   const launched = spawnSync(process.execPath, ['-e', payload, marker], { encoding: 'utf8', shell: false, windowsHide: true });
   assert.equal(launched.status, 0, launched.stderr || 'MARKER_LAUNCH_FAILED');
