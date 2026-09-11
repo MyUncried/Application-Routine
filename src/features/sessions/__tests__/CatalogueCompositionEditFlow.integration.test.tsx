@@ -207,7 +207,6 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     // assertion n'échoue jamais une fois ce délai levé (vérifié isolément
     // avec un délai de 30000 ms). Même palier que `CategoriesSaveFlow
     // .integration.test.tsx`, déjà porté à 20000 ms pour la même raison.
-    20000,
   );
 
   it("2. n'affiche JAMAIS le formulaire de création ni ses valeurs par défaut tant que la Séance n'est pas résolue — seul l'état de chargement est rendu", async () => {
