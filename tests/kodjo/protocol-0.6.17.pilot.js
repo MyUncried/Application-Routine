@@ -72,6 +72,23 @@ test('verrou hérité vide: remplacé seulement si aucun Claude n est actif', ()
   assert.throws(() => Lock.acquire(file, identity, alive('new'), () => ({ state: 'ACTIVE' })), /LOCK_AMBIGUOUS/);
 });
 
+test('scanner Windows: ne se détecte pas lui-même et reconnaît seulement une identité Claude positive', () => {
+  const inspector = 700;
+  const rows = [
+    { ProcessId: inspector, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node run-local-claude.js' },
+    { ProcessId: 701, ParentProcessId: inspector, Name: 'powershell.exe', CommandLine: "scanner avec @anthropic-ai\\claude-code\\ dans son argument" },
+    { ProcessId: 702, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node ordinary-claude-notes.js' },
+  ];
+  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector), []);
+  rows.push({ ProcessId: 703, ParentProcessId: 1, Name: 'node.exe', CommandLine: 'node C:\\npm\\node_modules\\@anthropic-ai\\claude-code\\cli.js' });
+  assert.deepEqual(Lock.classifyClaudeProcesses(rows, inspector).map((row) => row.ProcessId), [703]);
+  assert.doesNotMatch(Lock.windowsProcessSnapshot.toString(), /anthropic-ai|claude-code|claude\\.exe/i);
+});
+
+test('scanner Windows: sortie CIM invalide reste ambiguë', () => {
+  assert.equal(Lock.parseWindowsSnapshot('{').state, 'AMBIGUOUS');
+});
+
 test('diagnostic: résolution exclusivement par run GitHub courant', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-run-'));
   const oldEnv = { GITHUB_RUN_ID: '12', GITHUB_RUN_ATTEMPT: '1' };

@@ -40,6 +40,20 @@ jobs:
           $PSVersionTable.PSVersion.ToString()
           git --version
           node --version
+      - name: Certify real persistent runner lock before Claude boundary
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          node scripts/kodjo/certify-persistent-runner-lock.js runner-lock-certification.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve real runner certification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/runner-lock-certification.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Parse every PowerShell protocol script with Windows PowerShell
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
