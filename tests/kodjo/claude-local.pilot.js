@@ -162,6 +162,17 @@ test('contrôle de périmètre reconnaît récursif, direct et refuse le voisin'
   assert.equal(L.inScope('scripts/a.js', ['src/**', 'tests/**']), false);
 });
 
+test('contrôle de périmètre refuse traversée, absolus et séparateurs ambigus', () => {
+  const scope = ['tests/fixtures/qualif/**'];
+  assert.equal(L.inScope('tests/fixtures/qualif/ok.txt', scope), true);
+  assert.equal(L.inScope('tests/fixtures/qualif/../../evil.txt', scope), false);
+  assert.equal(L.inScope('tests/fixtures/qualif/./evil.txt', scope), false);
+  assert.equal(L.inScope('tests\\fixtures\\qualif\\evil.txt', scope), false);
+  assert.equal(L.inScope('/tests/fixtures/qualif/evil.txt', scope), false);
+  assert.equal(L.inScope('C:/tests/fixtures/qualif/evil.txt', scope), false);
+  assert.equal(L.inScope('tests/fixtures/qualif2/evil.txt', scope), false);
+});
+
 test('RESUME_DELTA restaure exactement le paquet de reprise de la même session', () => {
   const f = fixture();
   const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-state-'));
