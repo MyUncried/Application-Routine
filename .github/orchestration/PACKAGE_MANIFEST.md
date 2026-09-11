@@ -1,17 +1,17 @@
-# Manifeste du paquet KODJO V2 0.6.19 — tours gouvernés par Claude
+# Manifeste du paquet KODJO V2 0.6.20 — reprise historique certifiée
 
 ## Objet
 
-Cette version conserve l’identité de tranche, le verrou propriétaire, le diagnostic lié au run courant, la traçabilité de `request_id` et les lectures Git bornées. Elle retire le plafond protocolaire de tours : la fin de l’invocation relève de Claude et des droits réels de l’abonnement. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Cette version conserve les invariants 0.6.19 et permet la migration contrôlée d’un paquet non vide vers un HEAD descendant lorsque tous les changements intermédiaires sont exclusivement protocolaires. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.19.md` | Spécification normative courante, delta de 0.6.18 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.20.md` | Spécification normative courante, delta de 0.6.19 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.19.md` | Rapport du correctif des runs #15 et #16 |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.6.0 |
+| `.github/orchestration/CHANGE_REPORT_0.6.20.md` | Rapport de migration et certification de l’artefact réel du run #16 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.8.0 |
 
 ## Composants d’activation V2
 
@@ -29,6 +29,7 @@ Cette version conserve l’identité de tranche, le verrou propriétaire, le dia
 |---|---|
 | `scripts/kodjo/lib/claude-local.js` | Configuration figée, validation de requête, prompt borné et arguments effectifs |
 | `scripts/kodjo/run-local-claude.js` | Superviseur local : préflight, exclusion, appel unique, runner de contrôles isolé et résultat |
+| `scripts/kodjo/certify-recovery-artifact.js` | Certification sans Claude d’un artefact réel dans un clone isolé du HEAD candidat |
 | `scripts/kodjo/setup-kodjo-claude-auth.ps1` | Enregistrement DPAPI du jeton long terme |
 | `scripts/kodjo/start-kodjo-v2.ps1` | Injection éphémère du jeton et lancement sécurisé |
 | `scripts/kodjo/create-kodjo-v2-request.ps1` | Construction automatique d’une requête liée au HEAD courant |
@@ -60,8 +61,8 @@ Cette version conserve l’identité de tranche, le verrou propriétaire, le dia
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.19` complétant `0.6.18`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.20` complétant `0.6.19`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
 ## Qualification
 
-La qualification 0.6.19 est démontrée par le run `34608773847` au commit `86cedd33e2579f351ddf2e117ab10ff60ed19ac9` : Ubuntu `103293703287` PASS, Windows PowerShell 5.1 `103293703580` PASS, banc isolé PASS et artefact réel `10267286529`, sans appel Claude.
+La qualification de migration 0.6.20 est démontrée par le run `34611834316` : Ubuntu `103303973342` PASS, Windows PowerShell 5.1 `103303973778` PASS et artefact de preuve `10269012308`. Le banc a téléchargé l’artefact réel `10266968512`, restauré exactement ses 13 chemins dans un clone isolé et n’a pas appelé Claude. Les deux certifications Claude réelles sur tranche jetable restent NON RETESTÉES.
