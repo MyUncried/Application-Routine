@@ -76,7 +76,7 @@ try {
   $sourceInterruptionPath = Join-Path $sourceEvidence 'controlled-interruption.json'
   $sourcePackage = Join-Path $sourceEvidence 'recovery-package'
   $sourcePackageManifestPath = Join-Path $sourcePackage 'manifest.json'
-  foreach ($required in @($sourceManifestPath, $sourceResultPath, $sourceInvocationPath, $sourceInterruptionPath, $sourcePackageManifestPath, (Join-Path $sourcePackage 'payload.patch'))) {
+  foreach ($required in @($sourceManifestPath, $sourceResultPath, $sourceInvocationPath, $sourceInterruptionPath, $sourcePackageManifestPath, (Join-Path $sourcePackage 'implementation.patch'))) {
     if (-not (Test-Path -LiteralPath $required)) { throw ('SOURCE_EVIDENCE_MISSING: ' + $required) }
   }
   $sourceManifest = Get-Content -Raw -LiteralPath $sourceManifestPath | ConvertFrom-Json
