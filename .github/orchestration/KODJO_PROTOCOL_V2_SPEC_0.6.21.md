@@ -28,6 +28,14 @@ La qualification réelle :
 - conserve `result.json`, `invocation.json`, le contexte du run et le paquet de reprise comme artefact du run courant ;
 - distingue succès technique, statut protocolaire, invocation, delta local, préservation, publication distante et intégration dans `main`.
 
+Les contrôles exécutés dans le clone jetable utilisent un mode d’isolation explicite : aucun cache Jest partagé et aucun cache Expo dans le dépôt. Cette règle est limitée à la qualification et ne modifie pas les commandes des tranches applicatives ordinaires.
+
+Avant l’unique invocation réelle finale, un seul préflight Windows exécute le même clone, la même installation, les mêmes contrôles, le même inventaire et le même nettoyage avec `PreflightOnly`. Cette voie interdit Claude et produit un artefact propre ; elle remplace les validations partielles successives.
+
+Le manifeste distingue la santé absolue des contrôles de la non-régression causale entre la baseline et l’état post-Claude. Un contrôle non exécuté, un nouvel échec ou un ensemble d’échecs ambigu bloque. Un échec Jest préexistant ne peut être classé sans régression que si les suites en échec sont identiques et que leur nombre n’augmente pas ; le statut absolu demeure alors explicitement FAIL.
+
+Le nettoyage ne vise que la racine temporaire dont le parent, le nom, le run et la tentative concordent. La suppression de cette racine est vérifiée et son échec rend le verdict rouge avec diagnostics conservés.
+
 Un timeout de workflow de 90 minutes borne l’infrastructure. Il ne réintroduit aucun plafond de tours Claude : `--max-turns` reste absent et la limite d’usage demeure celle du fournisseur et de l’abonnement.
 
 ## Frontière de certification

@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
-  [Parameter(Mandatory = $true)][string]$EvidenceDirectory
+  [Parameter(Mandatory = $true)][string]$EvidenceDirectory,
+  [switch]$PreflightOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,7 +33,10 @@ $manifest = [ordered]@{
   remote_branch_created = $false
   pull_request_created = $false
   integrated_in_main = $false
+  preflight_only = [bool]$PreflightOnly
   baseline_checks = $null
+  check_comparison = $null
+  isolated_check_caches = $true
   result = $null
   tree_drift_outside_fixture = @()
   verdict = 'FAIL'
@@ -124,6 +128,7 @@ try {
   $afterDependencies = (Invoke-Native 'git' @('status', '--porcelain=v2', '--untracked-files=all') $work).Output
   if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
 
+  $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
   $before = Get-Inventory $work
   $baselineDirectory = Join-Path $evidence 'baseline'
   New-Item -ItemType Directory -Force -Path $baselineDirectory | Out-Null
@@ -134,9 +139,24 @@ try {
     $baseline[$check] = Get-Content -Raw -LiteralPath $target | ConvertFrom-Json
   }
   $manifest.baseline_checks = $baseline
+  $baselinePath = Join-Path $baselineDirectory 'checks.json'
+  ($baseline | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $baselinePath -Encoding UTF8
 
   $localBench = Join-Path $evidence 'disposable-local-bench.json'
   Invoke-Native 'node' @('tests/kodjo/qualification/disposable-slice-bench.js', $localBench) $work | Out-Null
+
+  if ($PreflightOnly) {
+    $afterPreflight = Get-Inventory $work
+    $preflightDrift = @(Compare-Inventory $before $afterPreflight)
+    $manifest.tree_drift_outside_fixture = $preflightDrift
+    $notRun = @($baseline.Values | Where-Object { $_.status -eq 'NOT_RUN' })
+    if ($notRun.Count -gt 0) { throw 'PREFLIGHT_CHECK_NOT_EXECUTED' }
+    if ($preflightDrift.Count -gt 0) { throw ('PREFLIGHT_OUT_OF_SCOPE_DRIFT: ' + ($preflightDrift -join ', ')) }
+    $manifest.protocol_status = 'PREFLIGHT_ONLY'
+    $manifest.workflow_technical_status = 'SUCCESS'
+    $manifest.verdict = 'PASS'
+    return
+  }
 
   $entry = Join-Path $work 'scripts\kodjo\invoke-kodjo-v2.ps1'
   $execution = Invoke-Native 'powershell.exe' @(
@@ -170,6 +190,17 @@ try {
     Copy-Item -LiteralPath (Join-Path $runDirectory 'recovery-package') -Destination (Join-Path $evidence 'recovery-package') -Recurse -Force
   }
 
+  $comparisonPath = Join-Path $evidence 'check-comparison.json'
+  $comparisonExecution = Invoke-Native 'node' @(
+    'scripts/kodjo/compare-qualification-checks.js',
+    $baselinePath,
+    $resultPath,
+    $comparisonPath
+  ) $work -AllowFailure
+  if (-not (Test-Path -LiteralPath $comparisonPath)) { throw 'QUALIFICATION_CHECK_COMPARISON_MISSING' }
+  $comparison = Get-Content -Raw -LiteralPath $comparisonPath | ConvertFrom-Json
+  $manifest.check_comparison = $comparison
+
   $after = Get-Inventory $work
   $outsideDrift = @(Compare-Inventory $before $after)
   $manifest.tree_drift_outside_fixture = $outsideDrift
@@ -187,6 +218,7 @@ try {
   if (-not $manifest.fixture_result_exists) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
   if (-not $manifest.fixture_result_content_valid) { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
+  if ($comparisonExecution.Code -ne 0 -or $comparison.verdict -ne 'PASS') { throw 'QUALIFICATION_CHECK_REGRESSION_OR_NON_EXECUTION' }
   $manifest.workflow_technical_status = 'SUCCESS'
   $manifest.verdict = 'PASS'
 }
@@ -197,11 +229,22 @@ catch {
 }
 finally {
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
+  $cleanupMessages = New-Object System.Collections.ArrayList
   if (Test-Path -LiteralPath $work) {
-    Invoke-Native 'icacls.exe' @($work, '/reset', '/T', '/C', '/Q') $source -AllowFailure | Out-Null
+    $clean = Invoke-Native 'git' @('clean', '-ffdx', '--quiet') $work -AllowFailure
+    if ($clean.Code -ne 0) { [void]$cleanupMessages.Add('git clean: ' + $clean.Output) }
   }
-  if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+  $rootFull = [IO.Path]::GetFullPath($root).TrimEnd('\')
+  $tempFull = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+  $expectedLeaf = 'kodjo-qualif-' + $env:GITHUB_RUN_ID + '-' + $env:GITHUB_RUN_ATTEMPT
+  if ([IO.Path]::GetDirectoryName($rootFull) -ne $tempFull -or [IO.Path]::GetFileName($rootFull) -ne $expectedLeaf) {
+    [void]$cleanupMessages.Add('QUALIFICATION_ROOT_IDENTITY_MISMATCH: ' + $rootFull)
+  } elseif (Test-Path -LiteralPath $rootFull) {
+    $remove = Invoke-Native 'cmd.exe' @('/d', '/c', 'rd', '/s', '/q', $rootFull) $source -AllowFailure
+    if ($remove.Code -ne 0) { [void]$cleanupMessages.Add('cmd rd: ' + $remove.Output) }
+  }
   $manifest.cleanup_status = if (Test-Path -LiteralPath $root) { 'FAIL' } else { 'PASS' }
+  $manifest.cleanup_diagnostics = @($cleanupMessages)
   $cleanupMustFailRun = ($manifest.cleanup_status -eq 'FAIL' -and $manifest.verdict -eq 'PASS')
   if ($cleanupMustFailRun) {
     $manifest.verdict = 'FAIL'

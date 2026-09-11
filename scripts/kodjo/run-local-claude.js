@@ -528,6 +528,9 @@ const commands = {
 const id = process.argv[2];
 if (!Object.prototype.hasOwnProperty.call(commands, id)) process.exit(78);
 const env = { ...process.env };
+if (env.KODJO_QUALIFICATION_ISOLATED_CHECKS === '1') {
+  if (id === 'jest' || id === 'lint') commands[id][1].push('--', '--no-cache');
+}
 delete env.CLAUDE_CODE_OAUTH_TOKEN;
 delete env.ANTHROPIC_API_KEY;
 const result = spawnSync(commands[id][0], commands[id][1], { cwd: process.cwd(), env, shell: false, stdio: 'inherit', windowsHide: true });

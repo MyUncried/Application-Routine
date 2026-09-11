@@ -53,7 +53,7 @@ jobs:
 
   protocol-windows-preflight:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -110,6 +110,23 @@ jobs:
           $env:PWSH = 'powershell.exe'
           & $bash tests/kodjo/queue-integration/run-bench.sh
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run full disposable preflight without Claude
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-qualification.ps1 `
+            -ExpectedHead '${{ github.event.pull_request.head.sha || github.sha }}' `
+            -EvidenceDirectory 'disposable-preflight-evidence' `
+            -PreflightOnly
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve disposable preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-disposable-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/disposable-preflight-evidence
+          if-no-files-found: error
+          retention-days: 90
       - name: Download the real run 16 recovery package
         uses: actions/download-artifact@v4
         with:

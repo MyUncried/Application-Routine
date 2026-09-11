@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.18.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.18\.0\*\*/);
+test('registre canonique 3.19.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.19\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 105);
+  assertSequence(incidents, 'INC', 107);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,7 +38,7 @@ test('registre canonique 3.18.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 78);
+  assertSequence(ids('T'), 'T', 80);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -95,6 +95,25 @@ test('workflow jetable: dispatch manuel, lecture seule et aucune publication dis
   assert.match(runner, /\$outsideDrift = @\(Compare-Inventory \$before \$after\)/);
   assert.match(runner, /if \(\$outsideDrift\.Count -gt 0\)/);
   assert.match(runner, /if \(\$relativeDirectory -eq 'node_modules'[\s\S]*continue/);
-  assert.match(runner, /Invoke-Native 'icacls\.exe'[\s\S]*-AllowFailure/);
+  assert.match(runner, /KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'/);
+  assert.match(runner, /\[switch\]\$PreflightOnly/);
+  assert.match(runner, /PREFLIGHT_OUT_OF_SCOPE_DRIFT/);
+  assert.match(runner, /compare-qualification-checks\.js/);
+  assert.match(runner, /Invoke-Native 'git' @\('clean', '-ffdx', '--quiet'\)/);
+  assert.match(runner, /Invoke-Native 'cmd\.exe' @\('\/d', '\/c', 'rd', '\/s', '\/q'/);
+  assert.match(runner, /QUALIFICATION_ROOT_IDENTITY_MISMATCH/);
   assert.match(runner, /cleanup_status/);
+});
+
+test('qualification jetable: caches des contrôles désactivés dans les deux chemins réels', () => {
+  const checks = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'lib', 'checks.js'), 'utf8');
+  const supervisor = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
+  assert.match(checks, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
+  assert.match(checks, /command \+ ' -- --no-cache'/);
+  assert.match(supervisor, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
+  assert.match(supervisor, /commands\[id\]\[1\]\.push\('--', '--no-cache'\)/);
+  const pilotWorkflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
+  assert.match(pilotWorkflow, /Run full disposable preflight without Claude/);
+  assert.match(pilotWorkflow, /-PreflightOnly/);
+  assert.match(pilotWorkflow, /kodjo-v2-disposable-preflight-/);
 });

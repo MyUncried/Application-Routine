@@ -64,7 +64,14 @@ function commandFor(name, env) {
         ' is only honoured with KODJO_ALLOW_TEST_ADAPTER=1; using the repository command.\n'
     );
   }
-  return DEFAULT_COMMANDS[name] || null;
+  const command = DEFAULT_COMMANDS[name] || null;
+  if (!command || e.KODJO_QUALIFICATION_ISOLATED_CHECKS !== '1') return command;
+  // The disposable qualification executes the same checks twice in a throwaway
+  // clone.  Shared Jest caches can be locked by another persistent-runner
+  // process and `expo lint` writes its cache inside the repository.  Disable
+  // both caches only for that qualification; production commands stay intact.
+  if (name === 'jest' || name === 'lint') return command + ' -- --no-cache';
+  return command;
 }
 
 function parseJestCounts(output) {

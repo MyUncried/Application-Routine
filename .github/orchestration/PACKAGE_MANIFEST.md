@@ -11,7 +11,7 @@ Cette version conserve les invariants 0.6.20, rend le registre réellement canon
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.18.0 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.19.0 |
 
 ## Composants d’activation V2
 
@@ -26,7 +26,10 @@ Cette version conserve les invariants 0.6.20, rend le registre réellement canon
 | `.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md` | Mission bornée à la fixture jetable |
 | `.github/workflows/kodjo-v2-disposable-qualification.yml` | Qualification manuelle réelle, permissions de lecture |
 | `scripts/kodjo/run-disposable-qualification.ps1` | Banc réel Windows PowerShell 5.1 et dépôt de preuves |
+| `scripts/kodjo/compare-qualification-checks.js` | Comparaison causale entre contrôles initiaux et contrôles post-Claude |
 | `tests/kodjo/qualification/disposable-slice-bench.js` | Banc portable S1 à S7, chemins relatifs et résultat JSON hashable |
+
+Le même banc possède un mode `PreflightOnly` qui exerce installation, contrôles, inventaire et nettoyage sur Windows sans invoquer Claude. Une seule exécution PASS de ce mode est requise avant l’unique tentative jetable finale.
 
 ## Composants locaux
 
@@ -71,4 +74,4 @@ En cas d’écart : spécification `0.6.21` complétant `0.6.20`, configuration 
 
 ## Qualification
 
-La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1. La qualification Claude de `V2-QUALIF-00` reste NON RETESTÉE jusqu’au run manuel 0.6.21 et à son artefact propre.
+La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1. Les runs jetables #65 et #69 prouvent l’invocation Claude, la fixture et la préservation, mais pas encore le verdict global PASS ; une dernière qualification groupée reste requise après INC-105/106/107.
