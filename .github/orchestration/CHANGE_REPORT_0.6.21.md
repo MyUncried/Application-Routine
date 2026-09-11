@@ -17,6 +17,7 @@ La contre-qualification de la source complète au HEAD `7236b7446ad68451db7009f4
 - migration protocolaire explicitement compatible avec le seul sous-arbre jetable `tests/fixtures/qualif/**`, INC-100/T-073.
 - exécution native PowerShell 5.1 fondée sur le code de sortie malgré un stderr Git bénin, INC-101/T-074.
 - installation contrôlée des dépendances dans le clone jetable et collection stable de dérive vide, INC-102/103 et T-075/076.
+- inventaire sans traversée des dépendances et nettoyage temporaire vérifié sous PS5.1, INC-104/105 et T-077/078.
 
 ## Qualification locale
 

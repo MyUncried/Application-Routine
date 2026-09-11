@@ -62,12 +62,21 @@ function Invoke-Native {
 function Get-Inventory {
   param([string]$RepositoryRoot)
   $map = [ordered]@{}
-  foreach ($item in (Get-ChildItem -LiteralPath $RepositoryRoot -Recurse -File -Force)) {
-    $relative = $item.FullName.Substring($RepositoryRoot.Length).TrimStart('\').Replace('\', '/')
-    if ($relative -eq '.git' -or $relative.StartsWith('.git/')) { continue }
-    if ($relative -eq 'node_modules' -or $relative.StartsWith('node_modules/')) { continue }
-    if ($relative -eq 'tests/fixtures/qualif' -or $relative.StartsWith('tests/fixtures/qualif/')) { continue }
-    $map[$relative] = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
+  $pending = New-Object 'System.Collections.Generic.Stack[string]'
+  $pending.Push($RepositoryRoot)
+  while ($pending.Count -gt 0) {
+    $directory = $pending.Pop()
+    foreach ($child in (Get-ChildItem -LiteralPath $directory -Directory -Force)) {
+      $relativeDirectory = $child.FullName.Substring($RepositoryRoot.Length).TrimStart('\').Replace('\', '/')
+      if ($relativeDirectory -eq '.git' -or $relativeDirectory.StartsWith('.git/')) { continue }
+      if ($relativeDirectory -eq 'node_modules' -or $relativeDirectory.StartsWith('node_modules/')) { continue }
+      if ($relativeDirectory -eq 'tests/fixtures/qualif' -or $relativeDirectory.StartsWith('tests/fixtures/qualif/')) { continue }
+      $pending.Push($child.FullName)
+    }
+    foreach ($item in (Get-ChildItem -LiteralPath $directory -File -Force)) {
+      $relative = $item.FullName.Substring($RepositoryRoot.Length).TrimStart('\').Replace('\', '/')
+      $map[$relative] = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
+    }
   }
   return $map
 }
@@ -188,7 +197,17 @@ catch {
 }
 finally {
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
-  ($manifest | ConvertTo-Json -Depth 20) | Set-Content -LiteralPath (Join-Path $evidence 'qualification-manifest.json') -Encoding UTF8
-  if (Test-Path -LiteralPath $work) { & icacls $work /reset /T /C /Q 2>&1 | Out-Null }
+  if (Test-Path -LiteralPath $work) {
+    Invoke-Native 'icacls.exe' @($work, '/reset', '/T', '/C', '/Q') $source -AllowFailure | Out-Null
+  }
   if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+  $manifest.cleanup_status = if (Test-Path -LiteralPath $root) { 'FAIL' } else { 'PASS' }
+  $cleanupMustFailRun = ($manifest.cleanup_status -eq 'FAIL' -and $manifest.verdict -eq 'PASS')
+  if ($cleanupMustFailRun) {
+    $manifest.verdict = 'FAIL'
+    $manifest.workflow_technical_status = 'FAILURE'
+    $manifest.failure = 'QUALIFICATION_TEMP_CLEANUP_FAILED'
+  }
+  ($manifest | ConvertTo-Json -Depth 20) | Set-Content -LiteralPath (Join-Path $evidence 'qualification-manifest.json') -Encoding UTF8
+  if ($cleanupMustFailRun) { throw 'QUALIFICATION_TEMP_CLEANUP_FAILED' }
 }

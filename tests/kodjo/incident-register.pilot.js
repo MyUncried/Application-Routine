@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.17.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.17\.0\*\*/);
+test('registre canonique 3.18.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.18\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 103);
+  assertSequence(incidents, 'INC', 105);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,7 +38,7 @@ test('registre canonique 3.17.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 76);
+  assertSequence(ids('T'), 'T', 78);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -94,4 +94,7 @@ test('workflow jetable: dispatch manuel, lecture seule et aucune publication dis
   assert.match(runner, /QUALIFICATION_DEPENDENCIES_MUTATED_REPO/);
   assert.match(runner, /\$outsideDrift = @\(Compare-Inventory \$before \$after\)/);
   assert.match(runner, /if \(\$outsideDrift\.Count -gt 0\)/);
+  assert.match(runner, /if \(\$relativeDirectory -eq 'node_modules'[\s\S]*continue/);
+  assert.match(runner, /Invoke-Native 'icacls\.exe'[\s\S]*-AllowFailure/);
+  assert.match(runner, /cleanup_status/);
 });
