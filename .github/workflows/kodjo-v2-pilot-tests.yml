@@ -29,17 +29,31 @@ jobs:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 10
     steps:
+      - name: Inventory retained KODJO recovery state
+        shell: powershell
+        run: |
+          $state = Join-Path $HOME '.kodjo-v2'
+          if (-not (Test-Path -LiteralPath $state)) {
+            Write-Output 'KODJO_STATE_ROOT_ABSENT'
+            exit 0
+          }
+          Get-ChildItem -LiteralPath $state -Recurse -File |
+            Where-Object { $_.Name -in @('recovery.json', 'recovery.patch', 'result.json') } |
+            Select-Object FullName, Length, LastWriteTimeUtc
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          path: _qualification/${{ github.run_id }}
       - name: Record Windows toolchain
         shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
         run: |
           $PSVersionTable.PSVersion.ToString()
           git --version
           node --version
       - name: Parse every PowerShell protocol script with Windows PowerShell
         shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
         run: |
           $failed = $false
           Get-ChildItem scripts/kodjo -Recurse -Filter *.ps1 | ForEach-Object {
@@ -54,4 +68,5 @@ jobs:
           if ($failed) { exit 1 }
       - name: Run complete KODJO pilot suite on Windows
         shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
         run: node tests/kodjo/run-all.js
