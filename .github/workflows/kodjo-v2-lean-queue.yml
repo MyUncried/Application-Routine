@@ -22,16 +22,19 @@ jobs:
     defaults:
       run:
         shell: powershell
+        working-directory: _kodjo/${{ github.run_id }}
     steps:
-      - name: Enable Windows long paths
-        shell: powershell
-        run: git config --global core.longpaths true
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           clean: true
           persist-credentials: false
+          # Le runner est persistant : ne jamais checkout dans son répertoire racine.
+          path: _kodjo/${{ github.run_id }}
+
+      - name: Enable Windows long paths
+        shell: powershell
+        run: git config --global core.longpaths true
 
       # KV2-03 : paquet de reprise du run source, quand la demande en declare un.
       - name: Resolve recovery source run

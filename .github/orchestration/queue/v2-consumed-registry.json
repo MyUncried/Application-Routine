@@ -51,6 +51,14 @@
       "source_head": "1a3faf24c81c3254bc634c3071bb6987cfb11af6",
       "status": "OBSOLETE_NON_REPLAYABLE",
       "reason": "Demande anterieure au contrat de file opposable : ni request_id, ni preuves d'autorisation structurees. Le fichier est conserve a l'identique ; son obsolescence est enregistree ici, hors de la demande elle-meme."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-initial-7c6b9224.json",
+      "blob_oid": "8bce51dbab33e92e8e617462d6dcca8ace15a0da",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "8dad840612e9443eea4129514daf623d948a7cc1",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande valide mais non exécutée : le commit produit par l’intégration GitHub n’a déclenché aucun workflow. Remplacée après correction de l’isolation du checkout du runner persistant."
     }
   ]
 }

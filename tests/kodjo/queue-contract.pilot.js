@@ -404,12 +404,12 @@ test('un numéro d’Issue discordant est refusé', () => {
     { cwd: f.dir, github: githubFor(f.planBlob) }), /ISSUE_NUMBER_MISMATCH/);
 });
 
-test('les six demandes historiques sont conservées à l’octet près', () => {
+test('toutes les demandes de file restent intactes et sans marqueur interne', () => {
   // Décision de revue : le fichier commité n'est pas réécrit. Son obsolescence
   // est enregistrée ailleurs, liée à son blob OID.
   const dir = path.join(root, '.github', 'orchestration', 'queue', 'v2');
   const fichiers = fs.readdirSync(dir).filter((n) => n.endsWith('.json'));
-  assert.equal(fichiers.length, 6);
+  assert.ok(fichiers.length >= 6);
   for (const nom of fichiers) {
     const q = JSON.parse(fs.readFileSync(path.join(dir, nom), 'utf8'));
     assert.equal('consumed' in q, false, nom + ' : aucun marqueur inséré dans la demande');
@@ -422,7 +422,9 @@ test('le registre d’obsolescence lie chaque demande à son blob OID', () => {
   const V = require(path.join(root, 'scripts', 'kodjo', 'verify-queue-admission.js'));
   const registre = JSON.parse(fs.readFileSync(
     path.join(root, '.github', 'orchestration', 'queue', 'v2-consumed-registry.json'), 'utf8'));
-  assert.equal(registre.entries.length, 6);
+  const fichiers = fs.readdirSync(path.join(root, '.github', 'orchestration', 'queue', 'v2'))
+    .filter((n) => n.endsWith('.json'));
+  assert.equal(registre.entries.length, fichiers.length);
   for (const entree of registre.entries) {
     assert.match(entree.blob_oid, /^[0-9a-f]{40}$/);
     assert.equal(entree.status, 'OBSOLETE_NON_REPLAYABLE');
@@ -454,4 +456,11 @@ test('la spécification 0.6.16 supersède explicitement les formulations incompa
   for (const ancre of ['PL.2', 'PL.3', 'PL.5', 'PL.6', 'PL.7', 'PL.8', 'PL.9']) {
     assert.ok(spec.includes('### ' + ancre), 'section manquante : ' + ancre);
   }
+});
+
+
+test('le workflow lean isole le checkout du runner persistant', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
+  assert.match(workflow, /working-directory:\s*_kodjo\/\$\{\{ github\.run_id \}\}/);
+  assert.match(workflow, /path:\s*_kodjo\/\$\{\{ github\.run_id \}\}/);
 });
