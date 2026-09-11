@@ -17,7 +17,7 @@ function queue(overrides = {}) {
     slice_bootstrap_file: 'bootstrap.json', slice_bootstrap_sha256: 'c'.repeat(64),
     mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000',
     prompt_file: 'mission.md', scope_allow: ['src/**'], checks: ['jest'],
-    limits: { max_ai_calls: 1 }, ...overrides,
+    limits: { max_ai_calls: 1 }, request_id: '550e8400-e29b-41d4-a716-446655440001', ...overrides,
   };
 }
 
@@ -79,6 +79,14 @@ test('la projection ne perd aucun champ du contrat local', () => {
   assert.deepEqual(Object.keys(actual.output).sort(), [
     'allow_legacy_recovery_bootstrap', 'baseline_head', 'checks', 'limits', 'mode',
     'prompt_file', 'schema_version', 'scope_allow', 'session_id', 'slice_bootstrap_file',
-    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'retry_of_run_id',
+    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'request_id', 'retry_of_run_id',
   ].sort());
+});
+
+
+test('request_id traverse la projection sans alteration', () => {
+  const id = '550e8400-e29b-41d4-a716-446655440099';
+  const actual = project(queue({ request_id: id }));
+  assert.equal(actual.result.status, 0, actual.result.stderr);
+  assert.equal(actual.output.request_id, id);
 });
