@@ -25,3 +25,13 @@ Après fusion de 0.6.19, le paquet non vide du run #16 (`10266968512`) restait l
 ## Frontière de preuve
 
 Cette qualification prouve le déblocage pré-Claude du paquet réel. Elle ne prouve pas encore une invocation Claude réelle, une branche GitHub applicative ou une PR applicative. Ces preuves restent NON RETESTÉES jusqu’aux deux tranches jetables prévues.
+
+## Durcissement après banc de tranche jetable
+
+Le banc autonome du 2026-09-11 a démontré trois défauts supplémentaires avant toute invocation externe :
+
+- une trace du superviseur contenait un double encodage UTF-8 ;
+- PE-22 utilisait un statut hors de la liste fermée du backlog, sans validation automatique ;
+- `inScope()` comparait des chaînes sans imposer un chemin Git relatif canonique, ce qui admettait une traversée lexicale et un nom POSIX contenant des antislashs.
+
+Le correctif remplace le marqueur corrompu, valide désormais tous les statuts PE et refuse les candidats de scope absolus, dot/dotdot, NUL, lecteurs Windows, segments vides ou antislashs ambigus. INC-090 à INC-092 et T-063 à T-065 en assurent la non-régression. La tranche jetable reste bloquée jusqu’à qualification du HEAD corrigé puis exécution de ses scénarios réels.
