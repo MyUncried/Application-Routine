@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.9.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.9\.0\*\*/);
+test('registre canonique 3.10.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.10\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 92);
+  assertSequence(incidents, 'INC', 93);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,7 +38,7 @@ test('registre canonique 3.9.0: incidents uniques, complets et à valeurs contr�
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 65);
+  assertSequence(ids('T'), 'T', 66);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -55,4 +55,12 @@ test('superviseur sans double encodage UTF-8 connu', () => {
   const supervisor = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
   assert.doesNotMatch(supervisor, /modifiÃ©s/);
   assert.match(supervisor, /fichiers modifiés/);
+});
+
+test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
+  const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
+  assert.equal(workflow.split(expected).length - 1, 2);
+  assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
+  assert.match(workflow, /kodjo-v2-complete-source-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
 });

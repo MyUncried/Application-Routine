@@ -35,3 +35,5 @@ Le banc autonome du 2026-09-11 a démontré trois défauts supplémentaires avan
 - `inScope()` comparait des chaînes sans imposer un chemin Git relatif canonique, ce qui admettait une traversée lexicale et un nom POSIX contenant des antislashs.
 
 Le correctif remplace le marqueur corrompu, valide désormais tous les statuts PE et refuse les candidats de scope absolus, dot/dotdot, NUL, lecteurs Windows, segments vides ou antislashs ambigus. INC-090 à INC-092 et T-063 à T-065 en assurent la non-régression. La tranche jetable reste bloquée jusqu’à qualification du HEAD corrigé puis exécution de ses scénarios réels.
+
+La première tentative d’archive complète a en outre révélé que le checkout implicite d’un événement PR utilisait son merge commit temporaire. INC-093/T-066 imposent désormais le HEAD PR explicite aux deux jobs, vérifient son identité avant archivage et l’emploient dans le nom du paquet.
