@@ -31,6 +31,10 @@ const RETRY_CODES = ['CHECKS_FAILED', 'SCOPE_VIOLATION', 'INFRASTRUCTURE', 'CLAR
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isString = (v) => typeof v === 'string' && v.length > 0;
+const LIMIT_KEYS = new Set([
+  'max_ai_calls', 'max_duration_seconds', 'max_prompt_bytes',
+  'max_total_prompt_bytes', 'max_rollovers',
+]);
 
 /** Preuve d'autorisation : objet structure, jamais chaine libre. */
 function authorizationShape(fields, kinds) {
@@ -120,7 +124,15 @@ const PROPERTIES = {
   },
   limits: {
     nature: 'BEHAVIOUR', required: 'optional', type: 'object',
-    validate: (v) => (v === undefined || isObject(v) ? null : 'objet attendu'),
+    validate: (v) => {
+      if (v === undefined) return null;
+      if (!isObject(v)) return 'objet attendu';
+      if (Object.prototype.hasOwnProperty.call(v, 'max_turns')) {
+        return 'max_turns est interdit : la limite relève de Claude et de l’abonnement';
+      }
+      const unknown = Object.keys(v).filter((key) => !LIMIT_KEYS.has(key));
+      return unknown.length ? 'limites inconnues: ' + unknown.join(', ') : null;
+    },
     diagnostic: 'KODJO_QUEUE_LIMITS_REFUSED',
   },
   allow_legacy_recovery_bootstrap: {
@@ -214,6 +226,6 @@ function validateQueueRequest(queue) {
 }
 
 module.exports = {
-  PROPERTIES, LEAN_REQUEST_SCHEMA, CHECKS, MODES, RETRY_CODES,
+  PROPERTIES, LEAN_REQUEST_SCHEMA, CHECKS, MODES, RETRY_CODES, LIMIT_KEYS,
   propertiesOfNature, validateQueueRequest,
 };

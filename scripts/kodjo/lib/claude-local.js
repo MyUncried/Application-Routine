@@ -34,15 +34,16 @@ const DISALLOWED_TOOLS = [
 ];
 const DEFAULT_LIMITS = Object.freeze({
   max_ai_calls: 1,
-  max_turns: 40,
   max_duration_seconds: 3600,
   max_prompt_bytes: 32768,
   max_total_prompt_bytes: 32768,
   max_rollovers: 0,
 });
-const LIMIT_CEILINGS = Object.freeze({
-  ...DEFAULT_LIMITS,
-  max_turns: 40,
+const LIMIT_CEILINGS = Object.freeze({ ...DEFAULT_LIMITS });
+const TURN_LIMIT_POLICY = Object.freeze({
+  source: 'CLAUDE_SUBSCRIPTION',
+  protocol_max_turns: null,
+  cli_argument_emitted: false,
 });
 
 function canonical(value) {
@@ -71,6 +72,7 @@ function adapterConfig() {
     allowed_tools: ALLOWED_TOOLS,
     disallowed_tools: DISALLOWED_TOOLS,
     limits: DEFAULT_LIMITS,
+    turn_limit: TURN_LIMIT_POLICY,
   };
 }
 
@@ -114,6 +116,9 @@ function normalizeRequest(raw, repoRoot) {
   if (!checks.length || checks.some((c) => !CHECKS.has(c))) throw new Error('CHECKS_INVALID');
 
   const limits = { ...DEFAULT_LIMITS, ...(raw.limits || {}) };
+  if (Object.prototype.hasOwnProperty.call(limits, 'max_turns')) {
+    throw new Error('BUDGET_MAX_TURNS_FORBIDDEN');
+  }
   for (const [key, ceiling] of Object.entries(LIMIT_CEILINGS)) {
     if (!Number.isInteger(limits[key]) || limits[key] < 0 || limits[key] > ceiling) {
       throw new Error('BUDGET_INVALID_' + key.toUpperCase());
@@ -196,7 +201,6 @@ function buildArgs(request, configDir, prompt) {
     '--permission-mode', c.permission_mode,
     '--permission-prompts', c.permission_prompts,
     '--output-format', c.output_format,
-    '--max-turns', String(request.limits.max_turns),
     '--tools', c.tools,
     '--allowedTools', concreteAllowedTools(configDir).join(','),
     '--disallowedTools', c.disallowed_tools.join(','),
@@ -227,6 +231,7 @@ module.exports = {
   CLAUDE_CODE_VERSION,
   DEFAULT_LIMITS,
   LIMIT_CEILINGS,
+  TURN_LIMIT_POLICY,
   TOOL_SURFACE,
   ALLOWED_TOOLS,
   DISALLOWED_TOOLS,

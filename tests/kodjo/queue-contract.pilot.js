@@ -65,6 +65,18 @@ test('le contrat accepte une demande conforme', () => {
   assert.deepEqual(C.validateQueueRequest(validQueue()), []);
 });
 
+test('le contrat refuse toute limite de tours imposée par le protocole', () => {
+  const d = diagnostics(validQueue({ limits: {
+    max_ai_calls: 1, max_turns: 40, max_duration_seconds: 3600,
+    max_prompt_bytes: 32768, max_total_prompt_bytes: 32768, max_rollovers: 0,
+  } }));
+  assert.ok(d.includes('KODJO_QUEUE_LIMITS_REFUSED'));
+  assert.deepEqual(C.validateQueueRequest(validQueue({ limits: {
+    max_ai_calls: 1, max_duration_seconds: 3600,
+    max_prompt_bytes: 32768, max_total_prompt_bytes: 32768, max_rollovers: 0,
+  } })), []);
+});
+
 test('le contrat refuse toute propriété inconnue', () => {
   assert.ok(diagnostics(validQueue({ champ_invente: 1 })).includes('KODJO_QUEUE_UNKNOWN_PROPERTY'));
 });

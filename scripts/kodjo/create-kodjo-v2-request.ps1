@@ -59,7 +59,6 @@ $request = [ordered]@{
   checks = @($Checks)
   limits = [ordered]@{
     max_ai_calls = 1
-    max_turns = 12
     max_duration_seconds = 3600
     max_prompt_bytes = 32768
     max_total_prompt_bytes = 32768

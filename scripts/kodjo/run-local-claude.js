@@ -11,7 +11,7 @@ const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagno
 const { runCheck } = require('./lib/checks');
 const {
   CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest,
-  buildPrompt, buildArgs, classifyClaudeFailure, sha256, redact,
+  buildPrompt, buildArgs, classifyClaudeFailure, sha256, redact, TURN_LIMIT_POLICY,
 } = require('./lib/claude-local');
 
 function die(code, message) {
@@ -622,10 +622,11 @@ function main() {
       request_id: request.request_id,
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
-      // KV2-13 : `adapterConfig()` publie toujours les bornes PAR DEFAUT. Un run
-      // a 40 tours produisait une preuve annoncant 12, et un hash identique dans
-      // les deux regimes. Les bornes effectives sont desormais tracees a part.
+      // KV2-13 : les bornes effectives restent séparées des valeurs par défaut.
+      // KV2-24 : aucune borne de tours n'est imposée par KODJO ; la preuve
+      // explicite que l'arrêt relève de Claude et de l'abonnement.
       limits_effective: request.limits,
+      turn_limit_effective: TURN_LIMIT_POLICY,
       claude_adapter_defaults_sha256: adapterConfigHash(),
       claude_adapter_config_sha256: sha256(JSON.stringify({
         config: adapterConfig(), limits_effective: request.limits,
@@ -730,6 +731,7 @@ function main() {
     post_check_drift: drift,
     checks,
     limits_effective: request.limits,
+    turn_limit_effective: TURN_LIMIT_POLICY,
     claude_invoked: true,
     status: verified
       ? 'IMPLEMENTED_AND_VERIFIED'
