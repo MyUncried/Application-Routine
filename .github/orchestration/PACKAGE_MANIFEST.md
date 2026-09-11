@@ -1,17 +1,17 @@
-# Manifeste du paquet KODJO V2 0.6.20 — reprise historique certifiée
+# Manifeste du paquet KODJO V2 0.6.21 — qualification jetable opposable
 
 ## Objet
 
-Cette version conserve les invariants 0.6.19 et permet la migration contrôlée d’un paquet non vide vers un HEAD descendant lorsque tous les changements intermédiaires sont exclusivement protocolaires. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Cette version conserve les invariants 0.6.20, rend le registre réellement canonique, unifie l’admission des chemins et active une tranche jetable sans effet applicatif. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.20.md` | Spécification normative courante, delta de 0.6.19 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.20.md` | Rapport de migration et certification de l’artefact réel du run #16 |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.8.0 |
+| `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.12.0 |
 
 ## Composants d’activation V2
 
@@ -22,6 +22,11 @@ Cette version conserve les invariants 0.6.19 et permet la migration contrôlée 
 | `scripts/kodjo/activate-kodjo-v2-slice.ps1` | Commande bornée de préparation d’une activation |
 | `scripts/kodjo/validate-slice-bootstrap.js` | Validation du bootstrap, du registre, du hash et de l’ascendance Git |
 | `tests/kodjo/slice-identity.pilot.js` | Tests positifs, altération, absence, divergence et refus V1 |
+| `.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json` | Identité autonome de la tranche jetable |
+| `.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md` | Mission bornée à la fixture jetable |
+| `.github/workflows/kodjo-v2-disposable-qualification.yml` | Qualification manuelle réelle, permissions de lecture |
+| `scripts/kodjo/run-disposable-qualification.ps1` | Banc réel Windows PowerShell 5.1 et dépôt de preuves |
+| `tests/kodjo/qualification/disposable-slice-bench.js` | Banc portable S1 à S7, chemins relatifs et résultat JSON hashable |
 
 ## Composants locaux
 
@@ -29,6 +34,7 @@ Cette version conserve les invariants 0.6.19 et permet la migration contrôlée 
 |---|---|
 | `scripts/kodjo/lib/claude-local.js` | Configuration figée, validation de requête, prompt borné et arguments effectifs |
 | `scripts/kodjo/run-local-claude.js` | Superviseur local : préflight, exclusion, appel unique, runner de contrôles isolé et résultat |
+| `scripts/kodjo/lib/scope-path.js` | Validation canonique partagée des chemins et règles de périmètre |
 | `scripts/kodjo/certify-recovery-artifact.js` | Certification sans Claude d’un artefact réel dans un clone isolé du HEAD candidat |
 | `scripts/kodjo/setup-kodjo-claude-auth.ps1` | Enregistrement DPAPI du jeton long terme |
 | `scripts/kodjo/start-kodjo-v2.ps1` | Injection éphémère du jeton et lancement sécurisé |
@@ -61,8 +67,8 @@ Cette version conserve les invariants 0.6.19 et permet la migration contrôlée 
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.20` complétant `0.6.19`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.21` complétant `0.6.20`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
 ## Qualification
 
-La qualification de migration 0.6.20 est démontrée par les runs `34611834316` et `34612786612`. Sur le HEAD documentaire, Ubuntu `103307173240` et Windows PowerShell 5.1 `103307173669` sont PASS ; la preuve réelle est `10268579775`. Le banc a téléchargé l’artefact réel `10266968512`, restauré exactement ses 13 chemins dans un clone isolé et n’a pas appelé Claude. Le banc autonome suivant a démontré INC-090 à INC-092 ; leurs correctifs et T-063 à T-065 doivent passer sur le HEAD exact avant la tranche jetable. Les certifications Claude réelles restent NON RETESTÉES.
+La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1. La qualification Claude de `V2-QUALIF-00` reste NON RETESTÉE jusqu’au run manuel 0.6.21 et à son artefact propre.

@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
+const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 
 const { runCheck } = require('./lib/checks');
 const {
@@ -106,37 +107,6 @@ function entryPaths(entries) {
 
 function changedFiles(cwd) {
   return entryPaths(changedEntries(cwd));
-}
-
-function normalizeScopeCandidate(file) {
-  if (typeof file !== 'string' || file.length === 0 || file.includes('\0')) return null;
-  if (file.includes('\\') || file.startsWith('/') || /^[A-Za-z]:/.test(file)) return null;
-  const parts = file.split('/');
-  if (parts.some((part) => part === '' || part === '.' || part === '..')) return null;
-  return parts.join('/');
-}
-
-function normalizeScopeRule(raw) {
-  if (typeof raw !== 'string' || raw.length === 0 || raw.includes('\0')) return null;
-  const normalized = raw.replace(/\\/g, '/');
-  const suffix = normalized.endsWith('/**') ? '/**' : normalized.endsWith('/*') ? '/*' : '';
-  const base = suffix ? normalized.slice(0, -suffix.length) : normalized;
-  if (!base || base.startsWith('/') || /^[A-Za-z]:/.test(base)) return null;
-  const parts = base.split('/');
-  if (parts.some((part) => part === '' || part === '.' || part === '..')) return null;
-  return parts.join('/') + suffix;
-}
-
-function inScope(file, scopes) {
-  const f = normalizeScopeCandidate(file);
-  if (!f || !Array.isArray(scopes)) return false;
-  return scopes.some((raw) => {
-    const s = normalizeScopeRule(raw);
-    if (!s) return false;
-    if (s.endsWith('/**')) return f === s.slice(0, -3) || f.startsWith(s.slice(0, -2));
-    if (s.endsWith('/*')) return f.startsWith(s.slice(0, -1)) && !f.slice(s.length - 1).includes('/');
-    return f === s;
-  });
 }
 
 const RECOVERY_SCHEMA = 'kodjo.protocol.v2.local-recovery.0.6.16';

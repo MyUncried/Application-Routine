@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const registerPath = path.join(__dirname, '..', '..', '.github', 'orchestration',
-  'KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md');
+  'KODJO_PROTOCOL_INCIDENT_REGISTER.md');
 const text = fs.readFileSync(registerPath, 'utf8');
 const backlogPath = path.join(__dirname, '..', '..', '.github', 'orchestration',
   'PROTOCOL_EVOLUTION_BACKLOG.md');
@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.10.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.10\.0\*\*/);
+test('registre canonique 3.12.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.12\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 93);
+  assertSequence(incidents, 'INC', 97);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,9 +38,18 @@ test('registre canonique 3.10.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 66);
+  assertSequence(ids('T'), 'T', 70);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
+});
+
+test('gouvernance: un seul registre canonique visible à la racine', () => {
+  const dir = path.join(__dirname, '..', '..', '.github', 'orchestration');
+  const candidates = fs.readdirSync(dir)
+    .filter((name) => /^KODJO_PROTOCOL_INCIDENT_REGISTER.*\.md$/.test(name))
+    .sort();
+  assert.deepEqual(candidates, ['KODJO_PROTOCOL_INCIDENT_REGISTER.md']);
+  assert.equal((text.match(/^## Registre$/gm) || []).length, 1);
 });
 
 test('backlog protocolaire: IDs uniques et statuts fermés', () => {
@@ -63,4 +72,19 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
   assert.equal(workflow.split(expected).length - 1, 2);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
   assert.match(workflow, /kodjo-v2-complete-source-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+});
+
+test('workflow jetable: dispatch manuel, lecture seule et aucune publication distante', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-disposable-qualification.yml'), 'utf8');
+  const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-qualification.ps1'), 'utf8');
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /permissions:\n  contents: read\n  actions: read/);
+  assert.doesNotMatch(workflow, /pull_request:|\npush:/);
+  assert.doesNotMatch(workflow, /contents: write|pull-requests: write/);
+  assert.match(runner, /git' @\('clone', '--mirror'/);
+  assert.match(runner, /REMOTE_ORIGIN_FORBIDDEN/);
+  assert.doesNotMatch(runner, /gh pr create|refs\/heads\/qualif|git push https/);
+  assert.match(runner, /remote_branch_created = \$false/);
+  assert.match(runner, /pull_request_created = \$false/);
+  assert.match(runner, /integrated_in_main = \$false/);
 });

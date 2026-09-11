@@ -8,6 +8,12 @@ on:
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
   workflow_dispatch:
+    inputs:
+      run_disposable_qualification:
+        description: 'Run the real V2-QUALIF-00 slice on the persistent Windows runner'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -127,5 +133,50 @@ jobs:
         with:
           name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
           path: _qualification/${{ github.run_id }}/real-recovery-certification.json
+          if-no-files-found: error
+          retention-days: 90
+
+  disposable-qualification:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_disposable_qualification == true
+    needs: [protocol, protocol-windows-preflight]
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+          path: _qualification/${{ github.run_id }}
+      - name: Refuse any active Lean Queue run
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $uri = 'repos/${{ github.repository }}/actions/workflows/kodjo-v2-lean-queue.yml/runs?per_page=50'
+          $runs = gh api $uri | ConvertFrom-Json
+          $active = @($runs.workflow_runs | Where-Object { $_.status -ne 'completed' })
+          if ($active.Count -ne 0) {
+            $active | ForEach-Object { Write-Error ("Lean Queue active: {0} ({1})" -f $_.id, $_.status) }
+            exit 1
+          }
+      - name: Execute real disposable qualification
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-qualification.ps1 `
+            -ExpectedHead '${{ github.sha }}' `
+            -EvidenceDirectory 'qualification-evidence'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve disposable qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-disposable-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/qualification-evidence
           if-no-files-found: error
           retention-days: 90

@@ -356,3 +356,31 @@ test('réserve 3 · un chemin autorisé absent de l’index fait échouer', () =
   git(['add', 'src/domain/deux.ts'], dir);
   assert.deepEqual(V.verify(target, dir).staged, ['src/domain/deux.ts', 'src/domain/un.ts']);
 });
+
+test('périmètre partagé — check-scope refuse tous les chemins candidats ambigus', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-scope-canon-'));
+  fs.mkdirSync(path.join(dir, 'recovery'), { recursive: true });
+  const rejected = [
+    'tests/fixtures/qualif/../../evil.txt',
+    'tests/fixtures/qualif/./dot.txt',
+    'tests/fixtures/qualif//empty.txt',
+    '/etc/passwd',
+    'tests\\fixtures\\qualif\\backslash.txt',
+    'tests/fixtures/qualifVOISIN/x.txt',
+    'C:/Windows/x.txt',
+    'tests/fixtures/qualif/nul\0.txt',
+  ];
+  fs.writeFileSync(
+    path.join(dir, 'recovery', 'modified-files.json'),
+    JSON.stringify({ files: [{ path: 'tests/fixtures/qualif/ok.txt' }, ...rejected.map((candidate) => ({ path: candidate }))] })
+  );
+  const res = spawnSync(process.execPath, [path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'check-scope.js')], {
+    encoding: 'utf8',
+    env: { ...process.env, KODJO_DELIVERY_DIR: dir, KODJO_SCOPE_ALLOW: 'tests/fixtures/qualif/**' },
+    windowsHide: true,
+  });
+  assert.equal(res.status, 1);
+  for (const candidate of rejected) assert.ok(res.stderr.includes(candidate), 'chemin ambigu accepté : ' + candidate);
+  assert.ok(!res.stderr.includes('tests/fixtures/qualif/ok.txt'));
+  fs.rmSync(dir, { recursive: true, force: true });
+});

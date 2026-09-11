@@ -21,25 +21,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { readJson } = require('./lib/json');
-
-/** Minimal glob: `**` any depth, `*` one segment, `?` one char. */
-function globToRegExp(glob) {
-  let out = '^';
-  for (let i = 0; i < glob.length; i += 1) {
-    const c = glob[i];
-    if (c === '*') {
-      if (glob[i + 1] === '*') {
-        const slash = glob[i + 2] === '/';
-        out += slash ? '(?:.*/)?' : '.*';
-        i += slash ? 2 : 1;
-      } else {
-        out += '[^/]*';
-      }
-    } else if (c === '?') out += '[^/]';
-    else out += c.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-  }
-  return new RegExp(out + '$');
-}
+const { inScope } = require('./lib/scope-path');
 
 function loadAllowlist(env) {
   if (env.KODJO_SCOPE_ALLOWLIST_FILE && fs.existsSync(env.KODJO_SCOPE_ALLOWLIST_FILE)) {
@@ -70,9 +52,8 @@ function main() {
     return 78;
   }
 
-  const matchers = allow.map(globToRegExp);
   const files = readJson(modifiedPath).files || [];
-  const outOfScope = files.filter((f) => !matchers.some((re) => re.test(f.path))).map((f) => f.path);
+  const outOfScope = files.filter((f) => !inScope(f.path, allow)).map((f) => f.path);
 
   process.stdout.write('scope allowlist: ' + allow.join(', ') + '\n');
   process.stdout.write('files in delta: ' + files.length + '\n');
