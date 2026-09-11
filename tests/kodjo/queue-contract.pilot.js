@@ -128,7 +128,10 @@ test('complétude · toute propriété AUTHORIZATION est consommée par la véri
 });
 
 test('le schéma publié est la projection exacte du contrat exécutable', () => {
-  const commité = fs.readFileSync(path.join(root, '.github', 'orchestration', 'lean-request.schema.json'), 'utf8');
+  const commité = fs.readFileSync(
+    path.join(root, '.github', 'orchestration', 'lean-request.schema.json'),
+    'utf8',
+  ).replace(/\r\n/g, '\n');
   assert.equal(commité, G.serialize(), 'régénérer avec generate-queue-schema.js --write');
   const schéma = JSON.parse(commité);
   assert.equal(schéma.additionalProperties, false);

@@ -74,7 +74,7 @@ function collectFiles(root) {
         const full = path.join(current, entry.name);
         if (entry.isDirectory()) stack.push(full);
         else if (/\.(ya?ml|js|sh|ps1|cjs|mjs)$/.test(entry.name)) {
-          const normalized = full.replace(/\\\\/g, '/');
+          const normalized = full.replace(/\\/g, '/');
           if (!normalized.includes('/.github/workflows/') || /^kodjo-v2-.*\.ya?ml$/.test(entry.name)) out.push(full);
         }
       }

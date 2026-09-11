@@ -98,7 +98,10 @@ test('copie indexée : les deux chemins sont contrôlés', () => {
 
 test('chemins accentués, avec espace et avec guillemet : livrés verbatim', () => {
   const dir = repo();
-  const noms = ['café bilatéral.ts', 'avec "guillemet".ts', 'deux  espaces.ts'];
+  // Les guillemets sont interdits par NTFS ; ils restent couverts sur les
+  // plateformes qui peuvent réellement porter un tel chemin.
+  const noms = ['café bilatéral.ts', 'deux  espaces.ts'];
+  if (process.platform !== 'win32') noms.push('avec "guillemet".ts');
   for (const nom of noms) fs.writeFileSync(path.join(dir, 'src', 'domain', nom), 'x\n');
   const files = changedFiles(dir);
   for (const nom of noms) {
@@ -191,7 +194,9 @@ test('le script de publication remet l’index à zéro avant l’ajout borné',
  * Réserves de la revue du lot 1
  * ================================================================== */
 
-test('réserve 1 · un chemin contenant un joker ne capture pas son voisin', () => {
+test('réserve 1 · un chemin contenant un joker ne capture pas son voisin', {
+  skip: process.platform === 'win32' ? 'le caractère * est interdit par NTFS' : false,
+}, () => {
   const dir = repo();
   fs.writeFileSync(path.join(dir, 'src', 'domain', 'glob*.ts'), 'a\n');
   fs.writeFileSync(path.join(dir, 'src', 'domain', 'globVOISIN.ts'), 'b\n');

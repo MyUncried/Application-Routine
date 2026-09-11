@@ -29,41 +29,6 @@ jobs:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 10
     steps:
-      - name: Inventory retained KODJO recovery state
-        shell: powershell
-        run: |
-          $state = Join-Path $HOME '.kodjo-v2'
-          if (-not (Test-Path -LiteralPath $state)) {
-            Write-Output 'KODJO_STATE_ROOT_ABSENT'
-            exit 0
-          }
-          Get-ChildItem -LiteralPath $state -Directory -Recurse |
-            Where-Object { $_.Name -like 'V2-BILAT-01-*' } |
-            ForEach-Object {
-              Write-Output ("KODJO_RUN_DIRECTORY {0}" -f $_.FullName)
-              Get-ChildItem -LiteralPath $_.FullName -Recurse -File |
-                Select-Object FullName, Length, LastWriteTimeUtc
-            }
-      - name: Collect bilateral Claude session transcript for recovery
-        shell: powershell
-        run: |
-          $session = '920f719c-2551-4722-81b9-c20b2edb4406'
-          $source = Join-Path $HOME '.claude'
-          $target = Join-Path $env:RUNNER_TEMP 'kodjo-bilateral-session-recovery'
-          New-Item -ItemType Directory -Force -Path $target | Out-Null
-          $matches = Get-ChildItem -LiteralPath $source -Recurse -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like "*$session*" }
-          foreach ($match in $matches) {
-            Copy-Item -LiteralPath $match.FullName -Destination (Join-Path $target $match.Name) -Force
-          }
-          if (-not $matches) { throw 'KODJO_BILATERAL_SESSION_TRANSCRIPT_NOT_FOUND' }
-          Write-Output ("KODJO_BILATERAL_SESSION_TRANSCRIPTS {0}" -f @($matches).Count)
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kodjo-bilateral-session-recovery-${{ github.run_id }}
-          path: ${{ runner.temp }}/kodjo-bilateral-session-recovery
-          if-no-files-found: error
-          retention-days: 2
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
