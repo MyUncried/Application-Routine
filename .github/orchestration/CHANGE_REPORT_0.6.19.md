@@ -18,8 +18,8 @@ Dans les deux sorties Claude, `terminal_reason=max_turns`, `num_turns=41` et `er
 - preuve explicite `turn_limit_effective` dans l’invocation et le résultat ;
 - conservation de l’appel unique par demande, de l’anti-rejeu, du verrou, du scope, des permissions et du timeout de sécurité.
 
-## Qualification attendue
+## Qualification
 
-T-059 doit être PASS dans la suite complète KODJO, sous Ubuntu et Windows PowerShell 5.1, sur le commit exact de la PR. Aucun appel Claude ni demande Lean Queue n’est autorisé pour cette qualification.
+T-059 est PASS sur le run `34608773847` au commit `86cedd33e2579f351ddf2e117ab10ff60ed19ac9` : job Ubuntu `103293703287` PASS, job Windows persistant PowerShell 5.1 `103293703580` PASS, banc de file isolé PASS et artefact de certification `10267286529`. Aucun appel Claude ni demande Lean Queue n’a été effectué par la qualification.
 
 La reprise applicative valide reste le run #16 `34606534268`, artefact `10266968512`. Elle ne sera pas relancée avant fusion et qualification de 0.6.19.
