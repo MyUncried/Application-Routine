@@ -20,6 +20,7 @@ Après fusion de 0.6.19, le paquet non vide du run #16 (`10266968512`) restait l
 - banc corrigé : run `34611834316` SUCCESS ; Ubuntu `103303973342` PASS ; Windows PowerShell 5.1 `103303973778` PASS ;
 - artefact source réellement téléchargé : `10266968512`, digest GitHub `84025cf1b5961ca4d97aab81222afebc79ce7689e075bac8823b53f7800e77da` ;
 - preuve produite : `10269012308`, statut PASS, 13 chemins restaurés, `claude_invoked=false`.
+- HEAD documentaire avec validation canonique : run `34612786612` SUCCESS, Ubuntu `103307173240`, Windows `103307173669`, preuve réelle `10268579775`.
 
 ## Frontière de preuve
 
