@@ -60,6 +60,11 @@ jobs:
         working-directory: _qualification/${{ github.run_id }}
         run: node tests/kodjo/run-all.js
       - name: Run isolated queue path with Windows PowerShell 5.1
-        shell: bash
+        shell: powershell
         working-directory: _qualification/${{ github.run_id }}
-        run: PWSH=powershell.exe bash tests/kodjo/queue-integration/run-bench.sh
+        run: |
+          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          if (-not (Test-Path -LiteralPath $bash)) { throw 'GIT_BASH_NOT_FOUND' }
+          $env:PWSH = 'powershell.exe'
+          & $bash tests/kodjo/queue-integration/run-bench.sh
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
