@@ -15,6 +15,10 @@ on:
         description: 'Exact protocol commit to qualify'
         required: true
         type: string
+      expected_main:
+        description: 'Exact main commit that must remain unchanged throughout the test'
+        required: true
+        type: string
       source_run_id:
         description: 'Successful INITIAL run id (required for RESUME_DELTA)'
         required: false
@@ -56,6 +60,8 @@ jobs:
             $active | ForEach-Object { Write-Error ("Lean Queue active: {0} ({1})" -f $_.id, $_.status) }
             exit 1
           }
+          $main = (gh api 'repos/${{ github.repository }}/git/ref/heads/main' --jq '.object.sha').Trim()
+          if ($main -ne '${{ inputs.expected_main }}') { throw "MAIN_HEAD_MISMATCH: $main" }
 
       - name: Validate stage inputs
         shell: powershell
@@ -85,13 +91,72 @@ jobs:
             -EvidenceDirectory 'qualification-evidence'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Establish controlled interruption after delta preservation
+        if: inputs.stage == 'INITIAL'
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidence = [IO.Path]::GetFullPath('qualification-evidence')
+          $result = Get-Content -Raw -LiteralPath (Join-Path $evidence 'result.json') | ConvertFrom-Json
+          $invocation = Get-Content -Raw -LiteralPath (Join-Path $evidence 'invocation.json') | ConvertFrom-Json
+          $package = Get-Content -Raw -LiteralPath (Join-Path $evidence 'recovery-package\manifest.json') | ConvertFrom-Json
+          if ($result.claude_invoked -ne $true -or @($result.modified_files).Count -ne 1 -or $result.modified_files[0] -ne 'tests/fixtures/qualif/result.txt') {
+            throw 'INITIAL_DELTA_NOT_PROVEN'
+          }
+          if ($invocation.mode -ne 'INITIAL' -or $invocation.request_id -ne $result.request_id -or $package.request_id -ne $result.request_id) {
+            throw 'INITIAL_REQUEST_CORRESPONDENCE_NOT_PROVEN'
+          }
+          if ($package.session_id -ne $result.session_id -or $package.run_id -ne $result.run_id) {
+            throw 'INITIAL_RUN_SESSION_CORRESPONDENCE_NOT_PROVEN'
+          }
+          if ($invocation.source_head -ne '${{ inputs.expected_head }}' -or $result.source_head -ne '${{ inputs.expected_head }}' -or $package.source_head -ne '${{ inputs.expected_head }}') {
+            throw 'INITIAL_SOURCE_CORRESPONDENCE_NOT_PROVEN'
+          }
+          $lock = Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'claude-local.lock'
+          if (Test-Path -LiteralPath $lock) { throw 'CLAUDE_LOCK_REMAINS_BEFORE_INTERRUPTION' }
+          $runState = Join-Path (Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'runs') ('github-${{ github.run_id }}-${{ github.run_attempt }}')
+          $expectedRunState = [IO.Path]::GetFullPath($runState)
+          $expectedParent = [IO.Path]::GetFullPath((Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'runs')).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($expectedRunState).TrimEnd('\') -ne $expectedParent -or [IO.Path]::GetFileName($expectedRunState) -ne 'github-${{ github.run_id }}-${{ github.run_attempt }}') {
+            throw 'INITIAL_STATE_IDENTITY_MISMATCH'
+          }
+          if (-not (Test-Path -LiteralPath $expectedRunState)) { throw 'INITIAL_STATE_MISSING_BEFORE_INTERRUPTION' }
+          & cmd.exe /d /c rd /s /q $expectedRunState
+          if (Test-Path -LiteralPath $expectedRunState) { throw 'INITIAL_STATE_DELETION_FAILED' }
+          $main = (gh api 'repos/${{ github.repository }}/git/ref/heads/main' --jq '.object.sha').Trim()
+          if ($main -ne '${{ inputs.expected_main }}') { throw "MAIN_CHANGED_DURING_INITIAL: $main" }
+          $marker = [ordered]@{
+            schema_version = 'kodjo.protocol.v2.controlled-interruption.0.6.21'
+            github_run_id = '${{ github.run_id }}'
+            github_run_attempt = '${{ github.run_attempt }}'
+            run_id = $result.run_id
+            request_id = $result.request_id
+            session_id = $result.session_id
+            source_head = $result.source_head
+            main_head = $main
+            modified_files = @($result.modified_files)
+            recovery_package_preserved = $true
+            local_run_state_deleted = $true
+            lock_absent = $true
+            status = 'CONTROLLED_INTERRUPTION'
+          }
+          ($marker | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath (Join-Path $evidence 'controlled-interruption.json') -Encoding UTF8
+          Write-Error 'CONTROLLED_INTERRUPTION_AFTER_DELTA_PRESERVATION'
+          exit 75
+
       - name: Execute real RESUME_DELTA qualification
         if: inputs.stage == 'RESUME_DELTA'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           & scripts/kodjo/run-disposable-resume-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
+            -ExpectedMain '${{ inputs.expected_main }}' `
             -SourceRunId '${{ inputs.source_run_id }}' `
             -SourceEvidenceDirectory '${{ github.workspace }}\_source-qualification-evidence' `
             -EvidenceDirectory 'qualification-evidence'
