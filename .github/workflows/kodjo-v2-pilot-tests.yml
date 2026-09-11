@@ -59,3 +59,7 @@ jobs:
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: node tests/kodjo/run-all.js
+      - name: Run isolated queue path with Windows PowerShell 5.1
+        shell: bash
+        working-directory: _qualification/${{ github.run_id }}
+        run: PWSH=powershell.exe bash tests/kodjo/queue-integration/run-bench.sh
