@@ -18,15 +18,6 @@ const ALLOWED_TOOLS = [
   'Bash(node {KODJO_CHECK_RUNNER} jest)',
   'Bash(node {KODJO_CHECK_RUNNER} typescript)',
   'Bash(node {KODJO_CHECK_RUNNER} lint)',
-  // Inspection Git strictement en lecture. Les mutations restent non autorisees
-  // car aucune autre forme de `Bash(git ...)` ne figure dans cette liste positive.
-  'Bash(git status)',
-  'Bash(git status:*)',
-  'Bash(git log:*)',
-  'Bash(git diff:*)',
-  'Bash(git show:*)',
-  'Bash(git rev-parse:*)',
-  'Bash(git ls-files:*)',
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
