@@ -47,6 +47,7 @@ if (-not $Output) {
 
 $request = [ordered]@{
   schema_version = 'kodjo.protocol.v2.local-implementation.0.6.12'
+  request_id = [Guid]::NewGuid().ToString()
   slice_id = $SliceId
   source_head = $head
   baseline_head = $bootstrap.baseline_head

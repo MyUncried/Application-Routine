@@ -8,9 +8,16 @@ on:
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
   workflow_dispatch:
+    inputs:
+      run_disposable_qualification:
+        description: 'Run the real V2-QUALIF-00 slice on the persistent Windows runner'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   protocol:
@@ -20,18 +27,39 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - name: Run complete KODJO pilot suite
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
+      - name: Build immutable complete source snapshot
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          tar --exclude=.git -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
+          sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
+      - name: Preserve complete source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30
 
   protocol-windows-preflight:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: _qualification/${{ github.run_id }}
       - name: Record Windows toolchain
         shell: powershell
@@ -44,14 +72,15 @@ jobs:
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |
-          node scripts/kodjo/certify-persistent-runner-lock.js runner-lock-certification.json
+          $runnerProof = Join-Path '${{ runner.temp }}' 'kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}.json'
+          node scripts/kodjo/certify-persistent-runner-lock.js $runnerProof
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve real runner certification
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}
-          path: _qualification/${{ github.run_id }}/runner-lock-certification.json
+          path: ${{ runner.temp }}/kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}.json
           if-no-files-found: error
           retention-days: 90
       - name: Parse every PowerShell protocol script with Windows PowerShell
@@ -82,3 +111,107 @@ jobs:
           $env:PWSH = 'powershell.exe'
           & $bash tests/kodjo/queue-integration/run-bench.sh
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run full disposable preflight without Claude
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-qualification.ps1 `
+            -ExpectedHead '${{ github.event.pull_request.head.sha || github.sha }}' `
+            -EvidenceDirectory 'disposable-preflight-evidence' `
+            -PreflightOnly
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve disposable preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-disposable-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/disposable-preflight-evidence
+          if-no-files-found: error
+          retention-days: 90
+      - name: Download the real run 16 recovery package
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-recovery-34606534268-1
+          path: ${{ runner.temp }}/kodjo-real-run-16-recovery
+          github-token: ${{ github.token }}
+          run-id: 34606534268
+      - name: Certify historical run 16 recovery without gating the disposable slice
+        continue-on-error: true
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          node scripts/kodjo/certify-recovery-artifact.js `
+            "${{ runner.temp }}/kodjo-real-run-16-recovery" `
+            "$PWD" `
+            "${{ github.event.pull_request.head.sha || github.sha }}" `
+            "real-recovery-certification.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve real recovery certification
+        if: always()
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
+            $proof = [ordered]@{
+              status = 'FAIL'
+              reason = 'HISTORICAL_RECOVERY_CERTIFICATION_FAILED'
+              claude_invoked = $false
+              run_id = '${{ github.run_id }}'
+              run_attempt = '${{ github.run_attempt }}'
+              source_sha = '${{ github.event.pull_request.head.sha || github.sha }}'
+            }
+            $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath 'real-recovery-certification.json' -Encoding UTF8
+          }
+      - name: Upload real recovery certification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/real-recovery-certification.json
+          if-no-files-found: error
+          retention-days: 90
+
+  disposable-qualification:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_disposable_qualification == true
+    needs: [protocol, protocol-windows-preflight]
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+          path: _qualification/${{ github.run_id }}
+      - name: Refuse any active Lean Queue run
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $uri = 'repos/${{ github.repository }}/actions/workflows/kodjo-v2-lean-queue.yml/runs?per_page=50'
+          $runs = gh api $uri | ConvertFrom-Json
+          $active = @($runs.workflow_runs | Where-Object { $_.status -ne 'completed' })
+          if ($active.Count -ne 0) {
+            $active | ForEach-Object { Write-Error ("Lean Queue active: {0} ({1})" -f $_.id, $_.status) }
+            exit 1
+          }
+      - name: Execute real disposable qualification
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-qualification.ps1 `
+            -ExpectedHead '${{ github.sha }}' `
+            -EvidenceDirectory 'qualification-evidence'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve disposable qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-disposable-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/qualification-evidence
+          if-no-files-found: error
+          retention-days: 90

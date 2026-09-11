@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
+const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 
 const { runCheck } = require('./lib/checks');
 const {
@@ -106,16 +107,6 @@ function entryPaths(entries) {
 
 function changedFiles(cwd) {
   return entryPaths(changedEntries(cwd));
-}
-
-function inScope(file, scopes) {
-  const f = file.replace(/\\/g, '/');
-  return scopes.some((raw) => {
-    const s = raw.replace(/\\/g, '/');
-    if (s.endsWith('/**')) return f === s.slice(0, -3) || f.startsWith(s.slice(0, -2));
-    if (s.endsWith('/*')) return f.startsWith(s.slice(0, -1)) && !f.slice(s.length - 1).includes('/');
-    return f === s;
-  });
 }
 
 const RECOVERY_SCHEMA = 'kodjo.protocol.v2.local-recovery.0.6.16';
@@ -247,6 +238,45 @@ function writeRecovery(runDir, repoRoot, request, files, meta) {
  * celle habilitee a lire le depot.
  */
 const RECOVERY_PACKAGE_SCHEMA = 'kodjo.protocol.v2.recovery-package.0.6.16';
+const RECOVERY_MIGRATION_PROTOCOL_PREFIXES = Object.freeze([
+  '.github/orchestration/', '.github/workflows/kodjo-v2-', 'scripts/kodjo/', 'tests/kodjo/',
+  'tests/fixtures/qualif/',
+]);
+
+function isProtocolMigrationPath(file) {
+  const normalized = String(file || '').replace(/\\\\/g, '/');
+  return normalized === 'docs/KODJO-V2-LEAN-OPERATING-CONTRACT.md' ||
+    RECOVERY_MIGRATION_PROTOCOL_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+}
+
+function certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request) {
+  const evidence = { required: manifest.source_head !== request.source_head,
+    source_head: manifest.source_head, target_head: request.source_head, mode: null,
+    intervening_paths: [], status: 'NOT_REQUIRED' };
+  if (!evidence.required) return evidence;
+  if (paths.length === 0 && patch.length === 0) {
+    evidence.mode = 'STRICTLY_EMPTY_PACKAGE'; evidence.status = 'PASS'; return evidence;
+  }
+  if (git(['rev-parse', 'HEAD'], repoRoot) !== request.source_head) {
+    throw new Error('RECOVERY_TARGET_HEAD_NOT_CHECKED_OUT');
+  }
+  const ancestor = command('git', ['merge-base', '--is-ancestor', manifest.source_head, request.source_head],
+    repoRoot, process.env, 60000);
+  if (ancestor.error || ancestor.status !== 0) throw new Error('RECOVERY_SOURCE_HEAD_NOT_ANCESTOR');
+  const changed = command('git', ['diff', '--name-only', '-z', '--no-renames',
+    manifest.source_head, request.source_head, '--'], repoRoot, process.env, 120000);
+  if (changed.error || changed.status !== 0) {
+    throw new Error('RECOVERY_MIGRATION_DIFF_FAILED: ' + (changed.error ? changed.error.message : changed.stderr));
+  }
+  evidence.intervening_paths = String(changed.stdout).split('\0').filter(Boolean).sort();
+  const nonProtocol = evidence.intervening_paths.filter((file) => !isProtocolMigrationPath(file));
+  if (nonProtocol.length) throw new Error('RECOVERY_MIGRATION_NON_PROTOCOL_CHANGE: ' + nonProtocol.join(', '));
+  const recovered = new Set(paths.map((file) => String(file).replace(/\\\\/g, '/')));
+  const overlap = evidence.intervening_paths.filter((file) => recovered.has(file));
+  if (overlap.length) throw new Error('RECOVERY_MIGRATION_PATH_OVERLAP: ' + overlap.join(', '));
+  evidence.mode = 'PROTOCOL_ONLY_FAST_FORWARD'; evidence.status = 'PASS';
+  return evidence;
+}
 
 function buildRecoveryPatch(repoRoot, request, files) {
   const indexFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-idx-')), 'index');
@@ -300,7 +330,7 @@ function writeRecoveryPackage(runDir, repoRoot, request, files, meta) {
  * L'application est atomique : `git apply --check` d'abord, jamais `--3way` ni
  * `--reject`. Une application partielle est refusee.
  */
-function restoreFromPackage(packageDir, repoRoot, request) {
+function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
   const manifestPath = path.join(packageDir, 'manifest.json');
   const patchPath = path.join(packageDir, 'implementation.patch');
   if (!fs.existsSync(manifestPath) || !fs.existsSync(patchPath)) {
@@ -322,12 +352,8 @@ function restoreFromPackage(packageDir, repoRoot, request) {
   for (const file of paths) {
     if (!inScope(file, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + file);
   }
-  // Une reprise de session peut avancer vers un HEAD protocolaire plus recent
-  // uniquement quand le paquet source est strictement vide : aucun octet de
-  // travail ne peut alors etre ecrase ou applique sur une autre base.
-  if (manifest.source_head !== request.source_head && (paths.length !== 0 || patch.length !== 0)) {
-    throw new Error('RECOVERY_SOURCE_HEAD_MISMATCH');
-  }
+  const migration = certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request);
+  if (migrationEvidence) Object.assign(migrationEvidence, migration);
   if (!patch.trim()) return [];
   const apply = (extra) => command('git', ['apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
   const patchFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-patch-')), 'implementation.patch');
@@ -435,7 +461,9 @@ function restoreRecovery(stateRoot, repoRoot, request) {
   // paquet local a disparu, la reprise repart de l'artefact du run source.
   const packageDir = (process.env.KODJO_SOURCE_RECOVERY_DIR || '').trim();
   if (packageDir && fs.existsSync(path.join(packageDir, 'manifest.json'))) {
-    return { files: restoreFromPackage(packageDir, repoRoot, request), legacyBootstrap: null };
+    const sourceHeadMigration = {};
+    return { files: restoreFromPackage(packageDir, repoRoot, request, sourceHeadMigration),
+      legacyBootstrap: null, sourceHeadMigration };
   }
 
   if (mutatedSeen) throw new Error('RECOVERY_INTEGRITY_REFUSED');
@@ -500,6 +528,9 @@ const commands = {
 const id = process.argv[2];
 if (!Object.prototype.hasOwnProperty.call(commands, id)) process.exit(78);
 const env = { ...process.env };
+if (env.KODJO_QUALIFICATION_ISOLATED_CHECKS === '1') {
+  if (id === 'jest' || id === 'lint') commands[id][1].push('--', '--no-cache');
+}
 delete env.CLAUDE_CODE_OAUTH_TOKEN;
 delete env.ANTHROPIC_API_KEY;
 const result = spawnSync(commands[id][0], commands[id][1], { cwd: process.cwd(), env, shell: false, stdio: 'inherit', windowsHide: true });
@@ -524,6 +555,7 @@ function main() {
   const initialized = initializeRunDiagnostic(stateRoot);
   const runId = initialized.runId;
   const runDir = initialized.runDir;
+  let sourceHeadMigration = null;
   request.generated_session_id = request.mode === 'INITIAL' ? require('node:crypto').randomUUID() : request.session_id;
   const writeFailure = (diagnostic, message, extra = {}) => {
     fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
@@ -533,7 +565,8 @@ function main() {
       request_id: request.request_id, session_id: request.generated_session_id,
       source_head: request.source_head, status: 'IMPLEMENTATION_FAILED',
       diagnostic, diagnostic_message: String(message || ''), claude_invoked: false,
-      recovery_package: null, limits_effective: request.limits, ...extra,
+      recovery_package: null, recovery_source_head_migration: sourceHeadMigration,
+      limits_effective: request.limits, turn_limit_effective: TURN_LIMIT_POLICY, ...extra,
     }, null, 2) + '\n', 'utf8');
     return die(diagnostic, message);
   };
@@ -581,6 +614,7 @@ function main() {
     const restored = restoreRecovery(stateRoot, repoRoot, request);
     recoveredFiles = restored.files;
     pendingLegacyBootstrap = restored.legacyBootstrap;
+    sourceHeadMigration = restored.sourceHeadMigration || null;
   } catch (err) {
     return writeFailure('RECOVERY_REFUSED', err.message);
   }
@@ -627,6 +661,7 @@ function main() {
       // explicite que l'arrêt relève de Claude et de l'abonnement.
       limits_effective: request.limits,
       turn_limit_effective: TURN_LIMIT_POLICY,
+      recovery_source_head_migration: sourceHeadMigration,
       claude_adapter_defaults_sha256: adapterConfigHash(),
       claude_adapter_config_sha256: sha256(JSON.stringify({
         config: adapterConfig(), limits_effective: request.limits,
@@ -725,6 +760,7 @@ function main() {
     modified_files: files, recovered_files: recoveredFiles, recovery_files: recoveryFiles,
     integrity_status: integrityStatus,
     recovery_package: recoveryPackage ? recoveryPackage.manifest : null,
+    recovery_source_head_migration: sourceHeadMigration,
     legacy_recovery_bootstrap_consumed: legacyMarker !== null,
     out_of_scope_files: [...new Set([...outside, ...postOutside])],
     post_check_files: postCheckFiles,
@@ -747,7 +783,7 @@ function main() {
   }
   fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(summary, null, 2) + '\n', 'utf8');
   process.stdout.write('\n[KODJO_V2] ' + summary.status + '\n');
-  process.stdout.write('[KODJO_V2] fichiers modifiÃ©s: ' + (files.join(', ') || 'aucun') + '\n');
+  process.stdout.write('[KODJO_V2] fichiers modifiés: ' + (files.join(', ') || 'aucun') + '\n');
   for (const c of checks) process.stdout.write('[KODJO_V2] ' + c.check + '=' + c.status + '\n');
   if (summary.out_of_scope_files.length) {
     process.stderr.write('[KODJO_V2] SCOPE_VIOLATION: ' + summary.out_of_scope_files.join(', ') + '\n');
@@ -768,6 +804,7 @@ module.exports = {
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,
   deltaFingerprint, fingerprintDrift,
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,
+  certifyRecoverySourceMigration, isProtocolMigrationPath,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,
 };

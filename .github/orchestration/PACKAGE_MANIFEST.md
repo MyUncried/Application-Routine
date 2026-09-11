@@ -1,17 +1,17 @@
-# Manifeste du paquet KODJO V2 0.6.19 — tours gouvernés par Claude
+# Manifeste du paquet KODJO V2 0.6.21 — qualification jetable opposable
 
 ## Objet
 
-Cette version conserve l’identité de tranche, le verrou propriétaire, le diagnostic lié au run courant, la traçabilité de `request_id` et les lectures Git bornées. Elle retire le plafond protocolaire de tours : la fin de l’invocation relève de Claude et des droits réels de l’abonnement. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Cette version conserve les invariants 0.6.20, rend le registre réellement canonique, unifie l’admission des chemins et active une tranche jetable sans effet applicatif. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.19.md` | Spécification normative courante, delta de 0.6.18 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.19.md` | Rapport du correctif des runs #15 et #16 |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.6.0 |
+| `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.22.0 |
 
 ## Composants d’activation V2
 
@@ -22,6 +22,14 @@ Cette version conserve l’identité de tranche, le verrou propriétaire, le dia
 | `scripts/kodjo/activate-kodjo-v2-slice.ps1` | Commande bornée de préparation d’une activation |
 | `scripts/kodjo/validate-slice-bootstrap.js` | Validation du bootstrap, du registre, du hash et de l’ascendance Git |
 | `tests/kodjo/slice-identity.pilot.js` | Tests positifs, altération, absence, divergence et refus V1 |
+| `.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json` | Identité autonome de la tranche jetable |
+| `.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md` | Mission bornée à la fixture jetable |
+| `.github/workflows/kodjo-v2-disposable-qualification.yml` | Qualification manuelle réelle, permissions de lecture |
+| `scripts/kodjo/run-disposable-qualification.ps1` | Banc réel Windows PowerShell 5.1 et dépôt de preuves |
+| `scripts/kodjo/compare-qualification-checks.js` | Comparaison causale entre contrôles initiaux et contrôles post-Claude |
+| `tests/kodjo/qualification/disposable-slice-bench.js` | Banc portable S1 à S7, chemins relatifs et résultat JSON hashable |
+
+Le même banc possède un mode `PreflightOnly` qui exerce installation, contrôles, inventaire et nettoyage sur Windows sans invoquer Claude. Une seule exécution PASS de ce mode est requise avant l’unique tentative jetable finale.
 
 ## Composants locaux
 
@@ -29,6 +37,8 @@ Cette version conserve l’identité de tranche, le verrou propriétaire, le dia
 |---|---|
 | `scripts/kodjo/lib/claude-local.js` | Configuration figée, validation de requête, prompt borné et arguments effectifs |
 | `scripts/kodjo/run-local-claude.js` | Superviseur local : préflight, exclusion, appel unique, runner de contrôles isolé et résultat |
+| `scripts/kodjo/lib/scope-path.js` | Validation canonique partagée des chemins et règles de périmètre |
+| `scripts/kodjo/certify-recovery-artifact.js` | Certification sans Claude d’un artefact réel dans un clone isolé du HEAD candidat |
 | `scripts/kodjo/setup-kodjo-claude-auth.ps1` | Enregistrement DPAPI du jeton long terme |
 | `scripts/kodjo/start-kodjo-v2.ps1` | Injection éphémère du jeton et lancement sécurisé |
 | `scripts/kodjo/create-kodjo-v2-request.ps1` | Construction automatique d’une requête liée au HEAD courant |
@@ -60,8 +70,12 @@ Cette version conserve l’identité de tranche, le verrou propriétaire, le dia
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.19` complétant `0.6.18`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.21` complétant `0.6.20`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
 ## Qualification
 
-La qualification 0.6.19 est démontrée par le run `34608773847` au commit `86cedd33e2579f351ddf2e117ab10ff60ed19ac9` : Ubuntu `103293703287` PASS, Windows PowerShell 5.1 `103293703580` PASS, banc isolé PASS et artefact réel `10267286529`, sans appel Claude.
+La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1.
+
+Le run #73 `34648194736`, au HEAD exact `8a7b9e018c2a0a7cedd9c27f3dbe1ac0afdadd0f`, qualifie la tranche jetable INITIAL réelle : workflow `SUCCESS`, verdict protocolaire `PASS`, Claude invoqué une fois, delta limité à `tests/fixtures/qualif/result.txt`, `request_id` propagé, paquet de reprise intact, aucune publication distante et nettoyage `PASS`. L’artefact opposable est `10283681378`, SHA-256 `3defbea095d0adcfbfcac55bed02a39ad0fa3dd319763325cbb59b00c35e1a53`.
+
+La santé applicative absolue reste `FAIL` à cause des deux timeouts Jest préexistants ; les contrôles sont exécutables et la non-régression causale est `PASS`. L’interruption contrôlée puis la reprise réelle `RESUME_DELTA` de la même session restent `NON RETESTÉES`.

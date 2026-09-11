@@ -10,6 +10,14 @@
       "slice_bootstrap_sha256": "5360bd4a77170739649a94b12f28f66d7fe424d4a73b61db11a661891543e76c",
       "planning_application_head": "04a15580f65d2b3702776447c3574dee988e5b83",
       "planning_documentary_head": "7e4f6984a8aefb6018e908e183dd7dda56e2482d"
+    },
+    {
+      "slice_id": "V2-QUALIF-00",
+      "status": "ACTIVE",
+      "issue_number": 75,
+      "baseline_head": "7236b7446ad68451db7009f47c90b097b8257d21",
+      "bootstrap_path": ".github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "f22d08763010db8c7c15018a079888497ff222e865e9ab252dcd507303b3ae1a"
     }
   ]
 }

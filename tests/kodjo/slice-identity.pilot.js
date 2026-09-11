@@ -1,6 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const path = require('node:path');
 const I = require('../../scripts/kodjo/lib/slice-identity');
 
 function fixture() {
@@ -14,3 +15,12 @@ test('bootstrap altéré refusé',()=>{const b=fixture();b.baseline_head='c'.rep
 test('manifeste V1 refusé comme bootstrap V2',()=>{assert.throws(()=>I.validateBootstrap({schema:'kodjo.slice.v1'}),/SCHEMA_UNSUPPORTED/);});
 test('activation absente ou divergente refusée',()=>{const b=fixture();assert.throws(()=>I.validateRegistry({schema_version:I.REGISTRY_SCHEMA,activations:[]},b),/SLICE_NOT_ACTIVATED/);const r={schema_version:I.REGISTRY_SCHEMA,activations:[{slice_id:b.slice_id,status:'ACTIVE',issue_number:b.issue_number,baseline_head:b.baseline_head,bootstrap_path:`.github/orchestration/v2-slices/${b.slice_id}/slice-bootstrap.json`,slice_bootstrap_sha256:'0'.repeat(64)}]};assert.throws(()=>I.validateRegistry(r,b),/BINDING_MISMATCH/);});
 test('activation unique cohérente acceptée',()=>{const b=fixture();const r={schema_version:I.REGISTRY_SCHEMA,activations:[{slice_id:b.slice_id,status:'ACTIVE',issue_number:b.issue_number,baseline_head:b.baseline_head,bootstrap_path:`.github/orchestration/v2-slices/${b.slice_id}/slice-bootstrap.json`,slice_bootstrap_sha256:b.slice_bootstrap_sha256}]};assert.equal(I.validateRegistry(r,b).status,'ACTIVE');});
+
+test('V2-QUALIF-00 possède un bootstrap autonome et une activation unique cohérente', () => {
+  const root = path.join(__dirname, '..', '..');
+  const result = I.loadAndValidate(root, '.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json');
+  assert.equal(result.bootstrap.slice_id, 'V2-QUALIF-00');
+  assert.equal(result.bootstrap.previous_slice_id, null);
+  assert.equal(result.bootstrap.issue_number, 75);
+  assert.notEqual(result.bootstrap.slice_id, 'V2-BILAT-01');
+});
