@@ -22,6 +22,13 @@ trap cleanup EXIT
 BIN="$WORK/bin"; CAP="$WORK/capture"; STATE="$WORK/state"; TMP="$WORK/tmp"; LAD="$WORK/localappdata"
 mkdir -p "$BIN" "$CAP" "$STATE" "$TMP" "$LAD"
 
+WINDOWS_STUBS=0
+if command -v powershell.exe >/dev/null 2>&1; then
+  WINDOWS_STUBS=1
+  powershell.exe -NoLogo -NonInteractive -ExecutionPolicy Bypass -File \
+    "$(cygpath -w "$REPO_ROOT/tests/kodjo/queue-integration/build-windows-stubs.ps1")" \
+    -BinDirectory "$(cygpath -w "$BIN")" || exit 1
+else
 cat > "$BIN/node" <<'EOS'
 #!/usr/bin/env bash
 if [ "${1:-}" = "scripts/kodjo/run-local-claude.js" ] && [ -n "${2:-}" ] && [ -f "$2" ]; then
@@ -46,6 +53,7 @@ echo "GH_STUB $*" >> "$KODJO_BENCH_CAPTURE/gh-calls.txt"
 exit 0
 EOS
 chmod +x "$BIN/node" "$BIN/fakeclaude" "$BIN/gh"
+fi
 
 git init -q --bare "$WORK/origin.git"
 FIX="$WORK/repo"; mkdir -p "$FIX"
@@ -88,10 +96,12 @@ run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
   echo "--------------------------------------------------------------"
   echo "CAS : $label"
   local out
+  local claude_bin="$BIN/fakeclaude"
+  [ "$WINDOWS_STUBS" -eq 1 ] && claude_bin="$(cygpath -w "$BIN/fakeclaude.exe")"
   out="$( cd "$FIX" && \
     PATH="$BIN:$PATH" KODJO_BENCH_REAL_NODE="$(command -v node)" \
     KODJO_BENCH_CAPTURE="$CAP" KODJO_BENCH_SCENARIO="$scenario" \
-    KODJO_ALLOW_TEST_ADAPTER=1 KODJO_CLAUDE_BIN="$BIN/fakeclaude" \
+    KODJO_ALLOW_TEST_ADAPTER=1 KODJO_CLAUDE_BIN="$claude_bin" \
     KODJO_STATE_ROOT="$STATE" GITHUB_ACTIONS=true GH_TOKEN=stub-token \
     GITHUB_RUN_ID="90000$RANDOM" RUNNER_TEMP="$TMP" HOME="$WORK" LOCALAPPDATA="$LAD" \
     "$PWSH" -NoLogo -NonInteractive -File scripts/kodjo/run-queued-request.ps1 \
