@@ -117,7 +117,7 @@ function main(repo, sourceHead) {
     scope_allow: ['src/domain/sessions/**'],
     checks: ['jest'],
     limits: {
-      max_ai_calls: 1, max_turns: 12, max_duration_seconds: 600,
+      max_ai_calls: 1, max_duration_seconds: 600,
       max_prompt_bytes: 32768, max_total_prompt_bytes: 32768, max_rollovers: 0,
     },
     created_at: '2026-09-11T00:00:00.000Z',
