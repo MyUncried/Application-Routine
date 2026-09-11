@@ -62,7 +62,18 @@ function main() {
   if (!packageDir || !sourceRepo || !targetHead || !output) {
     throw new Error('USAGE: certify-recovery-artifact.js <packageDir> <sourceRepo> <targetHead> <output>');
   }
-  const evidence = certify(path.resolve(packageDir), path.resolve(sourceRepo), targetHead);
+  let evidence;
+  try {
+    evidence = certify(path.resolve(packageDir), path.resolve(sourceRepo), targetHead);
+  } catch (error) {
+    evidence = {
+      schema_version: 'kodjo.protocol.v2.real-recovery-certification.0.6.20',
+      status: 'FAIL', target_head: targetHead, claude_invoked: false,
+      diagnostic: error.message, certified_at: new Date().toISOString(),
+    };
+    fs.writeFileSync(path.resolve(output), JSON.stringify(evidence, null, 2) + '\n', 'utf8');
+    throw error;
+  }
   fs.writeFileSync(path.resolve(output), JSON.stringify(evidence, null, 2) + '\n', 'utf8');
   process.stdout.write('REAL_RECOVERY_CERTIFICATION=' + evidence.status + '\n');
 }
