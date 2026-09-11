@@ -25,6 +25,20 @@ jobs:
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
+      - name: Build immutable complete source snapshot
+        shell: bash
+        run: |
+          tar --exclude=.git -czf "$RUNNER_TEMP/Application-Routine-${GITHUB_SHA}.tar.gz" .
+          sha256sum "$RUNNER_TEMP/Application-Routine-${GITHUB_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${GITHUB_SHA}.tar.gz.sha256"
+      - name: Preserve complete source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-complete-source-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/Application-Routine-${{ github.sha }}.tar.gz
+            ${{ runner.temp }}/Application-Routine-${{ github.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30
 
   protocol-windows-preflight:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
