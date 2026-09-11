@@ -19,8 +19,11 @@ La contre-qualification de la source complète au HEAD `7236b7446ad68451db7009f4
 - installation contrôlée des dépendances dans le clone jetable et collection stable de dérive vide, INC-102/103 et T-075/076.
 - inventaire sans traversée des dépendances et nettoyage temporaire vérifié sous PS5.1, INC-104/105 et T-077/078.
 - correction groupée après le run #69 : caches Jest/Expo désactivés uniquement dans la qualification, comparaison explicite baseline/post et nettoyage borné par identité de racine, INC-105/106/107 et T-078/079/080.
+- après l’arrêt pré-Claude du run #70, déplacement de la preuve du verrou hors checkout vers `runner.temp`, avec identité run/tentative et oracle permanent, INC-108/T-081.
 
 Le run #69 `34636990245` a invoqué Claude une fois avec sortie 0, produit exclusivement `tests/fixtures/qualif/result.txt` et préservé un paquet intact. Son verdict global reste FAIL : cache `.expo` du harnais, distinction baseline/post absente et nettoyage temporaire en échec. Aucun de ces incidents n’est déclaré corrigé avant le préflight Windows complet puis la dernière tranche jetable réelle.
+
+Le premier préflight complet, run `34643195729`, a correctement refusé de continuer avant Claude parce qu’une étape antérieure avait écrit `runner-lock-certification.json` dans le checkout. Ce défaut de câblage inter-étapes est corrigé sans modifier le superviseur ni le protocole applicatif.
 
 ## Qualification locale
 
