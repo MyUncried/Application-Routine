@@ -22,6 +22,12 @@ Un paquet non vide peut être restauré sur un nouveau HEAD uniquement si toutes
 
 Toute évolution applicative intermédiaire, ascendance non démontrée, objet Git manquant, conflit, lien symbolique ou état ambigu produit un refus conservatoire avant Claude.
 
+## Chemins canoniques et contrôle de périmètre
+
+Tout chemin candidat issu de Git ou d’un paquet est admis uniquement s’il est relatif au dépôt, non vide et canonique avec `/` comme séparateur. Sont refusés avant toute comparaison de périmètre : chemin absolu, lecteur Windows, NUL, segment vide, `.` ou `..`, et antislash ambigu. Les règles de scope peuvent être normalisées séparément, mais cette normalisation ne transforme jamais un nom de fichier candidat ambigu en descendant autorisé.
+
+Le contrôle lexical n’est pas une protection suffisante à lui seul. La tranche jetable ajoute un inventaire SHA-256 indépendant de l’arbre hors fixture et, sur Windows, une restriction matérielle d’écriture ; ces défenses ne dispensent pas de la validation canonique.
+
 ## Preuve
 
 `invocation.json` et `result.json` portent `recovery_source_head_migration` avec la source, la cible, le mode, les chemins intermédiaires et le statut. La qualification de version doit télécharger l’artefact historique réel, et non une fixture équivalente, puis publier une preuve PASS ou FAIL liée au run courant.
