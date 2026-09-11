@@ -1,0 +1,106 @@
+name: KODJO Jest Timeout Qualification
+
+on:
+  push:
+    branches:
+      - test/jest-timeout-qualification
+    paths:
+      - '.github/workflows/kodjo-jest-timeout-qualification.yml'
+      - 'jest.config.js'
+      - 'src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx'
+      - 'src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kodjo-jest-timeout-qualification
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: powershell
+        working-directory: _jest-timeout/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+          path: _jest-timeout/${{ github.run_id }}
+
+      - name: Record immutable context and active Jest configuration
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git rev-parse HEAD
+          git status --short
+          node --version
+          npm --version
+          npx jest --showConfig | Out-File "$env:RUNNER_TEMP\jest-show-config.json" -Encoding utf8
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Measure complete Jest suite three times
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $phase = if ((Get-Content jest.config.js -Raw) -match 'testTimeout\s*:') { 'after' } else { 'before' }
+          $rows = @()
+          1..3 | ForEach-Object {
+            $index = $_
+            $json = "$env:RUNNER_TEMP\jest-$phase-$index.json"
+            $log = "$env:RUNNER_TEMP\jest-$phase-$index.log"
+            $started = Get-Date
+            & npm.cmd test -- --runInBand --json "--outputFile=$json" 2>&1 | Tee-Object -FilePath $log
+            $exit = $LASTEXITCODE
+            $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 3)
+            $rows += [ordered]@{ kind='jest'; phase=$phase; run=$index; exit_code=$exit; wall_seconds=$elapsed }
+          }
+          $rows | ConvertTo-Json -Depth 4 | Out-File "$env:RUNNER_TEMP\jest-$phase-summary.json" -Encoding utf8
+          exit 0
+
+      - name: Run TypeScript, lint and protocol tests three times
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $phase = if ((Get-Content jest.config.js -Raw) -match 'testTimeout\s*:') { 'after' } else { 'before' }
+          $rows = @()
+          foreach ($kind in @('typescript','lint','protocol')) {
+            1..3 | ForEach-Object {
+              $index = $_
+              $log = "$env:RUNNER_TEMP\$kind-$phase-$index.log"
+              $started = Get-Date
+              if ($kind -eq 'typescript') {
+                & npx.cmd tsc --noEmit 2>&1 | Tee-Object -FilePath $log
+              } elseif ($kind -eq 'lint') {
+                & npm.cmd run lint -- --no-cache 2>&1 | Tee-Object -FilePath $log
+              } else {
+                & node.exe tests/kodjo/run-all.js 2>&1 | Tee-Object -FilePath $log
+              }
+              $exit = $LASTEXITCODE
+              $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 3)
+              $rows += [ordered]@{ kind=$kind; phase=$phase; run=$index; exit_code=$exit; wall_seconds=$elapsed }
+            }
+          }
+          $rows | ConvertTo-Json -Depth 4 | Out-File "$env:RUNNER_TEMP\checks-$phase-summary.json" -Encoding utf8
+          exit 0
+
+      - name: Preserve qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-jest-timeout-qualification-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/jest-*.json
+            ${{ runner.temp }}/jest-*.log
+            ${{ runner.temp }}/typescript-*.log
+            ${{ runner.temp }}/lint-*.log
+            ${{ runner.temp }}/protocol-*.log
+            ${{ runner.temp }}/checks-*.json
+          if-no-files-found: error
+          retention-days: 90
