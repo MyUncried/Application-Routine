@@ -84,10 +84,10 @@ try {
   $sourceInvocation = Get-Content -Raw -LiteralPath $sourceInvocationPath | ConvertFrom-Json
   $sourceInterruption = Get-Content -Raw -LiteralPath $sourceInterruptionPath | ConvertFrom-Json
   $sourcePackageManifest = Get-Content -Raw -LiteralPath $sourcePackageManifestPath | ConvertFrom-Json
-  if ([string]$sourceManifest.github_run_id -ne $SourceRunId -or $sourceManifest.expected_head -ne $ExpectedHead -or $sourceManifest.verdict -ne 'PASS') {
+  if ([string]$sourceManifest.github_run_id -ne $SourceRunId -or $sourceManifest.expected_head -ne $sourceResult.source_head -or $sourceManifest.verdict -ne 'PASS') {
     throw 'SOURCE_QUALIFICATION_INCOMPATIBLE'
   }
-  if ($sourceResult.claude_invoked -ne $true -or $sourceResult.source_head -ne $ExpectedHead -or [string]::IsNullOrWhiteSpace($sourceResult.session_id)) {
+  if ($sourceResult.claude_invoked -ne $true -or [string]$sourceResult.source_head -notmatch '^[0-9a-f]{40}$' -or [string]::IsNullOrWhiteSpace($sourceResult.session_id)) {
     throw 'SOURCE_RESULT_INCOMPATIBLE'
   }
   if ($sourceInterruption.status -ne 'CONTROLLED_INTERRUPTION' -or $sourceInterruption.local_run_state_deleted -ne $true -or $sourceInterruption.lock_absent -ne $true) {
@@ -99,10 +99,11 @@ try {
   if ($sourcePackageManifest.run_id -ne $sourceResult.run_id -or $sourceInterruption.run_id -ne $sourceResult.run_id -or $sourcePackageManifest.session_id -ne $sourceResult.session_id -or $sourceInterruption.session_id -ne $sourceResult.session_id) {
     throw 'SOURCE_RUN_SESSION_CORRESPONDENCE_NOT_PROVEN'
   }
-  if ($sourceInvocation.source_head -ne $ExpectedHead -or $sourcePackageManifest.source_head -ne $ExpectedHead -or $sourceInterruption.source_head -ne $ExpectedHead -or $sourceInterruption.main_head -ne $ExpectedMain) {
+  if ($sourceInvocation.source_head -ne $sourceResult.source_head -or $sourcePackageManifest.source_head -ne $sourceResult.source_head -or $sourceInterruption.source_head -ne $sourceResult.source_head -or $sourceInterruption.main_head -ne $ExpectedMain) {
     throw 'SOURCE_HEAD_CORRESPONDENCE_NOT_PROVEN'
   }
   $manifest.source_session_id = $sourceResult.session_id
+  $manifest.source_head = $sourceResult.source_head
 
   if (Test-Path -LiteralPath $root) { throw ('QUALIFICATION_ROOT_ALREADY_EXISTS: ' + $root) }
   New-Item -ItemType Directory -Force -Path $root | Out-Null
