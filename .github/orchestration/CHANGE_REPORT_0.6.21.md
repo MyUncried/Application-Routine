@@ -25,6 +25,8 @@ Le run #69 `34636990245` a invoqué Claude une fois avec sortie 0, produit exclu
 
 Le premier préflight complet, run `34643195729`, a correctement refusé de continuer avant Claude parce qu’une étape antérieure avait écrit `runner-lock-certification.json` dans le checkout. Ce défaut de câblage inter-étapes est corrigé sans modifier le superviseur ni le protocole applicatif.
 
+Le run `34644068082` démontre ensuite le préflight jetable complet PASS sous PowerShell 5.1 (`10281657290`). Son job global restait rouge uniquement parce que la certification distincte du paquet historique #16 refusait correctement trois changements applicatifs postérieurs. Cette preuve historique reste exécutée et publiée, mais elle ne constitue plus une dépendance bloquante de `V2-QUALIF-00` (INC-109/T-082).
+
 ## Qualification locale
 
 Les résultats locaux sont inscrits uniquement après exécution de la suite complète, validation de tous les workflows et validation croisée du registre. Ils ne valent pas invocation Claude réelle.

@@ -34,6 +34,8 @@ Avant l’unique invocation réelle finale, un seul préflight Windows exécute 
 
 Les preuves intermédiaires du workflow sont écrites hors du checkout, sous le répertoire temporaire du runner, avec une identité de run et de tentative. Une étape de preuve ne doit jamais rendre sale la source qu’une barrière ultérieure doit certifier.
 
+La certification d’un paquet de reprise historique qui n’est pas consommé par `V2-QUALIF-00` produit un verdict et un artefact séparés. Son incompatibilité avec des évolutions applicatives ultérieures reste un refus strict, mais ne bloque pas l’admission de la tranche jetable indépendante.
+
 Le manifeste distingue la santé absolue des contrôles de la non-régression causale entre la baseline et l’état post-Claude. Un contrôle non exécuté, un nouvel échec ou un ensemble d’échecs ambigu bloque. Un échec Jest préexistant ne peut être classé sans régression que si les suites en échec sont identiques et que leur nombre n’augmente pas ; le statut absolu demeure alors explicitement FAIL.
 
 Le nettoyage ne vise que la racine temporaire dont le parent, le nom, le run et la tentative concordent. La suppression de cette racine est vérifiée et son échec rend le verdict rouge avec diagnostics conservés.

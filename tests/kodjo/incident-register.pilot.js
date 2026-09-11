@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.20.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.20\.0\*\*/);
+test('registre canonique 3.21.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.21\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 108);
+  assertSequence(incidents, 'INC', 109);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,7 +38,7 @@ test('registre canonique 3.20.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 81);
+  assertSequence(ids('T'), 'T', 82);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -118,4 +118,6 @@ test('qualification jetable: caches des contrôles désactivés dans les deux ch
   assert.match(pilotWorkflow, /kodjo-v2-disposable-preflight-/);
   assert.match(pilotWorkflow, /Join-Path '\$\{\{ runner\.temp \}\}' 'kodjo-v2-runner-certification-/);
   assert.doesNotMatch(pilotWorkflow, /certify-persistent-runner-lock\.js runner-lock-certification\.json/);
+  assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
 });
