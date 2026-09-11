@@ -45,7 +45,7 @@ jobs:
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           $runId = & node scripts/kodjo/resolve-recovery-source.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER
-          if ($LASTEXITCODE -ne 0) { $runId = '' }
+          if ($LASTEXITCODE -ne 0) { $runId = ''; $global:LASTEXITCODE = 0 }
           "run_id=$runId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Download recovery package of the source run
