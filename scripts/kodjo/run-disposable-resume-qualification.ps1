@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
+  [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedMain,
   [Parameter(Mandatory = $true)][ValidatePattern('^\d+$')][string]$SourceRunId,
   [Parameter(Mandatory = $true)][string]$SourceEvidenceDirectory,
   [Parameter(Mandatory = $true)][string]$EvidenceDirectory
@@ -27,6 +28,7 @@ $manifest = [ordered]@{
   github_run_attempt = $env:GITHUB_RUN_ATTEMPT
   source_run_id = $SourceRunId
   expected_head = $ExpectedHead
+  expected_main = $ExpectedMain
   observed_head = $null
   source_session_id = $null
   returned_session_id = $null
@@ -61,7 +63,7 @@ try {
   if ($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1) {
     throw ('WINDOWS_POWERSHELL_5_1_REQUIRED: ' + $PSVersionTable.PSVersion)
   }
-  foreach ($tool in @('git', 'node', 'npm.cmd', 'claude')) {
+  foreach ($tool in @('git', 'gh', 'node', 'npm.cmd', 'claude')) {
     if ($null -eq (Get-Command $tool -ErrorAction SilentlyContinue)) { throw ('TOOL_MISSING: ' + $tool) }
   }
   $manifest.observed_head = (Invoke-Native 'git' @('rev-parse', 'HEAD') $source).Output
@@ -70,17 +72,35 @@ try {
 
   $sourceManifestPath = Join-Path $sourceEvidence 'qualification-manifest.json'
   $sourceResultPath = Join-Path $sourceEvidence 'result.json'
+  $sourceInvocationPath = Join-Path $sourceEvidence 'invocation.json'
+  $sourceInterruptionPath = Join-Path $sourceEvidence 'controlled-interruption.json'
   $sourcePackage = Join-Path $sourceEvidence 'recovery-package'
-  foreach ($required in @($sourceManifestPath, $sourceResultPath, (Join-Path $sourcePackage 'manifest.json'), (Join-Path $sourcePackage 'payload.patch'))) {
+  $sourcePackageManifestPath = Join-Path $sourcePackage 'manifest.json'
+  foreach ($required in @($sourceManifestPath, $sourceResultPath, $sourceInvocationPath, $sourceInterruptionPath, $sourcePackageManifestPath, (Join-Path $sourcePackage 'payload.patch'))) {
     if (-not (Test-Path -LiteralPath $required)) { throw ('SOURCE_EVIDENCE_MISSING: ' + $required) }
   }
   $sourceManifest = Get-Content -Raw -LiteralPath $sourceManifestPath | ConvertFrom-Json
   $sourceResult = Get-Content -Raw -LiteralPath $sourceResultPath | ConvertFrom-Json
+  $sourceInvocation = Get-Content -Raw -LiteralPath $sourceInvocationPath | ConvertFrom-Json
+  $sourceInterruption = Get-Content -Raw -LiteralPath $sourceInterruptionPath | ConvertFrom-Json
+  $sourcePackageManifest = Get-Content -Raw -LiteralPath $sourcePackageManifestPath | ConvertFrom-Json
   if ([string]$sourceManifest.github_run_id -ne $SourceRunId -or $sourceManifest.expected_head -ne $ExpectedHead -or $sourceManifest.verdict -ne 'PASS') {
     throw 'SOURCE_QUALIFICATION_INCOMPATIBLE'
   }
   if ($sourceResult.claude_invoked -ne $true -or $sourceResult.source_head -ne $ExpectedHead -or [string]::IsNullOrWhiteSpace($sourceResult.session_id)) {
     throw 'SOURCE_RESULT_INCOMPATIBLE'
+  }
+  if ($sourceInterruption.status -ne 'CONTROLLED_INTERRUPTION' -or $sourceInterruption.local_run_state_deleted -ne $true -or $sourceInterruption.lock_absent -ne $true) {
+    throw 'CONTROLLED_INTERRUPTION_NOT_PROVEN'
+  }
+  if ($sourceInvocation.request_id -ne $sourceResult.request_id -or $sourcePackageManifest.request_id -ne $sourceResult.request_id -or $sourceInterruption.request_id -ne $sourceResult.request_id) {
+    throw 'SOURCE_REQUEST_CORRESPONDENCE_NOT_PROVEN'
+  }
+  if ($sourcePackageManifest.run_id -ne $sourceResult.run_id -or $sourceInterruption.run_id -ne $sourceResult.run_id -or $sourcePackageManifest.session_id -ne $sourceResult.session_id -or $sourceInterruption.session_id -ne $sourceResult.session_id) {
+    throw 'SOURCE_RUN_SESSION_CORRESPONDENCE_NOT_PROVEN'
+  }
+  if ($sourceInvocation.source_head -ne $ExpectedHead -or $sourcePackageManifest.source_head -ne $ExpectedHead -or $sourceInterruption.source_head -ne $ExpectedHead -or $sourceInterruption.main_head -ne $ExpectedMain) {
+    throw 'SOURCE_HEAD_CORRESPONDENCE_NOT_PROVEN'
   }
   $manifest.source_session_id = $sourceResult.session_id
 
@@ -134,12 +154,14 @@ try {
   $manifest.result = $result
   $manifest.claude_invoked = ($result.claude_invoked -eq $true)
   $manifest.returned_session_id = $result.session_id
+  $manifest.request_id = $result.request_id
   $manifest.recovered_files = @($result.recovered_files)
   Copy-Item -LiteralPath $resultPath -Destination (Join-Path $evidence 'result.json') -Force
   Copy-Item -LiteralPath $invocationPath -Destination (Join-Path $evidence 'invocation.json') -Force
   if (Test-Path -LiteralPath (Join-Path $runDirectory 'recovery-package')) {
     Copy-Item -LiteralPath (Join-Path $runDirectory 'recovery-package') -Destination (Join-Path $evidence 'recovery-package') -Recurse -Force
   }
+  $resumePackageManifest = Get-Content -Raw -LiteralPath (Join-Path (Join-Path $runDirectory 'recovery-package') 'manifest.json') | ConvertFrom-Json
 
   $comparisonPath = Join-Path $evidence 'check-comparison.json'
   $comparisonExecution = Invoke-Native 'node' @('scripts/kodjo/compare-qualification-checks.js', $baselinePath, $resultPath, $comparisonPath) $work -AllowFailure
@@ -151,14 +173,21 @@ try {
   $manifest.final_delta = $changed
   if (-not $manifest.claude_invoked) { throw 'CLAUDE_NOT_INVOKED' }
   if ($invocation.mode -ne 'RESUME_DELTA') { throw 'RESUME_MODE_NOT_PROVEN' }
+  if ($invocation.request_id -ne $result.request_id -or $invocation.source_head -ne $ExpectedHead -or $result.source_head -ne $ExpectedHead) { throw 'RESUME_REQUEST_SOURCE_CORRESPONDENCE_NOT_PROVEN' }
+  if ($resumePackageManifest.request_id -ne $result.request_id -or $resumePackageManifest.run_id -ne $result.run_id -or $resumePackageManifest.session_id -ne $result.session_id -or $resumePackageManifest.source_head -ne $ExpectedHead) { throw 'RESUME_PACKAGE_CORRESPONDENCE_NOT_PROVEN' }
   if ($result.session_id -ne $sourceResult.session_id) { throw 'SESSION_CONTINUITY_NOT_PROVEN' }
   if (@($result.recovered_files).Count -ne 1 -or $result.recovered_files[0] -ne 'tests/fixtures/qualif/result.txt') { throw 'RECOVERY_NOT_PROVEN' }
   if ($result.recovery_source_head_migration.status -ne 'PASS') { throw 'RECOVERY_MIGRATION_NOT_PROVEN' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
   if (-not (Test-Path -LiteralPath $expectedFile)) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
   if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
+  $finalHash = (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash.ToLowerInvariant()
+  if ($sourceManifest.fixture_result_sha256 -and $finalHash -ne ([string]$sourceManifest.fixture_result_sha256).ToLowerInvariant()) { throw 'INITIAL_DELTA_LOST_OR_CHANGED' }
   if ($comparisonExecution.Code -ne 0 -or $comparison.verdict -ne 'PASS') { throw 'QUALIFICATION_CHECK_REGRESSION_OR_NON_EXECUTION' }
   if (Test-Path -LiteralPath (Join-Path $state 'claude-local.lock')) { throw 'CLAUDE_LOCK_REMAINS' }
+  $main = (gh api ("repos/" + $env:GITHUB_REPOSITORY + "/git/ref/heads/main") --jq '.object.sha').Trim()
+  if ($main -ne $ExpectedMain) { throw ('MAIN_CHANGED_DURING_RESUME: ' + $main) }
+  $manifest.observed_main = $main
   $manifest.workflow_technical_status = 'SUCCESS'
   $manifest.verdict = 'PASS'
 }
