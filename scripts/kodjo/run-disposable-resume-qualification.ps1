@@ -9,10 +9,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$slice = 'V2-QUALIF-00'
-$bootstrap = '.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json'
-$prompt = '.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md'
-$scope = 'tests/fixtures/qualif/**'
+$slice = 'V2-QUALIF-01'
+$bootstrap = '.github/orchestration/v2-slices/V2-QUALIF-01/slice-bootstrap.json'
+$prompt = '.github/orchestration/v2-slices/V2-QUALIF-01/implementation-mission.md'
+$scope = 'tests/fixtures/qualif-resume/**'
 $source = (git rev-parse --show-toplevel).Trim()
 $root = Join-Path $env:RUNNER_TEMP ('kodjo-qualif-resume-' + $env:GITHUB_RUN_ID + '-' + $env:GITHUB_RUN_ATTEMPT)
 $origin = Join-Path $root 'origin.git'
@@ -168,7 +168,7 @@ try {
   $comparison = Get-Content -Raw -LiteralPath $comparisonPath | ConvertFrom-Json
   $manifest.check_comparison = $comparison
 
-  $expectedFile = Join-Path $work 'tests\fixtures\qualif\result.txt'
+  $expectedFile = Join-Path $work 'tests\fixtures\qualif-resume\result.txt'
   $changed = @((Invoke-Native 'git' @('status', '--porcelain=v1', '--untracked-files=all') $work).Output -split "`r?`n" | Where-Object { $_ })
   $manifest.final_delta = $changed
   if (-not $manifest.claude_invoked) { throw 'CLAUDE_NOT_INVOKED' }
@@ -176,11 +176,11 @@ try {
   if ($invocation.request_id -ne $result.request_id -or $invocation.source_head -ne $ExpectedHead -or $result.source_head -ne $ExpectedHead) { throw 'RESUME_REQUEST_SOURCE_CORRESPONDENCE_NOT_PROVEN' }
   if ($resumePackageManifest.request_id -ne $result.request_id -or $resumePackageManifest.run_id -ne $result.run_id -or $resumePackageManifest.session_id -ne $result.session_id -or $resumePackageManifest.source_head -ne $ExpectedHead) { throw 'RESUME_PACKAGE_CORRESPONDENCE_NOT_PROVEN' }
   if ($result.session_id -ne $sourceResult.session_id) { throw 'SESSION_CONTINUITY_NOT_PROVEN' }
-  if (@($result.recovered_files).Count -ne 1 -or $result.recovered_files[0] -ne 'tests/fixtures/qualif/result.txt') { throw 'RECOVERY_NOT_PROVEN' }
+  if (@($result.recovered_files).Count -ne 1 -or $result.recovered_files[0] -ne 'tests/fixtures/qualif-resume/result.txt') { throw 'RECOVERY_NOT_PROVEN' }
   if ($result.recovery_source_head_migration.status -ne 'PASS') { throw 'RECOVERY_MIGRATION_NOT_PROVEN' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
   if (-not (Test-Path -LiteralPath $expectedFile)) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
-  if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
+  if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 RESUME QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
   $finalHash = (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash.ToLowerInvariant()
   if ($sourceManifest.fixture_result_sha256 -and $finalHash -ne ([string]$sourceManifest.fixture_result_sha256).ToLowerInvariant()) { throw 'INITIAL_DELTA_LOST_OR_CHANGED' }
   if ($comparisonExecution.Code -ne 0 -or $comparison.verdict -ne 'PASS') { throw 'QUALIFICATION_CHECK_REGRESSION_OR_NON_EXECUTION' }

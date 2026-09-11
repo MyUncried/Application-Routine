@@ -88,7 +88,13 @@ jobs:
         run: |
           & scripts/kodjo/run-disposable-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
-            -EvidenceDirectory 'qualification-evidence'
+            -EvidenceDirectory 'qualification-evidence' `
+            -SliceId 'V2-QUALIF-01' `
+            -SliceBootstrapFile '.github/orchestration/v2-slices/V2-QUALIF-01/slice-bootstrap.json' `
+            -PromptFile '.github/orchestration/v2-slices/V2-QUALIF-01/implementation-mission.md' `
+            -ScopeAllow 'tests/fixtures/qualif-resume/**' `
+            -ExpectedFixturePath 'tests/fixtures/qualif-resume/result.txt' `
+            -ExpectedFixtureContent "KODJO V2 RESUME QUALIFICATION PASS`n"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Establish controlled interruption after delta preservation
@@ -103,7 +109,7 @@ jobs:
           $result = Get-Content -Raw -LiteralPath (Join-Path $evidence 'result.json') | ConvertFrom-Json
           $invocation = Get-Content -Raw -LiteralPath (Join-Path $evidence 'invocation.json') | ConvertFrom-Json
           $package = Get-Content -Raw -LiteralPath (Join-Path $evidence 'recovery-package\manifest.json') | ConvertFrom-Json
-          if ($result.claude_invoked -ne $true -or @($result.modified_files).Count -ne 1 -or $result.modified_files[0] -ne 'tests/fixtures/qualif/result.txt') {
+          if ($result.claude_invoked -ne $true -or @($result.modified_files).Count -ne 1 -or $result.modified_files[0] -ne 'tests/fixtures/qualif-resume/result.txt') {
             throw 'INITIAL_DELTA_NOT_PROVEN'
           }
           if ($invocation.mode -ne 'INITIAL' -or $invocation.request_id -ne $result.request_id -or $package.request_id -ne $result.request_id) {
