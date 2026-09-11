@@ -38,4 +38,4 @@ for n in $(seq -f "%03g" 1 73); do grep -Fq "| T-$n |" "$register" || { echo "mi
 grep -Fq '## Répétitions qui auraient dû être évitées' "$register"
 grep -Fq '## État GitHub vérifié au 2026-09-07' "$register"
 grep -Fq 'NON VÉRIFIABLE' "$register"
-echo "incident register v3.14 validation: PASS (${#ids[@]} incidents, 51 aliases, 73 tests, 24 invariants)"
+echo "incident register v3.15 validation: PASS (${#ids[@]} incidents, 51 aliases, 73 tests, 24 invariants)"
