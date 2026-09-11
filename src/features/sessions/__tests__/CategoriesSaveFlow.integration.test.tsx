@@ -161,7 +161,7 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     expect(categoryRows.map((row) => row.name)).toEqual(["Cardio", "Yoga Doux"]);
 
     database.close();
-  }, 20000);
+  });
 
   it("shows the exact failure message, keeps the draft intact and re-enables the action on a technical save failure — no navigation, no partial data", async () => {
     const { router, database } = await renderCreationRouter();
