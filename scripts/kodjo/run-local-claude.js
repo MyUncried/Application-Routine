@@ -149,6 +149,7 @@ function recoveryPayload(repoRoot, request, files, meta) {
     // restaure tel quel et ecrasait silencieusement une evolution amont.
     source_head: request.source_head,
     run_id: (meta && meta.runId) || null,
+    request_id: request.request_id,
     // KV2-06 : un delta calcule sur une base mutee est conserve pour diagnostic,
     // mais ne doit jamais servir de source de reprise.
     integrity_status: (meta && meta.integrityStatus) || 'INTACT',
@@ -586,6 +587,7 @@ function main() {
     const intent = {
       schema_version: 'kodjo.protocol.v2.claude-invocation.0.6.11',
       state: 'EXTERNAL_CALL_INTENDED', run_id: runId, slice_id: request.slice_id,
+      request_id: request.request_id,
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
       // KV2-13 : `adapterConfig()` publie toujours les bornes PAR DEFAUT. Un run
@@ -675,6 +677,7 @@ function main() {
   const verified = result.status === 0 && scopeClear && deltaStable && checks.every((c) => c.status === 'PASS');
   const summary = {
     schema_version: 'kodjo.protocol.v2.local-result.0.6.11', run_id: runId,
+    request_id: request.request_id,
     session_id: request.generated_session_id,
     claude_exit_code: result.status, claude_error: result.error ? result.error.message : null,
     claude_failure: classifyClaudeFailure(result),
