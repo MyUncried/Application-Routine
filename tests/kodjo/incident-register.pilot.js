@@ -25,10 +25,10 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.12.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.12\.0\*\*/);
+test('registre canonique 3.13.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.13\.0\*\*/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 97);
+  assertSequence(incidents, 'INC', 99);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -38,7 +38,7 @@ test('registre canonique 3.12.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 70);
+  assertSequence(ids('T'), 'T', 72);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -75,7 +75,8 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
 });
 
 test('workflow jetable: dispatch manuel, lecture seule et aucune publication distante', () => {
-  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-disposable-qualification.yml'), 'utf8');
+  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-disposable-qualification.yml'), 'utf8')
+    .replace(/\r\n/g, '\n');
   const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-qualification.ps1'), 'utf8');
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /permissions:\n  contents: read\n  actions: read/);

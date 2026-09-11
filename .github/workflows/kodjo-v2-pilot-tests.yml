@@ -129,6 +129,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve real recovery certification
         if: always()
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
+            $proof = [ordered]@{
+              status = 'NON RETESTÉ'
+              reason = 'PREVIOUS_PREFLIGHT_STEP_FAILED'
+              claude_invoked = $false
+              run_id = '${{ github.run_id }}'
+              run_attempt = '${{ github.run_attempt }}'
+              source_sha = '${{ github.event.pull_request.head.sha || github.sha }}'
+            }
+            $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath 'real-recovery-certification.json' -Encoding UTF8
+          }
+      - name: Upload real recovery certification
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
