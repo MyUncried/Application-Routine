@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: kodjo-jest-timeout-qualification
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   measure:
