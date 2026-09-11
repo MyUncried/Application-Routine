@@ -59,6 +59,22 @@
       "source_head": "8dad840612e9443eea4129514daf623d948a7cc1",
       "status": "OBSOLETE_NON_REPLAYABLE",
       "reason": "Demande valide mais non exécutée : le commit produit par l’intégration GitHub n’a déclenché aucun workflow. Remplacée après correction de l’isolation du checkout du runner persistant."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-initial-aa43d55a.json",
+      "blob_oid": "85471e2a8355b8e9e459ec9b8f3e4fc47773521c",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "db2af404042778793c2add317141e5cc4d460f8a",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande non exécutée : le workflow a échoué dans la sonde optionnelle de reprise, avant admission et avant invocation Claude."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-BILAT-01-initial-browser-5f2a8d31.json",
+      "blob_oid": "ce0c3877a8395c30850c87f3211b3b3167e38ddb",
+      "slice_id": "V2-BILAT-01",
+      "source_head": "e4f39a63813c2754a131e0506b21257838c89c7b",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande non exécutée : le workflow a échoué dans la sonde optionnelle de reprise, avant admission et avant invocation Claude."
     }
   ]
 }
