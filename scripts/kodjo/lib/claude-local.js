@@ -21,7 +21,6 @@ const ALLOWED_TOOLS = [
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
-  'Bash(git *)',
   'Bash(gh *)',
   'Bash(curl *)',
   'Bash(wget *)',
@@ -34,7 +33,7 @@ const DISALLOWED_TOOLS = [
 ];
 const DEFAULT_LIMITS = Object.freeze({
   max_ai_calls: 1,
-  max_turns: 12,
+  max_turns: 40,
   max_duration_seconds: 3600,
   max_prompt_bytes: 32768,
   max_total_prompt_bytes: 32768,
@@ -42,7 +41,7 @@ const DEFAULT_LIMITS = Object.freeze({
 });
 const LIMIT_CEILINGS = Object.freeze({
   ...DEFAULT_LIMITS,
-  max_turns: 40,
+  max_turns: 50,
 });
 
 function canonical(value) {
@@ -92,6 +91,9 @@ function normalizeRequest(raw, repoRoot) {
   }
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(String(raw.slice_id || ''))) throw new Error('SLICE_ID_INVALID');
   if (!/^[0-9a-f]{40}$/.test(String(raw.source_head || ''))) throw new Error('SOURCE_HEAD_INVALID');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(raw.request_id || ''))) {
+    throw new Error('REQUEST_ID_INVALID');
+  }
 
   const bootstrapFile = String(raw.slice_bootstrap_file || '');
   const identity = loadAndValidate(repoRoot, bootstrapFile);
@@ -134,6 +136,7 @@ function normalizeRequest(raw, repoRoot) {
     scope_allow: scopes,
     checks,
     limits,
+    request_id: String(raw.request_id),
     allow_legacy_recovery_bootstrap: raw.allow_legacy_recovery_bootstrap === true,
     retry_of_run_id: raw.retry_of_run_id === undefined ? null : String(raw.retry_of_run_id),
   };
@@ -167,7 +170,8 @@ function buildPrompt(request, taskText, configDir) {
     '',
     'Bornes obligatoires:',
     '- Modifier uniquement: ' + request.scope_allow.join(', '),
-    '- Ne lancer aucune commande git, gh, réseau, publication, suppression globale ou shell indirect.',
+    '- Git est limite aux inspections en lecture autorisees: status, log, diff, show, rev-parse et ls-files.',
+    '- Ne lancer aucune commande Git de mutation, gh, réseau, publication, suppression globale ou shell indirect.',
     '- Ne créer ni commit, branche, tag, stash ou push.',
     '- Exécuter les contrôles autorisés: ' + checkCommands.join(' ; '),
     '- Exécuter chaque commande de contrôle exactement telle qu’affichée, seule dans son appel Bash, sans redirection, pipe, point-virgule, echo, cd ni commande supplémentaire.',

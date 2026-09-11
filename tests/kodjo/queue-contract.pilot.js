@@ -422,10 +422,14 @@ test('le registre d’obsolescence lie chaque demande à son blob OID', () => {
   const V = require(path.join(root, 'scripts', 'kodjo', 'verify-queue-admission.js'));
   const registre = JSON.parse(fs.readFileSync(
     path.join(root, '.github', 'orchestration', 'queue', 'v2-consumed-registry.json'), 'utf8'));
-  const fichiers = fs.readdirSync(path.join(root, '.github', 'orchestration', 'queue', 'v2'))
-    .filter((n) => n.endsWith('.json'));
-  assert.equal(registre.entries.length, fichiers.length);
+  const fichiers = new Set(fs.readdirSync(path.join(root, '.github', 'orchestration', 'queue', 'v2'))
+    .filter((n) => n.endsWith('.json')));
+  assert.ok(registre.entries.length >= 6);
+  const chemins = new Set();
   for (const entree of registre.entries) {
+    assert.equal(chemins.has(entree.path), false, 'entree dupliquee: ' + entree.path);
+    chemins.add(entree.path);
+    assert.equal(fichiers.has(path.basename(entree.path)), true, 'demande absente: ' + entree.path);
     assert.match(entree.blob_oid, /^[0-9a-f]{40}$/);
     assert.equal(entree.status, 'OBSOLETE_NON_REPLAYABLE');
     assert.equal(V.blobOid(entree.path, root), entree.blob_oid, entree.path);

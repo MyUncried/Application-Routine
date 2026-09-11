@@ -28,6 +28,8 @@ function projectQueueRequest(queue) {
     scope_allow: Array.isArray(queue.scope_allow) ? queue.scope_allow : [],
     checks: Array.isArray(queue.checks) ? queue.checks : [],
     limits: queue.limits,
+    // Identifiant de bout en bout : admission, invocation, diagnostic et reprise.
+    request_id: queue.request_id,
   };
   if (queue.allow_legacy_recovery_bootstrap !== undefined) {
     request.allow_legacy_recovery_bootstrap = queue.allow_legacy_recovery_bootstrap === true;
