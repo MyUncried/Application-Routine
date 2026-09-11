@@ -24,3 +24,34 @@ jobs:
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
+
+  protocol-windows-preflight:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Record Windows toolchain
+        shell: powershell
+        run: |
+          $PSVersionTable.PSVersion.ToString()
+          git --version
+          node --version
+      - name: Parse every PowerShell protocol script with Windows PowerShell
+        shell: powershell
+        run: |
+          $failed = $false
+          Get-ChildItem scripts/kodjo -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              $errors | ForEach-Object { Write-Error ("{0}: {1}" -f $_.Extent.File, $_.Message) }
+            }
+          }
+          if ($failed) { exit 1 }
+      - name: Run complete KODJO pilot suite on Windows
+        shell: powershell
+        run: node tests/kodjo/run-all.js
