@@ -41,10 +41,17 @@ $manifest = [ordered]@{
 function Invoke-Native {
   param([string]$File, [string[]]$Arguments, [string]$WorkingDirectory, [switch]$AllowFailure)
   Push-Location $WorkingDirectory
+  $previousErrorActionPreference = $ErrorActionPreference
   try {
+    # Windows PowerShell 5.1 wraps native stderr as a non-terminating
+    # NativeCommandError.  Git writes harmless progress (for example detached
+    # HEAD notices) to stderr even when it exits 0, so capture it without
+    # letting the script-wide Stop policy turn that progress into an exception.
+    $ErrorActionPreference = 'Continue'
     $output = & $File @Arguments 2>&1
     $code = $LASTEXITCODE
   } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
     Pop-Location
   }
   $text = ($output | Out-String).Trim()
