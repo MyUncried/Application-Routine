@@ -64,4 +64,4 @@ En cas d’écart : spécification `0.6.19` complétant `0.6.18`, configuration 
 
 ## Qualification
 
-La qualification 0.6.19 doit démontrer T-059 sur Ubuntu et Windows PowerShell 5.1, sans appel Claude : absence de `--max-turns`, refus de toute demande réintroduisant `max_turns`, conservation des autres bornes et preuve `turn_limit_effective`.
+La qualification 0.6.19 est démontrée par le run `34608773847` au commit `86cedd33e2579f351ddf2e117ab10ff60ed19ac9` : Ubuntu `103293703287` PASS, Windows PowerShell 5.1 `103293703580` PASS, banc isolé PASS et artefact réel `10267286529`, sans appel Claude.
