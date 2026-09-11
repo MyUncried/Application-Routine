@@ -65,4 +65,4 @@ En cas d’écart : spécification `0.6.20` complétant `0.6.19`, configuration 
 
 ## Qualification
 
-La qualification de migration 0.6.20 est démontrée par les runs `34611834316` et `34612786612`. Sur le HEAD documentaire, Ubuntu `103307173240` et Windows PowerShell 5.1 `103307173669` sont PASS ; la preuve réelle est `10268579775`. Le banc a téléchargé l’artefact réel `10266968512`, restauré exactement ses 13 chemins dans un clone isolé et n’a pas appelé Claude. Les deux certifications Claude réelles sur tranche jetable restent NON RETESTÉES.
+La qualification de migration 0.6.20 est démontrée par les runs `34611834316` et `34612786612`. Sur le HEAD documentaire, Ubuntu `103307173240` et Windows PowerShell 5.1 `103307173669` sont PASS ; la preuve réelle est `10268579775`. Le banc a téléchargé l’artefact réel `10266968512`, restauré exactement ses 13 chemins dans un clone isolé et n’a pas appelé Claude. Le banc autonome suivant a démontré INC-090 à INC-092 ; leurs correctifs et T-063 à T-065 doivent passer sur le HEAD exact avant la tranche jetable. Les certifications Claude réelles restent NON RETESTÉES.
