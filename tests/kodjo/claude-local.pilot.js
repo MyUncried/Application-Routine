@@ -24,6 +24,7 @@ function fixture(overrides) {
     schema_version: 'kodjo.protocol.v2.local-implementation.0.6.12',
     slice_id: 'SMOKE', source_head: 'a'.repeat(40), baseline_head: 'a'.repeat(40), slice_bootstrap_file: '.github/orchestration/v2-slices/SMOKE/slice-bootstrap.json', slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256, mode: 'INITIAL',
     session_id: null,
+    request_id: '550e8400-e29b-41d4-a716-446655440001',
     prompt_file: 'docs/task.md', scope_allow: ['src/**', 'tests/**'],
     checks: ['jest', 'typescript', 'lint'], limits: { ...C.DEFAULT_LIMITS },
     ...(overrides || {}),
@@ -45,7 +46,10 @@ test('surface positive: outils fichiers et commandes de contrôle seulement', ()
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} jest)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} typescript)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} lint)'));
-  assert.ok(C.DISALLOWED_TOOLS.includes('Bash(git *)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git status)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git log:*)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git diff:*)'));
+  assert.ok(!C.DISALLOWED_TOOLS.includes('Bash(git *)'));
   assert.ok(C.DISALLOWED_TOOLS.includes('Bash(gh *)'));
   assert.ok(C.DISALLOWED_TOOLS.includes('mcp__*'));
 });
@@ -55,7 +59,7 @@ test('arguments effectifs: restricted, non interactif, aucun MCP et plafond de t
   const req = C.normalizeRequest(f.request, f.root);
   req.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
   const args = C.buildArgs(req, f.root, 'mission');
-  for (const required of ['-p', '--restricted', '--permission-prompts', 'none', '--strict-mcp-config', '--max-turns', '12']) {
+  for (const required of ['-p', '--restricted', '--permission-prompts', 'none', '--strict-mcp-config', '--max-turns', '40']) {
     assert.ok(args.includes(required), required);
   }
   assert.ok(!args.includes('--dangerously-skip-permissions'));
@@ -90,10 +94,17 @@ test('requête refuse un périmètre parent ou absolu', () => {
 });
 
 test('requête accepte une extension bornée et refuse un budget supérieur au plafond', () => {
-  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 40 } });
-  assert.equal(C.normalizeRequest(f.request, f.root).limits.max_turns, 40);
-  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 41 } });
+  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 50 } });
+  assert.equal(C.normalizeRequest(f.request, f.root).limits.max_turns, 50);
+  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 51 } });
   assert.throws(() => C.normalizeRequest(f.request, f.root), /BUDGET_INVALID_MAX_TURNS/);
+});
+
+test('request_id est obligatoire et transmis sans modification', () => {
+  const f = fixture();
+  assert.equal(C.normalizeRequest(f.request, f.root).request_id, f.request.request_id);
+  const missing = fixture({ request_id: undefined });
+  assert.throws(() => C.normalizeRequest(missing.request, missing.root), /REQUEST_ID_INVALID/);
 });
 
 test('requête refuse une seconde invocation ou un rollover implicite', () => {
