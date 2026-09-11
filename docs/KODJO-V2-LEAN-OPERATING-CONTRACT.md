@@ -1,6 +1,6 @@
 # KODJO V2 — contrat d'exploitation lean
 
-Version : 0.6.14
+Version : 0.6.17
 
 ## Principe opposable
 
@@ -27,6 +27,8 @@ Le runner Windows :
 - exécute les contrôles déterministes opposables ;
 - ne publie une branche et une PR que si le verdict est `IMPLEMENTED_AND_VERIFIED` ;
 - publie un diagnostic technique en cas d'échec, sans demander à l'utilisateur de réparer le protocole.
+
+Le verrou Claude identifie son propriétaire par PID et date de démarrage, ainsi que par le run, la demande et la session. Il n'est remplacé automatiquement qu'après preuve de l'absence du propriétaire ; un état ambigu bloque sans tuer de processus. Chaque diagnostic est lié à `github.run_id` et `github.run_attempt`, y compris avant invocation de Claude. `request_id` reste non nullable de la file aux preuves. Une reprise utilise une invocation au plus et 40 tours au maximum.
 
 ## Responsabilités
 

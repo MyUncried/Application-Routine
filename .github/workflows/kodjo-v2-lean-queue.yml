@@ -32,6 +32,9 @@ jobs:
           # Le runner est persistant : ne jamais checkout dans son répertoire racine.
           path: _kodjo/${{ github.run_id }}
 
+      - name: Initialize current run diagnostic
+        run: node scripts/kodjo/initialize-run-diagnostic.js
+
       - name: Enable Windows long paths
         shell: powershell
         run: git config --global core.longpaths true
@@ -82,6 +85,9 @@ jobs:
       - name: Resolve current run diagnostic directory
         if: always()
         id: diag
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           $dir = & node scripts/kodjo/resolve-run-directory.js
           if ($LASTEXITCODE -ne 0) { $dir = '' }

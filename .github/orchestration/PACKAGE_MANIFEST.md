@@ -1,16 +1,17 @@
-# Manifeste du paquet KODJO V2 0.6.12 — identité de tranche et adaptateur local borné
+# Manifeste du paquet KODJO V2 0.6.17 — verrou, diagnostic et traçabilité du run
 
 ## Objet
 
-Cette version ajoute l’identité de tranche V2 opposable, puis conserve l’exécution Claude locale supervisée, la boucle interne de correction des tests et l’authentification OAuth durable chiffrée sous Windows. Elle conserve l’architecture validée : Claude modifie uniquement `/Dev`, ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Cette version conserve l’identité de tranche et l’exécution locale supervisée, puis ajoute le verrou propriétaire, le diagnostic lié au run courant, la traçabilité de `request_id`, les lectures Git bornées et le plafond de 40 tours. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.12.md` | Spécification normative courante |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.17.md` | Spécification normative courante, delta de 0.6.16 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.12.md` | Rapport du correctif d’activation et de l’adaptateur local |
+| `.github/orchestration/CHANGE_REPORT_0.6.17.md` | Rapport du correctif runs #12/#13 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.5.0 |
 
 ## Composants d’activation V2
 
@@ -49,18 +50,18 @@ Cette version ajoute l’identité de tranche V2 opposable, puis conserve l’ex
 
 - version exacte : `2.1.263` ;
 - invocation : `1` ;
-- tours : `12` maximum ;
+- tours : `40` maximum ; `41` refusé ;
 - durée : `3 600` secondes maximum ;
 - prompt : `32 768` octets maximum ;
 - outils : `Read, Edit, Write, Glob, Grep, Bash` ;
 - Bash autorisé uniquement pour un runner externe figé qui exécute Jest, TypeScript ou lint après retrait du jeton Claude ;
-- Git, `gh`, réseau, MCP, PowerShell et suppressions globales explicitement interdits ;
+- Git direct interdit ; lectures bornées via `kodjo-git-read.js` ; `gh`, réseau, MCP, PowerShell et suppressions globales interdits ;
 - `--restricted`, `--permission-prompts none`, `--strict-mcp-config` et configuration MCP vide obligatoires.
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.12`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.17` complétant `0.6.16`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
-## Limite restante connue
+## Qualification
 
-L’implémentation locale est testable sans consommation Claude grâce aux tests déterministes. Sa qualification finale exige une invocation réelle sur le poste `/Dev` avec Claude Code `2.1.263` et le jeton long terme. Cette invocation constitue l’unique essai fonctionnel restant avant activation.
+Les invariants 0.6.17 sont qualifiés sans appel Claude : run PR `34599962140`, Ubuntu `103264569038` PASS et Windows PowerShell 5.1 `103264569377` PASS.
