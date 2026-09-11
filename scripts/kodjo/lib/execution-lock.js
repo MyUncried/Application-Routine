@@ -6,6 +6,53 @@ const { spawnSync } = require('node:child_process');
 
 const LOCK_SCHEMA = 'kodjo.protocol.v2.execution-lock.0.6.17';
 
+function parseWindowsSnapshot(stdout) {
+  let rows;
+  try { rows = JSON.parse(String(stdout || '').replace(/^\uFEFF/, '').trim() || '[]'); }
+  catch (err) { return { state: 'AMBIGUOUS', evidence: 'CIM_JSON_INVALID: ' + err.message }; }
+  if (!Array.isArray(rows)) rows = [rows];
+  return { state: 'OK', rows };
+}
+
+function isDescendant(pid, rootPid, byPid) {
+  const seen = new Set();
+  let cursor = Number(pid);
+  while (Number.isInteger(cursor) && cursor > 0 && !seen.has(cursor)) {
+    if (cursor === rootPid) return true;
+    seen.add(cursor);
+    const row = byPid.get(cursor);
+    cursor = row ? Number(row.ParentProcessId) : 0;
+  }
+  return false;
+}
+
+function managedClaudeMarkers(env = process.env) {
+  if (process.platform !== 'win32' && !env.APPDATA) return ['@anthropic-ai/claude-code/'];
+  const root = path.join(env.APPDATA || '', 'npm', 'node_modules', '@anthropic-ai', 'claude-code');
+  return [root, path.join(root, 'bin', 'claude.exe')].map((value) => value.replace(/\//g, '\\').toLowerCase());
+}
+
+function classifyClaudeProcesses(rows, inspectorPid = process.pid, markers = managedClaudeMarkers()) {
+  const byPid = new Map(rows.map((row) => [Number(row.ProcessId), row]));
+  return rows.filter((row) => {
+    const pid = Number(row.ProcessId);
+    if (!Number.isInteger(pid) || isDescendant(pid, inspectorPid, byPid)) return false;
+    const executable = String(row.ExecutablePath || '').replace(/\//g, '\\').toLowerCase();
+    const command = String(row.CommandLine || '').replace(/\//g, '\\').toLowerCase();
+    return markers.some((marker) => executable.includes(marker) || command.includes(marker));
+  });
+}
+
+function windowsProcessSnapshot() {
+  // Le script CIM ne contient volontairement aucun nom ou motif Claude. Le
+  // filtrage est fait dans Node, après exclusion du processus inspecteur et de
+  // ses descendants : le scanner ne peut donc pas se reconnaître lui-même.
+  const script = "$ErrorActionPreference='Stop'; @(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,CreationDate,Name,ExecutablePath,CommandLine) | ConvertTo-Json -Compress -Depth 3";
+  const r = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { encoding: 'utf8', windowsHide: true, shell: false });
+  if (r.error || r.status !== 0) return { state: 'AMBIGUOUS', evidence: String(r.stderr || r.error || 'CIM_UNREADABLE') };
+  return parseWindowsSnapshot(r.stdout);
+}
+
 function processIdentity(pid) {
   if (!Number.isInteger(pid) || pid <= 0) return { state: 'DEAD', evidence: 'INVALID_PID' };
   if (process.platform === 'win32') {
@@ -25,11 +72,13 @@ function processIdentity(pid) {
 
 function claudeProcessState() {
   if (process.platform === 'win32') {
-    const script = "$p=@(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $_.Name -ieq 'claude.exe' -or $_.CommandLine -match '@anthropic-ai[\\\\/]claude-code|claude(?:\\.exe)?\\s' }); if($p.Count -eq 0){exit 3}; $p | ForEach-Object {[Console]::Out.WriteLine(($_.ProcessId.ToString())+'|'+$_.CreationDate.ToUniversalTime().ToString('o')+'|'+$_.CommandLine)}";
-    const r = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { encoding: 'utf8', windowsHide: true, shell: false });
-    if (r.status === 3) return { state: 'NONE', evidence: 'CIM_NO_CLAUDE' };
-    if (r.error || r.status !== 0) return { state: 'AMBIGUOUS', evidence: String(r.stderr || r.error || 'CIM_UNREADABLE') };
-    return { state: 'ACTIVE', evidence: String(r.stdout).trim() };
+    const snapshot = windowsProcessSnapshot();
+    if (snapshot.state !== 'OK') return snapshot;
+    const matches = classifyClaudeProcesses(snapshot.rows);
+    const externalClaude = snapshot.rows.filter((row) => /^claude\.exe$/i.test(String(row.Name || '')) && !matches.includes(row));
+    return matches.length
+      ? { state: 'ACTIVE', evidence: matches.map((row) => String(row.ProcessId) + '|' + String(row.CreationDate || '') + '|' + String(row.Name || '') + '|' + String(row.CommandLine || '')).join('\n') }
+      : { state: 'NONE', evidence: 'CIM_NO_MANAGED_CLAUDE', external_claude_count: externalClaude.length };
   }
   const r = spawnSync('ps', ['-eo', 'pid=,lstart=,args='], { encoding: 'utf8', shell: false });
   if (r.error || r.status !== 0) return { state: 'AMBIGUOUS', evidence: String(r.stderr || r.error || 'PS_UNREADABLE') };
@@ -96,4 +145,7 @@ function release(handle) {
   return true;
 }
 
-module.exports = { LOCK_SCHEMA, processIdentity, claudeProcessState, acquire, release };
+module.exports = {
+  LOCK_SCHEMA, processIdentity, claudeProcessState, acquire, release,
+  parseWindowsSnapshot, classifyClaudeProcesses, windowsProcessSnapshot, managedClaudeMarkers,
+};

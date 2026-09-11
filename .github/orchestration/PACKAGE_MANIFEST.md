@@ -1,4 +1,4 @@
-# Manifeste du paquet KODJO V2 0.6.17 — verrou, diagnostic et traçabilité du run
+# Manifeste du paquet KODJO V2 0.6.18 — certification réelle du runner persistant
 
 ## Objet
 
@@ -8,10 +8,10 @@ Cette version conserve l’identité de tranche et l’exécution locale supervi
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.17.md` | Spécification normative courante, delta de 0.6.16 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.18.md` | Spécification normative courante, delta de 0.6.17 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.17.md` | Rapport du correctif runs #12/#13 |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.5.0 |
+| `.github/orchestration/CHANGE_REPORT_0.6.18.md` | Rapport du correctif du run #14 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER_v3.4.0_CORRECTED.md` | Registre canonique, contenu version 3.6.0 |
 
 ## Composants d’activation V2
 
@@ -60,8 +60,8 @@ Cette version conserve l’identité de tranche et l’exécution locale supervi
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.17` complétant `0.6.16`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.18` complétant `0.6.17`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
 
 ## Qualification
 
-Les invariants 0.6.17 sont qualifiés sans appel Claude : run PR `34599962140`, Ubuntu `103264569038` PASS et Windows PowerShell 5.1 `103264569377` PASS.
+La qualification 0.6.18 est démontrée par le run `34604146149` : Ubuntu `103278373251` PASS, Windows PowerShell 5.1 `103278373498` PASS et artefact réel T-058 `10264893697` PASS, sans appel Claude. Un succès d'une suite mockée ne suffit plus à qualifier une dépendance système.
