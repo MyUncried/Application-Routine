@@ -18,6 +18,7 @@ const ALLOWED_TOOLS = [
   'Bash(node {KODJO_CHECK_RUNNER} jest)',
   'Bash(node {KODJO_CHECK_RUNNER} typescript)',
   'Bash(node {KODJO_CHECK_RUNNER} lint)',
+  'Bash(node {KODJO_GIT_READ_RUNNER} *)',
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
@@ -41,7 +42,7 @@ const DEFAULT_LIMITS = Object.freeze({
 });
 const LIMIT_CEILINGS = Object.freeze({
   ...DEFAULT_LIMITS,
-  max_turns: 50,
+  max_turns: 40,
 });
 
 function canonical(value) {
@@ -148,11 +149,15 @@ function checkRunnerPath(configDir) {
 
 function concreteAllowedTools(configDir) {
   const runner = checkRunnerPath(configDir);
-  return ALLOWED_TOOLS.map((rule) => rule.replace('{KODJO_CHECK_RUNNER}', '"' + runner + '"'));
+  const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
+  return ALLOWED_TOOLS.map((rule) => rule
+    .replace('{KODJO_CHECK_RUNNER}', '"' + runner + '"')
+    .replace('{KODJO_GIT_READ_RUNNER}', '"' + gitRunner + '"'));
 }
 
 function buildPrompt(request, taskText, configDir) {
   const runner = checkRunnerPath(configDir);
+  const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
   const checkCommands = request.checks.map((c) => ({
     jest: 'node "' + runner + '" jest',
     typescript: 'node "' + runner + '" typescript',
@@ -170,7 +175,7 @@ function buildPrompt(request, taskText, configDir) {
     '',
     'Bornes obligatoires:',
     '- Modifier uniquement: ' + request.scope_allow.join(', '),
-    '- Git est limite aux inspections en lecture autorisees: status, log, diff, show, rev-parse et ls-files.',
+    '- Git est limite aux inspections en lecture via: node "' + gitRunner + '" <status|diff|log|show|rev-parse|ls-files> [arguments].',
     '- Ne lancer aucune commande Git de mutation, gh, réseau, publication, suppression globale ou shell indirect.',
     '- Ne créer ni commit, branche, tag, stash ou push.',
     '- Exécuter les contrôles autorisés: ' + checkCommands.join(' ; '),

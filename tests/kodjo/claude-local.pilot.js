@@ -46,10 +46,12 @@ test('surface positive: outils fichiers et commandes de contrôle seulement', ()
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} jest)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} typescript)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} lint)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_GIT_READ_RUNNER} *)'));
   // Ne pas nier globalement Git : Claude Code classe lui-meme ses formes
   // en lecture seule ; toutes les mutations restent refusees en mode dontAsk.
   assert.ok(!C.DISALLOWED_TOOLS.includes('Bash(git *)'));
   assert.ok(!C.ALLOWED_TOOLS.some((rule) => /^Bash\(git /.test(rule)));
+  assert.ok(!C.ALLOWED_TOOLS.some((rule) => /git commit/.test(rule)));
   assert.ok(C.DISALLOWED_TOOLS.includes('Bash(gh *)'));
   assert.ok(C.DISALLOWED_TOOLS.includes('mcp__*'));
 });
@@ -93,10 +95,14 @@ test('requête refuse un périmètre parent ou absolu', () => {
   }
 });
 
-test('requête accepte une extension bornée et refuse un budget supérieur au plafond', () => {
-  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 50 } });
-  assert.equal(C.normalizeRequest(f.request, f.root).limits.max_turns, 50);
-  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 51 } });
+test('requête accepte 40 tours et refuse 41', () => {
+  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 40 } });
+  const normalized = C.normalizeRequest(f.request, f.root);
+  assert.equal(normalized.limits.max_turns, 40);
+  normalized.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
+  const args = C.buildArgs(normalized, f.root, 'mission');
+  assert.equal(args[args.indexOf('--max-turns') + 1], '40');
+  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 41 } });
   assert.throws(() => C.normalizeRequest(f.request, f.root), /BUDGET_INVALID_MAX_TURNS/);
 });
 

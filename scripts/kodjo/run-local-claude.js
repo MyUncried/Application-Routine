@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
+const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
 
 const { runCheck } = require('./lib/checks');
 const {
@@ -279,7 +281,7 @@ function writeRecoveryPackage(runDir, repoRoot, request, files, meta) {
     baseline_head: request.baseline_head,
     run_id: (meta && meta.runId) || null,
     github_run_id: process.env.GITHUB_RUN_ID || null,
-    request_id: request.request_id || null,
+    request_id: request.request_id,
     integrity_status: (meta && meta.integrityStatus) || 'INTACT',
     scope_allow: request.scope_allow,
     paths: built.paths,
@@ -515,48 +517,64 @@ function main() {
     return die('REQUEST_REFUSED', err.message);
   }
 
+  const stateRoot = process.env.KODJO_STATE_ROOT
+    ? path.resolve(process.env.KODJO_STATE_ROOT)
+    : path.join(os.homedir(), '.kodjo-v2');
+  fs.mkdirSync(stateRoot, { recursive: true });
+  const initialized = initializeRunDiagnostic(stateRoot);
+  const runId = initialized.runId;
+  const runDir = initialized.runDir;
+  request.generated_session_id = request.mode === 'INITIAL' ? require('node:crypto').randomUUID() : request.session_id;
+  const writeFailure = (diagnostic, message, extra = {}) => {
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+      schema_version: 'kodjo.protocol.v2.local-result.0.6.17', run_id: runId,
+      github_run_id: process.env.GITHUB_RUN_ID || null,
+      github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
+      request_id: request.request_id, session_id: request.generated_session_id,
+      source_head: request.source_head, status: 'IMPLEMENTATION_FAILED',
+      diagnostic, diagnostic_message: String(message || ''), claude_invoked: false,
+      recovery_package: null, limits_effective: request.limits, ...extra,
+    }, null, 2) + '\n', 'utf8');
+    return die(diagnostic, message);
+  };
+
   const head = git(['rev-parse', 'HEAD'], repoRoot);
-  if (head !== request.source_head) return die('HEAD_DIVERGED', 'HEAD local != source_head');
+  if (head !== request.source_head) return writeFailure('HEAD_DIVERGED', 'HEAD local != source_head');
   const promptRelative = path.relative(repoRoot, request.prompt_file).replace(/\\/g, '/');
   const promptHashBefore = sha256(fs.readFileSync(request.prompt_file));
   const initialChanges = changedFiles(repoRoot).filter((f) => {
     const normalized = f.replace(/\\/g, '/');
     return normalized !== promptRelative && path.resolve(f) !== path.resolve(requestPath);
   });
-  if (initialChanges.length) return die('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
+  if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
 
   const supervisedQueue = process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true';
   const fetch = command('git', ['fetch', '--quiet'], repoRoot, process.env, 120000);
-  if (fetch.error || fetch.status !== 0) return die('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
+  if (fetch.error || fetch.status !== 0) return writeFailure('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
   if (!supervisedQueue) {
     let upstream;
     try { upstream = git(['rev-parse', '@{upstream}'], repoRoot); }
-    catch (_) { return die('UPSTREAM_NOT_CONFIGURED', 'la branche courante ne possÃ¨de pas de branche distante de suivi'); }
-    if (upstream !== head) return die('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi aprÃ¨s fetch');
+    catch (_) { return writeFailure('UPSTREAM_NOT_CONFIGURED', 'branche distante de suivi absente'); }
+    if (upstream !== head) return writeFailure('HEAD_DIVERGED', 'HEAD local != HEAD distant suivi après fetch');
   }
 
   const token = process.env.CLAUDE_CODE_OAUTH_TOKEN || '';
-  if (!token && !supervisedQueue) return die('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent; exÃ©cutez setup-kodjo-claude-auth.ps1 une fois');
+  if (!token && !supervisedQueue) return writeFailure('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent');
 
   const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
   const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') : null;
   const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli || 'claude');
   const claudePrefix = [];
   const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
-  if (version.error || version.status !== 0) return die('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
+  if (version.error || version.status !== 0) return writeFailure('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
   const versionText = String(version.stdout || version.stderr).trim();
   if (supervisedQueue && !token) {
     const auth = command(claudeBin, [...claudePrefix, 'auth', 'status'], repoRoot, process.env, 30000);
-    if (auth.error || auth.status !== 0) return die('KODJO-V2-CLAUDE-AUTH', 'session Claude du runner indisponible');
+    if (auth.error || auth.status !== 0) return writeFailure('KODJO-V2-CLAUDE-AUTH', 'session Claude du runner indisponible');
   }
   if (!new RegExp('(^|\\s)' + CLAUDE_CODE_VERSION.replace(/\./g, '\\.') + '(\\s|$)').test(versionText)) {
-    return die('CLAUDE_VERSION_REFUSED', 'attendu ' + CLAUDE_CODE_VERSION + ', reÃ§u ' + versionText);
+    return writeFailure('CLAUDE_VERSION_REFUSED', 'attendu ' + CLAUDE_CODE_VERSION + ', reçu ' + versionText);
   }
-
-  const stateRoot = process.env.KODJO_STATE_ROOT
-    ? path.resolve(process.env.KODJO_STATE_ROOT)
-    : path.join(os.homedir(), '.kodjo-v2');
-  fs.mkdirSync(stateRoot, { recursive: true });
   let recoveredFiles = [];
   let pendingLegacyBootstrap = null;
   try {
@@ -564,30 +582,38 @@ function main() {
     recoveredFiles = restored.files;
     pendingLegacyBootstrap = restored.legacyBootstrap;
   } catch (err) {
-    return die('RECOVERY_REFUSED', err.message);
+    return writeFailure('RECOVERY_REFUSED', err.message);
   }
   const lockPath = path.join(stateRoot, 'claude-local.lock');
   let lock;
   try {
-    lock = fs.openSync(lockPath, 'wx', 0o600);
+    lock = acquireExecutionLock(lockPath, {
+      run_id: runId, request_id: request.request_id, session_id: request.generated_session_id,
+      github_run_id: process.env.GITHUB_RUN_ID || null,
+      github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
+    });
   } catch (err) {
-    return die('CLAUDE_EXECUTION_ALREADY_ACTIVE', lockPath);
+    return writeFailure(err.message, lockPath, { lock_state: err.message });
   }
 
-  let result, runId, runDir, beforeRefs, promptBytes;
+  let result, beforeRefs, promptBytes;
+  const interrupt = (signal) => {
+    const released = releaseExecutionLock(lock);
+    writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
+    process.exit(130);
+  };
+  process.once('SIGINT', interrupt);
+  process.once('SIGTERM', interrupt);
   try {
-    runId = request.slice_id + '-' + Date.now();
-    request.generated_session_id = request.mode === 'INITIAL' ? require('node:crypto').randomUUID() : request.session_id;
-    runDir = path.join(stateRoot, 'runs', runId);
-    fs.mkdirSync(runDir, { recursive: true });
     fs.writeFileSync(path.join(runDir, 'kodjo-check-runner.js'), CHECK_RUNNER_SOURCE, { encoding: 'utf8', mode: 0o500 });
+    fs.copyFileSync(path.join(__dirname, 'kodjo-git-read.js'), path.join(runDir, 'kodjo-git-read.js'));
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
     fs.writeFileSync(path.join(runDir, 'settings.json'), '{"disableAllHooks":true}\n', 'utf8');
     const taskText = fs.readFileSync(request.prompt_file, 'utf8');
     const prompt = buildPrompt(request, taskText, runDir);
     promptBytes = Buffer.byteLength(prompt, 'utf8');
     if (promptBytes > request.limits.max_prompt_bytes || promptBytes > request.limits.max_total_prompt_bytes) {
-      return die('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
+      return writeFailure('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
     }
     beforeRefs = refs(repoRoot);
     const intent = {
@@ -615,8 +641,9 @@ function main() {
     fs.writeFileSync(path.join(runDir, 'claude-output.json'), redact(result.stdout || ''), 'utf8');
     fs.writeFileSync(path.join(runDir, 'claude-stderr.txt'), redact(result.stderr || ''), 'utf8');
   } finally {
-    try { fs.closeSync(lock); } catch (_) {}
-    try { fs.unlinkSync(lockPath); } catch (_) {}
+    process.removeListener('SIGINT', interrupt);
+    process.removeListener('SIGTERM', interrupt);
+    releaseExecutionLock(lock);
   }
 
   delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
@@ -702,6 +729,8 @@ function main() {
     post_check_files: postCheckFiles,
     post_check_drift: drift,
     checks,
+    limits_effective: request.limits,
+    claude_invoked: true,
     status: verified
       ? 'IMPLEMENTED_AND_VERIFIED'
       : (result.status !== 0 || result.error ? 'IMPLEMENTATION_FAILED' : 'IMPLEMENTED_WITH_FAILED_CHECKS'),
@@ -740,4 +769,3 @@ module.exports = {
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,
 };
-
