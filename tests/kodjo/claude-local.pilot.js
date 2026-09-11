@@ -56,14 +56,15 @@ test('surface positive: outils fichiers et commandes de contrôle seulement', ()
   assert.ok(C.DISALLOWED_TOOLS.includes('mcp__*'));
 });
 
-test('arguments effectifs: restricted, non interactif, aucun MCP et plafond de tours', () => {
+test('arguments effectifs: restricted, non interactif, aucun MCP et aucun plafond de tours', () => {
   const f = fixture();
   const req = C.normalizeRequest(f.request, f.root);
   req.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
   const args = C.buildArgs(req, f.root, 'mission');
-  for (const required of ['-p', '--restricted', '--permission-prompts', 'none', '--strict-mcp-config', '--max-turns', '40']) {
+  for (const required of ['-p', '--restricted', '--permission-prompts', 'none', '--strict-mcp-config']) {
     assert.ok(args.includes(required), required);
   }
+  assert.equal(args.includes('--max-turns'), false);
   assert.ok(!args.includes('--dangerously-skip-permissions'));
   assert.ok(!args.includes('--allow-dangerously-skip-permissions'));
   assert.ok(args.includes('--session-id'));
@@ -95,15 +96,26 @@ test('requête refuse un périmètre parent ou absolu', () => {
   }
 });
 
-test('requête accepte 40 tours et refuse 41', () => {
-  let f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 40 } });
+test('aucune limite protocolaire de tours n est admise ni transmise', () => {
+  const f = fixture();
   const normalized = C.normalizeRequest(f.request, f.root);
-  assert.equal(normalized.limits.max_turns, 40);
   normalized.generated_session_id = '550e8400-e29b-41d4-a716-446655440000';
   const args = C.buildArgs(normalized, f.root, 'mission');
-  assert.equal(args[args.indexOf('--max-turns') + 1], '40');
-  f = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 41 } });
-  assert.throws(() => C.normalizeRequest(f.request, f.root), /BUDGET_INVALID_MAX_TURNS/);
+  assert.equal(args.includes('--max-turns'), false);
+  assert.deepEqual(C.TURN_LIMIT_POLICY, {
+    source: 'CLAUDE_SUBSCRIPTION',
+    protocol_max_turns: null,
+    cli_argument_emitted: false,
+  });
+  const bounded = fixture({ limits: { ...C.DEFAULT_LIMITS, max_turns: 40 } });
+  assert.throws(() => C.normalizeRequest(bounded.request, bounded.root), /BUDGET_MAX_TURNS_FORBIDDEN/);
+});
+
+test('invocation et résultat publient la gouvernance effective des tours', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
+  assert.ok((source.match(/turn_limit_effective:\s*TURN_LIMIT_POLICY/g) || []).length >= 2);
+  assert.equal(C.adapterConfig().turn_limit.source, 'CLAUDE_SUBSCRIPTION');
 });
 
 test('request_id est obligatoire et transmis sans modification', () => {
