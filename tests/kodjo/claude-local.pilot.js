@@ -46,10 +46,10 @@ test('surface positive: outils fichiers et commandes de contrôle seulement', ()
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} jest)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} typescript)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} lint)'));
-  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git status)'));
-  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git log:*)'));
-  assert.ok(C.ALLOWED_TOOLS.includes('Bash(git diff:*)'));
+  // Ne pas nier globalement Git : Claude Code classe lui-meme ses formes
+  // en lecture seule ; toutes les mutations restent refusees en mode dontAsk.
   assert.ok(!C.DISALLOWED_TOOLS.includes('Bash(git *)'));
+  assert.ok(!C.ALLOWED_TOOLS.some((rule) => /^Bash\(git /.test(rule)));
   assert.ok(C.DISALLOWED_TOOLS.includes('Bash(gh *)'));
   assert.ok(C.DISALLOWED_TOOLS.includes('mcp__*'));
 });
