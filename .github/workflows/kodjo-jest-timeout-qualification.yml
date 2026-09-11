@@ -35,17 +35,19 @@ jobs:
           persist-credentials: false
           path: _jest-timeout/${{ github.run_id }}
 
-      - name: Record immutable context and active Jest configuration
+      - name: Record immutable context
         run: |
           $ErrorActionPreference = 'Stop'
           git rev-parse HEAD
           git status --short
           node --version
           npm --version
-          npx jest --showConfig | Out-File "$env:RUNNER_TEMP\jest-show-config.json" -Encoding utf8
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Record active Jest configuration
+        run: npx jest --showConfig | Out-File "$env:RUNNER_TEMP\jest-show-config.json" -Encoding utf8
 
       - name: Measure complete Jest suite three times
         run: |
