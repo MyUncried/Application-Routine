@@ -145,7 +145,7 @@ test('0.6.22 — toute instrumentation du Lean Queue est explicitement non bloqu
   const blocks = workflow.split(/\n(?=      - (?:name:|uses:))/);
   const measurement = blocks.filter((block) => /^      - name: .*?(?:infrastructure measurement|metric)/mi.test(block));
   assert.ok(measurement.length >= 2);
-  for (const block of measurement) assert.match(block, /\n        continue-on-error: true\n/);
+  for (const block of measurement) assert.match(block, /\r?\n        continue-on-error: true\r?\n/);
 });
 
 test('0.6.22 — le point d arrêt C4 est inactif hors V2-PROD-00 supervisé', () => {
