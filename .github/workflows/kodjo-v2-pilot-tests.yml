@@ -68,6 +68,24 @@ jobs:
           $PSVersionTable.PSVersion.ToString()
           git --version
           node --version
+      - name: Remove only the stale checkout of Lean Queue run 34713139211
+        shell: powershell
+        run: |
+          $runId = '34713139211'
+          $workspace = [IO.Path]::GetFullPath('${{ github.workspace }}').TrimEnd('\')
+          $root = [IO.Path]::GetFullPath((Join-Path (Join-Path $workspace '_kodjo') $runId)).TrimEnd('\')
+          $script = Join-Path $workspace '_qualification/${{ github.run_id }}/scripts/kodjo/cleanup-run-checkout.ps1'
+          $metrics = Join-Path '${{ runner.temp }}' 'kodjo-stale-cleanup-34713139211-${{ github.run_id }}.json'
+          & $script -Root $root -WorkspaceRoot $workspace -RunId $runId -MetricsFile $metrics
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve exact stale-checkout cleanup proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-stale-cleanup-34713139211-${{ github.run_id }}
+          path: ${{ runner.temp }}/kodjo-stale-cleanup-34713139211-${{ github.run_id }}.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Certify real persistent runner lock before Claude boundary
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
