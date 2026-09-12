@@ -156,14 +156,17 @@ function checkRunnerPath(configDir) {
 function concreteAllowedTools(configDir) {
   const runner = checkRunnerPath(configDir);
   const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
+  const mutationRunner = path.join(configDir, 'kodjo-file-mutation.js').replace(/\\/g, '/');
   return ALLOWED_TOOLS.map((rule) => rule
     .replace('{KODJO_CHECK_RUNNER}', '"' + runner + '"')
-    .replace('{KODJO_GIT_READ_RUNNER}', '"' + gitRunner + '"'));
+    .replace('{KODJO_GIT_READ_RUNNER}', '"' + gitRunner + '"')
+    .replace('{KODJO_FILE_MUTATION_RUNNER}', '"' + mutationRunner + '"'));
 }
 
 function buildPrompt(request, taskText, configDir) {
   const runner = checkRunnerPath(configDir);
   const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
+  const mutationRunner = path.join(configDir, 'kodjo-file-mutation.js').replace(/\\/g, '/');
   const checkCommands = request.checks.map((c) => ({
     jest: 'node "' + runner + '" jest',
     typescript: 'node "' + runner + '" typescript',
