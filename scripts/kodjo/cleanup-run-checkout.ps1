@@ -53,6 +53,7 @@ $diagnostics = New-Object System.Collections.ArrayList
 $checkoutBytes = Get-DirectoryBytes $rootFull
 $attempts = 0
 $driveRoot = [IO.Path]::GetPathRoot($workspaceFull)
+$cmdRoot = if ($rootFull.StartsWith('\\?\')) { $rootFull } else { '\\?\' + $rootFull }
 
 if ($RunId -notmatch '^[0-9]+$' -or $rootFull -ne $expectedRoot -or
     [IO.Path]::GetDirectoryName($rootFull) -ne $kodjoRoot) {
@@ -66,8 +67,17 @@ if ($RunId -notmatch '^[0-9]+$' -or $rootFull -ne $expectedRoot -or
 
 for ($attempt = 1; $attempt -le 5 -and (Test-Path -LiteralPath $rootFull); $attempt++) {
   $attempts = $attempt
-  $output = & cmd.exe /d /c rd /s /q $rootFull 2>&1
-  $exit = $LASTEXITCODE
+  # PowerShell 5.1 transforme parfois stderr d'un programme natif en exception
+  # lorsque ErrorActionPreference vaut Stop. On doit conserver la sortie et le
+  # code retour pour laisser les cinq tentatives et les diagnostics s'exécuter.
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    $output = & cmd.exe /d /c rd /s /q $cmdRoot 2>&1
+    $exit = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
   if ($exit -ne 0 -or $output) {
     [void]$diagnostics.Add(('attempt {0}: cmd rd exit={1}: {2}' -f $attempt, $exit, ($output -join ' ')))
   }
