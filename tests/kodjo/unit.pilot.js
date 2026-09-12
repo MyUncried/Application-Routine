@@ -16,6 +16,7 @@ const {
   resolveChecksToRerun,
   parseJestCounts,
   classifyLaunchFailure,
+  commandFor,
   REQUIRED_CHECKS,
 } = require(path.join(H.SCRIPTS, 'lib', 'checks.js'));
 const { parse, YamlError } = require(path.join(H.SCRIPTS, 'lib', 'yaml.js'));
@@ -126,6 +127,18 @@ test('compteurs Jest — 862 passed / 2 failed sont extraits exactement', () => 
     failed_tests: null,
     total_tests: null,
   });
+});
+
+test('qualification jetable — Jest réutilise uniquement une cache isolée au run', () => {
+  const isolated = commandFor('jest', {
+    KODJO_QUALIFICATION_ISOLATED_CHECKS: '1',
+    KODJO_QUALIFICATION_CHECK_CACHE_DIR: 'C:\\runner-temp\\kodjo-run-1\\check-cache',
+  });
+  assert.match(isolated, /--cacheDirectory/);
+  assert.match(isolated, /kodjo-run-1/);
+  assert.doesNotMatch(isolated, /--no-cache/);
+  assert.match(commandFor('jest', { KODJO_QUALIFICATION_ISOLATED_CHECKS: '1' }), /--no-cache/);
+  assert.equal(commandFor('jest', {}), 'npm test --silent');
 });
 
 test('parser YAML — structure du workflow reelle et refus des constructions non supportees', () => {

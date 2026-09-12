@@ -136,6 +136,7 @@ try {
   if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
 
   $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
+  $env:KODJO_QUALIFICATION_CHECK_CACHE_DIR = Join-Path $root 'check-cache'
   $before = Get-Inventory $work
   $baselineDirectory = Join-Path $evidence 'baseline'
   New-Item -ItemType Directory -Force -Path $baselineDirectory | Out-Null
@@ -235,6 +236,7 @@ catch {
   throw
 }
 finally {
+  Remove-Item Env:KODJO_QUALIFICATION_CHECK_CACHE_DIR -ErrorAction SilentlyContinue
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
   $cleanupMessages = New-Object System.Collections.ArrayList
   if (Test-Path -LiteralPath $work) {

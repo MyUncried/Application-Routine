@@ -107,13 +107,16 @@ test('workflow jetable: dispatch manuel, lecture seule et aucune publication dis
   assert.match(runner, /cleanup_status/);
 });
 
-test('qualification jetable: caches des contrôles désactivés dans les deux chemins réels', () => {
+test('qualification jetable: cache Jest isolée et cache lint désactivée dans les deux chemins réels', () => {
   const checks = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'lib', 'checks.js'), 'utf8');
   const supervisor = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
   assert.match(checks, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
-  assert.match(checks, /command \+ ' -- --no-cache'/);
+  assert.match(checks, /KODJO_QUALIFICATION_CHECK_CACHE_DIR/);
+  assert.match(checks, /--cacheDirectory/);
   assert.match(supervisor, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
-  assert.match(supervisor, /commands\[id\]\[1\]\.push\('--', '--no-cache'\)/);
+  assert.match(supervisor, /KODJO_QUALIFICATION_CHECK_CACHE_DIR/);
+  assert.match(supervisor, /commands\[id\]\[1\]\.push\('--', '--cacheDirectory'/);
+  assert.match(supervisor, /if \(id === 'lint'\) commands\[id\]\[1\]\.push\('--', '--no-cache'\)/);
   const pilotWorkflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
   assert.match(pilotWorkflow, /Run full disposable preflight without Claude/);
   assert.match(pilotWorkflow, /-PreflightOnly/);

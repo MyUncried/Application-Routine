@@ -120,6 +120,7 @@ try {
   if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
 
   $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
+  $env:KODJO_QUALIFICATION_CHECK_CACHE_DIR = Join-Path $root 'check-cache'
   $baselineDirectory = Join-Path $evidence 'baseline'
   New-Item -ItemType Directory -Force -Path $baselineDirectory | Out-Null
   $baseline = [ordered]@{}
@@ -186,8 +187,11 @@ try {
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
   if (-not (Test-Path -LiteralPath $expectedFile)) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
   if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 RESUME QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
-  $finalHash = (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash.ToLowerInvariant()
-  if ($sourceManifest.fixture_result_sha256 -and $finalHash -ne ([string]$sourceManifest.fixture_result_sha256).ToLowerInvariant()) { throw 'INITIAL_DELTA_LOST_OR_CHANGED' }
+  $sourcePatchHash = ([string]$sourcePackageManifest.patch_sha256).ToLowerInvariant()
+  $resumePatchHash = ([string]$resumePackageManifest.patch_sha256).ToLowerInvariant()
+  $manifest.source_patch_sha256 = $sourcePatchHash
+  $manifest.resume_patch_sha256 = $resumePatchHash
+  if ($sourcePatchHash -notmatch '^[0-9a-f]{64}$' -or $resumePatchHash -ne $sourcePatchHash) { throw 'INITIAL_DELTA_LOST_OR_CHANGED' }
   if ($comparisonExecution.Code -ne 0 -or $comparison.verdict -ne 'PASS') { throw 'QUALIFICATION_CHECK_REGRESSION_OR_NON_EXECUTION' }
   if (Test-Path -LiteralPath (Join-Path $state 'claude-local.lock')) { throw 'CLAUDE_LOCK_REMAINS' }
   $main = (gh api ("repos/" + $env:GITHUB_REPOSITORY + "/git/ref/heads/main") --jq '.object.sha').Trim()
@@ -204,6 +208,7 @@ catch {
 finally {
   Remove-Item Env:KODJO_STATE_ROOT -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SOURCE_RECOVERY_DIR -ErrorAction SilentlyContinue
+  Remove-Item Env:KODJO_QUALIFICATION_CHECK_CACHE_DIR -ErrorAction SilentlyContinue
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
   $cleanupMessages = New-Object System.Collections.ArrayList
   if (Test-Path -LiteralPath $work) {

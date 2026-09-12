@@ -518,6 +518,7 @@ function consumeLegacyBootstrap(stateRoot, request, legacyBootstrap, runId) {
 
 const CHECK_RUNNER_SOURCE = `'use strict';
 const { spawnSync } = require('node:child_process');
+const path = require('node:path');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const commands = {
@@ -529,7 +530,12 @@ const id = process.argv[2];
 if (!Object.prototype.hasOwnProperty.call(commands, id)) process.exit(78);
 const env = { ...process.env };
 if (env.KODJO_QUALIFICATION_ISOLATED_CHECKS === '1') {
-  if (id === 'jest' || id === 'lint') commands[id][1].push('--', '--no-cache');
+  if (id === 'jest') {
+    const cacheRoot = String(env.KODJO_QUALIFICATION_CHECK_CACHE_DIR || '').trim();
+    if (cacheRoot) commands[id][1].push('--', '--cacheDirectory', path.join(cacheRoot, 'jest'));
+    else commands[id][1].push('--', '--no-cache');
+  }
+  if (id === 'lint') commands[id][1].push('--', '--no-cache');
 }
 delete env.CLAUDE_CODE_OAUTH_TOKEN;
 delete env.ANTHROPIC_API_KEY;
