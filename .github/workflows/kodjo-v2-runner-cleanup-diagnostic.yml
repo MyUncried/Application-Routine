@@ -1,0 +1,108 @@
+name: KODJO V2 runner cleanup diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_head:
+        description: 'Exact protocol commit containing this diagnostic'
+        required: true
+        type: string
+      target_run_id:
+        description: 'Run id whose isolated temporary directory must be removed'
+        required: true
+        type: string
+      target_run_attempt:
+        description: 'Run attempt whose isolated temporary directory must be removed'
+        required: true
+        type: string
+        default: '1'
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          ref: ${{ inputs.expected_head }}
+
+      - name: Require exact diagnostic HEAD
+        shell: powershell
+        run: |
+          $observed = (git rev-parse HEAD).Trim()
+          if ($observed -ne '${{ inputs.expected_head }}') { throw "HEAD_MISMATCH: $observed" }
+
+      - name: Diagnose and remove only the requested orphan
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ inputs.target_run_id }}' -notmatch '^\d+$' -or '${{ inputs.target_run_attempt }}' -notmatch '^\d+$') {
+            throw 'INVALID_TARGET_IDENTITY'
+          }
+          $leaf = 'kodjo-qualif-resume-${{ inputs.target_run_id }}-${{ inputs.target_run_attempt }}'
+          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
+          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
+            throw ('TARGET_IDENTITY_MISMATCH: ' + $target)
+          }
+
+          $evidence = Join-Path $env:GITHUB_WORKSPACE '_runner-cleanup-evidence'
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+          $lock = Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'claude-local.lock'
+          $processes = @(Get-CimInstance Win32_Process | Where-Object {
+            $_.CommandLine -and $_.CommandLine.IndexOf($target, [StringComparison]::OrdinalIgnoreCase) -ge 0
+          } | Select-Object ProcessId, Name, ExecutablePath, CommandLine)
+          $report = [ordered]@{
+            schema_version = 'kodjo.protocol.v2.runner-cleanup-diagnostic.0.6.22'
+            target = $target
+            target_existed_before = (Test-Path -LiteralPath $target)
+            claude_lock_present = (Test-Path -LiteralPath $lock)
+            target_processes_before = $processes
+            attempts = @()
+            target_exists_after = $null
+            status = 'IN_PROGRESS'
+          }
+          try {
+            if ($report.claude_lock_present) { throw 'CLAUDE_LOCK_PRESENT_CLEANUP_REFUSED' }
+            if ($processes.Count -ne 0) { throw 'TARGET_PROCESS_STILL_ACTIVE_CLEANUP_REFUSED' }
+            Set-Location -LiteralPath $temp
+            for ($attempt = 1; $attempt -le 5 -and (Test-Path -LiteralPath $target); $attempt++) {
+              $message = $null
+              try {
+                Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction Stop
+              } catch {
+                $message = $_.Exception.Message
+                & cmd.exe /d /c rd /s /q $target
+              }
+              $report.attempts += [ordered]@{
+                number = $attempt
+                remove_item_error = $message
+                target_still_exists = (Test-Path -LiteralPath $target)
+              }
+              if (Test-Path -LiteralPath $target) { Start-Sleep -Seconds 2 }
+            }
+            $report.target_exists_after = (Test-Path -LiteralPath $target)
+            if ($report.target_exists_after) { throw 'ORPHAN_DIRECTORY_STILL_PRESENT' }
+            $report.status = 'PASS'
+          } catch {
+            $report.status = 'FAIL'
+            $report.failure = $_.Exception.Message
+            throw
+          } finally {
+            $report.finished_at = (Get-Date).ToUniversalTime().ToString('o')
+            ($report | ConvertTo-Json -Depth 10) | Set-Content -LiteralPath (Join-Path $evidence 'runner-cleanup-diagnostic.json') -Encoding UTF8
+          }
+
+      - name: Preserve cleanup diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-cleanup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _runner-cleanup-evidence
+          if-no-files-found: error
+          retention-days: 90
