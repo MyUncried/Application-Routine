@@ -19,7 +19,9 @@ const ALLOWED_TOOLS = [
   'Bash(node {KODJO_CHECK_RUNNER} typescript)',
   'Bash(node {KODJO_CHECK_RUNNER} lint)',
   'Bash(node {KODJO_GIT_READ_RUNNER} *)',
-  'Bash(node {KODJO_FILE_MUTATION_RUNNER} *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} delete *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} rename *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} write-base64 *)',
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
