@@ -26,6 +26,14 @@
       "baseline_head": "2cb6197198ae6e1f988a9472a3685048b832c8f4",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-QUALIF-01/slice-bootstrap.json",
       "slice_bootstrap_sha256": "d8c40b1ae2dcbe7df82a7624e505b05aecf75b564c41184fbfe18dab6fd7d07e"
+    },
+    {
+      "slice_id": "V2-PROD-00",
+      "status": "ACTIVE",
+      "issue_number": 79,
+      "baseline_head": "90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2",
+      "bootstrap_path": ".github/orchestration/v2-slices/V2-PROD-00/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "1180141045af7bd311f84dce6dd74ebb7602fb28a9028de14c12f5e3d7e8962b"
     }
   ]
 }

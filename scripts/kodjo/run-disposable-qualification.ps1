@@ -42,6 +42,7 @@ $manifest = [ordered]@{
   integrated_in_main = $false
   preflight_only = [bool]$PreflightOnly
   baseline_checks = $null
+  prod_qualification_scope_preflight = $null
   check_comparison = $null
   isolated_check_caches = $true
   result = $null
@@ -140,6 +141,10 @@ try {
   Invoke-Native 'npm.cmd' @('ci', '--no-audit', '--no-fund') $work | Out-Null
   $afterDependencies = (Invoke-Native 'git' @('status', '--porcelain=v2', '--untracked-files=all') $work).Output
   if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
+
+  $scopePreflightPath = Join-Path $evidence 'prod-qualification-scope.json'
+  Invoke-Native 'node' @('scripts/kodjo/certify-prod-qualification-scope.js', $work, $scopePreflightPath) $work | Out-Null
+  $manifest.prod_qualification_scope_preflight = Get-Content -Raw -LiteralPath $scopePreflightPath | ConvertFrom-Json
 
   $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
   $env:KODJO_QUALIFICATION_CHECK_CACHE_DIR = Join-Path $root 'check-cache'
