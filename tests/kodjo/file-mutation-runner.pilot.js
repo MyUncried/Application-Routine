@@ -7,7 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const RUNNER = path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'kodjo-file-mutation.js');
+const RUNNER = path.resolve(__dirname, '..', '..', 'scripts', 'kodjo', 'kodjo-file-mutation.js');
 
 function workspace() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-mutation-'));
