@@ -3,7 +3,10 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { normalizeScopeCandidate, inScope } = require('./scope-path');
+const scopeModule = fs.existsSync(path.join(__dirname, 'scope-path.js'))
+  ? './scope-path'
+  : './lib/scope-path';
+const { normalizeScopeCandidate, inScope } = require(scopeModule);
 
 const MAX_WRITE_BYTES = 1024 * 1024;
 
