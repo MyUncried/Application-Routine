@@ -134,3 +134,10 @@ test('qualification RESUME_DELTA: nettoyage Windows borné, réessayé et diagno
   assert.match(runner, /cleanup_diagnostics/);
   assert.match(runner, /QUALIFICATION_TEMP_CLEANUP_FAILED/);
 });
+
+test('qualification RESUME_DELTA: une migration non requise est une preuve valide', () => {
+  const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-resume-qualification.ps1'), 'utf8');
+  assert.match(runner, /\$migration\.required -eq \$false -and \$migration\.status -eq 'NOT_REQUIRED'/);
+  assert.match(runner, /\$migration\.required -eq \$true -and \$migration\.status -eq 'PASS'/);
+  assert.match(runner, /if \(-not \$migrationProven\) \{ throw 'RECOVERY_MIGRATION_NOT_PROVEN' \}/);
+});
