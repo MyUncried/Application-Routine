@@ -178,7 +178,11 @@ try {
   if ($resumePackageManifest.request_id -ne $result.request_id -or $resumePackageManifest.run_id -ne $result.run_id -or $resumePackageManifest.session_id -ne $result.session_id -or $resumePackageManifest.source_head -ne $ExpectedHead) { throw 'RESUME_PACKAGE_CORRESPONDENCE_NOT_PROVEN' }
   if ($result.session_id -ne $sourceResult.session_id) { throw 'SESSION_CONTINUITY_NOT_PROVEN' }
   if (@($result.recovered_files).Count -ne 1 -or $result.recovered_files[0] -ne 'tests/fixtures/qualif-resume/result.txt') { throw 'RECOVERY_NOT_PROVEN' }
-  if ($result.recovery_source_head_migration.status -ne 'PASS') { throw 'RECOVERY_MIGRATION_NOT_PROVEN' }
+  $migration = $result.recovery_source_head_migration
+  $migrationProven =
+    ($migration.required -eq $false -and $migration.status -eq 'NOT_REQUIRED') -or
+    ($migration.required -eq $true -and $migration.status -eq 'PASS')
+  if (-not $migrationProven) { throw 'RECOVERY_MIGRATION_NOT_PROVEN' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
   if (-not (Test-Path -LiteralPath $expectedFile)) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
   if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 RESUME QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
