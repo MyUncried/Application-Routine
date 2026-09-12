@@ -47,7 +47,9 @@ test('surface positive: outils fichiers et commandes de contrôle seulement', ()
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} typescript)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_CHECK_RUNNER} lint)'));
   assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_GIT_READ_RUNNER} *)'));
-  assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_FILE_MUTATION_RUNNER} *)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_FILE_MUTATION_RUNNER} delete *)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_FILE_MUTATION_RUNNER} rename *)'));
+  assert.ok(C.ALLOWED_TOOLS.includes('Bash(node {KODJO_FILE_MUTATION_RUNNER} write-base64 *)'));
   // Ne pas nier globalement Git : Claude Code classe lui-meme ses formes
   // en lecture seule ; toutes les mutations restent refusees en mode dontAsk.
   assert.ok(!C.DISALLOWED_TOOLS.includes('Bash(git *)'));
@@ -89,7 +91,9 @@ test('les commandes autorisées passent uniquement par le runner externe figé',
   const f = fixture();
   const tools = C.concreteAllowedTools(f.root);
   assert.ok(tools.some((v) => /^Bash\(node ".*kodjo-check-runner\.js" jest\)$/.test(v)));
-  assert.ok(tools.some((v) => /^Bash\(node ".*kodjo-file-mutation\.js" \*\)$/.test(v)));
+  assert.ok(tools.some((v) => /^Bash\(node ".*kodjo-file-mutation\.js" delete \*\)$/.test(v)));
+  assert.ok(tools.some((v) => /^Bash\(node ".*kodjo-file-mutation\.js" rename \*\)$/.test(v)));
+  assert.ok(tools.some((v) => /^Bash\(node ".*kodjo-file-mutation\.js" write-base64 \*\)$/.test(v)));
   assert.ok(tools.every((v) => !/^Bash\(npm /.test(v)));
 });
 
