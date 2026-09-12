@@ -1,6 +1,6 @@
 # KODJO V2 — contrat d'exploitation lean
 
-Version : 0.6.17
+Version : 0.6.18
 
 ## Principe opposable
 
@@ -16,7 +16,7 @@ Les décisions sont exprimées en langage naturel. ChatGPT Protocole les traduit
 
 ## Mécanique automatisée
 
-Après autorisation d'implémentation, ChatGPT Protocole crée dans `.github/orchestration/queue/v2/` une demande immuable liée à l'identité de tranche. Ce commit est le déclencheur technique.
+Après autorisation d'implémentation, ChatGPT Protocole crée dans `.github/orchestration/queue/v2/` une demande immuable liée à l'identité de tranche. La demande peut être lancée explicitement par `workflow_dispatch` : le protocole utilise alors le commit courant comme borne `after` et son parent direct comme borne `before`. Une PR technique et sa fusion ne sont plus nécessaires pour produire le signal de lancement.
 
 Le runner Windows :
 
@@ -28,7 +28,15 @@ Le runner Windows :
 - ne publie une branche et une PR que si le verdict est `IMPLEMENTED_AND_VERIFIED` ;
 - publie un diagnostic technique en cas d'échec, sans demander à l'utilisateur de réparer le protocole.
 
-Le verrou Claude identifie son propriétaire par PID et date de démarrage, ainsi que par le run, la demande et la session. Il n'est remplacé automatiquement qu'après preuve de l'absence du propriétaire ; un état ambigu bloque sans tuer de processus. Chaque diagnostic est lié à `github.run_id` et `github.run_attempt`, y compris avant invocation de Claude. `request_id` reste non nullable de la file aux preuves. Une reprise utilise une invocation au plus et 40 tours au maximum.
+Le verrou Claude identifie son propriétaire par PID et date de démarrage, ainsi que par le run, la demande et la session. Il n'est remplacé automatiquement qu'après preuve de l'absence du propriétaire ; un état ambigu bloque sans tuer de processus. Chaque diagnostic est lié à `github.run_id` et `github.run_attempt`, y compris avant invocation de Claude. `request_id` reste non nullable de la file aux preuves. Une reprise utilise une invocation au plus. KODJO n’impose aucun plafond arbitraire de tours ; la durée, le périmètre, l’appel unique et les règles de sécurité restent bornés.
+
+## Lancement allégé d’une demande
+
+Une demande de file n’est pas une modification du protocole. Elle est donc soumise à une admission ciblée — ajout unique, `request_id` unique, contrat et autorisations — mais ne déclenche pas la campagne de qualification Linux/Windows réservée aux changements du protocole.
+
+Le lancement explicite ne demande à l’utilisateur ni branche, ni PR, ni fusion, ni SHA. ChatGPT Protocole crée la demande et pilote le déclenchement. Si l’interface GitHub doit exceptionnellement être utilisée, l’unique geste technique admis est `Run workflow` sur `KODJO V2 Lean Queue`, immédiatement après le commit de la demande ; aucune valeur technique n’est à saisir.
+
+Dans le run réel, les contrôles déterministes sont exécutés par le superviseur après Claude. La suite applicative complète n’est exécutée qu’une fois par tentative réelle ; elle n’est pas dupliquée par la qualification préalable d’une PR de transport.
 
 ## Responsabilités
 
