@@ -19,6 +19,7 @@ const ALLOWED_TOOLS = [
   'Bash(node {KODJO_CHECK_RUNNER} typescript)',
   'Bash(node {KODJO_CHECK_RUNNER} lint)',
   'Bash(node {KODJO_GIT_READ_RUNNER} *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} *)',
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
@@ -181,6 +182,7 @@ function buildPrompt(request, taskText, configDir) {
     'Bornes obligatoires:',
     '- Modifier uniquement: ' + request.scope_allow.join(', '),
     '- Git est limite aux inspections en lecture via: node "' + gitRunner + '" <status|diff|log|show|rev-parse|ls-files> [arguments].',
+    '- Pour supprimer, renommer ou écrire des octets, utiliser uniquement: node "' + mutationRunner + '" delete <chemin> ; rename <origine> <destination> ; write-base64 <chemin> <base64>. Chaque chemin reste soumis au périmètre autorisé.',
     '- Ne lancer aucune commande Git de mutation, gh, réseau, publication, suppression globale ou shell indirect.',
     '- Ne créer ni commit, branche, tag, stash ou push.',
     '- Exécuter les contrôles autorisés: ' + checkCommands.join(' ; '),
