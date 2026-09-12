@@ -163,7 +163,12 @@ function recoveryPayload(repoRoot, request, files, meta) {
  */
 function writePublishablePathspec(paths) {
   const target = (process.env.KODJO_PUBLISH_PATHSPEC_FILE || '').trim();
-  if (!target) return null;
+  if (!target) {
+    if (process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true') {
+      throw new Error('SUPERVISED_PUBLISH_PATHSPEC_TARGET_MISSING');
+    }
+    return null;
+  }
   // Reserve 1 de la revue du lot 1 : un pathspec est un motif, pas un chemin.
   // `src/glob*.ts` capturait `src/globVOISIN.ts`, non autorise. La magie
   // `:(literal)` impose une correspondance exacte, caractere par caractere.
@@ -238,6 +243,13 @@ function writeRecovery(runDir, repoRoot, request, files, meta) {
  * celle habilitee a lire le depot.
  */
 const RECOVERY_PACKAGE_SCHEMA = 'kodjo.protocol.v2.recovery-package.0.6.16';
+
+function certificationStopAfterRecoveryEnabled(request, env = process.env) {
+  return env.GITHUB_ACTIONS === 'true' &&
+    env.KODJO_SUPERVISED_QUEUE === '1' &&
+    env.KODJO_CERTIFICATION_STOP_AFTER_RECOVERY === 'V2-PROD-00' &&
+    request.slice_id === 'V2-PROD-00';
+}
 const RECOVERY_MIGRATION_PROTOCOL_PREFIXES = Object.freeze([
   '.github/orchestration/', '.github/workflows/kodjo-v2-', 'scripts/kodjo/', 'tests/kodjo/',
   'tests/fixtures/qualif/',
@@ -636,7 +648,7 @@ function main() {
     return writeFailure(err.message, lockPath, { lock_state: err.message });
   }
 
-  let result, beforeRefs, promptBytes;
+  let result, beforeRefs, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
   const interrupt = (signal) => {
     const released = releaseExecutionLock(lock);
     writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
@@ -679,7 +691,12 @@ function main() {
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const claudeEnv = { ...process.env };
+    const claudeStartedMs = Date.now();
+    claudeStartedAt = new Date(claudeStartedMs).toISOString();
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
+    const claudeFinishedMs = Date.now();
+    claudeFinishedAt = new Date(claudeFinishedMs).toISOString();
+    claudeDurationMs = claudeFinishedMs - claudeStartedMs;
     fs.writeFileSync(path.join(runDir, 'claude-output.json'), redact(result.stdout || ''), 'utf8');
     fs.writeFileSync(path.join(runDir, 'claude-stderr.txt'), redact(result.stderr || ''), 'utf8');
   } finally {
@@ -715,6 +732,37 @@ function main() {
     recoveryPackage = writeRecoveryPackage(runDir, repoRoot, request, files, { runId, integrityStatus });
   } catch (err) {
     return die('RECOVERY_PACKAGE_WRITE_FAILED', err.message);
+  }
+
+  // C4 : interruption déterministe uniquement pour la tranche de certification.
+  // Le paquet atomique existe déjà et aucun contrôle ni chemin de publication
+  // n'a encore été exécuté. La sortie 75 laisse le workflow préserver l'artefact.
+  if (certificationStopAfterRecoveryEnabled(request)) {
+    const interrupted = {
+      schema_version: 'kodjo.protocol.v2.local-result.0.6.22',
+      run_id: runId,
+      github_run_id: process.env.GITHUB_RUN_ID || null,
+      github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
+      request_id: request.request_id,
+      session_id: request.generated_session_id,
+      source_head: request.source_head,
+      status: 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',
+      diagnostic: 'CERTIFICATION_STOP_AFTER_RECOVERY',
+      claude_invoked: true,
+      modified_files: files,
+      recovered_files: recoveredFiles,
+      recovery_files: recoveryFiles,
+      recovery_package: recoveryPackage.manifest,
+      checks: [],
+      publishable_paths: [],
+      publishable_pathspec_file: null,
+      integrity_status: integrityStatus,
+      limits_effective: request.limits,
+      turn_limit_effective: TURN_LIMIT_POLICY,
+    };
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(interrupted, null, 2) + '\n', 'utf8');
+    process.stderr.write('[KODJO_V2] CERTIFICATION_STOP_AFTER_RECOVERY — paquet préservé, contrôles non exécutés\n');
+    return 75;
   }
 
   // KV2-08 : l'amorce n'est consommee qu'ici, apres production d'un paquet.
@@ -756,6 +804,9 @@ function main() {
     session_id: request.generated_session_id,
     claude_exit_code: result.status, claude_error: result.error ? result.error.message : null,
     claude_failure: classifyClaudeFailure(result),
+    claude_started_at: claudeStartedAt,
+    claude_finished_at: claudeFinishedAt,
+    claude_duration_ms: claudeDurationMs,
     timed_out: result.status === null, source_head: request.source_head,
     // KV2-19 : preuve que les controles ont bien tourne contre les dependances
     // de la revision controlee, et non contre celles de main.
@@ -812,5 +863,6 @@ module.exports = {
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,
   certifyRecoverySourceMigration, isProtocolMigrationPath,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
+  certificationStopAfterRecoveryEnabled,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,
 };

@@ -70,6 +70,12 @@ function Invoke-Native {
   return New-Object psobject -Property @{ Code = $code; Output = $text }
 }
 
+function Write-JsonNoBom {
+  param([string]$Path, [object]$Value, [int]$Depth = 20)
+  $json = ($Value | ConvertTo-Json -Depth $Depth).Replace("`r`n", "`n") + "`n"
+  [IO.File]::WriteAllText($Path, $json, (New-Object Text.UTF8Encoding($false)))
+}
+
 function Get-Inventory {
   param([string]$RepositoryRoot)
   $map = [ordered]@{}
@@ -148,7 +154,7 @@ try {
   }
   $manifest.baseline_checks = $baseline
   $baselinePath = Join-Path $baselineDirectory 'checks.json'
-  ($baseline | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $baselinePath -Encoding UTF8
+  Write-JsonNoBom $baselinePath $baseline 12
 
   $localBench = Join-Path $evidence 'disposable-local-bench.json'
   Invoke-Native 'node' @('tests/kodjo/qualification/disposable-slice-bench.js', $localBench) $work | Out-Null
@@ -260,6 +266,6 @@ finally {
     $manifest.workflow_technical_status = 'FAILURE'
     $manifest.failure = 'QUALIFICATION_TEMP_CLEANUP_FAILED'
   }
-  ($manifest | ConvertTo-Json -Depth 20) | Set-Content -LiteralPath (Join-Path $evidence 'qualification-manifest.json') -Encoding UTF8
+  Write-JsonNoBom (Join-Path $evidence 'qualification-manifest.json') $manifest 20
   if ($cleanupMustFailRun) { throw 'QUALIFICATION_TEMP_CLEANUP_FAILED' }
 }

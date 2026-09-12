@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 function readJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
 }
 
 /** Deterministic write: 2-space indent, LF endings, trailing newline. */
