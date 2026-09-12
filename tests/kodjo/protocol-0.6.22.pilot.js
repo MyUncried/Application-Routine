@@ -91,6 +91,10 @@ test('0.6.22 — le nettoyage initialise des métriques saines si le fichier est
   const output = path.join(dir, 'metrics.json');
   fs.mkdirSync(checkout, { recursive: true });
   fs.writeFileSync(path.join(checkout, 'sample.txt'), 'delta');
+  const deep = path.join(checkout, ...Array.from({ length: 18 }, (_, index) => `segment-${index.toString().padStart(2, '0')}-abcdefghijklmnop`));
+  fs.mkdirSync(deep, { recursive: true });
+  fs.writeFileSync(path.join(deep, 'long-path.txt'), 'long-path');
+  assert.ok(path.join(deep, 'long-path.txt').length > 260);
   const script = path.join(root, 'scripts', 'kodjo', 'cleanup-run-checkout.ps1');
   const result = spawnSync('powershell.exe', [
     '-NoLogo', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script,
@@ -103,7 +107,10 @@ test('0.6.22 — le nettoyage initialise des métriques saines si le fichier est
   assert.equal(metrics.cleanup.status, 'PASS');
   assert.equal(Object.prototype.hasOwnProperty.call(metrics.storage, 'Keys'), false);
   assert.equal(Object.prototype.hasOwnProperty.call(metrics.storage, 'Count'), false);
-  assert.equal(metrics.storage.checkout_bytes_before_cleanup, 5);
+  // Windows PowerShell 5.1 peut omettre le fichier situé au-delà de MAX_PATH
+  // pendant la mesure, mais le préfixe long doit tout de même permettre sa suppression.
+  assert.ok(metrics.storage.checkout_bytes_before_cleanup >= 5);
+  assert.ok(metrics.storage.checkout_bytes_before_cleanup <= 14);
 });
 
 test('0.6.22 — les preuves sont préservées avant le nettoyage borné du checkout', () => {
@@ -122,6 +129,8 @@ test('0.6.22 — les preuves sont préservées avant le nettoyage borné du chec
   const cleanupScript = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'cleanup-run-checkout.ps1'), 'utf8');
   assert.match(cleanupScript, /RUN_CHECKOUT_IDENTITY_MISMATCH/);
   assert.match(cleanupScript, /\$attempt -le 5/);
+  assert.match(cleanupScript, /\\\\\?\\/);
+  assert.match(cleanupScript, /\$ErrorActionPreference = 'Continue'/);
   assert.match(cleanupScript, /processes referencing root/);
   assert.match(cleanupScript, /New-Object Text\.UTF8Encoding\(\$false\)/);
 });

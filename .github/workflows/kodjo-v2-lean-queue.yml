@@ -164,8 +164,19 @@ jobs:
             if ($runId -notmatch '^[0-9]+$' -or $root -ne $expected -or [IO.Path]::GetDirectoryName($root) -ne $kodjoRoot) {
               throw 'RUN_CHECKOUT_IDENTITY_MISMATCH'
             }
+            $cmdRoot = if ($root.StartsWith('\\?\')) { $root } else { '\\?\' + $root }
             for ($attempt = 1; $attempt -le 5 -and (Test-Path -LiteralPath $root); $attempt++) {
-              & cmd.exe /d /c rd /s /q $root
+              $previousErrorActionPreference = $ErrorActionPreference
+              try {
+                $ErrorActionPreference = 'Continue'
+                $output = & cmd.exe /d /c rd /s /q $cmdRoot 2>&1
+                $exit = $LASTEXITCODE
+              } finally {
+                $ErrorActionPreference = $previousErrorActionPreference
+              }
+              if ($exit -ne 0 -or $output) {
+                Write-Warning ('cleanup attempt {0}: cmd rd exit={1}: {2}' -f $attempt, $exit, ($output -join ' '))
+              }
               if (Test-Path -LiteralPath $root) { Start-Sleep -Seconds 2 }
             }
             if (Test-Path -LiteralPath $root) { throw 'RUN_CHECKOUT_CLEANUP_FAILED' }
