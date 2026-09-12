@@ -201,21 +201,47 @@ finally {
   Remove-Item Env:KODJO_STATE_ROOT -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SOURCE_RECOVERY_DIR -ErrorAction SilentlyContinue
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
+  $cleanupMessages = New-Object System.Collections.ArrayList
+  if (Test-Path -LiteralPath $work) {
+    $clean = Invoke-Native 'git' @('clean', '-ffdx', '--quiet') $work -AllowFailure
+    if ($clean.Code -ne 0) { [void]$cleanupMessages.Add('git clean: ' + $clean.Output) }
+  }
   $rootFull = [IO.Path]::GetFullPath($root).TrimEnd('\')
   $tempFull = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
   $expectedLeaf = 'kodjo-qualif-resume-' + $env:GITHUB_RUN_ID + '-' + $env:GITHUB_RUN_ATTEMPT
   $cleanupIdentityValid = ([IO.Path]::GetDirectoryName($rootFull) -eq $tempFull -and [IO.Path]::GetFileName($rootFull) -eq $expectedLeaf)
   if (-not $cleanupIdentityValid) {
-    $manifest.cleanup_diagnostic = 'QUALIFICATION_ROOT_IDENTITY_MISMATCH: ' + $rootFull
+    [void]$cleanupMessages.Add('QUALIFICATION_ROOT_IDENTITY_MISMATCH: ' + $rootFull)
   } elseif (Test-Path -LiteralPath $rootFull) {
-    & cmd.exe /d /c rd /s /q $rootFull
+    for ($cleanupAttempt = 1; $cleanupAttempt -le 5 -and (Test-Path -LiteralPath $rootFull); $cleanupAttempt++) {
+      $remove = Invoke-Native 'cmd.exe' @('/d', '/c', 'rd', '/s', '/q', $rootFull) $source -AllowFailure
+      if ($remove.Code -ne 0 -or $remove.Output) {
+        [void]$cleanupMessages.Add(('attempt {0}: cmd rd exit={1}: {2}' -f $cleanupAttempt, $remove.Code, $remove.Output))
+      }
+      if (Test-Path -LiteralPath $rootFull) { Start-Sleep -Seconds 2 }
+    }
   }
   $manifest.cleanup_status = if (Test-Path -LiteralPath $root) { 'FAIL' } else { 'PASS' }
-  if ($manifest.cleanup_status -eq 'FAIL') {
+  if ($manifest.cleanup_status -eq 'FAIL' -and $cleanupIdentityValid) {
+    $blockingProcesses = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+      $_.CommandLine -and $_.CommandLine.IndexOf($rootFull, [StringComparison]::OrdinalIgnoreCase) -ge 0
+    } | ForEach-Object { '{0}:{1}' -f $_.ProcessId, $_.Name })
+    if ($blockingProcesses.Count -gt 0) {
+      [void]$cleanupMessages.Add('processes referencing root: ' + ($blockingProcesses -join ', '))
+    }
+    $remainingPaths = @(Get-ChildItem -LiteralPath $rootFull -Force -Recurse -ErrorAction SilentlyContinue |
+      Select-Object -First 25 -ExpandProperty FullName)
+    if ($remainingPaths.Count -gt 0) {
+      [void]$cleanupMessages.Add('remaining paths: ' + ($remainingPaths -join ', '))
+    }
+  }
+  $manifest.cleanup_diagnostics = @($cleanupMessages)
+  $cleanupMustFailRun = ($manifest.cleanup_status -eq 'FAIL' -and $manifest.verdict -eq 'PASS')
+  if ($cleanupMustFailRun) {
     $manifest.verdict = 'FAIL'
     $manifest.workflow_technical_status = 'FAILURE'
     $manifest.failure = 'QUALIFICATION_TEMP_CLEANUP_FAILED'
   }
   ($manifest | ConvertTo-Json -Depth 20) | Set-Content -LiteralPath (Join-Path $evidence 'qualification-resume-manifest.json') -Encoding UTF8
-  if ($manifest.cleanup_status -eq 'FAIL') { throw 'QUALIFICATION_TEMP_CLEANUP_FAILED' }
+  if ($cleanupMustFailRun) { throw 'QUALIFICATION_TEMP_CLEANUP_FAILED' }
 }
