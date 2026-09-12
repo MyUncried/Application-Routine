@@ -184,15 +184,28 @@ test('un before nul (création de branche, force-push) se replie sur git show', 
   assert.equal(admit({ before: '0'.repeat(40), after, cwd: dir, ...noAuth }).selected, QUEUE + '/premiere-poussee.json');
 });
 
-test('le workflow appelle bien l’admission avant l’exécution', () => {
+test('le workflow résout une frontière immuable avant l’admission et l’exécution', () => {
   const wf = fs.readFileSync(
     path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
+  assert.match(wf, /workflow_dispatch:/);
+  assert.match(wf, /Resolve immutable request boundary/);
+  assert.match(wf, /git rev-parse HEAD\^/);
+  assert.match(wf, /steps\.boundary\.outputs\.before_sha/);
+  assert.match(wf, /steps\.boundary\.outputs\.after_sha/);
   assert.match(wf, /verify-queue-admission\.js/);
   assert.match(wf, /GITHUB_RUN_ATTEMPT/);
   assert.doesNotMatch(wf, /git diff --name-only \$env:KODJO_EVENT_BEFORE/);
+  const boundary = wf.indexOf('Resolve immutable request boundary');
   const admission = wf.indexOf('verify-queue-admission.js');
   const execution = wf.indexOf('run-queued-request.ps1');
-  assert.ok(admission > 0 && admission < execution, 'l’admission précède l’exécution');
+  assert.ok(boundary > 0 && boundary < admission, 'la frontière précède l’admission');
+  assert.ok(admission < execution, 'l’admission précède l’exécution');
+});
+
+test('une PR limitée à la file ne lance pas la qualification Linux/Windows complète', () => {
+  const wf = fs.readFileSync(
+    path.join(root, '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
+  assert.match(wf, /!\.github\/orchestration\/queue\/v2\/\*\.json/);
 });
 
 test('registre · une demande enregistrée obsolète est refusée, par chemin ou par contenu', () => {

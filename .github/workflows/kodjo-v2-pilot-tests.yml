@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - '.github/orchestration/**'
+      # Une demande immuable n'est pas une modification du protocole : son
+      # admission ciblée est effectuée par Lean Queue au lancement.
+      - '!.github/orchestration/queue/v2/*.json'
       - '.github/workflows/kodjo-v2-*.yml'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
