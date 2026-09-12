@@ -659,6 +659,10 @@ function main() {
   try {
     fs.writeFileSync(path.join(runDir, 'kodjo-check-runner.js'), CHECK_RUNNER_SOURCE, { encoding: 'utf8', mode: 0o500 });
     fs.copyFileSync(path.join(__dirname, 'kodjo-git-read.js'), path.join(runDir, 'kodjo-git-read.js'));
+    fs.copyFileSync(path.join(__dirname, 'kodjo-file-mutation.js'), path.join(runDir, 'kodjo-file-mutation.js'));
+    fs.copyFileSync(path.join(__dirname, 'lib', 'scope-path.js'), path.join(runDir, 'scope-path.js'));
+    fs.chmodSync(path.join(runDir, 'kodjo-file-mutation.js'), 0o500);
+    fs.chmodSync(path.join(runDir, 'scope-path.js'), 0o400);
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
     fs.writeFileSync(path.join(runDir, 'settings.json'), '{"disableAllHooks":true}\n', 'utf8');
     const taskText = fs.readFileSync(request.prompt_file, 'utf8');
@@ -690,7 +694,10 @@ function main() {
     intent.state = 'EXTERNAL_CALL_SENT';
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
-    const claudeEnv = { ...process.env };
+    const claudeEnv = {
+      ...process.env,
+      KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow),
+    };
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
