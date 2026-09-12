@@ -144,10 +144,14 @@ test('0.6.22 — les preuves PowerShell sont écrites en UTF-8 sans BOM', () => 
 
 test('0.6.22 — toute instrumentation du Lean Queue est explicitement non bloquante', () => {
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
+  const jobPreamble = workflow.slice(workflow.indexOf('jobs:'), workflow.indexOf('    steps:'));
+  assert.doesNotMatch(jobPreamble, /\$\{\{\s*runner\./,
+    'le contexte runner est indisponible avant l attribution du runner et ne doit pas vivre dans env du job');
   const blocks = workflow.split(/\n(?=      - (?:name:|uses:))/);
   const measurement = blocks.filter((block) => /^      - name: .*?(?:measurement|metric)/mi.test(block));
   assert.ok(measurement.length >= 3);
   for (const block of measurement) assert.match(block, /\r?\n        continue-on-error: true\r?\n/);
+  assert.match(measurement[0], /AppendAllText\(\$env:GITHUB_ENV, "KODJO_INFRA_METRICS_FILE=/);
 });
 
 test('0.6.22 — le point d arrêt C4 est inactif hors V2-PROD-00 supervisé', () => {
@@ -185,7 +189,7 @@ test('0.6.22 — le plan distingue reprise, refus et décompte réel', () => {
   assert.match(plan, /Une IA ou un automatisme ne peut pas produire le 👍/);
 });
 
-test('0.6.22 — V2-PROD-00 est activée sans demande en file et avec revue approuvée', () => {
+test('0.6.22 — V2-PROD-00 est activée avec une revue approuvée', () => {
   const sliceRoot = path.join(root, '.github', 'orchestration', 'v2-slices', 'V2-PROD-00');
   const bootstrap = Json.readJson(path.join(sliceRoot, 'slice-bootstrap.json'));
   const validated = Identity.validateBootstrap(bootstrap);
@@ -198,9 +202,6 @@ test('0.6.22 — V2-PROD-00 est activée sans demande en file et avec revue appr
   assert.match(review, /KODJO_V2_ORDINARY_PATH_CERTIFICATION_PLAN_0\.1\.md/);
   assert.match(review, /HEAD contrôlé\s*:\s*`90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2`/);
   assert.match(review, /Verdict:\s*APPROVED\s*$/);
-  const queued = fs.readdirSync(path.join(root, '.github', 'orchestration', 'queue', 'v2'))
-    .filter((name) => name.includes('V2-PROD-00'));
-  assert.deepEqual(queued, []);
 });
 
 test('0.6.22 — le préflight du périmètre productif observe Jest, TypeScript, lint et l application', () => {

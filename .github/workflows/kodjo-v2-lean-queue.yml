@@ -20,8 +20,6 @@ jobs:
   execute:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 90
-    env:
-      KODJO_INFRA_METRICS_FILE: ${{ runner.temp }}/kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}.json
     defaults:
       run:
         shell: powershell
@@ -33,11 +31,13 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           $started = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+          $metricsFile = Join-Path '${{ runner.temp }}' 'kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}.json'
           $kodjoRoot = Join-Path '${{ github.workspace }}' '_kodjo'
           $count = @(Get-ChildItem -LiteralPath $kodjoRoot -Directory -ErrorAction SilentlyContinue).Count
           $driveRoot = [IO.Path]::GetPathRoot('${{ github.workspace }}')
           $free = (New-Object IO.DriveInfo -ArgumentList $driveRoot).AvailableFreeSpace
           $utf8NoBom = New-Object Text.UTF8Encoding($false)
+          [IO.File]::AppendAllText($env:GITHUB_ENV, "KODJO_INFRA_METRICS_FILE=$metricsFile`n", $utf8NoBom)
           [IO.File]::AppendAllText($env:GITHUB_ENV, "KODJO_CHECKOUT_STARTED_MS=$started`n", $utf8NoBom)
           [IO.File]::AppendAllText($env:GITHUB_ENV, "KODJO_CHECKOUT_COUNT_BEFORE=$count`n", $utf8NoBom)
           [IO.File]::AppendAllText($env:GITHUB_ENV, "KODJO_VOLUME_FREE_BYTES_BEFORE=$free`n", $utf8NoBom)
