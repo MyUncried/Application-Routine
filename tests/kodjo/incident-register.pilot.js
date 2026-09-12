@@ -107,13 +107,16 @@ test('workflow jetable: dispatch manuel, lecture seule et aucune publication dis
   assert.match(runner, /cleanup_status/);
 });
 
-test('qualification jetable: caches des contrôles désactivés dans les deux chemins réels', () => {
+test('qualification jetable: cache Jest isolée et cache lint désactivée dans les deux chemins réels', () => {
   const checks = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'lib', 'checks.js'), 'utf8');
   const supervisor = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
   assert.match(checks, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
-  assert.match(checks, /command \+ ' -- --no-cache'/);
+  assert.match(checks, /KODJO_QUALIFICATION_CHECK_CACHE_DIR/);
+  assert.match(checks, /--cacheDirectory/);
   assert.match(supervisor, /KODJO_QUALIFICATION_ISOLATED_CHECKS/);
-  assert.match(supervisor, /commands\[id\]\[1\]\.push\('--', '--no-cache'\)/);
+  assert.match(supervisor, /KODJO_QUALIFICATION_CHECK_CACHE_DIR/);
+  assert.match(supervisor, /commands\[id\]\[1\]\.push\('--', '--cacheDirectory'/);
+  assert.match(supervisor, /if \(id === 'lint'\) commands\[id\]\[1\]\.push\('--', '--no-cache'\)/);
   const pilotWorkflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
   assert.match(pilotWorkflow, /Run full disposable preflight without Claude/);
   assert.match(pilotWorkflow, /-PreflightOnly/);
@@ -122,4 +125,22 @@ test('qualification jetable: caches des contrôles désactivés dans les deux ch
   assert.doesNotMatch(pilotWorkflow, /certify-persistent-runner-lock\.js runner-lock-certification\.json/);
   assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
+});
+
+test('qualification RESUME_DELTA: nettoyage Windows borné, réessayé et diagnostiqué', () => {
+  const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-resume-qualification.ps1'), 'utf8');
+  assert.match(runner, /Invoke-Native 'git' @\('clean', '-ffdx', '--quiet'\)/);
+  assert.match(runner, /for \(\$cleanupAttempt = 1; \$cleanupAttempt -le 5/);
+  assert.match(runner, /Start-Sleep -Seconds 2/);
+  assert.match(runner, /Get-CimInstance Win32_Process -ErrorAction SilentlyContinue/);
+  assert.match(runner, /Select-Object -First 25 -ExpandProperty FullName/);
+  assert.match(runner, /cleanup_diagnostics/);
+  assert.match(runner, /QUALIFICATION_TEMP_CLEANUP_FAILED/);
+});
+
+test('qualification RESUME_DELTA: une migration non requise est une preuve valide', () => {
+  const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-resume-qualification.ps1'), 'utf8');
+  assert.match(runner, /\$migration\.required -eq \$false -and \$migration\.status -eq 'NOT_REQUIRED'/);
+  assert.match(runner, /\$migration\.required -eq \$true -and \$migration\.status -eq 'PASS'/);
+  assert.match(runner, /if \(-not \$migrationProven\) \{ throw 'RECOVERY_MIGRATION_NOT_PROVEN' \}/);
 });

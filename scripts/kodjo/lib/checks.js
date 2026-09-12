@@ -67,10 +67,16 @@ function commandFor(name, env) {
   const command = DEFAULT_COMMANDS[name] || null;
   if (!command || e.KODJO_QUALIFICATION_ISOLATED_CHECKS !== '1') return command;
   // The disposable qualification executes the same checks twice in a throwaway
-  // clone.  Shared Jest caches can be locked by another persistent-runner
-  // process and `expo lint` writes its cache inside the repository.  Disable
-  // both caches only for that qualification; production commands stay intact.
-  if (name === 'jest' || name === 'lint') return command + ' -- --no-cache';
+  // clone. Keep Jest's cache isolated from every other runner process while
+  // allowing the second pass to reuse transforms from the first one. If an old
+  // caller does not provide an isolated location, retain the safe no-cache
+  // fallback. `expo lint` still runs without a repository-local cache.
+  if (name === 'jest') {
+    const cacheRoot = String(e.KODJO_QUALIFICATION_CHECK_CACHE_DIR || '').trim();
+    if (cacheRoot) return command + ' -- --cacheDirectory ' + JSON.stringify(path.join(cacheRoot, 'jest'));
+    return command + ' -- --no-cache';
+  }
+  if (name === 'lint') return command + ' -- --no-cache';
   return command;
 }
 

@@ -2,16 +2,23 @@
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
   [Parameter(Mandatory = $true)][string]$EvidenceDirectory,
+  [ValidatePattern('^[A-Za-z0-9._-]{1,80}$')][string]$SliceId = 'V2-QUALIF-00',
+  [string]$SliceBootstrapFile = '.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json',
+  [string]$PromptFile = '.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md',
+  [string]$ScopeAllow = 'tests/fixtures/qualif/**',
+  [ValidatePattern('^tests/fixtures/[A-Za-z0-9._/-]+$')][string]$ExpectedFixturePath = 'tests/fixtures/qualif/result.txt',
+  [string]$ExpectedFixtureContent = "KODJO V2 QUALIFICATION PASS`n",
   [switch]$PreflightOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $repository = 'MyUncried/Application-Routine'
-$slice = 'V2-QUALIF-00'
-$bootstrap = '.github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json'
-$prompt = '.github/orchestration/v2-slices/V2-QUALIF-00/implementation-mission.md'
-$scope = 'tests/fixtures/qualif/**'
+$slice = $SliceId
+$bootstrap = $SliceBootstrapFile
+$prompt = $PromptFile
+$scope = $ScopeAllow
+$fixtureDirectory = [IO.Path]::GetDirectoryName($ExpectedFixturePath).Replace('\', '/')
 $source = (git rev-parse --show-toplevel).Trim()
 $root = Join-Path $env:RUNNER_TEMP ('kodjo-qualif-' + $env:GITHUB_RUN_ID + '-' + $env:GITHUB_RUN_ATTEMPT)
 $origin = Join-Path $root 'origin.git'
@@ -74,7 +81,7 @@ function Get-Inventory {
       $relativeDirectory = $child.FullName.Substring($RepositoryRoot.Length).TrimStart('\').Replace('\', '/')
       if ($relativeDirectory -eq '.git' -or $relativeDirectory.StartsWith('.git/')) { continue }
       if ($relativeDirectory -eq 'node_modules' -or $relativeDirectory.StartsWith('node_modules/')) { continue }
-      if ($relativeDirectory -eq 'tests/fixtures/qualif' -or $relativeDirectory.StartsWith('tests/fixtures/qualif/')) { continue }
+      if ($relativeDirectory -eq $fixtureDirectory -or $relativeDirectory.StartsWith($fixtureDirectory + '/')) { continue }
       $pending.Push($child.FullName)
     }
     foreach ($item in (Get-ChildItem -LiteralPath $directory -File -Force)) {
@@ -129,6 +136,7 @@ try {
   if ($afterDependencies -ne $beforeDependencies) { throw 'QUALIFICATION_DEPENDENCIES_MUTATED_REPO' }
 
   $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
+  $env:KODJO_QUALIFICATION_CHECK_CACHE_DIR = Join-Path $root 'check-cache'
   $before = Get-Inventory $work
   $baselineDirectory = Join-Path $evidence 'baseline'
   New-Item -ItemType Directory -Force -Path $baselineDirectory | Out-Null
@@ -204,11 +212,11 @@ try {
   $after = Get-Inventory $work
   $outsideDrift = @(Compare-Inventory $before $after)
   $manifest.tree_drift_outside_fixture = $outsideDrift
-  $expectedFile = Join-Path $work 'tests\fixtures\qualif\result.txt'
+  $expectedFile = Join-Path $work $ExpectedFixturePath.Replace('/', '\')
   $manifest.fixture_result_exists = Test-Path -LiteralPath $expectedFile
   $manifest.fixture_result_sha256 = if ($manifest.fixture_result_exists) { (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash } else { $null }
   $manifest.fixture_result_content_valid = if ($manifest.fixture_result_exists) {
-    ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -eq "KODJO V2 QUALIFICATION PASS`n")
+    ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -eq $ExpectedFixtureContent.Replace("`r`n", "`n"))
   } else { $false }
 
   if (-not $manifest.claude_invoked) { throw 'CLAUDE_NOT_INVOKED' }
@@ -228,6 +236,7 @@ catch {
   throw
 }
 finally {
+  Remove-Item Env:KODJO_QUALIFICATION_CHECK_CACHE_DIR -ErrorAction SilentlyContinue
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
   $cleanupMessages = New-Object System.Collections.ArrayList
   if (Test-Path -LiteralPath $work) {

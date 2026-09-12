@@ -123,3 +123,13 @@ test('workflow lie initialisation, diagnostic et artefact au run courant', () =>
   assert.match(workflow, /kodjo-v2-diagnostic-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/);
   assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'resolve-run-directory.js'), 'utf8'), /mtimeMs/);
 });
+
+test('qualification reprise: conservation compare le patch canonique, pas les octets CRLF du worktree', () => {
+  const script = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-resume-qualification.ps1'),
+    'utf8'
+  );
+  assert.match(script, /sourcePackageManifest\.patch_sha256/);
+  assert.match(script, /resumePackageManifest\.patch_sha256/);
+  assert.doesNotMatch(script, /sourceManifest\.fixture_result_sha256/);
+});
