@@ -115,6 +115,14 @@ test('les champs conditionnels suivent le mode', () => {
   assert.deepEqual(C.validateQueueRequest({
     ...resume, retry_of_run_id: '123', retry_reason: { code: 'CHECKS_FAILED', detail: 'jest' },
   }), []);
+  assert.deepEqual(C.validateQueueRequest({
+    ...resume,
+    retry_of_run_id: '34724854785',
+    retry_reason: {
+      code: 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',
+      detail: 'certified package preserved before checks',
+    },
+  }), []);
   // En INITIAL, ces champs sont interdits.
   assert.ok(diagnostics(validQueue({ retry_of_run_id: '123' })).includes('KODJO_QUEUE_RETRY_SOURCE_MISSING'));
 });

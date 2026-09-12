@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.24.0**
+- Version du registre : **3.25.0**
 - Date : **2026-09-11**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
@@ -145,6 +145,8 @@
 | INC-114 | 2026-09-12 | V2 lean 0.6.18 | LIMITATION_EXTERNE | Transport des demandes C1→C3 | Les commits et fusions créés par le connecteur ne produisent pas d'événement `push` Lean Queue observable ; une fusion humaine est requise pour chaque scénario | Cause exacte côté transport GitHub non démontrée ; seule l'absence répétée d'événement observable est établie | PR #84 puis demandes C1–C3 ; les runs utiles #29, #30 et #32 apparaissent après les fusions humaines ; backlog PE-24 | Ajouter `workflow_dispatch` sans paramètre et calculer la frontière immuable `HEAD^ → HEAD` ; exclure les PR composées uniquement d'une demande de file de la CI pilote complète | Le déclenchement explicite ne change ni l'immuabilité, ni l'admission, ni l'unicité du `request_id`, ni les contrôles post-Claude | T-089 : oracle statique du dispatch et première exécution réelle C4 | PASS statique ; lancement réel C4 NON RETESTÉ | GitHub Actions / transport | OUVERT | prolonge INC-023/029 | Le chemin `push` historique reste disponible ; la causalité du connecteur n'est pas affirmée |
 
 | INC-115 | 2026-09-12 | V2 lean 0.6.18 | INCIDENT_TECHNIQUE | Construction du workflow de lancement | La première branche de correction porte 491 lignes et coupe l'expression PowerShell de validation avant de réinjecter le suffixe du fichier | Une chaîne de remplacement JavaScript contenait la séquence spéciale `$'`, interprétée comme le suffixe de la source au lieu de texte littéral | Blob fautif `0dc507c5566c91fbda8a86e497ded75a244b5da2`, comparaison 301 ajouts ; reconstruction commit `41d9c80856ca98bcf2b37bda9ead86d5d93ca9fd`, 215 lignes et sentinelles uniques | Reconstruire depuis le blob `main` et utiliser exclusivement des fonctions de remplacement littérales ; compter les blocs et références avant écriture | Toute transformation de YAML/PowerShell contenant un dollar passe par une fonction littérale et le fichier final est contrôlé comme un tout avant PR | T-090 : nombres de lignes, blocs uniques, références event/output et parse complet dans la CI | PASS statique — workflow reconstruit avant PR et aucun run déclenché | Transformations JavaScript de YAML/PowerShell | CORRIGÉ | répète INC-078 | `main` est resté intact ; aucune invocation Claude |
+
+| INC-116 | 2026-09-12 | V2 lean 0.6.22 | DÉFAUT_CONCEPTION | Reprise C4 — run #43 | La demande RESUME_DELTA est refusée avant téléchargement du paquet et avant Claude avec `KODJO_QUEUE_RETRY_REASON_INVALID` | Le point d’arrêt C4 et son statut étaient implémentés, mais la liste fermée des motifs de reprise omettait `CONTROLLED_INTERRUPTION_AFTER_RECOVERY` | Run `34725156521`, job `103637897584`, `claude_invoked=false`, aucun paquet courant ; source C4 valide run `34724854785`, patch `d7a642ce9f11bd4ddfcfdc9dd00b8c615c39b432d3f12d1fac21de2486d679c3` | Ajouter le motif exact au contrat exécutable et un cas positif de validation RESUME_DELTA ; conserver le refus de tout code inconnu | Chaque état terminal intentionnel autorisant une reprise possède un motif nominatif admis par le même contrat avant lancement de la campagne | T-091 : demande C4 RESUME_DELTA avec motif exact acceptée, code arbitraire toujours refusé, qualification Linux/Windows puis reprise réelle | PASS statique ; reprise réelle NON RETESTÉE | Admission / reprise C4 | CORRIGÉ | prolonge INC-113/114 | La demande morte `debddad1-aae7-4a97-aa91-8373881bdd99` n’est ni relancée ni réutilisée |
 
 ## Répétitions qui auraient dû être évitées
 
@@ -320,6 +322,8 @@ Les IDs du classeur ne sont pas renumérotés silencieusement. Ils deviennent de
 
 | T-090 | V2 lean 0.6.18 | Remplacement littéral du workflow | Transformation / syntaxe | Reconstruire depuis `main`, appliquer les insertions par fonctions littérales, puis contrôler le fichier final complet | Un seul `on`, un seul `jobs`, une seule frontière, 215 lignes ; une référence event de chaque type et deux références output de chaque type ; YAML accepté par la CI | PASS statique ; CI Linux/Windows attendue | workflow Lean Queue, `queue-admission.pilot.js` ; INC-115 |
 
+| T-091 | V2 lean 0.6.22 | Motif de reprise C4 | Admission / contrat | Valider une demande RESUME_DELTA portant `CONTROLLED_INTERRUPTION_AFTER_RECOVERY`, un run source et un détail, puis opposer un code inconnu | Le motif C4 est admis et projeté ; les codes non listés restent refusés avant artefact et avant Claude | PASS statique ; CI et reprise réelle attendues | `queue-contract.pilot.js`, run #43 ; INC-116 |
+
 ## Catalogue des invariants consolidés
 
 | ID | Famille | Invariant | Introduit / renforcé | Références source XLS03 |
@@ -442,3 +446,4 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | 3.22.0 | 2026-09-11 | Run #73 : qualification jetable réelle PASS au HEAD `8a7b9e0…`, invocation INITIAL Claude, propagation de `request_id`, delta limité à la fixture, contrôles exécutés sans régression, préservation et nettoyage ; interruption puis `RESUME_DELTA` restent NON RETESTÉS. |
 | 3.23.0 | 2026-09-12 | Campagne réelle C1–C3 : ajout d’INC-110 à INC-114 et T-083 à T-089 ; qualification du nominal, de l’interruption/reprise et du refus sûr ; limitation de transport documentée et lancement explicite allégé ajouté en qualification pour C4. |
 | 3.24.0 | 2026-09-12 | Ajout d’INC-115/T-090 : détection avant PR d’une répétition d’INC-078 lors de la transformation du workflow ; reconstruction littérale depuis `main`, sentinelles structurelles et qualification CI exigées. |
+| 3.25.0 | 2026-09-12 | Ajout d’INC-116/T-091 après le refus sûr du run #43 : le motif nominatif de reprise après interruption contrôlée rejoint le contrat fermé ; qualification multiplateforme et nouvelle reprise exigées. |
