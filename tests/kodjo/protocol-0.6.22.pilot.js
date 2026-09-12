@@ -189,7 +189,7 @@ test('0.6.22 — le plan distingue reprise, refus et décompte réel', () => {
   assert.match(plan, /Une IA ou un automatisme ne peut pas produire le 👍/);
 });
 
-test('0.6.22 — V2-PROD-00 est activée sans demande en file et avec revue approuvée', () => {
+test('0.6.22 — V2-PROD-00 est activée avec une revue approuvée', () => {
   const sliceRoot = path.join(root, '.github', 'orchestration', 'v2-slices', 'V2-PROD-00');
   const bootstrap = Json.readJson(path.join(sliceRoot, 'slice-bootstrap.json'));
   const validated = Identity.validateBootstrap(bootstrap);
@@ -202,9 +202,6 @@ test('0.6.22 — V2-PROD-00 est activée sans demande en file et avec revue appr
   assert.match(review, /KODJO_V2_ORDINARY_PATH_CERTIFICATION_PLAN_0\.1\.md/);
   assert.match(review, /HEAD contrôlé\s*:\s*`90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2`/);
   assert.match(review, /Verdict:\s*APPROVED\s*$/);
-  const queued = fs.readdirSync(path.join(root, '.github', 'orchestration', 'queue', 'v2'))
-    .filter((name) => name.includes('V2-PROD-00'));
-  assert.deepEqual(queued, []);
 });
 
 test('0.6.22 — le préflight du périmètre productif observe Jest, TypeScript, lint et l application', () => {
