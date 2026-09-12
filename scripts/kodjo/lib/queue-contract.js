@@ -27,7 +27,7 @@ const SLICE_ID = /^[A-Za-z0-9._-]{1,80}$/;
 const LEAN_REQUEST_SCHEMA = 'kodjo.protocol.v2.lean-request.0.6.13';
 const CHECKS = ['jest', 'typescript', 'lint'];
 const MODES = ['INITIAL', 'RESUME_DELTA'];
-const RETRY_CODES = ['CHECKS_FAILED', 'SCOPE_VIOLATION', 'INFRASTRUCTURE', 'CLARIFICATION', 'BUDGET_EXHAUSTED'];
+const RETRY_CODES = ['CHECKS_FAILED', 'SCOPE_VIOLATION', 'INFRASTRUCTURE', 'CLARIFICATION', 'BUDGET_EXHAUSTED', 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY'];
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isString = (v) => typeof v === 'string' && v.length > 0;
