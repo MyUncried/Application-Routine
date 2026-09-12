@@ -22,9 +22,20 @@ function Write-Metrics([hashtable]$Cleanup, [Int64]$CheckoutBytes, [Int64]$Check
     $metricsObject = Get-Content -LiteralPath $MetricsFile -Raw -Encoding UTF8 | ConvertFrom-Json
     foreach ($property in $metricsObject.PSObject.Properties) { $metrics[$property.Name] = $property.Value }
   }
+  if (-not $metrics.ContainsKey('schema_version')) { $metrics.schema_version = 'kodjo.protocol.v2.infrastructure-metrics.0.6.22' }
+  if (-not $metrics.ContainsKey('github_run_id')) { $metrics.github_run_id = $env:GITHUB_RUN_ID }
+  if (-not $metrics.ContainsKey('github_run_attempt')) { $metrics.github_run_attempt = $env:GITHUB_RUN_ATTEMPT }
+  if (-not $metrics.ContainsKey('checkout')) { $metrics.checkout = $null }
+  if (-not $metrics.ContainsKey('dependencies')) { $metrics.dependencies = $null }
+  if (-not $metrics.ContainsKey('toolchain')) { $metrics.toolchain = @{ node = $null; npm = $null; jest = $null } }
+  if (-not $metrics.ContainsKey('package_lock_sha256')) { $metrics.package_lock_sha256 = $null }
   if (-not $metrics.ContainsKey('storage') -or $null -eq $metrics.storage) { $metrics.storage = @{} }
   $storage = @{}
-  foreach ($property in $metrics.storage.PSObject.Properties) { $storage[$property.Name] = $property.Value }
+  if ($metrics.storage -is [System.Collections.IDictionary]) {
+    foreach ($key in $metrics.storage.Keys) { $storage[$key] = $metrics.storage[$key] }
+  } else {
+    foreach ($property in $metrics.storage.PSObject.Properties) { $storage[$property.Name] = $property.Value }
+  }
   $storage.checkout_bytes_before_cleanup = $CheckoutBytes
   $storage.kodjo_checkout_count_after_cleanup = $CheckoutCountAfter
   $storage.volume_free_bytes_after_cleanup = $VolumeFreeAfter

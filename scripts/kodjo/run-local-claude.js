@@ -243,6 +243,13 @@ function writeRecovery(runDir, repoRoot, request, files, meta) {
  * celle habilitee a lire le depot.
  */
 const RECOVERY_PACKAGE_SCHEMA = 'kodjo.protocol.v2.recovery-package.0.6.16';
+
+function certificationStopAfterRecoveryEnabled(request, env = process.env) {
+  return env.GITHUB_ACTIONS === 'true' &&
+    env.KODJO_SUPERVISED_QUEUE === '1' &&
+    env.KODJO_CERTIFICATION_STOP_AFTER_RECOVERY === 'V2-PROD-00' &&
+    request.slice_id === 'V2-PROD-00';
+}
 const RECOVERY_MIGRATION_PROTOCOL_PREFIXES = Object.freeze([
   '.github/orchestration/', '.github/workflows/kodjo-v2-', 'scripts/kodjo/', 'tests/kodjo/',
   'tests/fixtures/qualif/',
@@ -727,6 +734,37 @@ function main() {
     return die('RECOVERY_PACKAGE_WRITE_FAILED', err.message);
   }
 
+  // C4 : interruption déterministe uniquement pour la tranche de certification.
+  // Le paquet atomique existe déjà et aucun contrôle ni chemin de publication
+  // n'a encore été exécuté. La sortie 75 laisse le workflow préserver l'artefact.
+  if (certificationStopAfterRecoveryEnabled(request)) {
+    const interrupted = {
+      schema_version: 'kodjo.protocol.v2.local-result.0.6.22',
+      run_id: runId,
+      github_run_id: process.env.GITHUB_RUN_ID || null,
+      github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
+      request_id: request.request_id,
+      session_id: request.generated_session_id,
+      source_head: request.source_head,
+      status: 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',
+      diagnostic: 'CERTIFICATION_STOP_AFTER_RECOVERY',
+      claude_invoked: true,
+      modified_files: files,
+      recovered_files: recoveredFiles,
+      recovery_files: recoveryFiles,
+      recovery_package: recoveryPackage.manifest,
+      checks: [],
+      publishable_paths: [],
+      publishable_pathspec_file: null,
+      integrity_status: integrityStatus,
+      limits_effective: request.limits,
+      turn_limit_effective: TURN_LIMIT_POLICY,
+    };
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(interrupted, null, 2) + '\n', 'utf8');
+    process.stderr.write('[KODJO_V2] CERTIFICATION_STOP_AFTER_RECOVERY — paquet préservé, contrôles non exécutés\n');
+    return 75;
+  }
+
   // KV2-08 : l'amorce n'est consommee qu'ici, apres production d'un paquet.
   let legacyMarker = null;
   if (pendingLegacyBootstrap) {
@@ -825,5 +863,6 @@ module.exports = {
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,
   certifyRecoverySourceMigration, isProtocolMigrationPath,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
+  certificationStopAfterRecoveryEnabled,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,
 };

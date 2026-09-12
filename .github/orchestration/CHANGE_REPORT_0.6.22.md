@@ -15,6 +15,8 @@ Recaler la portée de la certification `RESUME_DELTA`, préparer la certificatio
 - contrat explicite du pathspec en mode supervisé ;
 - instrumentation non bloquante du checkout, de `npm ci`, de Claude et du stockage ;
 - nettoyage borné du checkout ordinaire après préservation.
+- repli de nettoyage autonome si le checkout échoue avant la copie de l'utilitaire ;
+- point d'arrêt C4 borné à `V2-PROD-00`, après préservation et avant contrôles.
 
 ## Non-changements
 
@@ -24,4 +26,3 @@ Recaler la portée de la certification `RESUME_DELTA`, préparer la certificatio
 - aucun cache de `node_modules` ;
 - aucune sélection ciblée activée ;
 - aucune tranche applicative ni PR jetable lancée par cette version.
-

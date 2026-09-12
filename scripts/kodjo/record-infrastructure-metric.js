@@ -52,35 +52,53 @@ function integer(value, name) {
   return Number(value);
 }
 
+function optionalInteger(value) {
+  return /^-?\d+$/.test(String(value || '')) ? Number(value) : null;
+}
+
+function ensureMetrics(value = {}) {
+  const data = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  if (!data.schema_version) data.schema_version = 'kodjo.protocol.v2.infrastructure-metrics.0.6.22';
+  if (!Object.prototype.hasOwnProperty.call(data, 'github_run_id')) data.github_run_id = process.env.GITHUB_RUN_ID || null;
+  if (!Object.prototype.hasOwnProperty.call(data, 'github_run_attempt')) data.github_run_attempt = process.env.GITHUB_RUN_ATTEMPT || null;
+  if (!Object.prototype.hasOwnProperty.call(data, 'checkout')) data.checkout = null;
+  if (!Object.prototype.hasOwnProperty.call(data, 'dependencies')) data.dependencies = null;
+  if (!data.toolchain || typeof data.toolchain !== 'object') data.toolchain = { node: process.version, npm: null, jest: null };
+  if (!Object.prototype.hasOwnProperty.call(data, 'package_lock_sha256')) data.package_lock_sha256 = null;
+  if (!data.storage || typeof data.storage !== 'object') data.storage = {};
+  if (!data.cleanup || typeof data.cleanup !== 'object') data.cleanup = { status: 'NOT_RUN', attempts: 0, diagnostics: [] };
+  return data;
+}
+
 function main(argv) {
   const [mode, file, ...args] = argv;
   if (!mode || !file) throw new Error('USAGE');
   const now = Date.now();
   if (mode === 'init') {
     const [checkoutStartedRaw, checkoutCountBeforeRaw, volumeFreeBeforeRaw, checkoutRoot] = args;
-    const checkoutStarted = integer(checkoutStartedRaw, 'CHECKOUT_STARTED_MS');
-    const data = {
+    const checkoutStarted = optionalInteger(checkoutStartedRaw);
+    const data = ensureMetrics({
       schema_version: 'kodjo.protocol.v2.infrastructure-metrics.0.6.22',
       github_run_id: process.env.GITHUB_RUN_ID || null,
       github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
       checkout: {
-        started_at: new Date(checkoutStarted).toISOString(),
+        started_at: checkoutStarted === null ? null : new Date(checkoutStarted).toISOString(),
         finished_at: new Date(now).toISOString(),
-        duration_ms: Math.max(0, now - checkoutStarted),
+        duration_ms: checkoutStarted === null ? null : Math.max(0, now - checkoutStarted),
         checkout_bytes: directoryBytes(checkoutRoot),
       },
       dependencies: null,
       toolchain: { node: process.version, npm: null, jest: null },
       package_lock_sha256: sha256File(path.resolve('package-lock.json')),
       storage: {
-        kodjo_checkout_count_before: integer(checkoutCountBeforeRaw, 'KODJO_CHECKOUT_COUNT_BEFORE'),
-        volume_free_bytes_before: integer(volumeFreeBeforeRaw, 'VOLUME_FREE_BYTES_BEFORE'),
+        kodjo_checkout_count_before: optionalInteger(checkoutCountBeforeRaw),
+        volume_free_bytes_before: optionalInteger(volumeFreeBeforeRaw),
         checkout_bytes_before_cleanup: null,
         kodjo_checkout_count_after_cleanup: null,
         volume_free_bytes_after_cleanup: null,
       },
       cleanup: { status: 'NOT_RUN', attempts: 0, diagnostics: [] },
-    };
+    });
     write(path.resolve(file), data);
     return;
   }
@@ -89,7 +107,7 @@ function main(argv) {
     const started = integer(startedRaw, 'NPM_STARTED_MS');
     const finished = integer(finishedRaw, 'NPM_FINISHED_MS');
     const exitCode = integer(exitRaw, 'NPM_EXIT_CODE');
-    const data = read(path.resolve(file));
+    const data = ensureMetrics(read(path.resolve(file)));
     data.dependencies = {
       command: 'npm ci --no-audit --no-fund',
       started_at: new Date(started).toISOString(),
@@ -119,4 +137,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { directoryBytes, main };
+module.exports = { directoryBytes, ensureMetrics, main };

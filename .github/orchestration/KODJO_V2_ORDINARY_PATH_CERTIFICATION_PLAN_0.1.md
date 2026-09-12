@@ -85,7 +85,7 @@ L'interruption après conservation est un scénario distinct C4. Elle ne doit pa
 
 ### C4 — interruption contrôlée sur le chemin ordinaire
 
-Un point d'arrêt de certification, inactif par défaut et impossible hors `V2-PROD-00`, intervient immédiatement après l'écriture atomique du paquet et avant les contrôles. Le run suivant reprend par `retry_of_run_id` selon les mêmes oracles que C3.
+Le point d'arrêt `KODJO_CERTIFICATION_STOP_AFTER_RECOVERY`, inactif par défaut, intervient immédiatement après l'écriture atomique du paquet et avant les contrôles. Le code ne l'honore que dans GitHub Actions, en file supervisée, pour la tranche exacte `V2-PROD-00`, et produit alors le statut `CONTROLLED_INTERRUPTION_AFTER_RECOVERY` avec une sortie 75. Le run suivant reprend par `retry_of_run_id` selon les mêmes oracles que C3.
 
 ## 6. Deuxième vague — formes de delta
 
@@ -127,7 +127,7 @@ Sans modifier les verdicts :
 - identité run/tentative/request/session/source ;
 - chemins ciblés qui auraient été sélectionnés, uniquement lorsqu'une carte déterministe aura été définie.
 
-Les mesures antérieures à `run-local-claude.js` vivent dans un artefact séparé `infrastructure-metrics.json`.
+Les mesures antérieures à `run-local-claude.js` vivent dans l'artefact séparé `kodjo-v2-infrastructure-<run_id>-<attempt>`, qui contient le fichier `kodjo-v2-infrastructure-<run_id>-<attempt>.json`.
 
 ## 10. Critères de sortie
 

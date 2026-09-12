@@ -69,6 +69,41 @@ test('0.6.22 — les métriques de checkout sont atomiques, identifiées et sans
   assert.equal(fs.existsSync(output + '.tmp'), false);
 });
 
+test('0.6.22 — une mesure de départ absente reste non bloquante et conforme au schéma', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-metrics-missing-0622-'));
+  const output = path.join(dir, 'metrics.json');
+  Metrics.main(['init', output, '', '', '', path.join(dir, 'missing-checkout')]);
+  const result = Json.readJson(output);
+  assert.equal(result.schema_version, 'kodjo.protocol.v2.infrastructure-metrics.0.6.22');
+  assert.equal(result.checkout.started_at, null);
+  assert.equal(result.checkout.duration_ms, null);
+  assert.equal(result.storage.kodjo_checkout_count_before, null);
+  assert.equal(result.storage.volume_free_bytes_before, null);
+});
+
+test('0.6.22 — le nettoyage initialise des métriques saines si le fichier est absent', { skip: process.platform !== 'win32' }, () => {
+  const { spawnSync } = require('node:child_process');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-cleanup-missing-0622-'));
+  const runId = '123456';
+  const checkout = path.join(dir, '_kodjo', runId);
+  const output = path.join(dir, 'metrics.json');
+  fs.mkdirSync(checkout, { recursive: true });
+  fs.writeFileSync(path.join(checkout, 'sample.txt'), 'delta');
+  const script = path.join(root, 'scripts', 'kodjo', 'cleanup-run-checkout.ps1');
+  const result = spawnSync('powershell.exe', [
+    '-NoLogo', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script,
+    '-Root', checkout, '-WorkspaceRoot', dir, '-RunId', runId, '-MetricsFile', output,
+  ], { encoding: 'utf8', windowsHide: true });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(fs.existsSync(checkout), false);
+  const metrics = Json.readJson(output);
+  assert.equal(metrics.schema_version, 'kodjo.protocol.v2.infrastructure-metrics.0.6.22');
+  assert.equal(metrics.cleanup.status, 'PASS');
+  assert.equal(Object.prototype.hasOwnProperty.call(metrics.storage, 'Keys'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(metrics.storage, 'Count'), false);
+  assert.equal(metrics.storage.checkout_bytes_before_cleanup, 5);
+});
+
 test('0.6.22 — les preuves sont préservées avant le nettoyage borné du checkout', () => {
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
   const diagnostic = workflow.indexOf('Preserve KODJO diagnostic');
@@ -80,6 +115,8 @@ test('0.6.22 — les preuves sont préservées avant le nettoyage borné du chec
   assert.ok(cleanup < metrics);
   assert.match(workflow, /Clean current run checkout[\s\S]*if: always\(\)/);
   assert.match(workflow, /working-directory: \$\{\{ runner\.temp \}\}/);
+  assert.match(workflow, /Le checkout peut échouer avant que l'utilitaire soit copié/);
+  assert.match(workflow, /if-no-files-found: warn/);
   const cleanupScript = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'cleanup-run-checkout.ps1'), 'utf8');
   assert.match(cleanupScript, /RUN_CHECKOUT_IDENTITY_MISMATCH/);
   assert.match(cleanupScript, /\$attempt -le 5/);
@@ -93,6 +130,7 @@ test('0.6.22 — les preuves PowerShell sont écrites en UTF-8 sans BOM', () => 
     'scripts/kodjo/run-disposable-resume-qualification.ps1',
     '.github/workflows/kodjo-v2-disposable-qualification.yml',
     '.github/workflows/kodjo-v2-pilot-tests.yml',
+    '.github/workflows/kodjo-v2-lean-queue.yml',
     'scripts/kodjo/cleanup-run-checkout.ps1',
   ];
   for (const relative of files) {
@@ -100,6 +138,29 @@ test('0.6.22 — les preuves PowerShell sont écrites en UTF-8 sans BOM', () => 
     assert.doesNotMatch(source, /ConvertTo-Json[^\n]*Set-Content[^\n]*Encoding UTF8/, relative);
     assert.match(source, /UTF8Encoding\(\$false\)/, relative);
   }
+});
+
+test('0.6.22 — toute instrumentation du Lean Queue est explicitement non bloquante', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
+  const blocks = workflow.split(/\n(?=      - (?:name:|uses:))/);
+  const measurement = blocks.filter((block) => /^      - name: .*?(?:infrastructure measurement|metric)/mi.test(block));
+  assert.ok(measurement.length >= 2);
+  for (const block of measurement) assert.match(block, /\n        continue-on-error: true\n/);
+});
+
+test('0.6.22 — le point d arrêt C4 est inactif hors V2-PROD-00 supervisé', () => {
+  const enabled = Local.certificationStopAfterRecoveryEnabled;
+  const request = { slice_id: 'V2-PROD-00' };
+  const exact = {
+    GITHUB_ACTIONS: 'true',
+    KODJO_SUPERVISED_QUEUE: '1',
+    KODJO_CERTIFICATION_STOP_AFTER_RECOVERY: 'V2-PROD-00',
+  };
+  assert.equal(enabled(request, exact), true);
+  assert.equal(enabled({ slice_id: 'OTHER' }, exact), false);
+  assert.equal(enabled(request, { ...exact, GITHUB_ACTIONS: 'false' }), false);
+  assert.equal(enabled(request, { ...exact, KODJO_SUPERVISED_QUEUE: '0' }), false);
+  assert.equal(enabled(request, { ...exact, KODJO_CERTIFICATION_STOP_AFTER_RECOVERY: '1' }), false);
 });
 
 test('0.6.22 — le plan distingue reprise, refus et décompte réel', () => {
