@@ -123,3 +123,14 @@ test('qualification jetable: caches des contrôles désactivés dans les deux ch
   assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
 });
+
+test('qualification RESUME_DELTA: nettoyage Windows borné, réessayé et diagnostiqué', () => {
+  const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-resume-qualification.ps1'), 'utf8');
+  assert.match(runner, /Invoke-Native 'git' @\('clean', '-ffdx', '--quiet'\)/);
+  assert.match(runner, /for \(\$cleanupAttempt = 1; \$cleanupAttempt -le 5/);
+  assert.match(runner, /Start-Sleep -Seconds 2/);
+  assert.match(runner, /Get-CimInstance Win32_Process -ErrorAction SilentlyContinue/);
+  assert.match(runner, /Select-Object -First 25 -ExpandProperty FullName/);
+  assert.match(runner, /cleanup_diagnostics/);
+  assert.match(runner, /QUALIFICATION_TEMP_CLEANUP_FAILED/);
+});
