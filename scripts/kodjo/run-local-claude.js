@@ -163,7 +163,12 @@ function recoveryPayload(repoRoot, request, files, meta) {
  */
 function writePublishablePathspec(paths) {
   const target = (process.env.KODJO_PUBLISH_PATHSPEC_FILE || '').trim();
-  if (!target) return null;
+  if (!target) {
+    if (process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true') {
+      throw new Error('SUPERVISED_PUBLISH_PATHSPEC_TARGET_MISSING');
+    }
+    return null;
+  }
   // Reserve 1 de la revue du lot 1 : un pathspec est un motif, pas un chemin.
   // `src/glob*.ts` capturait `src/globVOISIN.ts`, non autorise. La magie
   // `:(literal)` impose une correspondance exacte, caractere par caractere.
@@ -636,7 +641,7 @@ function main() {
     return writeFailure(err.message, lockPath, { lock_state: err.message });
   }
 
-  let result, beforeRefs, promptBytes;
+  let result, beforeRefs, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
   const interrupt = (signal) => {
     const released = releaseExecutionLock(lock);
     writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
@@ -679,7 +684,12 @@ function main() {
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const claudeEnv = { ...process.env };
+    const claudeStartedMs = Date.now();
+    claudeStartedAt = new Date(claudeStartedMs).toISOString();
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
+    const claudeFinishedMs = Date.now();
+    claudeFinishedAt = new Date(claudeFinishedMs).toISOString();
+    claudeDurationMs = claudeFinishedMs - claudeStartedMs;
     fs.writeFileSync(path.join(runDir, 'claude-output.json'), redact(result.stdout || ''), 'utf8');
     fs.writeFileSync(path.join(runDir, 'claude-stderr.txt'), redact(result.stderr || ''), 'utf8');
   } finally {
@@ -756,6 +766,9 @@ function main() {
     session_id: request.generated_session_id,
     claude_exit_code: result.status, claude_error: result.error ? result.error.message : null,
     claude_failure: classifyClaudeFailure(result),
+    claude_started_at: claudeStartedAt,
+    claude_finished_at: claudeFinishedAt,
+    claude_duration_ms: claudeDurationMs,
     timed_out: result.status === null, source_head: request.source_head,
     // KV2-19 : preuve que les controles ont bien tourne contre les dependances
     // de la revision controlee, et non contre celles de main.

@@ -37,8 +37,18 @@ if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 # un arbre de dependances qui n'etait pas celui de la revision livree.
 if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType Leaf) {
   $beforeDeps = @(git status --porcelain=v2 -z --untracked-files=all)
+  $npmStartedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   npm ci --no-audit --no-fund
-  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_DEPENDENCIES_FAILED' }
+  $npmExitCode = $LASTEXITCODE
+  $npmFinishedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+  if (-not [string]::IsNullOrWhiteSpace($env:KODJO_INFRA_METRICS_FILE)) {
+    & node (Join-Path $PSScriptRoot 'record-infrastructure-metric.js') npm-ci $env:KODJO_INFRA_METRICS_FILE $npmStartedMs $npmFinishedMs $npmExitCode $repoRoot
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning 'KODJO_QUEUE_INFRASTRUCTURE_METRIC_FAILED: npm-ci'
+      $global:LASTEXITCODE = 0
+    }
+  }
+  if ($npmExitCode -ne 0) { throw 'KODJO_QUEUE_DEPENDENCIES_FAILED' }
   # Reserve 4 de la revue du lot 1 : `npm ci` peut reecrire package-lock.json ou
   # deposer des fichiers suivis. Toute mutation du depot avant l'appel Claude
   # fausserait le delta impute a Claude et doit etre refusee ici, nommement.

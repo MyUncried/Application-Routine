@@ -19,11 +19,27 @@ concurrency:
 jobs:
   execute:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 90
+    env:
+      KODJO_INFRA_METRICS_FILE: ${{ runner.temp }}/kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}.json
     defaults:
       run:
         shell: powershell
         working-directory: _kodjo/${{ github.run_id }}
     steps:
+      - name: Start infrastructure measurement
+        shell: powershell
+        working-directory: ${{ runner.temp }}
+        run: |
+          $started = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+          $kodjoRoot = Join-Path '${{ github.workspace }}' '_kodjo'
+          $count = @(Get-ChildItem -LiteralPath $kodjoRoot -Directory -ErrorAction SilentlyContinue).Count
+          $driveRoot = [IO.Path]::GetPathRoot('${{ github.workspace }}')
+          $free = (New-Object IO.DriveInfo -ArgumentList $driveRoot).AvailableFreeSpace
+          "KODJO_CHECKOUT_STARTED_MS=$started" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "KODJO_CHECKOUT_COUNT_BEFORE=$count" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "KODJO_VOLUME_FREE_BYTES_BEFORE=$free" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -31,6 +47,14 @@ jobs:
           persist-credentials: false
           # Le runner est persistant : ne jamais checkout dans son répertoire racine.
           path: _kodjo/${{ github.run_id }}
+
+      - name: Finish checkout measurement
+        continue-on-error: true
+        run: node scripts/kodjo/record-infrastructure-metric.js init $env:KODJO_INFRA_METRICS_FILE $env:KODJO_CHECKOUT_STARTED_MS $env:KODJO_CHECKOUT_COUNT_BEFORE $env:KODJO_VOLUME_FREE_BYTES_BEFORE '${{ github.workspace }}/_kodjo/${{ github.run_id }}'
+
+      - name: Prepare checkout cleanup utility
+        shell: powershell
+        run: Copy-Item -LiteralPath 'scripts/kodjo/cleanup-run-checkout.ps1' -Destination '${{ runner.temp }}/kodjo-cleanup-${{ github.run_id }}-${{ github.run_attempt }}.ps1' -Force
 
       - name: Initialize current run diagnostic
         run: node scripts/kodjo/initialize-run-diagnostic.js
@@ -116,3 +140,22 @@ jobs:
           path: ${{ steps.diag.outputs.dir }}/recovery-package/
           if-no-files-found: warn
           retention-days: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}
+
+      - name: Clean current run checkout
+        if: always()
+        shell: powershell
+        working-directory: ${{ runner.temp }}
+        run: |
+          $utility = Join-Path '${{ runner.temp }}' 'kodjo-cleanup-${{ github.run_id }}-${{ github.run_attempt }}.ps1'
+          if (-not (Test-Path -LiteralPath $utility -PathType Leaf)) { throw 'RUN_CHECKOUT_CLEANUP_UTILITY_MISSING' }
+          & $utility -Root '${{ github.workspace }}/_kodjo/${{ github.run_id }}' -WorkspaceRoot '${{ github.workspace }}' -RunId '${{ github.run_id }}' -MetricsFile $env:KODJO_INFRA_METRICS_FILE
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Preserve infrastructure metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.KODJO_INFRA_METRICS_FILE }}
+          if-no-files-found: error
+          retention-days: 90

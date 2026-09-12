@@ -58,6 +58,12 @@ function Invoke-Native {
   return New-Object psobject -Property @{ Code = $code; Output = $text }
 }
 
+function Write-JsonNoBom {
+  param([string]$Path, [object]$Value, [int]$Depth = 20)
+  $json = ($Value | ConvertTo-Json -Depth $Depth).Replace("`r`n", "`n") + "`n"
+  [IO.File]::WriteAllText($Path, $json, (New-Object Text.UTF8Encoding($false)))
+}
+
 New-Item -ItemType Directory -Force -Path $evidence | Out-Null
 try {
   if ($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1) {
@@ -130,7 +136,7 @@ try {
     $baseline[$check] = Get-Content -Raw -LiteralPath $target | ConvertFrom-Json
   }
   $baselinePath = Join-Path $baselineDirectory 'checks.json'
-  ($baseline | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $baselinePath -Encoding UTF8
+  Write-JsonNoBom $baselinePath $baseline 12
 
   $env:KODJO_STATE_ROOT = $state
   $env:KODJO_SOURCE_RECOVERY_DIR = $sourcePackage
@@ -251,6 +257,6 @@ finally {
     $manifest.workflow_technical_status = 'FAILURE'
     $manifest.failure = 'QUALIFICATION_TEMP_CLEANUP_FAILED'
   }
-  ($manifest | ConvertTo-Json -Depth 20) | Set-Content -LiteralPath (Join-Path $evidence 'qualification-resume-manifest.json') -Encoding UTF8
+  Write-JsonNoBom (Join-Path $evidence 'qualification-resume-manifest.json') $manifest 20
   if ($cleanupMustFailRun) { throw 'QUALIFICATION_TEMP_CLEANUP_FAILED' }
 }

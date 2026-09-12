@@ -160,7 +160,8 @@ jobs:
               run_attempt = '${{ github.run_attempt }}'
               source_sha = '${{ github.event.pull_request.head.sha || github.sha }}'
             }
-            $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath 'real-recovery-certification.json' -Encoding UTF8
+            $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"
+            [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))
           }
       - name: Upload real recovery certification
         if: always()

@@ -139,7 +139,8 @@ jobs:
             throw
           } finally {
             $report.finished_at = (Get-Date).ToUniversalTime().ToString('o')
-            ($report | ConvertTo-Json -Depth 10) | Set-Content -LiteralPath (Join-Path $evidence 'runner-cleanup-diagnostic.json') -Encoding UTF8
+            $reportJson = ($report | ConvertTo-Json -Depth 10).Replace("`r`n", "`n") + "`n"
+            [IO.File]::WriteAllText((Join-Path $evidence 'runner-cleanup-diagnostic.json'), $reportJson, (New-Object Text.UTF8Encoding($false)))
           }
 
       - name: Execute real INITIAL qualification
@@ -210,7 +211,8 @@ jobs:
             lock_absent = $true
             status = 'CONTROLLED_INTERRUPTION'
           }
-          ($marker | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath (Join-Path $evidence 'controlled-interruption.json') -Encoding UTF8
+          $markerJson = ($marker | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"
+          [IO.File]::WriteAllText((Join-Path $evidence 'controlled-interruption.json'), $markerJson, (New-Object Text.UTF8Encoding($false)))
           Write-Error 'CONTROLLED_INTERRUPTION_AFTER_DELTA_PRESERVATION'
           exit 75
 
