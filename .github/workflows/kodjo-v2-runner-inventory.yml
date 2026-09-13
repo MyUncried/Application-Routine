@@ -1,0 +1,86 @@
+name: KODJO V2 runner inventory
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 10
+    steps:
+      - name: Inventory persistent KODJO directories without mutation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '_kodjo')).TrimEnd('\')
+          $evidenceLeaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $evidence = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $evidenceLeaf)).TrimEnd('\')
+          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($evidence).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($evidence) -ne $evidenceLeaf) {
+            throw ('EVIDENCE_IDENTITY_MISMATCH: ' + $evidence)
+          }
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+
+          $lock = Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'claude-local.lock'
+          $matches = @(Get-CimInstance Win32_Process | Where-Object {
+            $_.CommandLine -and $_.CommandLine.IndexOf($root, [StringComparison]::OrdinalIgnoreCase) -ge 0
+          } | Select-Object ProcessId, Name, ExecutablePath)
+
+          $directories = @()
+          if (Test-Path -LiteralPath $root) {
+            $directories = @(Get-ChildItem -LiteralPath $root -Directory -Force | Sort-Object Name | ForEach-Object {
+              $measure = Get-ChildItem -LiteralPath $_.FullName -File -Force -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
+              $runId = $null
+              if ($_.Name -match '^\d+$') { $runId = $_.Name }
+              [ordered]@{
+                name = $_.Name
+                run_id = $runId
+                full_path = $_.FullName
+                file_count = [int64]$measure.Count
+                size_bytes = [int64]$(if ($null -eq $measure.Sum) { 0 } else { $measure.Sum })
+                created_at_utc = $_.CreationTimeUtc.ToString('o')
+                last_write_at_utc = $_.LastWriteTimeUtc.ToString('o')
+              }
+            })
+          }
+
+          $report = [ordered]@{
+            schema_version = 'kodjo.protocol.v2.runner-inventory.0.1'
+            inventory_only = $true
+            github_run_id = $env:GITHUB_RUN_ID
+            github_run_attempt = $env:GITHUB_RUN_ATTEMPT
+            root = $root
+            root_exists = (Test-Path -LiteralPath $root)
+            claude_lock_present = (Test-Path -LiteralPath $lock)
+            matching_processes = $matches
+            directory_count = @($directories).Count
+            directories = $directories
+            observed_at_utc = (Get-Date).ToUniversalTime().ToString('o')
+            status = 'PASS'
+          }
+          $json = ($report | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"
+          [IO.File]::WriteAllText((Join-Path $evidence 'runner-inventory.json'), $json, (New-Object Text.UTF8Encoding($false)))
+          Write-Host ("KODJO inventory complete: {0} directories; lock={1}; matching_processes={2}" -f $report.directory_count, $report.claude_lock_present, @($matches).Count)
+
+      - name: Preserve read-only inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/runner-inventory.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove only the temporary inventory report
+        if: always()
+        shell: powershell
+        run: |
+          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
+          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
+            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
+          }
+          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
