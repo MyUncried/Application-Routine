@@ -1,0 +1,84 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-BILAT-01",
+  "issue_number": 52,
+  "source_head": "7d72ed6d4eeda1d6c5d395b7fb76aad4f81c10b5",
+  "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "5360bd4a77170739649a94b12f28f66d7fe424d4a73b61db11a661891543e76c",
+  "mode": "RESUME_DELTA",
+  "session_id": "80daf10b-8c53-4990-af9d-38031814dc20",
+  "prompt_file": ".github/orchestration/v2-slices/V2-BILAT-01/implementation-mission.md",
+  "scope_allow": [
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/defaults.ts",
+    "src/domain/sessions/validation.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/sessions/composition.ts",
+    "src/domain/sessions/index.ts",
+    "src/domain/sessions/sideMode.ts",
+    "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "src/domain/sessions/__tests__/calculations.test.ts",
+    "src/domain/sessions/__tests__/composition.test.ts",
+    "src/domain/sessions/__tests__/validation.test.ts",
+    "src/domain/sessions/__tests__/sideMode.test.ts",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/SideModeControl.tsx",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
+    "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+    "src/infrastructure/database/constants.ts",
+    "src/infrastructure/database/migrateDatabase.ts",
+    "src/infrastructure/database/migrations/migration005.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+    "src/infrastructure/database/types/DatabaseRows.ts",
+    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "src/shared/i18n/resources/fr.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "c4a473b8-df02-4609-9e9e-aa73715b263b",
+  "created_at": "2026-09-13T16:36:38.791Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
+    "plan_blob_oid": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "approved_at_commit": "4a51c43e271e33bc477df6c60d857e86016cfa54",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+    "review_blob_oid": "2d129379a5f1c6247926bf49d68cfc25754f203c",
+    "reviewed_plan_blob_oid": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5631757097",
+    "gated_reference": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "retry_of_run_id": "34760019019",
+  "retry_reason": {
+    "code": "CHECKS_FAILED",
+    "detail": "Resume the intact recovery package from run 34760019019, artifact 10318448194, in Claude session 80daf10b-8c53-4990-af9d-38031814dc20. Verified patch SHA-256: 81bc3f19cc14e8629a2569f0678d8e2deeca93b5ee3c3f2f943bb905b99f4004. The deterministic runner reported Jest FAIL with 5 failed tests across 3 suites (1103 passed, 1108 total), while TypeScript and lint passed. The failures are compatibility assertions caused by normalization adding sideMode='UNILATERAL' and tourSideMode='UNILATERAL' to legacy inputs that omitted those properties; visible failures include SessionService.createSession and SessionService.updateSession. Correct only the implementation within the unchanged approved scope so legacy absent fields remain compatible while explicit bilaterality, persistence defaults, and all approved requirements remain intact. Do not modify out-of-scope tests. Run the authorized checks and publish only if Jest, TypeScript, and lint all pass."
+  }
+}
