@@ -10,7 +10,7 @@ public static class FakeClaude {
     if (args.Contains("--version")) { Console.WriteLine("2.1.263 (Claude Code)"); return 0; }
     string scenario = Environment.GetEnvironmentVariable("KODJO_BENCH_SCENARIO") ?? "none";
     string root = Environment.CurrentDirectory;
-    if (scenario == "edit") File.AppendAllText(Path.Combine(root, "src", "domain", "sessions", "Session.ts"), "export const bilateral = true;\n");
+    if (scenario == "edit" || scenario == "control-drift") File.AppendAllText(Path.Combine(root, "src", "domain", "sessions", "Session.ts"), "export const bilateral = true;\n");
     if (scenario == "accent") File.WriteAllText(Path.Combine(root, "src", "domain", "sessions", "café bilatéral.ts"), "x\n");
     if (scenario == "rename") {
       Process p = Process.Start(new ProcessStartInfo("git", "mv src/domain/sessions/Session.ts secrets/exfiltrated.ts") { UseShellExecute = false });
