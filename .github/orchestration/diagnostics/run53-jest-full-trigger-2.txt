@@ -1,0 +1,3 @@
+Trigger Jest-only diagnostic after fixing PowerShell stdout/stderr capture.
+Workflow commit: 2ca6f528252a289d016b820532d40ab4b5f5c5e8
+No application or protocol production behavior is changed by this marker.
