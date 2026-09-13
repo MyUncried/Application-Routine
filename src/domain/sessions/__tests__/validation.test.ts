@@ -5,6 +5,8 @@ import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/se
 import {
   normalizeInstruction,
   normalizeName,
+  normalizeSideMode,
+  normalizeTourSideMode,
   validateCreatableActivityType,
   validateCreateSessionInput,
   validateExecutionMode,
@@ -323,6 +325,12 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
+      // V2-BILAT-01 : `sideMode` OMIS délibérément — la direction neutre
+      // (`UNILATERAL`, explicite ou par défaut) reste ABSENTE de l'agrégat
+      // validé (`normalizeSideMode`), pour que ce fixture, structurellement
+      // identique à un appelant antérieur à cette tranche, continue de
+      // produire exactement la même sortie normalisée (aucun champ
+      // supplémentaire matérialisé).
     };
   }
 
@@ -333,6 +341,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
+      // V2-BILAT-01 : `tourSideMode` OMIS délibérément — voir `durationExercise` ci-dessus.
       exercises: [durationExercise()],
       categories: [],
     };
@@ -685,6 +694,202 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
   });
 });
 
+/**
+ * V2-BILAT-01 : `SideMode` est un enum entièrement gouverné par l'interface
+ * (contrôle cyclique à trois états) — `errors.ts` restant hors périmètre
+ * (bornes opposables de la mission), une valeur hors énumération à
+ * l'exécution ne fait jamais échouer la validation complète d'un agrégat par
+ * ailleurs valide (voir `normalizeSideMode`, `validation.ts`).
+ *
+ * **Compatibilité rétroactive.** La direction NEUTRE (`UNILATERAL` —
+ * explicite, absente ou issue d'une valeur hors énumération) est
+ * délibérément ABSENTE (`undefined`) de la sortie normalisée : un agrégat
+ * dont aucune Activité/Tour n'exprime de bilatéralité reste ainsi
+ * structurellement identique à un agrégat antérieur à cette tranche, qui
+ * n'a jamais connu ce champ — un appelant existant comparant l'agrégat par
+ * égalité stricte n'est donc jamais affecté par cette tranche. Seule une
+ * direction BILATÉRALE explicite (`RIGHT_LEFT`/`LEFT_RIGHT`) traverse la
+ * normalisation.
+ */
+describe("normalizeSideMode / normalizeTourSideMode (V2-BILAT-01)", () => {
+  it("passes an explicit BILATERAL direction through unchanged", () => {
+    expect(normalizeSideMode("RIGHT_LEFT")).toBe("RIGHT_LEFT");
+    expect(normalizeSideMode("LEFT_RIGHT")).toBe("LEFT_RIGHT");
+    expect(normalizeTourSideMode("RIGHT_LEFT")).toBe("RIGHT_LEFT");
+    expect(normalizeTourSideMode("LEFT_RIGHT")).toBe("LEFT_RIGHT");
+  });
+
+  it("collapses the neutral UNILATERAL direction to undefined, whether explicit or absent", () => {
+    expect(normalizeSideMode("UNILATERAL")).toBeUndefined();
+    expect(normalizeSideMode(undefined)).toBeUndefined();
+    expect(normalizeTourSideMode("UNILATERAL")).toBeUndefined();
+    expect(normalizeTourSideMode(undefined)).toBeUndefined();
+  });
+
+  it("collapses any value outside the enumeration to undefined too — never a failure, never a materialized default", () => {
+    expect(normalizeSideMode("BILATERAL")).toBeUndefined();
+    expect(normalizeSideMode(null)).toBeUndefined();
+    expect(normalizeTourSideMode("BILATERAL")).toBeUndefined();
+  });
+});
+
+describe("validateCreateSessionInput / validateUpdateSessionInput — side mode (V2-BILAT-01)", () => {
+  function durationExercise(sideMode?: unknown) {
+    return {
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      name: "Gainage",
+      executionMode: "DURATION" as const,
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+      recoverySeconds: 0,
+      instruction: null,
+      bodyZoneIds: [],
+      sideMode: sideMode as never,
+    };
+  }
+
+  it("carries a valid Activity/Tour side mode through creation unchanged", () => {
+    const result = validateCreateSessionInput({
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      tourSideMode: "RIGHT_LEFT" as never,
+      exercises: [durationExercise("LEFT_RIGHT")],
+      categories: [],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tourSideMode).toBe("RIGHT_LEFT");
+      expect(result.value.exercises[0]?.sideMode).toBe("LEFT_RIGHT");
+    }
+  });
+
+  /**
+   * Compatibilité rétroactive (retry V2-BILAT-01) : une direction OMISE, une
+   * direction explicitement `UNILATERAL`, et une direction hors énumération
+   * produisent toutes la MÊME sortie — `undefined`, jamais une chaîne
+   * `"UNILATERAL"` matérialisée — pour ne jamais faire diverger un agrégat
+   * validé de sa forme antérieure à cette tranche.
+   */
+  it("collapses an omitted, explicit UNILATERAL, or invalid side mode to undefined, without ever failing validation", () => {
+    for (const rawTourSideMode of [undefined, "UNILATERAL", "BILATERAL"] as const) {
+      for (const rawExerciseSideMode of [undefined, "UNILATERAL", "BILATERAL"] as const) {
+        const result = validateCreateSessionInput({
+          name: "Séance",
+          color: DEFAULT_SESSION_COLOR,
+          initialCountdownSeconds: 10,
+          finalPhaseSeconds: 5,
+          tourRepeatCount: 1,
+          tourSideMode: rawTourSideMode as never,
+          exercises: [durationExercise(rawExerciseSideMode)],
+          categories: [],
+        });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.value.tourSideMode).toBeUndefined();
+          expect(result.value.exercises[0]?.sideMode).toBeUndefined();
+        }
+      }
+    }
+  });
+
+  it("carries a valid Activity/Tour side mode through an update, and collapses an invalid one to undefined", () => {
+    const okResult = validateUpdateSessionInput({
+      sourceSessionId: "session-1",
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      tourSideMode: "LEFT_RIGHT" as never,
+      activities: [{ ...durationExercise("RIGHT_LEFT"), id: "act-1", position: 0 }],
+      categories: [],
+    });
+    expect(okResult.ok).toBe(true);
+    if (okResult.ok) {
+      expect(okResult.value.tourSideMode).toBe("LEFT_RIGHT");
+      expect(okResult.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
+    }
+
+    const invalidResult = validateUpdateSessionInput({
+      sourceSessionId: "session-1",
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      tourSideMode: "NOT_A_SIDE_MODE" as never,
+      activities: [{ ...durationExercise(undefined), id: "act-1", position: 0 }],
+      categories: [],
+    });
+    expect(invalidResult.ok).toBe(true);
+    if (invalidResult.ok) {
+      expect(invalidResult.value.tourSideMode).toBeUndefined();
+      expect(invalidResult.value.activities[0]?.sideMode).toBeUndefined();
+    }
+  });
+
+  /**
+   * Preuve directe de la régression corrigée : un agrégat entièrement
+   * UNILATÉRAL (le cas historique) est `toEqual` à sa forme dépourvue de
+   * `sideMode`/`tourSideMode` — exactement ce qu'un appelant existant, qui
+   * n'a jamais connu ce champ, continue de recevoir.
+   */
+  it("is toEqual a legacy aggregate shape (no sideMode/tourSideMode keys) when every direction stays UNILATERAL", () => {
+    const withExplicitUnilateral = validateCreateSessionInput({
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      tourSideMode: "UNILATERAL" as never,
+      exercises: [durationExercise("UNILATERAL")],
+      categories: [],
+    });
+    const withoutSideMode = validateCreateSessionInput({
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [durationExercise(undefined)],
+      categories: [],
+    });
+    expect(withExplicitUnilateral).toEqual(withoutSideMode);
+    expect(withoutSideMode).toEqual({
+      ok: true,
+      value: {
+        name: "Séance",
+        color: DEFAULT_SESSION_COLOR,
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+        tourRepeatCount: 1,
+        exercises: [
+          {
+            type: "EXERCISE",
+            structuralPosition: "IN_TOUR",
+            name: "Gainage",
+            executionMode: "DURATION",
+            durationSeconds: 30,
+            repetitionCount: null,
+            seriesCount: 1,
+            pauseSeconds: 0,
+            recoverySeconds: 0,
+            instruction: null,
+            bodyZoneIds: [],
+          },
+        ],
+        categories: [],
+      },
+    });
+  });
+});
+
 describe("validateTourRepeatCount (T01-S10, D-058)", () => {
   it("accepts the bounds 1 and 99", () => {
     expect(validateTourRepeatCount(1)).toEqual({ ok: true, value: 1 });
@@ -790,6 +995,8 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
       recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
+      // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
+      // `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
     };
   }
 
@@ -845,6 +1052,8 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       recoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
+      // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
+      // `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
       ...overrides,
     };
   }
@@ -857,6 +1066,8 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 2,
+      // V2-BILAT-01 : `tourSideMode` OMIS délibérément — voir la note de tête
+      // de `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
       activities: [exerciseActivity()],
       categories: [],
       ...overrides,

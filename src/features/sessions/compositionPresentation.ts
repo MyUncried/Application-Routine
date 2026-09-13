@@ -3,8 +3,9 @@ import {
   computeTotalDurationSeconds,
   computeZoneDurationFacts,
 } from "@/domain/sessions/calculations";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT, DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { sideMultiplier, type SideMode } from "@/domain/sessions/sideMode";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
@@ -27,6 +28,13 @@ export type CompositionSummaryFacts = {
    * Activités du Tour ne sont alors multipliées par rien).
    */
   readonly tourRepeatCount?: number;
+  /**
+   * V2-BILAT-01 : direction du Tour, entier optionnel — `DEFAULT_TOUR_SIDE_MODE`
+   * (`UNILATERAL`) par défaut, valeur pour laquelle la synthèse reste
+   * rigoureusement identique à celle d'avant cette tranche (chaque Activité
+   * conserve alors sa propre direction, jamais celle du Tour).
+   */
+  readonly tourSideMode?: SideMode;
 };
 
 /**
@@ -116,7 +124,10 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   // minimale. La parité
   // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
   // par ressemblance de deux implémentations.
-  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
+  const inTourOccurrence = computeZoneDurationFacts(
+    inTourExercises,
+    facts.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
+  );
 
   const totalSeconds = computeEstimatedDurationSeconds({
     beforeTourDurationSeconds: 0,
@@ -250,6 +261,14 @@ export type ExerciseRecapFacts = ExerciseRowSummaryFacts & {
    * `ExerciseScreen` transmet toujours la valeur réelle du brouillon.
    */
   readonly recoverySeconds?: number;
+  /**
+   * V2-BILAT-01 : direction propre de l'Activité en cours d'édition — champ
+   * OPTIONNEL, `UNILATERAL` par défaut (même convention que
+   * `recoverySeconds` ci-dessus) : un appelant qui ne la transmet pas
+   * produit exactement la ligne de durée d'avant cette tranche.
+   * `ExerciseScreen` transmet toujours la valeur réelle du brouillon.
+   */
+  readonly sideMode?: SideMode;
 };
 
 /**
@@ -359,11 +378,15 @@ function formatRecoveryClause(recoverySeconds: number): string {
 export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string {
   const exercise = strings.screens.exercise;
   const isLowerBound = facts.executionMode !== "DURATION";
-  const totalSeconds = computeTotalDurationSeconds(facts.seriesCount, {
-    durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
-    pauseSeconds: facts.pauseSeconds,
-    recoverySeconds: facts.recoverySeconds ?? 0,
-  });
+  const totalSeconds = computeTotalDurationSeconds(
+    facts.seriesCount,
+    {
+      durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
+      pauseSeconds: facts.pauseSeconds,
+      recoverySeconds: facts.recoverySeconds ?? 0,
+    },
+    sideMultiplier(facts.sideMode ?? "UNILATERAL"),
+  );
   const formatted = formatCompactDuration(totalSeconds);
 
   return isLowerBound

@@ -16,6 +16,29 @@ export const fr = {
       message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
     },
   },
+  // V2-BILAT-01 : textes PARTAGÉS entre plusieurs écrans — `SideModeControl`
+  // (`sideMode.ts`) est consommé aussi bien par `ExerciseScreen` (contrôle
+  // `Côtés` d'une Activité) que par `CompositionScreen` (contrôle `Côtés` du
+  // Tour) : un seul jeu de libellés/noms accessibles, jamais deux copies
+  // pouvant diverger. États affichés `Unilatéral`/`D→G`/`G→D` ; noms
+  // accessibles `Unilatéral`/`Bilatéral droite-gauche`/`Bilatéral
+  // gauche-droite` (plan V2-BILAT-01, `## UI`).
+  shared: {
+    sideMode: {
+      label: "Côtés",
+      compactLabel: "Côtés",
+      valueLabels: {
+        UNILATERAL: "Unilatéral",
+        RIGHT_LEFT: "D→G",
+        LEFT_RIGHT: "G→D",
+      },
+      accessibilityLabels: {
+        UNILATERAL: "Unilatéral",
+        RIGHT_LEFT: "Bilatéral droite-gauche",
+        LEFT_RIGHT: "Bilatéral gauche-droite",
+      },
+    },
+  },
   nav: {
     // RES-NAV-LABEL-01 (contre-recette iPhone, addendum Phase 2,
     // 2026-09-03) : "Mes séances" → "Séances" — source i18n canonique,
@@ -146,6 +169,21 @@ export const fr = {
         // sémantique correcte avant ce cycle.
         continueCreating: "Annuler",
         abandon: "Confirmer",
+      },
+      // V2-BILAT-01 (plan `## UI`) : dialogue déterministe d'ACTIVATION de la
+      // bilatéralité du Tour — uniquement à la transition `UNILATERAL` →
+      // direction bilatérale (`RIGHT_LEFT`/`LEFT_RIGHT`). Titre et message
+      // reproduits mot pour mot depuis le plan technique approuvé.
+      // `Annuler` ne produit aucune mutation ; `Confirmer` applique la
+      // transition atomique (`applyTourSideModeTransition`). Le retour à
+      // `UNILATERAL` et le changement de sens entre deux directions déjà
+      // bilatérales n'affichent jamais ce dialogue.
+      tourBilateralConfirmModal: {
+        title: "Voulez-vous exécuter ce Tour de manière bilatérale ?",
+        message:
+          "À chaque répétition du Tour, toutes ses Activités seront exécutées une première fois d’un côté, puis une seconde fois de l’autre, selon l’ordre choisi. Les réglages de côtés propres aux Activités seront remplacés par celui du Tour.",
+        cancel: "Annuler",
+        confirm: "Confirmer",
       },
       // T02-S01 (CE-T02-01/CE-T02-02, D-124/D-127) : gestes et actions
       // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
