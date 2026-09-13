@@ -1093,3 +1093,67 @@ describe("formatExerciseBodyZones", () => {
     );
   });
 });
+
+describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duration line", () => {
+  describe("formatCompositionSummary — tourSideMode", () => {
+    it("is unaffected by tourSideMode when every Activity stays UNILATERAL (non-regression)", () => {
+      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
+        formatCompositionSummary({ exercises }),
+      );
+    });
+
+    it("doubles the Tour occurrence duration when the Tour itself is bilateral", () => {
+      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      // Unilatéral : 45 s -> ceil(45/60) = 1 min. Bilatéral : 90 s -> 2 min.
+      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
+        "1 activité · 1 min",
+      );
+      expect(formatCompositionSummary({ exercises, tourSideMode: "RIGHT_LEFT" })).toBe(
+        "1 activité · 2 min",
+      );
+    });
+
+    it("never multiplies the displayed count by the side mode — only the duration", () => {
+      const exercises = [
+        { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
+        { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
+      ];
+      const summary = formatCompositionSummary({ exercises, tourSideMode: "LEFT_RIGHT" });
+      expect(summary.startsWith("2 activités")).toBe(true);
+    });
+  });
+
+  describe("formatExerciseDurationLine — sideMode (autonome, jamais la Récupération)", () => {
+    it("is unaffected by an UNILATERAL side mode (non-regression)", () => {
+      const facts = {
+        name: "Gainage",
+        executionMode: "DURATION" as const,
+        durationSeconds: 30,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        recoverySeconds: 20,
+      };
+      expect(formatExerciseDurationLine({ ...facts, sideMode: "UNILATERAL" })).toBe(
+        formatExerciseDurationLine(facts),
+      );
+    });
+
+    it("doubles the Series + Pauses part but never the Récupération", () => {
+      // 3×30 + 2×15 = 120 ; × 2 = 240 ; + 20 (jamais doublée) = 260 s.
+      expect(
+        formatExerciseDurationLine({
+          name: "Gainage",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+          recoverySeconds: 20,
+          sideMode: "RIGHT_LEFT",
+        }),
+      ).toBe("Durée totale : 4 min 20 s");
+    });
+  });
+});

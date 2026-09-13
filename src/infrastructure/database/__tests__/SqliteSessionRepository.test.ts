@@ -1550,6 +1550,150 @@ describe("SqliteSessionRepository", () => {
       expect(await repository.findSessionStatus("nope")).toBeNull();
     });
   });
+
+  /**
+   * V2-BILAT-01 — persistance des côtés (Activité et Tour), et parité SQL /
+   * Domaine du multiplicateur (`ACTIVITY_SIDE_MULTIPLIER_SQL`/
+   * `ACTIVITY_RECOVERY_MULTIPLIER_SQL`, transcription exacte de
+   * `sideMultiplier(resolveEffectiveSideMode(...))`, `calculations.ts`).
+   */
+  describe("V2-BILAT-01 — side mode persistence and SQL parity", () => {
+    it("persists and round-trips an Activity's own side mode and the Tour's own side mode", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        tourSideMode: "LEFT_RIGHT",
+        exercises: [{ ...anExercise(), sideMode: "RIGHT_LEFT" }],
+      });
+
+      expect(created.cycle.tour.sideMode).toBe("LEFT_RIGHT");
+      expect(created.cycle.tour.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
+
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.sideMode).toBe("LEFT_RIGHT");
+      expect(reopened?.cycle.tour.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
+    });
+
+    it("defaults a fresh Activity/Tour to UNILATERAL when no side mode is provided", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+
+      expect(created.cycle.tour.sideMode).toBe("UNILATERAL");
+      expect(created.cycle.tour.exercises[0]?.sideMode).toBe("UNILATERAL");
+    });
+
+    it("updates the Tour's own side mode and each Activity's own side mode through update()", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      const activityId = created.cycle.tour.exercises[0]!.id;
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          tourSideMode: "RIGHT_LEFT",
+          activities: [anUpdateActivity({ id: activityId, sideMode: "LEFT_RIGHT" })],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status === "UPDATED") {
+        expect(outcome.session.cycle.tour.sideMode).toBe("RIGHT_LEFT");
+        expect(outcome.session.cycle.tour.exercises[0]?.sideMode).toBe("LEFT_RIGHT");
+      }
+    });
+
+    /**
+     * Parité SQL / Domaine — « Tour bilatéral » : la direction du Tour
+     * prévaut pour toute Activité `IN_TOUR`, et la Récupération est comptée
+     * UNE FOIS PAR PASSAGE de côté (`Ri` doublée elle aussi).
+     */
+    it("doubles the estimated duration, Récupération included, when the Tour itself is bilateral", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        tourSideMode: "RIGHT_LEFT",
+        exercises: [
+          {
+            ...anExercise(),
+            durationSeconds: 30,
+            seriesCount: 3,
+            pauseSeconds: 15,
+            recoverySeconds: 20,
+          },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      // perPass = 3×30 + 2×15 = 120 ; × 2 (Tour bilatéral) = 240 ;
+      // + 20 × 2 (Récupération comptée par passage) = 40 → 280 s.
+      expect(
+        summaries.find((item) => item.id === created.id)?.estimatedDurationSeconds,
+      ).toBe(280);
+    });
+
+    /**
+     * Parité SQL / Domaine — « Tour unilatéral + Activité bilatérale » : la
+     * Récupération n'est comptée qu'UNE SEULE FOIS, après les deux côtés de
+     * cette Activité.
+     */
+    it("doubles the estimated duration for a bilateral Activity under a unilateral Tour, never doubling the Récupération", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [
+          {
+            ...anExercise(),
+            durationSeconds: 30,
+            seriesCount: 3,
+            pauseSeconds: 15,
+            recoverySeconds: 20,
+            sideMode: "RIGHT_LEFT",
+          },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      // perPass = 120 ; × 2 = 240 ; + 20 (jamais doublée) = 260 s.
+      expect(
+        summaries.find((item) => item.id === created.id)?.estimatedDurationSeconds,
+      ).toBe(260);
+    });
+
+    it("never multiplies BEFORE_TOUR/AFTER_TOUR Activities by the Tour's own side mode — only their own", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        tourSideMode: "RIGHT_LEFT",
+        exercises: [
+          {
+            ...anExercise(),
+            id: "warmup",
+            structuralPosition: "BEFORE_TOUR",
+            durationSeconds: 10,
+            seriesCount: 1,
+            pauseSeconds: 0,
+          },
+          { ...anExercise(), id: "core", structuralPosition: "IN_TOUR", durationSeconds: 10, seriesCount: 1, pauseSeconds: 0 },
+        ],
+      });
+
+      const summaries = await repository.listActive();
+      // BEFORE_TOUR (direction propre UNILATERAL) : 10 s ; IN_TOUR (Tour
+      // bilatéral) : 10 × 2 = 20 s. Total 30 s.
+      expect(
+        summaries.find((item) => item.id === created.id)?.estimatedDurationSeconds,
+      ).toBe(30);
+    });
+
+    it("keeps the aggregate contract check satisfied for the persisted default UNILATERAL side mode (defense in depth)", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create(validInput());
+      // La lecture complète (`findById`, qui rappelle `assertSessionAggregateRow`)
+      // ne lève jamais pour une Séance persistée normalement.
+      await expect(repository.findById(created.id)).resolves.not.toBeNull();
+    });
+  });
 });
 
 function validInput(): CreateSessionInput {
@@ -1734,6 +1878,8 @@ function validRow(): SessionAggregateRow {
     tour_id: IDS[2]!,
     tour_position: 1,
     tour_repeat_count: 1,
+    // V2-BILAT-01 : direction du Tour (`migration005`, défaut `'UNILATERAL'`).
+    tour_side_mode: "UNILATERAL",
     activity_id: IDS[3]!,
     activity_type: "EXERCISE",
     activity_name: "Gainage",
@@ -1746,5 +1892,7 @@ function validRow(): SessionAggregateRow {
     pause_seconds: 0,
     recovery_seconds: 0,
     instruction: null,
+    // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
+    activity_side_mode: "UNILATERAL",
   };
 }
