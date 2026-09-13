@@ -1,10 +1,20 @@
 'use strict';
 
+const { validateRetryReason } = require('./queue-contract');
+
 const LOCAL_REQUEST_SCHEMA = 'kodjo.protocol.v2.local-implementation.0.6.12';
 
 function projectQueueRequest(queue) {
   if (!queue || typeof queue !== 'object' || Array.isArray(queue)) {
     throw new Error('KODJO_QUEUE_INVALID');
+  }
+  const mode = String(queue.mode || '').toUpperCase();
+  const retryReasonPresent = Object.prototype.hasOwnProperty.call(queue, 'retry_reason');
+  if (mode === 'RESUME_DELTA') {
+    const detail = validateRetryReason(queue.retry_reason);
+    if (detail) throw new Error('KODJO_QUEUE_RETRY_REASON_INVALID: ' + detail);
+  } else if (retryReasonPresent) {
+    throw new Error('KODJO_QUEUE_RETRY_REASON_INVALID: reserve a RESUME_DELTA');
   }
   if (queue.allow_legacy_recovery_bootstrap !== undefined &&
       typeof queue.allow_legacy_recovery_bootstrap !== 'boolean') {
@@ -38,6 +48,12 @@ function projectQueueRequest(queue) {
   // reprise qu'il restaure. Detecte par le test de completude du contrat.
   if (queue.retry_of_run_id !== undefined) {
     request.retry_of_run_id = String(queue.retry_of_run_id);
+  }
+  if (mode === 'RESUME_DELTA') {
+    request.retry_reason = {
+      code: queue.retry_reason.code,
+      detail: queue.retry_reason.detail,
+    };
   }
   return request;
 }

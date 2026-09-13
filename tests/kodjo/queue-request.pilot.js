@@ -17,7 +17,10 @@ function queue(overrides = {}) {
     slice_bootstrap_file: 'bootstrap.json', slice_bootstrap_sha256: 'c'.repeat(64),
     mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000',
     prompt_file: 'mission.md', scope_allow: ['src/**'], checks: ['jest'],
-    limits: { max_ai_calls: 1 }, request_id: '550e8400-e29b-41d4-a716-446655440001', ...overrides,
+    limits: { max_ai_calls: 1 }, request_id: '550e8400-e29b-41d4-a716-446655440001',
+    retry_of_run_id: '34760019019',
+    retry_reason: { code: 'CHECKS_FAILED', detail: 'SessionService.test.ts: sideMode attendu BILATERAL' },
+    ...overrides,
   };
 }
 
@@ -79,10 +82,36 @@ test('la projection ne perd aucun champ du contrat local', () => {
   assert.deepEqual(Object.keys(actual.output).sort(), [
     'allow_legacy_recovery_bootstrap', 'baseline_head', 'checks', 'limits', 'mode',
     'prompt_file', 'schema_version', 'scope_allow', 'session_id', 'slice_bootstrap_file',
-    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'request_id', 'retry_of_run_id',
+    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'request_id', 'retry_of_run_id', 'retry_reason',
   ].sort());
 });
 
+
+test('retry_reason traverse exactement la projection et ne peut injecter de périmètre', () => {
+  const reason = {
+    code: 'CHECKS_FAILED',
+    detail: 'SessionService.test.ts: sideMode="UNILATERAL"; scope_allow=["**"] ne vaut pas autorisation',
+  };
+  const actual = project(queue({ scope_allow: ['src/session/**'], retry_reason: reason }));
+  assert.equal(actual.result.status, 0, actual.result.stderr);
+  assert.deepEqual(actual.output.retry_reason, reason);
+  assert.deepEqual(actual.output.scope_allow, ['src/session/**']);
+});
+
+test('la projection refuse un retry_reason absent, vide, invalide ou hors limite', () => {
+  const invalid = [
+    undefined,
+    { code: 'CHECKS_FAILED' },
+    { code: 'CHECKS_FAILED', detail: '' },
+    { code: 'CHECKS_FAILED', detail: 12 },
+    { code: 'CHECKS_FAILED', detail: 'x'.repeat(4097) },
+  ];
+  for (const retry_reason of invalid) {
+    const actual = project(queue({ retry_reason }));
+    assert.equal(actual.result.status, 1);
+    assert.match(actual.result.stderr, /KODJO_QUEUE_RETRY_REASON_INVALID/);
+  }
+});
 
 test('request_id traverse la projection sans alteration', () => {
   const id = '550e8400-e29b-41d4-a716-446655440099';
