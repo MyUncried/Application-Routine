@@ -13,6 +13,8 @@ Cette version conserve les invariants 0.6.20, rend le registre réellement canon
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
 | `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.22.0 |
 
+| `.github/orchestration/reports/KODJO_V2_ORDINARY_PATH_CERTIFICATION_REPORT_0.1.md` | Rapport de certification C1–C4, D1–D3 et R1–R6 ; réserves de sortie explicites |
+
 ## Composants d’activation V2
 
 | Chemin | Rôle |
