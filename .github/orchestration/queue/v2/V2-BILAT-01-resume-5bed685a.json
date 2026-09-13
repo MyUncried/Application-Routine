@@ -1,0 +1,84 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-BILAT-01",
+  "issue_number": 52,
+  "source_head": "36317b0011eecf51280da86f63b6eaeb6b4d56c8",
+  "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "5360bd4a77170739649a94b12f28f66d7fe424d4a73b61db11a661891543e76c",
+  "mode": "RESUME_DELTA",
+  "session_id": "80daf10b-8c53-4990-af9d-38031814dc20",
+  "prompt_file": ".github/orchestration/v2-slices/V2-BILAT-01/implementation-mission.md",
+  "scope_allow": [
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/defaults.ts",
+    "src/domain/sessions/validation.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/sessions/composition.ts",
+    "src/domain/sessions/index.ts",
+    "src/domain/sessions/sideMode.ts",
+    "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "src/domain/sessions/__tests__/calculations.test.ts",
+    "src/domain/sessions/__tests__/composition.test.ts",
+    "src/domain/sessions/__tests__/validation.test.ts",
+    "src/domain/sessions/__tests__/sideMode.test.ts",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/SideModeControl.tsx",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
+    "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+    "src/infrastructure/database/constants.ts",
+    "src/infrastructure/database/migrateDatabase.ts",
+    "src/infrastructure/database/migrations/migration005.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+    "src/infrastructure/database/types/DatabaseRows.ts",
+    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "src/shared/i18n/resources/fr.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "5bed685a-65e4-46b2-b0b8-f81c53260b16",
+  "created_at": "2026-09-13T16:52:01.090Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
+    "plan_blob_oid": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "approved_at_commit": "4a51c43e271e33bc477df6c60d857e86016cfa54",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+    "review_blob_oid": "2d129379a5f1c6247926bf49d68cfc25754f203c",
+    "reviewed_plan_blob_oid": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5631757097",
+    "gated_reference": "36ae634d91e6fcf72d8c53242f81212ff18907ee",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "retry_of_run_id": "34769124471",
+  "retry_reason": {
+    "code": "CHECKS_FAILED",
+    "detail": "Resume the intact recovery package from run 34769124471, artifact 10321621718, in the same Claude session. Verified patch SHA-256: 7be0de65d141bc264a97ad2d86d7edb0835e0745525f9ec604493b612f1cff7a. The previous corrective run reduced Jest failures from 5 to 1 while TypeScript and lint remain PASS. The sole deterministic failure is src/domain/sessions/__tests__/SessionDraft.test.ts, test 'toSessionDraft copies the editable fields exactly': expected tourSideMode='UNILATERAL' but received undefined. Correct this one remaining in-scope compatibility defect without reverting the prior fix that preserves absent neutral side fields through validation, without touching out-of-scope tests, and without changing any approved behavior or scope. Publish only if Jest, TypeScript, and lint all pass."
+  }
+}
