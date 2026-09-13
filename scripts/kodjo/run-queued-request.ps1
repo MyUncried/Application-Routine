@@ -94,7 +94,9 @@ try {
   # CONTIENT. On compare l'index reel, chemin par chemin, a la liste autorisee.
   & node (Join-Path $PSScriptRoot 'verify-staged-scope.js') $publishPathspec
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_STAGED_SCOPE_REFUSED' }
-  git diff --cached --check
+  # CR fait partie du terminateur CRLF, pas d'un espace final. Les autres
+  # règles de whitespace de Git restent actives.
+  git -c core.whitespace=cr-at-eol diff --cached --check
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_DIFF_CHECK_FAILED' }
   git -c user.name='KODJO Windows Supervisor' -c user.email='kodjo-supervisor@users.noreply.github.com' commit -m ("feat({0}): verified implementation" -f $queue.slice_id)
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_COMMIT_FAILED' }
