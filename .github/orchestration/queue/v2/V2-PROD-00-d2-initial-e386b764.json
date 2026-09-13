@@ -1,0 +1,51 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-PROD-00",
+  "issue_number": 79,
+  "source_head": "21aa899a587dbcefb131fca6a5bc4ff57f30127e",
+  "baseline_head": "90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-PROD-00/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "1180141045af7bd311f84dce6dd74ebb7602fb28a9028de14c12f5e3d7e8962b",
+  "mode": "INITIAL",
+  "session_id": null,
+  "prompt_file": ".github/orchestration/v2-slices/V2-PROD-00/implementation-mission-d2.md",
+  "scope_allow": [
+    "tests/kodjo-prod-qualif/d2-épreuve.test.ts",
+    "tests/kodjo-prod-qualif/d2-crlf.fixture.txt",
+    "tests/kodjo-prod-qualif/d2-binary.fixture.bin"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "e386b764-f4e2-4069-859e-f64b3ef03290",
+  "created_at": "2026-09-13T07:59:03.267Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/KODJO_V2_ORDINARY_PATH_CERTIFICATION_PLAN_0.1.md",
+    "plan_blob_oid": "ad9a0ac8d6c498f235501200b4f28e16c1bb67b1",
+    "approved_at_commit": "fc72bfbeae4a6ae7220d2baf0b87110c3fa6270b",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-PROD-00/independent-review.md",
+    "review_blob_oid": "ff2622891d04df5a1a23b6ab304331128c934d0b",
+    "reviewed_plan_blob_oid": "ad9a0ac8d6c498f235501200b4f28e16c1bb67b1",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5649819633",
+    "gated_reference": "ad9a0ac8d6c498f235501200b4f28e16c1bb67b1",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  }
+}
