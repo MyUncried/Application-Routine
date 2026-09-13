@@ -8,6 +8,8 @@ on:
       # admission ciblée est effectuée par Lean Queue au lancement.
       - '!.github/orchestration/queue/v2/*.json'
       - '.github/workflows/kodjo-v2-*.yml'
+      - '.github/workflows/kodjo-slice-plan.yml'
+      - '.github/workflows/kodjo-slice-plan-review.yml'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
   workflow_dispatch:

@@ -39,6 +39,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { verifyPlanAtRevision } = require('./lib/plan-impact');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const COMMENT_REF = /^issue_comment:([0-9]+)$/;
@@ -201,6 +202,29 @@ function verify(queueFile, options) {
     }
   }
 
+  // Les plans produits par le volet de planification avec le contrat d'impact
+  // deviennent opposables a l'admission. Les plans anterieurs restent
+  // compatibles et sont explicitement signales comme legacy : cette evolution
+  // ne retro-modifie pas leur scope approuve.
+  const planBody = blobContent(plan.plan_blob_oid, cwd);
+  const hasImpactContract = planBody.includes('<KODJO_PLAN_IMPACT_JSON>');
+  const hasReviewProof = reviewBody.includes('<KODJO_PLAN_IMPACT_REVIEW_JSON>');
+  let impact = null;
+  if (hasImpactContract) {
+    impact = verifyPlanAtRevision({
+      cwd,
+      sourceHead: queue.source_head,
+      planMarkdown: planBody,
+      reviewMarkdown: reviewBody,
+    });
+    const declaredScope = [...queue.scope_allow].sort();
+    if (JSON.stringify(declaredScope) !== JSON.stringify(impact.scope_allow)) {
+      fail('PLAN_SCOPE_CONTRADICTION', 'scope_allow de la demande differe de la matrice approuvee');
+    }
+  } else if (hasReviewProof) {
+    fail('PLAN_SCOPE_CONTRADICTION', 'preuve de revue presente sans matrice de plan');
+  }
+
   // ---- user_gate : trace organisationnelle, verifiee ----------------------
   const gate = queue.user_gate;
   if (String(gate.decision).toUpperCase() !== 'APPROVED') fail('GATE_DECISION_NOT_APPROVED', String(gate.decision));
@@ -234,6 +258,7 @@ function verify(queueFile, options) {
   // plan. La limite est nommee, jamais masquee.
   const notes = ['REVIEW_ACTOR_INDEPENDENCE_NOT_GUARANTEED'];
   if (!declared) notes.push('REVIEW_PLAN_REVISION_NOT_DECLARED');
+  if (!hasImpactContract) notes.push('PLAN_IMPACT_LEGACY_NOT_ENFORCED');
 
   return {
     slice_id: queue.slice_id,
@@ -246,6 +271,7 @@ function verify(queueFile, options) {
       user_gate: gate.evidence_kind,
     },
     notes,
+    plan_impact_sha256: impact ? impact.scan_sha256 : null,
   };
 }
 
