@@ -191,7 +191,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
 - bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
-- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T03.
 
 ### V2
@@ -208,6 +208,6 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ## Tranche Bilatéralité et révision de T03
 
-Une tranche spécifique précède l’Exécution T03. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T03. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
 
 T03 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T03.
