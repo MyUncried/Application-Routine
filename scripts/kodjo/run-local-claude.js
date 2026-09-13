@@ -303,7 +303,9 @@ function buildRecoveryPatch(repoRoot, request, files) {
   run(['read-tree', request.source_head]);
   const inScopeFiles = [...new Set(files)].filter((f) => inScope(f, request.scope_allow)).sort();
   if (inScopeFiles.length === 0) return { patch: '', paths: [] };
-  // Les octets produits sont l'oracle. Une configuration globale Windows\n  // core.autocrlf=true ne doit jamais normaliser CRLF pendant la capture.\n  run(['-c', 'core.autocrlf=false', 'add', '--all', '--'].concat(inScopeFiles.map((f) => ':(literal)' + f)));
+  // Les octets produits sont l'oracle. Une configuration globale Windows
+  // core.autocrlf=true ne doit jamais normaliser CRLF pendant la capture.
+  run(['-c', 'core.autocrlf=false', 'add', '--all', '--'].concat(inScopeFiles.map((f) => ':(literal)' + f)));
   const patch = run(['diff', '--cached', '--binary', '--full-index', '--no-renames', request.source_head]);
   return { patch, paths: inScopeFiles };
 }
