@@ -11,7 +11,7 @@ Bootstrap SHA-256 : `1180141045af7bd311f84dce6dd74ebb7602fb28a9028de14c12f5e3d7e
 
 Les treize scénarios C1–C4, D1–D3 et R1–R6 possèdent une preuve conforme au niveau défini par le plan. Le parcours réel nominal jusqu’à une PR jetable, la reprise par artefact et les principaux refus de sécurité sont démontrés.
 
-Le verdict de campagne reste `SCENARIOS_CERTIFIED_EXIT_PENDING` tant que les deux réserves de nettoyage GitHub/runner décrites plus bas ne sont pas levées.
+Le verdict de campagne est `RUNNER_CLEANUP_COMPLETE_BRANCH_CLEANUP_PENDING`. Les preuves fonctionnelles et la propreté du runner sont acquises ; seule la suppression des branches techniques de sortie reste à constater avant le verdict final.
 
 ## Matrice de preuve
 
@@ -43,10 +43,16 @@ Les six PR fonctionnelles (#87, #91, #94, #96, #100, #101) ont toutes été ferm
 
 Les fusions humaines nécessaires à C1–C3 n’ont plus été requises après l’introduction du lancement explicite `workflow_dispatch`. C4 et les scénarios suivants ont utilisé ce chemin tout en conservant la frontière immuable et l’admission de la demande. PE-24 passe à `DÉMONTRÉ`.
 
-## Réserves de sortie
+## Preuves de sortie runner
 
-1. GitHub affiche encore un rerun fantôme de R2 (`34748621746`, « Latest #2 ») sans tentative API et sans job. Le runner reste disponible ; INC-119/PE-25 suivent cette limitation externe.
-2. Branches distantes temporaires encore visibles au dernier inventaire : `kodjo/v2-v2-prod-00-34715041225`, `kodjo/v2-v2-prod-00-34715211418`, `kodjo/v2-v2-prod-00-34717973965`, `test/kodjo-v2-r4-r6-certification` et la branche documentaire de clôture. Elles doivent être supprimées après vérification qu’aucune PR ouverte ne les utilise.
-3. Les répertoires persistants `_kodjo` du runner doivent être inventoriés par run avant toute suppression. Aucun nettoyage large ou non attribué n’est autorisé.
+- inventaire en lecture seule : run `34754349516`, job `103716093344`, artefact `10316574627` ;
+- état inventorié : neuf répertoires attribués à neuf runs Lean Queue terminés, aucun verrou Claude, aucun processus lié à `_kodjo` ;
+- nettoyage ciblé : run `34755252729`, job `103718423213`, neuf identités revalidées via l’API GitHub avant suppression ;
+- résultat : `4 604 266 365` octets supprimés ; contrôle final `lock=False`, `processes=0`, `directories=0`.
 
-Aucune réserve ne remet en cause les preuves fonctionnelles des treize scénarios ; elles empêchent uniquement le verdict final de propreté complète.
+## Réserves et dernière action de sortie
+
+1. GitHub affiche encore un rerun fantôme de R2 (`34748621746`, « Latest #2 ») sans tentative API et sans job. La tentative d’annulation forcée retourne HTTP 409 (« re-run ... has not yet queued »). Les inventaires prouvent que le runner est libre ; INC-119/PE-25 classent cet affichage comme limitation externe non exécutante.
+2. Les anciennes branches fonctionnelles de campagne ont été supprimées et aucune PR de campagne n’est ouverte. Après fusion de la présente clôture, les branches techniques `ops/kodjo-v2-runner-inventory`, `fix/kodjo-v2-runner-inventory-ps51`, `fix/kodjo-v2-runner-inventory-tsv`, `ops/kodjo-v2-targeted-runner-cleanup` et la branche documentaire de clôture doivent être supprimées en une opération vérifiée.
+
+La limitation d’affichage GitHub ne remet en cause ni les treize scénarios ni la propreté réelle du runner. Le verdict final sera posé après constat de suppression des cinq branches techniques de sortie.
