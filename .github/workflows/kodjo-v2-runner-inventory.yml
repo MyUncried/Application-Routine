@@ -15,6 +15,11 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
+          function Convert-ToTsvField([object]$Value) {
+            if ($null -eq $Value) { return '' }
+            return ([string]$Value).Replace("`t", ' ').Replace("`r", ' ').Replace("`n", ' ')
+          }
+
           $root = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '_kodjo')).TrimEnd('\')
           $evidenceLeaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
           $evidence = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $evidenceLeaf)).TrimEnd('\')
@@ -25,59 +30,46 @@ jobs:
           New-Item -ItemType Directory -Force -Path $evidence | Out-Null
 
           $lock = Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'claude-local.lock'
-          $matches = @(Get-CimInstance Win32_Process | Where-Object {
+          $processes = @(Get-CimInstance Win32_Process | Where-Object {
             $_.CommandLine -and $_.CommandLine.IndexOf($root, [StringComparison]::OrdinalIgnoreCase) -ge 0
-          } | ForEach-Object {
-            [pscustomobject]@{
-              process_id = [int64]$_.ProcessId
-              name = [string]$_.Name
-              executable_path = [string]$_.ExecutablePath
-            }
           })
-
-          $directories = @()
+          $directoryLines = @()
+          $directoryCount = 0
+          $totalBytes = [int64]0
           if (Test-Path -LiteralPath $root) {
-            $directories = @(Get-ChildItem -LiteralPath $root -Directory -Force | Sort-Object Name | ForEach-Object {
+            $directoryLines = @(Get-ChildItem -LiteralPath $root -Directory -Force | Sort-Object Name | ForEach-Object {
               $directory = $_
               $measure = Get-ChildItem -LiteralPath $directory.FullName -File -Force -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
-              $runId = $null
+              $runId = ''
               if ($directory.Name -match '^\d+$') { $runId = $directory.Name }
-              $size = if ($null -eq $measure.Sum) { 0 } else { [int64]$measure.Sum }
-              [pscustomobject]@{
-                name = [string]$directory.Name
-                run_id = $runId
-                full_path = [string]$directory.FullName
-                file_count = [int64]$measure.Count
-                size_bytes = [int64]$size
-                created_at_utc = $directory.CreationTimeUtc.ToString('o')
-                last_write_at_utc = $directory.LastWriteTimeUtc.ToString('o')
-              }
+              $size = if ($null -eq $measure.Sum) { [int64]0 } else { [int64]$measure.Sum }
+              $directoryCount++
+              $totalBytes += $size
+              'DIRECTORY' + "`t" + (Convert-ToTsvField $directory.Name) + "`t" + (Convert-ToTsvField $runId) + "`t" + (Convert-ToTsvField $directory.FullName) + "`t" + [int64]$measure.Count + "`t" + $size + "`t" + $directory.CreationTimeUtc.ToString('o') + "`t" + $directory.LastWriteTimeUtc.ToString('o')
             })
           }
 
-          $report = [pscustomobject]@{
-            schema_version = 'kodjo.protocol.v2.runner-inventory.0.2'
-            inventory_only = $true
-            github_run_id = [string]$env:GITHUB_RUN_ID
-            github_run_attempt = [string]$env:GITHUB_RUN_ATTEMPT
-            root = [string]$root
-            root_exists = [bool](Test-Path -LiteralPath $root)
-            claude_lock_present = [bool](Test-Path -LiteralPath $lock)
-            matching_processes = @($matches)
-            directory_count = [int64]@($directories).Count
-            directories = @($directories)
-            observed_at_utc = (Get-Date).ToUniversalTime().ToString('o')
-            status = 'PASS'
-          }
-          $json = ($report | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"
-          [IO.File]::WriteAllText((Join-Path $evidence 'runner-inventory.json'), $json, (New-Object Text.UTF8Encoding($false)))
-          Write-Host ("KODJO inventory complete: {0} directories; lock={1}; matching_processes={2}" -f $report.directory_count, $report.claude_lock_present, @($matches).Count)
+          $processLines = @($processes | ForEach-Object {
+            'PROCESS' + "`t" + [int64]$_.ProcessId + "`t" + (Convert-ToTsvField $_.Name) + "`t" + (Convert-ToTsvField $_.ExecutablePath)
+          })
+          $observed = (Get-Date).ToUniversalTime().ToString('o')
+          $lines = @(
+            'SCHEMA' + "`t" + 'kodjo.protocol.v2.runner-inventory.0.3',
+            'SUMMARY' + "`t" + (Convert-ToTsvField $root) + "`t" + [bool](Test-Path -LiteralPath $root) + "`t" + [bool](Test-Path -LiteralPath $lock) + "`t" + @($processes).Count + "`t" + $directoryCount + "`t" + $totalBytes + "`t" + $observed,
+            'DIRECTORY_HEADER' + "`t" + 'name' + "`t" + 'run_id' + "`t" + 'full_path' + "`t" + 'file_count' + "`t" + 'size_bytes' + "`t" + 'created_at_utc' + "`t" + 'last_write_at_utc'
+          ) + $directoryLines + @(
+            'PROCESS_HEADER' + "`t" + 'process_id' + "`t" + 'name' + "`t" + 'executable_path'
+          ) + $processLines
+
+          $reportPath = Join-Path $evidence 'runner-inventory.tsv'
+          [IO.File]::WriteAllLines($reportPath, [string[]]$lines, (New-Object Text.UTF8Encoding($false)))
+          $lines | ForEach-Object { Write-Host ('KODJO_INVENTORY`t' + $_) }
 
       - name: Preserve read-only inventory
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/runner-inventory.json
+          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/runner-inventory.tsv
           if-no-files-found: error
           retention-days: 30
 
