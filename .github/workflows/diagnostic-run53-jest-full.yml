@@ -54,15 +54,29 @@ jobs:
       - name: Install exact dependencies
         run: npm ci
 
-      - name: Run complete Jest and preserve full log
+      - name: Run complete Jest and preserve full output
         id: jest
         continue-on-error: true
         run: |
-          $log = Join-Path '${{ runner.temp }}' 'run53-jest-full.log'
-          & npm test -- --runInBand 2>&1 | Tee-Object -FilePath $log
-          $code = $LASTEXITCODE
-          Set-Content -LiteralPath (Join-Path '${{ runner.temp }}' 'run53-jest-exit.txt') -Value ([string]$code) -Encoding ASCII
+          $stdout = Join-Path '${{ runner.temp }}' 'run53-jest-stdout.log'
+          $stderr = Join-Path '${{ runner.temp }}' 'run53-jest-stderr.log'
+          $exitFile = Join-Path '${{ runner.temp }}' 'run53-jest-exit.txt'
+          $workingDir = (Get-Location).Path
+
+          $process = Start-Process -FilePath 'cmd.exe' `
+            -ArgumentList @('/d', '/c', 'npm test -- --runInBand') `
+            -WorkingDirectory $workingDir `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr `
+            -NoNewWindow `
+            -Wait `
+            -PassThru
+
+          $code = $process.ExitCode
+          Set-Content -LiteralPath $exitFile -Value ([string]$code) -Encoding ASCII
           Write-Output ('JEST_EXIT=' + $code)
+          Write-Output ('JEST_STDOUT=' + $stdout)
+          Write-Output ('JEST_STDERR=' + $stderr)
           if ($code -ne 0) { exit $code }
 
       - name: Publish complete Jest diagnostic
@@ -71,7 +85,8 @@ jobs:
         with:
           name: run53-jest-full-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/run53-jest-full.log
+            ${{ runner.temp }}/run53-jest-stdout.log
+            ${{ runner.temp }}/run53-jest-stderr.log
             ${{ runner.temp }}/run53-jest-exit.txt
           if-no-files-found: error
           retention-days: 14
