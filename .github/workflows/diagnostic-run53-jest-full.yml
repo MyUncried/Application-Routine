@@ -1,0 +1,88 @@
+name: KODJO Diagnostic Run53 Jest Full
+
+on:
+  push:
+    branches: [diagnostic/run53-jest-full]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  jest-only:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: powershell
+        working-directory: _diag/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+          path: _diag/${{ github.run_id }}
+
+      - name: Pin exact run53 source HEAD
+        run: |
+          git reset --hard 0e3608bf8754819216550b6b1dc27b882d54e1e3
+          if ((git rev-parse HEAD).Trim() -ne '0e3608bf8754819216550b6b1dc27b882d54e1e3') { throw 'SOURCE_HEAD_MISMATCH' }
+
+      - name: Download intact run53 recovery package
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-recovery-34760019019-1
+          path: ${{ runner.temp }}/kodjo-run53-recovery
+          github-token: ${{ github.token }}
+          run-id: 34760019019
+          repository: MyUncried/Application-Routine
+
+      - name: Verify and apply recovery patch
+        run: |
+          $patch = Join-Path '${{ runner.temp }}' 'kodjo-run53-recovery/implementation.patch'
+          if (-not (Test-Path -LiteralPath $patch -PathType Leaf)) { throw 'RECOVERY_PATCH_MISSING' }
+          $hash = (Get-FileHash -LiteralPath $patch -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne '81bc3f19cc14e8629a2569f0678d8e2deeca93b5ee3c3f2f943bb905b99f4004') {
+            throw ('RECOVERY_PATCH_HASH_MISMATCH: ' + $hash)
+          }
+          git apply --binary --whitespace=nowarn -- $patch
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git status --short
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Run complete Jest and preserve full log
+        id: jest
+        continue-on-error: true
+        run: |
+          $log = Join-Path '${{ runner.temp }}' 'run53-jest-full.log'
+          & npm test -- --runInBand 2>&1 | Tee-Object -FilePath $log
+          $code = $LASTEXITCODE
+          Set-Content -LiteralPath (Join-Path '${{ runner.temp }}' 'run53-jest-exit.txt') -Value ([string]$code) -Encoding ASCII
+          Write-Output ('JEST_EXIT=' + $code)
+          if ($code -ne 0) { exit $code }
+
+      - name: Publish complete Jest diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run53-jest-full-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/run53-jest-full.log
+            ${{ runner.temp }}/run53-jest-exit.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Cleanup diagnostic checkout
+        if: always()
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+        run: |
+          $root = [IO.Path]::GetFullPath((Join-Path '${{ github.workspace }}' '_diag/${{ github.run_id }}'))
+          if (Test-Path -LiteralPath $root) {
+            cmd.exe /d /c rd /s /q ('\\?\' + $root)
+          }
+          if (Test-Path -LiteralPath $root) { throw 'DIAGNOSTIC_CLEANUP_FAILED' }
