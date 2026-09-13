@@ -271,7 +271,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | ID | Commande | Entrée | Effet et garanties |
 |---|---|---|---|
 | `API-SIDE-01` | Modifier le côté d’une Activité | ID, `sideMode` | Valide les trois valeurs ; recalcule les durées et synthèses ; interdit l’action si l’Activité appartient à un Tour bilatéral. |
-| `API-SIDE-02` | Modifier le côté d’un Tour | ID, `sideMode`, confirmation | En bilatéral confirmé, met à jour le Tour et remet atomiquement tous ses enfants à `UNILATERAL`; sans confirmation, aucune écriture. |
+| `API-SIDE-02` | Modifier le côté d’un Tour | ID, `sideMode`, confirmation seulement si requise | Au passage de `UNILATERAL` à un mode bilatéral, recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Liste vide : applique directement. Liste non vide : `Annuler` n’écrit rien ; `Confirmer` met à jour atomiquement le Tour et remet les seules Activités concernées à `UNILATERAL`. Aucune propriété « latéralisable ». |
 | `API-SIDE-03` | Dupliquer | ID Activité ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
 | `API-SIDE-04` | Insérer une Activité persistante | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
 | `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
