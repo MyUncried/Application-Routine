@@ -243,10 +243,14 @@ jobs:
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-slice-plan/prompt.txt <<EOF
-          You are the KODJO generic PLAN builder for $SLICE_ID. This phase is strictly READ-ONLY: produce a complete implementation plan, never modify repository files and never develop.
+          You are the KODJO generic PLAN builder for $SLICE_ID. This phase is strictly READ-ONLY: produce a draft implementation plan, never modify repository files and never develop.
           GitHub, the slice manifest, versioned documentation and current code at the exact baseline are authoritative. Do not invent product rules. Separate functional rules, UI states, technical constraints, validated decisions and unresolved product choices.
           Cover scope, source traceability, data model and migrations, navigation and UI, transaction boundaries, backward compatibility, files to modify/not modify, acceptance criteria, tests, risks and non-regression. Preserve all prior slice behavior. Mark CLARIFICATION_REQUIRED only for a genuine product decision not resolvable from supplied evidence.
-          The plan must end with: PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW or PLAN_STATUS: CLARIFICATION_REQUIRED.
+          Declare every application module that the implementation would CREATE or MODIFY in exactly one machine-readable block:
+          <KODJO_MODIFIED_MODULES_JSON>
+          [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
+          </KODJO_MODIFIED_MODULES_JSON>
+          Use repository-relative POSIX paths only. This draft will be completed after a deterministic direct-import scan; do not claim exhaustive impact coverage yet.
           EOF
           if [ "$PLAN_MODE" = INITIAL ] && [ -n "$INITIAL_SCOPE_ID" ]; then
             cat >> /tmp/kodjo-slice-plan/prompt.txt <<EOF
@@ -287,10 +291,57 @@ jobs:
             echo "OpenAI plan response incomplete: $DETAILS" >&2
             exit 1
           fi
-          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-slice-plan/response.json > /tmp/kodjo-slice-plan/plan.md
-          test -s /tmp/kodjo-slice-plan/plan.md
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-slice-plan/response.json > /tmp/kodjo-slice-plan/plan-draft.md
+          test -s /tmp/kodjo-slice-plan/plan-draft.md
           test -z "$(git status --porcelain --untracked-files=all)"
           test -z "$(git -C /tmp/kodjo-slice-plan/source status --porcelain --untracked-files=all)"
+
+      - name: Scan direct importers and finalize impact matrix
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          BASELINE_HEAD: ${{ steps.gate.outputs.baseline_head }}
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-slice-plan/plan-draft.md /tmp/kodjo-slice-plan/modified-modules.json
+          node scripts/kodjo/scan-plan-impact.js scan "$BASELINE_HEAD" /tmp/kodjo-slice-plan/modified-modules.json /tmp/kodjo-slice-plan/direct-import-scan.json
+          node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-slice-plan/direct-import-scan.json > /tmp/kodjo-slice-plan/direct-import-scan.sha256
+          cat > /tmp/kodjo-slice-plan/impact-prompt.txt <<'EOF'
+          Complete the supplied KODJO draft into the final, read-only implementation plan. The deterministic evidence lists every direct importer of the declared modified modules at the exact scan revision. Do not add transitive importers and do not present this scan as absolute dependency completeness.
+
+          The final plan must contain exactly one <KODJO_PLAN_IMPACT_JSON> block holding valid JSON with this shape:
+          {
+            "schema":"kodjo.plan-impact.v1",
+            "scan_revision":"the exact scan_revision",
+            "modified_modules":"copy exactly from the scan",
+            "scan_sha256":"copy the supplied SHA-256",
+            "rows":[{
+              "path":"one modified module or direct importer",
+              "candidate_kind":"MODIFIED_MODULE|TEST|CONSUMER",
+              "triggered_by":["exact modified module paths from the scan"],
+              "risk_score":0,
+              "classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION",
+              "justification":"non-empty positive evidence"
+            }],
+            "scope_allow":["paths classified MODIFY or TEST_MUST_ADAPT only"]
+          }
+          Include every modified module and every scan candidate exactly once. Copy candidate_kind, triggered_by and risk_score exactly. A modified module is MODIFY. A discovered test is TEST_MUST_ADAPT or TEST_UNAFFECTED; a discovered production consumer is MODIFY or CONSUMER_UNAFFECTED. REQUIRES_CLARIFICATION is blocking. Derive scope_allow exactly as MODIFY union TEST_MUST_ADAPT. A risk score orders candidates only and must never filter one. Keep full Jest, TypeScript and lint as final implementation checks. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise PLAN_STATUS: CLARIFICATION_REQUIRED.
+          EOF
+          {
+            printf '\nDRAFT PLAN FOR %s:\n' "$SLICE_ID"
+            cat /tmp/kodjo-slice-plan/plan-draft.md
+            printf '\nDETERMINISTIC DIRECT-IMPORT SCAN:\n'
+            cat /tmp/kodjo-slice-plan/direct-import-scan.json
+            printf '\nSCAN SHA-256:\n'
+            cat /tmp/kodjo-slice-plan/direct-import-scan.sha256
+          } >> /tmp/kodjo-slice-plan/impact-prompt.txt
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-slice-plan/impact-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-slice-plan/impact-request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-slice-plan/impact-request.json -o /tmp/kodjo-slice-plan/impact-response.json
+          test "$(jq -r '.status // "missing"' /tmp/kodjo-slice-plan/impact-response.json)" = completed
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-slice-plan/impact-response.json > /tmp/kodjo-slice-plan/plan.md
+          node scripts/kodjo/verify-plan-impact.js /tmp/kodjo-slice-plan/plan.md "$BASELINE_HEAD" /tmp/kodjo-slice-plan/plan-impact-replay.json
+          grep -Eq '^PLAN_STATUS: (READY_FOR_INDEPENDENT_REVIEW|CLARIFICATION_REQUIRED)$' /tmp/kodjo-slice-plan/plan.md
+          test -z "$(git status --porcelain --untracked-files=all)"
 
       - name: Publish candidate plan
         shell: bash
@@ -305,6 +356,8 @@ jobs:
         run: |
           set -euo pipefail
           : "${PLAN_MODE:?PLAN_MODE missing}"
+          PLAN_STATUS=$(grep -E '^PLAN_STATUS: (READY_FOR_INDEPENDENT_REVIEW|CLARIFICATION_REQUIRED)$' /tmp/kodjo-slice-plan/plan.md | tail -n1 | cut -d' ' -f2)
+          test -n "$PLAN_STATUS"
           if [ "$PLAN_MODE" != INITIAL ]; then
             : "${SUPERSEDES_PLAN_ID:?SUPERSEDES_PLAN_ID missing}"
             : "${SCOPE_CORRECTION_ID:?SCOPE_CORRECTION_ID missing}"
@@ -322,7 +375,11 @@ jobs:
               echo "scope_correction_comment_id=$SCOPE_CORRECTION_ID"
             fi
             echo "source_start_comment_id=$SOURCE_COMMENT_ID"
-            echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            if [ "$PLAN_STATUS" = READY_FOR_INDEPENDENT_REVIEW ]; then
+              echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            else
+              echo 'STATUT : PLAN_CLARIFICATION_REQUIRED'
+            fi
             echo
             cat /tmp/kodjo-slice-plan/plan.md
           } > /tmp/kodjo-slice-plan/out.md
@@ -336,6 +393,12 @@ jobs:
           path: |
             /tmp/kodjo-slice-plan/manifest.yml
             /tmp/kodjo-slice-plan/response.json
+            /tmp/kodjo-slice-plan/plan-draft.md
+            /tmp/kodjo-slice-plan/modified-modules.json
+            /tmp/kodjo-slice-plan/direct-import-scan.json
+            /tmp/kodjo-slice-plan/direct-import-scan.sha256
+            /tmp/kodjo-slice-plan/impact-response.json
+            /tmp/kodjo-slice-plan/plan-impact-replay.json
             /tmp/kodjo-slice-plan/plan.md
             /tmp/kodjo-slice-plan/initial-scope-correction.md
             /tmp/kodjo-slice-plan/prior-plan.md
