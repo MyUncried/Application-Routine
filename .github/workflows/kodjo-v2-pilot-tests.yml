@@ -56,7 +56,9 @@ jobs:
 
   protocol-windows-preflight:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 20
+    # Le préflight complet inclut npm ci et la suite applicative sous Windows.
+    # 20 minutes coupait le job sans verdict lors des passages réels chargés.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
