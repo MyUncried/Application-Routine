@@ -79,3 +79,20 @@ les conventions runtime non exprimées par un import direct, ni un graphe AST
 universel. Une extension transitive n'est pas retenue : le cas réel n'en avait
 pas besoin. Jest complet, TypeScript et lint restent les garde-fous finaux de
 l'implémentation.
+
+## Entrée de planification des tranches V2
+
+Une tranche V2 ne doit jamais recevoir artificiellement un manifeste
+`.github/orchestration/slices/<slice>.yml`. Les workflows
+`kodjo-v2-slice-plan.yml` et `kodjo-v2-slice-plan-review.yml` utilisent
+exclusivement :
+
+- `.github/orchestration/v2-slices/<slice>/slice-bootstrap.json` ;
+- la mission de planification, le plan technique et la revue du même dossier ;
+- l'activation unique de la tranche dans le registre V2 ;
+- l'Issue liée par le bootstrap ;
+- le HEAD exact de la branche cible.
+
+Le parcours générique `KODJO_SLICE` reste inchangé et réservé aux manifestes
+`kodjo.slice.v1`. Les sorties V2 portent des en-têtes `KODJO_V2` distincts :
+aucune preuve V1 ne peut être admise implicitement comme preuve V2.

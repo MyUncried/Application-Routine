@@ -1,0 +1,221 @@
+name: KODJO V2 — Slice Plan Revision
+run-name: KODJO V2 / PLAN / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-v2-slice-plan-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVISION')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - name: Checkout protocol
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable V2 planning gate
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
+          BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
+          SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          test -n "$SLICE_ID"
+          test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
+          printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
+          test -f "$BOOTSTRAP_PATH"
+          SLICE_DIR=$(dirname "$BOOTSTRAP_PATH")
+          PLAN_PATH="$SLICE_DIR/technical-plan.md"
+          REVIEW_PATH="$SLICE_DIR/independent-review.md"
+          MISSION_PATH="$SLICE_DIR/planning-mission.md"
+          test -f "$PLAN_PATH"
+          test -f "$REVIEW_PATH"
+          test -f "$MISSION_PATH"
+          grep -Eq '^Verdict[[:space:]]*:[[:space:]]*`?APPROVED`?[[:space:]]*$' "$REVIEW_PATH"
+          export SLICE_ID BOOTSTRAP_PATH SOURCE_HEAD ISSUE_NUMBER
+          node <<'NODE' > /tmp/kodjo-v2-gate.env
+          const fs = require('node:fs');
+          const b = JSON.parse(fs.readFileSync(process.env.BOOTSTRAP_PATH, 'utf8').replace(/^\uFEFF/, ''));
+          if (!String(b.schema_version || '').startsWith('kodjo.protocol.v2.slice-bootstrap.')) throw new Error('V2_BOOTSTRAP_SCHEMA_REFUSED');
+          if (b.slice_id !== process.env.SLICE_ID) throw new Error('V2_BOOTSTRAP_SLICE_MISMATCH');
+          if (b.repository !== process.env.GITHUB_REPOSITORY) throw new Error('V2_BOOTSTRAP_REPOSITORY_MISMATCH');
+          if (Number(b.issue_number) !== Number(process.env.ISSUE_NUMBER)) throw new Error('V2_BOOTSTRAP_ISSUE_MISMATCH');
+          if (!b.target_branch) throw new Error('V2_BOOTSTRAP_TARGET_MISSING');
+          if (!Array.isArray(b.product_sources) || b.product_sources.length === 0) throw new Error('V2_BOOTSTRAP_SOURCES_MISSING');
+          const registry = JSON.parse(fs.readFileSync(b.activation_registry, 'utf8').replace(/^\uFEFF/, ''));
+          const active = (registry.activations || []).filter(x => x && x.slice_id === b.slice_id);
+          if (active.length !== 1 || active[0].status !== 'ACTIVE') throw new Error('V2_SLICE_NOT_ACTIVE');
+          process.stdout.write('target_branch=' + b.target_branch + '\n');
+          NODE
+          source /tmp/kodjo-v2-gate.env
+          ACTUAL=$(git ls-remote origin "refs/heads/$target_branch" | cut -f1)
+          test "$ACTUAL" = "$SOURCE_HEAD"
+          PLAN_OID=$(git rev-parse "$SOURCE_HEAD:$PLAN_PATH")
+          REVIEW_OID=$(git rev-parse "$SOURCE_HEAD:$REVIEW_PATH")
+          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
+
+      - name: Build authoritative V2 planning packet
+        shell: bash
+        env:
+          BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
+          REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
+          MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/kodjo-v2-plan
+          mkdir -p /tmp/kodjo-v2-plan
+          git worktree add --detach /tmp/kodjo-v2-plan/source "$SOURCE_HEAD"
+          cp "$BOOTSTRAP_PATH" /tmp/kodjo-v2-plan/slice-bootstrap.json
+          cp "$PLAN_PATH" /tmp/kodjo-v2-plan/prior-technical-plan.md
+          cp "$REVIEW_PATH" /tmp/kodjo-v2-plan/prior-independent-review.md
+          cp "$MISSION_PATH" /tmp/kodjo-v2-plan/planning-mission.md
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > /tmp/kodjo-v2-plan/issue.json
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" | jq -s add > /tmp/kodjo-v2-plan/comments.json
+          jq -r '.product_sources[].path' /tmp/kodjo-v2-plan/slice-bootstrap.json > /tmp/kodjo-v2-plan/sources.list
+          : > /tmp/kodjo-v2-plan/product-evidence.txt
+          while IFS= read -r file; do
+            test -f "/tmp/kodjo-v2-plan/source/$file"
+            printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-plan/product-evidence.txt
+            cat "/tmp/kodjo-v2-plan/source/$file" >> /tmp/kodjo-v2-plan/product-evidence.txt
+          done < /tmp/kodjo-v2-plan/sources.list
+          git -C /tmp/kodjo-v2-plan/source ls-files app src > /tmp/kodjo-v2-plan/code-files.txt
+          test -z "$(git -C /tmp/kodjo-v2-plan/source status --porcelain --untracked-files=all)"
+
+      - name: Construct V2 plan draft with OpenAI
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          set -euo pipefail
+          test -n "${OPENAI_API_KEY:-}"
+          cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
+          You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against exact source HEAD $SOURCE_HEAD. This phase is READ-ONLY: never modify repository files and never implement.
+          The V2 slice bootstrap, planning mission, current product sources, Issue, comments, prior technical plan and prior independent review supplied below are authoritative. Preserve validated product decisions. Do not invent a V1 manifest, reuse a V1 slice contract or extend the functional scope.
+          Declare every application module that the revised implementation would CREATE or MODIFY in exactly one block:
+          <KODJO_MODIFIED_MODULES_JSON>
+          [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
+          </KODJO_MODIFIED_MODULES_JSON>
+          Use repository-relative POSIX paths only. This is a draft pending the deterministic direct-import scan.
+          EOF
+          for file in slice-bootstrap.json planning-mission.md prior-technical-plan.md prior-independent-review.md product-evidence.txt; do
+            printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-plan/draft-prompt.txt
+            cat "/tmp/kodjo-v2-plan/$file" >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          done
+          printf '\n===== APPLICATION FILE INVENTORY =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          cat /tmp/kodjo-v2-plan/code-files.txt >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          printf '\n===== ISSUE =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          jq -r '.body' /tmp/kodjo-v2-plan/issue.json >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          printf '\n===== ISSUE COMMENTS =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          jq -r '.[] | "COMMENT_ID="+(.id|tostring)+"\n"+.body+"\n---"' /tmp/kodjo-v2-plan/comments.json >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-plan/draft-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-v2-plan/draft-request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-plan/draft-request.json -o /tmp/kodjo-v2-plan/draft-response.json
+          test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-plan/draft-response.json)" = completed
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-plan/draft-response.json > /tmp/kodjo-v2-plan/plan-draft.md
+
+      - name: Scan direct importers and finalize opposable V2 plan
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-plan/plan-draft.md /tmp/kodjo-v2-plan/modified-modules.json
+          node scripts/kodjo/scan-plan-impact.js scan "$SOURCE_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json
+          node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-v2-plan/direct-import-scan.json > /tmp/kodjo-v2-plan/direct-import-scan.sha256
+          cat > /tmp/kodjo-v2-plan/final-prompt.txt <<'EOF'
+          Produce the complete final KODJO V2 technical plan from the supplied draft and deterministic evidence. The scan contains all direct importers of the declared modified modules at the exact revision. It is not an absolute dependency guarantee and does not include transitive closure.
+          Include exactly one <KODJO_PLAN_IMPACT_JSON> block holding valid JSON with this shape:
+          {
+            "schema":"kodjo.plan-impact.v1",
+            "scan_revision":"copy the exact scan_revision",
+            "modified_modules":"copy exactly from the scan",
+            "scan_sha256":"copy the supplied SHA-256",
+            "rows":[{
+              "path":"one modified module or direct importer",
+              "candidate_kind":"MODIFIED_MODULE|TEST|CONSUMER",
+              "triggered_by":["exact modified module paths from the scan"],
+              "risk_score":0,
+              "classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION",
+              "justification":"non-empty positive evidence"
+            }],
+            "scope_allow":["paths classified MODIFY or TEST_MUST_ADAPT only"]
+          }
+          Copy scan_revision, modified_modules, candidate_kind, triggered_by, risk_score and the supplied scan SHA-256 exactly. Include every modified module and scan candidate once. A modified module is MODIFY. A discovered test is TEST_MUST_ADAPT or TEST_UNAFFECTED; a discovered production consumer is MODIFY or CONSUMER_UNAFFECTED. REQUIRES_CLARIFICATION is blocking. Derive scope_allow exactly as MODIFY union TEST_MUST_ADAPT. Risk orders only and never filters. Keep full Jest, TypeScript and lint. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
+          EOF
+          printf '\n===== DRAFT %s =====\n' "$SLICE_ID" >> /tmp/kodjo-v2-plan/final-prompt.txt
+          cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
+          printf '\n===== DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-plan/final-prompt.txt
+          cat /tmp/kodjo-v2-plan/direct-import-scan.json >> /tmp/kodjo-v2-plan/final-prompt.txt
+          printf '\nSCAN_SHA256=' >> /tmp/kodjo-v2-plan/final-prompt.txt
+          cat /tmp/kodjo-v2-plan/direct-import-scan.sha256 >> /tmp/kodjo-v2-plan/final-prompt.txt
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-plan/final-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-v2-plan/final-request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-plan/final-request.json -o /tmp/kodjo-v2-plan/final-response.json
+          test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-plan/final-response.json)" = completed
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-plan/final-response.json > /tmp/kodjo-v2-plan/technical-plan.md
+          node scripts/kodjo/verify-plan-impact.js /tmp/kodjo-v2-plan/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json
+          grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: Publish candidate V2 plan
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_OID: ${{ steps.gate.outputs.plan_oid }}
+          REVIEW_OID: ${{ steps.gate.outputs.review_oid }}
+        run: |
+          set -euo pipefail
+          {
+            echo '[KODJO_V2] PLAN_OUTPUT'
+            echo "slice_id=$SLICE_ID"
+            echo "bootstrap_path=$BOOTSTRAP_PATH"
+            echo "source_head=$SOURCE_HEAD"
+            echo "supersedes_plan_blob_oid=$PLAN_OID"
+            echo "prior_review_blob_oid=$REVIEW_OID"
+            echo 'planning_contract=kodjo.plan-impact.v1'
+            echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            echo
+            cat /tmp/kodjo-v2-plan/technical-plan.md
+          } > /tmp/kodjo-v2-plan/out.md
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-plan/out.md
+
+      - name: Preserve V2 planning evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-slice-plan-${{ github.run_id }}
+          path: |
+            /tmp/kodjo-v2-plan/slice-bootstrap.json
+            /tmp/kodjo-v2-plan/planning-mission.md
+            /tmp/kodjo-v2-plan/prior-technical-plan.md
+            /tmp/kodjo-v2-plan/prior-independent-review.md
+            /tmp/kodjo-v2-plan/plan-draft.md
+            /tmp/kodjo-v2-plan/modified-modules.json
+            /tmp/kodjo-v2-plan/direct-import-scan.json
+            /tmp/kodjo-v2-plan/direct-import-scan.sha256
+            /tmp/kodjo-v2-plan/technical-plan.md
+            /tmp/kodjo-v2-plan/plan-impact-replay.json
+          if-no-files-found: warn
+          retention-days: 14
