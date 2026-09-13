@@ -19,6 +19,9 @@ const ALLOWED_TOOLS = [
   'Bash(node {KODJO_CHECK_RUNNER} typescript)',
   'Bash(node {KODJO_CHECK_RUNNER} lint)',
   'Bash(node {KODJO_GIT_READ_RUNNER} *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} delete *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} rename *)',
+  'Bash(node {KODJO_FILE_MUTATION_RUNNER} write-base64 *)',
 ];
 const DISALLOWED_TOOLS = [
   'mcp__*',
@@ -155,14 +158,17 @@ function checkRunnerPath(configDir) {
 function concreteAllowedTools(configDir) {
   const runner = checkRunnerPath(configDir);
   const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
+  const mutationRunner = path.join(configDir, 'kodjo-file-mutation.js').replace(/\\/g, '/');
   return ALLOWED_TOOLS.map((rule) => rule
     .replace('{KODJO_CHECK_RUNNER}', '"' + runner + '"')
-    .replace('{KODJO_GIT_READ_RUNNER}', '"' + gitRunner + '"'));
+    .replace('{KODJO_GIT_READ_RUNNER}', '"' + gitRunner + '"')
+    .replace('{KODJO_FILE_MUTATION_RUNNER}', '"' + mutationRunner + '"'));
 }
 
 function buildPrompt(request, taskText, configDir) {
   const runner = checkRunnerPath(configDir);
   const gitRunner = path.join(configDir, 'kodjo-git-read.js').replace(/\\/g, '/');
+  const mutationRunner = path.join(configDir, 'kodjo-file-mutation.js').replace(/\\/g, '/');
   const checkCommands = request.checks.map((c) => ({
     jest: 'node "' + runner + '" jest',
     typescript: 'node "' + runner + '" typescript',
@@ -181,6 +187,7 @@ function buildPrompt(request, taskText, configDir) {
     'Bornes obligatoires:',
     '- Modifier uniquement: ' + request.scope_allow.join(', '),
     '- Git est limite aux inspections en lecture via: node "' + gitRunner + '" <status|diff|log|show|rev-parse|ls-files> [arguments].',
+    '- Pour supprimer, renommer ou écrire des octets, utiliser uniquement: node "' + mutationRunner + '" delete <chemin> ; rename <origine> <destination> ; write-base64 <chemin> <base64>. Chaque chemin reste soumis au périmètre autorisé.',
     '- Ne lancer aucune commande Git de mutation, gh, réseau, publication, suppression globale ou shell indirect.',
     '- Ne créer ni commit, branche, tag, stash ou push.',
     '- Exécuter les contrôles autorisés: ' + checkCommands.join(' ; '),
