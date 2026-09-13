@@ -41,7 +41,7 @@ cat > "$BIN/fakeclaude" <<'EOS'
 for a in "$@"; do [ "$a" = "--version" ] && { echo "2.1.263 (Claude Code)"; exit 0; }; done
 echo '{"ok":true}'
 case "${KODJO_BENCH_SCENARIO:-none}" in
-  edit)   printf 'export const bilateral = true;\n' >> src/domain/sessions/Session.ts ;;
+  edit|control-drift) printf 'export const bilateral = true;\n' >> src/domain/sessions/Session.ts ;;
   rename) git mv src/domain/sessions/Session.ts secrets/exfiltrated.ts ;;
   accent) printf 'x\n' > "src/domain/sessions/café bilatéral.ts" ;;
 esac
@@ -67,7 +67,7 @@ printf 'export const a = 1;\n' > src/domain/sessions/Session.ts
 # Pas de package-lock.json : `npm ci` est volontairement saute (KV2-19).
 cat > package.json <<'PKG'
 { "name": "kodjo-bench-fixture", "private": true, "version": "0.0.0",
-  "scripts": { "test": "node -e \"console.log('Tests: 1 passed, 1 total')\"" } }
+  "scripts": { "test": "node tests/kodjo/queue-integration/fake-jest.js" } }
 PKG
 printf '' > secrets/.gitkeep
 printf 'Mission de qualification jetable.\n' > .github/orchestration/v2-slices/QUALIF/implementation-mission.md
@@ -87,8 +87,8 @@ esac
 
 FAILURES=0
 run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
-  local label="$1" qf="$2" scenario="$3" expect="$4"
-  rm -rf "$CAP"; mkdir -p "$CAP"
+  local label="$1" qf="$2" scenario="$3" expect="$4" pr_expect="${5:-any}"
+  rm -rf "$CAP" "$STATE"; mkdir -p "$CAP" "$STATE"
   git -C "$FIX" switch -q main 2>/dev/null || true
   git -C "$FIX" reset -q --hard "$QHEAD"; git -C "$FIX" clean -qfd
   git -C "$FIX" for-each-ref --format='%(refname:short)' refs/heads \
@@ -120,6 +120,28 @@ run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
     echo "  requete locale : non produite"
   fi
   [ -f "$CAP/gh-calls.txt" ] && echo "  PR : creee" || echo "  PR : aucune"
+  if [ "$pr_expect" = "none" ] && [ -f "$CAP/gh-calls.txt" ]; then
+    echo "  => ECHEC : une publication a ete tentee"; FAILURES=$((FAILURES+1))
+  fi
+  if [ "$scenario" = "control-drift" ]; then
+    local result_file
+    result_file="$(find "$STATE" -type f -name result.json | head -1)"
+    if [ -z "$result_file" ]; then
+      echo "  => ECHEC : result.json R4 absent"; FAILURES=$((FAILURES+1))
+    elif ! node -e "
+      const r=require(process.argv[1]);
+      const ok=r.status==='IMPLEMENTED_WITH_FAILED_CHECKS'
+        && r.out_of_scope_files.includes('secrets/r4-control-drift.txt')
+        && r.post_check_drift.includes('APPARU:secrets/r4-control-drift.txt')
+        && Array.isArray(r.publishable_paths) && r.publishable_paths.length===0
+        && r.publishable_pathspec_file===null;
+      if (!ok) { console.error(JSON.stringify(r)); process.exit(1); }
+    " "$result_file"; then
+      echo "  => ECHEC : oracle structure R4"; FAILURES=$((FAILURES+1))
+    else
+      echo "  => ORACLE R4 : delta initial conserve, derive refusee, publication vide"
+    fi
+  fi
 }
 
 echo "=============================================================="
@@ -130,6 +152,7 @@ echo "=============================================================="
 run_case "N1 · nominal, modification dans le perimetre" nominal edit "IMPLEMENTED_AND_VERIFIED"
 run_case "N2 · renommage hors perimetre (KV2-02)"      nominal rename "SCOPE_VIOLATION"
 run_case "N3 · chemin accentue dans le perimetre"      nominal accent "IMPLEMENTED_AND_VERIFIED"
+run_case "R4 · dérive hors périmètre pendant Jest"      nominal control-drift "POST_CHECK_DELTA_DIVERGED" none
 run_case "N4 · amorce de type invalide (KV2-01)"       invalide edit "KODJO_QUEUE_LEGACY_RECOVERY_BOOTSTRAP_INVALID"
 run_case "N5 · amorce absente de la file"              nominal edit "IMPLEMENTED_AND_VERIFIED"
 
