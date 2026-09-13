@@ -398,8 +398,10 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 ## Parcours bilatéral
 
 1. Dans l’éditeur d’Activité ou la Composition, l’utilisateur fait cycler `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`.
-2. Lorsqu’il rend un Tour bilatéral, une confirmation demande : **Voulez-vous exécuter ce Tour de manière bilatérale ?** Le texte précise qu’à chaque répétition toutes les Activités sont exécutées d’un côté puis de l’autre et que leurs réglages propres seront remplacés par celui du Tour.
-3. `Annuler` ne modifie rien. `Confirmer` applique la direction au Tour, remet les Activités à `UNILATERAL` et désactive leur contrôle.
-4. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
-5. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
-6. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
+2. Dans l’éditeur, `Côté` est placé sous `Séries`; dans la Composition, la direction du Tour partage la ligne de `Nombre de tours`. Une carte hors Tour bilatéral affiche sa direction propre bilatérale ; une carte contenue dans un Tour bilatéral ne la répète pas.
+3. Lorsqu’il rend un Tour bilatéral, le système recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`.
+4. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, une confirmation demande : **Voulez-vous exécuter ce Tour de manière bilatérale ?**
+5. `Annuler` ne modifie rien. `Confirmer` applique atomiquement la direction au Tour, remet les seules Activités concernées à `UNILATERAL` et désactive les contrôles enfants.
+6. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
+7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
+8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.

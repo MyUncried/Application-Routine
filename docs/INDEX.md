@@ -1,5 +1,7 @@
 # INDEX — Documentation du projet Routine
 
+> Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155, CE-T01-13, CE-T02-01 et CE-BIL-01/02/02A.
+
 ## 1. Objet
 
 Ce fichier constitue le point d’entrée de la documentation du projet.
@@ -149,7 +151,7 @@ La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 
 
 ## 10. État de référence après unification de l’Activité
 
-La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité. La Pause reste distincte et n’existe qu’entre les Séries. La mise à jour Bilatéralité du 10 septembre 2026 ajoute les états techniques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` aux Activités et aux Tours. Avec `L = 1` en unilatéral et `L = 2` en bilatéral, une Activité autonome en mode Durée suit `D = L × [C × A + (C − 1) × B] + R` : ses Séries sont exécutées par côté, sans Pause entre les côtés, puis sa Récupération une seule fois. Un Tour bilatéral exécute toutes ses Activités pour le premier côté puis pour le second à chaque répétition du Tour ; les réglages propres des Activités sont remis à `UNILATERAL`, désactivés et remplacés à l’Exécution par la direction du Tour. T03 est révisée pour exécuter ces plans bilatéraux, conserver des résultats séparés par côté et afficher uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité.
+La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité. La Pause reste distincte et n’existe qu’entre les Séries. La mise à jour Bilatéralité du 10 septembre 2026 ajoute les états techniques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` aux Activités et aux Tours. Avec `L = 1` en unilatéral et `L = 2` en bilatéral, une Activité autonome en mode Durée suit `D = L × [C × A + (C − 1) × B] + R` : ses Séries sont exécutées par côté, sans Pause entre les côtés, puis sa Récupération une seule fois. Un Tour bilatéral exécute toutes ses Activités pour le premier côté puis pour le second à chaque répétition. À son activation, seuls les réglages propres bilatéraux existants sont remis à `UNILATERAL`, après confirmation conditionnelle ; sous le Tour, tous les contrôles Activité sont propres `UNILATERAL`, désactivés et remplacés à l’Exécution par la direction du Tour. T03 est révisée pour exécuter ces plans bilatéraux, conserver des résultats séparés par côté et afficher uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité.
 
 ## 11. Livrables de traçabilité
 

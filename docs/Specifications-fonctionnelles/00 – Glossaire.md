@@ -51,6 +51,13 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
 | **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses entre les Séries, phases de Récupération et répétitions du Tour. |
 
+### Direction propre et direction héritée
+
+- La **direction propre** est persistée sur l’Activité : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
+- La **direction héritée** provient d’un Tour bilatéral. Le Tour porte et affiche seul la direction ; l’Activité conserve un réglage propre `UNILATERAL`, visible mais désactivé, et sa carte comme sa synthèse ne la répètent pas.
+- Hors Tour bilatéral, une Activité proprement bilatérale affiche sa direction sur sa carte et la développe dans sa synthèse.
+
+
 ## 4. Concepts de planification
 
 | Terme | Définition |

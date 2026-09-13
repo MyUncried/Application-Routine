@@ -563,6 +563,22 @@ Toucher le contrôle `Nombre de tours` ouvre `Picker / Popover — Source exact`
 
 Le sélecteur du nombre de Tours affiche uniquement le nombre sans `x` ni `×`, mesure `66 × 34` et aligne son bord droit sur celui des cartes. Son icône utilise `#CDCEFA`, conformément au vecteur de référence `2028:12051`; aucun chevron de repli n’est visible. Une valeur n’est appliquée qu’après confirmation explicite de la roulette. Sa modification recalcule immédiatement, après confirmation, les occurrences du Tour et les synthèses concernées.
 
+#### Direction du Tour — anatomie vérifiable
+
+| Propriété | Contrat |
+| --- | --- |
+| Conteneur parent | En-tête `Contenu principal` `2028:11743`, `354 × 34 pt`, dans `2028:11700`. |
+| Ligne et voisinage | Ligne unique. `Nombre de tours` `2028:11752` à `x=237`, `y=0`, `66 × 34 pt`; direction immédiatement à droite, `x=311`, `y=0`. |
+| Dimensions et espaces | Direction `42 × 34 pt`; espace horizontal exact `8 pt`; aucun décalage vertical. |
+| Alignement | Bords haut/bas et centres verticaux identiques aux deux cadres. |
+| États | Aucun titre visible. `UNILATERAL` vide ; `RIGHT_LEFT` `D→G`; `LEFT_RIGHT` `G→D`. |
+| Tactile | Toute la cible `42 × 34 pt` cycle vers l’état suivant. |
+| Accessibilité | `Direction du Tour : unilatéral`; `Direction du Tour : droite puis gauche`; `Direction du Tour : gauche puis droite`. |
+| Confirmation | Au passage depuis `UNILATERAL`, confirmation seulement si une Activité propre bilatérale sera remplacée. Sinon application directe. `Annuler` : aucune mutation. `Confirmer` : direction du Tour et remise atomique des seules Activités concernées à `UNILATERAL`. |
+| Figma | Composant `3705:5021`; `2028:11700`; `3722:5061`; `3722:5207`. |
+
+Dans une carte `354 × 69 pt`, l’indicateur propre `3706:5020` appartient aux informations secondaires à droite : `x=311`, `y=24,5`, `42 × 20 pt`. Il est non interactif, affiche uniquement une direction propre bilatérale hors Tour bilatéral et reste absent en `UNILATERAL` ou sous un Tour bilatéral.
+
 #### Calculs
 
 Le nombre et la Durée synthétique des Activités appliquent la structure réelle : une Activité `BEFORE_TOUR` ou `AFTER_TOUR` compte une fois ; une Activité `IN_TOUR` compte `tourRepeatCount` fois. La Pause est développée `C − 1` fois et la Récupération une fois par occurrence d’Activité, sans augmenter le nombre d’Activités. Les modes Répétitions et À l’échec conservent la borne minimale `≥` sans durée conventionnelle inventée, mais incluent les Pauses et Récupérations connues. Le Compte à rebours initial et la Fin de séance ne contribuent jamais à cette synthèse. Ils contribuent uniquement à la Durée estimée d’exécution du Plan complet.
@@ -812,7 +828,7 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 
 | Propriété | Valeur |
 | --- | --- |
-| Frame Figma principale | `3542:4656` — `Création activité — Récupération et durée totale` |
+| Frame Figma principale | `3542:4656` — `Création activité — Durée / Pause / Séries — avec mode` |
 | Variantes de mode | `3561:4695` — Répétitions ; `3561:7802` — À l’échec |
 | Entrée | `Ajouter une activité` depuis la Composition |
 | Mode initial T01 | `Durée` |
@@ -821,7 +837,7 @@ L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un con
 
 Le corps ne contient plus de titre ni de contrôle `Type d’activité`. Il affiche successivement les sections repliables `Description de l’activité`, `Zone corporelle d’exécution`, `Mode d’exécution` et, dans la cible post-T04, `Médias`. Les titres utilisent la même typographie que `Mode d’exécution` et le chevron DSF. Description et Zone corporelle sont repliées par défaut ; Mode est déployé par défaut. La synthèse est immuable : le déploiement d’une section fait défiler le contenu sans déplacer sa zone ni l’action finale `Terminer`.
 
-Dans Mode, la première rangée conserve l’ordre `Séries` → cible (`Durée`, `Répétitions` ou cadre informatif `à l’échec`) → `Pause`. Une seconde rangée affiche `Récupération` puis `Durée totale` en mode Durée. En Répétitions et À l’échec, Durée totale est masquée et son emplacement reste vide : aucun autre contrôle ne se déplace.
+Dans Mode, le cadre bleu `354 × 156 pt` possède deux lignes séparées de `10 pt`, trois colonnes de `74 / 124 / 124 pt` et des gouttières de `8 pt`. Ligne 1 : `Séries` (`74 × 42 pt`), cible (`124 × 42 pt`), `Pause` (`124 × 42 pt`). Ligne 2 : `Côté` (`74 × 42 pt`) déjà placé sous `Séries`, `Récupération` (`124 × 42 pt`), `Durée totale` (`124 × 42 pt`). En Répétitions et À l’échec, `Durée totale` est masquée et sa cellule reste réservée. `Côté` cycle sur toute sa cible : vide en `UNILATERAL`, `D→G`, `G→D`. Sous un Tour bilatéral, il reste visible, propre `UNILATERAL` et désactivé. Libellés accessibles : `Côté : unilatéral`, `Côté : bilatéral, droite puis gauche`, `Côté : bilatéral, gauche puis droite`; l’état désactivé précise `défini par le Tour, indisponible`.
 
 Le contrôle de Mode divise strictement sa largeur intérieure en trois parts égales. La rangée des trois paramètres conserve son ordre dans tous les modes et états de roulette. Le récapitulatif occupe la largeur utile et reste à `spacing/24` au-dessus de l’action finale.
 
@@ -831,7 +847,7 @@ Les contrôles `Séries`, `Durée`, `Répétitions`, `Pause`, `Récupération` e
 
 En mode Durée, la Durée totale globale d’une Activité autonome est calculée par `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` ou `2`. Séries est le pilote implicite initial, sans contour. Après confirmation d’un contrôle pilote, le pilote actif reçoit le contour `color/selection`. Si l’utilisateur confirme une Durée totale cible, `Cth = ((D − R) / L + B) / (A + B)` est arrondi au plus proche, `.5` vers le haut, puis borné à `1`; le nombre de Séries canonique et la Durée totale réalisable sont réévalués. Le pilote est un état local non persisté. Les références Figma sont `3580:4733`, `3580:4845` et `3580:4957`.
 
-Le récapitulatif est calculé et suit les valeurs confirmées. Il utilise `KODJO / Body` (`14/20`) et ne commence jamais par le mode. En Durée : `{N} série(s) de {activité} de {durée}`. En Répétitions : `{N} série(s) de {X} {activité}`. À l’échec : `{N} série(s) de {activité}, jusqu’à l’échec`. Si la Pause est positive, ajouter `, avec {pause} de pause entre les séries` uniquement lorsque `N > 1`. Si la Récupération est positive, ajouter la récupération après l’Activité. En Répétitions et À l’échec, toute durée affichée est une borne minimale `≥` composée des Pauses et de la Récupération connues. Retour avec modifications non enregistrées ouvre CE-T01-16.
+Le récapitulatif est calculé et suit les valeurs confirmées. Bases : Durée `{N} série(s) [par côté] de {activité} de {durée}` ; Répétitions `{N} série(s) [par côté] de {X} {activité}` ; À l’échec `{N} série(s) [par côté] de {activité}, jusqu’à l’échec`. Pour une direction propre `RIGHT_LEFT`, ajouter immédiatement après la cible `, à droite, puis à gauche`; pour `LEFT_RIGHT`, `, à gauche, puis à droite`. En À l’échec, la clause suit `jusqu’à l’échec`; elle précède toujours la Pause. Elle est absente en `UNILATERAL` et pour une direction seulement héritée du Tour. Ajouter ensuite la Pause si positive et `N > 1`, puis la Récupération si positive. Le libellé est `Durée totale : {durée}` en Durée et `Durée totale : ≥ {durée connue}` en Répétitions et À l’échec, où `≥` conserve la borne basse. Retour avec modifications non enregistrées ouvre CE-T01-16.
 
 Tests bloquants : absence du type d’Activité ; sections repliables et valeurs conservées ; bouton Média conforme au périmètre de version ; trois segments égaux ; deux rangées de paramètres ; ordre invariant ; masquage de Durée totale sans déplacement ; formules, arrondi `.5` supérieur, borne `1`, pilote unique et non persistant ; message d’ajustement ; synthèse immuable ; Récupération comptée une seule fois ; validation conditionnelle ; action `Terminer` idempotente ; conformité à `3542:4656`, `3561:4695`, `3561:7802`, `3580:4733`, `3580:4845` et `3580:4957`.
 
@@ -1154,11 +1170,45 @@ Le Circuit requiert nom, couleur et au moins deux étapes référençant des Sé
 
 ### CE-BIL-01 — Contrôle Activité
 
-Le contrôle `Côtés` cycle entre Unilatéral, `D→G` et `G→D` dans les modes Durée, Répétitions et À l’échec. Son nom accessible développe l’état. Une Activité persistante transmet la valeur à son insertion ; duplication et réouverture la conservent.
+| Propriété | Contrat |
+| --- | --- |
+| Parent | Cadre bleu des paramètres `354 × 156 pt` de CE-T01-13. |
+| Grille | Ligne 2, colonne 1, directement sous `Séries`; colonnes `74 / 124 / 124 pt`, gouttières `8 pt`, espace vertical `10 pt`. |
+| Dimensions | `74 × 42 pt`, identiques à `Séries`. |
+| États | `UNILATERAL` sans texte court ; `RIGHT_LEFT` = `D→G`; `LEFT_RIGHT` = `G→D`. |
+| Tactile | Toute la cible cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. |
+| Accessibilité | `Côté : unilatéral`; `Côté : bilatéral, droite puis gauche`; `Côté : bilatéral, gauche puis droite`. |
+| Désactivation | Sous un Tour bilatéral : visible, propre `UNILATERAL`, sans texte court et désactivé ; annonce `défini par le Tour, indisponible`. |
+| Figma | `3704:5021`, `3542:4656`, `3679:4880`, `3724:5428`. |
 
-### CE-BIL-02 — Contrôle Tour et confirmation
+Le réglage existe dans les trois modes. Une Activité persistante le transmet à son insertion ; duplication et réouverture le conservent.
 
-Le Tour expose le même cycle. Le passage d’Unilatéral à une direction bilatérale ouvre un dialogue bloquant : titre `Voulez-vous exécuter ce Tour de manière bilatérale ?`; texte `À chaque répétition du Tour, toutes ses Activités seront exécutées une première fois d’un côté, puis une seconde fois de l’autre, selon l’ordre choisi. Les réglages de côtés propres aux Activités seront remplacés par celui du Tour.`; actions `Annuler` et `Confirmer`. Après confirmation, les Activités sont propres `UNILATERAL` et leurs contrôles restent visibles désactivés. Aucun filtrage fondé sur une capacité « latéralisable » n’existe.
+### CE-BIL-02 — Contrôle Tour et confirmation conditionnelle
+
+| Propriété | Contrat |
+| --- | --- |
+| Parent | En-tête `2028:11743`, `354 × 34 pt`. |
+| Ligne et voisinage | Ligne unique avec `Nombre de tours`; cadre numérique à `x=237`, `66 × 34 pt`; direction à `x=311`, `42 × 34 pt`; espace `8 pt`. |
+| Alignement | `y=0` pour les deux ; bords haut/bas et centres verticaux identiques. |
+| États | Aucun titre visible. `UNILATERAL` vide ; `RIGHT_LEFT` = `D→G`; `LEFT_RIGHT` = `G→D`. |
+| Tactile | Toute la cible `42 × 34 pt` cycle vers l’état suivant. |
+| Accessibilité | `Direction du Tour : unilatéral`; `Direction du Tour : droite puis gauche`; `Direction du Tour : gauche puis droite`. |
+| Confirmation | Recherche préalable des Activités propres bilatérales. Aucune : application directe. Au moins une : dialogue ; `Annuler` sans mutation ; `Confirmer` atomique et limité aux Activités concernées. |
+| Figma | `3705:5021`, `2028:11700`, `3722:5061`, `3722:5207`. |
+
+Le dialogue conserve son titre, son texte explicatif et les actions `Annuler` / `Confirmer`. Aucun dialogue pour un Tour vide ou des Activités toutes propres `UNILATERAL`. Aucune propriété « latéralisable ».
+
+### CE-BIL-02A — Direction propre sur carte et synthèse
+
+| Propriété | Contrat |
+| --- | --- |
+| Parent carte | Informations secondaires d’une carte `354 × 69 pt`. |
+| Position | À droite, `x=311`, `y=24,5`, `42 × 20 pt`. |
+| Visibilité | `D→G` ou `G→D` pour une direction propre bilatérale hors Tour bilatéral ; absent en `UNILATERAL` et sous un Tour bilatéral. |
+| Tactile | Aucun : indicateur informatif. |
+| Accessibilité | Direction propre développée ; aucun doublon lorsque le Tour porte la direction. |
+| Synthèse | Clause développée après la cible du mode — après `jusqu’à l’échec` — et avant la Pause ; omission en unilatéral et en héritage Tour. |
+| Figma | `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`. |
 
 ### CE-BIL-03 — Exécution
 

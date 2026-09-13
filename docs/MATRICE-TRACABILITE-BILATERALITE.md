@@ -31,8 +31,8 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-023 | `LEFT_RIGHT` inverse l’ordre sans changer le calcul | 00, 08, 12 | CONFORME |
 | BIL-024 | Récupération une fois par passage de Tour bilatéral | 00, 08–11 | CONFORME |
 | BIL-025 | Toutes les Activités héritent du Tour ; aucune notion « latéralisable » | 00, 04, 06, 07 D-145, 10, 13 | CONFORME |
-| BIL-026 | Activation d’un Tour bilatéral soumise à confirmation | 03, 06, 07 D-146, 13 | CONFORME |
-| BIL-027 | Confirmation remet les enfants à `UNILATERAL` | 03, 04, 06, 09, 13 | CONFORME |
+| BIL-026 | Confirmation seulement si une Activité propre bilatérale sera remplacée ; sinon application directe | PRODUCT, 02–04, 06–13 ; D-146 ; CE-BIL-02 | CONFORME |
+| BIL-027 | Confirmation remet uniquement les Activités propres bilatérales concernées à `UNILATERAL` | 03, 04, 06, 09, 13 | CONFORME |
 | BIL-028 | Source effective : Tour bilatéral, sinon Activité | 00, 04, 09, 12 | CONFORME |
 | BIL-029 | Contrôles enfants visibles mais désactivés | 04, 06, 10, 13 | CONFORME |
 | BIL-030 | Contrôles enfants montrent leur état propre unilatéral | 04, 06, 13 | CONFORME |
@@ -66,6 +66,15 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-058 | Tranche : persistance, duplication, calculs, UI, validations | 05, 09–13 | CONFORME |
 | BIL-059 | Exécution réelle et résultats dans T03 révisée | INDEX, 01, 05, 08–13 | CONFORME |
 | BIL-060 | T03 explicitement révisée | INDEX, 04–07, 10, 13 | CONFORME |
+
+| BIL-061 | Contrôle Tour : parent, ligne, `x=311`, `42 × 34 pt`, espace `8 pt`, alignements | 06, D-152, 12, CE-T02-01/CE-BIL-02 ; Figma `3705:5021`, `2028:11743` | CONFORME |
+| BIL-062 | Tour : aucun titre ; états vide, `D→G`, `G→D` et accessibilité | 06, D-143/D-152, CE-BIL-02 ; Figma `2028:11700`, `3722:5061`, `3722:5207` | CONFORME |
+| BIL-063 | Application directe si Tour vide ou Activités toutes propres `UNILATERAL` | PRODUCT, 02–04, 06–11, 13 ; D-146 | CONFORME |
+| BIL-064 | Confirmation atomique limitée aux Activités propres bilatérales ; annulation sans mutation | 03, 04, D-146, 09–11, CE-BIL-02 | CONFORME |
+| BIL-065 | Carte : direction propre à `x=311`, `y=24,5`, `42 × 20 pt`; absence en unilatéral/héritage | PRODUCT, 00, 06–08, 10, CE-BIL-02A ; Figma `3706:5020`, `2028:11700` | CONFORME |
+| BIL-066 | Contrôle Activité : ligne 2 colonne 1, `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt` | 06–08, 12, CE-T01-13/CE-BIL-01 ; Figma `3704:5021`, `3542:4656` | CONFORME |
+| BIL-067 | Synthèse propre : clause après cible et avant Pause ; absence en unilatéral/héritage | PRODUCT, 06–08, 10, 13 ; Figma `3679:4880`, `3724:5428` | CONFORME |
+| BIL-068 | `Durée totale` dans les trois modes ; borne `≥` en Répétitions/À l’échec | PRODUCT, 06–08, 10, 13 ; Figma `3561:4695`, `3561:7673`, `3561:7802` | CONFORME |
 
 ## Contrôle de cohérence final
 

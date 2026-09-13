@@ -199,7 +199,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-144 | Une Activité autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
 | RM-145 | Un Tour bilatéral exécute à chaque répétition tout son contenu du premier côté puis du second. Chaque Récupération est exécutée une fois par passage de côté. |
 | RM-146 | Un Tour bilatéral impose sa direction à toutes ses Activités. Leur réglage propre est `UNILATERAL`, visible et désactivé ; aucune capacité « latéralisable » n’existe. |
-| RM-147 | Activer un Tour bilatéral demande confirmation et remet atomiquement ses Activités à `UNILATERAL`. Désactiver le Tour ne restaure aucun réglage antérieur. |
+| RM-147 | Activer un Tour bilatéral demande confirmation uniquement si au moins une Activité contenue possède un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans Activité concernée, la direction est appliquée directement. Avec confirmation, `Annuler` ne modifie rien et `Confirmer` applique atomiquement la direction au Tour puis remet les seules Activités concernées à `UNILATERAL`. Désactiver le Tour ne restaure aucun réglage antérieur. |
 | RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Activité, sans compteur de côté. La progression `Activité X/Y` ne change pas de rang entre les deux passages. |
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
+| RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
+| RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
+| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
