@@ -86,7 +86,7 @@ try {
   # remis a zero d'abord, sans toucher l'arbre de travail.
   git reset --quiet
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_INDEX_RESET_FAILED' }
-  git add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
+  # Les octets valides par le superviseur sont opposables : neutraliser la\n  # conversion locale Windows des fins de ligne pendant la publication.\n  git -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_ADD_FAILED' }
   # Reserve 3 de la revue du lot 1 : borner l'ajout ne prouve pas ce que l'index
   # CONTIENT. On compare l'index reel, chemin par chemin, a la liste autorisee.
