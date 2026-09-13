@@ -54,6 +54,7 @@ test('capture et publication conservent exactement CRLF sous core.autocrlf=true'
   assert.deepEqual(fs.readFileSync(absolute), expected, 'le patch doit restaurer les CRLF exacts');
 
   git(root, ['-c', 'core.autocrlf=false', 'add', '--', relative]);
+  git(root, ['-c', 'core.whitespace=cr-at-eol', 'diff', '--cached', '--check']);
   git(root, ['commit', '-qm', 'publish']);
   assert.equal(git(root, ['rev-parse', 'HEAD:' + relative]), blobSha(expected),
     'le blob publie doit contenir exactement les octets produits');
@@ -66,4 +67,6 @@ test('le chemin PowerShell de publication neutralise aussi autocrlf', () => {
   );
   assert.match(source,
     /git -c core\.autocrlf=false add --all --pathspec-from-file=\$publishPathspec --pathspec-file-nul/);
+  assert.match(source,
+    /git -c core\.whitespace=cr-at-eol diff --cached --check/);
 });
