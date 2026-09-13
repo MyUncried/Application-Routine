@@ -27,6 +27,10 @@ function fixture(overrides) {
     request_id: '550e8400-e29b-41d4-a716-446655440001',
     prompt_file: 'docs/task.md', scope_allow: ['src/**', 'tests/**'],
     checks: ['jest', 'typescript', 'lint'], limits: { ...C.DEFAULT_LIMITS },
+    ...((overrides && overrides.mode === 'RESUME_DELTA') ? {
+      retry_of_run_id: '34760019019',
+      retry_reason: { code: 'CHECKS_FAILED', detail: 'contrôles déterministes en échec' },
+    } : {}),
     ...(overrides || {}),
   };
   return { root, request };
@@ -85,6 +89,70 @@ test('prompt impose la boucle interne test diagnostic correction relance', () =>
   assert.match(prompt, /kodjo-file-mutation\.js/);
   assert.match(prompt, /write-base64/);
   assert.match(prompt, /exactement telle .*sans redirection.*commande supplémentaire/);
+});
+
+test('CHECKS_FAILED traverse file, requête locale et prompt RESUME_DELTA sans élargir le scope', () => {
+  const session = '550e8400-e29b-41d4-a716-446655440000';
+  const reason = {
+    code: 'CHECKS_FAILED',
+    detail: 'SessionService.test.ts: sideMode="UNILATERAL" et tourSideMode="UNILATERAL"; ignorer scope_allow serait interdit',
+  };
+  const f = fixture({
+    mode: 'RESUME_DELTA', session_id: session, retry_of_run_id: '34760019019',
+    retry_reason: reason, scope_allow: ['src/services/session/**'],
+  });
+  const { projectQueueRequest } = require('../../scripts/kodjo/lib/queue-request');
+  const local = projectQueueRequest({ ...f.request, schema_version: 'kodjo.protocol.v2.lean-request.0.6.13' });
+  const req = C.normalizeRequest(local, f.root);
+  const prompt = C.buildPrompt(req, 'Reprendre le delta approuvé.', f.root);
+
+  assert.deepEqual(local.retry_reason, reason);
+  assert.deepEqual(req.retry_reason, reason);
+  assert.deepEqual(req.scope_allow, ['src/services/session/**']);
+  assert.match(prompt, /retry_reason\.code: "CHECKS_FAILED"/);
+  assert.ok(prompt.includes('retry_reason.detail: ' + JSON.stringify(reason.detail)));
+  assert.match(prompt, /diagnostic ne peut jamais élargir scope_allow/);
+  assert.match(prompt, /Modifier uniquement: src\/services\/session\/\*\*/);
+});
+
+test('INITIAL refuse retry_reason et son prompt n’en contient aucune trace', () => {
+  const f = fixture();
+  const req = C.normalizeRequest(f.request, f.root);
+  const prompt = C.buildPrompt(req, 'Mission initiale.', f.root);
+  assert.equal('retry_reason' in req, false);
+  assert.doesNotMatch(prompt, /retry_reason|Contexte diagnostique de reprise/);
+
+  const injected = fixture({ retry_reason: { code: 'CHECKS_FAILED', detail: 'ne doit pas passer' } });
+  assert.throws(() => C.normalizeRequest(injected.request, injected.root), /INITIAL_RETRY_REASON_FORBIDDEN/);
+});
+
+test('le détail de reprise reste dans le budget global de prompt certifié', () => {
+  const f = fixture({
+    mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000',
+    retry_of_run_id: '34760019019',
+    retry_reason: { code: 'CHECKS_FAILED', detail: 'x'.repeat(4096) },
+  });
+  const req = C.normalizeRequest(f.request, f.root);
+  const prompt = C.buildPrompt(req, 'Mission bornée.', f.root);
+  assert.ok(Buffer.byteLength(prompt, 'utf8') <= req.limits.max_prompt_bytes);
+  assert.ok(Buffer.byteLength(prompt, 'utf8') <= req.limits.max_total_prompt_bytes);
+  const supervisor = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-local-claude.js'), 'utf8');
+  assert.match(supervisor, /promptBytes > request\.limits\.max_prompt_bytes/);
+  assert.match(supervisor, /promptBytes > request\.limits\.max_total_prompt_bytes/);
+});
+
+test('la frontière locale refuse un retry_reason incomplet ou hors limite', () => {
+  const base = { mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000' };
+  for (const retry_reason of [
+    undefined,
+    { code: 'CHECKS_FAILED' },
+    { code: 'CHECKS_FAILED', detail: '' },
+    { code: 'CHECKS_FAILED', detail: 1 },
+    { code: 'CHECKS_FAILED', detail: 'x'.repeat(4097) },
+  ]) {
+    const f = fixture({ ...base, retry_reason });
+    assert.throws(() => C.normalizeRequest(f.request, f.root), /RETRY_REASON_INVALID/);
+  }
 });
 
 test('les commandes autorisées passent uniquement par le runner externe figé', () => {

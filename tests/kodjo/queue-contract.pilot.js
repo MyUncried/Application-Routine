@@ -125,6 +125,31 @@ test('les champs conditionnels suivent le mode', () => {
   }), []);
   // En INITIAL, ces champs sont interdits.
   assert.ok(diagnostics(validQueue({ retry_of_run_id: '123' })).includes('KODJO_QUEUE_RETRY_SOURCE_MISSING'));
+  assert.ok(diagnostics(validQueue({ retry_reason: { code: 'CHECKS_FAILED', detail: 'jest' } }))
+    .includes('KODJO_QUEUE_RETRY_REASON_INVALID'));
+});
+
+test('retry_reason exige une structure exacte, un détail textuel non vide et borné', () => {
+  const base = validQueue({
+    mode: 'RESUME_DELTA', session_id: uuid(), retry_of_run_id: '34760019019',
+  });
+  const refused = [
+    undefined,
+    { code: 'CHECKS_FAILED' },
+    { code: 'CHECKS_FAILED', detail: '' },
+    { code: 'CHECKS_FAILED', detail: '   \n\t' },
+    { code: 'CHECKS_FAILED', detail: 5 },
+    { code: 'CHECKS_FAILED', detail: 'ok', scope_allow: ['**'] },
+    { code: 'INVENTED', detail: 'diagnostic' },
+    { code: 'CHECKS_FAILED', detail: 'é'.repeat(C.MAX_RETRY_REASON_DETAIL_BYTES) },
+  ];
+  for (const retry_reason of refused) {
+    assert.ok(diagnostics({ ...base, retry_reason }).includes('KODJO_QUEUE_RETRY_REASON_INVALID'));
+  }
+  assert.deepEqual(C.validateQueueRequest({
+    ...base,
+    retry_reason: { code: 'CHECKS_FAILED', detail: 'x'.repeat(C.MAX_RETRY_REASON_DETAIL_BYTES) },
+  }), []);
 });
 
 test('complétude · toute propriété BEHAVIOUR est transmise au superviseur', () => {
@@ -132,7 +157,7 @@ test('complétude · toute propriété BEHAVIOUR est transmise au superviseur', 
   const produced = new Set(Object.keys(projectQueueRequest(
     validQueue({
       allow_legacy_recovery_bootstrap: true, mode: 'RESUME_DELTA', session_id: uuid(),
-      retry_of_run_id: '123', retry_reason: { code: 'CHECKS_FAILED' },
+      retry_of_run_id: '123', retry_reason: { code: 'CHECKS_FAILED', detail: 'jest' },
     })
   )));
   const manquants = C.propertiesOfNature('BEHAVIOUR')

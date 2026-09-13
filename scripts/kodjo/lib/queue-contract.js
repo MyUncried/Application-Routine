@@ -28,6 +28,8 @@ const LEAN_REQUEST_SCHEMA = 'kodjo.protocol.v2.lean-request.0.6.13';
 const CHECKS = ['jest', 'typescript', 'lint'];
 const MODES = ['INITIAL', 'RESUME_DELTA'];
 const RETRY_CODES = ['CHECKS_FAILED', 'SCOPE_VIOLATION', 'INFRASTRUCTURE', 'CLARIFICATION', 'BUDGET_EXHAUSTED', 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY'];
+const MAX_RETRY_REASON_DETAIL_BYTES = 4096;
+const RETRY_REASON_KEYS = Object.freeze(['code', 'detail']);
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isString = (v) => typeof v === 'string' && v.length > 0;
@@ -35,6 +37,24 @@ const LIMIT_KEYS = new Set([
   'max_ai_calls', 'max_duration_seconds', 'max_prompt_bytes',
   'max_total_prompt_bytes', 'max_rollovers',
 ]);
+
+/** Motif de reprise fermé, textuel et borné avant toute projection ou invocation. */
+function validateRetryReason(value) {
+  if (!isObject(value)) return 'objet structure attendu';
+  const keys = Object.keys(value).sort();
+  if (keys.length !== RETRY_REASON_KEYS.length ||
+      RETRY_REASON_KEYS.some((key) => !keys.includes(key))) {
+    return 'proprietes exactes attendues: ' + RETRY_REASON_KEYS.join(', ');
+  }
+  if (!RETRY_CODES.includes(value.code)) return 'code inconnu: ' + JSON.stringify(value.code);
+  if (typeof value.detail !== 'string') return 'detail textuel attendu';
+  if (value.detail.trim().length === 0) return 'detail textuel non vide attendu';
+  const bytes = Buffer.byteLength(value.detail, 'utf8');
+  if (bytes > MAX_RETRY_REASON_DETAIL_BYTES) {
+    return 'detail hors limite: ' + bytes + ' octets (maximum ' + MAX_RETRY_REASON_DETAIL_BYTES + ')';
+  }
+  return null;
+}
 
 /** Preuve d'autorisation : objet structure, jamais chaine libre. */
 function authorizationShape(fields, kinds) {
@@ -188,8 +208,7 @@ const PROPERTIES = {
     nature: 'TRACEABILITY', required: 'resume_only', type: 'object',
     validate: (v, q) => {
       if (String(q.mode).toUpperCase() !== 'RESUME_DELTA') return v === undefined ? null : 'reserve a RESUME_DELTA';
-      if (!isObject(v)) return 'objet structure attendu';
-      return RETRY_CODES.includes(v.code) ? null : 'code inconnu: ' + JSON.stringify(v.code);
+      return validateRetryReason(v);
     },
     diagnostic: 'KODJO_QUEUE_RETRY_REASON_INVALID',
   },
@@ -227,5 +246,6 @@ function validateQueueRequest(queue) {
 
 module.exports = {
   PROPERTIES, LEAN_REQUEST_SCHEMA, CHECKS, MODES, RETRY_CODES, LIMIT_KEYS,
-  propertiesOfNature, validateQueueRequest,
+  MAX_RETRY_REASON_DETAIL_BYTES, RETRY_REASON_KEYS,
+  propertiesOfNature, validateRetryReason, validateQueueRequest,
 };
