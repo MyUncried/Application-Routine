@@ -139,7 +139,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition canonique |
 |---|---|
-| **Réglage de côté** | État d’une Activité ou d’un Tour parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Les libellés courts sont respectivement absent, `D→G` et `G→D`. |
+| **Réglage de côté** | État d’une Activité ou d’un Tour parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Les états bilatéraux portent les libellés courts `D→G` et `G→D`. En `UNILATERAL`, le contrôle d’Activité reste sans texte court et le contrôle du Tour affiche un tiret `–` centré. |
 | **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Il provient du Tour lorsqu’il est bilatéral ; sinon de l’Activité. Une Activité n’est jamais doublée simultanément par les deux niveaux. |
 | **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Activité par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée entre les côtés ; la Récupération intervient une fois après le second côté. |
