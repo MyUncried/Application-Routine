@@ -14,7 +14,7 @@ Un contrat d’écran ne remplace ni Figma ni les autres chapitres. Il précise,
 - les chevauchements, troncatures et contenus masqués ;
 - une navigation ou un état de données différent de celui spécifié.
 
-Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les contrats T01 révisés pour l’écran unifié d’Activité, les deux contrats T02 de Composition complète et de déplacement du bloc Activité–Récupération, les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10, ainsi que les treize contrats `CE-T03-01` à `CE-T03-13` de l’Exécution guidée fondamentale. Ces contrats T03 couvrent l’accès depuis le Catalogue, le contrôle d’éligibilité, les trois modes d’Activité, les phases structurelles dont `RECOVERY`, la progression, les commandes, les interruptions et les sorties minimale normale ou interrompue. Les états T03 réutilisent le Shell d’Exécution et les frames Figma existantes lorsqu’aucune frame spécifique supplémentaire n’est requise.
+Les contrats sont rédigés et validés progressivement, selon les tranches verticales de la roadmap. La présente version couvre les contrats T01 révisés pour l’écran unifié d’Activité, les deux contrats T02 de Composition complète et de déplacement du bloc Activité–Récupération, les neuf contrats fonctionnels de réouverture et de modification bout en bout de T01-S10, ainsi que les treize contrats `CE-T04-01` à `CE-T04-13` de l’Exécution guidée fondamentale. Ces contrats T04 couvrent l’accès depuis le Catalogue, le contrôle d’éligibilité, les trois modes d’Activité, les phases structurelles dont `RECOVERY`, la progression, les commandes, les interruptions et les sorties minimale normale ou interrompue. Les états T04 réutilisent le Shell d’Exécution et les frames Figma existantes lorsqu’aucune frame spécifique supplémentaire n’est requise.
 
 ## 2. Sources et ordre d’application
 
@@ -614,42 +614,42 @@ Tests bloquants : distinction toucher court/appui long ; état visuel exact `362
 
 ---
 
-## Contrats T03-S01 — Exécution guidée fondamentale
+## Contrats T04-S01 — Exécution guidée fondamentale
 
-### Périmètre commun T03
+### Périmètre commun T04
 
-T03 exécute les Séances actives comportant des Activités en mode Durée, Répétitions ou À l’échec, avec leurs Séries, Tours et passages bilatéraux. Une Récupération positive produit une phase `RECOVERY` après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral. La navigation vers une étape précédente reste hors périmètre.
+T04 exécute les Séances actives comportant des Activités en mode Durée, Répétitions ou À l’échec, avec leurs Séries, Tours et passages bilatéraux. Une Récupération positive produit une phase `RECOVERY` après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral. La navigation vers une étape précédente reste hors périmètre.
 
 Les écrans réutilisent `Shell / Execution` et les captures `execution-etat-initial.png`, `execution-seance.png`, `execution-bips-vocal-desactives.png`, `execution-reinitialiser.png`, `execution-activite-suivante.png` et `execution-pause.png`. L’absence d’une frame propre à un état purement temporel n’autorise aucune invention visuelle : cet état hérite du Shell et des composants documentés au chapitre 06.
 
-### CE-T03-01 — Accès et contrôle d’éligibilité
+### CE-T04-01 — Accès et contrôle d’éligibilité
 
 | Propriété | Valeur |
 | --- | --- |
-| Tranche | `T03-S01` |
+| Tranche | `T04-S01` |
 | Point d’entrée | Action `Démarrer` d’une carte de Séance enregistrée dans `1992:9910` |
-| Destination | CE-T03-02 |
-| Condition | Séance active et compatible T03 |
+| Destination | CE-T04-02 |
+| Condition | Séance active et compatible T04 |
 
 La zone principale de la carte ouvre la Composition. `Déployer` ouvre ou ferme le détail de la carte et `Démarrer` ouvre l’Exécution avec l’identifiant exact de la Séance. Ces trois cibles sont indépendantes : la zone tactile principale s’arrête avant les boutons `Déployer` et `Démarrer`, sans chevauchement. Une Séance sans Activité valide ne peut normalement pas être enregistrée ; `Démarrer` désactivé constitue uniquement une protection défensive contre des données anciennes, importées ou corrompues et ne produit aucune navigation.
 
-Avant toute création d’Exécution, l’application développe atomiquement toutes les Séries, répétitions de Tour et passages de côté. Elle refuse uniquement une structure invalide ou impossible à développer. Le refus ne crée ni Exécution, ni Instantané, ni Résultat partiel et ne modifie jamais la Séance. L’archivage, la restauration et la suppression ne font pas partie de T03 ; la garde contre une Séance archivée demeure une protection d’intégrité si une telle donnée préexiste.
+Avant toute création d’Exécution, l’application développe atomiquement toutes les Séries, répétitions de Tour et passages de côté. Elle refuse uniquement une structure invalide ou impossible à développer. Le refus ne crée ni Exécution, ni Instantané, ni Résultat partiel et ne modifie jamais la Séance. L’archivage, la restauration et la suppression ne font pas partie de T04 ; la garde contre une Séance archivée demeure une protection d’intégrité si une telle donnée préexiste.
 
 Tests bloquants : routage distinct Composition/Déployer/Démarrer ; bon identifiant ; cibles sans chevauchement ; aucune navigation si `Démarrer` est désactivé ; refus avant toute écriture ; absence de mutation de la Séance ; message explicite ; aucun contournement des fonctions d’édition T01/T02.
 
-### CE-T03-02 — Exécution prête avant démarrage
+### CE-T04-02 — Exécution prête avant démarrage
 
 | Propriété | Valeur |
 | --- | --- |
 | Référence | `execution-etat-initial.png` ; `Shell / Execution` |
-| Entrée | Séance éligible issue de CE-T03-01 |
+| Entrée | Séance éligible issue de CE-T04-01 |
 | Persistance | Aucune Exécution avant l’action explicite de lancement |
 
-L’écran charge la Séance mais ne la démarre pas automatiquement. Il affiche son nom, les commandes Sons et Annonces vocales activées par défaut et l’action centrale de lancement. Dans T03, ces deux états ne proviennent d’aucune préférence utilisateur persistée ; leur configuration depuis le Profil reste hors périmètre. Retour rejoint la carte déployée du Catalogue (`1992:10014`) sans écriture. L’action de lancement crée atomiquement l’Exécution et son Instantané immuable, puis active CE-T03-03.
+L’écran charge la Séance mais ne la démarre pas automatiquement. Il affiche son nom, les commandes Sons et Annonces vocales activées par défaut et l’action centrale de lancement. Dans T04, ces deux états ne proviennent d’aucune préférence utilisateur persistée ; leur configuration depuis le Profil reste hors périmètre. Retour rejoint la carte déployée du Catalogue (`1992:10014`) sans écriture. L’action de lancement crée atomiquement l’Exécution et son Instantané immuable, puis active CE-T04-03.
 
 Tests bloquants : aucun enregistrement à la simple ouverture ; Retour sans effet ; verrou contre le double lancement ; Instantané créé une seule fois au démarrage effectif ; navigation principale masquée pendant le parcours d’Exécution.
 
-### CE-T03-03 — Compte à rebours initial
+### CE-T04-03 — Compte à rebours initial
 
 L’étape `INITIAL_COUNTDOWN` utilise le Shell d’Exécution et un décompte visible. Elle est structurellement présente, ne constitue pas une Activité, signale les trois dernières secondes et passe automatiquement à la première étape d’Activité. Une durée de `0 s` produit cette transition immédiatement sans supprimer l’étape du Plan.
 
@@ -657,28 +657,28 @@ Son temps effectivement exécuté est inclus dans le temps total écoulé et la 
 
 Tests bloquants : valeurs non nulles et `0 s` ; signaux exactement une fois ; transition unique ; inclusion dans les trois mesures d’Exécution ; exclusion de la synthèse des Activités ; recalcul après arrière-plan ou verrouillage.
 
-### CE-T03-04 — Activité chronométrée active
+### CE-T04-04 — Activité chronométrée active
 
 | Propriété | Valeur |
 | --- | --- |
 | Référence | `execution-seance.png` ; `Shell / Execution` |
-| Modes T03 | Activité `DURATION` et phase attachée `RECOVERY` |
+| Modes T04 | Activité `DURATION` et phase attachée `RECOVERY` |
 
 L’écran affiche le nom de la Séance, le nom et le mode de l’Activité courante, le temps restant, `Série 1/1`, l’indicateur de Tour `1/1` lorsque le Shell le présente, la progression discrète du Tour, l’étape suivante réelle, les commandes son/annonces, `Réinitialiser`, `Pause` et `Activité suivante`, le temps total écoulé, la Durée estimée d’exécution et la barre globale. Pendant `RECOVERY`, le libellé principal est `Récupération`, le décompte part de la durée configurée et l’étape suivante reste celle du Plan réel.
 
 Le décompte est calculé depuis des horodatages de référence et non depuis le nombre de rafraîchissements de l’interface. À zéro, la transition vers l’étape suivante est automatique et idempotente. Les Pauses manuelles ne contribuent ni au temps total écoulé ni à la Durée réelle.
 
-La barre représente l’avancement du Plan complet T03, `INITIAL_COUNTDOWN` et `SESSION_END` compris. Les étapes chronométrées progressent proportionnellement à leur durée planifiée ; la pondération des occurrences en Répétitions ou À l’échec suit RM-077 et leur part n’est acquise qu’avec `Suivant`. La barre n’atteint `100 %` qu’à l’achèvement de `SESSION_END`.
+La barre représente l’avancement du Plan complet T04, `INITIAL_COUNTDOWN` et `SESSION_END` compris. Les étapes chronométrées progressent proportionnellement à leur durée planifiée ; la pondération des occurrences en Répétitions ou À l’échec suit RM-077 et leur part n’est acquise qu’avec `Suivant`. La barre n’atteint `100 %` qu’à l’achèvement de `SESSION_END`.
 
 Tests bloquants : hiérarchie complète des informations ; valeurs issues du Plan ; distinction Pause manuelle/Pause entre Séries/Récupération ; annonce `Récupération` et sons standards ; exactitude temporelle ; transition automatique unique à zéro ; comportement à différentes largeurs et avec texte agrandi ; progression incluant les deux phases structurelles et `RECOVERY`.
 
-### CE-T03-05 — Activité en Répétitions ou À l’échec
+### CE-T04-05 — Activité en Répétitions ou À l’échec
 
 L’écran conserve le Shell commun. Il affiche un chronomètre croissant depuis `00:00` et, pour le mode Répétitions, la cible configurée ; le mode À l’échec n’invente aucune cible chiffrée. Dans les deux modes, l’utilisateur signale lui-même la fin de l’unique Série avec `Suivant`. Cette action constitue une fin normale, sans confirmation et sans statut `Partielle`, puis active la prochaine étape du Plan. La durée effectivement passée est conservée dans le Résultat ; aucune durée cible n’est inventée.
 
 Tests bloquants : cible visible uniquement en Répétitions ; chronomètre croissant ; `Suivant` sans confirmation ; Résultat normal et non partiel ; durée réelle conservée ; prochaine étape exacte ; absence de transition automatique ; garde de sécurité après deux heures sans interaction.
 
-### CE-T03-06 — Réinitialiser l’Activité
+### CE-T04-06 — Réinitialiser l’Activité
 
 La commande ouvre `1992:8224`, `Modal — Réinitialiser l’activité`, instance `2591:3047` de `Overlay / Decision Dialog`, variante `2590:2926`, `354 × 215`. Pendant `RECOVERY`, le libellé et le dialogue deviennent `Réinitialiser la récupération`. Confirmer recommence uniquement la phase courante :
 
@@ -691,27 +691,27 @@ Aucun Résultat d’Activité n’est créé par la réinitialisation. Les étap
 
 Tests bloquants : dialogue et textes adaptés à Activité/Récupération ; contexte sous-jacent suspendu et grisé ; annulation sans mutation ; nouveau décompte complet en mode chronométré ; récupération seule réinitialisée ; retour à `00:00` en Répétitions et À l’échec ; cible de répétitions inchangée ; aucune cible inventée pour À l’échec ; aucun Résultat antérieur modifié ; aucun son ou changement d’étape dupliqué.
 
-### CE-T03-07 — Passer une Activité chronométrée avant zéro
+### CE-T04-07 — Passer une Activité chronométrée avant zéro
 
 La commande `Activité suivante` ouvre `1992:8326`, `Modal — Passer à l’activité suivante`, instance `2591:3058` de la variante `2590:2926`, `354 × 215`. Depuis une Activité chronométrée, Confirmer conserve la durée active réellement effectuée et crée une seule fois un Résultat `Partielle`. Depuis `RECOVERY`, Confirmer conserve l’Activité comme terminée, écrit la durée prévue et la durée écoulée de Récupération, puis poursuit sans nouvel enum de Résultat. Annuler ferme le dialogue et reprend le décompte courant.
 
 Tests bloquants : aucune transition avant confirmation ; statut `Partielle` uniquement pour l’Activité quittée ; Activité terminée et `recoveryElapsedSeconds` partiel pendant `RECOVERY` ; durée exacte ; idempotence ; reprise après Annuler ; aucune navigation libre ou retour vers une étape antérieure.
 
-### CE-T03-08 — Pause manuelle, reprise et arrêt
+### CE-T04-08 — Pause manuelle, reprise et arrêt
 
 Toucher `Pause` suspend immédiatement le temps actif, les transitions, les animations et les signaux de progression, puis ouvre `1992:8428`, `Modal — Séance en pause`. Le dialogue est l’instance `2591:3070` de `Overlay / Decision Dialog`, variante `2590:2960`, et mesure `354 × 194`. Le voile est bloquant ; ni le voile ni une navigation implicite ne ferment le dialogue.
 
-`Reprendre la séance` repart de la phase et du temps restant ou écoulé persisté sans rejouer les signaux déjà traités. `Arrêter la séance` est l’unique chemin d’arrêt volontaire de T03 ; il clôt l’Exécution au statut `Interrompue`, conserve les Résultats obtenus et ouvre CE-T03-12. Le temps de Pause manuelle reste exclu du temps total écoulé et de la Durée réelle.
+`Reprendre la séance` repart de la phase et du temps restant ou écoulé persisté sans rejouer les signaux déjà traités. `Arrêter la séance` est l’unique chemin d’arrêt volontaire de T04 ; il clôt l’Exécution au statut `Interrompue`, conserve les Résultats obtenus et ouvre CE-T04-12. Le temps de Pause manuelle reste exclu du temps total écoulé et de la Durée réelle.
 
 Tests bloquants : suspension immédiate ; libellés exacts ; arrêt absent de l’écran actif ; reprise exacte ; arrêt `Interrompue` ; voile, géométrie, cibles tactiles et Safe Areas conformes.
 
-### CE-T03-09 — Restauration après interruption technique
+### CE-T04-09 — Restauration après interruption technique
 
-Lorsqu’une Exécution non finalisée est détectée au retour dans l’application, toute nouvelle Exécution est bloquée. L’interface propose explicitement de reprendre ou d’arrêter. Reprendre restaure la phase, son rang, le temps restant ou écoulé, l’état En cours/En pause, les résultats antérieurs et l’étape suivante, puis recalcule l’état depuis les horodatages persistés. Arrêter applique le statut `Interrompue` et ouvre CE-T03-12.
+Lorsqu’une Exécution non finalisée est détectée au retour dans l’application, toute nouvelle Exécution est bloquée. L’interface propose explicitement de reprendre ou d’arrêter. Reprendre restaure la phase, son rang, le temps restant ou écoulé, l’état En cours/En pause, les résultats antérieurs et l’étape suivante, puis recalcule l’état depuis les horodatages persistés. Arrêter applique le statut `Interrompue` et ouvre CE-T04-12.
 
 Tests bloquants : aucune seconde Exécution ; restauration en premier plan, arrière-plan, verrouillage et après fermeture ; aucune transition ni aucun signal dupliqué ; comportement documenté lorsque l’OS ne garantit pas l’exécution en arrière-plan.
 
-### CE-T03-10 — Phase `SESSION_END`
+### CE-T04-10 — Phase `SESSION_END`
 
 La fin de la dernière Activité active d’abord sa phase `RECOVERY` lorsqu’elle est configurée, puis la phase structurelle et visible `SESSION_END`. Celle-ci utilise le Shell commun, affiche son propre décompte et joue le signal de fin exactement une fois. Elle n’est pas une Activité et ne crée aucun Résultat d’Activité.
 
@@ -719,43 +719,43 @@ Son temps exécuté contribue au temps total écoulé et à la Durée réelle ; 
 
 Tests bloquants : déclenchement après la dernière Activité ; durées non nulles et `0 s` ; inclusion dans les métriques et la progression ; aucun enregistrement final avant achèvement ; signal et finalisation idempotents.
 
-### CE-T03-11 — Fin normale minimale
+### CE-T04-11 — Fin normale minimale
 
-Après l’achèvement de `SESSION_END`, l’Exécution est clôturée une seule fois et un écran de fin minimal est affiché. T03 n’affiche ni Synthèse détaillée, ni Ressenti, ni Commentaire, ni fonction de Suivi. L’action principale revient au Catalogue et recharge la carte de la Séance. Le résultat technique conservé reste disponible pour les tranches ultérieures.
+Après l’achèvement de `SESSION_END`, l’Exécution est clôturée une seule fois et un écran de fin minimal est affiché. T04 n’affiche ni Synthèse détaillée, ni Ressenti, ni Commentaire, ni fonction de Suivi. L’action principale revient au Catalogue et recharge la carte de la Séance. Le résultat technique conservé reste disponible pour les tranches ultérieures.
 
-Tests bloquants : accès uniquement après `SESSION_END` ; absence des fonctions hors T03 ; retour au Catalogue ; aucune double finalisation ; navigation principale restaurée après la sortie.
+Tests bloquants : accès uniquement après `SESSION_END` ; absence des fonctions hors T04 ; retour au Catalogue ; aucune double finalisation ; navigation principale restaurée après la sortie.
 
-### CE-T03-12 — Fin interrompue minimale
+### CE-T04-12 — Fin interrompue minimale
 
 Après un arrêt volontaire confirmé ou l’arrêt d’une Exécution irrécupérable, le même écran minimal indique que la Séance a été interrompue. Il ne simule pas une Synthèse MVP et propose le retour au Catalogue. Les Résultats déjà produits et la Durée réelle sont conservés ; les étapes jamais atteintes ne créent aucun Résultat.
 
-Tests bloquants : statut `Interrompue` ; conservation des données acquises ; absence de résultats fictifs ; retour au Catalogue ; distinction claire avec CE-T03-11.
+Tests bloquants : statut `Interrompue` ; conservation des données acquises ; absence de résultats fictifs ; retour au Catalogue ; distinction claire avec CE-T04-11.
 
-### CE-T03-13 — Erreur de chargement ou de persistance
+### CE-T04-13 — Erreur de chargement ou de persistance
 
 Une erreur avant démarrage ne crée aucune Exécution et permet de revenir au Catalogue. Une erreur après démarrage conserve le dernier état cohérent persisté, présente un message compréhensible sans détail technique et interdit toute confirmation mensongère de fin. Une nouvelle tentative ou la reprise utilise le même identifiant d’Exécution et les protections d’idempotence.
 
 Tests bloquants : absence d’écriture partielle ; état récupérable ; message accessible ; aucune fausse fin ; reprise sans duplication.
 
-### Matrice de couverture T03-S01
+### Matrice de couverture T04-S01
 
-| Contrat | Référence visuelle | État ou action | Périmètre T03 |
+| Contrat | Référence visuelle | État ou action | Périmètre T04 |
 | --- | --- | --- | --- |
-| CE-T03-01 | `1992:9910` | Démarrer et contrôler l’éligibilité | Obligatoire |
-| CE-T03-02 | `execution-etat-initial.png` | Prêt avant démarrage | Obligatoire |
-| CE-T03-03 | Shell commun | `INITIAL_COUNTDOWN` | Obligatoire |
-| CE-T03-04 | `execution-seance.png` | Activité chronométrée | Obligatoire |
-| CE-T03-05 | Shell commun | Répétitions ou À l’échec | Obligatoire |
-| CE-T03-06 | `1992:8224` | Réinitialiser | Obligatoire |
-| CE-T03-07 | `1992:8326` | Activité suivante avant zéro | Obligatoire |
-| CE-T03-08 | `1992:8428` | Pause, reprise et arrêt | Obligatoire |
-| CE-T03-09 | Shell et dialogue de reprise | Interruption technique | Obligatoire |
-| CE-T03-10 | Shell commun | `SESSION_END` | Obligatoire |
-| CE-T03-11 | Écran minimal T03 | Fin normale | Obligatoire, sans Synthèse |
-| CE-T03-12 | Écran minimal T03 | Fin interrompue | Obligatoire, sans Synthèse |
-| CE-T03-13 | Règles communes d’erreur | Erreur technique | Obligatoire |
-| CE-T01-03 | `1992:9910`, `1992:10014` | Zones tactiles Catalogue et lancement | Dépendance T03 |
-| CE-T02-01 | `2028:11700`, `2028:11808` | Durée synthétique des Activités dans la Composition | Dépendance T03 |
+| CE-T04-01 | `1992:9910` | Démarrer et contrôler l’éligibilité | Obligatoire |
+| CE-T04-02 | `execution-etat-initial.png` | Prêt avant démarrage | Obligatoire |
+| CE-T04-03 | Shell commun | `INITIAL_COUNTDOWN` | Obligatoire |
+| CE-T04-04 | `execution-seance.png` | Activité chronométrée | Obligatoire |
+| CE-T04-05 | Shell commun | Répétitions ou À l’échec | Obligatoire |
+| CE-T04-06 | `1992:8224` | Réinitialiser | Obligatoire |
+| CE-T04-07 | `1992:8326` | Activité suivante avant zéro | Obligatoire |
+| CE-T04-08 | `1992:8428` | Pause, reprise et arrêt | Obligatoire |
+| CE-T04-09 | Shell et dialogue de reprise | Interruption technique | Obligatoire |
+| CE-T04-10 | Shell commun | `SESSION_END` | Obligatoire |
+| CE-T04-11 | Écran minimal T04 | Fin normale | Obligatoire, sans Synthèse |
+| CE-T04-12 | Écran minimal T04 | Fin interrompue | Obligatoire, sans Synthèse |
+| CE-T04-13 | Règles communes d’erreur | Erreur technique | Obligatoire |
+| CE-T01-03 | `1992:9910`, `1992:10014` | Zones tactiles Catalogue et lancement | Dépendance T04 |
+| CE-T02-01 | `2028:11700`, `2028:11808` | Durée synthétique des Activités dans la Composition | Dépendance T04 |
 
 ---
 
@@ -835,7 +835,7 @@ Tests bloquants : focus initial ; Annuler sans écriture ; Ajouter désactivé �
 
 L’en-tête fixe utilise le titre fonctionnel `Ajouter une activité` et un contrôle Retour. En modification, le même écran utilise `Modifier une activité`. Un bandeau bleu `402 × 115`, accolé sans intervalle au séparateur de l’en-tête, place le champ `Nom de l’activité` en premier, à `12` points du haut, avec la même hauteur et le même alignement que le champ `Nom de la séance` de la Composition. Aucun contexte ni nom de Séance n’est affiché. Le bouton centré `Ajouter un média` réutilise l’instance `Action / Add Media — Source exact` (`3382:60`) : le signe plus est le vecteur DSF `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère typographique `+`. Le bouton est visible mais désactivé dans le MVP. La section Médias est masquée dans le MVP.
 
-Le corps ne contient plus de titre ni de contrôle `Type d’activité`. Il affiche successivement les sections repliables `Description de l’activité`, `Zone corporelle d’exécution`, `Mode d’exécution` et, dans la cible post-T04, `Médias`. Les titres utilisent la même typographie que `Mode d’exécution` et le chevron DSF. Description et Zone corporelle sont repliées par défaut ; Mode est déployé par défaut. La synthèse est immuable : le déploiement d’une section fait défiler le contenu sans déplacer sa zone ni l’action finale `Terminer`.
+Le corps ne contient plus de titre ni de contrôle `Type d’activité`. Il affiche successivement les sections repliables `Description de l’activité`, `Zone corporelle d’exécution`, `Mode d’exécution` et, dans la cible post-T05, `Médias`. Les titres utilisent la même typographie que `Mode d’exécution` et le chevron DSF. Description et Zone corporelle sont repliées par défaut ; Mode est déployé par défaut. La synthèse est immuable : le déploiement d’une section fait défiler le contenu sans déplacer sa zone ni l’action finale `Terminer`.
 
 Dans Mode, le cadre bleu `354 × 156 pt` possède deux lignes séparées de `10 pt`, trois colonnes de `74 / 124 / 124 pt` et des gouttières de `8 pt`. Ligne 1 : `Séries` (`74 × 42 pt`), cible (`124 × 42 pt`), `Pause` (`124 × 42 pt`). Ligne 2 : `Côté` (`74 × 42 pt`) déjà placé sous `Séries`, `Récupération` (`124 × 42 pt`), `Durée totale` (`124 × 42 pt`). En Répétitions et À l’échec, `Durée totale` est masquée et sa cellule reste réservée. `Côté` cycle sur toute sa cible : vide en `UNILATERAL`, `D→G`, `G→D`. Sous un Tour bilatéral, il reste visible, propre `UNILATERAL` et désactivé. Libellés accessibles : `Côté : unilatéral`, `Côté : bilatéral, droite puis gauche`, `Côté : bilatéral, gauche puis droite`; l’état désactivé précise `défini par le Tour, indisponible`.
 
