@@ -192,7 +192,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
 - bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
-- modèle et calculs de Récupération après l’Activité préparés avant T03.
+- modèle et calculs de Récupération après l’Activité préparés avant T04.
 
 ### V2
 
@@ -206,11 +206,11 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - planification, récurrences, calendrier, rappels et notifications des Circuits.
 
-## Tranche Bilatéralité et révision de T03
+## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T03. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
 
-T03 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T03.
+T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
 
 ## Complément V2 — Activité directement exécutable
 
