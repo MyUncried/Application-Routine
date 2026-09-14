@@ -192,10 +192,10 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 
 | ID | Décision | Statut | MVP |
 |---|---|---|:---:|
-| D-148 | Une Activité persistante valide peut être exécutée directement depuis le Catalogue à partir d’un instantané autonome, sans création de Séance artificielle. | Validée | Non — V2 |
-| D-149 | Une Exécution directe commence par une préparation système fixe de `5 s`, absente des paramètres de l’Activité. | Validée | Non — V2 |
-| D-150 | Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée. | Validée | Non — V2 |
-| D-151 | Le Ressenti est obligatoire lorsque la Synthèse d’une Activité directe est présentée, selon la règle commune aux Exécutions ; le Commentaire reste facultatif. | Validée | Non — V2 |
-| D-152 | L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` et ne crée aucune entrée de Séance. | Validée | Non — V2 |
-| D-153 | Elle alimente toutes les statistiques compatibles avec l’Activité, sans augmenter le nombre de Séances. | Validée | Non — V2 |
-| D-154 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Non — V2 |\n
+| D-155 | Une Activité persistante valide peut être exécutée directement depuis le Catalogue à partir d’un instantané autonome, sans création de Séance artificielle. | Validée | Non — V2 |
+| D-156 | Une Exécution directe commence par une préparation système fixe de `5 s`, absente des paramètres de l’Activité. | Validée | Non — V2 |
+| D-157 | Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée. | Validée | Non — V2 |
+| D-158 | Le Ressenti est obligatoire lorsque la Synthèse d’une Activité directe est présentée, selon la règle commune aux Exécutions ; le Commentaire reste facultatif. | Validée | Non — V2 |
+| D-159 | L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` et ne crée aucune entrée de Séance. | Validée | Non — V2 |
+| D-160 | Elle alimente toutes les statistiques compatibles avec l’Activité, sans augmenter le nombre de Séances. | Validée | Non — V2 |
+| D-161 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Non — V2 |\n
