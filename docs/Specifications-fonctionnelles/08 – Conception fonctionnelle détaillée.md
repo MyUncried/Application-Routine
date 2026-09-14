@@ -1150,7 +1150,7 @@ La vue Séances charge toutes les Séances non archivées et les trie par derni�
 
 ## Bibliothèque d’Activités — V2
 
-Une Activité de catalogue est persistante et non exécutable seule. L’ajout dans une Séance crée une copie indépendante de toutes ses propriétés et associations média. La position structurelle appartient à la copie. Modifier ou supprimer la référence ne modifie aucune copie. La première version ne propose pas d’enregistrer dans la bibliothèque une Activité créée dans une Séance.
+Une Activité de catalogue est persistante et directement exécutable à partir d’un instantané autonome. L’ajout dans une Séance crée une copie indépendante de toutes ses propriétés et associations média. La position structurelle appartient à la copie. Modifier ou supprimer la référence ne modifie aucune copie. La première version ne propose pas d’enregistrer dans la bibliothèque une Activité créée dans une Séance.
 
 ## Médias — V2
 
@@ -1176,4 +1176,16 @@ Pour une Activité autonome, le générateur produit par côté un bloc de `C` S
 
 La progression globale est calculée sur le Plan développé : chaque passage chronométré est pondéré par sa durée planifiée ; chaque passage Répétitions ou À l’échec acquiert sa part avec `Suivant`. Le lancement annonce le premier côté, la transition annonce le second, et un Tour n’annonce le côté qu’au début de chaque passage complet, pas à chaque Activité.
 
-Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.
+Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.\n\n## Exécution directe d’une Activité — V2
+
+### Éligibilité et lancement
+
+L’action `Exécuter` est active uniquement si la référence est valide selon son mode. Le lancement fige la version courante dans un instantané `ACTIVITY` et mémorise l’état de navigation du Catalogue. Une modification ou suppression ultérieure de la référence n’altère pas l’Exécution.
+
+### Plan et clôture
+
+Le plan contient, dans l’ordre : `DIRECT_PREPARE(5 s)`, tous les passages de l’Activité développés selon ses Séries et ses côtés, les Pauses applicables, puis sa Récupération éventuelle. Il ne contient ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement déclenche un signal et la Synthèse.
+
+### Synthèse et retour
+
+La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire et conditionne `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’origine `ACTIVITY`, puis restaure le Catalogue et son état antérieur.\n

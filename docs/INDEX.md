@@ -158,4 +158,6 @@ La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupérati
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
-- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
+- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)\n\n## Évolution V2 — Exécution directe d’une Activité
+
+Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34795ab64fc9c91231a81f4`. Les chapitres 00 à 13 et `PRODUCT.md` propagent l’origine d’Exécution `ACTIVITY`, la préparation fixe de `5 s`, l’absence de `SESSION_END`, la Synthèse à Ressenti obligatoire, le Suivi général, les statistiques compatibles et le retour au Catalogue des Activités.\n

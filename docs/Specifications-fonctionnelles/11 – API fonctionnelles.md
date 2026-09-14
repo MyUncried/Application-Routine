@@ -27,9 +27,9 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 ## 11.1 Principes généraux
 
 Les API fonctionnelles respectent les principes suivants :
-- une Séance représente un contenu exécutable ;
+- une Séance représente un contenu exécutable ; en V2, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
 - une Routine représente la planification d’une Séance ;
-- une Exécution représente la réalisation effective d’une Séance ;
+- une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
 - une occurrence arrivée à échéance est historisée avec le statut `Exécutée` ou `Non exécutée` ;
 - une modification des Préférences globales n’altère pas rétroactivement les objets déjà créés lorsque ces préférences ont été copiées dans ces objets ;
@@ -277,4 +277,14 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
 | `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
-| `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |
+| `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |\n\n## API 11.10 — Exécution directe d’une Activité V2
+
+| ID | Service | Entrée | Sortie | Règles |
+|---|---|---|---|---|
+| API-ACT-EXE-01 | Vérifier l’éligibilité | ID Activité | Éligible ou erreurs | Validation complète de la définition. |
+| API-ACT-EXE-02 | Démarrer | ID Activité, état de retour Catalogue | ID Exécution, plan | Instantané autonome, origine `ACTIVITY`, préparation `5 s`, aucune Séance créée. |
+| API-ACT-EXE-03 | Construire le plan | Instantané Activité | Étapes développées | Séries, Pauses, côtés et Récupération ; aucune étape `SESSION_END`. |
+| API-ACT-EXE-04 | Finaliser la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée | Ressenti obligatoire si Synthèse présentée ; statistiques compatibles mises à jour. |
+| API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Recherche, filtres et position restaurés. |
+
+Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.\n

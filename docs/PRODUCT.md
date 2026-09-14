@@ -65,9 +65,9 @@ Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre d
 
 ### Exécution
 
-Une Exécution est la réalisation effective d’une Séance.
+Une Exécution est la réalisation effective d’un contenu exécutable d’origine `SESSION` ou `ACTIVITY`.
 
-Chaque Exécution repose sur un instantané JSON immuable de la Séance au démarrage. Cet instantané garantit que l’historique reste lisible même si la Séance est ensuite modifiée ou supprimée.
+Chaque Exécution repose au démarrage sur un instantané JSON immuable de sa source : Séance ou Activité persistante. Cet instantané garantit que l’historique reste lisible même si la source est ensuite modifiée ou supprimée.
 
 Pour un plan bilatéral, cet instantané conserve la direction effective et chaque Résultat d’Activité conserve son côté. L’interface affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité pendant le passage concerné, sans compteur `1/2` ou `2/2`.
 
@@ -193,13 +193,13 @@ Les occurrences futures sont calculées dynamiquement. Pour une planification p�
 ### Suivi et historique
 
 Chaque Exécution conserve notamment :
-- l’instantané immuable de la Séance ;
+- l’origine `SESSION` ou `ACTIVITY` et l’instantané immuable correspondant ;
 - la date et l’heure ;
 - la Durée réelle ;
 - le statut ;
 - les Résultats d’Activités exécutées ;
 - le côté de chaque Résultat lorsque l’Activité est effectivement bilatérale ;
-- le Ressenti éventuel ;
+- le Ressenti obligatoire lorsque la Synthèse est présentée ;
 - un Commentaire facultatif limité à 200 caractères.
 
 Les statuts d’Exécution sont :
@@ -256,9 +256,9 @@ Le MVP comporte quatre onglets :
 
 ## 7. Principes métier structurants
 
-1. Une Séance est un contenu exécutable ; une Routine est sa planification.
+1. Une Séance est un contenu exécutable ; en V2, une Activité persistante l’est également ; une Routine planifie une Séance.
 2. Une Séance et ses Routines sont indépendantes.
-3. Chaque Exécution conserve un instantané immuable de la Séance utilisée.
+3. Chaque Exécution conserve son origine et un instantané immuable du contenu utilisé.
 4. Une modification ou une suppression ultérieure ne change jamais une Exécution passée.
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
@@ -337,7 +337,7 @@ Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et 
 
 Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni durée ni répétitions cibles et utilise exactement le mécanisme du mode Répétitions : l’utilisateur termine chaque Série avec `Suivant`. La durée affichée est une borne minimale fondée sur les seuls temps connus.
 
-En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
+En V2, l’Activité de catalogue est une référence persistante directement exécutable. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
 
 La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03.
 
@@ -368,4 +368,10 @@ Toute évolution fonctionnelle doit préciser son impact sur :
 - architecture technique ;
 - version du produit.
 
-Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.\n\n## 13. Exécution directe d’une Activité — décision du 14 septembre 2026
+
+En V2, une Activité persistante peut être exécutée directement depuis le Catalogue des Activités. Le moteur crée un instantané autonome de la définition au lancement ; aucune Séance artificielle n’est créée.
+
+L’Exécution directe commence par une préparation système fixe de `5 s`, qui n’est pas un attribut de l’Activité. Elle exécute ensuite ses Séries, ses Pauses, sa direction bilatérale éventuelle et sa Récupération. Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée.
+
+Le Ressenti reste obligatoire lorsque la Synthèse est présentée, comme pour une Séance, et le Commentaire reste facultatif. L’Exécution est conservée dans le Suivi général avec l’origine `ACTIVITY`, contribue à toutes les statistiques compatibles sans augmenter le nombre de Séances, puis `Terminer` ramène au Catalogue des Activités dans son état précédent.\n

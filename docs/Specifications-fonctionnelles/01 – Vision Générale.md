@@ -122,4 +122,6 @@ La V2 apporte une bibliothèque d’Activités persistantes réutilisables par c
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.\n\n## Vision de l’exécution directe — V2
+
+Le Catalogue des Activités permet de lancer une Activité persistante sans construire une Séance. Cette voie légère réutilise le moteur commun, conserve un instantané autonome et distingue son origine dans le Suivi et les statistiques. Elle ne crée jamais de Séance implicite.\n
