@@ -1296,7 +1296,7 @@ Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le
 
 Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
-## Architecture V2 — moteur multi-origine
+### Moteur d’Exécution multi-origine
 
 Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnapshotSource` ou `ActivitySnapshotSource`. Un adaptateur construit un plan commun ; la machine à états, les minuteries, les résultats, la persistance et la reprise restent partagés.
 
