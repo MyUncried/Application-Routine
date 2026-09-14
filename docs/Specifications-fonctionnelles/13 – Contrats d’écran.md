@@ -1190,25 +1190,26 @@ Le réglage existe dans les trois modes. Une Activité persistante le transmet �
 | Parent | En-tête `2028:11743`, `354 × 34 pt`. |
 | Ligne et voisinage | Ligne unique avec `Nombre de tours`; cadre numérique à `x=237`, `66 × 34 pt`; direction à `x=311`, `42 × 34 pt`; espace `8 pt`. |
 | Alignement | `y=0` pour les deux ; bords haut/bas et centres verticaux identiques. |
-| États | Aucun titre visible. `UNILATERAL` vide ; `RIGHT_LEFT` = `D→G`; `LEFT_RIGHT` = `G→D`. |
+| États | Aucun titre visible. `UNILATERAL` affiche un tiret `–` centré ; `RIGHT_LEFT` = `D→G`; `LEFT_RIGHT` = `G→D`. Les trois valeurs sont entièrement visibles dans le cadre. |
 | Tactile | Toute la cible `42 × 34 pt` cycle vers l’état suivant. |
 | Accessibilité | `Direction du Tour : unilatéral`; `Direction du Tour : droite puis gauche`; `Direction du Tour : gauche puis droite`. |
 | Confirmation | Recherche préalable des Activités propres bilatérales. Aucune : application directe. Au moins une : dialogue ; `Annuler` sans mutation ; `Confirmer` atomique et limité aux Activités concernées. |
-| Figma | `3705:5021`, `2028:11700`, `3722:5061`, `3722:5207`. |
+| Figma | La géométrie `42 × 34 pt` est confirmée par `3705:5021`, `2028:11700`, `3722:5061`, `3722:5207`. La décision utilisateur du tiret `–` supersède l’état unilatéral vide encore représenté dans Figma. |
 
-Le dialogue conserve son titre, son texte explicatif et les actions `Annuler` / `Confirmer`. Aucun dialogue pour un Tour vide ou des Activités toutes propres `UNILATERAL`. Aucune propriété « latéralisable ».
+Texte exact du dialogue : titre `Exécuter chaque Tour des deux côtés ?`; message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` Actions `Annuler` / `Confirmer`. Aucun dialogue pour un Tour vide ou des Activités toutes propres `UNILATERAL`. Aucune propriété « latéralisable ».
 
-### CE-BIL-02A — Direction propre sur carte et synthèse
+### CE-BIL-02A — Direction propre sur une carte de Composition
 
 | Propriété | Contrat |
 | --- | --- |
 | Parent carte | Informations secondaires d’une carte `354 × 69 pt`. |
-| Position | À droite, `x=311`, `y=24,5`, `42 × 20 pt`. |
-| Visibilité | `D→G` ou `G→D` pour une direction propre bilatérale hors Tour bilatéral ; absent en `UNILATERAL` et sous un Tour bilatéral. |
+| Position | À droite, `x=311`, `y=24,5`, `42 × 20 pt`. Cette géométrie Figma est appliquée exactement afin de conserver la marge droite de référence. |
+| Visibilité | `D→G` ou `G→D` pour une direction propre bilatérale hors Tour bilatéral ; absent en `UNILATERAL` et sous un Tour bilatéral. Le libellé reste entièrement visible. |
 | Tactile | Aucun : indicateur informatif. |
 | Accessibilité | Direction propre développée ; aucun doublon lorsque le Tour porte la direction. |
-| Synthèse | Clause développée après la cible du mode — après `jusqu’à l’échec` — et avant la Pause ; omission en unilatéral et en héritage Tour. |
-| Figma | `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`. |
+| Texte de la carte | Ne développe jamais `à droite, puis à gauche` ou `à gauche, puis à droite`; l’indicateur porte seul la direction. |
+| Synthèse de l’éditeur | La clause développée reste obligatoire uniquement dans l’écran Ajouter/Modifier une Activité, selon CE-T01-13. |
+| Figma | Indicateur `3706:5020`, Composition `2028:11700`; synthèse de l’éditeur `3679:4880`, `3724:5428`. |
 
 ### CE-BIL-03 — Exécution
 
