@@ -30,7 +30,7 @@ Le MVP permet à l'utilisateur :
 | T03 | Ajouter des Activités existantes à une Séance | Sélectionner plusieurs Activités existantes depuis la Composition | Spécifié MVP |
 | T03 | Exécuter directement une Activité | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue | Spécifié MVP |
 | T04 | Exécuter une Séance | Exécution guidée fondamentale, auparavant T03 | Spécifié MVP |
-| Tranches suivantes | Dupliquer, planifier et suivre les Séances | Parcours complémentaires 1 à 4 | Spécifié MVP |
+| T05 et suivantes | Dupliquer, planifier et suivre les Séances | Parcours complémentaires 1 à 4 | Spécifié MVP |
 | Hors MVP | Créer et exécuter un Circuit | Parcours Circuit | Partiel — à compléter |
 ## Principes communs
 
