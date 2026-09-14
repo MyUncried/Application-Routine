@@ -85,11 +85,11 @@ try {
   foreach ($required in @($sourceManifestPath, $sourceResultPath, $sourceInvocationPath, $sourceInterruptionPath, $sourcePackageManifestPath, (Join-Path $sourcePackage 'implementation.patch'))) {
     if (-not (Test-Path -LiteralPath $required)) { throw ('SOURCE_EVIDENCE_MISSING: ' + $required) }
   }
-  $sourceManifest = Get-Content -Raw -LiteralPath $sourceManifestPath | ConvertFrom-Json
-  $sourceResult = Get-Content -Raw -LiteralPath $sourceResultPath | ConvertFrom-Json
-  $sourceInvocation = Get-Content -Raw -LiteralPath $sourceInvocationPath | ConvertFrom-Json
-  $sourceInterruption = Get-Content -Raw -LiteralPath $sourceInterruptionPath | ConvertFrom-Json
-  $sourcePackageManifest = Get-Content -Raw -LiteralPath $sourcePackageManifestPath | ConvertFrom-Json
+  $sourceManifest = Get-Content -Raw -LiteralPath $sourceManifestPath -Encoding UTF8 | ConvertFrom-Json
+  $sourceResult = Get-Content -Raw -LiteralPath $sourceResultPath -Encoding UTF8 | ConvertFrom-Json
+  $sourceInvocation = Get-Content -Raw -LiteralPath $sourceInvocationPath -Encoding UTF8 | ConvertFrom-Json
+  $sourceInterruption = Get-Content -Raw -LiteralPath $sourceInterruptionPath -Encoding UTF8 | ConvertFrom-Json
+  $sourcePackageManifest = Get-Content -Raw -LiteralPath $sourcePackageManifestPath -Encoding UTF8 | ConvertFrom-Json
   if ([string]$sourceManifest.github_run_id -ne $SourceRunId -or $sourceManifest.expected_head -ne $sourceResult.source_head -or $sourceManifest.verdict -ne 'PASS') {
     throw 'SOURCE_QUALIFICATION_INCOMPATIBLE'
   }
@@ -133,7 +133,7 @@ try {
   foreach ($check in @('jest', 'typescript', 'lint')) {
     $target = Join-Path $baselineDirectory ($check + '.json')
     Invoke-Native 'node' @('scripts/kodjo/run-check.js', $check, $target) $work -AllowFailure | Out-Null
-    $baseline[$check] = Get-Content -Raw -LiteralPath $target | ConvertFrom-Json
+    $baseline[$check] = Get-Content -Raw -LiteralPath $target -Encoding UTF8 | ConvertFrom-Json
   }
   $baselinePath = Join-Path $baselineDirectory 'checks.json'
   Write-JsonNoBom $baselinePath $baseline 12
@@ -157,8 +157,8 @@ try {
   $resultPath = Join-Path $runDirectory 'result.json'
   $invocationPath = Join-Path $runDirectory 'invocation.json'
   if (-not (Test-Path -LiteralPath $resultPath)) { throw ('CURRENT_RUN_RESULT_MISSING: ' + $resultPath) }
-  $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json
-  $invocation = Get-Content -Raw -LiteralPath $invocationPath | ConvertFrom-Json
+  $result = Get-Content -Raw -LiteralPath $resultPath -Encoding UTF8 | ConvertFrom-Json
+  $invocation = Get-Content -Raw -LiteralPath $invocationPath -Encoding UTF8 | ConvertFrom-Json
   $manifest.result = $result
   $manifest.claude_invoked = ($result.claude_invoked -eq $true)
   $manifest.returned_session_id = $result.session_id
@@ -169,11 +169,11 @@ try {
   if (Test-Path -LiteralPath (Join-Path $runDirectory 'recovery-package')) {
     Copy-Item -LiteralPath (Join-Path $runDirectory 'recovery-package') -Destination (Join-Path $evidence 'recovery-package') -Recurse -Force
   }
-  $resumePackageManifest = Get-Content -Raw -LiteralPath (Join-Path (Join-Path $runDirectory 'recovery-package') 'manifest.json') | ConvertFrom-Json
+  $resumePackageManifest = Get-Content -Raw -LiteralPath (Join-Path (Join-Path $runDirectory 'recovery-package') 'manifest.json') -Encoding UTF8 | ConvertFrom-Json
 
   $comparisonPath = Join-Path $evidence 'check-comparison.json'
   $comparisonExecution = Invoke-Native 'node' @('scripts/kodjo/compare-qualification-checks.js', $baselinePath, $resultPath, $comparisonPath) $work -AllowFailure
-  $comparison = Get-Content -Raw -LiteralPath $comparisonPath | ConvertFrom-Json
+  $comparison = Get-Content -Raw -LiteralPath $comparisonPath -Encoding UTF8 | ConvertFrom-Json
   $manifest.check_comparison = $comparison
 
   $expectedFile = Join-Path $work 'tests\fixtures\qualif-resume\result.txt'
@@ -192,7 +192,7 @@ try {
   if (-not $migrationProven) { throw 'RECOVERY_MIGRATION_NOT_PROVEN' }
   if (@($result.out_of_scope_files).Count -ne 0) { throw ('SCOPE_VIOLATION: ' + (@($result.out_of_scope_files) -join ', ')) }
   if (-not (Test-Path -LiteralPath $expectedFile)) { throw 'EXPECTED_FIXTURE_RESULT_MISSING' }
-  if ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -ne "KODJO V2 RESUME QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
+  if ((Get-Content -Raw -LiteralPath $expectedFile -Encoding UTF8).Replace("`r`n", "`n") -ne "KODJO V2 RESUME QUALIFICATION PASS`n") { throw 'EXPECTED_FIXTURE_RESULT_INVALID' }
   $sourcePatchHash = ([string]$sourcePackageManifest.patch_sha256).ToLowerInvariant()
   $resumePatchHash = ([string]$resumePackageManifest.patch_sha256).ToLowerInvariant()
   $manifest.source_patch_sha256 = $sourcePatchHash
