@@ -110,7 +110,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. La bibliothèque V2 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
