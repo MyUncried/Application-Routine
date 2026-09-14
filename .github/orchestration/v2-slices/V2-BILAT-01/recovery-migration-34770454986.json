@@ -95,7 +95,7 @@
   ],
   "compatible_application_paths": [],
   "post_certification_protocol_files": {
-    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md": "6094290ecbde2b0811ad2a08ee8d20e6a5a3df29",
+    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md": "e23cb6ab7c300e63ef634000d66f42d24a28de72",
     ".github/orchestration/lean-request.schema.json": "f44305563c6f59ad03f6b8d764945b7050aa4bb2",
     ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34770454986.json": "SELF",
       "scripts/kodjo/lib/claude-local.js": "d6f57554f4e336138edbfd02d2da70c76cb2c55c",
