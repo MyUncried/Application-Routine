@@ -818,6 +818,12 @@ Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la
 
 ![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
 
+#### État dérivé — Action contextuelle d’Exécution directe
+
+L’état contextuel conserve la même liste et révèle l’action d’Exécution directe de l’Activité ciblée. Il ne transforme pas la carte en écran d’exécution et ne modifie pas l’ordre de la liste. La frame et le contrat `CE-ACT-EXE-01c` définissent la position exacte du contrôle et son retour au Catalogue.
+
+![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+
 ### Écran 13 — Catalogue — Créer — Arbre d’actions
 
 L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non interactif. L’ordre est fixe :
