@@ -1294,7 +1294,7 @@ Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le
 
 ## Architecture MVP T03 — Catalogue des Activités et moteur multi-origine
 
-Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
+T03 livre le Catalogue des Activités et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
 ### Moteur d’Exécution multi-origine
 
