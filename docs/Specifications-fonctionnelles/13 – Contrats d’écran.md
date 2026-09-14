@@ -1446,8 +1446,19 @@ Cette matrice est la preuve de propagation minimale. Une ligne ne peut être dé
 | CAT-ACT-05 | Icônes Recherche et Sélection | D-165 | 03 sélection multiple | Sans impact métier ou données | 06 Écran 14 ; 08 §2 bis.3 | 12 `Icon / Search`, `Icon / Selection Check` et tokens liés | composants `3847:5508`, `3847:5512` ; `CE-COMP-SEL-01` | Intégrée |
 | CAT-ACT-06 | Exécuter directement une Activité | D-157 à D-163 | 01 Bibliothèque ; 03 Exécuter directement | 04 Exécution `ACTIVITY` ; 09 instantané autonome | 06 Écrans 16 à 18 ; 08 §2 bis.4 | RM-096 à RM-103 ; API-ACT-EXE-01 à 05 ; moteur multi-origine | `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` ; `CE-ACT-EXE-02` à 05 et captures associées | Intégrée |
 | CAT-ACT-07 | Carte du Catalogue des Activités | D-164 | 03 Accéder au Catalogue | Sans impact de structure | 06 Écran 12 ; 08 §2 bis.1 | Accessibilité et cibles séparées au chapitre 12 | `3786:5093` ; `CE-ACT-EXE-01a` | Intégrée |
-| CAT-ACT-08 | Médias sur une Activité | D-138 et D-164 | 01 Bibliothèque V2 | 04 associations `0..n` ; 09 Média | 06 Écrans 12/15 ; 08 §2 bis.5 | 11 MediaService ; 12 composants Média | Bouton désactivé MVP ; déploiement Catalogue à détailler | Partiel — évolution V2 distincte |
-| CAT-ACT-09 | Créer et exécuter un Circuit | D-124 à D-133 | 01 Circuits ; 03 Circuit V2 | 04 Circuit ; 09 Circuit/Étape | 06 Écran 19 ; 08 §2 bis.7 | 10/11/12 contrats Circuit existants | Contrat fonctionnel futur du chapitre 13 ; formulaire détaillé non finalisé | À compléter avant développement |
+| CAT-ACT-08 | Médias sur une Activité | D-138 et D-164 | 01 Bibliothèque V2 | 04 associations `0..n` ; 09 Média | 06 Écrans 12/15 ; 08 §2 bis.5 | 11 `API-MED-01..05` ; 12 composants Média | Bouton désactivé MVP ; déploiement Catalogue à détailler | Partiel — évolution V2 distincte |
+| CAT-ACT-09 | Créer et exécuter un Circuit | D-124 à D-133 | 01 Circuits ; 03 Circuit V2 | 04 Circuit ; 09 Circuit/Étape | 06 Écran 13 pour l’entrée `Un circuit`, écran de formulaire À CLARIFIER ; 08 §2 bis.7 | 10/11/12 contrats Circuit existants | Contrat fonctionnel futur du chapitre 13 ; formulaire détaillé non finalisé | À compléter avant développement |
+
+## Revue transverse de cohérence
+
+La revue indépendante de clôture contrôle les chapitres 00 à 13, `PRODUCT.md`, `INDEX.md` et les captures référencées. Résultat :
+
+- le Catalogue des Activités est intégré dans la vision, les besoins, les parcours, le modèle, les écrans, la conception détaillée, les données, les règles, les API, l’architecture et les contrats ;
+- l’Exécution est unifiée autour des origines `SESSION | ACTIVITY` ; aucune Séance artificielle n’est créée pour une Activité directe ;
+- les cartes, l’arbre de création, la sélection multiple, la préparation de `5 s`, l’Exécution, la Synthèse et le retour au Catalogue sont reliés à leurs contrats et captures ;
+- les neuf captures référencées par ce périmètre existent sous leur nom Unicode exact ;
+- aucun littéral `\\n`, échappement `#Uxxxx` ou `\\uXXXX`, service fictif ou ancienne annexe concurrente n’est conservé ;
+- les sujets non clos restent explicitement marqués : déploiement des médias et formulaire détaillé du Circuit.
 
 ## Règle de maintenance de la matrice
 
