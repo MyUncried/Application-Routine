@@ -1,5 +1,7 @@
 # Rapport final de conformité — Bilatéralité
 
+> **Correspondance de roadmap (D-166)** — Le Catalogue des Activités constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
+
 Date : 13 septembre 2026.
 
 ## Baseline et périmètre
@@ -18,7 +20,7 @@ La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la 
 | Synthèse | CONFORME | Clause propre dans PRODUCT, 06, 08, RM-152, CE-T01-13 ; `3679:4880`, `3724:5428`. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
 | Calculs | CONFORMES À LA RECETTE | Aucun code de calcul modifié. L’arbitrage produit du 14 septembre 2026 conserve la règle existante : `C` Pauses si `R = 0`, sinon `C − 1` Pauses puis Récupération. |
-| T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
+| T04 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T04 étendu. |
 
 ## Sources Figma
 
@@ -38,7 +40,7 @@ La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la 
 
 ## Contrôles réalisés
 
-Recherche transverse des formulations historiques ; cohérence PRODUCT/décisions/règles/API/contrats/matrice ; contrôle visuel des trois modes et des deux directions ; contrôle DSF ; aucune modification applicative, protocolaire, de calcul ni T03.
+Recherche transverse des formulations historiques ; cohérence PRODUCT/décisions/règles/API/contrats/matrice ; contrôle visuel des trois modes et des deux directions ; contrôle DSF ; aucune modification applicative, protocolaire, de calcul ni T04.
 
 ## Arbitrage postérieur au contrôle
 
