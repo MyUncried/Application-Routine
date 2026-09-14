@@ -1,10 +1,12 @@
 # Matrice de traçabilité — Activité, Récupération et Durée totale
 
+> **Correspondance de roadmap (D-166)** — Le Catalogue des Activités constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
+
 ## Références
 
 - Baseline Git exclusive : `917c53d91c4564d9b5047d6a301a5f4067883806` sur `feat/creation-seance-catalogue`.
 - Référence Figma : `G6RY5Ebhgwb4AHIOYDwwvg`, état contrôlé le 8 septembre 2026.
-- Périmètre : décisions validées après la mise en pause de T03 et 98 points de contrôle ci-dessous.
+- Périmètre : décisions validées après la mise en pause de T04 et 98 points de contrôle ci-dessous.
 - Statut `Corrigé` : une preuve explicite existe dans une section normative et les anciennes formulations contradictoires ont été recherchées transversalement.
 
 ## Matrice exhaustive
@@ -23,9 +25,9 @@
 | CON-10 | Description et Zones étaient sur un second écran. | Les intégrer à l’écran unique. | 06 Écran 4 ; 08 Activité ; 13 CE-T01-15 | Sections repliables facultatives. | `3553:4704`, `3553:4768` | Corrigé | 13 CE-T01-15. |
 | CON-11 | L’écran Informations complémentaires subsistait. | Le supprimer comme étape. | 06 Écran 5 ; 13 CE-T01-13/15 | Enregistrement depuis l’écran unique. | — | Corrigé | 13 CE-T01-13 : « aucun second écran ». |
 | CON-12 | L’action finale restait `Valider`. | Utiliser `Terminer`. | 06 Écran 4 ; 08 Activité ; 13 CE-T01-13 | Bouton final fixe `Terminer`. | `3542:4656` | Corrigé | 08 tableau Activité. |
-| CON-13 | T03 pouvait commencer sur l’ancien modèle. | Nouvelle structure préalable à T03. | 05 ; 09 DM-001 ; 12 T03 | Prérequis de données avant moteur T03. | — | Corrigé | 09 décisions : version « Prérequis T03 ». |
-| CON-14 | T03 pouvait inclure plusieurs Séries. | Toujours refusé dans T03. | 05 ; 10 RM-127 ; 13 CE-T03-01 | Refus explicite avant toute écriture. | — | Corrigé | 13 CE-T03-01. |
-| CON-15 | La prise en charge multi-Séries n’avait pas de tranche. | La conserver en T04. | 05 ; 10 RM-127 ; 13 T03 | Exécution complète en T04. | — | Corrigé | INDEX §10. |
+| CON-13 | T04 pouvait commencer sur l’ancien modèle. | Nouvelle structure préalable à T04. | 05 ; 09 DM-001 ; 12 T04 | Prérequis de données avant moteur T04. | — | Corrigé | 09 décisions : version « Prérequis T04 ». |
+| CON-14 | T04 pouvait inclure plusieurs Séries. | Toujours refusé dans T04. | 05 ; 10 RM-127 ; 13 CE-T04-01 | Refus explicite avant toute écriture. | — | Corrigé | 13 CE-T04-01. |
+| CON-15 | La prise en charge multi-Séries n’avait pas de tranche. | La conserver en T04. | 05 ; 10 RM-127 ; 13 T04 | Exécution complète en T04. | — | Corrigé | INDEX §10. |
 | CAL-01 | Durée totale non définie. | La définir en mode Durée. | PRODUCT ; 00 ; 04 ; 10 | `D = C×A + P(C,R)×B + R`, avec `P=C` si `R=0`, sinon `C−1`. | `3580:4733` | Corrigé | 10 RM-129. |
 | CAL-02 | La durée d’une Série n’était pas identifiée. | `A` = Durée cible d’une Série. | 04 ; 10 | Définition explicite de `A`. | — | Corrigé | 10 RM-129. |
 | CAL-03 | La Pause n’était pas identifiée. | `B` = Pause entre Séries. | 04 ; 10 | Définition explicite de `B`. | — | Corrigé | 10 RM-129. |
@@ -57,9 +59,9 @@
 | UI-13 | Masquage pouvait déplacer les autres contrôles. | Conserver les emplacements. | 06 ; 08 ; 13 | Slot droit vide en Rep/Échec. | `3561:4695`, `3561:7802` | Corrigé | 13 CE-T01-13. |
 | UI-14 | Synthèse bougeait avec les sections. | La rendre immuable. | 06 ; 08 ; 13 | Fixe hors contenu défilant. | Frames Activité | Corrigé | 08 Synthèse. |
 | UI-15 | Espace Média/Synthèse insuffisant. | Utiliser l’espacement standard. | 06 ; 08 | `spacing/16` avant synthèse. | Frames Activité | Corrigé | 06 Écran 4. |
-| UI-16 | Section Média ne pouvait se replier. | Chevron dans la cible. | 06 ; 08 ; 13 | Repliable post-T04. | `3382:71` | Corrigé | 08 tableau Activité. |
+| UI-16 | Section Média ne pouvait se replier. | Chevron dans la cible. | 06 ; 08 ; 13 | Repliable post-T05. | `3382:71` | Corrigé | 08 tableau Activité. |
 | UI-17 | Média risquait d’entrer dans le MVP. | Bouton visible désactivé. | PRODUCT ; 06 ; 13 | Pas d’action MVP. | `3382:60` | Corrigé | 13 CE-T01-13. |
-| UI-18 | Section Média risquait d’apparaître dans le MVP. | La masquer au runtime MVP. | 06 ; 08 ; 13 | Cible Figma post-T04. | `3382:71` | Corrigé | 06 Écran 4. |
+| UI-18 | Section Média risquait d’apparaître dans le MVP. | La masquer au runtime MVP. | 06 ; 08 ; 13 | Cible Figma post-T05. | `3382:71` | Corrigé | 06 Écran 4. |
 | UI-19 | L’icône Média pouvait être un caractère `+`. | Vecteur DSF. | 06 ; 08 ; 12 ; 13 | `3382:61`, `16×16`. | `3382:61` | Corrigé | 12 tableau DSF. |
 | UI-20 | Roulettes Récupération supplémentaires envisagées. | Hériter de Durée. | 06 ; 08 ; 13 CE-T01-14 | Aucun écran supplémentaire. | `3556:7645` | Corrigé | 13 CE-T01-14. |
 | UI-21 | Roulette Durée totale supplémentaire envisagée. | Hériter de Durée. | 06 ; 08 ; 13 CE-T01-14 | Aucun écran supplémentaire. | `3556:7645` | Corrigé | 13 CE-T01-14. |
@@ -78,19 +80,19 @@
 | COM-12 | Durée synthétique incluait les phases structurelles. | Les exclure. | 08 ; 10 RM-101 | Hors compte à rebours et `SESSION_END`. | Composition/Catalogue | Corrigé | 10 RM-101. |
 | EXE-01 | Plan ne distinguait pas les phases. | Types de phase explicites. | 09 §09.8 ; 12 §12.9 | `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY`, `SESSION_END`. | — | Corrigé | 12 §12.9. |
 | EXE-02 | `RECOVERY` pouvait être un type d’Activité. | Type de phase seulement. | 09 ; 12 | Référence à l’Activité parente. | — | Corrigé | 09 tableau Activité d’exécution. |
-| EXE-03 | Récupération après dernière Activité pouvait être sautée. | L’exécuter avant `SESSION_END`. | 10 RM-038 ; 13 CE-T03-10 | Toujours si `R>0`. | Shell Exécution | Corrigé | 13 CE-T03-10. |
-| EXE-04 | Transition à zéro non définie. | Automatique et idempotente. | 10 RM-038 ; 13 CE-T03-04 | Sons standards puis étape suivante. | Shell | Corrigé | 13 CE-T03-04. |
-| EXE-05 | Annonce de Récupération non définie. | Dire « Récupération ». | 10 RM-038 ; 13 CE-T03-04 | Annonce par défaut T03. | Shell | Corrigé | 13 CE-T03-04. |
-| EXE-06 | Passage avant zéro pendant Récupération non défini. | Confirmation `Activité suivante`. | 10 RM-065a ; 11 API-EXE-05 | Même dialogue. | `1992:8326` | Corrigé | 13 CE-T03-07. |
-| EXE-07 | Skip Récupération pouvait rendre l’Activité partielle. | Activité reste terminée. | 10 ; 11 ; 13 | Seule durée de Récupération est partielle. | — | Corrigé | 13 CE-T03-07. |
-| EXE-08 | Reset Récupération pouvait rejouer l’Activité. | Réinitialiser la phase seulement. | 10 RM-062 ; 11 API-EXE-04 | Libellé spécifique. | `1992:8224` | Corrigé | 13 CE-T03-06. |
-| EXE-09 | Arrêt en Récupération non défini. | Statut `Interrompue`. | 10 RM-065a ; 13 CE-T03-08 | Résultats acquis conservés. | `1992:8428` | Corrigé | 10 RM-065a. |
+| EXE-03 | Récupération après dernière Activité pouvait être sautée. | L’exécuter avant `SESSION_END`. | 10 RM-038 ; 13 CE-T04-10 | Toujours si `R>0`. | Shell Exécution | Corrigé | 13 CE-T04-10. |
+| EXE-04 | Transition à zéro non définie. | Automatique et idempotente. | 10 RM-038 ; 13 CE-T04-04 | Sons standards puis étape suivante. | Shell | Corrigé | 13 CE-T04-04. |
+| EXE-05 | Annonce de Récupération non définie. | Dire « Récupération ». | 10 RM-038 ; 13 CE-T04-04 | Annonce par défaut T04. | Shell | Corrigé | 13 CE-T04-04. |
+| EXE-06 | Passage avant zéro pendant Récupération non défini. | Confirmation `Activité suivante`. | 10 RM-065a ; 11 API-EXE-05 | Même dialogue. | `1992:8326` | Corrigé | 13 CE-T04-07. |
+| EXE-07 | Skip Récupération pouvait rendre l’Activité partielle. | Activité reste terminée. | 10 ; 11 ; 13 | Seule durée de Récupération est partielle. | — | Corrigé | 13 CE-T04-07. |
+| EXE-08 | Reset Récupération pouvait rejouer l’Activité. | Réinitialiser la phase seulement. | 10 RM-062 ; 11 API-EXE-04 | Libellé spécifique. | `1992:8224` | Corrigé | 13 CE-T04-06. |
+| EXE-09 | Arrêt en Récupération non défini. | Statut `Interrompue`. | 10 RM-065a ; 13 CE-T04-08 | Résultats acquis conservés. | `1992:8428` | Corrigé | 10 RM-065a. |
 | EXE-10 | Temps réel pouvait omettre Récupération. | L’inclure. | 08 ; 10 RM-073 ; 11 API-EXE-08 | Toutes phases exécutées. | Exécution | Corrigé | 10 RM-073. |
-| EXE-11 | Pause manuelle pouvait être confondue avec Pause entre Séries. | Seule Pause manuelle est exclue. | 10 RM-073 ; 13 CE-T03-08 | Pause planifiée incluse. | — | Corrigé | 10 RM-073. |
-| EXE-12 | Progression pouvait omettre Récupération. | Pondérer sa durée planifiée. | 08 ; 13 CE-T03-04 | Barre du Plan complet. | Shell | Corrigé | 13 CE-T03-04. |
-| EXE-13 | Modes Répétitions/Échec pouvaient devenir automatiques. | Fin manuelle par `Suivant`. | 10 RM-059 ; 13 CE-T03-05 | Mécanisme inchangé. | Shell | Corrigé | 13 CE-T03-05. |
+| EXE-11 | Pause manuelle pouvait être confondue avec Pause entre Séries. | Seule Pause manuelle est exclue. | 10 RM-073 ; 13 CE-T04-08 | Pause planifiée incluse. | — | Corrigé | 10 RM-073. |
+| EXE-12 | Progression pouvait omettre Récupération. | Pondérer sa durée planifiée. | 08 ; 13 CE-T04-04 | Barre du Plan complet. | Shell | Corrigé | 13 CE-T04-04. |
+| EXE-13 | Modes Répétitions/Échec pouvaient devenir automatiques. | Fin manuelle par `Suivant`. | 10 RM-059 ; 13 CE-T04-05 | Mécanisme inchangé. | Shell | Corrigé | 13 CE-T04-05. |
 | EXE-14 | Durée minimale non définie hors mode Durée. | Pauses + Récupération connues. | 06 ; 08 ; 10 RM-132 | Préfixe `≥`. | Frames Rep/Échec | Corrigé | 08 Modes non chronométrés. |
-| EXE-15 | Sons/annonces T03 pouvaient dépendre du Profil. | Actifs par défaut, pas de préférence. | 10 RM-128 ; 13 CE-T03-02 | Règle T03 inchangée. | Exécution | Corrigé | 13 CE-T03-02. |
+| EXE-15 | Sons/annonces T04 pouvaient dépendre du Profil. | Actifs par défaut, pas de préférence. | 10 RM-128 ; 13 CE-T04-02 | Règle T04 inchangée. | Exécution | Corrigé | 13 CE-T04-02. |
 | DAT-01 | Le modèle conservait `activityType`. | Le retirer du modèle cible. | 09 §09.5 ; 12 §12.34 | Mode seulement. | — | Corrigé | 12 §12.34. |
 | DAT-02 | Pause était une relation vers une Activité. | Stocker une durée. | 09 §09.5 | Valeur canonique ≥0. | — | Corrigé | 09 attribut Pause. |
 | DAT-03 | Récupération était une relation vers une Activité. | Stocker une durée. | 09 §09.5 | Valeur canonique ≥0. | — | Corrigé | 09 attribut Récupération. |
@@ -99,12 +101,12 @@
 | DAT-06 | Pilote pouvait être stocké. | Ne pas persister. | 09 DM-016 | État UI. | — | Corrigé | 09 DM-016. |
 | DAT-07 | Résultat ne conservait pas la Récupération prévue. | Ajouter attribut fonctionnel. | 09 §09.7.1 ; 12 | `recoveryPlannedSeconds`. | — | Corrigé | 09 tableau Résultat. |
 | DAT-08 | Résultat ne conservait pas la Récupération écoulée. | Ajouter attribut fonctionnel. | 09 §09.7.1 ; 12 | `recoveryElapsedSeconds`. | — | Corrigé | 09 tableau Résultat. |
-| DAT-09 | Skip Récupération pouvait exiger un nouvel enum. | Aucun nouvel enum. | 10 ; 11 ; 13 | Durées suffisent. | — | Corrigé | 13 CE-T03-07. |
-| DAT-10 | Données de récupération créées en développement pouvaient imposer une migration. | Aucun traitement spécifique. | 07 D-135 ; 12 T03 | Changement nul pour ces données non pertinentes. | — | Corrigé | 12 contraintes T03. |
+| DAT-09 | Skip Récupération pouvait exiger un nouvel enum. | Aucun nouvel enum. | 10 ; 11 ; 13 | Durées suffisent. | — | Corrigé | 13 CE-T04-07. |
+| DAT-10 | Données de récupération créées en développement pouvaient imposer une migration. | Aucun traitement spécifique. | 07 D-135 ; 12 T04 | Changement nul pour ces données non pertinentes. | — | Corrigé | 12 contraintes T04. |
 | TEC-01 | API créait une Récupération autonome. | Remplacer par paramètres Pause/Récupération. | 11 §11.4 | API-ACT-03 sur l’Activité. | — | Corrigé | 11 API-ACT-03. |
 | TEC-02 | API ne calculait pas Durée totale/Séries. | Ajouter calcul fonctionnel. | 11 §11.4 | API-ACT-02 et formules. | — | Corrigé | 11 API-ACT-02. |
 | TEC-03 | Duplication API copiait un type. | Copier Description, Pause, Récupération. | 11 API-ACT-07 | Aucun type ni entité secondaire. | — | Corrigé | 11 API-ACT-07. |
-| TEC-04 | Migration T03 ne couvrait pas les nouvelles valeurs. | Étendre la migration additive `004`. | 12 Contraintes T03 | `DATABASE_VERSION=4`, sans Durée totale/pilote. | — | Corrigé | 12 contraintes T03. |
+| TEC-04 | Migration T04 ne couvrait pas les nouvelles valeurs. | Étendre la migration additive `004`. | 12 Contraintes T04 | `DATABASE_VERSION=4`, sans Durée totale/pilote. | — | Corrigé | 12 contraintes T04. |
 | TEC-05 | DSF manquait le bloc Composition avec Récupération. | Référencer le composant créé. | 12 composants | `Composition / Activity Row with Recovery`. | `3572:64` | Corrigé | 12 tableau DSF. |
 | TEC-06 | États de calcul Figma non documentés. | Référencer les trois frames. | 06 ; 12 ; 13 | Série pilote, Durée pilote, ajustement. | `3580:4733`, `3580:4845`, `3580:4957` | Corrigé | 12 tableau DSF. |
 | TEC-07 | Alias du contour pilote imprécis. | Documenter l’alias exact. | 12 Couleurs/§12.34 | `color/selection` → `color/blue/selection-5F60EE`. | Variables `2290:52` → `2290:3` | Corrigé | 12 table d’alias. |
