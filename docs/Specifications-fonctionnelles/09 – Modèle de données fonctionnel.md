@@ -70,7 +70,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
-| DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` V2 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP / V2 |
+| DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP / V2 |
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T04 ; D-156 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T04 ; D-156 |
@@ -496,7 +496,7 @@ Une Occurrence planifiée possède directement :
 
 Une **Activité** est la plus petite unité exécutable d'une séance.
 
-Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. En V2, une `ActivityDefinition` autonome peut être copiée dans plusieurs Séances sans lien de propagation.
+Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. Dans le MVP T03, une `ActivityDefinition` autonome peut être copiée dans plusieurs Séances sans lien de propagation.
 
 Le nom « Récupération » n’a aucune sémantique technique : une Activité ainsi nommée reste une Activité ordinaire. La phase attachée `RECOVERY` est, elle, dérivée du paramètre de durée de Récupération.
 
@@ -545,7 +545,7 @@ Elle ne contient pas directement :
 
 ## Règles métier
 
-- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` V2 est autonome et ne porte aucune position de Séance.
+- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` du MVP T03 est autonome et ne porte aucune position de Séance.
 - Une Activité peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une Activité possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Pour `C` Séries, la Pause apparaît `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`.
@@ -689,7 +689,7 @@ Contient notamment :
 
 | Objet | Version | Rôle et relations |
 |---|---|---|
-| `ActivityDefinition` | V2 | Référence persistante autonome sans type d’Activité, directement exécutable et copiable dans une Séance. |
+| `ActivityDefinition` | MVP T03 | Référence persistante autonome sans type d’Activité, directement exécutable et copiable dans une Séance. |
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
 | `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
 | `ActivityMedia` | V2 | Association ordonnée entre une activité et un `MediaAsset`. |
@@ -1066,7 +1066,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 ### Règles métier
 
-- Une Exécution est créée au démarrage effectif d’une Séance ou, en V2, d’une Activité persistante depuis le Catalogue des Activités.
+- Une Exécution est créée au démarrage effectif d’une Séance ou, dans le MVP T03, d’une Activité persistante depuis le Catalogue des Activités.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
