@@ -93,7 +93,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | Terme | Définition |
 | --- | --- |
 | **Catalogue des séances** | Écran d’accueil après le splash. Il présente les Séances actives, planifiées ou archivées selon la vue sélectionnée. |
-| **Catalogue des Activités** | Destination V2 du Catalogue multi-type. Elle liste les Activités persistantes, permet de les créer, consulter, modifier, sélectionner pour une Séance ou exécuter directement. |
+| **Catalogue des Activités** | Destination MVP livrée en T03 du Catalogue multi-type. Elle liste les Activités persistantes, permet de les créer, consulter, modifier, sélectionner pour une Séance ou exécuter directement. |
 | **Toutes** | Vue du Catalogue affichant les Séances non archivées. |
 | **Planifiées** | Vue du Catalogue affichant les Séances possédant au moins une Routine. |
 | **Archivées** | Vue du Catalogue dans laquelle une Séance peut être restaurée ou supprimée définitivement après confirmation. |
@@ -123,7 +123,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition de référence |
 |---|---|
-| **Activité de référence** | Activité persistante autonome du catalogue Activités en V2. Elle est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles. |
+| **Activité de référence** | Activité persistante autonome du Catalogue des Activités dans le MVP T03. Elle est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles. |
 | **Activité de Séance** | Copie indépendante d’une Activité, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le catalogue Activités. |
 | **À l’échec** | Troisième mode d’Exercice du MVP, sans durée ni répétitions cibles. Chaque Série se termine par l’action `Suivant`, comme en mode Répétitions. |
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
@@ -145,7 +145,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée entre les côtés ; la Récupération intervient une fois après le second côté. |
 | **Tour bilatéral** | À chaque répétition du Tour, toutes ses Activités sont exécutées pour le premier côté, puis toutes pour le second. Le Tour impose la direction effective à toutes ses Activités, sans notion d’Activité « latéralisable ». |
 
-## 11. Concepts d’exécution directe — V2
+## 11. Concepts d’exécution directe — MVP T03
 
 | Terme | Définition |
 |---|---|
