@@ -92,3 +92,26 @@ test('0.6.24 — le diagnostic durable sépare reprise et mutation', () => {
   assert.match(source, /agent_mutation_files: agentMutationFiles/);
   assert.match(source, /scopeClear = !outsideMutation\.length/);
 });
+
+test('0.6.24 — la preuve réelle du paquet 34872653037 est exacte et sans changement applicatif intermédiaire', () => {
+  const attestation = JSON.parse(fs.readFileSync(path.join(
+    __dirname, '..', '..', '.github', 'orchestration', 'v2-slices', 'V2-BILAT-01',
+    'recovery-migration-34872653037.json'), 'utf8'));
+  assert.equal(attestation.schema_version, 'kodjo.protocol.v2.recovery-migration.0.6.24');
+  assert.equal(attestation.source_run_id, '34872653037');
+  assert.equal(attestation.source_artifact_id, '10358639677');
+  assert.equal(attestation.source_artifact_digest,
+    'sha256:4736b6311775e7fc51740f7febfe636fce97ae26e1286c31d10cb06cf02a53b9');
+  assert.equal(attestation.source_patch_sha256,
+    '1e49b433f38fe901e93a2210e10c999e2ac6c86d7a026da126d1158717456c84');
+  assert.equal(attestation.authorization_policy, 'CURRENT_REQUEST_VERIFIED_SEPARATELY');
+  assert.deepEqual(attestation.compatible_application_paths, []);
+  const intervening = [
+    ...attestation.certified_protocol_executable_paths,
+    ...attestation.certified_protocol_document_paths,
+    ...attestation.certified_product_document_paths,
+  ];
+  assert.equal(intervening.some((file) => file.startsWith('app/') || file.startsWith('src/')), false);
+  assert.equal(attestation.certification.package_path_count, 30);
+  assert.equal(attestation.certification.claude_invoked, false);
+});

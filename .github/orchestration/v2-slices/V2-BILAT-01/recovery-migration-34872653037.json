@@ -67,7 +67,8 @@
   ],
   "compatible_application_paths": [],
   "post_certification_protocol_files": {
-    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json": "SELF"
+    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json": "SELF",
+    "tests/kodjo/protocol-0.6.24.pilot.js": "588485a7d76ed15f370f825718f7532f0a340f16"
   },
   "certification": {
     "diagnostic_run": "34851607031",
