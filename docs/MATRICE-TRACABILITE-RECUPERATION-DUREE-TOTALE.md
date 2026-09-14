@@ -16,7 +16,7 @@
 | CON-03 | La Récupération était une carte autonome. | La rattacher à l’Activité. | PRODUCT ; 04 ; 09 §09.5 | Durée facultative de l’Activité. | `3572:64` | Corrigé | 04 : Récupération attachée après toutes les Séries. |
 | CON-04 | La Récupération pouvait être confondue avec la Pause. | Conserver deux paramètres distincts. | 00 ; 04 ; 10 §4 | Pause entre Séries ; Récupération après toutes les Séries. | `3542:4656` | Corrigé | 10 RM-034 à RM-038. |
 | CON-05 | La Pause pouvait être supprimée par erreur. | La conserver. | PRODUCT ; 06 Écran 4 ; 10 §4 | Pause disponible dans les trois modes. | Frames Activité | Corrigé | 06 : première rangée `Séries / cible / Pause`. |
-| CON-06 | La Pause était appliquée après la dernière Série. | L’appliquer seulement entre Séries. | 04 ; 09 ; 10 | `C − 1` Pauses pour `C` Séries. | — | Corrigé | 09 DM-014. |
+| CON-06 | La règle de Pause après la dernière Série était contradictoire. | Conserver la recette validée : `C` Pauses si `R = 0`, sinon `C − 1`, la Récupération remplaçant la dernière Pause. | PRODUCT ; 04 ; 07 D-156 ; 09 ; 10 | Fonction `P(C,R)` conditionnelle. | — | Corrigé | 09 DM-014 ; décision produit issue #52. |
 | CON-07 | La Récupération pouvait être répétée après chaque Série. | Une seule occurrence. | PRODUCT ; 08 ; 10 | Une phase après la dernière Série. | — | Corrigé | 10 RM-037. |
 | CON-08 | Une Récupération nulle pouvait créer une phase. | Valeur canonique `0 s`, aucune phase. | 09 §09.5 ; 10 RM-034 | Insérer `RECOVERY` seulement si `R > 0`. | — | Corrigé | 09 : « valeur > 0 ». |
 | CON-09 | Le nom « Récupération » pouvait déclencher un traitement spécial. | Aucun traitement par le nom. | 09 §09.5 | Une Activité ainsi nommée reste ordinaire. | — | Corrigé | 09 §09.5 : « aucune sémantique technique ». |
@@ -26,7 +26,7 @@
 | CON-13 | T03 pouvait commencer sur l’ancien modèle. | Nouvelle structure préalable à T03. | 05 ; 09 DM-001 ; 12 T03 | Prérequis de données avant moteur T03. | — | Corrigé | 09 décisions : version « Prérequis T03 ». |
 | CON-14 | T03 pouvait inclure plusieurs Séries. | Toujours refusé dans T03. | 05 ; 10 RM-127 ; 13 CE-T03-01 | Refus explicite avant toute écriture. | — | Corrigé | 13 CE-T03-01. |
 | CON-15 | La prise en charge multi-Séries n’avait pas de tranche. | La conserver en T04. | 05 ; 10 RM-127 ; 13 T03 | Exécution complète en T04. | — | Corrigé | INDEX §10. |
-| CAL-01 | Durée totale non définie. | La définir en mode Durée. | PRODUCT ; 00 ; 04 ; 10 | `D = C×A + (C−1)×B + R`. | `3580:4733` | Corrigé | 10 RM-129. |
+| CAL-01 | Durée totale non définie. | La définir en mode Durée. | PRODUCT ; 00 ; 04 ; 10 | `D = C×A + P(C,R)×B + R`, avec `P=C` si `R=0`, sinon `C−1`. | `3580:4733` | Corrigé | 10 RM-129. |
 | CAL-02 | La durée d’une Série n’était pas identifiée. | `A` = Durée cible d’une Série. | 04 ; 10 | Définition explicite de `A`. | — | Corrigé | 10 RM-129. |
 | CAL-03 | La Pause n’était pas identifiée. | `B` = Pause entre Séries. | 04 ; 10 | Définition explicite de `B`. | — | Corrigé | 10 RM-129. |
 | CAL-04 | Le nombre de Séries n’était pas identifié. | `C` = entier de 1 à 99. | 04 ; 09 ; 10 | Valeur canonique. | — | Corrigé | 09 attribut Nombre de Séries. |
@@ -35,7 +35,7 @@
 | CAL-07 | Séries et Durée totale pouvaient piloter ensemble. | Pilote exclusif. | 06 ; 08 ; 10 RM-131 | Un seul pilote à la fois. | `3580:4733`, `3580:4845` | Corrigé | 10 RM-131. |
 | CAL-08 | L’état initial devait rester ouvert au choix. | Tous contrôles utilisables. | 06 Dépendance ; 13 CE-T01-13 | Séries pilote implicitement sans contour. | `3542:4656` | Corrigé | 13 CE-T01-13. |
 | CAL-09 | Changement de pilote pouvait se produire pendant le défilement. | Seulement après Confirmer. | 06 ; 08 ; 13 CE-T01-14 | Brouillon local jusqu’à confirmation. | Roulettes | Corrigé | 13 CE-T01-14. |
-| CAL-10 | Inversion depuis Durée totale non définie. | Calculer `Cth`. | 04 ; 08 ; 10 | `(D−R+B)/(A+B)`. | `3580:4845` | Corrigé | 10 RM-130. |
+| CAL-10 | Inversion depuis Durée totale non définie. | Calculer `Cth`. | 04 ; 08 ; 10 | Si `R=0` : `D/(A+B)` ; si `R>0` : `(D−R+B)/(A+B)` ; division supplémentaire par `L` selon la formule bilatérale. | `3580:4845` | Corrigé | 10 RM-130. |
 | CAL-11 | Arrondi du nombre de Séries non défini. | Plus proche, `.5` vers le haut. | 04 ; 08 ; 10 | Règle déterministe. | — | Corrigé | 08 « Durée totale pilotée ». |
 | CAL-12 | Le calcul pouvait produire zéro Série. | Borne minimale `1`. | 04 ; 08 ; 10 | `C = max(1, arrondi(Cth))`. | — | Corrigé | 10 RM-130. |
 | CAL-13 | Durée cible impossible pouvait rester affichée. | Réafficher la durée réalisable. | 06 ; 08 ; 10 | Recalcul de `D` après arrondi. | `3580:4957` | Corrigé | 06 : message « Durée ajustée… ». |

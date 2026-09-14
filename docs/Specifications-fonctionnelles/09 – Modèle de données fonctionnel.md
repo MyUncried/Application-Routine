@@ -72,8 +72,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` V2 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP / V2 |
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
-| DM-014 | Pour `C` Séries, la Pause est insérée `C − 1` fois par côté. La Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T03 |
-| DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + (C − 1) × B] + R`, avec `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 |
+| DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T03 ; D-156 |
+| DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 ; D-156 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T03 |
 
 ## Relations principales
@@ -547,11 +547,11 @@ Elle ne contient pas directement :
 - Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` V2 est autonome et ne porte aucune position de Séance.
 - Une Activité peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une Activité possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
-- La Pause est insérée uniquement entre deux Séries successives. Pour `C` Séries, elle apparaît `C − 1` fois.
+- Pour `C` Séries, la Pause apparaît `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`.
 - La Récupération est insérée après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral, lorsque sa durée est strictement positive ; elle précède `SESSION_END` le cas échéant.
 - Ni la Pause ni la Récupération ne créent une entité Activité associée.
-- En mode Durée, `D = L × [C × A + (C − 1) × B] + R` pour une Activité autonome ; `D` est recalculée à partir des valeurs canoniques.
-- Si l’utilisateur pilote par une Durée totale cible, `Cth = ((D − R) / L + B) / (A + B)`, arrondi à l’entier le plus proche avec `.5` vers le haut et minimum `1`; la valeur atteignable de `D` est ensuite recalculée. Seul `C` est persisté.
+- En mode Durée, `D = L × [C × A + P(C,R) × B] + R` pour une Activité autonome, avec `P(C,R) = C` si `R = 0`, sinon `C − 1` ; `D` est recalculée à partir des valeurs canoniques.
+- Si l’utilisateur pilote par une Durée totale cible, `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondi à l’entier le plus proche avec `.5` vers le haut et minimum `1`; la valeur atteignable de `D` est ensuite recalculée. Seul `C` est persisté.
 - Toutes les Activités peuvent être associées à des zones corporelles.
 - Les activités peuvent être ajoutées, déplacées, dupliquées et supprimées.
 - Leur ordre est conservé à l’intérieur de leur position structurelle. Une Activité peut être déplacée manuellement d’une position structurelle à une autre.
@@ -779,7 +779,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de la dernière Activité active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les répétitions du Tour et du cycle sont résolues lors de la génération.
-- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` est insérée uniquement entre deux Séries ; une phase `RECOVERY` est insérée une fois après la dernière Série lorsque sa durée est positive.
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` suit aussi la dernière Série lorsque `R = 0`; lorsque `R > 0`, elle n’est insérée qu’entre Séries et une phase `RECOVERY` remplace la dernière Pause.
 - T03 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 

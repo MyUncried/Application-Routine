@@ -43,9 +43,9 @@ La seconde passe a également détecté et corrigé quatre résidus qui contredi
 ## 4. Règles structurantes contrôlées
 
 - Le modèle ne possède aucun type d’Activité `Exercice` ou `Récupération`.
-- La Pause intervient uniquement entre deux Séries ; la Récupération intervient une fois après toutes les Séries.
-- En mode Durée, `D = C × A + (C − 1) × B + R`.
-- Avec une Durée totale cible, `Cth = (D − R + B) / (A + B)`, arrondi au plus proche avec `.5` vers le haut et minimum `1`, puis `D` est recalculée à sa valeur réalisable.
+- Pour `C` Séries, la Pause intervient `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`; la Récupération positive intervient ensuite une fois après toutes les Séries.
+- En mode Durée, `D = C × A + P(C,R) × B + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`.
+- Avec une Durée totale cible, `Cth = D / (A + B)` si `R = 0`, sinon `Cth = (D − R + B) / (A + B)` ; le résultat est arrondi au plus proche avec `.5` vers le haut et minimum `1`, puis `D` est recalculée à sa valeur réalisable.
 - Séries est le pilote implicite initial ; le dernier contrôle confirmé devient le pilote ; cet état n’est pas persisté.
 - Durée totale est masquée en Répétitions et À l’échec sans déplacer les autres contrôles.
 - Une Récupération positive forme une phase `RECOVERY` attachée ; elle est copiée, déplacée et supprimée avec l’Activité, mais ne compte pas comme Activité.

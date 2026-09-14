@@ -283,7 +283,7 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
-- l’insertion d’une étape `SERIES_PAUSE` uniquement entre deux Séries successives ;
+- l’insertion d’une étape `SERIES_PAUSE` après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
 - l’insertion d’une étape `RECOVERY` après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
