@@ -228,7 +228,7 @@ La création suit le parcours suivant :
 
 Aucune Routine n’est créée automatiquement.
 
-### Parcours du Catalogue des Activités — V2
+### Parcours du Catalogue des Activités — MVP T03
 
 Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` au-dessus du catalogue grisé.
 
@@ -1297,13 +1297,13 @@ Si aucune Exécution ne correspond à la recherche, l’écran affiche un messag
 
 Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vos séances exécutées dès que vous aurez terminé votre première séance.`
 
-## Écrans 12 à 18 — Catalogue des Activités et Exécution directe — V2
+## Écrans 12 à 18 — Catalogue des Activités et Exécution directe — MVP T03
 
 ### Écran 12 — Catalogue des Activités — Liste
 
 La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Activités` sélectionné. La liste contient les Activités persistantes et conserve recherche, filtres, tri et position de défilement dans son état de navigation.
 
-Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Aucun contrôle `Déployer`, aucune poignée de déplacement et aucun espace réservé à ces contrôles ne sont présents. Un futur déploiement des médias relève d’une évolution V2 distincte.
+Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Aucun contrôle `Déployer`, aucune poignée de déplacement et aucun espace réservé à ces contrôles ne sont présents. Un futur déploiement des médias relève d’une évolution post-MVP distincte.
 
 ![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
 
