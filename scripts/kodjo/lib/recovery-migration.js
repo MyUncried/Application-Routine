@@ -3,7 +3,8 @@
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const ATTESTATION_SCHEMA = 'kodjo.protocol.v2.recovery-migration.0.6.23';
+const ATTESTATION_SCHEMA = 'kodjo.protocol.v2.recovery-migration.0.6.24';
+const LEGACY_ATTESTATION_SCHEMA = 'kodjo.protocol.v2.recovery-migration.0.6.23';
 const SHA40 = /^[0-9a-f]{40}$/;
 
 function command(args, cwd, timeout = 120000) {
@@ -108,7 +109,9 @@ function loadAttestation(repoRoot, request) {
 }
 
 function verifyIdentity(attestation, manifest, request) {
-  if (attestation.schema_version !== ATTESTATION_SCHEMA) fail('RECOVERY_MIGRATION_ATTESTATION_SCHEMA_UNSUPPORTED');
+  if (![ATTESTATION_SCHEMA, LEGACY_ATTESTATION_SCHEMA].includes(attestation.schema_version)) {
+    fail('RECOVERY_MIGRATION_ATTESTATION_SCHEMA_UNSUPPORTED');
+  }
   if (attestation.status !== 'CERTIFIED') fail('RECOVERY_MIGRATION_ATTESTATION_NOT_CERTIFIED');
   const exact = [
     ['slice_id', manifest.slice_id],
@@ -227,5 +230,6 @@ function certifyRecoverySourceMigration(manifest, patch, recoveredPaths, repoRoo
 }
 
 module.exports = {
-  ATTESTATION_SCHEMA, certifyRecoverySourceMigration, diffPaths, loadAttestation,
+  ATTESTATION_SCHEMA, LEGACY_ATTESTATION_SCHEMA,
+  certifyRecoverySourceMigration, diffPaths, loadAttestation,
 };

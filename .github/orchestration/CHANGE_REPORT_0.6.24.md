@@ -9,6 +9,7 @@ Débloquer V2-BILAT-01 sans élargir le droit de modification et sans ajouter de
 - Le paquet immuable définit les fichiers restaurés ; `scope_allow` continue de limiter les seules mutations de la correction.
 - Une empreinte avant/après distingue les fichiers seulement restaurés des fichiers réellement retouchés.
 - Les chemins déclarés par le manifeste doivent correspondre exactement au patch.
+- L'attestation de compatibilité peut réutiliser les autorisations courantes déjà vérifiées par l'admission, sans recopier des références futures.
 - Le diagnostic conserve séparément les deux périmètres et les mutations constatées.
 - La planification lie la documentation courante sur `main` au HEAD exact de la PR applicative ouverte analysée.
 - Le bootstrap V2-BILAT-01 référence les empreintes documentaires courantes et le HEAD applicatif de la PR #131.

@@ -21,6 +21,7 @@ const root = path.resolve(__dirname, '..', '..');
 const C = require(path.join(root, 'scripts', 'kodjo', 'lib', 'queue-contract.js'));
 const A = require(path.join(root, 'scripts', 'kodjo', 'verify-authorizations.js'));
 const G = require(path.join(root, 'scripts', 'kodjo', 'generate-queue-schema.js'));
+const M = require(path.join(root, 'scripts', 'kodjo', 'lib', 'recovery-migration.js'));
 
 const canonical = (v) => Array.isArray(v)
   ? '[' + v.map(canonical).join(',') + ']'
@@ -313,7 +314,7 @@ function authFixture() {
 function bindMigrationAttestation(f, overrides = {}) {
   const attestationPath = '.github/orchestration/v2-slices/QUALIF/recovery-migration.json';
   const attestation = {
-    schema_version: 'kodjo.protocol.v2.recovery-migration.0.6.23', status: 'CERTIFIED',
+    schema_version: M.ATTESTATION_SCHEMA, status: 'CERTIFIED',
     slice_id: 'QUALIF', source_head: f.queue.source_head,
     certified_target_head: f.queue.source_head, baseline_head: f.queue.baseline_head,
     source_run_id: '34770454986', session_id: uuid(),
@@ -378,6 +379,28 @@ test('la migration est liée aux empreintes du plan, de la revue et à la valida
   const queue = bindMigrationAttestation(f);
   const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
   assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
+});
+
+test('0.6.24 — la migration peut s appuyer sur les autorisations de la demande vérifiées séparément', () => {
+  const f = authFixture();
+  const queue = bindMigrationAttestation(f, {
+    authorization_binding: undefined,
+    authorization_policy: 'CURRENT_REQUEST_VERIFIED_SEPARATELY',
+  });
+  const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
+  assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
+});
+
+test('0.6.24 — une politique d autorisation inconnue ne remplace pas le binding exact', () => {
+  const f = authFixture();
+  const queue = bindMigrationAttestation(f, {
+    authorization_binding: undefined,
+    authorization_policy: 'TRUST_ME',
+  });
+  assert.throws(
+    () => A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) }),
+    /RECOVERY_MIGRATION_AUTHORIZATION_BINDING_MISMATCH/
+  );
 });
 
 test('une migration avec plan, revue ou validation incohérents est refusée avant Claude', () => {

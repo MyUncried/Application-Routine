@@ -11,6 +11,8 @@ En `RESUME_DELTA`, deux ensembles ont des autorités distinctes :
 
 Le paquet est accepté uniquement si sa provenance (tranche, session, baseline, run), son empreinte, son intégrité, sa migration certifiée et son applicabilité atomique sont valides. Ses chemins sont relatifs, exacts, uniques et doivent correspondre exactement aux chemins déclarés par le patch. Aucun motif générique du paquet n'est interprété comme une autorisation.
 
+L'attestation de migration certifie la compatibilité Git du paquet. Elle peut soit recopier le binding d'autorisation historique, soit déclarer `CURRENT_REQUEST_VERIFIED_SEPARATELY`. Dans ce second cas, l'admission vérifie toujours directement, avant Claude, le plan, la revue indépendante, leurs empreintes et la validation utilisateur de la demande courante. Cette forme évite un aller-retour protocolaire après chaque révision de plan sans supprimer aucun contrôle.
+
 Après restauration et avant l'appel externe, le superviseur empreinte le delta restauré. Après l'appel, il calcule les fichiers réellement modifiés depuis cet état. Chacun de ces fichiers doit appartenir à `scope_allow`. Un fichier simplement restauré peut rester hors de `scope_allow`; s'il est ensuite modifié, créé, supprimé ou ramené à la baseline, il consomme le périmètre de mutation et est refusé s'il n'y appartient pas.
 
 Le paquet cumulatif suivant contient l'union exacte du delta restauré et des mutations autorisées. Le diagnostic durable publie `recovery_scope_paths`, `mutation_scope_allow` et `agent_mutation_files`.
