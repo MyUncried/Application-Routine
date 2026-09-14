@@ -1218,18 +1218,192 @@ Quand la direction effective est bilatérale, afficher `Côté droit` ou `Côté
 
 La modale générique `Passer à l’activité suivante ?` est inchangée. Après confirmation sur le premier côté, elle conserve un résultat partiel pour ce côté et ouvre le second ; après le second, elle ouvre la prochaine étape effective. `Réinitialiser l’activité` ne touche que le côté courant. Les résultats droit et gauche sont indépendants ; l’agrégation globale reflète tout passage partiel ou manquant.
 
+## Contrat de Composition — Sélection multiple d’Activités existantes
+
+### CE-COMP-SEL-01 — Sélectionner plusieurs Activités existantes
+
+| Propriété | Valeur |
+|---|---|
+| Frame Figma | `3789:5349` — `Composition d'une séance — Sélectionner plusieurs activités existantes` |
+| Surface | `402 × 874` |
+| Statut visuel | Géométrie validable ; icônes Recherche et Coche encore provisoires dans Figma |
+| Entrée | Action `Une activité existante` depuis l’arbre d’ajout en Composition |
+| Sorties | `Annuler` restaure la Composition inchangée ; `Ajouter N activités` insère la sélection puis restaure la Composition |
+
+#### Structure et positionnement
+
+| Élément | Nœud/composant | Référence `402 × 874` | Règle |
+|---|---|---|---|
+| Shell sous-jacent | instance `3789:5350`, composant `2718:53` `Context=On,Bottom=Action` | plein écran | La Composition reste visible derrière le voile, mais n’est ni focusable ni interactive. |
+| Voile modal | `3789:5404` | `x=0`, `y=0`, `402 × 874` | Token de scrim/voile DSF obligatoire. |
+| Panneau | `3789:5405` | `x=0`, `y=116`, `402 × 758` | Ancré au bas ; coins, fond et élévation conformes à la frame. |
+| Titre | `3789:5407` | `x=24`, `y=148`, `354 × 26` | Texte statique exact `Sélectionner les activités`. |
+| Recherche | zone à partir de `y=188`; placeholder `x=68`, `y=200`, largeur `280` | `Rechercher une activité` | Champ filtrant la liste. L’icône est placée à gauche dans une boîte `28 × 28`, mais doit provenir du composant Recherche DSF. |
+| Liste | première carte `y=246`, puis `342`, `438`, `534`; `x=24`, `354 × 88` | cartes espacées de `8 pt` | Zone défilante entre Recherche et actions fixes. Nom à `x=40`, zones corporelles 24 pt plus bas, synthèse 22 pt plus bas. |
+| Annuler | `3789:5436` | `x=24`, `y=802`, `171 × 48` | Bouton secondaire gris, obligatoire, à gauche. Restaure sans insertion. |
+| Ajouter | `3789:5434` | `x=207`, `y=802`, `171 × 48` | Bouton principal à droite. Libellé dynamique `Ajouter N activité` ou `Ajouter N activités`. Désactivé si `N=0`. |
+| Zone d’actions | bas de l’écran | deux boutons sur une même ligne, intervalle `12 pt` | Fixe au-dessus de l’inset inférieur ; la liste ne passe pas dessous. |
+
+#### Sélection et icône
+
+- chaque carte entière est sélectionnable et expose un état d’accessibilité sélectionné/non sélectionné ;
+- plusieurs cartes peuvent être sélectionnées ; l’ordre d’insertion reste `À CLARIFIER` entre ordre de sélection et ordre affiché, et ne peut pas être choisi implicitement pendant le développement ;
+- la marque visible est centrée dans une boîte `24 × 24` située à droite de la carte (`x=334` sur la référence) ;
+- le rendu final doit reprendre l’esprit d’une coche de sélection/validation, avec fond bleu et liseré blanc conformément à la proposition de conception ;
+- les glyphes texte `✓` des nœuds `3802:5447` et `3802:5462`, ainsi que le glyphe Recherche `⌕` du nœud `3789:5410`, sont des placeholders Figma : ils sont interdits comme assets d’implémentation ;
+- avant développement final, ces pictogrammes doivent être remplacés dans Figma par des composants/icônes vectoriels DSF nommés et exportables. Tant que leurs IDs de composant et tokens d’état ne sont pas disponibles, la ressource exacte reste `À CLARIFIER` et la conformité iconographique ne peut pas être déclarée.
+
+#### Critères de recette
+
+1. panneau, titre, Recherche, liste et actions respectent la géométrie et les ancrages ci-dessus ;
+2. le fond est visuellement grisé et totalement neutralisé ;
+3. sélection multiple réelle, compte `N` mis à jour et accord singulier/pluriel ;
+4. `Annuler` toujours visible ; ordre horizontal exact : `Annuler` puis `Ajouter N activités` ;
+5. aucun glyphe de texte ou emoji utilisé comme Recherche ou Coche ;
+6. sur `360`, les deux boutons conservent la même ligne si les libellés restent lisibles ; sinon la règle adaptative doit être arbitrée avant implémentation, sans réduction illisible ;
+7. texte agrandi : liste défilable et boutons atteignables, aucun contenu masqué.
+
 ## Contrats V2 — Exécution directe d’une Activité
 
-| ID | Référence Figma | Contrat | Criticité |
+### Règles normatives de lecture Figma
+
+Les contrats `CE-ACT-EXE-*` s’appliquent au fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `Prototype MVP`. La surface de comparaison est `402 × 874 pt`.
+
+Les coordonnées ci-dessous sont des mesures de recette sur cette surface. L’implémentation doit préserver les relations de layout — marges, alignements, ordre, ancrages et zones fixes — sur les largeurs `360`, `402` et `440`. Elle ne doit pas recopier des coordonnées absolues lorsque le Screen Shell ou un composant prévoit une largeur flexible.
+
+Règles bloquantes communes :
+
+- utiliser les composants Figma nommés et leurs variantes lorsqu’ils existent ; ne pas redessiner localement une approximation ;
+- appliquer les tokens du Design System associés au composant ; une couleur RGB relevée dans une frame sert à la comparaison, pas à créer un nouveau token ;
+- utiliser l’icône vectorielle Figma exacte ou l’asset DSF exporté depuis elle ; les caractères Unicode, emojis, glyphes de police et icônes système de substitution sont interdits ;
+- distinguer le cadre visuel de l’icône et sa zone tactile : toute action possède une cible d’au moins `48 × 48 pt` ;
+- conserver l’ordre de superposition, les zones fixes et le défilement indiqués ;
+- traiter tous les noms, temps et résultats visibles dans les captures comme des données de démonstration, sauf libellé statique explicitement indiqué.
+
+### CE-ACT-EXE-01 — Catalogue des Activités
+
+#### Identification et états
+
+| Sous-contrat | Frame Figma | État |
+|---|---|---|
+| `CE-ACT-EXE-01a` | `3786:5093` — `Catalogue des Activités — Liste` | Liste et actions de carte |
+| `CE-ACT-EXE-01b` | `3787:5148` — `Catalogue des Activités — Catalogue — Créer — Arbre d’actions` | Arbre de création sur Catalogue des Activités grisé |
+| `CE-ACT-EXE-01c` | `3787:5209` — `Catalogue des Activités — Action contextuelle directe` | Action directe contextualisée |
+| `CE-ACT-EXE-01d` | `3841:8375` — `Catalogue des Séances — Catalogue — Créer — Arbre d’actions` | Même arbre sur Catalogue des Séances grisé |
+
+#### Shell, contexte et liste — `CE-ACT-EXE-01a`
+
+| Élément | Nœud/composant Figma | Référence `402 × 874` | Règle obligatoire |
 |---|---|---|---|
-| CE-ACT-EXE-01 | Catalogue Activités `3786:5093`, `3787:5148`, `3787:5209` | Chaque carte valide présente un bouton Lecture d’Exécution directe distinct de la surface principale, qui ouvre la consultation ou la modification. Aucun contrôle `Déployer` n’est affiché. | Obligatoire |
-| CE-ACT-EXE-02 | `3835:5385` | Préparation fixe de `5 s`, nom de l’Activité, aucun compteur de Tour ou Cycle. | Obligatoire |
-| CE-ACT-EXE-03 | `3835:5465` | Exécution commune adaptée à une Activité seule ; Série et prochaine phase visibles ; aucun Tour artificiel. | Obligatoire |
-| CE-ACT-EXE-04 | `3836:5437` | Synthèse initiale ; `Terminer` désactivé tant qu’aucun Ressenti n’est choisi. | Obligatoire |
-| CE-ACT-EXE-05 | `3836:5503` | Synthèse avec Ressenti ; `Terminer` actif, enregistre puis restaure le Catalogue. | Obligatoire |
+| Shell | instance `3786:5094`, composant `2718:37` `Context=On,Bottom=Navigation` | `0,0`, `402 × 874` | Le Header, le Context et la navigation basse restent fixes ; seule la liste défile. |
+| En-tête | instance `3786:5119`, composant `2581:2668` `Mode=Standard,Back=Off` | `0,0`, `402 × 95` | Titre `Catalogue des activités`, axe `x=24`, `y=57`, style de titre d’écran DSF. Le token de hauteur lié est `VariableID:2612:8`. |
+| Contrôle segmenté | instance `3786:5124`, composant `2586:2741` `Items=3,Selected=1` | `x=24`, `y=104`, `354 × 42` | Trois segments égaux. `Activités` sélectionné ; `Séances` et `Circuits` selon le périmètre produit. Rayon issu du token lié `VariableID:2290:78`. |
+| Créer | frame `3786:5120` | `x=156`, `y=162`, `90 × 32` | Groupe centré. La cible tactile réelle fait au moins `48 pt` de haut et ne recouvre pas le contrôle segmenté. Icône `+` du DSF, jamais un caractère texte. |
+| Première carte | `3832:5346` | `x=24`, `y=223`, `354 × 93` | Variante avec Récupération attachée. Le bloc de texte commence à `x=40` écran, soit `16 pt` après le bord de carte, exactement comme les autres cartes. |
+| Cartes suivantes | `3786:5223`, `3786:5229`, `3786:5235` | `x=24`, `y=328/428/528`, `354 × 88` | Espacement vertical `12 pt`. Hauteur extensible si le texte agrandi l’exige. |
+| Repère Activité | `3840:5487` puis repères des cartes | `4 pt` de large, hauteur de la carte, rayon `2` | Collé au bord gauche de chaque carte ; bleu DSF. Ne décale pas différemment le texte de la première carte. |
+| Navigation basse | instance `3786:5104`, composant `2537:86` `Active=Catalogue` | `x=0`, `y=797`, `402 × 77` | Fixe au-dessus de l’inset inférieur ; icônes DSF centrées dans leurs boîtes. La liste s’arrête avant elle. |
 
-Tests bloquants : accessibilité des deux actions de carte, préparation exactement `5 s`, absence de `SESSION_END`, origine `ACTIVITY`, Ressenti obligatoire, statistiques compatibles sans nouvelle Séance et restauration de l’état du Catalogue.
+La première carte affiche, dans cet ordre vertical : nom, zones corporelles, synthèse, puis bande de Récupération attachée. Sur la référence : nom `13 pt` à `y=232,5`, zones `11 pt` à `y=252,5`, synthèse `11 pt` à `y=269,5`, libellé de Récupération `13 pt` à `y=296`. Ces valeurs décrivent la hiérarchie de la frame ; les styles typographiques DSF prévalent sur un codage local des tailles.
 
+#### Actions et séparation des cibles
+
+| Zone | Position de référence | Action | Exigence |
+|---|---|---|---|
+| Surface principale de carte | toute la carte sauf la cible Lecture | Ouvrir l’Activité en consultation/modification | La cible utilise l’ID de l’Activité. Elle ne lance jamais l’Exécution. |
+| Lecture | cible `48 × 48`, alignée à droite ; sur les cartes `354 pt`, `x=306` relatif à la carte | Démarrer l’Exécution directe | Icône Lecture vectorielle centrée dans son cadre interne ; cible indépendante et non superposée à la surface principale. Libellé d’accessibilité : `Exécuter l’activité <nom>`. |
+| Déployer | absent | Aucune | Le contrôle est invisible, non focusable, non accessible et ne réserve aucun espace. Les anciens nœuds `3832:5361`, `3806:5449`, `3806:5455`, `3806:5461` sont masqués dans Figma et ne doivent pas être implémentés. |
+| Déplacement | absent | Aucune | L’instance `Icon / Structure / Movable` de la première carte est masquée ; aucune poignée ni marge réservée. |
+
+La réintroduction d’un contrôle destiné aux médias relève d’une évolution V2 distincte. Elle ne peut pas être anticipée par une zone vide, un chevron inactif ou un geste non documenté.
+
+#### Arbre d’actions — `CE-ACT-EXE-01b` et `01d`
+
+L’arbre est identique sur le Catalogue des Activités et sur le Catalogue des Séances. Seul le contenu d’arrière-plan change. Le fond reste visible mais est neutralisé par un voile modal couvrant `402 × 874`.
+
+| Élément | Référence | Règle |
+|---|---|---|
+| Voile modal | `x=0`, `y=0`, `402 × 874` | Au-dessus du catalogue, sous l’arbre ; bloque toutes les actions du fond. Utiliser le token de scrim/voile DSF, pas une opacité improvisée. |
+| Action `Créer` ouverte | `x=156`, `y=162`, `90 × 32` | Reste à son emplacement ; point d’ancrage de l’arbre. |
+| Ligne verticale | `x=179`, `y=194`, `2 × 176` | Relie visuellement les quatre icônes ; derrière les icônes et boutons. |
+| Icônes | `x=164`, `y=212/254/296/338`, `32 × 32` | Une icône par ligne, pas de déplacement autonome. |
+| Boutons libellés | `x=206`, mêmes `y`, `172 × 32` | Ordre exact : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`. Intervalle vertical `10 pt`. |
+| Annuler | dernière ligne | Ferme l’arbre et restaure exactement l’état antérieur du catalogue | Icône `+` DSF tournée de `45°`, couleur/état gris DSF ; ne pas utiliser une lettre `X`. |
+
+Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF validée ; `Une séance` utilise l’icône de liste/séance Figma ; `Un circuit` utilise le chemin en perspective Figma avec trait et quatre cercles progressifs ; `Annuler` réutilise l’icône `+` avec rotation de `45°`. Les proportions internes, épaisseurs, rayons, liserés et courbes proviennent des vecteurs de la frame. Il est interdit de les remplacer par des symboles de police. Le chemin Circuit conserve un départ court descendant, une fin légèrement descendante et raccourcie, un dernier cercle présent, ainsi qu’une progression d’échelle et d’épaisseur du premier au quatrième cercle et du début à la fin du trait.
+
+#### Action contextuelle — `CE-ACT-EXE-01c`
+
+La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les cartes et la navigation de `01a`. L’action contextuelle directe se superpose à la carte ciblée sans déplacer la liste. Le fond et les autres cibles non concernées suivent l’état modal représenté dans Figma. Le libellé, l’icône, la position, le rayon, les couleurs et l’ombre proviennent de cette frame ; aucune action supplémentaire ne doit être déduite.
+
+### CE-ACT-EXE-02 — Préparation fixe de 5 s
+
+| Élément | Nœud/composant Figma | Référence `402 × 874` | Règle |
+|---|---|---|---|
+| Shell | `3835:5386`, composant `2700:82` `Mode=Run` | plein écran | Réutiliser le Shell d’Exécution. |
+| Header | `3835:5407`, composant `2581:2727` `Mode=Execution,Back=On` | `0,0`, `402 × 95` | Retour `48 × 48` via composant `2624:3105`; bips `2579:2577` et annonces `2579:2587`, icônes `24 × 24`. |
+| Titre de phase | `3835:5409` | `x=24`, `y=111`, `354 × 34` | Texte statique exact `Préparez-vous`. |
+| Direction effective | `3835:5464` | `x=24`, `y=147`, `354 × 19` | Visible uniquement si bilatérale ; valeur calculée `Côté droit` ou `Côté gauche`. |
+| Chronomètre | centre écran, cadran de la frame | valeur `00:05` à `x=76`, `y=281`, `250 × 72` | Décompte réel `5 → 0`, même signaux que la préparation d’une Séance. |
+| Durée cible | `x=101`, `y=358`, `200 × 24` | `sur <durée>` | Donnée calculée ; omise/adaptée pour Répétitions et À l’échec selon le moteur commun. |
+| Progression | zone basse de la frame | Série calculée | Aucun compteur de Tour ou Cycle ne doit être affiché pour une Activité directe, même si les libellés de démonstration de la frame en contiennent encore. |
+| Temps écoulé | `x=24`, `y=787`, valeur alignée à droite | `00:00` au départ | N’inclut pas la préparation. |
+
+À `0`, la première Série démarre automatiquement. Il n’existe aucun paramètre de compte à rebours propre à l’Activité : `5 s` est la règle standard de l’Exécution directe.
+
+### CE-ACT-EXE-03 — Exécution en cours
+
+| Élément | Référence `402 × 874` | Règle |
+|---|---|---|
+| Header | composant `2581:2704` `Mode=Execution,Back=Off`, `402 × 95` | Titre = nom de l’Activité. Bips et annonces conservent les composants DSF du contrat précédent. |
+| Nom de l’étape | `x=24`, `y=111`, `354 × 34` | Nom réel de l’Activité ou libellé `Récupération` pendant cette phase. |
+| Direction | immédiatement sous le nom | Seulement lorsque la direction effective est bilatérale. |
+| Chronomètre central | valeur à `x=76`, `y=281`, `250 × 72` | Durée, Répétitions ou À l’échec selon le moteur commun ; aucune conversion en durée fictive. |
+| Série | `x=69`, `y=517`, `120 × 30` | `Série i/n`; aucune mention de Tour. |
+| Carte `À suivre` | `x=24`, `y=580`, `354 × 78` | Prochaine phase effective, par exemple `Récupération`, et valeur associée. Masquée si aucune phase suivante. |
+| Pause | `x=165`, `y=686`, `72 × 72` | Cible circulaire et icône DSF ; met en pause le moteur sans modifier le temps actif. |
+| Temps écoulé | ligne `y=787` | Valeur calculée, hors Pause utilisateur. |
+| Barre de progression | `x=24`, `y=834`, largeur utile | Progression de l’Activité seule ; aucune segmentation de Séance artificielle. |
+
+Après la dernière phase, l’application signale la fin, ne crée pas de phase `SESSION_END`, puis ouvre immédiatement `CE-ACT-EXE-04`.
+
+### CE-ACT-EXE-04 et CE-ACT-EXE-05 — Synthèse et Ressenti obligatoire
+
+Les deux frames ont la même géométrie. Seuls l’état du Ressenti et celui de `Terminer` changent.
+
+| Élément | Nœud/référence | Position et dimensions |
+|---|---|---|
+| Shell | composant `2700:89` `Mode=Summary` | `402 × 874` |
+| Header | composant `2581:2668` `Mode=Standard,Back=Off` | `0,0`, `402 × 95`; titre = nom de l’Activité |
+| Carte statut | `3836:5448` / `3836:5514` | `x=24`, `y=107`, `354 × 140` |
+| Icône de fin | fond `48 × 48` à `x=177`, `y=123`; pictogramme `32 × 32` à `x=185`, `y=131` | Utiliser le vecteur Figma exact ; ne pas substituer une coche Unicode. |
+| Statut | axe `x=40`, `y=185` | Texte exact `Activité terminée`, centré dans la carte. |
+| Date/heure | `x=40`, `y=215`, `322 × 16` | Valeur locale calculée. |
+| Carte résultats | `x=24`, `y=263`, `354 × 136` | Deux colonnes alignées. |
+| Durée réelle | `x=40`, valeur `y=319`, libellé `y=349` | Valeur calculée ; libellé statique `DURÉE RÉELLE`. |
+| Séries terminées | `x=229`, mêmes axes verticaux | Valeur `réalisées / prévues`; libellé `SÉRIES TERMINÉES`. |
+| Résumé de fin | `x=40`, `y=375`, `322 × 18` | Calculé selon l’achèvement réel ; ne pas figer `Récupération terminée`. |
+| Titre Ressenti | `x=40`, `y=425`, `322 × 20` | Employer la terminologie Activité : `Comment s’est passée l’activité ?`; l’ancien texte `…la séance ?` de la frame est une incohérence textuelle à corriger et ne doit pas être repris. |
+| Choix Ressenti | `x=40`, `y=453`, `322 × 48` | Contrôle DSF de Ressenti ; options et état sélectionné accessibles. |
+| Commentaire | titre `x=40`, `y=525`; champ `x=40`, `y=553`, `322 × 112` | Facultatif ; placeholder `Ajouter un commentaire…`. |
+| Terminer | `x=24`, `y=802`, `354 × 48` | Fixe au-dessus de l’inset inférieur ; ne recouvre pas le contenu. |
+
+Dans `CE-ACT-EXE-04` (`3836:5437`), aucun Ressenti n’est sélectionné : `Terminer` est visuellement désactivé, non activable et annoncé désactivé. Dans `CE-ACT-EXE-05` (`3836:5503`), un Ressenti est sélectionné : `Terminer` est actif, enregistre l’Exécution d’origine `ACTIVITY`, puis restaure le Catalogue des Activités dans son état précédent.
+
+Sur hauteur réduite ou texte agrandi, le contenu entre le Header et `Terminer` devient défilant ; le bouton reste fixe. Le dernier champ doit pouvoir défiler entièrement au-dessus du bouton.
+
+### Critères de recette bloquants `CE-ACT-EXE-*`
+
+1. Comparaison aux huit frames identifiées sur `402 × 874`, tolérance `±2 pt` sur alignements structurants et `±4 pt` sur zones verticales flexibles.
+2. Contrôle sur `360`, `402`, `440` et texte agrandi : aucun chevauchement, rognage ni cible inaccessible.
+3. Inspection des instances : composants et variantes indiqués utilisés lorsque disponibles ; aucun glyph/emoji à la place d’une icône.
+4. Deux cibles distinctes sur la carte : ouverture par la surface, Exécution uniquement par Lecture.
+5. Aucun `Déployer`, aucune poignée de déplacement, aucun espace réservé à ces contrôles dans le Catalogue des Activités.
+6. Arbre de création dans l’ordre exact, fond grisé bloqué et Annuler obligatoire.
+7. Préparation exactement `5 s`, sans compteur Tour/Cycle.
+8. Fin signalée, absence de `SESSION_END`, affichage immédiat de la Synthèse.
+9. Ressenti obligatoire pour activer `Terminer`; commentaire facultatif.
+10. Enregistrement dans le Suivi général comme `Activité`, statistiques compatibles sans compter une Séance, puis restauration de l’état précédent du Catalogue.
 
 ## Captures de référence — Exécution directe d’une Activité
 

@@ -63,7 +63,7 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. Le chapitre 13 référence chaque frame Figma par son ID et précise les critères permettant de comparer l’implémentation à cette référence visuelle.
 
-Le chapitre 13 affiche également les captures de référence de l’exécution directe d’une Activité, nommées selon les contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`.
+Le chapitre 13 affiche également les captures de référence de l’exécution directe d’une Activité, nommées selon les contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`. Il porte aussi les contrats d’implémentation détaillés, dont `CE-COMP-SEL-01` et `CE-ACT-EXE-01a` à `CE-ACT-EXE-05` : géométrie de référence, règles adaptatives, zones tactiles, ordre des calques, composants et variantes Figma, tokens DSF, icônes exactes et critères de recette. Les captures seules ne suffisent pas à reconstruire un écran.
 
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
 
