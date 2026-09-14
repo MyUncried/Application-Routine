@@ -28,12 +28,41 @@ jobs:
   protocol:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+      - name: Classify protocol change
+        id: change_class
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          full=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            full=false
+            count=0
+            while IFS= read -r -d '' changed; do
+              count=$((count + 1))
+              case "$changed" in
+                .github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md)
+                  ;;
+                *)
+                  full=true
+                  ;;
+              esac
+            done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA")
+            if [ "$count" -eq 0 ]; then full=true; fi
+          fi
+          echo "full_windows_required=$full" >> "$GITHUB_OUTPUT"
+          echo "KODJO_CI_CLASSIFICATION_FULL_WINDOWS=$full"
       - name: Qualify authenticated private HEAD lookup on Linux
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,10 +102,12 @@ jobs:
           retention-days: 30
 
   protocol-windows-preflight:
+    needs: protocol
+    if: needs.protocol.outputs.full_windows_required == 'true'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     # Le préflight complet inclut npm ci et la suite applicative sous Windows.
     # 20 minutes coupait le job sans verdict lors des passages réels chargés.
-    timeout-minutes: 45
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
