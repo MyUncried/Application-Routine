@@ -1297,3 +1297,14 @@ Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnap
 L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Activité, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
 
 La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les trois modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.\n
+
+### Icônes vectorielles de sélection multiple
+
+Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg` :
+
+| Usage | Composant Figma | ID / clé | Tokens liés |
+|---|---|---|---|
+| Recherche dans le panneau | `Icon / Search` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
+| Activité sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
+
+Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.

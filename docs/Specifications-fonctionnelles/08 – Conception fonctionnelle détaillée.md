@@ -1210,4 +1210,4 @@ Depuis la Composition, `Une activité existante` ouvre une sélection modale san
 - la Composition, sa position de défilement et ses valeurs déjà saisies sont restaurées après fermeture ;
 - le détail visuel et les cibles sont normés par `CE-COMP-SEL-01`.
 
-L’ordre d’insertion des Activités sélectionnées reste `À CLARIFIER` entre ordre de sélection et ordre affiché dans la liste. Il ne doit pas être choisi implicitement pendant le développement.
+Lors de la validation, les Activités sélectionnées sont insérées dans la Composition selon leur ordre courant de présentation dans la liste filtrée. L’ordre des touchers de sélection n’a aucun effet sur l’ordre d’insertion. Si le filtre ou le tri change avant la validation, l’ordre visible au moment de l’appui sur `Ajouter N activités` fait foi.

@@ -375,3 +375,7 @@ En V2, une Activité persistante peut être exécutée directement depuis le Cat
 L’Exécution directe commence par une préparation système fixe de `5 s`, qui n’est pas un attribut de l’Activité. Elle exécute ensuite ses Séries, ses Pauses, sa direction bilatérale éventuelle et sa Récupération. Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée.
 
 Le Ressenti reste obligatoire lorsque la Synthèse est présentée, comme pour une Séance, et le Commentaire reste facultatif. L’Exécution est conservée dans le Suivi général avec l’origine `ACTIVITY`, contribue à toutes les statistiques compatibles sans augmenter le nombre de Séances, puis `Terminer` ramène au Catalogue des Activités dans son état précédent.\n
+
+## 14. Sélection multiple d’Activités existantes — décision du 14 septembre 2026
+
+Dans la sélection multiple d’Activités existantes, la validation insère les copies selon leur ordre courant de présentation dans la liste filtrée, sans tenir compte de l’ordre des touchers. La Recherche et l’état sélectionné utilisent des composants vectoriels DSF dédiés ; aucun glyphe texte n’est une ressource d’interface autorisée.

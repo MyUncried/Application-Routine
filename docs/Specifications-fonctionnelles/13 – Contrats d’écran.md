@@ -1226,9 +1226,10 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 |---|---|
 | Frame Figma | `3789:5349` — `Composition d'une séance — Sélectionner plusieurs activités existantes` |
 | Surface | `402 × 874` |
-| Statut visuel | Géométrie validable ; icônes Recherche et Coche encore provisoires dans Figma |
+| Statut visuel | Géométrie et pictogrammes vectoriels DSF validés dans Figma |
+| Capture de référence | `./images/CE-COMP-SEL-01-selection-activites-existantes.png` |
 | Entrée | Action `Une activité existante` depuis l’arbre d’ajout en Composition |
-| Sorties | `Annuler` restaure la Composition inchangée ; `Ajouter N activités` insère la sélection puis restaure la Composition |
+| Sorties | `Annuler` restaure la Composition inchangée ; `Ajouter N activités` insère la sélection dans l’ordre visible puis restaure la Composition |
 
 #### Structure et positionnement
 
@@ -1238,30 +1239,37 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 | Voile modal | `3789:5404` | `x=0`, `y=0`, `402 × 874` | Token de scrim/voile DSF obligatoire. |
 | Panneau | `3789:5405` | `x=0`, `y=116`, `402 × 758` | Ancré au bas ; coins, fond et élévation conformes à la frame. |
 | Titre | `3789:5407` | `x=24`, `y=148`, `354 × 26` | Texte statique exact `Sélectionner les activités`. |
-| Recherche | zone à partir de `y=188`; placeholder `x=68`, `y=200`, largeur `280` | `Rechercher une activité` | Champ filtrant la liste. L’icône est placée à gauche dans une boîte `28 × 28`, mais doit provenir du composant Recherche DSF. |
+| Recherche | instance `3847:5513` du composant `3847:5508` `Icon / Search` | icône `24 × 24`, `x=36`, `y=198`; champ à partir de `y=188` | Champ filtrant la liste. L’icône vectorielle est centrée dans sa zone, utilise `color/icon-neutral` (`VariableID:2290:59`) et la clé de composant `8468835f0e5ce8676ea419e838c19dccddac0d71`. |
 | Liste | première carte `y=246`, puis `342`, `438`, `534`; `x=24`, `354 × 88` | cartes espacées de `8 pt` | Zone défilante entre Recherche et actions fixes. Nom à `x=40`, zones corporelles 24 pt plus bas, synthèse 22 pt plus bas. |
+| Coche sélectionnée | instances `3847:5516` et `3847:5519` du composant `3847:5512` `Icon / Selection Check` | `24 × 24`, `x=334`; `y=274` ou `466` selon la carte | Fond lié à `color/selection` (`VariableID:2290:52`), liseré et coche liés au blanc (`VariableID:2290:5`). Clé de composant `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4`. |
 | Annuler | `3789:5436` | `x=24`, `y=802`, `171 × 48` | Bouton secondaire gris, obligatoire, à gauche. Restaure sans insertion. |
 | Ajouter | `3789:5434` | `x=207`, `y=802`, `171 × 48` | Bouton principal à droite. Libellé dynamique `Ajouter N activité` ou `Ajouter N activités`. Désactivé si `N=0`. |
 | Zone d’actions | bas de l’écran | deux boutons sur une même ligne, intervalle `12 pt` | Fixe au-dessus de l’inset inférieur ; la liste ne passe pas dessous. |
 
-#### Sélection et icône
+#### Sélection, ordre et ressources iconographiques
 
 - chaque carte entière est sélectionnable et expose un état d’accessibilité sélectionné/non sélectionné ;
-- plusieurs cartes peuvent être sélectionnées ; l’ordre d’insertion reste `À CLARIFIER` entre ordre de sélection et ordre affiché, et ne peut pas être choisi implicitement pendant le développement ;
-- la marque visible est centrée dans une boîte `24 × 24` située à droite de la carte (`x=334` sur la référence) ;
-- le rendu final doit reprendre l’esprit d’une coche de sélection/validation, avec fond bleu et liseré blanc conformément à la proposition de conception ;
-- les glyphes texte `✓` des nœuds `3802:5447` et `3802:5462`, ainsi que le glyphe Recherche `⌕` du nœud `3789:5410`, sont des placeholders Figma : ils sont interdits comme assets d’implémentation ;
-- avant développement final, ces pictogrammes doivent être remplacés dans Figma par des composants/icônes vectoriels DSF nommés et exportables. Tant que leurs IDs de composant et tokens d’état ne sont pas disponibles, la ressource exacte reste `À CLARIFIER` et la conformité iconographique ne peut pas être déclarée.
+- plusieurs cartes peuvent être sélectionnées ;
+- à la validation, les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée, indépendamment de l’ordre des touchers ;
+- si le tri ou le filtre change avant validation, l’ordre visible au moment de l’appui sur `Ajouter N activités` fait foi ;
+- la marque visible est centrée dans une boîte `24 × 24` située à droite de la carte ;
+- `Icon / Search` et `Icon / Selection Check` sont les ressources DSF obligatoires ; les anciens nœuds texte `3789:5410`, `3802:5447` et `3802:5462` ont été supprimés ;
+- aucun caractère Unicode, emoji, glyphe de police, icône système ou redessin local ne peut remplacer ces composants.
 
 #### Critères de recette
 
 1. panneau, titre, Recherche, liste et actions respectent la géométrie et les ancrages ci-dessus ;
 2. le fond est visuellement grisé et totalement neutralisé ;
 3. sélection multiple réelle, compte `N` mis à jour et accord singulier/pluriel ;
-4. `Annuler` toujours visible ; ordre horizontal exact : `Annuler` puis `Ajouter N activités` ;
-5. aucun glyphe de texte ou emoji utilisé comme Recherche ou Coche ;
-6. sur `360`, les deux boutons conservent la même ligne si les libellés restent lisibles ; sinon la règle adaptative doit être arbitrée avant implémentation, sans réduction illisible ;
-7. texte agrandi : liste défilable et boutons atteignables, aucun contenu masqué.
+4. la validation produit exactement l’ordre visible de la liste filtrée, même si les cartes ont été touchées dans un autre ordre ;
+5. `Annuler` toujours visible ; ordre horizontal exact : `Annuler` puis `Ajouter N activités` ;
+6. inspection Figma et implémentation : instances des deux composants DSF référencés, aucun glyphe de texte ou emoji ;
+7. sur `360`, les deux boutons conservent la même ligne si les libellés restent lisibles ; sinon la règle adaptative doit être arbitrée avant implémentation, sans réduction illisible ;
+8. texte agrandi : liste défilable et boutons atteignables, aucun contenu masqué.
+
+#### Capture de référence
+
+![Composition d’une séance — Sélectionner plusieurs Activités existantes](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
 
 ## Contrats V2 — Exécution directe d’une Activité
 

@@ -1596,9 +1596,9 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 
 La frame `3789:5349` ouvre un panneau modal au-dessus de la Composition grisée. Elle permet de rechercher et sélectionner plusieurs Activités persistantes. La liste seule défile ; le titre, la Recherche et les deux actions basses restent structurés selon `CE-COMP-SEL-01`.
 
-Les actions sont sur une même ligne, dans l’ordre `Annuler` à gauche puis `Ajouter N activités` à droite. `Annuler` est obligatoire et restaure la Composition sans insertion. La validation insère les Activités sélectionnées puis restaure la Composition.
+Les actions sont sur une même ligne, dans l’ordre `Annuler` à gauche puis `Ajouter N activités` à droite. `Annuler` est obligatoire et restaure la Composition sans insertion. À la validation, les Activités sélectionnées sont insérées selon leur ordre courant de présentation dans la liste filtrée, indépendamment de l’ordre des touchers, puis la Composition est restaurée.
 
-Les glyphes `⌕` et `✓` encore visibles dans la frame sont des placeholders de conception. Ils ne constituent pas des ressources autorisées : les composants vectoriels DSF Recherche et Coche doivent être finalisés dans Figma avant l’implémentation conforme. La géométrie, les zones tactiles et les critères adaptatifs sont définis par le contrat `CE-COMP-SEL-01` du chapitre 13.
+La Recherche utilise l’instance vectorielle DSF `Icon / Search` et chaque état sélectionné l’instance `Icon / Selection Check`. Les glyphes de texte, emojis et pictogrammes de substitution sont interdits. Les composants, leurs tokens, la géométrie, les zones tactiles et les critères adaptatifs sont définis par `CE-COMP-SEL-01` au chapitre 13.
 
 ## Écrans V2 — Exécution directe d’une Activité
 

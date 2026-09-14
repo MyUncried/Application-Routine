@@ -168,3 +168,7 @@ Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34
 ## Mise à jour visuelle — Cartes du Catalogue des Activités
 
 Les cartes du Catalogue des Activités séparent désormais l’ouverture en consultation/modification, obtenue par appui sur la carte, et l’Exécution directe, déclenchée uniquement par le bouton Lecture. Le contrôle `Déployer` n’est pas affiché dans cet état. Sa réintroduction éventuelle pour afficher les médias relève de la V2. Les captures de référence ont été réalignées sur Figma.
+
+## Mise à jour — Sélection multiple et icônes vectorielles
+
+Le contrat `CE-COMP-SEL-01` et sa capture `CE-COMP-SEL-01-selection-activites-existantes.png` définissent l’écran de sélection multiple. Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée. Les pictogrammes Recherche et Coche sont les composants vectoriels DSF `Icon / Search` et `Icon / Selection Check` ; les anciens glyphes texte ne sont plus des références autorisées.
