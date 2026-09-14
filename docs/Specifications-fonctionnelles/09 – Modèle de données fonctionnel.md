@@ -955,7 +955,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 ### Cohérence des relations
 
-- Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies `Dans Tour` appartiennent au Tour pour l’exécution structurelle. Une `ActivityDefinition` V2 reste autonome.
+- Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies `Dans Tour` appartiennent au Tour pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
