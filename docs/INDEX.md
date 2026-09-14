@@ -147,28 +147,43 @@ Les points explicitement identifiés dans le chapitre 12 comme spikes, validatio
 
 Toute modification fonctionnelle ultérieure doit être traitée comme une évolution explicite de cette baseline et répercutée conformément à la section 7.
 
-## 9. État de référence après décisions Activités, Médias et Circuits
+## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La mise à jour du 6 septembre 2026 étend transversalement les chapitres 00 à 13 : troisième mode `À l’échec` dans le MVP ; contrôle de Catalogue `Activités / Séances / Circuits` avec seule la vue Séances active dans le MVP ; bibliothèque d’Activités, médias multiples et Circuits en V2 ; planification des Circuits en V3. Les captures Catalogue et Activité ont été réexportées depuis les frames Figma courantes. La capture `creation-activite-a-l-echec.png` complète la couverture existante.
+La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les contrats T01 à T03, les matrices historiques et les rapports de conformité associés conservent la traçabilité de ces décisions.
 
-## 10. État de référence après unification de l’Activité
+## 10. Extension V2 — Catalogue des Activités
 
-La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupération` et introduit une durée de Récupération facultative attachée à toute Activité. La Pause reste distincte. Pour `C` Séries, elle apparaît `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. La mise à jour Bilatéralité du 10 septembre 2026 ajoute les états techniques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` aux Activités et aux Tours. Avec `L = 1` en unilatéral et `L = 2` en bilatéral, une Activité autonome en mode Durée suit `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` lorsque `R = 0`, sinon `C − 1` : ses Séries sont exécutées par côté, sans Pause ajoutée spécifiquement entre les côtés, puis sa Récupération une seule fois lorsqu’elle est positive. Un Tour bilatéral exécute toutes ses Activités pour le premier côté puis pour le second à chaque répétition. À son activation, seuls les réglages propres bilatéraux existants sont remis à `UNILATERAL`, après confirmation conditionnelle ; sous le Tour, tous les contrôles Activité sont propres `UNILATERAL`, désactivés et remplacés à l’Exécution par la direction du Tour. T03 est révisée pour exécuter ces plans bilatéraux, conserver des résultats séparés par côté et afficher uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité.
+Le Catalogue multi-type présente `Activités / Séances / Circuits`. Le MVP conserve seule la destination Séances active ; l’extension V2 active le Catalogue des Activités persistantes, leur création et modification, leur insertion dans une Composition et leur Exécution directe.
 
-## 11. Livrables de traçabilité
+Le sujet est intégré dans les documents de référence et ne doit plus être lu comme une annexe isolée :
 
+- 01 — vision et périmètre ;
+- 02 — besoins ;
+- 03 — parcours utilisateur ;
+- 04 — modèle fonctionnel ;
+- 05 — versions du produit ;
+- 06 — écrans, navigation et captures en contexte ;
+- 07 — décisions ;
+- 08 — cycle de vie détaillé ;
+- 09 — modèle de données ;
+- 10 — règles métier ;
+- 11 — API fonctionnelles ;
+- 12 — architecture ;
+- 13 — contrats d’écran et matrice de traçabilité ;
+- `PRODUCT.md` — synthèse produit.
+
+L’Exécution directe utilise une préparation fixe de `5 s`, le moteur multi-origine `SESSION | ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme `Activité`, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans son état précédent.
+
+Les cartes du Catalogue des Activités séparent l’ouverture en consultation ou modification de l’action d’Exécution directe. Elles n’affichent ni contrôle `Déployer` ni poignée de déplacement. La réintroduction éventuelle d’un déploiement pour les médias reste une évolution distincte.
+
+La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Les pictogrammes sont des composants vectoriels DSF, notamment `Icon / Search` et `Icon / Selection Check` ; les glyphes texte ne sont pas des références autorisées.
+
+Le Circuit demeure un sujet V2 conceptualisé dont le contrat détaillé doit être finalisé avant développement. Les médias multiples restent également post-MVP.
+
+## 11. Matrices et rapports de traçabilité
+
+- [Matrice transverse — Catalogue des Activités](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#matrice-de-traçabilité-transverse--catalogue-des-activités)
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
 - [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
-
-## Évolution V2 — Exécution directe d’une Activité
-
-Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34795ab64fc9c91231a81f4`. Les chapitres 00 à 13 et `PRODUCT.md` propagent l’origine d’Exécution `ACTIVITY`, la préparation fixe de `5 s`, l’absence de `SESSION_END`, la Synthèse à Ressenti obligatoire, le Suivi général, les statistiques compatibles et le retour au Catalogue des Activités.
-## Mise à jour visuelle — Cartes du Catalogue des Activités
-
-Les cartes du Catalogue des Activités séparent désormais l’ouverture en consultation/modification, obtenue par appui sur la carte, et l’Exécution directe, déclenchée uniquement par le bouton Lecture. Le contrôle `Déployer` n’est pas affiché dans cet état. Sa réintroduction éventuelle pour afficher les médias relève de la V2. Les captures de référence ont été réalignées sur Figma.
-
-## Mise à jour — Sélection multiple et icônes vectorielles
-
-Le contrat `CE-COMP-SEL-01` et sa capture `CE-COMP-SEL-01-selection-activites-existantes.png` définissent l’écran de sélection multiple. Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée. Les pictogrammes Recherche et Coche sont les composants vectoriels DSF `Icon / Search` et `Icon / Selection Check` ; les anciens glyphes texte ne sont plus des références autorisées.

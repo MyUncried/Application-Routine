@@ -1301,6 +1301,8 @@ Règles bloquantes communes :
 
 #### Shell, contexte et liste — `CE-ACT-EXE-01a`
 
+![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
+
 | Élément | Nœud/composant Figma | Référence `402 × 874` | Règle obligatoire |
 |---|---|---|---|
 | Shell | instance `3786:5094`, composant `2718:37` `Context=On,Bottom=Navigation` | `0,0`, `402 × 874` | Le Header, le Context et la navigation basse restent fixes ; seule la liste défile. |
@@ -1327,6 +1329,10 @@ La réintroduction d’un contrôle destiné aux médias relève d’une évolut
 
 #### Arbre d’actions — `CE-ACT-EXE-01b` et `01d`
 
+![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
+
+![Catalogue des Séances — Création — Arbre d’actions](./images/catalogue-seances-creer-arbre-actions.png)
+
 L’arbre est identique sur le Catalogue des Activités et sur le Catalogue des Séances. Seul le contenu d’arrière-plan change. Le fond reste visible mais est neutralisé par un voile modal couvrant `402 × 874`.
 
 | Élément | Référence | Règle |
@@ -1342,9 +1348,13 @@ Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF valid�
 
 #### Action contextuelle — `CE-ACT-EXE-01c`
 
+![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+
 La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les cartes et la navigation de `01a`. L’action contextuelle directe se superpose à la carte ciblée sans déplacer la liste. Le fond et les autres cibles non concernées suivent l’état modal représenté dans Figma. Le libellé, l’icône, la position, le rayon, les couleurs et l’ombre proviennent de cette frame ; aucune action supplémentaire ne doit être déduite.
 
 ### CE-ACT-EXE-02 — Préparation fixe de 5 s
+
+![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
 
 | Élément | Nœud/composant Figma | Référence `402 × 874` | Règle |
 |---|---|---|---|
@@ -1361,6 +1371,8 @@ La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les
 
 ### CE-ACT-EXE-03 — Exécution en cours
 
+![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
+
 | Élément | Référence `402 × 874` | Règle |
 |---|---|---|
 | Header | composant `2581:2704` `Mode=Execution,Back=Off`, `402 × 95` | Titre = nom de l’Activité. Bips et annonces conservent les composants DSF du contrat précédent. |
@@ -1376,6 +1388,14 @@ La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les
 Après la dernière phase, l’application signale la fin, ne crée pas de phase `SESSION_END`, puis ouvre immédiatement `CE-ACT-EXE-04`.
 
 ### CE-ACT-EXE-04 et CE-ACT-EXE-05 — Synthèse et Ressenti obligatoire
+
+**Ressenti requis**
+
+![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
+
+**Ressenti sélectionné**
+
+![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
 
 Les deux frames ont la même géométrie. Seuls l’état du Ressenti et celui de `Terminer` changent.
 
@@ -1413,47 +1433,33 @@ Sur hauteur réduite ou texte agrandi, le contenu entre le Header et `Terminer` 
 9. Ressenti obligatoire pour activer `Terminer`; commentaire facultatif.
 10. Enregistrement dans le Suivi général comme `Activité`, statistiques compatibles sans compter une Séance, puis restauration de l’état précédent du Catalogue.
 
-## Captures de référence — Exécution directe d’une Activité
+## Matrice de traçabilité transverse — Catalogue des Activités
 
-Ces captures matérialisent les états Figma associés aux contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`. Elles constituent des références visuelles ; les comportements et règles restent définis par les contrats et les spécifications fonctionnelles.
+Cette matrice est la preuve de propagation minimale. Une ligne ne peut être déclarée `Intégrée` que si les références fonctionnelles, UI et techniques indiquées sont simultanément cohérentes.
 
-### CE-ACT-EXE-01 — Catalogue des Activités
+| ID | Capacité | Décisions | Vision et parcours | Modèle / données | Écrans et conception | Métier / API / architecture | Figma, contrat et capture | Statut |
+|---|---|---|---|---|---|---|---|---|
+| CAT-ACT-01 | Catalogue multi-type | D-108 à D-110 | 01 Cible fonctionnelle ; 03 Accéder au Catalogue | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 12 ; 08 §2 bis.1 | 10 règles Catalogue ; 11 §11.13 API Activités, Médias et Circuits ; 12 Shell Catalogue | `3786:5093` ; `CE-ACT-EXE-01a` ; `CE-ACT-EXE-01a-catalogue-activites-liste.png` | Intégrée |
+| CAT-ACT-02 | Créer depuis le Catalogue | D-164 et contrats Figma | 03 Créer un contenu depuis le Catalogue | 04 racines Activité, Séance, Circuit ; 09 modèles correspondants | 06 Écran 13 ; 08 §2 bis.2 et §2 bis.7 | 10 validations propres à chaque contenu ; 11 services dédiés ; 12 overlay DSF | `3787:5148`, `3841:8375` ; `CE-ACT-EXE-01b/01d` ; deux captures d’arbre | Intégrée |
+| CAT-ACT-03 | Créer ou modifier une Activité persistante | D-105, D-134 à D-139 | 03 Utiliser une Activité de référence | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 15 et Écran 4 ; 08 §2 bis.2 | 10 règles Activité ; 11 §11.13 opérations sur l’Activité persistante ; 12 composants éditeur | `CE-T01-13` à `CE-T01-16`, contexte Catalogue V2 | Intégrée |
+| CAT-ACT-04 | Ajouter une Activité dans une Séance | D-147, D-165 | 03 Ajouter depuis une Composition et sélection multiple | 04 copie indépendante ; 09 ordre de Composition | 06 Écran 14 ; 08 §2 bis.3 | RM-163 ; API-COMP-SEL-01 à 03 ; architecture sans nouveau stockage | `3789:5349` ; `CE-COMP-SEL-01` ; `CE-COMP-SEL-01-selection-activites-existantes.png` | Intégrée |
+| CAT-ACT-05 | Icônes Recherche et Sélection | D-165 | 03 sélection multiple | Sans impact métier ou données | 06 Écran 14 ; 08 §2 bis.3 | 12 `Icon / Search`, `Icon / Selection Check` et tokens liés | composants `3847:5508`, `3847:5512` ; `CE-COMP-SEL-01` | Intégrée |
+| CAT-ACT-06 | Exécuter directement une Activité | D-157 à D-163 | 01 Bibliothèque ; 03 Exécuter directement | 04 Exécution `ACTIVITY` ; 09 instantané autonome | 06 Écrans 16 à 18 ; 08 §2 bis.4 | RM-096 à RM-103 ; API-ACT-EXE-01 à 05 ; moteur multi-origine | `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` ; `CE-ACT-EXE-02` à 05 et captures associées | Intégrée |
+| CAT-ACT-07 | Carte du Catalogue des Activités | D-164 | 03 Accéder au Catalogue | Sans impact de structure | 06 Écran 12 ; 08 §2 bis.1 | Accessibilité et cibles séparées au chapitre 12 | `3786:5093` ; `CE-ACT-EXE-01a` | Intégrée |
+| CAT-ACT-08 | Médias sur une Activité | D-138 et D-164 | 01 Bibliothèque V2 | 04 associations `0..n` ; 09 Média | 06 Écrans 12/15 ; 08 §2 bis.5 | 11 `API-MED-01..05` ; 12 composants Média | Bouton désactivé MVP ; déploiement Catalogue à détailler | Partiel — évolution V2 distincte |
+| CAT-ACT-09 | Créer et exécuter un Circuit | D-124 à D-133 | 01 Circuits ; 03 Circuit V2 | 04 Circuit ; 09 Circuit/Étape | 06 Écran 13 pour l’entrée `Un circuit`, écran de formulaire À CLARIFIER ; 08 §2 bis.7 | 10/11/12 contrats Circuit existants | Contrat fonctionnel futur du chapitre 13 ; formulaire détaillé non finalisé | À compléter avant développement |
 
-**Liste**
+## Revue transverse de cohérence
 
-![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
+La revue indépendante de clôture contrôle les chapitres 00 à 13, `PRODUCT.md`, `INDEX.md` et les captures référencées. Résultat :
 
-**Création — Arbre d’actions**
+- le Catalogue des Activités est intégré dans la vision, les besoins, les parcours, le modèle, les écrans, la conception détaillée, les données, les règles, les API, l’architecture et les contrats ;
+- l’Exécution est unifiée autour des origines `SESSION | ACTIVITY` ; aucune Séance artificielle n’est créée pour une Activité directe ;
+- les cartes, l’arbre de création, la sélection multiple, la préparation de `5 s`, l’Exécution, la Synthèse et le retour au Catalogue sont reliés à leurs contrats et captures ;
+- les neuf captures référencées par ce périmètre existent sous leur nom Unicode exact ;
+- aucune séquence d’échappement parasite, aucun nom Unicode altéré, aucun service fictif et aucune ancienne annexe concurrente ne sont conservés ;
+- les sujets non clos restent explicitement marqués : déploiement des médias et formulaire détaillé du Circuit.
 
-![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
+## Règle de maintenance de la matrice
 
-**Action contextuelle directe**
-
-![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
-
-### CE-ACT-EXE-02 — Préparation fixe de 5 s
-
-![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
-
-### CE-ACT-EXE-03 — Exécution en cours
-
-![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
-
-### CE-ACT-EXE-04 — Synthèse avec Ressenti requis
-
-![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
-
-### CE-ACT-EXE-05 — Synthèse avec Ressenti sélectionné
-
-![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
-### Révision du Catalogue des Activités — D-164
-
-Pour les frames `3786:5093`, `3787:5148` et `3787:5209` :
-
-- la surface de carte ouvre l’Activité en consultation ou modification ;
-- le bouton Lecture déclenche uniquement l’Exécution directe ;
-- aucun contrôle `Déployer` ni icône de déplacement n’est visible ;
-- chaque carte porte une barre verticale bleue ;
-- les informations de la première carte commencent au même axe horizontal que celles des autres cartes.
-
-Le frame `3841:8375` affiche l’arbre d’actions de création au-dessus du Catalogue des Séances grisé. La réintroduction d’un contrôle destiné à afficher les médias est hors de ce contrat courant et reste une évolution V2 à détailler.
+Toute évolution du Catalogue des Activités doit mettre à jour la ligne concernée et contrôler les huit colonnes de propagation. Un détail exclusivement graphique ne modifie pas le modèle ou les règles métier ; une navigation, une interaction, une terminologie, un état utilisateur ou une règle de périmètre doit en revanche être propagé dans toutes les sources concernées.

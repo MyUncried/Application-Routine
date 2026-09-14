@@ -31,8 +31,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Un Tour contient une suite ordonnée d'activités.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
 - Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
-- Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
-- Chaque exécution conserve un **instantané fonctionnel** immuable et allégé de la séance utilisée.
+- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance dans le MVP, ou une Activité persistante en V2.
+- Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
 
@@ -52,7 +52,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
 | Catégorie | Classement des séances | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
-| Exécution de séance | Réalisation effective d'une séance | Principale |
+| Exécution | Réalisation effective d’une source `SESSION` ou `ACTIVITY` | Principale |
 | Préférences globales | Paramètres généraux | Configuration |
 
 ## Décisions structurantes du modèle
@@ -98,9 +98,10 @@ UTILISATEUR
 ├── possède 0..n ROUTINES
 │       └── planifie 1 SÉANCE
 │
-├── possède 0..n EXÉCUTIONS DE SÉANCE
-│       ├── référence 1 SÉANCE
-│       ├── contient 1 INSTANTANÉ DE SÉANCE
+├── possède 0..n EXÉCUTIONS
+│       ├── possède 1 ORIGINE `SESSION` ou `ACTIVITY`
+│       ├── référence 0..1 SÉANCE ou 0..1 ACTIVITÉ PERSISTANTE
+│       ├── contient 1 INSTANTANÉ DE SOURCE
 │       └── contient 1 ÉTAT D'EXÉCUTION
 │
 ├── possède 0..n CATÉGORIES
@@ -590,22 +591,23 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 - Retirer un média d’une Activité supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucune Activité ni aucun instantané ne le référence.
 
 
-# 09.7 Entité Exécution de séance
+# 09.7 Entité Exécution
 
 ## Définition
 
-Une **Exécution de séance** représente la réalisation effective d'une séance.
+Une **Exécution** représente la réalisation effective d’une source exécutable. Son origine vaut `SESSION` dans le MVP et peut valoir `ACTIVITY` pour une Activité lancée depuis le Catalogue des Activités en V2.
 
-Elle est créée uniquement au démarrage d'une séance et reste indépendante des modifications ultérieures de la séance ou de sa routine.
+Elle est créée uniquement au démarrage et reste indépendante des modifications ou de la suppression ultérieures de sa source.
 
 ## Périmètre
 
-Une exécution possède directement :
+Une Exécution possède directement :
 
-- la séance exécutée ;
-- la routine ayant éventuellement déclenché l'exécution ;
-- un instantané de séance ;
-- un état d'exécution ;
+- une origine immuable `SESSION` ou `ACTIVITY` ;
+- la référence facultative à la source persistante ;
+- la Routine éventuelle, uniquement pour une origine `SESSION` ;
+- un instantané immuable de la source ;
+- un état d’Exécution ;
 - ses informations de début et de fin.
 
 ## Attributs fonctionnels
@@ -613,9 +615,10 @@ Une exécution possède directement :
 | Attribut | Description | Caractère | Règle principale |
 | --- | --- | :---: | --- |
 | Identifiant | Identifiant unique | Obligatoire | Créé au démarrage |
-| Séance | Séance exécutée | Obligatoire | Référence unique |
-| Routine | Routine d'origine | Facultatif | Peut être absente |
-| Instantané de séance | Copie figée de la séance | Obligatoire | Créé automatiquement |
+| Origine | Type de source | Obligatoire | `SESSION` ou `ACTIVITY`, immuable |
+| Source persistante | Séance ou Activité de référence | Facultatif | Une seule selon l’origine ; peut devenir absente après suppression de la source |
+| Routine | Routine d'origine | Facultatif | Autorisée uniquement pour `SESSION` |
+| Instantané de source | Copie figée de la Séance ou de l’Activité | Obligatoire | Créé automatiquement |
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
@@ -629,9 +632,9 @@ Une exécution possède directement :
 
 ## Structures internes
 
-### Instantané de séance
+### Instantané de source
 
-L’Instantané de séance est une copie figée et allégée de la définition fonctionnelle de la Séance au moment du démarrage de l’Exécution.
+L’Instantané de source est une copie figée et allégée de la Séance ou de l’Activité persistante au moment du démarrage de l’Exécution.
 
 Il contient uniquement les informations nécessaires pour :
 - reconstruire l’ordre et le contenu de la Séance exécutée ;
@@ -677,7 +680,7 @@ Contient notamment :
 - Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
-- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
+- Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir l’action de reprise ou l’action d’arrêt adaptée à son origine. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. L’arrêt clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
 
 # 09.14 Extension du modèle — Activités, Médias et Circuits
@@ -1057,13 +1060,13 @@ Création → Modification → Suppression
 - Une routine est créée à partir d'une séance existante.
 - La suppression d'une routine ne supprime jamais la séance ni les exécutions.
 
-## Cycle de vie d'une exécution de séance
+## Cycle de vie d’une Exécution
 
 Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Interrompue → Historique
 
 ### Règles métier
 
-- Une exécution est créée au démarrage effectif d'une séance.
+- Une Exécution est créée au démarrage effectif d’une Séance ou, en V2, d’une Activité persistante depuis le Catalogue des Activités.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T03, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
@@ -1078,7 +1081,9 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 | `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
 | `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Activité, le Tour et la Série. |
 
-La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. Au passage d’un Tour de `UNILATERAL` à un mode bilatéral, le domaine recherche les Activités propres bilatérales. Si aucune n’existe, la direction est appliquée directement. Sinon, après confirmation, l’application de la direction et la remise des seules Activités concernées à `UNILATERAL` s’effectuent dans une transaction unique. `Annuler` ne produit aucune écriture. Aucun état antérieur n’est conservé.\n\n## Extension V2 — origine et instantané d’Exécution
+La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. Au passage d’un Tour de `UNILATERAL` à un mode bilatéral, le domaine recherche les Activités propres bilatérales. Si aucune n’existe, la direction est appliquée directement. Sinon, après confirmation, l’application de la direction et la remise des seules Activités concernées à `UNILATERAL` s’effectuent dans une transaction unique. `Annuler` ne produit aucune écriture. Aucun état antérieur n’est conservé.
+
+## Extension V2 — origine et instantané d’Exécution
 
 | Donnée | Valeurs / règle |
 |---|---|
@@ -1089,4 +1094,5 @@ La migration ajoute les champs avec `UNILATERAL` pour toutes les données antér
 | `Execution.preparationDurationSeconds` | `5` pour `ACTIVITY` ; valeur issue de la Séance pour `SESSION`. |
 | `Execution.completedSeriesCount` | Agrégat compatible avec une Activité directe. |
 
-Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.\n
+Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.
+

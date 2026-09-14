@@ -185,6 +185,21 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Configurer une Activité ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.\n\n## 6. Besoins liés à l’exécution directe — V2
+- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
 
-L’utilisateur doit pouvoir lancer une Activité persistante depuis sa carte, disposer de `5 s` pour se préparer, être guidé selon tous ses paramètres, renseigner le Ressenti obligatoire dans la Synthèse, retrouver l’Exécution dans le Suivi général sous le type Activité et revenir au Catalogue dans l’état où il l’avait quitté. Les résultats alimentent les indicateurs compatibles sans compter une Séance.\n
+## 6. Besoins liés à l’exécution directe — V2
+
+L’utilisateur doit pouvoir :
+
+- ouvrir le Catalogue des Activités depuis le sélecteur de type ;
+- créer, consulter et modifier une Activité persistante ;
+- distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
+- ouvrir l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` depuis `Créer` ;
+- depuis une Composition, choisir entre une nouvelle Activité, une ou plusieurs Activités existantes et l’annulation ;
+- lancer une Activité persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
+- renseigner le Ressenti obligatoire dans la Synthèse ;
+- retrouver l’Exécution dans le Suivi général sous le type Activité ;
+- revenir au Catalogue avec recherche, filtres et position restaurés.
+
+Les résultats alimentent les indicateurs compatibles sans compter une Séance.
+

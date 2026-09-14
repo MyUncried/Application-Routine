@@ -93,6 +93,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | Terme | Définition |
 | --- | --- |
 | **Catalogue des séances** | Écran d’accueil après le splash. Il présente les Séances actives, planifiées ou archivées selon la vue sélectionnée. |
+| **Catalogue des Activités** | Destination V2 du Catalogue multi-type. Elle liste les Activités persistantes, permet de les créer, consulter, modifier, sélectionner pour une Séance ou exécuter directement. |
 | **Toutes** | Vue du Catalogue affichant les Séances non archivées. |
 | **Planifiées** | Vue du Catalogue affichant les Séances possédant au moins une Routine. |
 | **Archivées** | Vue du Catalogue dans laquelle une Séance peut être restaurée ou supprimée définitivement après confirmation. |
@@ -134,7 +135,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` désignent désormais des valeurs du filtre de Catalogue, jamais les segments de sélection du type de contenu.
 
-## Bilatéralité
+## 10. Bilatéralité
 
 | Terme | Définition canonique |
 |---|---|
@@ -142,10 +143,13 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Il provient du Tour lorsqu’il est bilatéral ; sinon de l’Activité. Une Activité n’est jamais doublée simultanément par les deux niveaux. |
 | **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Activité par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée entre les côtés ; la Récupération intervient une fois après le second côté. |
-| **Tour bilatéral** | À chaque répétition du Tour, toutes ses Activités sont exécutées pour le premier côté, puis toutes pour le second. Le Tour impose la direction effective à toutes ses Activités, sans notion d’Activité « latéralisable ». |\n\n## 8. Concepts d’exécution directe — V2
+| **Tour bilatéral** | À chaque répétition du Tour, toutes ses Activités sont exécutées pour le premier côté, puis toutes pour le second. Le Tour impose la direction effective à toutes ses Activités, sans notion d’Activité « latéralisable ». |
+
+## 11. Concepts d’exécution directe — V2
 
 | Terme | Définition |
 |---|---|
 | **Origine d’Exécution** | Nature du contenu ayant produit l’Exécution : `SESSION` ou `ACTIVITY`. |
 | **Exécution directe d’Activité** | Exécution d’une Activité persistante depuis le Catalogue, sans création de Séance artificielle. |
-| **Préparation directe** | Phase système fixe de `5 s` précédant une Exécution d’origine `ACTIVITY` ; elle n’appartient pas à la définition de l’Activité. |\n
+| **Préparation directe** | Phase système fixe de `5 s` précédant une Exécution d’origine `ACTIVITY` ; elle n’appartient pas à la définition de l’Activité. |
+

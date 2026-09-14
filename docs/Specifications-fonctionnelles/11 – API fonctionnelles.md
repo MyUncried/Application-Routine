@@ -251,7 +251,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
 - Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Activité.
 
-## 11.13 API Activités, Médias et Circuits
+## 11.13 API du Catalogue des Activités, des Médias et des Circuits
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
@@ -277,7 +277,9 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
 | `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
-| `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |\n\n## API 11.10 — Exécution directe d’une Activité V2
+| `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |
+
+## 11.14 Exécution directe d’une Activité — V2
 
 | ID | Service | Entrée | Sortie | Règles |
 |---|---|---|---|---|
@@ -287,9 +289,10 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | API-ACT-EXE-04 | Finaliser la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée | Ressenti obligatoire si Synthèse présentée ; statistiques compatibles mises à jour. |
 | API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Recherche, filtres et position restaurés. |
 
-Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.\n
+Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.
 
-## 11.14 Sélection multiple d’Activités existantes — V2
+
+## 11.15 Sélection multiple d’Activités existantes — V2
 
 `CompositionService` reçoit les identifiants sélectionnés dans l’ordre courant de présentation produit par la liste filtrée au moment de la validation. Il crée une copie indépendante de chaque `ActivityDefinition` dans cet ordre, en une seule opération de composition. L’ordre temporel des touchers ne fait pas partie du contrat et ne doit pas être persisté.
 

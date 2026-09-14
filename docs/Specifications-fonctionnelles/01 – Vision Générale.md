@@ -116,12 +116,22 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ## Cible fonctionnelle confirmée
 
-Le MVP reste centré sur les Séances, tout en intégrant le mode d’Exercice `À l’échec`. Le sélecteur du Catalogue annonce l’architecture future `Activités / Séances / Circuits`, mais seules les Séances sont actives dans le MVP.
+### Catalogue multi-type
 
-La V2 apporte une bibliothèque d’Activités persistantes réutilisables par copie, des médias multiples ordonnés et des Circuits persistants exécutables manuellement. La V3 étend la planification aux Circuits. Cette trajectoire préserve l’autonomie des copies de Séance et l’immutabilité de l’historique.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, seule la vue `Séances` est active ; les deux autres types sont visibles mais désactivés. En V2, les vues Activités et Circuits deviennent fonctionnelles sans créer de navigation principale supplémentaire.
+
+### Bibliothèque et Catalogue des Activités — V2
+
+La V2 apporte une bibliothèque d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+
+Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement la bibliothèque. Les médias multiples ordonnés appartiennent également à la V2, mais leur affichage par déploiement de carte reste une évolution distincte à détailler.
+
+L’Exécution directe réutilise le moteur commun avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
+
+### Circuits — V2 et V3
+
+La V2 permet de créer et d’exécuter manuellement des Circuits persistants composés de Séances ordonnées. Leur planification appartient à la V3.
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.\n\n## Vision de l’exécution directe — V2
-
-Le Catalogue des Activités permet de lancer une Activité persistante sans construire une Séance. Cette voie légère réutilise le moteur commun, conserve un instantané autonome et distingue son origine dans le Suivi et les statistiques. Elle ne crée jamais de Séance implicite.\n
+La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
