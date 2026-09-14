@@ -299,7 +299,7 @@ L’Activité possède deux formes distinctes : la **référence autonome** de V
 
 Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-La nouvelle structure est exécutée par T03, y compris les Séries multiples, les Tours multiples et les passages bilatéraux décrits dans le Plan d’Exécution.
+La nouvelle structure est exécutée par T04, y compris les Séries multiples, les Tours multiples et les passages bilatéraux décrits dans le Plan d’Exécution.
 
 Le Média est un actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations peuvent référencer le même fichier sans duplication physique. Une suppression d’association ou de référence ne supprime le fichier que lorsqu’aucune entité ni aucun instantané ne le référence.
 
