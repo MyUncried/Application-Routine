@@ -7,7 +7,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | ID | Décision consolidée | Évidence principale | Statut |
 |---|---|---|---|
 | BIL-001 | États `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` | 00, 04, 09, 12 | CONFORME |
-| BIL-002 | Libellés courts absent, `D→G`, `G→D` | 00, 06, 13 ; Figma `3706:5020` | CONFORME |
+| BIL-002 | États courts : Activité unilatérale sans texte, Tour unilatéral `–`, bilatéral `D→G` ou `G→D` | 00, 06, 13 ; géométrie Figma `3705:5021`, `3706:5020` | CONFORME — tiret décidé après contrôle Figma |
 | BIL-003 | Libellés accessibles développés | 00, 08, 13 | CONFORME |
 | BIL-004 | Cycle U → D→G → G→D → U | 03, 08, 10, 13 | CONFORME |
 | BIL-005 | État initial et migration `UNILATERAL` | 04, 09, 10, 12 | CONFORME |
@@ -68,12 +68,12 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-060 | T03 explicitement révisée | INDEX, 04–07, 10, 13 | CONFORME |
 
 | BIL-061 | Contrôle Tour : parent, ligne, `x=311`, `42 × 34 pt`, espace `8 pt`, alignements | 06, D-152, 12, CE-T02-01/CE-BIL-02 ; Figma `3705:5021`, `2028:11743` | CONFORME |
-| BIL-062 | Tour : aucun titre ; états vide, `D→G`, `G→D` et accessibilité | 06, D-143/D-152, CE-BIL-02 ; Figma `2028:11700`, `3722:5061`, `3722:5207` | CONFORME |
+| BIL-062 | Tour : aucun titre ; états `–`, `D→G`, `G→D`, affichage intégral et accessibilité | 06, D-143/D-152, CE-BIL-02 ; géométrie Figma `2028:11700`, `3705:5021`, `3722:5061`, `3722:5207` | CONFORME — tiret supersède l’état Figma vide |
 | BIL-063 | Application directe si Tour vide ou Activités toutes propres `UNILATERAL` | PRODUCT, 02–04, 06–11, 13 ; D-146 | CONFORME |
 | BIL-064 | Confirmation atomique limitée aux Activités propres bilatérales ; annulation sans mutation | 03, 04, D-146, 09–11, CE-BIL-02 | CONFORME |
-| BIL-065 | Carte : direction propre à `x=311`, `y=24,5`, `42 × 20 pt`; absence en unilatéral/héritage | PRODUCT, 00, 06–08, 10, CE-BIL-02A ; Figma `3706:5020`, `2028:11700` | CONFORME |
+| BIL-065 | Carte de Composition : indicateur propre seul à `x=311`, `y=24,5`, `42 × 20 pt`; texte sans direction développée ; absence en unilatéral/héritage | PRODUCT, 00, 06–08, 10, CE-BIL-02A ; Figma `3706:5020`, `2028:11700` | CONFORME |
 | BIL-066 | Contrôle Activité : ligne 2 colonne 1, `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt` | 06–08, 12, CE-T01-13/CE-BIL-01 ; Figma `3704:5021`, `3542:4656` | CONFORME |
-| BIL-067 | Synthèse propre : clause après cible et avant Pause ; absence en unilatéral/héritage | PRODUCT, 06–08, 10, 13 ; Figma `3679:4880`, `3724:5428` | CONFORME |
+| BIL-067 | Synthèse de l’écran Ajouter/Modifier une Activité : clause après cible et avant Pause ; texte de carte de Composition sans cette clause ; absence en unilatéral/héritage | PRODUCT, 06–08, D-154, RM-152, CE-T01-13/CE-BIL-02A ; Figma `3679:4880`, `3724:5428` | CONFORME |
 | BIL-068 | `Durée totale` dans les trois modes ; borne `≥` en Répétitions/À l’échec | PRODUCT, 06–08, 10, 13 ; Figma `3561:4695`, `3561:7673`, `3561:7802` | CONFORME |
 
 ## Contrôle de cohérence final
