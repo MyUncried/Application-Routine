@@ -91,7 +91,7 @@ Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séri
 
 ### Activité de référence et Activité de Séance
 
-En V2, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
+Dans le MVP T03, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
 
 Une **Activité de Séance** est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier et associations média de la référence, puis rompt tout lien d’évolution : modifier ou supprimer la source ne modifie jamais la copie, et inversement. Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de catalogue.
 ## Routine
