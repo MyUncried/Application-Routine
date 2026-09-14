@@ -40,6 +40,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { verifyPlanAtRevision } = require('./lib/plan-impact');
+const { ATTESTATION_SCHEMA } = require('./lib/recovery-migration');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const COMMENT_REF = /^issue_comment:([0-9]+)$/;
@@ -252,6 +253,55 @@ function verify(queueFile, options) {
   }
   checkThumbsUp(api, bootstrap.repository, gateRef[1], gate.user_login);
 
+  // ---- migration de paquet : attestation versionnee et liee --------------
+  // Une reprise sur un HEAD plus recent ne peut pas transformer une racine
+  // documentaire generale en liste blanche. La demande reference un blob
+  // immuable, et ce blob reprend les autorisations deja verifiees ci-dessus.
+  let migrationBlobOid = null;
+  if (queue.recovery_migration !== undefined) {
+    if (String(queue.mode).toUpperCase() !== 'RESUME_DELTA') {
+      fail('RECOVERY_MIGRATION_INITIAL_FORBIDDEN');
+    }
+    const migration = queue.recovery_migration;
+    if (!SHA40.test(String(migration.attestation_blob_oid || ''))) {
+      fail('RECOVERY_MIGRATION_ATTESTATION_BLOB_INVALID');
+    }
+    const atTarget = gitTry([
+      'rev-parse', queue.source_head + ':' + migration.attestation_path,
+    ], cwd);
+    if (!atTarget.ok || atTarget.stdout !== migration.attestation_blob_oid) {
+      fail('RECOVERY_MIGRATION_ATTESTATION_PATH_MISMATCH', migration.attestation_path);
+    }
+    let attestation;
+    try { attestation = JSON.parse(blobContent(migration.attestation_blob_oid, cwd)); }
+    catch (error) { fail('RECOVERY_MIGRATION_ATTESTATION_INVALID', error.message); }
+    if (attestation.schema_version !== ATTESTATION_SCHEMA || attestation.status !== 'CERTIFIED') {
+      fail('RECOVERY_MIGRATION_ATTESTATION_NOT_CERTIFIED');
+    }
+    if (attestation.slice_id !== queue.slice_id ||
+        attestation.baseline_head !== queue.baseline_head ||
+        String(attestation.source_run_id) !== String(queue.retry_of_run_id) ||
+        attestation.session_id !== queue.session_id) {
+      fail('RECOVERY_MIGRATION_PROVENANCE_MISMATCH');
+    }
+    const binding = attestation.authorization_binding || {};
+    if (!binding.authorized_plan ||
+        binding.authorized_plan.plan_path !== plan.plan_path ||
+        binding.authorized_plan.plan_blob_oid !== plan.plan_blob_oid ||
+        !binding.independent_review ||
+        binding.independent_review.review_path !== review.review_path ||
+        binding.independent_review.review_blob_oid !== review.review_blob_oid ||
+        binding.independent_review.reviewed_plan_blob_oid !== review.reviewed_plan_blob_oid ||
+        !binding.user_gate ||
+        binding.user_gate.gate_ref !== gate.gate_ref ||
+        binding.user_gate.gated_reference !== gate.gated_reference ||
+        binding.user_gate.decision !== gate.decision ||
+        binding.user_gate.user_login !== gate.user_login) {
+      fail('RECOVERY_MIGRATION_AUTHORIZATION_BINDING_MISMATCH');
+    }
+    migrationBlobOid = migration.attestation_blob_oid;
+  }
+
   // Ce qui est etabli : la revue produite est bien celle declaree, elle
   // accompagne le plan execute, et elle porte un verdict favorable. Ce qui ne
   // l'est pas : que son auteur soit une autre personne que celle qui a redige le
@@ -265,6 +315,7 @@ function verify(queueFile, options) {
     plan_blob_oid: plan.plan_blob_oid,
     gate_ref: gate.gate_ref,
     review_blob_oid: review.review_blob_oid,
+    recovery_migration_blob_oid: migrationBlobOid,
     evidence_kinds: {
       authorized_plan: plan.evidence_kind,
       independent_review: review.evidence_kind,

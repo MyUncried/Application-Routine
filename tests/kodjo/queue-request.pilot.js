@@ -119,3 +119,13 @@ test('request_id traverse la projection sans alteration', () => {
   assert.equal(actual.result.status, 0, actual.result.stderr);
   assert.equal(actual.output.request_id, id);
 });
+
+test('la référence immuable de migration traverse la projection sans élargissement', () => {
+  const migration = {
+    attestation_path: '.github/orchestration/v2-slices/V2-BILAT-01/recovery-migration.json',
+    attestation_blob_oid: 'd'.repeat(40), evidence_kind: 'ARTIFACT_HASH',
+  };
+  const actual = project(queue({ recovery_migration: migration }));
+  assert.equal(actual.result.status, 0, actual.result.stderr);
+  assert.deepEqual(actual.output.recovery_migration, migration);
+});

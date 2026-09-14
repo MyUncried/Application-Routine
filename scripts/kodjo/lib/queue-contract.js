@@ -196,6 +196,15 @@ const PROPERTIES = {
       ['gate_ref', 'gated_reference', 'decision', 'user_login'], ['ORGANISATIONAL']),
     diagnostic: 'KODJO_QUEUE_USER_GATE_REFUSED',
   },
+  recovery_migration: {
+    nature: 'AUTHORIZATION', required: 'optional', type: 'object',
+    validate: (value, queue) => {
+      if (String(queue.mode).toUpperCase() !== 'RESUME_DELTA') return 'reserve a RESUME_DELTA';
+      return authorizationShape(
+        ['attestation_path', 'attestation_blob_oid'], ['ARTIFACT_HASH'])(value);
+    },
+    diagnostic: 'KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED',
+  },
   retry_of_run_id: {
     nature: 'BEHAVIOUR', required: 'resume_only', type: 'string',
     validate: (v, q) => {
