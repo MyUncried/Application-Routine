@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.31.0**
+- Version du registre : **3.32.0**
 - Date : **2026-09-14**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
@@ -484,3 +484,4 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | 3.29.0 | 2026-09-14 | Ajout d’INC-122/123 et T-097/098 : lecture authentifiée du HEAD privé V2, qualification réelle Linux/Windows et contrôle littéral du diff ; PASS par la PR #115, run #134. |
 | 3.30.0 | 2026-09-14 | Ajout d’INC-124/125 et T-099/100 : preuves de scan assemblées mécaniquement et fermeture itérative bornée des racines V2 ; qualification Linux/Windows par la PR #116, run #138. |
 | 3.31.0 | 2026-09-14 | Ajout d’INC-126/T-101 et INV-028 : la migration d'un paquet non vide est liée à une référence Git certifiée exacte ; reproduction du refus `34851607031` et cas négatifs permanents. |
+| INC-127 | 2026-09-14 | Livraison V2-BILAT-01 / PR #131 | DÉFAUT_CONCEPTION | Revue indépendante d'implémentation | Le run 34872653037 avait livré un HEAD vérifié, mais la chaîne normative exigeait `kodjo-v2-openai.yml / REVIEW_IMPLEMENTATION`, workflow absent ; le mécanisme générique V1 était incompatible | La règle historique rendait toute revue systématique et toute correction soumise à une nouvelle revue, sans distinguer nouvelle tranche et `RESUME_DELTA` | PR #131 HEAD `df38ade5e8737ed8f59a3a7472ebe9b168a85145`, commentaire #5667873133, spécification 0.6.16, absence du workflow V2 annoncé | Addendum 0.6.23 et résolveur déterministe : revue unique pour nouvelle tranche/extension, exemption contrôlée des correctifs dans le même binding et le même périmètre, validation utilisateur sur HEAD exact | Une correction ne peut être exemptée par son seul libellé ; toute preuve absente, nouveau besoin, changement de binding ou sortie de périmètre impose la revue | T-0.6.23 : nouvelle tranche, revue déjà satisfaite, famille RESUME_DELTA exacte, correctifs admis, extension/ref incohérente et preuve absente | NON RETESTÉ — qualification Linux et Windows requise sur la PR protocolaire | Gouvernance V2 | CORRIGÉ SOUS RÉSERVE DE CERTIFICATION | remplace l'obligation répétitive de 0.6.16 pour la seule revue d'implémentation ; revue du PLAN inchangée | Aucun Claude invoqué ; aucune modification applicative ; PR #131 non fusionnée |
