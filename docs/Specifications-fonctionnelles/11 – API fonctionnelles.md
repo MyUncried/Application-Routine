@@ -288,3 +288,13 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Recherche, filtres et position restaurés. |
 
 Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.\n
+
+## 11.14 Sélection multiple d’Activités existantes — V2
+
+`CompositionService` reçoit les identifiants sélectionnés dans l’ordre courant de présentation produit par la liste filtrée au moment de la validation. Il crée une copie indépendante de chaque `ActivityDefinition` dans cet ordre, en une seule opération de composition. L’ordre temporel des touchers ne fait pas partie du contrat et ne doit pas être persisté.
+
+| Contrat | Entrée | Sortie | Règle |
+|---|---|---|---|
+| `API-COMP-SEL-01` | IDs d’Activités ordonnés selon la liste visible, position d’insertion | Références de composition créées | Conserve strictement l’ordre fourni ; aucune modification des définitions persistantes sources. |
+| `API-COMP-SEL-02` | Sélection vide | Aucune écriture | L’action de validation reste désactivée. |
+| `API-COMP-SEL-03` | Erreur pendant la copie groupée | Erreur fonctionnelle, Composition inchangée | L’insertion est atomique ; aucun sous-ensemble ne reste inséré. |
