@@ -120,9 +120,9 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, seule la vue `Séances` est active ; les deux autres types sont visibles mais désactivés. En V2, les vues Activités et Circuits deviennent fonctionnelles sans créer de navigation principale supplémentaire.
 
-### Bibliothèque et Catalogue des Activités — V2
+### Catalogue des Activités — MVP T03
 
-La V2 apporte une bibliothèque d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement la bibliothèque. Les médias multiples ordonnés appartiennent également à la V2, mais leur affichage par déploiement de carte reste une évolution distincte à détailler.
 
