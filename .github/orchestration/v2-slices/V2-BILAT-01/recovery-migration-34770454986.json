@@ -3,7 +3,7 @@
   "status": "CERTIFIED",
   "slice_id": "V2-BILAT-01",
   "source_head": "925dad4331c9f6d92dfc9b04efb020393909df79",
-  "certified_target_head": "83634178e2e8f287ef2ec484a8b9f9830f354443",
+  "certified_target_head": "8536a41287370f5fe215ec43724e28d98268791d",
   "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
   "source_run_id": "34770454986",
   "source_artifact_id": "10322049086",
@@ -80,6 +80,13 @@
     "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md",
     "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
     "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-01a-catalogue-activites-liste.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-02-preparation-5-s.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-03-execution-en-cours.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-04-synthese-ressenti-requis.png",
+    "docs/Specifications-fonctionnelles/images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png",
     "docs/Specifications-fonctionnelles/images/creation-activite-a-l-echec.png",
     "docs/Specifications-fonctionnelles/images/creation-activite-description.png",
     "docs/Specifications-fonctionnelles/images/creation-activite-duree-ajustee.png",
@@ -95,7 +102,7 @@
   ],
   "compatible_application_paths": [],
   "post_certification_protocol_files": {
-    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md": "e23cb6ab7c300e63ef634000d66f42d24a28de72",
+    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md": "bb0a76c844cb4a43d672451f61414680a5b982a9",
     ".github/orchestration/lean-request.schema.json": "f44305563c6f59ad03f6b8d764945b7050aa4bb2",
     ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34770454986.json": "SELF",
       "scripts/kodjo/lib/claude-local.js": "d6f57554f4e336138edbfd02d2da70c76cb2c55c",
@@ -115,7 +122,7 @@
     "diagnostic_artifact": "10350238553",
     "claude_invoked": false,
     "application_change_count": 0,
-    "intervening_path_count": 58,
-    "note": "La PR documentaire #124 ajoute des règles hors V2-BILAT-01 mais ne modifie ni le plan, ni la revue, ni le scope_allow approuvés ; elle est incluse uniquement comme état documentaire immuable du HEAD certifié."
+    "intervening_path_count": 65,
+    "note": "Les PR documentaires #124, #126 et #127 ajoutent des règles et illustrations hors V2-BILAT-01 mais ne modifient ni le plan, ni la revue, ni le scope_allow approuvés ; elles sont incluses uniquement par chemins exacts dans l’état documentaire immuable du HEAD certifié."
   }
 }

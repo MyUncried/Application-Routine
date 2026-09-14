@@ -1216,7 +1216,9 @@ Quand la direction effective est bilatérale, afficher `Côté droit` ou `Côté
 
 ### CE-BIL-04 — Commandes et résultats
 
-La modale générique `Passer à l’activité suivante ?` est inchangée. Après confirmation sur le premier côté, elle conserve un résultat partiel pour ce côté et ouvre le second ; après le second, elle ouvre la prochaine étape effective. `Réinitialiser l’activité` ne touche que le côté courant. Les résultats droit et gauche sont indépendants ; l’agrégation globale reflète tout passage partiel ou manquant.\n\n## Contrats V2 — Exécution directe d’une Activité
+La modale générique `Passer à l’activité suivante ?` est inchangée. Après confirmation sur le premier côté, elle conserve un résultat partiel pour ce côté et ouvre le second ; après le second, elle ouvre la prochaine étape effective. `Réinitialiser l’activité` ne touche que le côté courant. Les résultats droit et gauche sont indépendants ; l’agrégation globale reflète tout passage partiel ou manquant.
+
+## Contrats V2 — Exécution directe d’une Activité
 
 | ID | Référence Figma | Contrat | Criticité |
 |---|---|---|---|
@@ -1226,4 +1228,40 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 | CE-ACT-EXE-04 | `3836:5437` | Synthèse initiale ; `Terminer` désactivé tant qu’aucun Ressenti n’est choisi. | Obligatoire |
 | CE-ACT-EXE-05 | `3836:5503` | Synthèse avec Ressenti ; `Terminer` actif, enregistre puis restaure le Catalogue. | Obligatoire |
 
-Tests bloquants : accessibilité des deux actions de carte, préparation exactement `5 s`, absence de `SESSION_END`, origine `ACTIVITY`, Ressenti obligatoire, statistiques compatibles sans nouvelle Séance et restauration de l’état du Catalogue.\n
+Tests bloquants : accessibilité des deux actions de carte, préparation exactement `5 s`, absence de `SESSION_END`, origine `ACTIVITY`, Ressenti obligatoire, statistiques compatibles sans nouvelle Séance et restauration de l’état du Catalogue.
+
+
+## Captures de référence — Exécution directe d’une Activité
+
+Ces captures matérialisent les états Figma associés aux contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`. Elles constituent des références visuelles ; les comportements et règles restent définis par les contrats et les spécifications fonctionnelles.
+
+### CE-ACT-EXE-01 — Catalogue des Activités
+
+**Liste**
+
+![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
+
+**Création — Arbre d’actions**
+
+![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
+
+**Action contextuelle directe**
+
+![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+
+### CE-ACT-EXE-02 — Préparation fixe de 5 s
+
+![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
+
+### CE-ACT-EXE-03 — Exécution en cours
+
+![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
+
+### CE-ACT-EXE-04 — Synthèse avec Ressenti requis
+
+![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
+
+### CE-ACT-EXE-05 — Synthèse avec Ressenti sélectionné
+
+![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+

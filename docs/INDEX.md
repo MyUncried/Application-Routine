@@ -63,6 +63,8 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. Le chapitre 13 référence chaque frame Figma par son ID et précise les critères permettant de comparer l’implémentation à cette référence visuelle.
 
+Le chapitre 13 affiche également les captures de référence de l’exécution directe d’une Activité, nommées selon les contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`.
+
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
 
 En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents. Un ajustement cosmétique mineur explicitement validé peut toutefois être développé avant son report dans Figma ; il doit être tracé puis réaligné ultérieurement, sans devenir une règle fonctionnelle ni imposer une mise à jour préalable de Figma à chaque correction cosmétique.
@@ -158,6 +160,9 @@ La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupérati
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
-- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)\n\n## Évolution V2 — Exécution directe d’une Activité
+- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
 
-Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34795ab64fc9c91231a81f4`. Les chapitres 00 à 13 et `PRODUCT.md` propagent l’origine d’Exécution `ACTIVITY`, la préparation fixe de `5 s`, l’absence de `SESSION_END`, la Synthèse à Ressenti obligatoire, le Suivi général, les statistiques compatibles et le retour au Catalogue des Activités.\n
+## Évolution V2 — Exécution directe d’une Activité
+
+Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34795ab64fc9c91231a81f4`. Les chapitres 00 à 13 et `PRODUCT.md` propagent l’origine d’Exécution `ACTIVITY`, la préparation fixe de `5 s`, l’absence de `SESSION_END`, la Synthèse à Ressenti obligatoire, le Suivi général, les statistiques compatibles et le retour au Catalogue des Activités.
+
