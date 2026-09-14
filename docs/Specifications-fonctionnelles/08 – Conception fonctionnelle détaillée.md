@@ -182,7 +182,7 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
-# 2 bis. Cycle de vie d’une Activité persistante — V2
+# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — V2
 
 ## 2 bis.1 Catalogue multi-type
 
