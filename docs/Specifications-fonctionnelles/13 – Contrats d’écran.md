@@ -1218,6 +1218,51 @@ Quand la direction effective est bilatérale, afficher `Côté droit` ou `Côté
 
 La modale générique `Passer à l’activité suivante ?` est inchangée. Après confirmation sur le premier côté, elle conserve un résultat partiel pour ce côté et ouvre le second ; après le second, elle ouvre la prochaine étape effective. `Réinitialiser l’activité` ne touche que le côté courant. Les résultats droit et gauche sont indépendants ; l’agrégation globale reflète tout passage partiel ou manquant.
 
+## Contrat de Composition — Sélection multiple d’Activités existantes
+
+### CE-COMP-SEL-01 — Sélectionner plusieurs Activités existantes
+
+| Propriété | Valeur |
+|---|---|
+| Frame Figma | `3789:5349` — `Composition d'une séance — Sélectionner plusieurs activités existantes` |
+| Surface | `402 × 874` |
+| Statut visuel | Géométrie validable ; icônes Recherche et Coche encore provisoires dans Figma |
+| Entrée | Action `Une activité existante` depuis l’arbre d’ajout en Composition |
+| Sorties | `Annuler` restaure la Composition inchangée ; `Ajouter N activités` insère la sélection puis restaure la Composition |
+
+#### Structure et positionnement
+
+| Élément | Nœud/composant | Référence `402 × 874` | Règle |
+|---|---|---|---|
+| Shell sous-jacent | instance `3789:5350`, composant `2718:53` `Context=On,Bottom=Action` | plein écran | La Composition reste visible derrière le voile, mais n’est ni focusable ni interactive. |
+| Voile modal | `3789:5404` | `x=0`, `y=0`, `402 × 874` | Token de scrim/voile DSF obligatoire. |
+| Panneau | `3789:5405` | `x=0`, `y=116`, `402 × 758` | Ancré au bas ; coins, fond et élévation conformes à la frame. |
+| Titre | `3789:5407` | `x=24`, `y=148`, `354 × 26` | Texte statique exact `Sélectionner les activités`. |
+| Recherche | zone à partir de `y=188`; placeholder `x=68`, `y=200`, largeur `280` | `Rechercher une activité` | Champ filtrant la liste. L’icône est placée à gauche dans une boîte `28 × 28`, mais doit provenir du composant Recherche DSF. |
+| Liste | première carte `y=246`, puis `342`, `438`, `534`; `x=24`, `354 × 88` | cartes espacées de `8 pt` | Zone défilante entre Recherche et actions fixes. Nom à `x=40`, zones corporelles 24 pt plus bas, synthèse 22 pt plus bas. |
+| Annuler | `3789:5436` | `x=24`, `y=802`, `171 × 48` | Bouton secondaire gris, obligatoire, à gauche. Restaure sans insertion. |
+| Ajouter | `3789:5434` | `x=207`, `y=802`, `171 × 48` | Bouton principal à droite. Libellé dynamique `Ajouter N activité` ou `Ajouter N activités`. Désactivé si `N=0`. |
+| Zone d’actions | bas de l’écran | deux boutons sur une même ligne, intervalle `12 pt` | Fixe au-dessus de l’inset inférieur ; la liste ne passe pas dessous. |
+
+#### Sélection et icône
+
+- chaque carte entière est sélectionnable et expose un état d’accessibilité sélectionné/non sélectionné ;
+- plusieurs cartes peuvent être sélectionnées ; l’ordre d’insertion suit l’ordre de sélection validé par la règle fonctionnelle, jamais une position arbitraire de rendu ;
+- la marque visible est centrée dans une boîte `24 × 24` située à droite de la carte (`x=334` sur la référence) ;
+- le rendu final doit reprendre l’esprit d’une coche de sélection/validation, avec fond bleu et liseré blanc conformément à la proposition de conception ;
+- les glyphes texte `✓` des nœuds `3802:5447` et `3802:5462`, ainsi que le glyphe Recherche `⌕` du nœud `3789:5410`, sont des placeholders Figma : ils sont interdits comme assets d’implémentation ;
+- avant développement final, ces pictogrammes doivent être remplacés dans Figma par des composants/icônes vectoriels DSF nommés et exportables. Tant que leurs IDs de composant et tokens d’état ne sont pas disponibles, la ressource exacte reste `À CLARIFIER` et la conformité iconographique ne peut pas être déclarée.
+
+#### Critères de recette
+
+1. panneau, titre, Recherche, liste et actions respectent la géométrie et les ancrages ci-dessus ;
+2. le fond est visuellement grisé et totalement neutralisé ;
+3. sélection multiple réelle, compte `N` mis à jour et accord singulier/pluriel ;
+4. `Annuler` toujours visible ; ordre horizontal exact : `Annuler` puis `Ajouter N activités` ;
+5. aucun glyphe de texte ou emoji utilisé comme Recherche ou Coche ;
+6. sur `360`, les deux boutons conservent la même ligne si les libellés restent lisibles ; sinon la règle adaptative doit être arbitrée avant implémentation, sans réduction illisible ;
+7. texte agrandi : liste défilable et boutons atteignables, aucun contenu masqué.
+
 ## Contrats V2 — Exécution directe d’une Activité
 
 ### Règles normatives de lecture Figma
