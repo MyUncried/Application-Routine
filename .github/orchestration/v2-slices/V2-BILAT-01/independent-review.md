@@ -8,6 +8,7 @@ review_session_id=3b6fc37e-fc15-4664-850a-8509c5314cde
 verdict=APPROVE
 STATUT : PLAN_REVIEW_APPROVED
 Verdict: APPROVED
+Plan reviewed: `technical-plan.md`
 
 # Revue indÃ©pendante â€” V2-BILAT-01
 
