@@ -39,7 +39,7 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 ### Activité
 
-Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance. En V2, elle peut aussi exister comme référence persistante autonome dans le catalogue Activités ; son ajout à une Séance crée une copie indépendante.
+Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des Activités ; son ajout à une Séance crée une copie indépendante.
 
 Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle. Pour une Activité autonome, cette Récupération est exécutée une seule fois après tous ses côtés ; dans un Tour bilatéral, elle est exécutée une fois après chaque passage de côté. `Récupération` n’est plus un type d’Activité.
 
