@@ -395,7 +395,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
 8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 
-## Exécuter directement une Activité — V2
+## Exécuter directement une Activité — MVP T03
 
 1. Ouvrir `Activités` dans le Catalogue.
 2. Appuyer sur l’action `Exécuter` d’une Activité valide.
@@ -406,7 +406,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
 8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.
 
-## Consulter ou modifier une Activité depuis le Catalogue — V2
+## Consulter ou modifier une Activité depuis le Catalogue — MVP T03
 
 1. Ouvrir `Activités` dans le Catalogue.
 2. Appuyer sur la surface de la carte, hors bouton Lecture.
@@ -415,7 +415,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 
 Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit après le MVP sans modifier l’action principale de la carte.
 
-## Ajouter plusieurs Activités existantes à une Composition — V2
+## Ajouter plusieurs Activités existantes à une Composition — MVP T03
 
 1. Depuis l’arbre d’ajout de la Composition, choisir `Une activité existante`.
 2. Rechercher ou filtrer le Catalogue d’Activités présenté dans le panneau modal.
