@@ -19,14 +19,20 @@ test('V2 planning uses the bootstrap and never invents a V1 manifest', () => {
   assert.doesNotMatch(plan, /orchestration\/slices\/\$SLICE_ID\.yml/);
 });
 
-test('V2 plan is bound to exact remote HEAD and prior versioned artefacts', () => {
+test('V2 plan and review resolve the private target HEAD through the authenticated shared resolver', () => {
   const plan = read('.github/workflows/kodjo-v2-slice-plan.yml');
-  assert.match(plan, /git ls-remote origin/);
+  const review = read('.github/workflows/kodjo-v2-slice-plan-review.yml');
+  for (const workflow of [plan, review]) {
+    assert.match(workflow, /persist-credentials:\s*false/);
+    assert.match(workflow, /scripts\/kodjo\/resolve-private-head\.js/);
+    assert.doesNotMatch(workflow, /git\s+(?:ls-remote|fetch|pull)\s+origin/);
+  }
   assert.match(plan, /test "\$ACTUAL" = "\$SOURCE_HEAD"/);
   assert.match(plan, /PLAN_OID=\$\(git rev-parse/);
   assert.match(plan, /REVIEW_OID=\$\(git rev-parse/);
   assert.match(plan, /supersedes_plan_blob_oid=/);
   assert.match(plan, /prior_review_blob_oid=/);
+  assert.match(review, /V2 private target branch lookup failed/);
 });
 
 test('V2 plan produces and verifies the opposable direct-import matrix', () => {
