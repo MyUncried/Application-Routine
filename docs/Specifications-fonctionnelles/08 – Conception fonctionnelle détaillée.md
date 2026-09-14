@@ -1197,3 +1197,17 @@ La Synthèse affiche les données compatibles d’une Activité seule. Le Ressen
 La carte distingue deux cibles : sa surface principale ouvre la consultation ou la modification de l’Activité ; le bouton Lecture lance son Exécution directe. Aucun chevron ou bouton `Déployer` n’est affiché dans l’état courant, et l’icône de déplacement propre à la Composition n’est jamais affichée dans le Catalogue. La barre verticale bleue appartient à la présentation de toutes les cartes d’Activité.
 
 En V2, un contrôle de déploiement pourra être réintroduit pour révéler les médias. Cette future action média restera distincte de l’ouverture de la carte et de l’Exécution directe.
+
+## Extension V2 — Sélection multiple d’Activités persistantes
+
+Depuis la Composition, `Une activité existante` ouvre une sélection modale sans modifier le brouillon courant. L’utilisateur peut filtrer la bibliothèque, sélectionner ou désélectionner plusieurs Activités et voir le nombre sélectionné dans l’action finale.
+
+- `N = 0` : l’action d’ajout est désactivée ;
+- `N = 1` : libellé `Ajouter 1 activité` ;
+- `N > 1` : libellé `Ajouter N activités` ;
+- `Annuler` ferme la sélection sans aucune insertion ;
+- valider insère une référence de composition pour chaque Activité sélectionnée, sans modifier l’Activité persistante source ;
+- la Composition, sa position de défilement et ses valeurs déjà saisies sont restaurées après fermeture ;
+- le détail visuel et les cibles sont normés par `CE-COMP-SEL-01`.
+
+L’ordre d’insertion des Activités sélectionnées reste `À CLARIFIER` entre ordre de sélection et ordre affiché dans la liste. Il ne doit pas être choisi implicitement pendant le développement.
