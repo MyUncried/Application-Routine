@@ -62,7 +62,7 @@ Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivit
 
 Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries d’un même côté et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T03 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T04 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
 
