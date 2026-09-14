@@ -1078,7 +1078,9 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 | `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
 | `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Activité, le Tour et la Série. |
 
-La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. Au passage d’un Tour de `UNILATERAL` à un mode bilatéral, le domaine recherche les Activités propres bilatérales. Si aucune n’existe, la direction est appliquée directement. Sinon, après confirmation, l’application de la direction et la remise des seules Activités concernées à `UNILATERAL` s’effectuent dans une transaction unique. `Annuler` ne produit aucune écriture. Aucun état antérieur n’est conservé.\n\n## Extension V2 — origine et instantané d’Exécution
+La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. Au passage d’un Tour de `UNILATERAL` à un mode bilatéral, le domaine recherche les Activités propres bilatérales. Si aucune n’existe, la direction est appliquée directement. Sinon, après confirmation, l’application de la direction et la remise des seules Activités concernées à `UNILATERAL` s’effectuent dans une transaction unique. `Annuler` ne produit aucune écriture. Aucun état antérieur n’est conservé.
+
+## Extension V2 — origine et instantané d’Exécution
 
 | Donnée | Valeurs / règle |
 |---|---|
@@ -1089,4 +1091,5 @@ La migration ajoute les champs avec `UNILATERAL` pour toutes les données antér
 | `Execution.preparationDurationSeconds` | `5` pour `ACTIVITY` ; valeur issue de la Séance pour `SESSION`. |
 | `Execution.completedSeriesCount` | Agrégat compatible avec une Activité directe. |
 
-Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.\n
+Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.
+
