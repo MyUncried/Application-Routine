@@ -323,54 +323,39 @@ La vue détaillée déployée d'une Exécution est reportée à une version ult�
 ## Résultat attendu
 
 L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut suivre facilement son activité ainsi que sa progression au fil du temps.
-# Parcours prévus pour une phase ultérieure
 
-Les parcours suivants sont identifiés dès la conception mais ne font pas partie du MVP.
-## Collaboration
+# Parcours V2 validés — Catalogue des Activités et Circuits
 
-- partager une séance avec une personne ou un groupe ;
-- recevoir une séance partagée ;
-- créer et administrer une séance collaborative ;
-- gérer les droits de consultation et de modification ;
-- conserver des copies personnelles indépendantes des séances partagées.
+## Accéder au Catalogue des Activités
 
-## Professionnels de santé et coachs
+1. Ouvrir le Catalogue puis sélectionner `Activités`.
+2. Consulter la liste des Activités persistantes.
+3. Utiliser la surface d’une carte pour ouvrir l’Activité en consultation ou modification.
+4. Utiliser le bouton Lecture pour lancer directement une Activité valide.
+5. Utiliser `Créer` pour ouvrir l’arbre des types de contenu.
 
-- recevoir une séance créée par un professionnel ;
-- permettre à un professionnel de créer, mettre à jour et partager des séances ;
-- suivre l'exécution des séances réalisées par un patient ou un client ;
-- gérer plusieurs patients ou clients au sein d'une même interface.
+La recherche, les filtres et la position de défilement appartiennent à l’état du Catalogue et sont restaurés au retour d’une consultation, d’une modification ou d’une Exécution directe.
 
-## Synchronisation
+## Créer un contenu depuis le Catalogue
 
-- créer un compte utilisateur ;
-- synchroniser les données entre plusieurs appareils ;
-- sauvegarder automatiquement les données dans le cloud ;
-- restaurer un historique complet sur un nouvel appareil.
+1. Appuyer sur `Créer`.
+2. Choisir exactement l’une des actions proposées, dans cet ordre : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`.
+3. `Une nouvelle activité` ouvre le formulaire d’Activité persistante.
+4. `Une séance` ouvre une nouvelle Composition de Séance.
+5. `Un circuit` ouvre le formulaire de Circuit en V2.
+6. `Annuler` ferme l’arbre et restaure le Catalogue dans son état précédent.
 
-## Intelligence artificielle
+L’arbre est présenté au-dessus du Catalogue grisé, que l’utilisateur se trouve dans la vue Activités ou dans la vue Séances. Le fond n’est pas interactif pendant son affichage.
 
-- proposer automatiquement des séances adaptées aux objectifs de l'utilisateur ;
-- recommander des adaptations selon les performances ou les difficultés rencontrées ;
-- analyser l'historique afin de proposer des évolutions progressives ;
-- assister la création de nouvelles séances.
+## Ajouter une Activité depuis une Composition
 
-## Bibliothèque de contenus
+1. Appuyer sur `Ajouter une activité`.
+2. Choisir `Une nouvelle activité`, `Une activité existante` ou `Annuler`.
+3. `Une nouvelle activité` ouvre le formulaire d’Activité de Séance.
+4. `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités.
+5. `Annuler` ferme les options sans modifier la Composition.
 
-- proposer une bibliothèque de séances et d'activités ;
-- rechercher des contenus par catégorie, objectif ou zone corporelle ;
-- importer des séances proposées par la communauté ou par des professionnels.
-
-## Statistiques avancées
-
-- suivre la progression sur plusieurs périodes ;
-- comparer les performances entre différentes séances ;
-- produire des tableaux de bord personnalisés ;
-- partager certaines statistiques avec un professionnel.
-
-# Parcours validés — bibliothèque d’Activités et Circuits
-
-## Utiliser une Activité de référence — V2
+## Utiliser une Activité de référence
 
 1. Ouvrir `Activités` dans le Catalogue.
 2. Créer une référence d’Activité persistante, réutilisable et directement exécutable.
@@ -416,6 +401,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
 8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.
+
 ## Consulter ou modifier une Activité depuis le Catalogue — V2
 
 1. Ouvrir `Activités` dans le Catalogue.
@@ -435,3 +421,48 @@ Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `D�
 6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Activités dans la liste filtrée au moment de la validation.
 
 `Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies.
+
+# Parcours prévus pour une phase ultérieure
+
+Les parcours suivants sont identifiés dès la conception mais ne font pas partie du MVP.
+## Collaboration
+
+- partager une séance avec une personne ou un groupe ;
+- recevoir une séance partagée ;
+- créer et administrer une séance collaborative ;
+- gérer les droits de consultation et de modification ;
+- conserver des copies personnelles indépendantes des séances partagées.
+
+## Professionnels de santé et coachs
+
+- recevoir une séance créée par un professionnel ;
+- permettre à un professionnel de créer, mettre à jour et partager des séances ;
+- suivre l'exécution des séances réalisées par un patient ou un client ;
+- gérer plusieurs patients ou clients au sein d'une même interface.
+
+## Synchronisation
+
+- créer un compte utilisateur ;
+- synchroniser les données entre plusieurs appareils ;
+- sauvegarder automatiquement les données dans le cloud ;
+- restaurer un historique complet sur un nouvel appareil.
+
+## Intelligence artificielle
+
+- proposer automatiquement des séances adaptées aux objectifs de l'utilisateur ;
+- recommander des adaptations selon les performances ou les difficultés rencontrées ;
+- analyser l'historique afin de proposer des évolutions progressives ;
+- assister la création de nouvelles séances.
+
+## Bibliothèque de contenus
+
+- proposer une bibliothèque de séances et d'activités ;
+- rechercher des contenus par catégorie, objectif ou zone corporelle ;
+- importer des séances proposées par la communauté ou par des professionnels.
+
+## Statistiques avancées
+
+- suivre la progression sur plusieurs périodes ;
+- comparer les performances entre différentes séances ;
+- produire des tableaux de bord personnalisés ;
+- partager certaines statistiques avec un professionnel.
