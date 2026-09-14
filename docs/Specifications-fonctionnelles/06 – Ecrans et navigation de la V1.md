@@ -1322,7 +1322,7 @@ L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non intera
 3. `Un circuit` ;
 4. `Annuler`.
 
-`Annuler` est obligatoire et restaure exactement l’état précédent. L’arbre possède deux états de référence : frame `3787:5148` sur Catalogue des Activités et frame `3841:8375` sur Catalogue des Séances. Les icônes sont vectorielles : Ajouter DSF pour la nouvelle Activité, liste/séance, chemin Circuit en perspective et Ajouter tourné de `45°` pour Annuler.
+`Une nouvelle activité` et `Une séance` sont actives dans T03. `Un circuit` reste visible mais désactivé tant que le périmètre Circuit n’est pas livré. `Annuler` est obligatoire et restaure exactement l’état précédent. L’arbre possède deux états de référence : frame `3787:5148` sur Catalogue des Activités et frame `3841:8375` sur Catalogue des Séances. Les icônes sont vectorielles : Ajouter DSF pour la nouvelle Activité, liste/séance, chemin Circuit en perspective et Ajouter tourné de `45°` pour Annuler.
 
 ![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
 
