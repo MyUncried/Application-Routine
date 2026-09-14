@@ -12,3 +12,4 @@ export * from "./validation";
 export * from "./calculations";
 export * from "./SessionDraft";
 export * from "./composition";
+export * from "./sideMode";

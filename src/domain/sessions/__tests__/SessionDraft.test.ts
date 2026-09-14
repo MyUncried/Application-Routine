@@ -23,8 +23,10 @@ import {
   DEFAULT_PAUSE_SECONDS,
   DEFAULT_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
+  DEFAULT_SIDE_MODE,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
+  DEFAULT_TOUR_SIDE_MODE,
 } from "@/domain/sessions/defaults";
 
 describe("createEmptyDraft", () => {
@@ -36,6 +38,7 @@ describe("createEmptyDraft", () => {
       initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
       finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
       tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
+      tourSideMode: DEFAULT_TOUR_SIDE_MODE,
       exercises: [],
       categoryDrafts: [],
       selectedCategoryIds: [],
@@ -61,6 +64,9 @@ describe("createExerciseDraft", () => {
       recoverySeconds: DEFAULT_RECOVERY_SECONDS,
       instruction: null,
       bodyZoneIds: [],
+      // V2-BILAT-01 : une nouvelle Activité naît `UNILATERAL` (comportement
+      // historique, aucune répétition de côté).
+      sideMode: DEFAULT_SIDE_MODE,
     });
     expect(DEFAULT_RECOVERY_SECONDS).toBe(0);
   });
@@ -127,6 +133,10 @@ describe("toSessionDraft", () => {
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
+      // V2-BILAT-01 : `session.cycle.tour.sideMode` est un champ optionnel
+      // de transition — `anActivity()`/`aSession()` ne le transmettent pas
+      // ici, `toSessionDraft` retombe donc sur `DEFAULT_TOUR_SIDE_MODE`.
+      tourSideMode: DEFAULT_TOUR_SIDE_MODE,
       exercises: [
         {
           id: "activity-1",
@@ -143,6 +153,10 @@ describe("toSessionDraft", () => {
           recoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],
+          // V2-BILAT-01 : `Activity.sideMode` est un champ optionnel de
+          // transition — `anActivity()` ne le transmet pas, la conversion
+          // retombe donc sur `DEFAULT_SIDE_MODE`.
+          sideMode: DEFAULT_SIDE_MODE,
         },
       ],
       categoryDrafts: [],
@@ -249,6 +263,12 @@ describe("toSessionDraft", () => {
         // structurelle de chaque Activité traversent désormais le chemin de
         // création — ils étaient perdus au profit de littéraux fixes.
         tourRepeatCount: 1,
+        // V2-BILAT-01 : `tourSideMode` reste ABSENT de l'agrégat validé
+        // lorsque le Tour et chaque Activité restent `UNILATERAL`
+        // (`normalizeTourSideMode`/`normalizeSideMode`, `validation.ts`) —
+        // condition nécessaire de compatibilité rétroactive avec un
+        // consommateur existant qui compare cet agrégat par égalité
+        // stricte, jamais connu ce champ.
         exercises: [
           {
             id: "activity-1",
@@ -448,6 +468,10 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
         tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
+        // V2-BILAT-01 : `tourSideMode`/`sideMode` restent ABSENTS de
+        // l'agrégat validé pour un brouillon entièrement `UNILATERAL` —
+        // voir la note de la même nature dans le test de round-trip
+        // ci-dessus.
         exercises: [
           {
             id: "ex-1",
@@ -772,5 +796,90 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
 
   it("never throws on an invalid edit draft", () => {
     expect(() => toUpdateSessionInput(createEmptyDraft())).not.toThrow();
+  });
+});
+
+describe("V2-BILAT-01 — side mode across the draft", () => {
+  it("toSessionDraft carries the persisted Tour's own side mode into tourSideMode", () => {
+    const session: Session = {
+      id: "session-1",
+      ownerId: "usr_test",
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      cycle: {
+        id: "cycle-1",
+        position: 1,
+        repeatCount: 1,
+        tour: {
+          id: "tour-1",
+          position: 1,
+          repeatCount: 1,
+          sideMode: "RIGHT_LEFT",
+          exercises: [anActivity({ sideMode: "LEFT_RIGHT" })],
+        },
+      },
+      categories: [],
+    };
+    const draft = toSessionDraft(session);
+    expect(draft.tourSideMode).toBe("RIGHT_LEFT");
+    expect(draft.exercises[0]?.sideMode).toBe("LEFT_RIGHT");
+  });
+
+  it("exerciseEquals detects a change of side mode — otherwise the exit guard would let it be lost silently", () => {
+    expect(
+      exerciseEquals(createExerciseDraft("ex-1"), {
+        ...createExerciseDraft("ex-1"),
+        sideMode: "RIGHT_LEFT",
+      }),
+    ).toBe(false);
+  });
+
+  it("sessionDraftsEqual detects a change of tourSideMode", () => {
+    const draft: SessionDraft = { ...createEmptyDraft(), name: "Séance" };
+    expect(
+      sessionDraftsEqual(draft, { ...draft, tourSideMode: "RIGHT_LEFT" }),
+    ).toBe(false);
+    expect(
+      sessionDraftsEqual(
+        { ...draft, tourSideMode: "RIGHT_LEFT" },
+        { ...draft, tourSideMode: "RIGHT_LEFT" },
+      ),
+    ).toBe(true);
+  });
+
+  it("toCreateSessionInput / toUpdateSessionInput carry each Activity's own side mode and the Tour's own side mode", () => {
+    const exercises = [
+      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30, sideMode: "RIGHT_LEFT" as const },
+    ];
+
+    const created = toCreateSessionInput({
+      ...createEmptyDraft(),
+      name: "Séance",
+      tourSideMode: "LEFT_RIGHT",
+      exercises,
+    });
+    expect(created.ok).toBe(true);
+    if (created.ok) {
+      expect(created.value.tourSideMode).toBe("LEFT_RIGHT");
+      expect(created.value.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
+    }
+
+    const updated = toUpdateSessionInput({
+      ...createEmptyDraft(),
+      sourceSessionId: "session-1",
+      name: "Séance",
+      tourSideMode: "LEFT_RIGHT",
+      exercises,
+    });
+    expect(updated.ok).toBe(true);
+    if (updated.ok) {
+      expect(updated.value.tourSideMode).toBe("LEFT_RIGHT");
+      expect(updated.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
+    }
   });
 });

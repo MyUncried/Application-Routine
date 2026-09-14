@@ -67,7 +67,7 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
     resetDraft: jest.fn(),
   };
 
-  render(
+  const { unmount } = render(
     <TestSafeAreaProvider>
       <SessionDraftContext.Provider value={contextValue}>
         <ExerciseScreen />
@@ -75,7 +75,7 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
     </TestSafeAreaProvider>,
   );
 
-  return { updateDraft };
+  return { updateDraft, unmount };
 }
 
 const t = strings.screens.exercise;
@@ -1954,5 +1954,133 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
     confirmDuration(0, 30);
 
     expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
+  });
+});
+
+/**
+ * V2-BILAT-01 (plan `## UI`) : contrôle `Côtés`, APRÈS le segment de mode et
+ * AVANT les paramètres, dans les trois modes — enfant `IN_TOUR` d'un Tour
+ * bilatéral : visible, désactivé, proprement `UNILATERAL`.
+ */
+describe("ExerciseScreen — contrôle Côtés (V2-BILAT-01)", () => {
+  const sideModeStrings = strings.shared.sideMode;
+
+  function renderWithTourSideMode(
+    draftExercise: SessionDraftExercise,
+    tourSideMode: "UNILATERAL" | "RIGHT_LEFT" | "LEFT_RIGHT",
+  ) {
+    const updateDraft = jest.fn();
+    mockSearchParams = { exerciseId: draftExercise.id };
+    render(
+      <TestSafeAreaProvider>
+        <SessionDraftContext.Provider
+          value={{
+            draft: {
+              name: "Séance simple",
+              color: "#3B82F6",
+              initialCountdownSeconds: 10,
+              finalPhaseSeconds: 5,
+              tourSideMode,
+              exercises: [draftExercise],
+              categoryDrafts: [],
+              selectedCategoryIds: [],
+            },
+            updateDraft,
+            resetDraft: jest.fn(),
+          }}
+        >
+          <ExerciseScreen />
+        </SessionDraftContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    return { updateDraft };
+  }
+
+  it("is rendered after the mode segment and before the parameter card, in every execution mode", () => {
+    for (const executionMode of ["DURATION", "REPETITIONS", "TO_FAILURE"] as const) {
+      const { unmount } = renderScreen({ ...createExerciseDraft("ex-1"), executionMode });
+      expect(screen.getByTestId("exercise-side-mode")).toBeTruthy();
+      expect(screen.getByText(sideModeStrings.compactLabel)).toBeTruthy();
+      unmount();
+    }
+  });
+
+  it("displays 'Unilatéral' by default, and cycles Unilatéral → D→G → G→D on successive presses", () => {
+    renderScreen({ ...createExerciseDraft("ex-1") });
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByText(sideModeStrings.valueLabels.LEFT_RIGHT)).toBeTruthy();
+  });
+
+  it("is enabled for a BEFORE_TOUR Activity, even under a bilateral Tour", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "BEFORE_TOUR" },
+      "RIGHT_LEFT",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+  });
+
+  it("is disabled for an IN_TOUR Activity governed by a bilateral Tour", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
+      "RIGHT_LEFT",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: true },
+    );
+  });
+
+  it("is enabled for an IN_TOUR Activity when the Tour stays unilateral", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
+      "UNILATERAL",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+  });
+
+  it("persists the chosen side mode through Terminer", () => {
+    const { updateDraft } = renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [expect.objectContaining({ id: "ex-1", sideMode: "RIGHT_LEFT" })],
+    });
+  });
+
+  it("doubles the displayed total duration for a bilateral direction, without ever doubling the Récupération", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 3,
+      pauseSeconds: 15,
+      recoverySeconds: 20,
+    });
+
+    // Unilatéral (défaut) : 3×30 + 2×15 + 20 = 140 s -> "2 min 20 s".
+    expect(
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 2 min 20 s"),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+
+    // Bilatéral : (3×30 + 2×15) × 2 + 20 (jamais doublée) = 260 s -> "4 min 20 s".
+    expect(
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 4 min 20 s"),
+    ).toBeTruthy();
   });
 });

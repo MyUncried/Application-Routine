@@ -5,7 +5,11 @@ import {
   computeActivityCount,
   computeEstimatedDurationSeconds,
 } from "@/domain/sessions/calculations";
-import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import {
+  DEFAULT_SIDE_MODE,
+  DEFAULT_TOUR_SIDE_MODE,
+  FIXED_CYCLE_REPEAT_COUNT,
+} from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   SESSION_COLORS,
@@ -27,6 +31,7 @@ import type {
   SessionRepository,
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
+import { SIDE_MODES, type SideMode } from "@/domain/sessions/sideMode";
 import {
   validateCreateSessionInput,
   validateUpdateSessionInput,
@@ -83,6 +88,7 @@ SELECT
   tours.id AS tour_id,
   tours.position AS tour_position,
   tours.repeat_count AS tour_repeat_count,
+  tours.side_mode AS tour_side_mode,
   activities.id AS activity_id,
   activities.type AS activity_type,
   activities.name AS activity_name,
@@ -94,7 +100,8 @@ SELECT
   activities.series_count,
   activities.pause_seconds,
   activities.recovery_seconds,
-  activities.instruction
+  activities.instruction,
+  activities.side_mode AS activity_side_mode
 FROM sessions
 JOIN cycles ON cycles.session_id = sessions.id
 JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
@@ -135,13 +142,74 @@ const ACTIVITY_PAUSE_OCCURRENCES_SQL = `
   END
 `;
 
+/**
+ * V2-BILAT-01 — transcription SQL EXACTE de `resolveEffectiveSideMode`
+ * (`sideMode.ts`, dont la parité est testée) : la direction du Tour prévaut
+ * dès qu'elle est bilatérale pour toute Activité `IN_TOUR` ; sinon (Tour
+ * `UNILATERAL`, ou zone `BEFORE_TOUR`/`AFTER_TOUR` jamais gouvernée par un
+ * Tour) chaque Activité conserve sa direction propre.
+ */
+const EFFECTIVE_SIDE_MODE_SQL = `
+  CASE
+    WHEN activities.structural_position = 'IN_TOUR' AND tours.side_mode <> 'UNILATERAL'
+      THEN tours.side_mode
+    ELSE activities.side_mode
+  END
+`;
+
+/** V2-BILAT-01 — transcription SQL EXACTE de `sideMultiplier(resolveEffectiveSideMode(...))` : `1` pour `UNILATERAL`, `2` pour toute direction bilatérale. */
+const ACTIVITY_SIDE_MULTIPLIER_SQL = `
+  CASE WHEN (${EFFECTIVE_SIDE_MODE_SQL}) <> 'UNILATERAL' THEN 2 ELSE 1 END
+`;
+
+/**
+ * V2-BILAT-01 — multiplicateur de la Récupération ATTACHÉE : `2` UNIQUEMENT
+ * lorsque c'est le TOUR LUI-MÊME qui est bilatéral pour cette Activité
+ * `IN_TOUR` (« Tour bilatéral : … `Ri` est comptée une fois par passage de
+ * côté ») ; `1` dans tout autre cas — Tour `UNILATERAL` (y compris une
+ * Activité elle-même bilatérale : « … `Ri` est comptée une seule fois après
+ * ses deux côtés ») ou zone hors Tour (direction propre, jamais doublée).
+ * Transcription SQL EXACTE du second paramètre de `computeActivityDurationSeconds`
+ * tel que résolu par `computeZoneDurationFacts`.
+ */
+const ACTIVITY_RECOVERY_MULTIPLIER_SQL = `
+  CASE
+    WHEN activities.structural_position = 'IN_TOUR' AND tours.side_mode <> 'UNILATERAL'
+      THEN 2
+    ELSE 1
+  END
+`;
+
+/**
+ * Durée estimée d'UNE Activité, en SQL — transcription EXACTE de
+ * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
+ * testée (`SqliteSessionRepository.test.ts`).
+ *
+ * **T02-S02** : la formule canonique est CONDITIONNELLE — la Récupération
+ * REMPLACE la dernière Pause lorsqu'elle existe (voir
+ * `ACTIVITY_PAUSE_OCCURRENCES_SQL`).
+ *
+ * **V2-BILAT-01** : la part Séries + Pauses est multipliée par
+ * `ACTIVITY_SIDE_MULTIPLIER_SQL` (`Li`, direction EFFECTIVE de l'Activité) ;
+ * la Récupération, elle, n'est multipliée que par
+ * `ACTIVITY_RECOVERY_MULTIPLIER_SQL` (`1` sauf Tour lui-même bilatéral) —
+ * jamais le même facteur pour les deux parts, jamais de double
+ * multiplicateur.
+ *
+ * La branche `RECOVERY` reste une défense en profondeur sur une donnée
+ * ancienne : `migration004` a converti puis supprimé toutes ces lignes ;
+ * une Récupération n'est jamais elle-même côtée (D-041), aucun
+ * multiplicateur ne s'y applique.
+ */
 const ACTIVITY_DURATION_SQL = `
   CASE
     WHEN activities.type = 'RECOVERY'
       THEN COALESCE(activities.duration_seconds, 0)
-    ELSE COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
-       + (${ACTIVITY_PAUSE_OCCURRENCES_SQL}) * activities.pause_seconds
-       + activities.recovery_seconds
+    ELSE (
+      COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
+      + (${ACTIVITY_PAUSE_OCCURRENCES_SQL}) * activities.pause_seconds
+    ) * (${ACTIVITY_SIDE_MULTIPLIER_SQL})
+      + activities.recovery_seconds * (${ACTIVITY_RECOVERY_MULTIPLIER_SQL})
   END
 `;
 
@@ -230,10 +298,18 @@ export class SqliteSessionRepository implements SessionRepository {
       // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058) — la création
       // insérait jusqu'ici `FIXED_TOUR_REPEAT_COUNT`, rendant impossible la
       // création d'une Séance à plusieurs Tours (AC-08/AC-12).
+      // V2-BILAT-01 : direction RÉELLE du Tour (`tourSideMode`, champ
+      // optionnel de transition — `?? DEFAULT_TOUR_SIDE_MODE` si absent).
       await transaction.runAsync(
-        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count)
-         VALUES (?, ?, ?, 1, ?)`,
-        [tourId, cycleId, sessionId, normalized.tourRepeatCount],
+        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode)
+         VALUES (?, ?, ?, 1, ?, ?)`,
+        [
+          tourId,
+          cycleId,
+          sessionId,
+          normalized.tourRepeatCount,
+          normalized.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
+        ],
       );
 
       await insertActivities(
@@ -324,9 +400,16 @@ export class SqliteSessionRepository implements SessionRepository {
         throw new Error("Expected exactly one session row to be updated.");
       }
 
+      // V2-BILAT-01 : direction RÉELLE du Tour (`tourSideMode`, champ
+      // optionnel de transition — `?? DEFAULT_TOUR_SIDE_MODE` si absent).
       await transaction.runAsync(
-        `UPDATE tours SET repeat_count = ? WHERE id = ? AND session_id = ?`,
-        [normalized.tourRepeatCount, existingRow.tour_id, sessionId],
+        `UPDATE tours SET repeat_count = ?, side_mode = ? WHERE id = ? AND session_id = ?`,
+        [
+          normalized.tourRepeatCount,
+          normalized.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
+          existingRow.tour_id,
+          sessionId,
+        ],
       );
 
       await mergeActivities(
@@ -471,7 +554,7 @@ async function insertActivities(
 
     const activityId = activity.id ?? uuidFactory();
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds } =
+    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
 
     await transaction.runAsync(
@@ -495,6 +578,7 @@ async function insertActivities(
         activity.instruction ?? null,
         timestamp,
         timestamp,
+        sideMode,
       ],
     );
 
@@ -511,7 +595,7 @@ const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
   position, name, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, recovery_seconds,
-  instruction, created_at, updated_at
+  instruction, created_at, updated_at, side_mode
 `;
 
 /**
@@ -548,12 +632,15 @@ function toActivitySqlValues(activity: {
   readonly pauseSeconds: number;
   readonly recoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
+  /** V2-BILAT-01 : champ optionnel de transition (`CreateSessionActivityInput`/`UpdateSessionActivityInput.sideMode`) — `DEFAULT_SIDE_MODE` si absent. */
+  readonly sideMode?: SideMode;
 }): {
   executionMode: string;
   seriesCount: number | null;
   pauseSeconds: number;
   recoverySeconds: number;
   bodyZoneIds: readonly string[];
+  sideMode: SideMode;
 } {
   const isRecovery = activity.type === "RECOVERY";
   return {
@@ -566,6 +653,11 @@ function toActivitySqlValues(activity: {
     // dernier recours du chemin SQL.
     recoverySeconds: isRecovery ? 0 : activity.recoverySeconds,
     bodyZoneIds: isRecovery ? [] : activity.bodyZoneIds,
+    // V2-BILAT-01 : une Activité `RECOVERY` (défense en profondeur, jamais
+    // produite par le Domaine — D-041) n'est jamais elle-même côtée : sa
+    // direction reste `UNILATERAL`, quelle que soit la valeur transportée.
+    // `?? DEFAULT_SIDE_MODE` couvre le champ optionnel de transition.
+    sideMode: isRecovery ? "UNILATERAL" : (activity.sideMode ?? DEFAULT_SIDE_MODE),
   };
 }
 
@@ -623,7 +715,7 @@ async function mergeActivities(
     positionByZone.set(zone, position + 1);
 
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds } =
+    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
     const instruction = activity.instruction ?? null;
 
@@ -633,7 +725,7 @@ async function mergeActivities(
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
            series_count = ?, pause_seconds = ?, recovery_seconds = ?, instruction = ?,
-           tour_id = ?, cycle_id = ?, updated_at = ?
+           tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?
          WHERE id = ? AND session_id = ?`,
         [
           activity.type,
@@ -650,6 +742,7 @@ async function mergeActivities(
           activityTourId,
           cycleId,
           timestamp,
+          sideMode,
           activity.id,
           sessionId,
         ],
@@ -679,6 +772,7 @@ async function mergeActivities(
           instruction,
           timestamp,
           timestamp,
+          sideMode,
         ],
       );
     }
@@ -929,6 +1023,11 @@ function toActivity(
     recoverySeconds: isRecovery ? 0 : (row.recovery_seconds ?? 0),
     instruction: row.instruction,
     bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
+    // V2-BILAT-01 : une Récupération n'est jamais elle-même côtée (D-041) ;
+    // `?? "UNILATERAL"` couvre la même défense que `recoverySeconds`
+    // ci-dessus (colonne `NOT NULL`, filet pour une projection partielle de
+    // test antérieure à cette colonne).
+    sideMode: isRecovery ? "UNILATERAL" : (row.activity_side_mode ?? "UNILATERAL"),
   };
 }
 
@@ -978,6 +1077,10 @@ export function assembleSession(
         id: first.tour_id,
         position: 1,
         repeatCount: first.tour_repeat_count,
+        // V2-BILAT-01 : direction du Tour (`?? "UNILATERAL"` — même filet de
+        // défense que `toActivity`, pour une projection partielle de test
+        // antérieure à cette colonne).
+        sideMode: first.tour_side_mode ?? "UNILATERAL",
         exercises: inTour,
       },
     },
@@ -1048,7 +1151,10 @@ function assertSessionAggregateRow(row: SessionAggregateRow): void {
     row.tour_position !== 1 ||
     row.tour_repeat_count < 1 ||
     row.tour_repeat_count > 99 ||
-    !STRUCTURAL_POSITIONS.includes(row.structural_position)
+    !STRUCTURAL_POSITIONS.includes(row.structural_position) ||
+    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`/`activities.side_mode`.
+    !SIDE_MODES.includes(row.tour_side_mode) ||
+    !SIDE_MODES.includes(row.activity_side_mode)
   ) {
     throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
