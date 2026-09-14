@@ -686,10 +686,10 @@ L’arbre est identique sur le Catalogue des Activités et sur le Catalogue des 
 | Action `Créer` ouverte | `x=156`, `y=162`, `90 × 32` | Reste à son emplacement ; point d’ancrage de l’arbre. |
 | Ligne verticale | `x=179`, `y=194`, `2 × 176` | Relie visuellement les quatre icônes ; derrière les icônes et boutons. |
 | Icônes | `x=164`, `y=212/254/296/338`, `32 × 32` | Une icône par ligne, pas de déplacement autonome. |
-| Boutons libellés | `x=206`, mêmes `y`, `172 × 32` | Ordre exact : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`. Intervalle vertical `10 pt`. |
+| Boutons libellés | `x=206`, mêmes `y`, `172 × 32` | Ordre exact : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`. Dans T03, les deux premières actions sont actives ; `Un circuit` est visible mais désactivé. Intervalle vertical `10 pt`. |
 | Annuler | dernière ligne | Ferme l’arbre et restaure exactement l’état antérieur du catalogue | Icône `+` DSF tournée de `45°`, couleur/état gris DSF ; ne pas utiliser une lettre `X`. |
 
-Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF validée ; `Une séance` utilise l’icône de liste/séance Figma ; `Un circuit` utilise le chemin en perspective Figma avec trait et quatre cercles progressifs ; `Annuler` réutilise l’icône `+` avec rotation de `45°`. Les proportions internes, épaisseurs, rayons, liserés et courbes proviennent des vecteurs de la frame. Il est interdit de les remplacer par des symboles de police. Le chemin Circuit conserve un départ court descendant, une fin légèrement descendante et raccourcie, un dernier cercle présent, ainsi qu’une progression d’échelle et d’épaisseur du premier au quatrième cercle et du début à la fin du trait.
+Dans T03, toucher `Un circuit` ne produit aucune navigation et l’état désactivé est annoncé par l’accessibilité. Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF validée ; `Une séance` utilise l’icône de liste/séance Figma ; `Un circuit` utilise le chemin en perspective Figma avec trait et quatre cercles progressifs ; `Annuler` réutilise l’icône `+` avec rotation de `45°`. Les proportions internes, épaisseurs, rayons, liserés et courbes proviennent des vecteurs de la frame. Il est interdit de les remplacer par des symboles de police. Le chemin Circuit conserve un départ court descendant, une fin légèrement descendante et raccourcie, un dernier cercle présent, ainsi qu’une progression d’échelle et d’épaisseur du premier au quatrième cercle et du début à la fin du trait.
 
 #### Action contextuelle — `CE-ACT-EXE-01c`
 
