@@ -436,7 +436,7 @@ Cet écran constitue l’accueil de l’application.
 ### Recherche et filtres
 
 
-Le MVP comporte une action de recherche globale et le sélecteur de type `Activités / Séances / Circuits`, avec seule la vue Séances active. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` sont portés par le futur bouton Filtrer et ne sont plus des segments.
+Le MVP comporte une action de recherche globale et le sélecteur de type `Activités / Séances / Circuits`. La vue `Séances` est active dès T01 ; la vue `Activités` devient active en T03 ; `Circuits` reste visible mais désactivé. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` sont portés par le futur bouton Filtrer et ne sont plus des segments.
 
 La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
 
