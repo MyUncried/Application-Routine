@@ -187,7 +187,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
 - Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
 
-## 6. Besoins liés à l’exécution directe — V2
+## 9. Besoins MVP T03 — Catalogue des Activités et Exécution directe
 
 L’utilisateur doit pouvoir :
 
