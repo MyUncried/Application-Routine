@@ -107,6 +107,7 @@ jobs:
           $env:GH_TOKEN=$token
           & node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY "__kodjo_missing_${{ github.run_id }}"
           if ($LASTEXITCODE -eq 0) { throw 'Missing branch was accepted' }
+          exit 0
       - name: Certify real persistent runner lock before Claude boundary
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
