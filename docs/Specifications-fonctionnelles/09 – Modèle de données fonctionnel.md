@@ -31,8 +31,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Un Tour contient une suite ordonnée d'activités.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
 - Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
-- Une **Exécution de séance** est créée uniquement lorsqu'une séance démarre.
-- Chaque exécution conserve un **instantané fonctionnel** immuable et allégé de la séance utilisée.
+- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance dans le MVP, ou une Activité persistante en V2.
+- Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
 
@@ -52,7 +52,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
 | Catégorie | Classement des séances | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
-| Exécution de séance | Réalisation effective d'une séance | Principale |
+| Exécution | Réalisation effective d’une source `SESSION` ou `ACTIVITY` | Principale |
 | Préférences globales | Paramètres généraux | Configuration |
 
 ## Décisions structurantes du modèle
@@ -98,9 +98,10 @@ UTILISATEUR
 ├── possède 0..n ROUTINES
 │       └── planifie 1 SÉANCE
 │
-├── possède 0..n EXÉCUTIONS DE SÉANCE
-│       ├── référence 1 SÉANCE
-│       ├── contient 1 INSTANTANÉ DE SÉANCE
+├── possède 0..n EXÉCUTIONS
+│       ├── possède 1 ORIGINE `SESSION` ou `ACTIVITY`
+│       ├── référence 0..1 SÉANCE ou 0..1 ACTIVITÉ PERSISTANTE
+│       ├── contient 1 INSTANTANÉ DE SOURCE
 │       └── contient 1 ÉTAT D'EXÉCUTION
 │
 ├── possède 0..n CATÉGORIES
@@ -590,22 +591,23 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 - Retirer un média d’une Activité supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucune Activité ni aucun instantané ne le référence.
 
 
-# 09.7 Entité Exécution de séance
+# 09.7 Entité Exécution
 
 ## Définition
 
-Une **Exécution de séance** représente la réalisation effective d'une séance.
+Une **Exécution** représente la réalisation effective d’une source exécutable. Son origine vaut `SESSION` dans le MVP et peut valoir `ACTIVITY` pour une Activité lancée depuis le Catalogue des Activités en V2.
 
-Elle est créée uniquement au démarrage d'une séance et reste indépendante des modifications ultérieures de la séance ou de sa routine.
+Elle est créée uniquement au démarrage et reste indépendante des modifications ou de la suppression ultérieures de sa source.
 
 ## Périmètre
 
-Une exécution possède directement :
+Une Exécution possède directement :
 
-- la séance exécutée ;
-- la routine ayant éventuellement déclenché l'exécution ;
-- un instantané de séance ;
-- un état d'exécution ;
+- une origine immuable `SESSION` ou `ACTIVITY` ;
+- la référence facultative à la source persistante ;
+- la Routine éventuelle, uniquement pour une origine `SESSION` ;
+- un instantané immuable de la source ;
+- un état d’Exécution ;
 - ses informations de début et de fin.
 
 ## Attributs fonctionnels
@@ -613,9 +615,10 @@ Une exécution possède directement :
 | Attribut | Description | Caractère | Règle principale |
 | --- | --- | :---: | --- |
 | Identifiant | Identifiant unique | Obligatoire | Créé au démarrage |
-| Séance | Séance exécutée | Obligatoire | Référence unique |
-| Routine | Routine d'origine | Facultatif | Peut être absente |
-| Instantané de séance | Copie figée de la séance | Obligatoire | Créé automatiquement |
+| Origine | Type de source | Obligatoire | `SESSION` ou `ACTIVITY`, immuable |
+| Source persistante | Séance ou Activité de référence | Facultatif | Une seule selon l’origine ; peut devenir absente après suppression de la source |
+| Routine | Routine d'origine | Facultatif | Autorisée uniquement pour `SESSION` |
+| Instantané de source | Copie figée de la Séance ou de l’Activité | Obligatoire | Créé automatiquement |
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
@@ -629,9 +632,9 @@ Une exécution possède directement :
 
 ## Structures internes
 
-### Instantané de séance
+### Instantané de source
 
-L’Instantané de séance est une copie figée et allégée de la définition fonctionnelle de la Séance au moment du démarrage de l’Exécution.
+L’Instantané de source est une copie figée et allégée de la Séance ou de l’Activité persistante au moment du démarrage de l’Exécution.
 
 Il contient uniquement les informations nécessaires pour :
 - reconstruire l’ordre et le contenu de la Séance exécutée ;
