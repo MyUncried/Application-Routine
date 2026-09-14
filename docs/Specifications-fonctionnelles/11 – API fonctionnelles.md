@@ -251,7 +251,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
 - Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Activité.
 
-## 11.13 API Activités, Médias et Circuits
+## 11.13 API du Catalogue des Activités, des Médias et des Circuits
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
