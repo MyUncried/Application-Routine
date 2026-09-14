@@ -404,7 +404,9 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 5. `Annuler` ne modifie rien. `Confirmer` applique atomiquement la direction au Tour, remet les seules Activités concernées à `UNILATERAL` et désactive les contrôles enfants.
 6. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
 7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
-8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.\n\n## Exécuter directement une Activité — V2
+8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
+
+## Exécuter directement une Activité — V2
 
 1. Ouvrir `Activités` dans le Catalogue.
 2. Appuyer sur l’action `Exécuter` d’une Activité valide.
@@ -413,4 +415,12 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 5. Après la dernière phase, entendre le signal de fin et ouvrir immédiatement la Synthèse.
 6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
-8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.\n
+8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.
+## Consulter ou modifier une Activité depuis le Catalogue — V2
+
+1. Ouvrir `Activités` dans le Catalogue.
+2. Appuyer sur la surface de la carte, hors bouton Lecture.
+3. Consulter ou modifier l’Activité.
+4. Revenir au Catalogue dans son état précédent.
+
+Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit en V2 sans modifier l’action principale de la carte.

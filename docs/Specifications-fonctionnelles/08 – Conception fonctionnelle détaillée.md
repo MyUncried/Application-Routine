@@ -1176,7 +1176,9 @@ Pour une Activité autonome, le générateur produit par côté un bloc de `C` S
 
 La progression globale est calculée sur le Plan développé : chaque passage chronométré est pondéré par sa durée planifiée ; chaque passage Répétitions ou À l’échec acquiert sa part avec `Suivant`. Le lancement annonce le premier côté, la transition annonce le second, et un Tour n’annonce le côté qu’au début de chaque passage complet, pas à chaque Activité.
 
-Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.\n\n## Exécution directe d’une Activité — V2
+Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.
+
+## Exécution directe d’une Activité — V2
 
 ### Éligibilité et lancement
 
@@ -1188,4 +1190,10 @@ Le plan contient, dans l’ordre : `DIRECT_PREPARE(5 s)`, tous les passages de l
 
 ### Synthèse et retour
 
-La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire et conditionne `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’origine `ACTIVITY`, puis restaure le Catalogue et son état antérieur.\n
+La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire et conditionne `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’origine `ACTIVITY`, puis restaure le Catalogue et son état antérieur.
+
+### Interactions de la carte d’Activité de catalogue
+
+La carte distingue deux cibles : sa surface principale ouvre la consultation ou la modification de l’Activité ; le bouton Lecture lance son Exécution directe. Aucun chevron ou bouton `Déployer` n’est affiché dans l’état courant, et l’icône de déplacement propre à la Composition n’est jamais affichée dans le Catalogue. La barre verticale bleue appartient à la présentation de toutes les cartes d’Activité.
+
+En V2, un contrôle de déploiement pourra être réintroduit pour révéler les médias. Cette future action média restera distincte de l’ouverture de la carte et de l’Exécution directe.
