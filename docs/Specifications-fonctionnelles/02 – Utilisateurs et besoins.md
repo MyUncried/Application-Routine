@@ -176,7 +176,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 
 ## 8. Besoins validés pour les évolutions
 
-- Créer en V2 une Activité de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
+- Créer dans le MVP T03 une Activité de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - Associer `0..n` photos ou vidéos à une Activité, les réordonner et les consulter hors ligne.
 - Créer en V2 un Circuit d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
