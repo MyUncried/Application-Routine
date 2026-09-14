@@ -65,9 +65,9 @@ Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre d
 
 ### Exécution
 
-Une Exécution est la réalisation effective d’une Séance.
+Une Exécution est la réalisation effective d’un contenu exécutable d’origine `SESSION` ou `ACTIVITY`.
 
-Chaque Exécution repose sur un instantané JSON immuable de la Séance au démarrage. Cet instantané garantit que l’historique reste lisible même si la Séance est ensuite modifiée ou supprimée.
+Chaque Exécution repose au démarrage sur un instantané JSON immuable de sa source : Séance ou Activité persistante. Cet instantané garantit que l’historique reste lisible même si la source est ensuite modifiée ou supprimée.
 
 Pour un plan bilatéral, cet instantané conserve la direction effective et chaque Résultat d’Activité conserve son côté. L’interface affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Activité pendant le passage concerné, sans compteur `1/2` ou `2/2`.
 
@@ -193,13 +193,13 @@ Les occurrences futures sont calculées dynamiquement. Pour une planification p�
 ### Suivi et historique
 
 Chaque Exécution conserve notamment :
-- l’instantané immuable de la Séance ;
+- l’origine `SESSION` ou `ACTIVITY` et l’instantané immuable correspondant ;
 - la date et l’heure ;
 - la Durée réelle ;
 - le statut ;
 - les Résultats d’Activités exécutées ;
 - le côté de chaque Résultat lorsque l’Activité est effectivement bilatérale ;
-- le Ressenti éventuel ;
+- le Ressenti obligatoire lorsque la Synthèse est présentée ;
 - un Commentaire facultatif limité à 200 caractères.
 
 Les statuts d’Exécution sont :
@@ -256,9 +256,9 @@ Le MVP comporte quatre onglets :
 
 ## 7. Principes métier structurants
 
-1. Une Séance est un contenu exécutable ; une Routine est sa planification.
+1. Une Séance est un contenu exécutable ; en V2, une Activité persistante l’est également ; une Routine planifie une Séance.
 2. Une Séance et ses Routines sont indépendantes.
-3. Chaque Exécution conserve un instantané immuable de la Séance utilisée.
+3. Chaque Exécution conserve son origine et un instantané immuable du contenu utilisé.
 4. Une modification ou une suppression ultérieure ne change jamais une Exécution passée.
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.

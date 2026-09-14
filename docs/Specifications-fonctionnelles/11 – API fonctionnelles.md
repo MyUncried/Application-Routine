@@ -27,7 +27,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 ## 11.1 Principes généraux
 
 Les API fonctionnelles respectent les principes suivants :
-- une Séance représente un contenu exécutable ;
+- une Séance représente un contenu exécutable ; en V2, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
 - une Routine représente la planification d’une Séance ;
 - une Exécution représente la réalisation effective d’une Séance ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
