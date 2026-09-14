@@ -118,7 +118,7 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, seule la vue `Séances` est active ; les deux autres types sont visibles mais désactivés. En V2, les vues Activités et Circuits deviennent fonctionnelles sans créer de navigation principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est active dès T01 et `Activités` devient active en T03 ; `Circuits` reste visible mais désactivé. En V2, la vue Circuits devient fonctionnelle sans créer de navigation principale supplémentaire.
 
 ### Catalogue des Activités — MVP T03
 
