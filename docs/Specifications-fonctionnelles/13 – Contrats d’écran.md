@@ -1247,7 +1247,7 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 #### Sélection et icône
 
 - chaque carte entière est sélectionnable et expose un état d’accessibilité sélectionné/non sélectionné ;
-- plusieurs cartes peuvent être sélectionnées ; l’ordre d’insertion suit l’ordre de sélection validé par la règle fonctionnelle, jamais une position arbitraire de rendu ;
+- plusieurs cartes peuvent être sélectionnées ; l’ordre d’insertion reste `À CLARIFIER` entre ordre de sélection et ordre affiché, et ne peut pas être choisi implicitement pendant le développement ;
 - la marque visible est centrée dans une boîte `24 × 24` située à droite de la carte (`x=334` sur la référence) ;
 - le rendu final doit reprendre l’esprit d’une coche de sélection/validation, avec fond bleu et liseré blanc conformément à la proposition de conception ;
 - les glyphes texte `✓` des nœuds `3802:5447` et `3802:5462`, ainsi que le glyphe Recherche `⌕` du nœud `3789:5410`, sont des placeholders Figma : ils sont interdits comme assets d’implémentation ;
