@@ -2823,3 +2823,296 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     expect(within(screen.getByTestId("composition-tour-control")).getByText("7")).toBeTruthy();
   });
 });
+
+/**
+ * V2-BILAT-01 (plan `## UI`) : contrôle `Côtés` du Tour, après `Nombre de
+ * tours` — activation gardée par un dialogue déterministe, remise atomique
+ * des enfants `IN_TOUR`, aucune restauration au retour unilatéral.
+ */
+describe("CompositionScreen — contrôle Côtés du Tour (V2-BILAT-01)", () => {
+  const sideModeStrings = strings.shared.sideMode;
+  const dialog = composition.tourBilateralConfirmModal;
+
+  it("is rendered after Nombre de tours, displaying Unilatéral by default", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
+    expect(screen.getByTestId("composition-tour-side-mode")).toBeTruthy();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("plan `## UI` (« Tour side control ») : placement immédiatement à droite du sélecteur Nombre de tours, dans la même rangée (`tourHeader`)", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
+    const header = screen.getByTestId("composition-tour-card");
+    const countControlIndex = within(header)
+      .getAllByRole("button")
+      .findIndex((node) => node === screen.getByTestId("composition-tour-control"));
+    const sideModeIndex = within(header)
+      .getAllByRole("button")
+      .findIndex((node) => node === screen.getByTestId("composition-tour-side-mode-control"));
+    expect(countControlIndex).toBeGreaterThanOrEqual(0);
+    expect(sideModeIndex).toBe(countControlIndex + 1);
+  });
+
+  it("plan `## UI` : géométrie locale 42 × 34 pt, sans titre Côté/Côtés visible", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
+    const control = StyleSheet.flatten(screen.getByTestId("composition-tour-side-mode-control").props.style);
+    expect(control.width).toBe(42);
+    expect(control.height).toBe(34);
+    expect(screen.queryByText("Côté")).toBeNull();
+    expect(screen.queryByText("Côtés")).toBeNull();
+  });
+
+  it("plan `## UI` : étiquettes accessibles exactes « Direction du Tour : … », distinctes de celles de l'Activité", () => {
+    // Aucun enfant IN_TOUR à direction propre bilatérale : l'activation
+    // s'applique DIRECTEMENT, sans dialogue (plan `## Side-mode
+    // transitions`, point 3) — seul le changement d'étiquette accessible
+    // est vérifié ici.
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
+    expect(screen.getByLabelText(sideModeStrings.tour.accessibilityLabels.UNILATERAL)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.getByLabelText(sideModeStrings.tour.accessibilityLabels.RIGHT_LEFT)).toBeTruthy();
+  });
+
+  it("opens the deterministic dialog on activation (UNILATERAL → bilateral) only when a child already has its OWN bilateral setting, without mutating the draft yet", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.getByText(dialog.title)).toBeTruthy();
+    expect(screen.getByText(dialog.message)).toBeTruthy();
+    // Pas encore appliqué : le contrôle affiche toujours Unilatéral, et
+    // l'Activité IN_TOUR conserve sa direction propre (`RIGHT_LEFT`), non
+    // encore remise.
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("plan `## Side-mode transitions` (« Tour activation », points 3/4/7) : applique DIRECTEMENT, sans dialogue, un Tour vide", () => {
+    renderScreenWithDraft([]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+  });
+
+  it("plan `## Side-mode transitions` : applique DIRECTEMENT, sans dialogue, un Tour dont toutes les Activités IN_TOUR sont déjà unilatérales", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "IN_TOUR", { sideMode: "UNILATERAL" }),
+      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
+    ]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+  });
+
+  it("plan `## Side-mode transitions` : une Activité BEFORE_TOUR/AFTER_TOUR bilatérale n'ouvre jamais le dialogue — seuls les enfants IN_TOUR comptent", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" }),
+      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
+      anActivity("ex-3", "AFTER_TOUR", { sideMode: "LEFT_RIGHT" }),
+    ]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    // `getByText` seul serait ambigu : `ex-1` (BEFORE_TOUR, direction PROPRE
+    // RIGHT_LEFT) porte désormais aussi son propre indicateur de carte
+    // (`D→G`, V2-BILAT-01 « Composition cards and summaries ») — la valeur
+    // du CONTRÔLE DU TOUR est donc lue via son `testID` dédié, jamais par
+    // le texte seul, qui n'est plus unique dans l'arbre.
+    expect(screen.getByTestId("composition-tour-side-mode-value").props.children).toBe(
+      sideModeStrings.valueLabels.RIGHT_LEFT,
+    );
+  });
+
+  it("plan `## UI` (« Confirmation dialog ») : instance Composition/Tour (CE-BIL-02) — action Confirmer bordée, jamais le style Activité", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    const confirmAction = StyleSheet.flatten(screen.getByLabelText(dialog.confirm).props.style);
+    expect(confirmAction.borderColor).toBe(colors.dialogDestructiveActionBorder);
+    expect(confirmAction.borderWidth).toBe(1);
+  });
+
+  it("Annuler closes the dialog without any mutation", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.cancel));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("Confirmer applies the transition atomically: the Tour direction changes AND every IN_TOUR child resets to UNILATERAL", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
+    ]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.confirm));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+  });
+
+  it("never shows the dialog when switching between two already-bilateral directions", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "RIGHT_LEFT" });
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.LEFT_RIGHT)).toBeTruthy();
+  });
+
+  it("never shows the dialog on a return to UNILATERAL, and restores nothing", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "LEFT_RIGHT" });
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("doubles the Tour summary duration once the Tour becomes bilateral", () => {
+    // `ex-1` n'a pas de direction propre bilatérale : l'activation
+    // s'applique DIRECTEMENT, sans dialogue (plan `## Side-mode
+    // transitions`, point 3).
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { durationSeconds: 45 })]);
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "1 activité · 1 min",
+    );
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "1 activité · 2 min",
+    );
+  });
+});
+
+/**
+ * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
+ * indicateur `D→G`/`G→D` non interactif d'une carte Activité et clause de
+ * direction de la synthèse — l'un et l'autre affichés UNIQUEMENT pour une
+ * direction PROPRE bilatérale, jamais pour une Activité unilatérale, ni
+ * pour une direction héritée d'un Tour déjà bilatéral.
+ */
+describe("CompositionScreen — indicateur de direction propre et clause de synthèse (V2-BILAT-01)", () => {
+  const sideModeStrings = strings.shared.sideMode;
+  const dialog = composition.tourBilateralConfirmModal;
+
+  it("affiche l'indicateur D→G, géométrie locale 42 × 20 pt, pour une Activité BEFORE_TOUR à direction propre RIGHT_LEFT", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    // `includeHiddenElements` : l'indicateur porte délibérément
+    // `accessibilityElementsHidden`/`importantForAccessibility="no-hide-
+    // descendants"` (plan `## UI`, « keep the indicator non-interactive »)
+    // — RNTL v13 exclut par défaut les éléments masqués de l'arbre
+    // d'accessibilité des requêtes `getBy*`/`within`, il faut donc les
+    // inclure explicitement pour l'atteindre, sans jamais retirer ce
+    // masquage lui-même (vérifié séparément ci-dessous).
+    const indicator = screen.getByTestId("composition-activity-side-mode-ex-1", {
+      includeHiddenElements: true,
+    });
+    expect(
+      within(indicator).getByText(sideModeStrings.valueLabels.RIGHT_LEFT, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    const style = StyleSheet.flatten(indicator.props.style);
+    expect(style.width).toBe(42);
+    expect(style.height).toBe(20);
+  });
+
+  it("affiche l'indicateur G→D pour une direction propre LEFT_RIGHT, et l'omet entièrement pour une Activité unilatérale", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "AFTER_TOUR", { sideMode: "LEFT_RIGHT" }),
+      anActivity("ex-2", "AFTER_TOUR", { sideMode: "UNILATERAL" }),
+    ]);
+
+    expect(
+      within(
+        screen.getByTestId("composition-activity-side-mode-ex-1", { includeHiddenElements: true }),
+      ).getByText(sideModeStrings.valueLabels.LEFT_RIGHT, { includeHiddenElements: true }),
+    ).toBeTruthy();
+    // Absence RÉELLE (pas un effet du masquage à l'accessibilité) : `ex-2`
+    // est unilatérale, `queryByTestId` reste donc `null` même en incluant
+    // les éléments masqués.
+    expect(
+      screen.queryByTestId("composition-activity-side-mode-ex-2", { includeHiddenElements: true }),
+    ).toBeNull();
+  });
+
+  it("l'indicateur reste non interactif — masqué de l'arbre d'accessibilité", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    const indicator = screen.getByTestId("composition-activity-side-mode-ex-1", {
+      includeHiddenElements: true,
+    });
+    expect(indicator.props.accessibilityElementsHidden).toBe(true);
+    expect(indicator.props.importantForAccessibility).toBe("no-hide-descendants");
+  });
+
+  it("omet l'indicateur pour une Activité IN_TOUR dont la direction bilatérale est HÉRITÉE d'un Tour déjà bilatéral", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.confirm));
+
+    // La remise atomique met l'Activité IN_TOUR à UNILATERAL (déjà couvert
+    // ailleurs) — la direction affichée est désormais celle du Tour, jamais
+    // propre : aucun indicateur, quelle que soit la valeur du Tour.
+    // `includeHiddenElements` : absence RÉELLE de l'indicateur dans l'arbre
+    // (le JSX ne le rend pas du tout), pas un simple effet du filtrage par
+    // défaut des éléments masqués à l'accessibilité — vérifié explicitement
+    // pour que cette assertion reste probante même en incluant ces éléments.
+    expect(
+      screen.queryByTestId("composition-activity-side-mode-ex-1", { includeHiddenElements: true }),
+    ).toBeNull();
+  });
+
+  it("insère la clause « par côté » et le suffixe de direction dans la synthèse d'une carte à direction propre bilatérale", () => {
+    renderScreenWithDraft([
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Fentes",
+        structuralPosition: "BEFORE_TOUR",
+        durationSeconds: 90,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        sideMode: "RIGHT_LEFT",
+      },
+    ]);
+
+    expect(
+      screen.getByText("3 séries par côté de 1 min 30 s, à droite, puis à gauche avec 15 s de pause par série"),
+    ).toBeTruthy();
+  });
+
+  it("n'insère jamais la clause de direction dans la synthèse d'une carte IN_TOUR dont la direction bilatérale est héritée", () => {
+    renderScreenWithDraft([
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Fentes",
+        structuralPosition: "IN_TOUR",
+        durationSeconds: 90,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        sideMode: "RIGHT_LEFT",
+      },
+    ]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.confirm));
+
+    expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
+    expect(screen.queryByText(/par côté/)).toBeNull();
+  });
+});

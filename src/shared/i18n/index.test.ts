@@ -129,7 +129,7 @@ describe("strings", () => {
     );
   });
 
-  it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095)", () => {
+  it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095; V2-BILAT-01 direction clause added)", () => {
     expect(strings.screens.composition.exerciseRow).toEqual({
       editAccessibilityLabel: "Modifier l’exercice",
       seriesSingular: "série",
@@ -142,6 +142,11 @@ describe("strings", () => {
       withPause: "avec",
       pauseSuffix: "de pause par série",
       toFailure: "jusqu’à l’échec",
+      // V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
+      // clause de côté d'une carte Activité à direction PROPRE bilatérale.
+      perSide: "par côté",
+      sideDirectionSuffixRightLeft: ", à droite, puis à gauche",
+      sideDirectionSuffixLeftRight: ", à gauche, puis à droite",
     });
   });
 
@@ -226,7 +231,11 @@ describe("strings", () => {
     // Le glyphe `≥` est celui, unique, de toutes les bornes minimales de
     // l'application — jamais une écriture concurrente.
     expect(strings.screens.exercise.totalDuration.compactLabelLowerBound).toContain("≥");
-    expect(strings.screens.exercise.recap.minimumDurationLabel).not.toContain("≥");
+    // V2-BILAT-01 (BIL-068) : le libellé visible de la ligne de durée reste
+    // `Durée totale` dans les trois modes — jamais lui-même porteur du `≥`,
+    // qui reste composé par `compositionPresentation.ts` au moment de
+    // l'affichage.
+    expect(strings.screens.exercise.recap.totalDurationLabel).not.toContain("≥");
   });
 
   it("T02-S02 — exposes the total-duration adjustment message with a {duration} placeholder (RM-130)", () => {
@@ -261,8 +270,10 @@ describe("strings", () => {
       // T02-S02 : proposition de Récupération attachée et ligne de durée.
       recoveryPrefix: "puis",
       recoveryLabel: "de récupération",
+      // V2-BILAT-01 (BIL-068) : `minimumDurationLabel` (« Durée minimale »)
+      // est retiré — le libellé visible reste `Durée totale` dans les trois
+      // modes, la borne inférieure restant signalée par le seul `≥`.
       totalDurationLabel: "Durée totale",
-      minimumDurationLabel: "Durée minimale",
     });
     expect(strings.screens.exercise.recap.pauseSuffix).not.toBe(
       strings.screens.composition.exerciseRow.pauseSuffix,

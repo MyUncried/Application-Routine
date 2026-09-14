@@ -42,11 +42,14 @@ import {
   DEFAULT_PAUSE_SECONDS,
   DEFAULT_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
+  DEFAULT_SIDE_MODE,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
+  DEFAULT_TOUR_SIDE_MODE,
 } from "./defaults";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
+import type { SideMode } from "./sideMode";
 import { validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -99,6 +102,8 @@ export type SessionDraftExercise = {
   readonly instruction: string | null;
   /** Identifiants stables du référentiel `bodyZones.ts` (T01-S08, D-093) — sélection multiple, ordre indifférent. */
   readonly bodyZoneIds: readonly string[];
+  /** V2-BILAT-01 : direction propre de cette Activité (`sideMode.ts`) — `DEFAULT_SIDE_MODE` (`UNILATERAL`) pour un nouveau brouillon (`createExerciseDraft`). */
+  readonly sideMode: SideMode;
 };
 
 /**
@@ -140,6 +145,12 @@ export type SessionDraft = {
    */
   readonly tourRepeatCount?: number;
   /**
+   * V2-BILAT-01 (D-058-bis) : direction du Tour, entier optionnel de
+   * transition — `createEmptyDraft` le fixe à `DEFAULT_TOUR_SIDE_MODE` ; un
+   * consommateur lit `draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE`.
+   */
+  readonly tourSideMode?: SideMode;
+  /**
    * Collection ORDONNÉE d'Activités (T01-S08, complétion REWORK12 — « La
    * transformation du brouillon actuel, limité à un champ `exercise`
    * unique, vers une collection ordonnée d'activités est explicitement
@@ -180,6 +191,7 @@ export function createEmptyDraft(): SessionDraft {
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
     tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
+    tourSideMode: DEFAULT_TOUR_SIDE_MODE,
     exercises: [],
     categoryDrafts: [],
     selectedCategoryIds: [],
@@ -210,6 +222,7 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
     recoverySeconds: DEFAULT_RECOVERY_SECONDS,
     instruction: null,
     bodyZoneIds: [],
+    sideMode: DEFAULT_SIDE_MODE,
   };
 }
 
@@ -249,6 +262,15 @@ export function toSessionDraft(session: Session): SessionDraft {
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
     tourRepeatCount: session.cycle.tour.repeatCount,
+    // V2-BILAT-01 : `session.cycle.tour.sideMode` est un champ optionnel de
+    // transition (même convention que `beforeTour`/`afterTour`) — résolu ici
+    // en une valeur CONCRÈTE, par cohérence avec `activityToDraftExercise`
+    // ci-dessous (qui résout de même `Activity.sideMode ?? DEFAULT_SIDE_MODE`
+    // pour chaque Activité) et avec `createEmptyDraft` (qui fixe déjà
+    // `tourSideMode` à `DEFAULT_TOUR_SIDE_MODE`) : un brouillon réhydraté
+    // porte donc toujours une configuration de côté pleinement résolue,
+    // jamais un champ resté à l'état brut de la Séance source.
+    tourSideMode: session.cycle.tour.sideMode ?? DEFAULT_TOUR_SIDE_MODE,
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     // Toutes les Catégories déjà associées à une Séance persistée sont, par
     // construction, déjà persistées elles-mêmes : aucune n'est un brouillon
@@ -280,6 +302,10 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     recoverySeconds: activity.recoverySeconds,
     instruction: activity.instruction,
     bodyZoneIds: activity.bodyZoneIds,
+    // V2-BILAT-01 : `Activity.sideMode` est un champ optionnel de transition
+    // (même convention que `cycle.beforeTour`/`afterTour`) — `??
+    // DEFAULT_SIDE_MODE` couvre une Séance persistée avant cette tranche.
+    sideMode: activity.sideMode ?? DEFAULT_SIDE_MODE,
   };
 }
 
@@ -321,7 +347,8 @@ export function exerciseEquals(
     a.pauseSeconds === b.pauseSeconds &&
     a.recoverySeconds === b.recoverySeconds &&
     a.instruction === b.instruction &&
-    bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds)
+    bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds) &&
+    a.sideMode === b.sideMode
   );
 }
 
@@ -393,6 +420,7 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
     a.finalPhaseSeconds === b.finalPhaseSeconds &&
     (a.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ===
       (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
+    (a.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) === (b.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) &&
     exercisesEqual(a.exercises, b.exercises) &&
     categoryDraftsEqual(a.categoryDrafts, b.categoryDrafts) &&
     selectedCategoryIdsEqual(a.selectedCategoryIds, b.selectedCategoryIds)
@@ -433,6 +461,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       recoverySeconds: 0,
       instruction: exercise.instruction,
       bodyZoneIds: [] as readonly string[],
+      sideMode: exercise.sideMode,
     };
   }
   return {
@@ -445,6 +474,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     recoverySeconds: exercise.recoverySeconds,
     instruction: exercise.instruction,
     bodyZoneIds: exercise.bodyZoneIds,
+    sideMode: exercise.sideMode,
   };
 }
 
@@ -480,6 +510,7 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    tourSideMode: draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
     exercises: draft.exercises.map((exercise) => ({
       id: exercise.id,
       structuralPosition: exercise.structuralPosition,
@@ -536,6 +567,7 @@ export function toUpdateSessionInput(
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    tourSideMode: draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
     activities,
     categories: resolveDraftCategories(draft),
   });
