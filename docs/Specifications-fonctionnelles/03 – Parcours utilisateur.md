@@ -413,7 +413,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 3. Consulter ou modifier l’Activité.
 4. Revenir au Catalogue dans son état précédent.
 
-Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit en V2 sans modifier l’action principale de la carte.
+Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit après le MVP sans modifier l’action principale de la carte.
 
 ## Ajouter plusieurs Activités existantes à une Composition — V2
 
