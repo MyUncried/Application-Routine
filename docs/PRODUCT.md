@@ -331,27 +331,42 @@ Les versions futures pourront notamment introduire :
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances ;
 - suppression d’une Catégorie personnalisée créée par erreur, reportée au MVP bis.
 
-## 11. Évolution Activités, Catalogue et Circuits — décision du 6 septembre 2026
+## 11. Évolution Activités, Catalogue et Circuits
 
-Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les anciens segments `Toutes`, `Planifiées` et `Archivées` ne sont plus une navigation principale : ces états deviennent des filtres dédiés.
+### Catalogue multi-type
 
-Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni durée ni répétitions cibles et utilise exactement le mécanisme du mode Répétitions : l’utilisateur termine chaque Série avec `Suivant`. La durée affichée est une borne minimale fondée sur les seuls temps connus.
+Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` deviennent des filtres dédiés et non des segments de navigation.
 
-En V2, l’Activité de catalogue est une référence persistante directement exécutable. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
+### Activités persistantes — V2
 
-La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03.
+Une Activité de catalogue est une référence persistante. L’utilisateur peut la créer, la consulter, la modifier, l’exécuter directement ou la sélectionner depuis une Composition. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération, son côté et ses associations média. La copie appartient à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue.
 
-Une tranche Configuration préalable à T03 livre les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, leur persistance, leur copie et leur duplication, les calculs et synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution de la direction propre ou effective. Cette tranche n’exécute pas encore les passages bilatéraux.
+Depuis `Créer`, l’arbre propose `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
-T03 est révisée pour exécuter les modes Durée, Répétitions et À l’échec, les Séries multiples, les répétitions du Tour et les passages bilatéraux. Elle développe le Plan d’Exécution, affiche le côté courant, pondère la progression, annonce les changements de côté, limite la réinitialisation au passage courant et conserve des Résultats séparés par côté. Les anciennes exclusions limitant T03 à une Série ou reportant cette exécution à T04 sont supprimées.
+### Exécution directe d’une Activité — V2
 
-Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées. Il référence les Séances existantes, autorise plusieurs occurrences d’une même Séance et ne possède pas de compteur de répétition d’étape. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance de ses étapes. La planification des Circuits relève de la V3.
+Le bouton Lecture d’une carte valide lance une Exécution d’origine `ACTIVITY`. Le moteur crée un instantané autonome, affiche une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération, puis termine sans phase `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
+
+Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire est facultatif. L’Exécution rejoint le Suivi général sous le type Activité et alimente toutes les statistiques compatibles sans augmenter le nombre de Séances. `Terminer` restaure le Catalogue des Activités dans son état précédent.
+
+### Éditeur d’Activité et bilatéralité
+
+Le MVP ajoute le mode `À l’échec`, sans durée ni répétitions cibles. L’éditeur unifié place le Nom en premier et ordonne les paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` lorsque cette valeur s’applique.
+
+Les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` sont persistés, copiés et exécutés selon la direction propre de l’Activité ou celle du Tour. T03 développe les Séries multiples, les répétitions du Tour et les passages bilatéraux dans le Plan d’Exécution.
+
+### Médias et Circuits
+
+Une Activité peut associer `0..n` photos ou vidéos ordonnées en V2. Leur affichage depuis la carte du Catalogue par un futur contrôle de déploiement reste une évolution distincte à spécifier.
+
+Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance commencées. La planification des Circuits relève de la V3.
 
 ## 12. Gouvernance documentaire
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
 En cas de contradiction, l’ordre de référence est :
+
 1. registre des décisions de conception ;
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
@@ -359,23 +374,6 @@ En cas de contradiction, l’ordre de référence est :
 5. versions du produit et vision générale ;
 6. documents de travail, historiques et revues externes.
 
-Toute évolution fonctionnelle doit préciser son impact sur :
-- Figma ;
-- documentation fonctionnelle ;
-- modèle de données ;
-- règles métier ;
-- API ou services ;
-- architecture technique ;
-- version du produit.
+Toute évolution fonctionnelle doit préciser son impact sur Figma, la documentation fonctionnelle, le modèle de données, les règles métier, les API ou services, l’architecture technique et la version du produit.
 
-Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.\n\n## 13. Exécution directe d’une Activité — décision du 14 septembre 2026
-
-En V2, une Activité persistante peut être exécutée directement depuis le Catalogue des Activités. Le moteur crée un instantané autonome de la définition au lancement ; aucune Séance artificielle n’est créée.
-
-L’Exécution directe commence par une préparation système fixe de `5 s`, qui n’est pas un attribut de l’Activité. Elle exécute ensuite ses Séries, ses Pauses, sa direction bilatérale éventuelle et sa Récupération. Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée.
-
-Le Ressenti reste obligatoire lorsque la Synthèse est présentée, comme pour une Séance, et le Commentaire reste facultatif. L’Exécution est conservée dans le Suivi général avec l’origine `ACTIVITY`, contribue à toutes les statistiques compatibles sans augmenter le nombre de Séances, puis `Terminer` ramène au Catalogue des Activités dans son état précédent.\n
-
-## 14. Sélection multiple d’Activités existantes — décision du 14 septembre 2026
-
-Dans la sélection multiple d’Activités existantes, la validation insère les copies selon leur ordre courant de présentation dans la liste filtrée, sans tenir compte de l’ordre des touchers. La Recherche et l’état sélectionné utilisent des composants vectoriels DSF dédiés ; aucun glyphe texte n’est une ressource d’interface autorisée.
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée. La matrice transverse du chapitre 13 trace la propagation du Catalogue des Activités.
