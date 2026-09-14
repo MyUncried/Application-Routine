@@ -1592,6 +1592,14 @@ Dans une carte `354 × 69 pt`, l’indicateur propre appartient aux informations
 
 Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
+## Écran V2 — Sélectionner plusieurs Activités existantes
+
+La frame `3789:5349` ouvre un panneau modal au-dessus de la Composition grisée. Elle permet de rechercher et sélectionner plusieurs Activités persistantes. La liste seule défile ; le titre, la Recherche et les deux actions basses restent structurés selon `CE-COMP-SEL-01`.
+
+Les actions sont sur une même ligne, dans l’ordre `Annuler` à gauche puis `Ajouter N activités` à droite. `Annuler` est obligatoire et restaure la Composition sans insertion. La validation insère les Activités sélectionnées puis restaure la Composition.
+
+Les glyphes `⌕` et `✓` encore visibles dans la frame sont des placeholders de conception. Ils ne constituent pas des ressources autorisées : les composants vectoriels DSF Recherche et Coche doivent être finalisés dans Figma avant l’implémentation conforme. La géométrie, les zones tactiles et les critères adaptatifs sont définis par le contrat `CE-COMP-SEL-01` du chapitre 13.
+
 ## Écrans V2 — Exécution directe d’une Activité
 
 Le Catalogue des Activités affiche sur chaque carte valide une action `Exécuter` distincte de l’ouverture ou de la modification. L’activation ouvre l’état `Exécution activité directe — Préparation 5 s`, puis l’écran d’Exécution commun adapté : aucun compteur de Tour ou de Cycle n’est affiché.
