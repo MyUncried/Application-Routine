@@ -1596,6 +1596,8 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 
 Le Catalogue des Activités affiche sur chaque carte valide une action `Exécuter` distincte de l’ouverture ou de la modification. L’activation ouvre l’état `Exécution activité directe — Préparation 5 s`, puis l’écran d’Exécution commun adapté : aucun compteur de Tour ou de Cycle n’est affiché.
 
+Le positionnement des champs et contrôles, leurs zones tactiles, l’ordre des calques, les composants et variantes Figma, les tokens DSF et les icônes exactes sont normatifs dans les sous-contrats `CE-ACT-EXE-01a` à `CE-ACT-EXE-01d` et les contrats `CE-ACT-EXE-02` à `CE-ACT-EXE-05` du chapitre 13. Ce chapitre 06 décrit la navigation ; il ne doit pas être utilisé seul pour reconstruire la composition visuelle.
+
 La Synthèse porte le nom de l’Activité, le statut, la Durée réelle et les Séries terminées. Le Ressenti y est obligatoire ; `Terminer` enregistre puis restaure le Catalogue des Activités dans son état antérieur. Les écrans Figma de référence sont `3835:5385`, `3835:5465`, `3836:5437` et `3836:5503`.
 
 ### Captures de référence
