@@ -59,15 +59,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-033 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
 | RM-034 | Une Activité porte une Pause entre Séries d’un même côté et une durée de Récupération positionnée selon sa direction effective ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
 | RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série correspond à l’exécution de la cible du mode. Une Pause éventuelle est insérée uniquement entre deux Séries successives ; une Série n’est pas une entité métier autonome. |
+| RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries, une Pause éventuelle est insérée `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`; une Série n’est pas une entité métier autonome. |
 | RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
 | RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
 | RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
 | RM-041 | Une Activité ne possède aucun média fonctionnel dans le MVP. Le modèle prévoit `0..n` médias ordonnés par Activité en V2. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
-| RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, la Durée totale globale d’une Activité autonome est `D = L × [C × A + (C − 1) × B] + R`. |
-| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, `R` ou `L` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = ((D − R) / L + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
+| RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral et `P(C,R) = C` si `R = 0`, sinon `C − 1`, la Durée totale globale d’une Activité autonome est `D = L × [C × A + P(C,R) × B] + R`. |
+| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, `R` ou `L` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
 | RM-132 | En Répétitions et À l’échec, Durée totale est masquée sans déplacer Séries, cible et Pause. Les durées de synthèse deviennent une borne minimale `≥` composée des Pauses connues et de la Récupération. |
 

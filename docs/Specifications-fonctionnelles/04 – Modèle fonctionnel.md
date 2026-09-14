@@ -71,7 +71,7 @@ Une **Activité** représente un Exercice élémentaire exécuté pendant une S�
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
-Une Série correspond à une réalisation de l’Activité selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Une Pause éventuelle est insérée uniquement entre deux Séries. Après l’ensemble des Séries, une Récupération facultative peut être exécutée une seule fois. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+Une Série correspond à une réalisation de l’Activité selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Pour `C` Séries, une Pause éventuelle est insérée `C` fois lorsque la Récupération vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque la Récupération est positive et remplace alors la dernière Pause. Après l’ensemble des Séries, une Récupération facultative positive est exécutée une seule fois. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
 
 Chaque activité possède notamment :
 - un nom ;
@@ -85,7 +85,7 @@ Chaque activité possède notamment :
 - une ou plusieurs zones corporelles facultatives pour les Exercices ;
 - aucun média fonctionnel dans le MVP ; le modèle autorise `0..n` médias ordonnés par Activité en V2.
 
-La Pause n’est jamais exécutée après la dernière Série. La Récupération, lorsqu’elle est supérieure à `0 s`, est toujours exécutée après la dernière Série, y compris pour la dernière Activité de la Séance avant `SESSION_END`.
+Lorsque la Récupération vaut `0 s`, la Pause est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause et est toujours exécutée après la dernière Série, y compris pour la dernière Activité de la Séance avant `SESSION_END`.
 
 Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séries − 1) × Pause + Récupération`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale est utilisée comme entrée, `Séries théoriques = (Durée totale cible − Récupération + Pause) / (Durée + Pause)`, arrondi à l’entier le plus proche avec `.5` vers le haut et un minimum de `1`, puis la Durée totale atteignable est recalculée.
 ## Routine

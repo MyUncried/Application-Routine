@@ -17,7 +17,7 @@ La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la 
 | Contrôle Activité | CONFORME | Déjà sous Séries ; `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt`; `3704:5021`. |
 | Synthèse | CONFORME | Clause propre dans PRODUCT, 06, 08, RM-152, CE-T01-13 ; `3679:4880`, `3724:5428`. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
-| Calculs | INCHANGÉS | Aucune formule, enum ou nœud du moteur modifié. |
+| Calculs | CONFORMES À LA RECETTE | Aucun code de calcul modifié. L’arbitrage produit du 14 septembre 2026 conserve la règle existante : `C` Pauses si `R = 0`, sinon `C − 1` Pauses puis Récupération. |
 | T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
 
 ## Sources Figma
@@ -39,6 +39,10 @@ La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la 
 ## Contrôles réalisés
 
 Recherche transverse des formulations historiques ; cohérence PRODUCT/décisions/règles/API/contrats/matrice ; contrôle visuel des trois modes et des deux directions ; contrôle DSF ; aucune modification applicative, protocolaire, de calcul ni T03.
+
+## Arbitrage postérieur au contrôle
+
+Le 14 septembre 2026, le responsable produit a confirmé dans l’issue #52 que, pour `C` Séries, la Pause est comptée `C` fois lorsque `R = 0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. Cette décision conserve le comportement validé en recette T02-S02 et supersède les formulations documentaires inconditionnelles à `C − 1` Pauses. Les sources actives, le registre D-156 et les formules conditionnelles ont été réalignés sans modification applicative.
 
 ## Écarts réservés à la reprise de développement
 

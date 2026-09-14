@@ -16,7 +16,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-008 | Phases structurelles et Récupérations sans réglage propre | 00, 08, 09, 10 | CONFORME |
 | BIL-009 | Zones corporelles non latéralisées | 00, 02, 06 | CONFORME |
 | BIL-010 | Activité : toutes les Séries du premier côté puis du second | 03, 07 D-144, 08 | CONFORME |
-| BIL-011 | Pauses uniquement entre Séries du même côté | 00, 06, 08, 10 | CONFORME |
+| BIL-011 | Pour `C` Séries d’un même côté : `C` Pauses si `R = 0`, sinon `C − 1`; aucune Pause supplémentaire propre au changement de côté | PRODUCT, 00, 06–11, D-156 | CONFORME |
 | BIL-012 | Aucune Pause ajoutée entre côtés | 06, 07 D-144, 10 | CONFORME |
 | BIL-013 | Récupération d’Activité une fois après les deux côtés | 00, 06, 08, 10 | CONFORME |
 | BIL-014 | Nombre de Séries interprété par côté | 00, 06, 08, 10 | CONFORME |
@@ -85,8 +85,9 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 Pour une Activité autonome en mode Durée :
 
 - `L = 1` pour `UNILATERAL`, `L = 2` pour `RIGHT_LEFT` ou `LEFT_RIGHT` ;
-- `D = L × [C × A + (C − 1) × B] + R` ;
-- `Cth = ((D − R) / L + B) / (A + B)` lorsque la Durée totale pilote ;
+- `P(C,R) = C` si `R = 0`, sinon `P(C,R) = C − 1` ;
+- `D = L × [C × A + P(C,R) × B] + R` ;
+- si `R = 0`, `Cth = D / [L × (A + B)]` ; si `R > 0`, `Cth = ((D − R) / L + B) / (A + B)` ;
 - arrondi au plus proche, `.5` vers le haut, minimum `1`, puis recalcul de `D`.
 
 Dans un Tour bilatéral, la direction du Tour développe deux passages complets de son contenu. Le multiplicateur d’une Activité n’est jamais appliqué une seconde fois.
