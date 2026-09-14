@@ -360,7 +360,16 @@ Une Activité peut associer `0..n` photos ou vidéos ordonnées en V2. Leur affi
 
 Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance commencées. La planification des Circuits relève de la V3.
 
-## 12. Gouvernance documentaire
+## 12. Roadmap des tranches MVP
+
+| Tranche | Périmètre de référence |
+|---|---|
+| T01–T02 | Création, modification et Composition des Séances. |
+| T03 | Catalogue des Activités, Activités persistantes, sélection multiple, copie indépendante et Exécution directe. |
+| T04 | Moteur d’Exécution des Séances ; ancienne T03, lots 1 et 2. |
+| T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans modification implicite de contenu. |
+
+## 13. Gouvernance documentaire
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
