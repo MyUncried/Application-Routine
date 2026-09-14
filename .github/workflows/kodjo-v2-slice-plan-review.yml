@@ -47,10 +47,10 @@ jobs:
           if (!$slice -or !$bootstrap -or !$planId) { throw 'Missing immutable V2 review inputs' }
           if ($bootstrap -ne ".github/orchestration/v2-slices/$slice/slice-bootstrap.json") { throw 'V2 bootstrap path mismatch' }
           if (!(Test-Path -LiteralPath $bootstrap)) { throw 'V2 bootstrap missing' }
-          $b=Get-Content -Raw -LiteralPath $bootstrap | ConvertFrom-Json
+          $b=Get-Content -Raw -LiteralPath $bootstrap -Encoding UTF8 | ConvertFrom-Json
           if ([string]$b.slice_id -ne $slice -or [int]$b.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'V2 identity mismatch' }
           if ([string]$b.repository -ne $env:GITHUB_REPOSITORY) { throw 'V2 repository mismatch' }
-          $registry=Get-Content -Raw -LiteralPath ([string]$b.activation_registry) | ConvertFrom-Json
+          $registry=Get-Content -Raw -LiteralPath ([string]$b.activation_registry) -Encoding UTF8 | ConvertFrom-Json
           $active=@($registry.activations | Where-Object { $_.slice_id -eq $slice })
           if ($active.Count -ne 1 -or $active[0].status -ne 'ACTIVE') { throw 'V2 slice is not active' }
           $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
@@ -92,7 +92,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $context | Out-Null
           Copy-Item -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Destination (Join-Path $context 'slice-bootstrap.json')
           Copy-Item -LiteralPath .github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/planning-mission.md -Destination $context
-          $b=Get-Content -Raw -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} | ConvertFrom-Json
+          $b=Get-Content -Raw -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Encoding UTF8 | ConvertFrom-Json
           foreach($source in $b.product_sources){
             $destination=Join-Path $context ([string]$source.path)
             New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
@@ -139,7 +139,7 @@ jobs:
           & claude @args $prompt 1> $out 2> $err
           $code=$LASTEXITCODE
           if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
-          $json=Get-Content -Raw $out | ConvertFrom-Json
+          $json=Get-Content -Raw -LiteralPath $out -Encoding UTF8 | ConvertFrom-Json
           if (!$json.session_id -or !$json.result) { throw 'Claude V2 review result incomplete' }
           if ($env:REVIEW_SESSION -and [string]$json.session_id -ne $env:REVIEW_SESSION) { throw 'Claude resumed a different review session' }
           if ($code -ne 0) { throw "Claude V2 review failed; exit=$code" }
@@ -157,10 +157,10 @@ jobs:
           SESSION_ID: ${{ steps.claude.outputs.session_id }}
         run: |
           $ErrorActionPreference='Stop'
-          $review=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-v2-plan-review.md"
+          $review=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review.md" -Encoding UTF8
           $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
-          $proof=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json"
+          $proof=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json" -Encoding UTF8
           $nl=[Environment]::NewLine
           $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'application_pr='+$env:APPLICATION_PR+$nl+'application_head='+$env:APPLICATION_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
           $impact=$nl+'<KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl+$proof.Trim()+$nl+'</KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl
