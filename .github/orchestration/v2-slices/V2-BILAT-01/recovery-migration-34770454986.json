@@ -105,6 +105,7 @@
     "scripts/kodjo/run-local-claude.js": "f980ebba3b2f29dbd45bda8e07b34239917b7d71",
     "scripts/kodjo/verify-authorizations.js": "7e43a73defa5920bc81edd010479757c510d865e",
     "tests/kodjo/claude-local.pilot.js": "ed279de9e6f5f9078af17c4dcd96946c1c8b5bc5",
+    "tests/kodjo/incident-register.pilot.js": "133c40103e46b5393e907dba63f3ab8689c4a103",
     "tests/kodjo/queue-contract.pilot.js": "1e195dec3b4a5317f0e6c186c3b930108d076d80",
     "tests/kodjo/queue-request.pilot.js": "375029232d65ba913e8f5f56bec6a7f6a9f59faf",
     "tests/kodjo/recovery-migration.pilot.js": "20c7ebacf4d4be4be10c2118b93f86e0e7ac5b3f"
