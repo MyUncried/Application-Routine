@@ -38,11 +38,17 @@ test('V2 plan and review resolve the private target HEAD through the authenticat
 test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   const plan = read('.github/workflows/kodjo-v2-slice-plan.yml');
   assert.match(plan, /scan-plan-impact\.js extract-modules/);
+  assert.match(plan, /assemble-plan-impact\.js close/);
+  assert.match(plan, /assemble-plan-impact\.js assemble/);
+  assert.match(plan, /KODJO_PLAN_DECISIONS_JSON/);
+  assert.match(plan, /for iteration in 1 2 3 4/);
+  assert.match(plan, /PLAN_SCOPE_NOT_CLOSED_BOUND/);
+  assert.doesNotMatch(plan, /Include exactly one <KODJO_PLAN_IMPACT_JSON>/);
   assert.match(plan, /scan-plan-impact\.js scan/);
   assert.match(plan, /verify-plan-impact\.js/);
   assert.match(plan, /planning_contract=kodjo\.plan-impact\.v1/);
   assert.match(plan, /APPLICATION FILE INVENTORY/);
-  assert.match(plan, /"scope_allow"/);
+  assert.match(plan, /derives scope_allow/);
   assert.match(plan, /full Jest, TypeScript and lint/);
 });
 

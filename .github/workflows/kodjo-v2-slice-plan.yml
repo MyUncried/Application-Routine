@@ -133,7 +133,7 @@ jobs:
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-plan/draft-response.json)" = completed
           jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-plan/draft-response.json > /tmp/kodjo-v2-plan/plan-draft.md
 
-      - name: Scan direct importers and finalize opposable V2 plan
+      - name: Close direct-import roots and assemble opposable V2 plan
         shell: bash
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
@@ -141,38 +141,41 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-plan/plan-draft.md /tmp/kodjo-v2-plan/modified-modules.json
-          node scripts/kodjo/scan-plan-impact.js scan "$SOURCE_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json
-          node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-v2-plan/direct-import-scan.json > /tmp/kodjo-v2-plan/direct-import-scan.sha256
-          cat > /tmp/kodjo-v2-plan/final-prompt.txt <<'EOF'
-          Produce the complete final KODJO V2 technical plan from the supplied draft and deterministic evidence. The scan contains all direct importers of the declared modified modules at the exact revision. It is not an absolute dependency guarantee and does not include transitive closure.
-          Include exactly one <KODJO_PLAN_IMPACT_JSON> block holding valid JSON with this shape:
-          {
-            "schema":"kodjo.plan-impact.v1",
-            "scan_revision":"copy the exact scan_revision",
-            "modified_modules":"copy exactly from the scan",
-            "scan_sha256":"copy the supplied SHA-256",
-            "rows":[{
-              "path":"one modified module or direct importer",
-              "candidate_kind":"MODIFIED_MODULE|TEST|CONSUMER",
-              "triggered_by":["exact modified module paths from the scan"],
-              "risk_score":0,
-              "classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION",
-              "justification":"non-empty positive evidence"
-            }],
-            "scope_allow":["paths classified MODIFY or TEST_MUST_ADAPT only"]
-          }
-          Copy scan_revision, modified_modules, candidate_kind, triggered_by, risk_score and the supplied scan SHA-256 exactly. Include every modified module and scan candidate once. A modified module is MODIFY. A discovered test is TEST_MUST_ADAPT or TEST_UNAFFECTED; a discovered production consumer is MODIFY or CONSUMER_UNAFFECTED. REQUIRES_CLARIFICATION is blocking. Derive scope_allow exactly as MODIFY union TEST_MUST_ADAPT. Risk orders only and never filters. Keep full Jest, TypeScript and lint. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
-          EOF
-          printf '\n===== DRAFT %s =====\n' "$SLICE_ID" >> /tmp/kodjo-v2-plan/final-prompt.txt
-          cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
-          printf '\n===== DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-plan/final-prompt.txt
-          cat /tmp/kodjo-v2-plan/direct-import-scan.json >> /tmp/kodjo-v2-plan/final-prompt.txt
-          printf '\nSCAN_SHA256=' >> /tmp/kodjo-v2-plan/final-prompt.txt
-          cat /tmp/kodjo-v2-plan/direct-import-scan.sha256 >> /tmp/kodjo-v2-plan/final-prompt.txt
-          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-plan/final-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-v2-plan/final-request.json
-          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-plan/final-request.json -o /tmp/kodjo-v2-plan/final-response.json
-          test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-plan/final-response.json)" = completed
-          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-plan/final-response.json > /tmp/kodjo-v2-plan/technical-plan.md
+          rm -f /tmp/kodjo-v2-plan/technical-plan.md
+          for iteration in 1 2 3 4; do
+            node scripts/kodjo/scan-plan-impact.js scan "$SOURCE_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json
+            node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-v2-plan/direct-import-scan.json > /tmp/kodjo-v2-plan/direct-import-scan.sha256
+            cat > /tmp/kodjo-v2-plan/final-prompt.txt <<'EOF'
+            Produce the complete final KODJO V2 technical plan from the supplied draft and deterministic scan. Never reproduce the immutable evidence fields in prose JSON.
+            Include exactly one decision block containing one entry for every scan candidate, and no entry for modified_modules:
+            <KODJO_PLAN_DECISIONS_JSON>
+            [{"path":"copy the exact candidate path","classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION","justification":"non-empty positive evidence"}]
+            </KODJO_PLAN_DECISIONS_JSON>
+            A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow.
+            Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
+            EOF
+            printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
+            cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
+            printf '\n===== DETERMINISTIC DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-plan/final-prompt.txt
+            cat /tmp/kodjo-v2-plan/direct-import-scan.json >> /tmp/kodjo-v2-plan/final-prompt.txt
+            printf '\nSCAN_SHA256=' >> /tmp/kodjo-v2-plan/final-prompt.txt
+            cat /tmp/kodjo-v2-plan/direct-import-scan.sha256 >> /tmp/kodjo-v2-plan/final-prompt.txt
+            jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-plan/final-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > "/tmp/kodjo-v2-plan/final-request-$iteration.json"
+            curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @"/tmp/kodjo-v2-plan/final-request-$iteration.json" -o "/tmp/kodjo-v2-plan/final-response-$iteration.json"
+            test "$(jq -r '.status // "missing"' "/tmp/kodjo-v2-plan/final-response-$iteration.json")" = completed
+            jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' "/tmp/kodjo-v2-plan/final-response-$iteration.json" > /tmp/kodjo-v2-plan/technical-plan-with-decisions.md
+            node scripts/kodjo/assemble-plan-impact.js close /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/plan-impact-closure.json
+            if jq -e '.closed == true' /tmp/kodjo-v2-plan/plan-impact-closure.json >/dev/null; then
+              node scripts/kodjo/assemble-plan-impact.js assemble /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/technical-plan.md
+              break
+            fi
+            jq '.modified_modules' /tmp/kodjo-v2-plan/plan-impact-closure.json > /tmp/kodjo-v2-plan/modified-modules.json
+            if test "$iteration" = 4; then
+              echo 'PLAN_SCOPE_NOT_CLOSED_BOUND: fermeture non atteinte apres 4 scans' >&2
+              exit 1
+            fi
+          done
+          test -f /tmp/kodjo-v2-plan/technical-plan.md
           node scripts/kodjo/verify-plan-impact.js /tmp/kodjo-v2-plan/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json
           grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
@@ -215,6 +218,8 @@ jobs:
             /tmp/kodjo-v2-plan/modified-modules.json
             /tmp/kodjo-v2-plan/direct-import-scan.json
             /tmp/kodjo-v2-plan/direct-import-scan.sha256
+            /tmp/kodjo-v2-plan/technical-plan-with-decisions.md
+            /tmp/kodjo-v2-plan/plan-impact-closure.json
             /tmp/kodjo-v2-plan/technical-plan.md
             /tmp/kodjo-v2-plan/plan-impact-replay.json
           if-no-files-found: warn
