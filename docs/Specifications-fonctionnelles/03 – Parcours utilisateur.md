@@ -16,18 +16,22 @@ Le MVP permet à l'utilisateur :
 - de planifier une séance au moyen d'une routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
-- de consulter les Exécutions enregistrées dans le Suivi.
+- de consulter les Exécutions enregistrées dans le Suivi ;
+- d’accéder au Catalogue des Activités, d’y créer et modifier des Activités persistantes ;
+- de sélectionner plusieurs Activités existantes pour les insérer dans une Séance ;
+- d’exécuter directement une Activité avec préparation, Synthèse et Suivi.
 ## Parcours de référence
 
-| Besoin utilisateur                               | Parcours de référence                                                              |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| Gérer les catégories de séances                  | Gestion des référentiels utilisateur — Gestion des catégories                      |
-| Utiliser les zones corporelles                   | Référentiel applicatif — Sélection des zones corporelles                            |
-| Créer, réorganiser et exécuter une séance        | Parcours principal — Créer et exécuter une séance                                  |
-| Créer une séance à partir d'une séance existante | Parcours complémentaire 1 — Créer une séance à partir d'une référence              |
-| Planifier et gérer une séance récurrente         | Parcours complémentaire 2 — Gérer les routines                                     |
-| Gérer une séance partielle ou interrompue        | Parcours complémentaire 3 — Gérer une séance interrompue ou partiellement réalisée |
-| Consulter les séances exécutées                  | Parcours complémentaire 4 — Consulter le suivi des séances                         |
+| Tranche | Besoin utilisateur | Parcours de référence | Statut documentaire |
+|---|---|---|---|
+| T01–T02 | Gérer les catégories et zones corporelles | Gestion des référentiels utilisateur | Spécifié MVP |
+| T01–T02 | Créer et réorganiser une Séance | Parcours principal — Créer une Séance | Spécifié MVP |
+| T03 | Gérer des Activités persistantes | Accéder au Catalogue des Activités ; créer, consulter ou modifier une Activité | Spécifié MVP |
+| T03 | Ajouter des Activités existantes à une Séance | Sélectionner plusieurs Activités existantes depuis la Composition | Spécifié MVP |
+| T03 | Exécuter directement une Activité | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue | Spécifié MVP |
+| T04 | Exécuter une Séance | Exécution guidée fondamentale, auparavant T03 | Spécifié MVP |
+| Tranches suivantes | Dupliquer, planifier et suivre les Séances | Parcours complémentaires 1 à 4 | Spécifié MVP |
+| Hors MVP | Créer et exécuter un Circuit | Parcours Circuit | Partiel — à compléter |
 ## Principes communs
 
 - Une séance définit le contenu à exécuter.
@@ -324,7 +328,7 @@ La vue détaillée déployée d'une Exécution est reportée à une version ult�
 
 L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut suivre facilement son activité ainsi que sa progression au fil du temps.
 
-# Parcours V2 validés — Catalogue des Activités et Circuits
+# Parcours MVP T03 — Catalogue des Activités
 
 ## Accéder au Catalogue des Activités
 
@@ -369,7 +373,7 @@ Une Activité créée directement dans une Séance ne rejoint pas le catalogue. 
 
 L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute avant la Série suivante. Après la dernière Série, la Récupération configurée s’exécute une seule fois ; si elle vaut `0 s`, l’Activité suivante commence immédiatement.
 
-## Créer et exécuter un Circuit — V2
+## Créer et exécuter un Circuit — hors MVP, conception partielle
 
 1. Renseigner un nom et une couleur.
 2. Ajouter au moins deux étapes, chacune référençant une Séance ; une même Séance peut être ajoutée plusieurs fois.
