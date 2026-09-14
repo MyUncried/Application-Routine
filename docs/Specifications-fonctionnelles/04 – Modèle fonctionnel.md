@@ -19,7 +19,7 @@ Le modèle fonctionnel repose sur les principes suivants :
 
 # 4.3 Concepts métier
 
-Le fonctionnement de l'application repose sur six concepts principaux.
+Le fonctionnement de l’application repose sur les concepts principaux suivants. Les formes MVP et V2 sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
 ## Utilisateur
 
 L'utilisateur est propriétaire de l'ensemble de ses données.
@@ -88,6 +88,12 @@ Chaque activité possède notamment :
 Lorsque la Récupération vaut `0 s`, la Pause est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause et est toujours exécutée après la dernière Série, y compris pour la dernière Activité de la Séance avant `SESSION_END`.
 
 Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séries − 1) × Pause + Récupération`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale est utilisée comme entrée, `Séries théoriques = (Durée totale cible − Récupération + Pause) / (Durée + Pause)`, arrondi à l’entier le plus proche avec `.5` vers le haut et un minimum de `1`, puis la Durée totale atteignable est recalculée.
+
+### Activité de référence et Activité de Séance
+
+En V2, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
+
+Une **Activité de Séance** est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier et associations média de la référence, puis rompt tout lien d’évolution : modifier ou supprimer la source ne modifie jamais la copie, et inversement. Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de catalogue.
 ## Routine
 
 Une routine est une **planification d'une séance**.
@@ -105,21 +111,16 @@ Une routine périodique définit une seule heure d'exécution. Plusieurs exécut
 Une routine ne contient jamais le contenu d'une séance.
 
 Une même séance peut être associée à plusieurs routines.
-## Exécution de séance
+## Exécution
 
-Une exécution de séance représente la réalisation effective d'une séance.
+Une **Exécution** représente la réalisation effective d’un contenu. Elle porte obligatoirement une origine :
 
-Elle est créée :
-- lors du lancement manuel d'une séance ;
-- ou lors du démarrage d'une routine.
+- `SESSION` pour une Séance lancée manuellement ou depuis une Routine ;
+- `ACTIVITY` pour une Activité persistante lancée directement depuis son Catalogue en V2.
 
-Elle conserve notamment :
-- **l'instantané de la séance exécutée** ;
-- la routine éventuellement utilisée ;
-- les informations de déroulement ;
-- les résultats de l'exécution.
+Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution `SESSION` peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
 
-Chaque exécution est indépendante des modifications ultérieures de la séance ou de la routine.
+Chaque Exécution est indépendante des modifications ou suppressions ultérieures de sa source.
 ## Préférences globales
 
 Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l'utilisation des séances et des routines.  
@@ -310,8 +311,10 @@ Une Activité persistante, son occurrence copiée dans une Séance et un Tour po
 
 La direction effective est résolue une seule fois : celle du Tour si celui-ci est bilatéral, sinon celle de l’Activité. L’activation bilatérale d’un Tour recherche d’abord les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, après confirmation, le Tour prend la direction choisie et les seules Activités concernées sont remises à `UNILATERAL` dans une opération atomique ; `Annuler` ne modifie aucune donnée. Sous un Tour bilatéral, les contrôles enfants restent visibles, propres `UNILATERAL` et désactivés. La désactivation ultérieure du Tour ne restaure aucune ancienne valeur.
 
-Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée`.\n\n## Exécution directe d’une Activité — V2
+Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée`.
+
+## Exécution directe d’une Activité — V2
 
 Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
 
-La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Activité. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles d’une Activité autonome de Séance.\n
+La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Activité. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles d’une Activité autonome de Séance.
