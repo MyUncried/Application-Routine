@@ -182,6 +182,54 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
+# 2 bis. Cycle de vie d’une Activité persistante — V2
+
+## 2 bis.1 Catalogue multi-type
+
+Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le défaut et le seul type actif dans le MVP. En V2, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
+
+La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` ni aucune poignée de déplacement n’est affiché dans l’état courant.
+
+## 2 bis.2 Créer, consulter ou modifier une Activité de référence
+
+Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Chaque action ouvre le parcours correspondant ; `Annuler` restaure le Catalogue sans écriture.
+
+`Une nouvelle activité` réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
+
+Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persistante et revient au Catalogue. Ouvert depuis une Composition, le même éditeur agit uniquement sur l’Activité de Séance. Le contexte d’ouverture ne doit jamais être déduit de la seule apparence de l’écran.
+
+## 2 bis.3 Ajouter une Activité à une Séance
+
+Depuis la Composition, `Ajouter une activité` propose `Une nouvelle activité / Une activité existante / Annuler`.
+
+- `Une nouvelle activité` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
+- `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités ;
+- `Annuler` ferme les options sans modifier le brouillon.
+
+La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Une Activité créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
+
+## 2 bis.4 Exécuter directement une Activité
+
+L’action Lecture est disponible uniquement pour une référence valide. Le lancement fige la définition courante dans un instantané d’origine `ACTIVITY` et mémorise l’état du Catalogue.
+
+Le Plan contient `DIRECT_PREPARE(5 s)`, puis les Séries, Pauses, côtés et la Récupération applicables. Il ne contient ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement produit le signal de fin et ouvre immédiatement la Synthèse.
+
+La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure recherche, filtres et position de défilement du Catalogue.
+
+## 2 bis.5 Médias d’Activité
+
+Dans le MVP, `Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales. Une vidéo ne démarre jamais automatiquement. La réintroduction d’un contrôle `Déployer` sur la carte du Catalogue pour révéler les médias reste une évolution distincte à spécifier avant développement.
+
+## 2 bis.6 Bilatéralité
+
+`sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Une Activité de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
+
+Une Activité autonome exécute toutes les Séries du premier côté puis toutes celles du second. Dans un Tour bilatéral, le Tour porte seul la direction effective et les cartes enfants ne la répètent pas. Les résultats restent séparés par côté.
+
+## 2 bis.7 Limite Circuit
+
+Le Catalogue peut proposer `Un circuit` dans son arbre V2. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
+
 # 3. Composition d'une séance
 
 ## 3.1 Principe général
@@ -1124,90 +1172,3 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Quitter la création d'une séance non enregistrée | Oui               | Annuler / Confirmer | Dialogue centré ; `Confirmer` abandonne la création |
 
 Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:2961`) : largeur `354`, rayon `18`, centrage dans l’écran et voile bloquant. Le dernier paragraphe est séparé de la première ligne d’actions par `spacing/16`. Avec deux choix, les boutons `147 × 48` sont alignés ; avec trois choix, `Seulement cette occurrence` et `Toutes les occurrences à venir` sont les deux actions destructives de la première ligne, puis `Annuler` occupe la seconde ligne en pleine largeur `306 × 48`. Les textes sont centrés horizontalement et verticalement.
-
-## Catalogue multi-type
-
-Le contrôle segmenté sélectionne un type de contenu : `Activités`, `Séances`, `Circuits`. `Séances` est le défaut et le seul type actif dans le MVP. `Activités` et `Circuits` sont visibles mais désactivés jusqu’à la V2.
-
-La vue Séances charge toutes les Séances non archivées et les trie par dernière modification décroissante. Les boutons Filtrer et Trier seront ajoutés ultérieurement dans Figma. Le filtre propose exclusivement `Toutes`, `Planifiées`, `Non planifiées`, `Archivées`. Le tri propose dernière modification croissante/décroissante ou nom A–Z/Z–A.
-
-## Activité — contrat révisé
-
-| Zone | Règle |
-|---|---|
-| Bandeau bleu | Champ Nom en premier, aligné sur celui de Composition ; aucune mention de la Séance. |
-| Média MVP | Bouton `Ajouter un média` visible mais désactivé, composant `3382:60` avec icône vectorielle `3382:61` et sans caractère `+` ; section Médias absente. |
-| Média cible post-T04 | Bouton actif ; section repliable et galerie horizontale `0..n`, ordonnée, avec aperçu suivant tronqué. |
-| Modèle | Aucun type d’Activité dans l’interface ou le modèle cible. |
-| Mode | Trois segments égaux : Durée, Répétitions, À l’échec. |
-| Paramètres | `Séries` → cible du mode → `Pause`, puis `Récupération` → `Durée totale` en mode Durée. |
-| Récupération | Durée facultative, exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral ; ce n’est pas une Activité distincte. |
-| Durée totale | Dépendance bidirectionnelle avec Séries selon les règles de pilote et d’arrondi ; masquée en Répétitions et À l’échec. |
-| À l’échec | Aucun objectif chiffré ; ordre `Séries` → cadre informatif `à l’échec` → `Pause`. |
-| Sections | Description, Zone corporelle d’exécution, Mode d’exécution et Médias sont repliables ; Mode est déployé par défaut. |
-| Action finale | Libellé `Terminer`. |
-| Synthèse | Zone immuable ; `X séries de {nom}, jusqu’à l’échec, avec X s de pause entre les séries`, puis récupération si positive, avec les règles communes de pluriel et d’omission des durées nulles. |
-
-## Bibliothèque d’Activités — V2
-
-Une Activité de catalogue est persistante et directement exécutable à partir d’un instantané autonome. L’ajout dans une Séance crée une copie indépendante de toutes ses propriétés et associations média. La position structurelle appartient à la copie. Modifier ou supprimer la référence ne modifie aucune copie. La première version ne propose pas d’enregistrer dans la bibliothèque une Activité créée dans une Séance.
-
-## Médias — V2
-
-L’utilisateur capture ou choisit dans la photothèque une photo ou une vidéo. Le fichier est copié dans le stockage interne et reste accessible hors ligne. Une vidéo ne démarre jamais automatiquement. Les associations sont ordonnées et réorganisables ; plusieurs associations peuvent partager un fichier immuable sans le dupliquer.
-
-## Circuits — V2
-
-Le formulaire exige nom, couleur et au moins deux étapes. Chaque étape référence une Séance existante et une même Séance peut apparaître plusieurs fois. La transition globale est manuelle ou automatique ; en automatique, la durée commune vaut `30 s` par défaut. L’écran de transition est toujours visible, puis le compte à rebours initial de la Séance suivante est exécuté.
-
-Le lancement crée un instantané. Une Exécution de Circuit relie les Exécutions de Séance des étapes commencées. Les fins intermédiaires sont remplacées par l’écran de transition ; la fin globale apparaît après la dernière étape. L’arrêt confirmé conserve les résultats produits et marque l’ensemble interrompu.
-
-## Conception détaillée de la bilatéralité
-
-`sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Le contrôle cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. L’Activité unilatérale n’affiche aucun indicateur court ; les deux états bilatéraux affichent `D→G` ou `G→D`. Le nom accessible annonce respectivement « Unilatéral », « Bilatéral droite-gauche » ou « Bilatéral gauche-droite ».
-
-Dans l’écran unifié, le contrôle singulier `Côté` est déjà placé dans le cadre bleu, ligne 2 colonne 1 sous `Séries`, en `74 × 42 pt`. La grille intérieure emploie les colonnes `74 / 124 / 124 pt`, deux gouttières de `8 pt` et `10 pt` entre lignes. Dans la Composition, le contrôle du Tour est sur la ligne de `Nombre de tours`, immédiatement à droite du cadre numérique avec `8 pt` d’espace, en `42 × 34 pt` et sans titre visible. Les libellés accessibles développent les trois états.
-
-Une carte hors Tour bilatéral affiche sa direction propre à droite des informations secondaires (`42 × 20 pt`, `x=311`, `y=24,5` dans `354 × 69 pt`). Sous un Tour bilatéral, ni la carte ni la synthèse ne répètent la direction. La synthèse propre insère `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible — après `jusqu’à l’échec` — et avant la Pause. Le libellé est `Durée totale`; en Répétitions et À l’échec, la valeur reste une borne `≥`.
-
-L’activation bilatérale du Tour ne demande confirmation que si au moins une Activité contenue est proprement bilatérale. Sinon, la direction est appliquée directement. Avec confirmation, `Annuler` ne modifie rien ; `Confirmer` remet atomiquement les seules Activités concernées à `UNILATERAL` en appliquant la direction au Tour.
-
-Pour une Activité autonome, le générateur produit par côté un bloc de `C` Séries et `C` Pauses si `R = 0`, ou `C−1` Pauses si `R > 0`; il produit le même bloc pour le second côté si nécessaire, puis une seule Récupération positive. Pour un Tour bilatéral, chaque répétition produit toutes les phases de toutes ses Activités pour le premier côté, y compris leur Récupération, puis le même passage pour le second. Les Activités du Tour sont propres `UNILATERAL` mais effectives selon le Tour.
-
-La progression globale est calculée sur le Plan développé : chaque passage chronométré est pondéré par sa durée planifiée ; chaque passage Répétitions ou À l’échec acquiert sa part avec `Suivant`. Le lancement annonce le premier côté, la transition annonce le second, et un Tour n’annonce le côté qu’au début de chaque passage complet, pas à chaque Activité.
-
-Les résultats sont écrits de façon idempotente par Activité logique, répétition de Tour, Série et côté. Réinitialiser au second côté ne modifie pas le premier. La modale générique `Passer à l’activité suivante ?` n’est pas modifiée ; après confirmation sur le premier côté, le prochain nœud du plan est le second côté.
-
-## Exécution directe d’une Activité — V2
-
-### Éligibilité et lancement
-
-L’action `Exécuter` est active uniquement si la référence est valide selon son mode. Le lancement fige la version courante dans un instantané `ACTIVITY` et mémorise l’état de navigation du Catalogue. Une modification ou suppression ultérieure de la référence n’altère pas l’Exécution.
-
-### Plan et clôture
-
-Le plan contient, dans l’ordre : `DIRECT_PREPARE(5 s)`, tous les passages de l’Activité développés selon ses Séries et ses côtés, les Pauses applicables, puis sa Récupération éventuelle. Il ne contient ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement déclenche un signal et la Synthèse.
-
-### Synthèse et retour
-
-La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire et conditionne `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’origine `ACTIVITY`, puis restaure le Catalogue et son état antérieur.
-
-### Interactions de la carte d’Activité de catalogue
-
-La carte distingue deux cibles : sa surface principale ouvre la consultation ou la modification de l’Activité ; le bouton Lecture lance son Exécution directe. Aucun chevron ou bouton `Déployer` n’est affiché dans l’état courant, et l’icône de déplacement propre à la Composition n’est jamais affichée dans le Catalogue. La barre verticale bleue appartient à la présentation de toutes les cartes d’Activité.
-
-En V2, un contrôle de déploiement pourra être réintroduit pour révéler les médias. Cette future action média restera distincte de l’ouverture de la carte et de l’Exécution directe.
-
-## Extension V2 — Sélection multiple d’Activités persistantes
-
-Depuis la Composition, `Une activité existante` ouvre une sélection modale sans modifier le brouillon courant. L’utilisateur peut filtrer la bibliothèque, sélectionner ou désélectionner plusieurs Activités et voir le nombre sélectionné dans l’action finale.
-
-- `N = 0` : l’action d’ajout est désactivée ;
-- `N = 1` : libellé `Ajouter 1 activité` ;
-- `N > 1` : libellé `Ajouter N activités` ;
-- `Annuler` ferme la sélection sans aucune insertion ;
-- valider insère une référence de composition pour chaque Activité sélectionnée, sans modifier l’Activité persistante source ;
-- la Composition, sa position de défilement et ses valeurs déjà saisies sont restaurées après fermeture ;
-- le détail visuel et les cibles sont normés par `CE-COMP-SEL-01`.
-
-Lors de la validation, les Activités sélectionnées sont insérées dans la Composition selon leur ordre courant de présentation dans la liste filtrée. L’ordre des touchers de sélection n’a aucun effet sur l’ordre d’insertion. Si le filtre ou le tri change avant la validation, l’ordre visible au moment de l’appui sur `Ajouter N activités` fait foi.
