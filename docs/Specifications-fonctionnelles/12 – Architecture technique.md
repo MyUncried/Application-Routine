@@ -1292,7 +1292,7 @@ Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 
 
 Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
-## Architecture V2 — Catalogue des Activités et moteur multi-origine
+## Architecture MVP T03 — Catalogue des Activités et moteur multi-origine
 
 Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
