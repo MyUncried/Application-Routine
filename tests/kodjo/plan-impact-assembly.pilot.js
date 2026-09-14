@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { assemblePlanImpact } = require('../../scripts/kodjo/assemble-plan-impact');
+const { assemblePlanImpact, expandModifiedRoots } = require('../../scripts/kodjo/assemble-plan-impact');
 const { SCAN_SCHEMA, extractTaggedJson, sha256 } = require('../../scripts/kodjo/lib/plan-impact');
 
 const REVISION = 'a'.repeat(40);
@@ -93,9 +93,14 @@ test('model decisions cannot carry or override deterministic evidence fields', (
   throwsCode(() => assemblePlanImpact(plan(decisions), scan()), 'PLAN_SCOPE_CONTRADICTION');
 });
 
-test('a production consumer classified MODIFY must become a scan root before publication', () => {
+test('a production consumer classified MODIFY is promoted before a bounded rescan', () => {
   const decisions = validDecisions();
   decisions[1].classification = 'MODIFY';
+  const closure = expandModifiedRoots(plan(decisions), scan());
+  assert.equal(closure.closed, false);
+  assert.deepEqual(closure.promoted_modules, ['app/(creation)/_layout.tsx']);
+  assert.ok(closure.modified_modules.some((entry) =>
+    entry.path === 'app/(creation)/_layout.tsx' && entry.change === 'MODIFY'));
   throwsCode(() => assemblePlanImpact(plan(decisions), scan()), 'PLAN_SCOPE_NOT_CLOSED');
 });
 
