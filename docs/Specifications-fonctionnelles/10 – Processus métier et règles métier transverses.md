@@ -220,5 +220,5 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |
 
-| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité V2 distincte. |
+| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité post-MVP distincte. |
 | RM-163 | À la validation d’une sélection multiple d’Activités existantes, `CompositionService` copie les Activités sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
