@@ -346,7 +346,7 @@ La recherche, les filtres et la position de défilement appartiennent à l’ét
 2. Choisir exactement l’une des actions proposées, dans cet ordre : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`.
 3. `Une nouvelle activité` ouvre le formulaire d’Activité persistante.
 4. `Une séance` ouvre une nouvelle Composition de Séance.
-5. `Un circuit` ouvre le formulaire de Circuit en V2.
+5. `Un circuit` reste visible mais désactivé dans le MVP ; son formulaire relève d’une version ultérieure.
 6. `Annuler` ferme l’arbre et restaure le Catalogue dans son état précédent.
 
 L’arbre est présenté au-dessus du Catalogue grisé, que l’utilisateur se trouve dans la vue Activités ou dans la vue Séances. Le fond n’est pas interactif pendant son affichage.
