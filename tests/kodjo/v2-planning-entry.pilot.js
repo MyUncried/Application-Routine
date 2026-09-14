@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -50,6 +51,21 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /APPLICATION FILE INVENTORY/);
   assert.match(plan, /derives scope_allow/);
   assert.match(plan, /full Jest, TypeScript and lint/);
+});
+
+test('V2 plan closure run block is valid Bash after YAML indentation is removed', { skip: process.platform === 'win32' }, () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-plan.yml');
+  const marker = '      - name: Close direct-import roots and assemble opposable V2 plan';
+  const start = workflow.indexOf(marker);
+  assert.notEqual(start, -1);
+  const runStart = workflow.indexOf('        run: |\n', start);
+  assert.notEqual(runStart, -1);
+  const bodyStart = runStart + '        run: |\n'.length;
+  const nextStep = workflow.indexOf('\n      - name:', bodyStart);
+  assert.notEqual(nextStep, -1);
+  const script = workflow.slice(bodyStart, nextStep).replace(/^ {10}/gm, '');
+  const checked = spawnSync('bash', ['-n'], { input: script, encoding: 'utf8' });
+  assert.equal(checked.status, 0, checked.stderr);
 });
 
 test('V2 independent review replays the scan and publishes its own proof', () => {
