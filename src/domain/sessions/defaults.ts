@@ -17,6 +17,8 @@
  * de sécurité complémentaire ; ce module est la source de vérité.
  */
 
+import type { SideMode } from "./sideMode";
+
 export const FIXED_SERIES_COUNT = 1 as const;
 export const FIXED_PAUSE_SECONDS = 0 as const;
 export const FIXED_CYCLE_REPEAT_COUNT = 1 as const;
@@ -97,3 +99,13 @@ export const DEFAULT_EXECUTION_MODE = "DURATION" as const;
  * lui-même, qui démarre toujours en mode Durée (`repetitionCount: null`).
  */
 export const DEFAULT_REPETITION_COUNT = 1 as const;
+
+/**
+ * V2-BILAT-01 : direction par défaut d'une occurrence d'Activité de Séance
+ * (`Activity.sideMode`/`SessionDraftExercise.sideMode`) — `UNILATERAL`, le
+ * comportement historique (aucune répétition de côté).
+ */
+export const DEFAULT_SIDE_MODE: SideMode = "UNILATERAL";
+
+/** V2-BILAT-01 : direction par défaut du Tour (`Session.cycle.tour.sideMode`/`SessionDraft.tourSideMode`) — même valeur neutre que `DEFAULT_SIDE_MODE`. */
+export const DEFAULT_TOUR_SIDE_MODE: SideMode = "UNILATERAL";

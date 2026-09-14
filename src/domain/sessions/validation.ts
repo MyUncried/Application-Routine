@@ -29,6 +29,8 @@ import {
   type ValidationResult,
   type ValidationViolation,
 } from "./errors";
+import { DEFAULT_SIDE_MODE, DEFAULT_TOUR_SIDE_MODE } from "./defaults";
+import { isSideMode, type SideMode } from "./sideMode";
 
 const NAME_MIN_LENGTH = 1;
 /** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Composition, T01-S07) — jamais dupliquée en dur. */
@@ -308,6 +310,42 @@ export function validateStructuralPosition(raw: string): ValidationResult<Struct
   return ok(raw as StructuralPosition);
 }
 
+/**
+ * V2-BILAT-01 : normalise un `SideMode` reçu à l'exécution.
+ *
+ * `errors.ts` reste hors du périmètre autorisé de cette tranche (bornes
+ * opposables de la mission) : aucune nouvelle entrée `ValidationField`/
+ * `ValidationErrorCode` ne peut y être ajoutée. `SideMode` est en outre un
+ * enum ENTIÈREMENT gouverné par l'interface (`SideModeControl`, un contrôle
+ * cyclique à trois états — `cycleSideMode`, `sideMode.ts` — jamais une
+ * saisie libre) : une valeur hors énumération à l'exécution est donc traitée
+ * comme une donnée défensive plutôt qu'une violation utilisateur signalable
+ * — elle ne fait jamais échouer la validation d'un agrégat par ailleurs
+ * valide.
+ *
+ * **Compatibilité rétroactive des agrégats hérités** : la valeur NEUTRE
+ * (`DEFAULT_SIDE_MODE`, `UNILATERAL` — qu'elle soit explicitement fournie,
+ * absente, ou issue d'une valeur hors énumération) est délibérément
+ * ABSENTE de la sortie (`undefined`), jamais matérialisée. Un agrégat validé
+ * dont aucune Activité/Tour n'exprime de bilatéralité reste ainsi
+ * STRUCTURELLEMENT IDENTIQUE à un agrégat antérieur à cette tranche, qui
+ * n'a jamais connu ce champ — condition nécessaire à la compatibilité d'un
+ * appelant existant qui compare l'agrégat persisté par égalité stricte.
+ * Seule une direction BILATÉRALE explicite (`RIGHT_LEFT`/`LEFT_RIGHT`)
+ * traverse donc cette normalisation. La persistance (`SqliteSessionRepository
+ * .ts`) applique `?? DEFAULT_SIDE_MODE` à l'écriture SQL, qui reste donc
+ * toujours `UNILATERAL` par défaut, que ce champ soit présent ou non ici —
+ * aucune information n'est perdue, seule sa représentation neutre change.
+ */
+export function normalizeSideMode(raw: unknown): SideMode | undefined {
+  return isSideMode(raw) && raw !== DEFAULT_SIDE_MODE ? raw : undefined;
+}
+
+/** V2-BILAT-01 : même normalisation que `normalizeSideMode`, appliquée à `tourSideMode` — la direction neutre (`DEFAULT_TOUR_SIDE_MODE`) reste absente de la sortie, pour la même raison de compatibilité rétroactive. */
+export function normalizeTourSideMode(raw: unknown): SideMode | undefined {
+  return isSideMode(raw) && raw !== DEFAULT_TOUR_SIDE_MODE ? raw : undefined;
+}
+
 /** T01-S10 : rang d'ordre d'une Activité dans sa zone structurelle — entier `≥ 0`. */
 export function validateActivityPosition(raw: number): ValidationResult<number> {
   const field: ValidationField = "activity.position";
@@ -585,6 +623,7 @@ function validateSessionActivityInput(
     recoverySeconds: parameters.recoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
+    sideMode: normalizeSideMode(activity.sideMode),
   });
 }
 
@@ -687,6 +726,7 @@ export function validateCreateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    tourSideMode: normalizeTourSideMode(input.tourSideMode),
     exercises,
     categories,
   });
@@ -761,6 +801,7 @@ export function validateUpdateSessionActivityInput(
     recoverySeconds: parameters.recoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
+    sideMode: normalizeSideMode(activity.sideMode),
   });
 }
 
@@ -826,6 +867,7 @@ export function validateUpdateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    tourSideMode: normalizeTourSideMode(input.tourSideMode),
     activities,
     categories,
   });

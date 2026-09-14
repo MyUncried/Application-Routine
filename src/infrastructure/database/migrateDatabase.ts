@@ -4,6 +4,7 @@ import { MIGRATION_001 } from "./migrations/migration001";
 import { MIGRATION_002 } from "./migrations/migration002";
 import { MIGRATION_003 } from "./migrations/migration003";
 import { MIGRATION_004 } from "./migrations/migration004";
+import { MIGRATION_005 } from "./migrations/migration005";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -15,8 +16,10 @@ type CountRow = { count: number };
  * `MIGRATION_002` (T01-S09) porte à la version 2, `MIGRATION_003` (T01-S10,
  * mode `TO_FAILURE` — reconstruction additive de `activities`) à la version
  * 3, `MIGRATION_004` (T02-S02, Récupération attachée + suppression des
- * Activités `RECOVERY`) à la version 4. Une base neuve (version 0) les
- * traverse toutes à la suite, dans le même ordre. `migration001.ts` n'est
+ * Activités `RECOVERY`) à la version 4, `MIGRATION_005` (V2-BILAT-01,
+ * configuration de bilatéralité `activities.side_mode`/`tours.side_mode`)
+ * à la version 5. Une base neuve (version 0) les traverse toutes à la suite,
+ * dans le même ordre. `migration001.ts` n'est
  * jamais modifié : chaque migration reste un fichier indépendant, exécuté une
  * fois, jamais réécrit.
  *
@@ -70,6 +73,11 @@ export async function migrateDatabase(database: Database): Promise<void> {
     if (version === 3) {
       await transaction.execAsync(MIGRATION_004);
       version = 4;
+    }
+
+    if (version === 4) {
+      await transaction.execAsync(MIGRATION_005);
+      version = 5;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

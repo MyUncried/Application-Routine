@@ -13,6 +13,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_REPETITION_COUNT,
+  DEFAULT_TOUR_SIDE_MODE,
 } from "@/domain/sessions/defaults";
 import {
   createExerciseDraft,
@@ -20,6 +21,7 @@ import {
   type SessionDraftExercise,
   type SessionDraftExerciseExecutionMode,
 } from "@/domain/sessions/SessionDraft";
+import { sideMultiplier } from "@/domain/sessions/sideMode";
 import {
   INSTRUCTION_MAX_LENGTH,
   NAME_MAX_LENGTH,
@@ -39,6 +41,7 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SideModeControl } from "@/features/sessions/SideModeControl";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import {
@@ -274,7 +277,11 @@ export function ExerciseScreen() {
    */
   function handleTotalDurationConfirmed(targetTotalSeconds: number) {
     const previousSeriesCount = local.seriesCount;
-    const adjusted = applyTargetTotalDuration(targetTotalSeconds, totalDurationFacts(local));
+    const adjusted = applyTargetTotalDuration(
+      targetTotalSeconds,
+      totalDurationFacts(local),
+      sideMultiplier(local.sideMode),
+    );
     patchLocal({ seriesCount: adjusted.seriesCount });
     closeOverlay();
     if (adjusted.wasAdjusted) {
@@ -341,10 +348,12 @@ export function ExerciseScreen() {
     seriesCount: local.seriesCount,
     pauseSeconds: local.pauseSeconds,
     recoverySeconds: local.recoverySeconds,
+    sideMode: local.sideMode,
   };
   const totalDurationSeconds = computeTotalDurationSeconds(
     local.seriesCount,
     totalDurationFacts(local),
+    sideMultiplier(local.sideMode),
   );
   const formattedTotalDuration = formatDurationRowValue(
     totalDurationSeconds,
@@ -495,6 +504,27 @@ export function ExerciseScreen() {
                 onPress={() => handleExecutionModeChange("TO_FAILURE")}
               />
             </View>
+
+            {/*
+             * V2-BILAT-01 (plan `## UI`) : contrôle `Côtés`, APRÈS le
+             * segment de mode et AVANT les paramètres, dans les TROIS modes
+             * d'exécution — placé ici, en dehors de tout bloc conditionnel
+             * de mode. Désactivé, et proprement `UNILATERAL`, pour une
+             * Activité `IN_TOUR` gouvernée par un Tour déjà bilatéral (le
+             * brouillon l'y a déjà remise par `applyTourSideModeTransition`
+             * au moment de l'activation, jamais restaurée) — la direction
+             * du Tour prévaut alors, la direction propre de cette Activité
+             * resterait sans effet si le contrôle l'autorisait.
+             */}
+            <SideModeControl
+              value={local.sideMode}
+              onChange={(next) => patchLocal({ sideMode: next })}
+              disabled={
+                local.structuralPosition === "IN_TOUR" &&
+                (draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) !== "UNILATERAL"
+              }
+              testID="exercise-side-mode"
+            />
 
             {/*
              * Paramètres — `Activity / Parameter Row — Source exact`, sur
@@ -892,7 +922,7 @@ function CollapsibleSection({
  * moteur de texte, jamais présumée. Un `Text` VIDE, lui, peut se réduire à
  * une hauteur nulle.
  */
-const LABEL_PLACEHOLDER = " ";
+const LABEL_PLACEHOLDER = " ";
 
 /**
  * Complément vertical portant la cible tactile d'un contrôle de paramètre de

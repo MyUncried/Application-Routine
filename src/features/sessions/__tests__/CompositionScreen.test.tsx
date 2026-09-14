@@ -2823,3 +2823,88 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     expect(within(screen.getByTestId("composition-tour-control")).getByText("7")).toBeTruthy();
   });
 });
+
+/**
+ * V2-BILAT-01 (plan `## UI`) : contrôle `Côtés` du Tour, après `Nombre de
+ * tours` — activation gardée par un dialogue déterministe, remise atomique
+ * des enfants `IN_TOUR`, aucune restauration au retour unilatéral.
+ */
+describe("CompositionScreen — contrôle Côtés du Tour (V2-BILAT-01)", () => {
+  const sideModeStrings = strings.shared.sideMode;
+  const dialog = composition.tourBilateralConfirmModal;
+
+  it("is rendered after Nombre de tours, displaying Unilatéral by default", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
+    expect(screen.getByTestId("composition-tour-side-mode")).toBeTruthy();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("opens the deterministic dialog on activation (UNILATERAL → bilateral), without mutating the draft yet", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.getByText(dialog.title)).toBeTruthy();
+    expect(screen.getByText(dialog.message)).toBeTruthy();
+    // Pas encore appliqué : le contrôle affiche toujours Unilatéral, et
+    // l'Activité IN_TOUR conserve sa direction propre (`RIGHT_LEFT`), non
+    // encore remise.
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("Annuler closes the dialog without any mutation", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.cancel));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("Confirmer applies the transition atomically: the Tour direction changes AND every IN_TOUR child resets to UNILATERAL", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
+    ]);
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.confirm));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+  });
+
+  it("never shows the dialog when switching between two already-bilateral directions", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "RIGHT_LEFT" });
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.LEFT_RIGHT)).toBeTruthy();
+  });
+
+  it("never shows the dialog on a return to UNILATERAL, and restores nothing", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "LEFT_RIGHT" });
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+
+    expect(screen.queryByText(dialog.title)).toBeNull();
+    expect(screen.getByText(sideModeStrings.valueLabels.UNILATERAL)).toBeTruthy();
+  });
+
+  it("doubles the Tour summary duration once the Tour becomes bilateral", () => {
+    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { durationSeconds: 45 })]);
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "1 activité · 1 min",
+    );
+
+    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(dialog.confirm));
+
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+      "1 activité · 2 min",
+    );
+  });
+});
