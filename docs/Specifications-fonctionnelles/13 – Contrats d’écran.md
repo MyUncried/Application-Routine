@@ -1457,7 +1457,7 @@ La revue indépendante de clôture contrôle les chapitres 00 à 13, `PRODUCT.md
 - l’Exécution est unifiée autour des origines `SESSION | ACTIVITY` ; aucune Séance artificielle n’est créée pour une Activité directe ;
 - les cartes, l’arbre de création, la sélection multiple, la préparation de `5 s`, l’Exécution, la Synthèse et le retour au Catalogue sont reliés à leurs contrats et captures ;
 - les neuf captures référencées par ce périmètre existent sous leur nom Unicode exact ;
-- aucun littéral `\\n`, échappement `#Uxxxx` ou `\\uXXXX`, service fictif ou ancienne annexe concurrente n’est conservé ;
+- aucune séquence d’échappement parasite, aucun nom Unicode altéré, aucun service fictif et aucune ancienne annexe concurrente ne sont conservés ;
 - les sujets non clos restent explicitement marqués : déploiement des médias et formulaire détaillé du Circuit.
 
 ## Règle de maintenance de la matrice
