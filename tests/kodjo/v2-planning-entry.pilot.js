@@ -8,6 +8,12 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const workflowPermissions = (workflow) => {
+  const start = workflow.indexOf('permissions:\n');
+  assert.notEqual(start, -1, 'workflow permissions block missing');
+  const end = workflow.indexOf('\n\n', start);
+  return workflow.slice(start, end === -1 ? workflow.length : end);
+};
 
 test('V2 planning uses the bootstrap and never invents a V1 manifest', () => {
   const plan = read('.github/workflows/kodjo-v2-slice-plan.yml');
@@ -61,11 +67,23 @@ test('V2 planning sépare le HEAD produit du HEAD applicatif de la PR ouverte', 
     assert.match(workflow, /application_head=/);
     assert.match(workflow, /pulls\/\$APPLICATION_PR|pulls\/\$applicationPr/);
     assert.match(workflow, /application\.head\.sha|\.head\.sha/);
+    assert.match(workflowPermissions(workflow), /^  pull-requests: read$/m);
   }
   assert.match(plan, /product\/protocol HEAD \$SOURCE_HEAD and exact application HEAD \$APPLICATION_HEAD/);
   assert.match(plan, /scan "\$APPLICATION_HEAD"/);
   assert.match(review, /kodjo-v2-current-product-context/);
   assert.match(review, /ref: \$\{\{ steps\.gate\.outputs\.application_head \}\}/);
+});
+
+test('tout workflow qui lit une PR déclare la permission GitHub minimale', () => {
+  const workflows = fs.readdirSync(path.join(root, '.github', 'workflows'))
+    .filter((file) => file.endsWith('.yml'));
+  for (const file of workflows) {
+    const workflow = read(path.join('.github', 'workflows', file));
+    if (!/gh api [^\n]*pulls\//.test(workflow)) continue;
+    assert.match(workflowPermissions(workflow), /^  pull-requests: (?:read|write)$/m,
+      `${file} reads the pull request API without permission`);
+  }
 });
 
 test('V2 plan closure run block is valid Bash after YAML indentation is removed', { skip: process.platform === 'win32' }, () => {
