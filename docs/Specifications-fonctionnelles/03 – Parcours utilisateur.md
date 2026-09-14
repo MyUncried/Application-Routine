@@ -383,9 +383,9 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 ## Parcours bilatéral
 
 1. Dans l’éditeur d’Activité ou la Composition, l’utilisateur fait cycler `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`.
-2. Dans l’éditeur, `Côté` est placé sous `Séries`; dans la Composition, la direction du Tour partage la ligne de `Nombre de tours`. Une carte hors Tour bilatéral affiche sa direction propre bilatérale ; une carte contenue dans un Tour bilatéral ne la répète pas.
+2. Dans l’éditeur, `Côté` est placé sous `Séries`; dans la Composition, la direction du Tour partage la ligne de `Nombre de tours`. Le contrôle du Tour affiche `–` en unilatéral et l’intégralité de `D→G` ou `G→D` en bilatéral. Une carte hors Tour bilatéral affiche sa direction propre bilatérale uniquement dans son petit indicateur ; son texte de synthèse ne la développe pas. Une carte contenue dans un Tour bilatéral ne la répète pas.
 3. Lorsqu’il rend un Tour bilatéral, le système recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`.
-4. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, une confirmation demande : **Voulez-vous exécuter ce Tour de manière bilatérale ?**
+4. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, une confirmation affiche le titre **Exécuter chaque Tour des deux côtés ?** et le message : **À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.**
 5. `Annuler` ne modifie rien. `Confirmer` applique atomiquement la direction au Tour, remet les seules Activités concernées à `UNILATERAL` et désactive les contrôles enfants.
 6. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
 7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.

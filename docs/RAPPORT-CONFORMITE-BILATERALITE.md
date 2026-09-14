@@ -1,21 +1,21 @@
 # Rapport final de conformité — Bilatéralité
 
-Date : 13 septembre 2026.
+Date : 14 septembre 2026 — rectification après validation visuelle de la PR #131.
 
 ## Baseline et périmètre
 
-La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la PR applicative #111 non fusionnée et du fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`. Le corpus contrôlé comprend PRODUCT, INDEX, les spécifications `00` à `13`, la matrice et ce rapport. Les fichiers applicatifs, le protocole, le plan technique et la revue de `V2-BILAT-01` ont été lus seulement pour relever les écarts ; ils ne sont pas modifiés.
+La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c407149730eb`, de la PR applicative #131 au HEAD `df38ade5e8737ed8f59a3a7472ebe9b168a85145` et du fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`. Le corpus contrôlé comprend PRODUCT, les spécifications concernées, la matrice et ce rapport. Les fichiers applicatifs restent inchangés pendant cette étape documentaire.
 
 ## Résultat
 
 | Axe | Résultat | Preuve |
 | --- | --- | --- |
 | Priorité Tour / Activité | CONFORME | PRODUCT ; 00 ; 04 ; D-145/D-146 ; RM-146 ; CE-BIL-01/02/02A. |
-| Contrôle Tour | CONFORME | `42 × 34 pt`, espace `8 pt`, parent `2028:11743`, frames `2028:11700`, `3722:5061`, `3722:5207`. |
-| Confirmation conditionnelle | CONFORME | PRODUCT, 03, 04, D-146, RM-147, API-SIDE-02, CE-BIL-02. |
-| Carte Activité | CONFORME | `3706:5020`, `42 × 20 pt`, `x=311`, `y=24,5`; absence sous Tour bilatéral. |
+| Contrôle Tour | CONFORME APRÈS RECTIFICATION | Géométrie Figma conservée à `42 × 34 pt`, espace `8 pt`; affichage intégral de `D→G`/`G→D`; tiret `–` centré en unilatéral. |
+| Confirmation conditionnelle | CONFORME APRÈS RECTIFICATION | Condition inchangée ; titre et message exacts réalignés dans PRODUCT, 03, D-146 et CE-BIL-02. |
+| Carte Activité | CONFORME APRÈS RECTIFICATION | `3706:5020`, `42 × 20 pt`, `x=311`, `y=24,5`; petit indicateur seul, sans direction développée dans le texte et sans répétition sous Tour bilatéral. |
 | Contrôle Activité | CONFORME | Déjà sous Séries ; `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt`; `3704:5021`. |
-| Synthèse | CONFORME | Clause propre dans PRODUCT, 06, 08, RM-152, CE-T01-13 ; `3679:4880`, `3724:5428`. |
+| Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Activité dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
 | Calculs | CONFORMES À LA RECETTE | Aucun code de calcul modifié. L’arbitrage produit du 14 septembre 2026 conserve la règle existante : `C` Pauses si `R = 0`, sinon `C − 1` Pauses puis Récupération. |
 | T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
@@ -23,7 +23,7 @@ La rectification part de `main@6958c09a8c1f37b5dfaee4ff57b4c13c25916084`, de la 
 ## Sources Figma
 
 - `Controls / Sides — Source exact` : `3704:5021`, variantes `74 × 42 pt`;
-- `Controls / Tour Sides — Source exact` : `3705:5021`, `42 × 34 pt`;
+- `Controls / Tour Sides — Source exact` : `3705:5021`, `42 × 34 pt`; la géométrie est confirmée, tandis que le nouvel état unilatéral `–` supersède l’état vide de cette instance ;
 - `Indicator / Sides — Source exact` : `3706:5020`, `42 × 20 pt`;
 - Activité unilatérale `3542:4656`, propre `D→G` `3679:4880`, propre `G→D` `3724:5428`;
 - Composition `2028:11700`, Tour `D→G` `3722:5061`, Tour `G→D` `3722:5207`.
@@ -46,4 +46,4 @@ Le 14 septembre 2026, le responsable produit a confirmé dans l’issue #52 que,
 
 ## Écarts réservés à la reprise de développement
 
-Le plan technique `V2-BILAT-01` contient encore « contrôle Côtés après le segment de mode et avant les paramètres », « contrôle après Nombre de tours » et une confirmation systématique. La PR #111 contient encore le libellé applicatif `Durée minimale`. Ces points devront être réalignés par `RESUME_DELTA` après validation de la PR documentaire, sans toucher aux calculs.
+La PR #131 au HEAD `df38ade5e8737ed8f59a3a7472ebe9b168a85145` doit être corrigée uniquement sur les écarts bilatéraux consignés dans le commentaire `5670983656` de l’issue #52 : textes exacts de confirmation, tiret unilatéral du Tour, affichage intégral et position des indicateurs, et séparation entre synthèse de l’éditeur et texte de la carte de Composition. Aucun calcul validé, aucune fonctionnalité T03 et aucun ajustement général différé ne sont inclus. Le plan technique et sa revue doivent être révisés avant une nouvelle `RESUME_DELTA`.
