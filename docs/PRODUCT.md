@@ -256,7 +256,7 @@ Le MVP comporte quatre onglets :
 
 ## 7. Principes métier structurants
 
-1. Une Séance est un contenu exécutable ; en V2, une Activité persistante l’est également ; une Routine planifie une Séance.
+1. Une Séance est un contenu exécutable ; dans le MVP T03, une Activité persistante l’est également ; une Routine planifie une Séance.
 2. Une Séance et ses Routines sont indépendantes.
 3. Chaque Exécution conserve son origine et un instantané immuable du contenu utilisé.
 4. Une modification ou une suppression ultérieure ne change jamais une Exécution passée.
@@ -324,7 +324,6 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
-- bibliothèque d’Activités persistantes, réutilisées par copie indépendante ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
 - Circuits persistants composés d’au moins deux Séances ordonnées, exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
@@ -335,15 +334,15 @@ Les versions futures pourront notamment introduire :
 
 ### Catalogue multi-type
 
-Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` deviennent des filtres dédiés et non des segments de navigation.
+Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné par défaut et fonctionnel ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` deviennent des filtres dédiés et non des segments de navigation.
 
-### Activités persistantes — V2
+### Activités persistantes — MVP T03
 
 Une Activité de catalogue est une référence persistante. L’utilisateur peut la créer, la consulter, la modifier, l’exécuter directement ou la sélectionner depuis une Composition. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération, son côté et ses associations média. La copie appartient à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue.
 
 Depuis `Créer`, l’arbre propose `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
-### Exécution directe d’une Activité — V2
+### Exécution directe d’une Activité — MVP T03
 
 Le bouton Lecture d’une carte valide lance une Exécution d’origine `ACTIVITY`. Le moteur crée un instantané autonome, affiche une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération, puis termine sans phase `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
 
@@ -353,7 +352,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 Le MVP ajoute le mode `À l’échec`, sans durée ni répétitions cibles. L’éditeur unifié place le Nom en premier et ordonne les paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` lorsque cette valeur s’applique.
 
-Les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` sont persistés, copiés et exécutés selon la direction propre de l’Activité ou celle du Tour. T03 développe les Séries multiples, les répétitions du Tour et les passages bilatéraux dans le Plan d’Exécution.
+Les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` sont persistés, copiés et exécutés selon la direction propre de l’Activité ou celle du Tour. T04 développe les Séries multiples, les répétitions du Tour et les passages bilatéraux dans le Plan d’Exécution.
 
 ### Médias et Circuits
 
