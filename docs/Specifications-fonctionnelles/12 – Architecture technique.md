@@ -1290,13 +1290,20 @@ Les services de calcul utilisent des fonctions pures couvrant les deux valeurs d
 
 Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `Indicator / Sides — Source exact` (`3706:5020`) reste `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
 
-Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.\n\n## Architecture V2 — moteur multi-origine
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
+
+## Architecture V2 — Catalogue des Activités et moteur multi-origine
+
+Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
+
+## Architecture V2 — moteur multi-origine
 
 Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnapshotSource` ou `ActivitySnapshotSource`. Un adaptateur construit un plan commun ; la machine à états, les minuteries, les résultats, la persistance et la reprise restent partagés.
 
 L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Activité, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
 
-La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les trois modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.\n
+La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les trois modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
+
 
 ### Icônes vectorielles de sélection multiple
 
