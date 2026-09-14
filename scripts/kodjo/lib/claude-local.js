@@ -141,6 +141,16 @@ function normalizeRequest(raw, repoRoot) {
     const detail = validateRetryReason(raw.retry_reason);
     if (detail) throw new Error('RETRY_REASON_INVALID: ' + detail);
     retryReason = { code: raw.retry_reason.code, detail: raw.retry_reason.detail };
+    if (raw.recovery_migration !== undefined) {
+      const migration = raw.recovery_migration;
+      if (!migration || typeof migration !== 'object' || Array.isArray(migration) ||
+          !/^[0-9a-f]{40}$/.test(String(migration.attestation_blob_oid || '')) ||
+          typeof migration.attestation_path !== 'string' || !migration.attestation_path ||
+          path.isAbsolute(migration.attestation_path) || migration.attestation_path.includes('..') ||
+          migration.attestation_path.includes('\\') || migration.evidence_kind !== 'ARTIFACT_HASH') {
+        throw new Error('RECOVERY_MIGRATION_ATTESTATION_INVALID');
+      }
+    }
   } else {
     if (retryReasonPresent) throw new Error('INITIAL_RETRY_REASON_FORBIDDEN');
     if (raw.retry_of_run_id !== undefined) throw new Error('INITIAL_RETRY_SOURCE_FORBIDDEN');
@@ -163,6 +173,9 @@ function normalizeRequest(raw, repoRoot) {
     retry_of_run_id: raw.retry_of_run_id === undefined ? null : String(raw.retry_of_run_id),
   };
   if (mode === 'RESUME_DELTA') request.retry_reason = retryReason;
+  if (mode === 'RESUME_DELTA' && raw.recovery_migration !== undefined) {
+    request.recovery_migration = { ...raw.recovery_migration };
+  }
   return request;
 }
 

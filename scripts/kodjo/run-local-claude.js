@@ -8,6 +8,7 @@ const { spawnSync } = require('node:child_process');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
+const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
 
 const { runCheck } = require('./lib/checks');
 const {
@@ -250,46 +251,6 @@ function certificationStopAfterRecoveryEnabled(request, env = process.env) {
     env.KODJO_CERTIFICATION_STOP_AFTER_RECOVERY === 'V2-PROD-00' &&
     request.slice_id === 'V2-PROD-00';
 }
-const RECOVERY_MIGRATION_PROTOCOL_PREFIXES = Object.freeze([
-  '.github/orchestration/', '.github/workflows/kodjo-v2-', 'scripts/kodjo/', 'tests/kodjo/',
-  'tests/fixtures/qualif/',
-]);
-
-function isProtocolMigrationPath(file) {
-  const normalized = String(file || '').replace(/\\\\/g, '/');
-  return normalized === 'docs/KODJO-V2-LEAN-OPERATING-CONTRACT.md' ||
-    RECOVERY_MIGRATION_PROTOCOL_PREFIXES.some((prefix) => normalized.startsWith(prefix));
-}
-
-function certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request) {
-  const evidence = { required: manifest.source_head !== request.source_head,
-    source_head: manifest.source_head, target_head: request.source_head, mode: null,
-    intervening_paths: [], status: 'NOT_REQUIRED' };
-  if (!evidence.required) return evidence;
-  if (paths.length === 0 && patch.length === 0) {
-    evidence.mode = 'STRICTLY_EMPTY_PACKAGE'; evidence.status = 'PASS'; return evidence;
-  }
-  if (git(['rev-parse', 'HEAD'], repoRoot) !== request.source_head) {
-    throw new Error('RECOVERY_TARGET_HEAD_NOT_CHECKED_OUT');
-  }
-  const ancestor = command('git', ['merge-base', '--is-ancestor', manifest.source_head, request.source_head],
-    repoRoot, process.env, 60000);
-  if (ancestor.error || ancestor.status !== 0) throw new Error('RECOVERY_SOURCE_HEAD_NOT_ANCESTOR');
-  const changed = command('git', ['diff', '--name-only', '-z', '--no-renames',
-    manifest.source_head, request.source_head, '--'], repoRoot, process.env, 120000);
-  if (changed.error || changed.status !== 0) {
-    throw new Error('RECOVERY_MIGRATION_DIFF_FAILED: ' + (changed.error ? changed.error.message : changed.stderr));
-  }
-  evidence.intervening_paths = String(changed.stdout).split('\0').filter(Boolean).sort();
-  const nonProtocol = evidence.intervening_paths.filter((file) => !isProtocolMigrationPath(file));
-  if (nonProtocol.length) throw new Error('RECOVERY_MIGRATION_NON_PROTOCOL_CHANGE: ' + nonProtocol.join(', '));
-  const recovered = new Set(paths.map((file) => String(file).replace(/\\\\/g, '/')));
-  const overlap = evidence.intervening_paths.filter((file) => recovered.has(file));
-  if (overlap.length) throw new Error('RECOVERY_MIGRATION_PATH_OVERLAP: ' + overlap.join(', '));
-  evidence.mode = 'PROTOCOL_ONLY_FAST_FORWARD'; evidence.status = 'PASS';
-  return evidence;
-}
-
 function buildRecoveryPatch(repoRoot, request, files) {
   const indexFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-idx-')), 'index');
   const env = { ...process.env, GIT_INDEX_FILE: indexFile };
@@ -873,7 +834,7 @@ module.exports = {
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,
   deltaFingerprint, fingerprintDrift,
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,
-  certifyRecoverySourceMigration, isProtocolMigrationPath,
+  certifyRecoverySourceMigration,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
   certificationStopAfterRecoveryEnabled,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,

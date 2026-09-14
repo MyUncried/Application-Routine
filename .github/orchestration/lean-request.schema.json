@@ -123,6 +123,11 @@
       "x-kodjo-nature": "AUTHORIZATION",
       "x-kodjo-diagnostic": "KODJO_QUEUE_USER_GATE_REFUSED"
     },
+    "recovery_migration": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED"
+    },
     "retry_of_run_id": {
       "type": "string",
       "x-kodjo-nature": "BEHAVIOUR",

@@ -54,6 +54,13 @@ function projectQueueRequest(queue) {
       code: queue.retry_reason.code,
       detail: queue.retry_reason.detail,
     };
+    if (queue.recovery_migration !== undefined) {
+      request.recovery_migration = {
+        attestation_path: queue.recovery_migration.attestation_path,
+        attestation_blob_oid: queue.recovery_migration.attestation_blob_oid,
+        evidence_kind: queue.recovery_migration.evidence_kind,
+      };
+    }
   }
   return request;
 }

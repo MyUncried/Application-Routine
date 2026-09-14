@@ -65,6 +65,22 @@ test('le contrat accepte une demande conforme', () => {
   assert.deepEqual(C.validateQueueRequest(validQueue()), []);
 });
 
+test('la référence de migration est structurée, bornée et optionnelle', () => {
+  const migration = {
+    attestation_path: '.github/orchestration/v2-slices/QUALIF/recovery-migration.json',
+    attestation_blob_oid: 'd'.repeat(40), evidence_kind: 'ARTIFACT_HASH',
+  };
+  const resume = { mode: 'RESUME_DELTA', session_id: uuid(), retry_of_run_id: '123',
+    retry_reason: { code: 'CLARIFICATION', detail: 'migration' } };
+  assert.deepEqual(C.validateQueueRequest(validQueue({ ...resume, recovery_migration: migration })), []);
+  assert.ok(diagnostics(validQueue({ ...resume, recovery_migration: { ...migration, attestation_blob_oid: '' } }))
+    .includes('KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED'));
+  assert.ok(diagnostics(validQueue({ ...resume, recovery_migration: { ...migration, evidence_kind: 'DECLARATIVE' } }))
+    .includes('KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED'));
+  assert.ok(diagnostics(validQueue({ recovery_migration: migration }))
+    .includes('KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED'));
+});
+
 test('le contrat refuse toute limite de tours imposée par le protocole', () => {
   const d = diagnostics(validQueue({ limits: {
     max_ai_calls: 1, max_turns: 40, max_duration_seconds: 3600,
@@ -294,6 +310,44 @@ function authFixture() {
   return { dir, queue, write, planBlob, reviewPath, reviewBlob, git };
 }
 
+function bindMigrationAttestation(f, overrides = {}) {
+  const attestationPath = '.github/orchestration/v2-slices/QUALIF/recovery-migration.json';
+  const attestation = {
+    schema_version: 'kodjo.protocol.v2.recovery-migration.0.6.23', status: 'CERTIFIED',
+    slice_id: 'QUALIF', source_head: f.queue.source_head,
+    certified_target_head: f.queue.source_head, baseline_head: f.queue.baseline_head,
+    source_run_id: '34770454986', session_id: uuid(),
+    certified_protocol_executable_paths: [], certified_protocol_document_paths: [],
+    certified_product_document_paths: [], compatible_application_paths: [],
+    post_certification_protocol_files: { [attestationPath]: 'SELF' },
+    authorization_binding: {
+      authorized_plan: {
+        plan_path: f.queue.authorized_plan.plan_path,
+        plan_blob_oid: f.queue.authorized_plan.plan_blob_oid,
+      },
+      independent_review: {
+        review_path: f.queue.independent_review.review_path,
+        review_blob_oid: f.queue.independent_review.review_blob_oid,
+        reviewed_plan_blob_oid: f.queue.independent_review.reviewed_plan_blob_oid,
+      },
+      user_gate: { ...f.queue.user_gate },
+    },
+    ...overrides,
+  };
+  const absolute = path.join(f.dir, ...attestationPath.split('/'));
+  fs.writeFileSync(absolute, JSON.stringify(attestation, null, 2) + '\n');
+  f.git(['add', '-A']); f.git(['commit', '-qm', 'migration attestation']);
+  const sourceHead = f.git(['rev-parse', 'HEAD']);
+  const oid = f.git(['rev-parse', 'HEAD:' + attestationPath]);
+  return {
+    ...f.queue, mode: 'RESUME_DELTA', session_id: uuid(), source_head: sourceHead,
+    retry_of_run_id: '34770454986', retry_reason: { code: 'CLARIFICATION', detail: 'certified migration' },
+    recovery_migration: {
+      attestation_path: attestationPath, attestation_blob_oid: oid, evidence_kind: 'ARTIFACT_HASH',
+    },
+  };
+}
+
 test('une demande cohérente est acceptée, avec ses limites déclarées', () => {
   const f = authFixture();
   const result = A.verify(f.write(f.queue), { cwd: f.dir, github: githubFor(f.planBlob) });
@@ -317,6 +371,26 @@ test('sans vérification GitHub activée, l’admission est refusée', () => {
   // Le workflow de production l'active.
   const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'kodjo-v2-lean-queue.yml'), 'utf8');
   assert.match(wf, /KODJO_VERIFY_GITHUB: '1'/);
+});
+
+test('la migration est liée aux empreintes du plan, de la revue et à la validation utilisateur', () => {
+  const f = authFixture();
+  const queue = bindMigrationAttestation(f);
+  const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
+  assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
+});
+
+test('une migration avec plan, revue ou validation incohérents est refusée avant Claude', () => {
+  for (const overrides of [
+    { authorization_binding: { authorized_plan: null } },
+    { authorization_binding: { independent_review: null } },
+    { authorization_binding: { user_gate: null } },
+  ]) {
+    const f = authFixture();
+    const queue = bindMigrationAttestation(f, overrides);
+    assert.throws(() => A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) }),
+      /RECOVERY_MIGRATION_AUTHORIZATION_BINDING_MISMATCH/);
+  }
 });
 
 test('un pouce levé absent, illisible ou d’un autre compte bloque l’admission', () => {

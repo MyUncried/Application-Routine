@@ -518,7 +518,7 @@ test('un paquet strictement vide permet de reprendre la session sur le HEAD prot
   assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume), []);
 });
 
-test('un paquet non vide migre sur un descendant contenant seulement du protocole', () => {
+test('un paquet non vide ne migre plus sur la seule classification générique protocolaire', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
   fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
@@ -534,16 +534,12 @@ test('un paquet non vide migre sur un descendant contenant seulement du protocol
   const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id,
     source_head: g.git(['rev-parse', 'HEAD']) };
   delete resume.generated_session_id;
-  const evidence = {};
-  assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume, evidence), ['src/app.ts']);
-  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v2\n');
-  assert.equal(evidence.status, 'PASS');
-  assert.equal(evidence.mode, 'PROTOCOL_ONLY_FAST_FORWARD');
-  assert.deepEqual(evidence.intervening_paths,
-    ['scripts/kodjo/protocol.js', 'tests/fixtures/qualif/.gitkeep']);
+  assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume),
+    /RECOVERY_MIGRATION_ATTESTATION_REQUIRED/);
+  assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v1\n');
 });
 
-test('une migration de paquet non vide refuse toute évolution applicative intermédiaire', () => {
+test('une migration sans attestation est refusée avant même de classifier une évolution applicative', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
   fs.writeFileSync(path.join(g.root, 'src', 'app.ts'), 'v2\n');
@@ -556,7 +552,7 @@ test('une migration de paquet non vide refuse toute évolution applicative inter
     source_head: g.git(['rev-parse', 'HEAD']) };
   delete resume.generated_session_id;
   assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume),
-    /RECOVERY_MIGRATION_NON_PROTOCOL_CHANGE: src\/other.ts/);
+    /RECOVERY_MIGRATION_ATTESTATION_REQUIRED/);
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'v1\n');
 });
 
