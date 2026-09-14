@@ -207,7 +207,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
 | RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
 
-## 12. Règles métier — Exécution directe d’une Activité V2
+## 12. Règles métier — Exécution directe d’une Activité — MVP T03
 
 | ID | Règle |
 |---|---|
