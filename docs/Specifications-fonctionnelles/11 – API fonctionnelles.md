@@ -27,7 +27,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 ## 11.1 Principes généraux
 
 Les API fonctionnelles respectent les principes suivants :
-- une Séance représente un contenu exécutable ; en V2, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
+- une Séance représente un contenu exécutable ; dans le MVP T03, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
 - une Routine représente la planification d’une Séance ;
 - une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
@@ -258,7 +258,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
 | `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
-| `API-CAT-01` | MVP/V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; dans le MVP T03, `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
+| `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; dans le MVP T03, `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
 | `API-CIR-01..06` | V2 | Circuit et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Circuit. |
 | `API-CIR-EXE-01` | V2 | ID Circuit | Fige l’instantané et crée l’Exécution globale. |
 | `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
