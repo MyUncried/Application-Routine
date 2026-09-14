@@ -255,10 +255,10 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
-| `API-ACT-REF-01..05` | V2 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
-| `API-ACT-COPY-01` | V2 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
+| `API-ACT-REF-01..05` | MVP T03 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
-| `API-CAT-01` | MVP/V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; en V2, `ACTIVITY` et `CIRCUIT`. Défaut : non archivés, dernière modification décroissante. |
+| `API-CAT-01` | MVP/V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; dans le MVP T03, `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
 | `API-CIR-01..06` | V2 | Circuit et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Circuit. |
 | `API-CIR-EXE-01` | V2 | ID Circuit | Fige l’instantané et crée l’Exécution globale. |
 | `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
@@ -279,7 +279,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
 | `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |
 
-## 11.14 Exécution directe d’une Activité — V2
+## 11.14 Exécution directe d’une Activité — MVP T03
 
 | ID | Service | Entrée | Sortie | Règles |
 |---|---|---|---|---|
@@ -292,7 +292,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.
 
 
-## 11.15 Sélection multiple d’Activités existantes — V2
+## 11.15 Sélection multiple d’Activités existantes — MVP T03
 
 `CompositionService` reçoit les identifiants sélectionnés dans l’ordre courant de présentation produit par la liste filtrée au moment de la validation. Il crée une copie indépendante de chaque `ActivityDefinition` dans cet ordre, en une seule opération de composition. L’ordre temporel des touchers ne fait pas partie du contrat et ne doit pas être persisté.
 
