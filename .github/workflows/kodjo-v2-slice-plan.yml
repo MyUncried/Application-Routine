@@ -66,7 +66,7 @@ jobs:
           process.stdout.write('target_branch=' + b.target_branch + '\n');
           NODE
           source /tmp/kodjo-v2-gate.env
-          ACTUAL=$(git ls-remote origin "refs/heads/$target_branch" | cut -f1)
+          ACTUAL=$(node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" "$target_branch")
           test "$ACTUAL" = "$SOURCE_HEAD"
           PLAN_OID=$(git rev-parse "$SOURCE_HEAD:$PLAN_PATH")
           REVIEW_OID=$(git rev-parse "$SOURCE_HEAD:$REVIEW_PATH")
