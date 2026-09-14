@@ -110,6 +110,49 @@ function changedFiles(cwd) {
   return entryPaths(changedEntries(cwd));
 }
 
+/**
+ * Le périmètre de reprise est porté par le paquet immuable, pas par la mission
+ * corrective. Il reste une liste de chemins exacts : aucun motif et aucune
+ * normalisation permissive ne sont acceptés.
+ */
+function exactRecoveryPaths(paths) {
+  if (!Array.isArray(paths)) throw new Error('RECOVERY_PATHS_INVALID');
+  const normalized = paths.map((file) => normalizeScopeCandidate(file));
+  if (normalized.some((file) => !file)) throw new Error('RECOVERY_PATH_INVALID');
+  if (new Set(normalized).size !== normalized.length) throw new Error('RECOVERY_PATH_DUPLICATE');
+  return normalized.sort();
+}
+
+function inCumulativeScope(file, request) {
+  const normalized = normalizeScopeCandidate(file);
+  return Boolean(normalized) && (
+    inScope(normalized, request.scope_allow) ||
+    new Set(request.recovery_paths || []).has(normalized)
+  );
+}
+
+/** Chemins effectivement modifies depuis l'etat restaure, avant Claude. */
+function mutationPathsSinceRestore(beforePaths, beforeFingerprint, afterPaths, afterFingerprint) {
+  const before = new Set(beforePaths);
+  const after = new Set(afterPaths);
+  const union = [...new Set([...before, ...after])].sort();
+  return union.filter((file) => {
+    if (!before.has(file) || !after.has(file)) return true;
+    return beforeFingerprint[file] !== afterFingerprint[file];
+  });
+}
+
+function patchPathsFromNumstat(raw) {
+  if (!raw) return [];
+  const paths = raw.split('\0').filter(Boolean).map((record) => {
+    const first = record.indexOf('\t');
+    const second = record.indexOf('\t', first + 1);
+    if (first < 0 || second < 0) throw new Error('RECOVERY_PATCH_PATHS_UNREADABLE');
+    return record.slice(second + 1);
+  });
+  return exactRecoveryPaths(paths);
+}
+
 const RECOVERY_SCHEMA = 'kodjo.protocol.v2.local-recovery.0.6.16';
 const LEGACY_MARKER_SCHEMA = 'kodjo.protocol.v2.legacy-recovery-bootstrap.0.6.16';
 
@@ -121,7 +164,7 @@ function payloadDigest(payload) {
 }
 
 function recoveryPayload(repoRoot, request, files, meta) {
-  const entries = [...new Set(files)].sort().filter((file) => inScope(file, request.scope_allow)).map((file) => {
+  const entries = [...new Set(files)].sort().filter((file) => inCumulativeScope(file, request)).map((file) => {
     const normalized = file.replace(/\\/g, '/');
     const absolute = path.resolve(repoRoot, normalized);
     if (!absolute.startsWith(repoRoot + path.sep)) throw new Error('RECOVERY_PATH_INVALID: ' + normalized);
@@ -262,7 +305,7 @@ function buildRecoveryPatch(repoRoot, request, files) {
     return r.stdout;
   };
   run(['read-tree', request.source_head]);
-  const inScopeFiles = [...new Set(files)].filter((f) => inScope(f, request.scope_allow)).sort();
+  const inScopeFiles = [...new Set(files)].filter((f) => inCumulativeScope(f, request)).sort();
   if (inScopeFiles.length === 0) return { patch: '', paths: [] };
   // Les octets produits sont l'oracle. Une configuration globale Windows
   // core.autocrlf=true ne doit jamais normaliser CRLF pendant la capture.
@@ -288,7 +331,11 @@ function writeRecoveryPackage(runDir, repoRoot, request, files, meta) {
     github_run_id: process.env.GITHUB_RUN_ID || null,
     request_id: request.request_id,
     integrity_status: (meta && meta.integrityStatus) || 'INTACT',
+    // `scope_allow` reste le périmètre de mutation de cette invocation. `paths`
+    // est le delta cumulatif restaurable, constitué de la reprise exacte et des
+    // mutations autorisées produites ensuite.
     scope_allow: request.scope_allow,
+    recovery_paths: exactRecoveryPaths(request.recovery_paths || []),
     paths: built.paths,
     patch_sha256: sha256(built.patch),
     patch_bytes: Buffer.byteLength(built.patch, 'utf8'),
@@ -323,16 +370,26 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
   }
   const patch = fs.readFileSync(patchPath, 'utf8');
   if (sha256(patch) !== manifest.patch_sha256) throw new Error('RECOVERY_PACKAGE_DIGEST_MISMATCH');
-  const paths = Array.isArray(manifest.paths) ? manifest.paths : [];
-  for (const file of paths) {
-    if (!inScope(file, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + file);
+  const paths = exactRecoveryPaths(manifest.paths);
+  if (!patch.trim()) {
+    if (paths.length) throw new Error('RECOVERY_PACKAGE_PATHS_MISMATCH');
+    const migration = certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request);
+    if (migrationEvidence) Object.assign(migrationEvidence, migration);
+    return [];
   }
-  const migration = certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request);
-  if (migrationEvidence) Object.assign(migrationEvidence, migration);
-  if (!patch.trim()) return [];
   const apply = (extra) => command('git', ['apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
   const patchFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-patch-')), 'implementation.patch');
   fs.writeFileSync(patchFile, patch, 'utf8');
+  const numstat = apply(['--numstat', '-z', patchFile]);
+  if (numstat.error || numstat.status !== 0) {
+    throw new Error('RECOVERY_PATCH_PATHS_UNREADABLE: ' + (numstat.error ? numstat.error.message : numstat.stderr));
+  }
+  const patchPaths = patchPathsFromNumstat(numstat.stdout);
+  if (JSON.stringify(patchPaths) !== JSON.stringify(paths)) {
+    throw new Error('RECOVERY_PACKAGE_PATHS_MISMATCH');
+  }
+  const migration = certifyRecoverySourceMigration(manifest, patch, paths, repoRoot, request);
+  if (migrationEvidence) Object.assign(migrationEvidence, migration);
   const check = apply(['--check', patchFile]);
   if (check.error || check.status !== 0) {
     throw new Error('RECOVERY_PARTIAL_APPLY_REFUSED: ' + (check.error ? check.error.message : check.stderr));
@@ -341,7 +398,7 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
   if (applied.error || applied.status !== 0) {
     throw new Error('RECOVERY_PACKAGE_APPLY_FAILED: ' + (applied.error ? applied.error.message : applied.stderr));
   }
-  return manifest.paths || [];
+  return paths;
 }
 
 /** Lecture defensive : un candidat illisible est ignore, jamais fatal — KV2-04. */
@@ -371,9 +428,10 @@ function sameProvenance(candidate, request) {
 }
 
 function applyRecovery(recovery, repoRoot, request) {
-  for (const entry of recovery.entries || []) {
-    const normalized = String(entry.path || '').replace(/\\/g, '/');
-    if (!inScope(normalized, request.scope_allow)) throw new Error('RECOVERY_SCOPE_VIOLATION: ' + normalized);
+  const entries = Array.isArray(recovery.entries) ? recovery.entries : [];
+  const recoveryPaths = exactRecoveryPaths(entries.map((entry) => entry && entry.path));
+  for (const entry of entries) {
+    const normalized = normalizeScopeCandidate(entry.path);
     const absolute = path.resolve(repoRoot, normalized);
     if (!normalized || !absolute.startsWith(repoRoot + path.sep)) throw new Error('RECOVERY_PATH_INVALID: ' + normalized);
     if (fs.existsSync(absolute) && fs.lstatSync(absolute).isSymbolicLink()) {
@@ -388,7 +446,7 @@ function applyRecovery(recovery, repoRoot, request) {
     fs.mkdirSync(path.dirname(absolute), { recursive: true });
     fs.writeFileSync(absolute, content);
   }
-  return (recovery.entries || []).map((entry) => entry.path);
+  return recoveryPaths;
 }
 
 function legacyMarkerPath(stateRoot, request) {
@@ -594,6 +652,7 @@ function main() {
   try {
     const restored = restoreRecovery(stateRoot, repoRoot, request);
     recoveredFiles = restored.files;
+    request.recovery_paths = exactRecoveryPaths(recoveredFiles);
     pendingLegacyBootstrap = restored.legacyBootstrap;
     sourceHeadMigration = restored.sourceHeadMigration || null;
   } catch (err) {
@@ -611,6 +670,11 @@ function main() {
     return writeFailure(err.message, lockPath, { lock_state: err.message });
   }
 
+  const restoredDeltaFiles = changedFiles(repoRoot).filter((file) => {
+    const normalized = file.replace(/\\/g, '/');
+    return normalized !== promptRelative && path.resolve(file) !== path.resolve(requestPath);
+  });
+  const restoredDeltaFingerprint = deltaFingerprint(repoRoot, restoredDeltaFiles);
   let result, beforeRefs, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
   const interrupt = (signal) => {
     const released = releaseExecutionLock(lock);
@@ -689,7 +753,12 @@ function main() {
     return normalized !== promptRelative && path.resolve(repoRoot, f) !== path.resolve(requestPath);
   };
   const files = changedFiles(repoRoot).filter(protocolPath);
-  const outside = files.filter((f) => !inScope(f, request.scope_allow));
+  const postClaudeFingerprint = deltaFingerprint(repoRoot,
+    [...new Set([...restoredDeltaFiles, ...files])]);
+  const agentMutationFiles = mutationPathsSinceRestore(
+    restoredDeltaFiles, restoredDeltaFingerprint, files, postClaudeFingerprint);
+  const outsideMutation = agentMutationFiles.filter((f) => !inScope(f, request.scope_allow));
+  const outside = files.filter((f) => !inCumulativeScope(f, request));
   let recoveryFiles = [];
   try {
     recoveryFiles = writeRecovery(runDir, repoRoot, request, files, { runId, integrityStatus });
@@ -767,8 +836,8 @@ function main() {
   } catch (err) {
     return die('POST_CHECK_DELTA_UNREADABLE', err.message);
   }
-  const postOutside = postCheckFiles.filter((f) => !inScope(f, request.scope_allow));
-  const scopeClear = !outside.length && !postOutside.length;
+  const postOutside = postCheckFiles.filter((f) => !inCumulativeScope(f, request));
+  const scopeClear = !outsideMutation.length && !outside.length && !postOutside.length;
   const deltaStable = drift.length === 0;
   const verified = result.status === 0 && scopeClear && deltaStable && checks.every((c) => c.status === 'PASS');
   const summary = {
@@ -788,11 +857,14 @@ function main() {
       return fs.existsSync(lock) ? sha256(fs.readFileSync(lock)) : null;
     })(),
     modified_files: files, recovered_files: recoveredFiles, recovery_files: recoveryFiles,
+    recovery_scope_paths: request.recovery_paths,
+    mutation_scope_allow: request.scope_allow,
+    agent_mutation_files: agentMutationFiles,
     integrity_status: integrityStatus,
     recovery_package: recoveryPackage ? recoveryPackage.manifest : null,
     recovery_source_head_migration: sourceHeadMigration,
     legacy_recovery_bootstrap_consumed: legacyMarker !== null,
-    out_of_scope_files: [...new Set([...outside, ...postOutside])],
+    out_of_scope_files: [...new Set([...outsideMutation, ...outside, ...postOutside])],
     post_check_files: postCheckFiles,
     post_check_drift: drift,
     checks,
@@ -831,6 +903,7 @@ if (require.main === module) {
 
 module.exports = {
   inScope, changedFiles, changedEntries, entryPaths, refs,
+  exactRecoveryPaths, inCumulativeScope, mutationPathsSinceRestore, patchPathsFromNumstat,
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,
   deltaFingerprint, fingerprintDrift,
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,

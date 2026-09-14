@@ -383,7 +383,7 @@ test('amorce historique exige un booléen explicite', () => {
   assert.throws(() => C.normalizeRequest(f.request, f.root), /LEGACY_RECOVERY_BOOTSTRAP_INVALID/);
 });
 
-test('RESUME_DELTA refuse un paquet absent, altéré ou hors périmètre', () => {
+test('RESUME_DELTA refuse un paquet absent ou dont le contenu restauré est altéré', () => {
   const f = fixture({ mode: 'RESUME_DELTA', session_id: '550e8400-e29b-41d4-a716-446655440000' });
   const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-recovery-refusal-'));
   assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_NOT_FOUND/);
@@ -398,7 +398,7 @@ test('RESUME_DELTA refuse un paquet absent, altéré ou hors périmètre', () =>
     integrity_status: 'INTACT',
     entries: [{ path: 'docs/task.md', deleted: false, sha256: '0'.repeat(64), content_base64: '' }],
   }));
-  assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_SCOPE_VIOLATION/);
+  assert.throws(() => L.restoreRecovery(stateRoot, f.root, f.request), /RECOVERY_HASH_MISMATCH/);
 });
 
 test('le jeton OAuth est expurgé des traces', () => {

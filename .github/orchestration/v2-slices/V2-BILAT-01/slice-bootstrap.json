@@ -13,19 +13,19 @@
   "product_sources": [
     {
       "path": "docs/PRODUCT.md",
-      "sha256": "b6994c2aa72c070c3e815108da77f58cd349b9a552fd35e6832cf71b05f15411"
+      "sha256": "62daa97413d9dc268e7245a3cbe2a5604b40fc74baaa00fab1bfed9428fa6125"
     },
     {
       "path": "docs/MATRICE-TRACABILITE-BILATERALITE.md",
-      "sha256": "2448909d65fcdfbd23b888d31b720fba3c7fbc64baafd32af8e386375fa4579f"
+      "sha256": "7c400345e180b298d81f704199a955234ffaceed35b1001bd30e7ece4a89e575"
     },
     {
       "path": "docs/RAPPORT-CONFORMITE-BILATERALITE.md",
-      "sha256": "c15baee9feccdd78ea79db6c9f0ae84ea3150c64803e1ebae9514c0a62688e14"
+      "sha256": "630afb04768e6199315ac767ccfa5af3d3ecdf6697b0604395e60a88a1ae369b"
     },
     {
       "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
-      "sha256": "2c259e176cef548f7de52946ced6349f2778e069b702733fef8fa44fa8edb150"
+      "sha256": "8337d20068a151b9ab3654528d5416e9b1c3f9ca23f1362cb3d89c5dbd8ae3ac"
     }
   ],
   "authorized_actors": [
@@ -34,7 +34,7 @@
     "claude-local"
   ],
   "created_at": "2026-09-10T19:01:00.000Z",
-  "planning_application_head": "04a15580f65d2b3702776447c3574dee988e5b83",
-  "planning_documentary_head": "246991e75dd28f959b2adf95aac17bcd8255d7c8",
-  "slice_bootstrap_sha256": "98c60c8b69d73a885bcfeb6cb5b9edd20cbf80c6bbba45147a1d7889d92638c6"
+  "planning_application_head": "df38ade5e8737ed8f59a3a7472ebe9b168a85145",
+  "planning_documentary_head": "a9877597fe41d20d88780517a4b7595cc6161289",
+  "slice_bootstrap_sha256": "e096473ca508175f865688a1aee37750edd2f9c29bcafc2501f3e15544bb3281"
 }

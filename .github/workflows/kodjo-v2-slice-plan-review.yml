@@ -60,14 +60,22 @@ jobs:
           if ($plan.body -notmatch '(?m)^planning_contract=kodjo\.plan-impact\.v1\s*$') { throw 'Plan impact contract missing' }
           if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
           $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          $applicationPr=[regex]::Match($plan.body,'(?m)^application_pr=([1-9][0-9]*)\s*$').Groups[1].Value
+          $applicationHead=[regex]::Match($plan.body,'(?m)^application_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if (!$applicationPr -or !$applicationHead) { throw 'Application analysis provenance missing' }
           $remote=& node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY ([string]$b.target_branch)
           if ($LASTEXITCODE -ne 0) { throw 'V2 private target branch lookup failed' }
           if (!$remote -or ([string]$remote).Trim() -ne $source) { throw 'V2 target branch moved' }
+          $application=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$applicationPr" | ConvertFrom-Json
+          if ($application.state -ne 'open' -or [string]$application.head.sha -ne $applicationHead) { throw 'V2 application PR moved or closed' }
+          if ([string]$application.base.ref -ne [string]$b.target_branch) { throw 'V2 application PR target mismatch' }
           $planFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan.md'
           [IO.File]::WriteAllText($planFile,[string]$plan.body,(New-Object Text.UTF8Encoding($false)))
           "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "bootstrap_path=$bootstrap" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "application_pr=$applicationPr" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "application_head=$applicationHead" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -79,24 +87,34 @@ jobs:
           New-Item -ItemType Directory -Force -Path $destination | Out-Null
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $destination 'lib') -Recurse
+          $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-current-product-context'
+          New-Item -ItemType Directory -Force -Path $context | Out-Null
+          Copy-Item -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Destination (Join-Path $context 'slice-bootstrap.json')
+          Copy-Item -LiteralPath .github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/planning-mission.md -Destination $context
+          $b=Get-Content -Raw -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} | ConvertFrom-Json
+          foreach($source in $b.product_sources){
+            $destination=Join-Path $context ([string]$source.path)
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+            Copy-Item -LiteralPath ([string]$source.path) -Destination $destination
+          }
 
       - name: Checkout exact V2 source
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.gate.outputs.source_head }}
+          ref: ${{ steps.gate.outputs.application_head }}
           fetch-depth: 0
           clean: true
           persist-credentials: false
 
       - name: Replay V2 direct-import scan independently
         env:
-          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           $ErrorActionPreference='Stop'
           $verifier=Join-Path $env:RUNNER_TEMP 'kodjo-v2-impact-protocol\verify-plan-impact.js'
           $replay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-scan.json'
           $proof=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-proof.json'
-          & node $verifier "$env:RUNNER_TEMP\kodjo-v2-plan.md" $env:SOURCE_HEAD $replay $proof
+          & node $verifier "$env:RUNNER_TEMP\kodjo-v2-plan.md" $env:APPLICATION_HEAD $replay $proof
           if ($LASTEXITCODE -ne 0) { throw 'Independent V2 impact replay failed' }
 
       - name: Review V2 plan with Claude
@@ -104,11 +122,13 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
-          You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against exact source HEAD $env:SOURCE_HEAD, the versioned V2 bootstrap and planning mission, current product documentation, code and tests. This is READ-ONLY.
+          You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against product/protocol HEAD $env:SOURCE_HEAD, exact application PR $env:APPLICATION_PR at $env:APPLICATION_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-current-product-context, and the checked-out application code and tests. This is READ-ONLY.
           The direct-import scan was independently replayed. Its scan and proof are in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
           Never request or invent a V1 slice manifest. End with exactly VERDICT: APPROVE or VERDICT: REVISE.
           "@
@@ -130,6 +150,8 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
           SESSION_ID: ${{ steps.claude.outputs.session_id }}
         run: |
@@ -139,7 +161,7 @@ jobs:
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
           $proof=Get-Content -Raw "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json"
           $nl=[Environment]::NewLine
-          $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'application_pr='+$env:APPLICATION_PR+$nl+'application_head='+$env:APPLICATION_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
           $impact=$nl+'<KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl+$proof.Trim()+$nl+'</KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md"

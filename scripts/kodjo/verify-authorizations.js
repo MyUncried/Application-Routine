@@ -275,7 +275,9 @@ function verify(queueFile, options) {
     let attestation;
     try { attestation = JSON.parse(blobContent(migration.attestation_blob_oid, cwd)); }
     catch (error) { fail('RECOVERY_MIGRATION_ATTESTATION_INVALID', error.message); }
-    if (attestation.schema_version !== ATTESTATION_SCHEMA || attestation.status !== 'CERTIFIED') {
+    const supportedMigrationSchema = attestation.schema_version === ATTESTATION_SCHEMA ||
+      attestation.schema_version === 'kodjo.protocol.v2.recovery-migration.0.6.23';
+    if (!supportedMigrationSchema || attestation.status !== 'CERTIFIED') {
       fail('RECOVERY_MIGRATION_ATTESTATION_NOT_CERTIFIED');
     }
     if (attestation.slice_id !== queue.slice_id ||
@@ -285,18 +287,21 @@ function verify(queueFile, options) {
       fail('RECOVERY_MIGRATION_PROVENANCE_MISMATCH');
     }
     const binding = attestation.authorization_binding || {};
-    if (!binding.authorized_plan ||
-        binding.authorized_plan.plan_path !== plan.plan_path ||
-        binding.authorized_plan.plan_blob_oid !== plan.plan_blob_oid ||
-        !binding.independent_review ||
-        binding.independent_review.review_path !== review.review_path ||
-        binding.independent_review.review_blob_oid !== review.review_blob_oid ||
-        binding.independent_review.reviewed_plan_blob_oid !== review.reviewed_plan_blob_oid ||
-        !binding.user_gate ||
-        binding.user_gate.gate_ref !== gate.gate_ref ||
-        binding.user_gate.gated_reference !== gate.gated_reference ||
-        binding.user_gate.decision !== gate.decision ||
-        binding.user_gate.user_login !== gate.user_login) {
+    const bindingMatches = Boolean(binding.authorized_plan &&
+        binding.authorized_plan.plan_path === plan.plan_path &&
+        binding.authorized_plan.plan_blob_oid === plan.plan_blob_oid &&
+        binding.independent_review &&
+        binding.independent_review.review_path === review.review_path &&
+        binding.independent_review.review_blob_oid === review.review_blob_oid &&
+        binding.independent_review.reviewed_plan_blob_oid === review.reviewed_plan_blob_oid &&
+        binding.user_gate &&
+        binding.user_gate.gate_ref === gate.gate_ref &&
+        binding.user_gate.gated_reference === gate.gated_reference &&
+        binding.user_gate.decision === gate.decision &&
+        binding.user_gate.user_login === gate.user_login);
+    const separatelyVerified = attestation.schema_version === ATTESTATION_SCHEMA &&
+      attestation.authorization_policy === 'CURRENT_REQUEST_VERIFIED_SEPARATELY';
+    if (!bindingMatches && !separatelyVerified) {
       fail('RECOVERY_MIGRATION_AUTHORIZATION_BINDING_MISMATCH');
     }
     migrationBlobOid = migration.attestation_blob_oid;

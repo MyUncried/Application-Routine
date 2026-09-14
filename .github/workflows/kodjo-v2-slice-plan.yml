@@ -38,9 +38,13 @@ jobs:
           SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
           BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
           SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          APPLICATION_PR=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^application_pr=//p' | head -n1)
+          APPLICATION_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^application_head=//p' | head -n1)
           test -n "$SLICE_ID"
           test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
           printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$APPLICATION_PR" | grep -Eq '^[1-9][0-9]*$'
+          printf '%s' "$APPLICATION_HEAD" | grep -Eq '^[0-9a-f]{40}$'
           test -f "$BOOTSTRAP_PATH"
           SLICE_DIR=$(dirname "$BOOTSTRAP_PATH")
           PLAN_PATH="$SLICE_DIR/technical-plan.md"
@@ -68,15 +72,20 @@ jobs:
           source /tmp/kodjo-v2-gate.env
           ACTUAL=$(node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" "$target_branch")
           test "$ACTUAL" = "$SOURCE_HEAD"
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$APPLICATION_PR" > /tmp/kodjo-v2-application-pr.json
+          test "$(jq -r .state /tmp/kodjo-v2-application-pr.json)" = open
+          test "$(jq -r .head.sha /tmp/kodjo-v2-application-pr.json)" = "$APPLICATION_HEAD"
+          test "$(jq -r .base.ref /tmp/kodjo-v2-application-pr.json)" = "$target_branch"
           PLAN_OID=$(git rev-parse "$SOURCE_HEAD:$PLAN_PATH")
           REVIEW_OID=$(git rev-parse "$SOURCE_HEAD:$REVIEW_PATH")
-          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\napplication_pr=%s\napplication_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$APPLICATION_PR" "$APPLICATION_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
 
       - name: Build authoritative V2 planning packet
         shell: bash
         env:
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
           REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
@@ -85,6 +94,13 @@ jobs:
           rm -rf /tmp/kodjo-v2-plan
           mkdir -p /tmp/kodjo-v2-plan
           git worktree add --detach /tmp/kodjo-v2-plan/source "$SOURCE_HEAD"
+          if git cat-file -e "$APPLICATION_HEAD^{commit}" 2>/dev/null; then
+            git worktree add --detach /tmp/kodjo-v2-plan/application "$APPLICATION_HEAD"
+          else
+            gh repo clone "$GITHUB_REPOSITORY" /tmp/kodjo-v2-plan/application -- --no-checkout --filter=blob:none
+            git -C /tmp/kodjo-v2-plan/application fetch --quiet origin "$APPLICATION_HEAD"
+            git -C /tmp/kodjo-v2-plan/application checkout --quiet --detach "$APPLICATION_HEAD"
+          fi
           cp "$BOOTSTRAP_PATH" /tmp/kodjo-v2-plan/slice-bootstrap.json
           cp "$PLAN_PATH" /tmp/kodjo-v2-plan/prior-technical-plan.md
           cp "$REVIEW_PATH" /tmp/kodjo-v2-plan/prior-independent-review.md
@@ -98,19 +114,21 @@ jobs:
             printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-plan/product-evidence.txt
             cat "/tmp/kodjo-v2-plan/source/$file" >> /tmp/kodjo-v2-plan/product-evidence.txt
           done < /tmp/kodjo-v2-plan/sources.list
-          git -C /tmp/kodjo-v2-plan/source ls-files app src > /tmp/kodjo-v2-plan/code-files.txt
+          git -C /tmp/kodjo-v2-plan/application ls-files app src > /tmp/kodjo-v2-plan/code-files.txt
           test -z "$(git -C /tmp/kodjo-v2-plan/source status --porcelain --untracked-files=all)"
+          test -z "$(git -C /tmp/kodjo-v2-plan/application status --porcelain --untracked-files=all)"
 
       - name: Construct V2 plan draft with OpenAI
         shell: bash
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
-          You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against exact source HEAD $SOURCE_HEAD. This phase is READ-ONLY: never modify repository files and never implement.
+          You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against product/protocol HEAD $SOURCE_HEAD and exact application HEAD $APPLICATION_HEAD. This phase is READ-ONLY: never modify repository files and never implement.
           The V2 slice bootstrap, planning mission, current product sources, Issue, comments, prior technical plan and prior independent review supplied below are authoritative. Preserve validated product decisions. Do not invent a V1 manifest, reuse a V1 slice contract or extend the functional scope.
           Declare every application module that the revised implementation would CREATE or MODIFY in exactly one block:
           <KODJO_MODIFIED_MODULES_JSON>
@@ -138,12 +156,13 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-plan/plan-draft.md /tmp/kodjo-v2-plan/modified-modules.json
           rm -f /tmp/kodjo-v2-plan/technical-plan.md
           for iteration in 1 2 3 4; do
-            node scripts/kodjo/scan-plan-impact.js scan "$SOURCE_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json
+            (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json)
             node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-v2-plan/direct-import-scan.json > /tmp/kodjo-v2-plan/direct-import-scan.sha256
             cat > /tmp/kodjo-v2-plan/final-prompt.txt <<'EOF'
           Produce the complete final KODJO V2 technical plan from the supplied draft and deterministic scan. Never reproduce the immutable evidence fields in prose JSON.
@@ -176,7 +195,7 @@ jobs:
             fi
           done
           test -f /tmp/kodjo-v2-plan/technical-plan.md
-          node scripts/kodjo/verify-plan-impact.js /tmp/kodjo-v2-plan/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json
+          (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)
           grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
 
@@ -186,6 +205,8 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_OID: ${{ steps.gate.outputs.plan_oid }}
           REVIEW_OID: ${{ steps.gate.outputs.review_oid }}
         run: |
@@ -195,6 +216,8 @@ jobs:
             echo "slice_id=$SLICE_ID"
             echo "bootstrap_path=$BOOTSTRAP_PATH"
             echo "source_head=$SOURCE_HEAD"
+            echo "application_pr=$APPLICATION_PR"
+            echo "application_head=$APPLICATION_HEAD"
             echo "supersedes_plan_blob_oid=$PLAN_OID"
             echo "prior_review_blob_oid=$REVIEW_OID"
             echo 'planning_contract=kodjo.plan-impact.v1'

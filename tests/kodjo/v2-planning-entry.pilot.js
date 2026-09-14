@@ -45,12 +45,27 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /for iteration in 1 2 3 4/);
   assert.match(plan, /PLAN_SCOPE_NOT_CLOSED_BOUND/);
   assert.doesNotMatch(plan, /Include exactly one <KODJO_PLAN_IMPACT_JSON>/);
-  assert.match(plan, /scan-plan-impact\.js scan/);
+  assert.match(plan, /scan-plan-impact\.js"? scan "\$APPLICATION_HEAD"/);
   assert.match(plan, /verify-plan-impact\.js/);
   assert.match(plan, /planning_contract=kodjo\.plan-impact\.v1/);
   assert.match(plan, /APPLICATION FILE INVENTORY/);
   assert.match(plan, /derives scope_allow/);
   assert.match(plan, /full Jest, TypeScript and lint/);
+});
+
+test('V2 planning sépare le HEAD produit du HEAD applicatif de la PR ouverte', () => {
+  const plan = read('.github/workflows/kodjo-v2-slice-plan.yml');
+  const review = read('.github/workflows/kodjo-v2-slice-plan-review.yml');
+  for (const workflow of [plan, review]) {
+    assert.match(workflow, /application_pr=/);
+    assert.match(workflow, /application_head=/);
+    assert.match(workflow, /pulls\/\$APPLICATION_PR|pulls\/\$applicationPr/);
+    assert.match(workflow, /application\.head\.sha|\.head\.sha/);
+  }
+  assert.match(plan, /product\/protocol HEAD \$SOURCE_HEAD and exact application HEAD \$APPLICATION_HEAD/);
+  assert.match(plan, /scan "\$APPLICATION_HEAD"/);
+  assert.match(review, /kodjo-v2-current-product-context/);
+  assert.match(review, /ref: \$\{\{ steps\.gate\.outputs\.application_head \}\}/);
 });
 
 test('V2 plan closure run block is valid Bash after YAML indentation is removed', { skip: process.platform === 'win32' }, () => {
