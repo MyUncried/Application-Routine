@@ -1627,5 +1627,12 @@ La Synthèse porte le nom de l’Activité, le statut, la Durée réelle et les 
 #### Synthèse — Ressenti sélectionné
 
 ![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+### Mise à jour — Cartes du Catalogue des Activités
 
+Dans les frames `3786:5093`, `3787:5148` et `3787:5209`, chaque carte d’Activité ne présente plus de contrôle `Déployer` ni d’icône de déplacement. Une barre verticale bleue est affichée sur chaque carte, y compris la première ; les informations de la première carte sont alignées à gauche avec celles des autres cartes.
 
+L’appui sur la carte, hors bouton Lecture, ouvre l’Activité en consultation ou modification. Le bouton Lecture déclenche exclusivement l’Exécution directe. Un éventuel contrôle de déploiement destiné à afficher les médias appartient à la V2 et n’est pas affiché dans ces frames.
+
+Le frame `3841:8375`, `Catalogue des Séances — Catalogue — Créer — Arbre d’actions`, reprend le Catalogue des Séances comme arrière-plan sous le voile modal commun.
+
+![Catalogue des Séances — Création — Arbre d’actions](./images/catalogue-seances-creer-arbre-actions.png)

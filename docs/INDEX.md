@@ -165,4 +165,6 @@ La mise à jour du 8 septembre 2026 supprime le type d’Activité `Récupérati
 ## Évolution V2 — Exécution directe d’une Activité
 
 Décision du 14 septembre 2026, établie depuis la baseline `9d4b39fb0881756af34795ab64fc9c91231a81f4`. Les chapitres 00 à 13 et `PRODUCT.md` propagent l’origine d’Exécution `ACTIVITY`, la préparation fixe de `5 s`, l’absence de `SESSION_END`, la Synthèse à Ressenti obligatoire, le Suivi général, les statistiques compatibles et le retour au Catalogue des Activités.
+## Mise à jour visuelle — Cartes du Catalogue des Activités
 
+Les cartes du Catalogue des Activités séparent désormais l’ouverture en consultation/modification, obtenue par appui sur la carte, et l’Exécution directe, déclenchée uniquement par le bouton Lecture. Le contrôle `Déployer` n’est pas affiché dans cet état. Sa réintroduction éventuelle pour afficher les médias relève de la V2. Les captures de référence ont été réalignées sur Figma.

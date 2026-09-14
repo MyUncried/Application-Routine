@@ -217,3 +217,4 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |\n
+| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité V2 distincte. |

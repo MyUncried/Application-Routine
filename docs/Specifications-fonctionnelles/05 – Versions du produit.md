@@ -213,3 +213,6 @@ Une tranche spécifique précède l’Exécution T03. Elle livre la configuratio
 T03 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T03.\n\n## Complément V2 — Activité directement exécutable
 
 La première version fonctionnelle du Catalogue des Activités inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient à la V2 et ne modifie pas le périmètre du MVP centré sur les Séances.\n
+### Précision V2 — Carte d’Activité et médias
+
+Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est absent de l’état courant. Sa réintroduction éventuelle pour afficher les médias est une évolution V2 distincte, à détailler avec les comportements média.

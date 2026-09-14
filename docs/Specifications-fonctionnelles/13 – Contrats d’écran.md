@@ -1222,7 +1222,7 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 
 | ID | Référence Figma | Contrat | Criticité |
 |---|---|---|---|
-| CE-ACT-EXE-01 | Catalogue Activités `3786:5093`, `3787:5148`, `3787:5209` | Chaque carte valide présente une action `Exécuter` distincte du chevron d’ouverture. | Obligatoire |
+| CE-ACT-EXE-01 | Catalogue Activités `3786:5093`, `3787:5148`, `3787:5209` | Chaque carte valide présente un bouton Lecture d’Exécution directe distinct de la surface principale, qui ouvre la consultation ou la modification. Aucun contrôle `Déployer` n’est affiché. | Obligatoire |
 | CE-ACT-EXE-02 | `3835:5385` | Préparation fixe de `5 s`, nom de l’Activité, aucun compteur de Tour ou Cycle. | Obligatoire |
 | CE-ACT-EXE-03 | `3835:5465` | Exécution commune adaptée à une Activité seule ; Série et prochaine phase visibles ; aucun Tour artificiel. | Obligatoire |
 | CE-ACT-EXE-04 | `3836:5437` | Synthèse initiale ; `Terminer` désactivé tant qu’aucun Ressenti n’est choisi. | Obligatoire |
@@ -1264,4 +1264,14 @@ Ces captures matérialisent les états Figma associés aux contrats `CE-ACT-EXE-
 ### CE-ACT-EXE-05 — Synthèse avec Ressenti sélectionné
 
 ![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+### Révision du Catalogue des Activités — D-164
 
+Pour les frames `3786:5093`, `3787:5148` et `3787:5209` :
+
+- la surface de carte ouvre l’Activité en consultation ou modification ;
+- le bouton Lecture déclenche uniquement l’Exécution directe ;
+- aucun contrôle `Déployer` ni icône de déplacement n’est visible ;
+- chaque carte porte une barre verticale bleue ;
+- les informations de la première carte commencent au même axe horizontal que celles des autres cartes.
+
+Le frame `3841:8375` affiche l’arbre d’actions de création au-dessus du Catalogue des Séances grisé. La réintroduction d’un contrôle destiné à afficher les médias est hors de ce contrat courant et reste une évolution V2 à détailler.

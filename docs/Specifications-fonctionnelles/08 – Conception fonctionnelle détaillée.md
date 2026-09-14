@@ -1189,3 +1189,8 @@ Le plan contient, dans l’ordre : `DIRECT_PREPARE(5 s)`, tous les passages de l
 ### Synthèse et retour
 
 La Synthèse affiche les données compatibles d’une Activité seule. Le Ressenti est obligatoire et conditionne `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’origine `ACTIVITY`, puis restaure le Catalogue et son état antérieur.\n
+### Interactions de la carte d’Activité de catalogue
+
+La carte distingue deux cibles : sa surface principale ouvre la consultation ou la modification de l’Activité ; le bouton Lecture lance son Exécution directe. Aucun chevron ou bouton `Déployer` n’est affiché dans l’état courant, et l’icône de déplacement propre à la Composition n’est jamais affichée dans le Catalogue. La barre verticale bleue appartient à la présentation de toutes les cartes d’Activité.
+
+En V2, un contrôle de déploiement pourra être réintroduit pour révéler les médias. Cette future action média restera distincte de l’ouverture de la carte et de l’Exécution directe.
