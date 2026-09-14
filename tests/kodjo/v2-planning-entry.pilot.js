@@ -86,6 +86,26 @@ test('tout workflow qui lit une PR déclare la permission GitHub minimale', () =
   }
 });
 
+test('toute lecture de fichier PowerShell du protocole V2 impose UTF-8', () => {
+  const workflowDir = path.join(root, '.github', 'workflows');
+  const files = [
+    ...fs.readdirSync(workflowDir)
+      .filter((file) => file.startsWith('kodjo-v2-') && file.endsWith('.yml'))
+      .map((file) => path.join(workflowDir, file)),
+    ...fs.readdirSync(path.join(root, 'scripts', 'kodjo'))
+      .filter((file) => file.endsWith('.ps1'))
+      .map((file) => path.join(root, 'scripts', 'kodjo', file)),
+  ];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    lines.forEach((line, index) => {
+      if (!/\bGet-Content\b/i.test(line)) return;
+      assert.match(line, /-Encoding\s+UTF8\b/i,
+        `${path.relative(root, file)}:${index + 1} reads text without explicit UTF-8`);
+    });
+  }
+});
+
 test('V2 plan closure run block is valid Bash after YAML indentation is removed', { skip: process.platform === 'win32' }, () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-plan.yml');
   const marker = '      - name: Close direct-import roots and assemble opposable V2 plan';

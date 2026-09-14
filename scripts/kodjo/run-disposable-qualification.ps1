@@ -144,7 +144,7 @@ try {
 
   $scopePreflightPath = Join-Path $evidence 'prod-qualification-scope.json'
   Invoke-Native 'node' @('scripts/kodjo/certify-prod-qualification-scope.js', $work, $scopePreflightPath) $work | Out-Null
-  $manifest.prod_qualification_scope_preflight = Get-Content -Raw -LiteralPath $scopePreflightPath | ConvertFrom-Json
+  $manifest.prod_qualification_scope_preflight = Get-Content -Raw -LiteralPath $scopePreflightPath -Encoding UTF8 | ConvertFrom-Json
 
   $env:KODJO_QUALIFICATION_ISOLATED_CHECKS = '1'
   $env:KODJO_QUALIFICATION_CHECK_CACHE_DIR = Join-Path $root 'check-cache'
@@ -155,7 +155,7 @@ try {
   foreach ($check in @('jest', 'typescript', 'lint')) {
     $target = Join-Path $baselineDirectory ($check + '.json')
     Invoke-Native 'node' @('scripts/kodjo/run-check.js', $check, $target) $work -AllowFailure | Out-Null
-    $baseline[$check] = Get-Content -Raw -LiteralPath $target | ConvertFrom-Json
+    $baseline[$check] = Get-Content -Raw -LiteralPath $target -Encoding UTF8 | ConvertFrom-Json
   }
   $manifest.baseline_checks = $baseline
   $baselinePath = Join-Path $baselineDirectory 'checks.json'
@@ -194,7 +194,7 @@ try {
   $resultPath = Join-Path $runDirectory 'result.json'
   $invocationPath = Join-Path $runDirectory 'invocation.json'
   if (-not (Test-Path -LiteralPath $resultPath)) { throw ('CURRENT_RUN_RESULT_MISSING: ' + $resultPath) }
-  $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json
+  $result = Get-Content -Raw -LiteralPath $resultPath -Encoding UTF8 | ConvertFrom-Json
   $manifest.result = $result
   $manifest.claude_invoked = ($result.claude_invoked -eq $true)
   $manifest.protocol_status = $result.status
@@ -217,7 +217,7 @@ try {
     $comparisonPath
   ) $work -AllowFailure
   if (-not (Test-Path -LiteralPath $comparisonPath)) { throw 'QUALIFICATION_CHECK_COMPARISON_MISSING' }
-  $comparison = Get-Content -Raw -LiteralPath $comparisonPath | ConvertFrom-Json
+  $comparison = Get-Content -Raw -LiteralPath $comparisonPath -Encoding UTF8 | ConvertFrom-Json
   $manifest.check_comparison = $comparison
 
   $after = Get-Inventory $work
@@ -227,7 +227,7 @@ try {
   $manifest.fixture_result_exists = Test-Path -LiteralPath $expectedFile
   $manifest.fixture_result_sha256 = if ($manifest.fixture_result_exists) { (Get-FileHash -LiteralPath $expectedFile -Algorithm SHA256).Hash } else { $null }
   $manifest.fixture_result_content_valid = if ($manifest.fixture_result_exists) {
-    ((Get-Content -Raw -LiteralPath $expectedFile).Replace("`r`n", "`n") -eq $ExpectedFixtureContent.Replace("`r`n", "`n"))
+    ((Get-Content -Raw -LiteralPath $expectedFile -Encoding UTF8).Replace("`r`n", "`n") -eq $ExpectedFixtureContent.Replace("`r`n", "`n"))
   } else { $false }
 
   if (-not $manifest.claude_invoked) { throw 'CLAUDE_NOT_INVOKED' }
