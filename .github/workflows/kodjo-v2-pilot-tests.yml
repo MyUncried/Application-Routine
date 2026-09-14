@@ -34,6 +34,22 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+      - name: Qualify authenticated private HEAD lookup on Linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL=$(node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" main)
+          printf '%s' "$ACTUAL" | grep -Eq '^[0-9a-f]{40}$'
+          if env -u GH_TOKEN node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" main; then
+            echo 'missing token was accepted' >&2
+            exit 1
+          fi
+          if node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" "__kodjo_missing_${GITHUB_RUN_ID}"; then
+            echo 'missing branch was accepted' >&2
+            exit 1
+          fi
       - name: Run complete KODJO pilot suite
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
@@ -75,6 +91,23 @@ jobs:
           $PSVersionTable.PSVersion.ToString()
           git --version
           node --version
+      - name: Qualify authenticated private HEAD lookup on Windows
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $actual=& node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY main
+          if ($LASTEXITCODE -ne 0 -or [string]$actual -notmatch '^[0-9a-f]{40}$') { throw 'Authenticated private HEAD lookup failed' }
+          $token=$env:GH_TOKEN
+          Remove-Item Env:GH_TOKEN
+          & node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY main
+          if ($LASTEXITCODE -eq 0) { throw 'Missing token was accepted' }
+          $env:GH_TOKEN=$token
+          & node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY "__kodjo_missing_${{ github.run_id }}"
+          if ($LASTEXITCODE -eq 0) { throw 'Missing branch was accepted' }
+          exit 0
       - name: Certify real persistent runner lock before Claude boundary
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
