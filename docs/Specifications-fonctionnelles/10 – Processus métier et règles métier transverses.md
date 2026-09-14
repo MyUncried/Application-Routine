@@ -204,7 +204,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
-| RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
+| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL` et en héritage du Tour. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
 | RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
 
 ## 12. Règles métier — Exécution directe d’une Activité V2
