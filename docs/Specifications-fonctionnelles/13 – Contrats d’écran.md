@@ -1271,7 +1271,7 @@ La modale générique `Passer à l’activité suivante ?` est inchangée. Aprè
 
 ![Composition d’une séance — Sélectionner plusieurs Activités existantes](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
 
-## Contrats V2 — Exécution directe d’une Activité
+## Contrats MVP T03 — Catalogue des Activités et Exécution directe
 
 ### Règles normatives de lecture Figma
 
@@ -1441,7 +1441,7 @@ Cette matrice est la preuve de propagation minimale. Une ligne ne peut être dé
 |---|---|---|---|---|---|---|---|---|
 | CAT-ACT-01 | Catalogue multi-type | D-108 à D-110 | 01 Cible fonctionnelle ; 03 Accéder au Catalogue | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 12 ; 08 §2 bis.1 | 10 règles Catalogue ; 11 §11.13 API Activités, Médias et Circuits ; 12 Shell Catalogue | `3786:5093` ; `CE-ACT-EXE-01a` ; `CE-ACT-EXE-01a-catalogue-activites-liste.png` | Intégrée |
 | CAT-ACT-02 | Créer depuis le Catalogue | D-164 et contrats Figma | 03 Créer un contenu depuis le Catalogue | 04 racines Activité, Séance, Circuit ; 09 modèles correspondants | 06 Écran 13 ; 08 §2 bis.2 et §2 bis.7 | 10 validations propres à chaque contenu ; 11 services dédiés ; 12 overlay DSF | `3787:5148`, `3841:8375` ; `CE-ACT-EXE-01b/01d` ; deux captures d’arbre | Intégrée |
-| CAT-ACT-03 | Créer ou modifier une Activité persistante | D-105, D-134 à D-139 | 03 Utiliser une Activité de référence | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 15 et Écran 4 ; 08 §2 bis.2 | 10 règles Activité ; 11 §11.13 opérations sur l’Activité persistante ; 12 composants éditeur | `CE-T01-13` à `CE-T01-16`, contexte Catalogue V2 | Intégrée |
+| CAT-ACT-03 | Créer ou modifier une Activité persistante | D-105, D-134 à D-139 | 03 Utiliser une Activité de référence | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 15 et Écran 4 ; 08 §2 bis.2 | 10 règles Activité ; 11 §11.13 opérations sur l’Activité persistante ; 12 composants éditeur | `CE-T01-13` à `CE-T01-16`, contexte Catalogue MVP T03 | Intégrée |
 | CAT-ACT-04 | Ajouter une Activité dans une Séance | D-147, D-165 | 03 Ajouter depuis une Composition et sélection multiple | 04 copie indépendante ; 09 ordre de Composition | 06 Écran 14 ; 08 §2 bis.3 | RM-163 ; API-COMP-SEL-01 à 03 ; architecture sans nouveau stockage | `3789:5349` ; `CE-COMP-SEL-01` ; `CE-COMP-SEL-01-selection-activites-existantes.png` | Intégrée |
 | CAT-ACT-05 | Icônes Recherche et Sélection | D-165 | 03 sélection multiple | Sans impact métier ou données | 06 Écran 14 ; 08 §2 bis.3 | 12 `Icon / Search`, `Icon / Selection Check` et tokens liés | composants `3847:5508`, `3847:5512` ; `CE-COMP-SEL-01` | Intégrée |
 | CAT-ACT-06 | Exécuter directement une Activité | D-157 à D-163 | 01 Bibliothèque ; 03 Exécuter directement | 04 Exécution `ACTIVITY` ; 09 instantané autonome | 06 Écrans 16 à 18 ; 08 §2 bis.4 | RM-096 à RM-103 ; API-ACT-EXE-01 à 05 ; moteur multi-origine | `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` ; `CE-ACT-EXE-02` à 05 et captures associées | Intégrée |
