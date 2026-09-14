@@ -424,3 +424,14 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 4. Revenir au Catalogue dans son état précédent.
 
 Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit en V2 sans modifier l’action principale de la carte.
+
+## Ajouter plusieurs Activités existantes à une Composition — V2
+
+1. Depuis l’arbre d’ajout de la Composition, choisir `Une activité existante`.
+2. Rechercher ou filtrer le Catalogue d’Activités présenté dans le panneau modal.
+3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
+4. Vérifier le nombre indiqué par `Ajouter N activité(s)`.
+5. Appuyer sur `Ajouter N activité(s)`.
+6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Activités dans la liste filtrée au moment de la validation.
+
+`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies.
