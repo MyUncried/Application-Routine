@@ -205,7 +205,9 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
 | RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
-| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |\n\n## 12. Règles métier — Exécution directe d’une Activité V2
+| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
+
+## 12. Règles métier — Exécution directe d’une Activité V2
 
 | ID | Règle |
 |---|---|
@@ -216,5 +218,6 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-100 | La dernière phase achevée déclenche le signal de fin puis la Synthèse. |
 | RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
-| RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |\n
+| RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |
+
 | RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité V2 distincte. |

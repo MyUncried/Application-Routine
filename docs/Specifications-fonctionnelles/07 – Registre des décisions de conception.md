@@ -188,7 +188,9 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-153 | Dans le cadre bleu des paramètres, le contrôle singulier `Côté`, déjà sous `Séries`, occupe la ligne 2 colonne 1 et mesure `74 × 42 pt`. Grille : `74 / 124 / 124 pt`, gouttières `8 pt`, intervalle vertical `10 pt`. | Validée post-Figma | Oui |
 | D-154 | Une direction propre bilatérale est affichée dans les informations secondaires de la carte hors Tour bilatéral et développée dans la synthèse après la cible du mode, avant la Pause. Une direction héritée du Tour n’est répétée ni sur la carte ni dans la synthèse. | Validée | Oui |
 | D-155 | Le libellé visible est `Durée totale` dans les trois modes. En Répétitions et À l’échec : `Durée totale : ≥ {durée connue}`, sans modifier le calcul. | Validée | Oui |
-| D-156 | Pour `C` Séries d’un même côté, la Pause est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série. Lorsque `R > 0`, la Pause est comptée `C − 1` fois et la Récupération remplace la dernière Pause. Avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, la formule globale est `D = L × [C × A + P(C,R) × B] + R`. Si Durée totale pilote : `Cth = D / [L × (A + B)]` lorsque `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`. Cette décision conserve la recette T02-S02 et supersède toute formule inconditionnelle à `C − 1` Pauses. | Validée par le responsable produit le 14 septembre 2026, issue #52 | Oui |\n\n## Décisions du 14 septembre 2026 — Exécution directe d’une Activité
+| D-156 | Pour `C` Séries d’un même côté, la Pause est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série. Lorsque `R > 0`, la Pause est comptée `C − 1` fois et la Récupération remplace la dernière Pause. Avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, la formule globale est `D = L × [C × A + P(C,R) × B] + R`. Si Durée totale pilote : `Cth = D / [L × (A + B)]` lorsque `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`. Cette décision conserve la recette T02-S02 et supersède toute formule inconditionnelle à `C − 1` Pauses. | Validée par le responsable produit le 14 septembre 2026, issue #52 | Oui |
+
+## Décisions du 14 septembre 2026 — Exécution directe d’une Activité
 
 | ID | Décision | Statut | MVP |
 |---|---|---|:---:|
@@ -198,5 +200,6 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-160 | Le Ressenti est obligatoire lorsque la Synthèse d’une Activité directe est présentée, selon la règle commune aux Exécutions ; le Commentaire reste facultatif. | Validée | Non — V2 |
 | D-161 | L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` et ne crée aucune entrée de Séance. | Validée | Non — V2 |
 | D-162 | Elle alimente toutes les statistiques compatibles avec l’Activité, sans augmenter le nombre de Séances. | Validée | Non — V2 |
-| D-163 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Non — V2 |\n
+| D-163 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Non — V2 |
+
 | D-164 | Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification ; le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` et l’icône de déplacement sont absents des cartes du Catalogue. Une barre verticale bleue identifie toutes les cartes. La réintroduction éventuelle d’un contrôle de déploiement pour afficher les médias relève de la V2 et devra être détaillée séparément. Le frame `3841:8375` représente l’arbre d’actions sur fond Catalogue des Séances grisé. | Validée post-Figma | Oui |
