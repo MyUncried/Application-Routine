@@ -182,11 +182,11 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
-# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — V2
+# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — MVP T03
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le défaut et le seul type actif dans le MVP. En V2, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le défaut et le seul type actif dans le MVP. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
 
 La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` ni aucune poignée de déplacement n’est affiché dans l’état courant.
 
