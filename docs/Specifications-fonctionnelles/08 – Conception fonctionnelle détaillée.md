@@ -192,7 +192,7 @@ La liste des Activités conserve recherche, filtres, tri et position de défilem
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
-Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Chaque action ouvre le parcours correspondant ; `Annuler` restaure le Catalogue sans écriture.
+Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Dans T03, `Une nouvelle activité` et `Une séance` ouvrent leur parcours ; `Un circuit` reste visible mais désactivé ; `Annuler` restaure le Catalogue sans écriture.
 
 `Une nouvelle activité` réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
