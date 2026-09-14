@@ -19,7 +19,7 @@ Le modèle fonctionnel repose sur les principes suivants :
 
 # 4.3 Concepts métier
 
-Le fonctionnement de l’application repose sur les concepts principaux suivants. Les formes MVP et V2 sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
+Le fonctionnement de l’application repose sur les concepts principaux suivants. Les deux formes du MVP T03 sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
 ## Utilisateur
 
 L'utilisateur est propriétaire de l'ensemble de ses données.
@@ -295,7 +295,7 @@ Ne sont pas inclus dans le MVP :
 
 # 4.9 Extension validée du modèle
 
-L’Activité possède deux formes distinctes : la **référence autonome** de V2 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier, dont la Pause et la Récupération, ainsi que ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
+L’Activité possède deux formes distinctes : la **référence autonome** du Catalogue T03 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier, dont la Pause et la Récupération, ainsi que ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
 
 Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
