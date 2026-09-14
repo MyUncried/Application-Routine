@@ -1590,5 +1590,8 @@ Une confirmation n’est affichée au passage vers un Tour bilatéral que si au 
 
 Dans une carte `354 × 69 pt`, l’indicateur propre appartient aux informations secondaires à droite : `x=311`, `y=24,5`, `42 × 20 pt`. Il affiche `D→G` ou `G→D` seulement hors Tour bilatéral ; il est absent pour `UNILATERAL` et sous un Tour bilatéral. La synthèse propre place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Elle omet cette clause pour une direction héritée. Références : `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`.
 
-Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
+Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.\n\n## Écrans V2 — Exécution directe d’une Activité
 
+Le Catalogue des Activités affiche sur chaque carte valide une action `Exécuter` distincte de l’ouverture ou de la modification. L’activation ouvre l’état `Exécution activité directe — Préparation 5 s`, puis l’écran d’Exécution commun adapté : aucun compteur de Tour ou de Cycle n’est affiché.
+
+La Synthèse porte le nom de l’Activité, le statut, la Durée réelle et les Séries terminées. Le Ressenti y est obligatoire ; `Terminer` enregistre puis restaure le Catalogue des Activités dans son état antérieur. Les écrans Figma de référence sont `3835:5385`, `3835:5465`, `3836:5437` et `3836:5503`.\n

@@ -205,4 +205,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
 | RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
-| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
+| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |\n\n## 12. Règles métier — Exécution directe d’une Activité V2
+
+| ID | Règle |
+|---|---|
+| RM-096 | `Exécuter` est disponible uniquement pour une `ActivityDefinition` valide. |
+| RM-097 | Le lancement crée un instantané autonome d’origine `ACTIVITY` sans Séance artificielle. |
+| RM-098 | La préparation directe dure exactement `5 s` et n’est pas persistée dans la définition de l’Activité. |
+| RM-099 | Le plan applique les règles communes de mode, Séries, Pauses, bilatéralité et Récupération, sans Tour, Cycle visible ni `SESSION_END`. |
+| RM-100 | La dernière phase achevée déclenche le signal de fin puis la Synthèse. |
+| RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |
+| RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
+| RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |\n

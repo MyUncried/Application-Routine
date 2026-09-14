@@ -337,7 +337,7 @@ Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et 
 
 Le MVP ajoute le troisième mode d’Exercice `À l’échec`. Il ne possède ni durée ni répétitions cibles et utilise exactement le mécanisme du mode Répétitions : l’utilisateur termine chaque Série avec `Suivant`. La durée affichée est une borne minimale fondée sur les seuls temps connus.
 
-En V2, l’Activité de catalogue est une référence persistante non exécutable seule. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
+En V2, l’Activité de catalogue est une référence persistante directement exécutable. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération et ses associations média ; la copie appartient à la Séance, n’apparaît pas dans le catalogue et évolue indépendamment. L’action future `Enregistrer dans mes activités` n’est pas proposée dans la première version de cette bibliothèque.
 
 La nouvelle structure d’Activité — absence de type, sections Description et Zone corporelle repliables, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` — constitue un prérequis documentaire et fonctionnel à T03.
 
@@ -368,4 +368,10 @@ Toute évolution fonctionnelle doit préciser son impact sur :
 - architecture technique ;
 - version du produit.
 
-Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.\n\n## 13. Exécution directe d’une Activité — décision du 14 septembre 2026
+
+En V2, une Activité persistante peut être exécutée directement depuis le Catalogue des Activités. Le moteur crée un instantané autonome de la définition au lancement ; aucune Séance artificielle n’est créée.
+
+L’Exécution directe commence par une préparation système fixe de `5 s`, qui n’est pas un attribut de l’Activité. Elle exécute ensuite ses Séries, ses Pauses, sa direction bilatérale éventuelle et sa Récupération. Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée.
+
+Le Ressenti reste obligatoire lorsque la Synthèse est présentée, comme pour une Séance, et le Commentaire reste facultatif. L’Exécution est conservée dans le Suivi général avec l’origine `ACTIVITY`, contribue à toutes les statistiques compatibles sans augmenter le nombre de Séances, puis `Terminer` ramène au Catalogue des Activités dans son état précédent.\n

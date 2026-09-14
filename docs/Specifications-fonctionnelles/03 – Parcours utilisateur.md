@@ -373,7 +373,7 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 ## Utiliser une Activité de référence — V2
 
 1. Ouvrir `Activités` dans le Catalogue.
-2. Créer une référence d’Activité non exécutable seule.
+2. Créer une référence d’Activité persistante, réutilisable et directement exécutable.
 3. Depuis une Composition, choisir une référence existante.
 4. L’application copie ses données et ses associations média dans la Séance.
 5. Modifier librement la copie sans modifier la référence ni les autres copies.
@@ -404,4 +404,13 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 5. `Annuler` ne modifie rien. `Confirmer` applique atomiquement la direction au Tour, remet les seules Activités concernées à `UNILATERAL` et désactive les contrôles enfants.
 6. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
 7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
-8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
+8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.\n\n## Exécuter directement une Activité — V2
+
+1. Ouvrir `Activités` dans le Catalogue.
+2. Appuyer sur l’action `Exécuter` d’une Activité valide.
+3. Le système fige un instantané autonome et affiche une préparation de `5 s`.
+4. Exécuter les Séries, Pauses, côtés et la Récupération selon la définition figée.
+5. Après la dernière phase, entendre le signal de fin et ouvrir immédiatement la Synthèse.
+6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
+7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
+8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.\n
