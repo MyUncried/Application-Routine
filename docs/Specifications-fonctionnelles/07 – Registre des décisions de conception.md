@@ -194,13 +194,20 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 
 | ID | Décision | Statut | MVP |
 |---|---|---|:---:|
-| D-157 | Une Activité persistante valide peut être exécutée directement depuis le Catalogue à partir d’un instantané autonome, sans création de Séance artificielle. | Validée | Non — V2 |
-| D-158 | Une Exécution directe commence par une préparation système fixe de `5 s`, absente des paramètres de l’Activité. | Validée | Non — V2 |
-| D-159 | Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée. | Validée | Non — V2 |
-| D-160 | Le Ressenti est obligatoire lorsque la Synthèse d’une Activité directe est présentée, selon la règle commune aux Exécutions ; le Commentaire reste facultatif. | Validée | Non — V2 |
-| D-161 | L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` et ne crée aucune entrée de Séance. | Validée | Non — V2 |
-| D-162 | Elle alimente toutes les statistiques compatibles avec l’Activité, sans augmenter le nombre de Séances. | Validée | Non — V2 |
-| D-163 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Non — V2 |
+| D-157 | Une Activité persistante valide peut être exécutée directement depuis le Catalogue à partir d’un instantané autonome, sans création de Séance artificielle. | Validée | Oui — T03 |
+| D-158 | Une Exécution directe commence par une préparation système fixe de `5 s`, absente des paramètres de l’Activité. | Validée | Oui — T03 |
+| D-159 | Après la dernière phase, un signal clôt l’Exécution et ouvre immédiatement la Synthèse ; aucune phase `SESSION_END` n’est ajoutée. | Validée | Oui — T03 |
+| D-160 | Le Ressenti est obligatoire lorsque la Synthèse d’une Activité directe est présentée, selon la règle commune aux Exécutions ; le Commentaire reste facultatif. | Validée | Oui — T03 |
+| D-161 | L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` et ne crée aucune entrée de Séance. | Validée | Oui — T03 |
+| D-162 | Elle alimente toutes les statistiques compatibles avec l’Activité, sans augmenter le nombre de Séances. | Validée | Oui — T03 |
+| D-163 | Après `Terminer`, le Catalogue des Activités est restauré avec sa recherche, ses filtres et sa position de défilement. | Validée | Oui — T03 |
 
 | D-164 | Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification ; le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` et l’icône de déplacement sont absents des cartes du Catalogue. Une barre verticale bleue identifie toutes les cartes. La réintroduction éventuelle d’un contrôle de déploiement pour afficher les médias relève de la V2 et devra être détaillée séparément. Le frame `3841:8375` représente l’arbre d’actions sur fond Catalogue des Séances grisé. | Validée post-Figma | Oui |
-| D-165 | Lors d’une sélection multiple d’Activités existantes, la validation insère les Activités selon leur ordre courant de présentation dans la liste filtrée, indépendamment de l’ordre des touchers. Les marques Recherche et Sélection utilisent les composants vectoriels DSF dédiés ; aucun glyphe texte ou emoji ne peut les remplacer. | Validée post-Figma | Non — V2 |
+| D-165 | Lors d’une sélection multiple d’Activités existantes, la validation insère les Activités selon leur ordre courant de présentation dans la liste filtrée, indépendamment de l’ordre des touchers. Les marques Recherche et Sélection utilisent les composants vectoriels DSF dédiés ; aucun glyphe texte ou emoji ne peut les remplacer. | Validée post-Figma | Oui — T03 |
+
+
+## Décision de roadmap — Catalogue des Activités dans le MVP
+
+| ID | Décision | Statut | MVP |
+|---|---|---|:---:|
+| D-166 | Le Catalogue des Activités et ses parcours associés remplacent l’ancienne tranche T03 et entrent dans le MVP. T03 livre la persistance et le cycle de vie des Activités de référence, la liste, l’arbre de création, la sélection multiple et la copie dans une Séance, ainsi que l’Exécution directe complète. L’ancienne T03 du moteur d’Exécution des Séances, lots 1 et 2, devient T04. L’ancienne T04 devient T05 et chaque tranche ultérieure est décalée d’un rang, sans changement implicite de son périmètre. Les Circuits et les médias multiples restent hors MVP. | Validée par le responsable produit | Oui |
