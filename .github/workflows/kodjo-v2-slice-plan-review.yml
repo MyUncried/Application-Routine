@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 concurrency:
   group: kodjo-v2-slice-plan-review-${{ github.event.issue.number }}
@@ -180,4 +181,3 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-plan-review-proof.json
           if-no-files-found: warn
           retention-days: 14
-
