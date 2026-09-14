@@ -168,9 +168,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $evidence = [IO.Path]::GetFullPath('qualification-evidence')
-          $result = Get-Content -Raw -LiteralPath (Join-Path $evidence 'result.json') | ConvertFrom-Json
-          $invocation = Get-Content -Raw -LiteralPath (Join-Path $evidence 'invocation.json') | ConvertFrom-Json
-          $package = Get-Content -Raw -LiteralPath (Join-Path $evidence 'recovery-package\manifest.json') | ConvertFrom-Json
+          $result = Get-Content -Raw -LiteralPath (Join-Path $evidence 'result.json') -Encoding UTF8 | ConvertFrom-Json
+          $invocation = Get-Content -Raw -LiteralPath (Join-Path $evidence 'invocation.json') -Encoding UTF8 | ConvertFrom-Json
+          $package = Get-Content -Raw -LiteralPath (Join-Path $evidence 'recovery-package\manifest.json') -Encoding UTF8 | ConvertFrom-Json
           if ($result.claude_invoked -ne $true -or @($result.modified_files).Count -ne 1 -or $result.modified_files[0] -ne 'tests/fixtures/qualif-resume/result.txt') {
             throw 'INITIAL_DELTA_NOT_PROVEN'
           }
