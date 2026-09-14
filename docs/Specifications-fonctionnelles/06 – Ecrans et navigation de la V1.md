@@ -808,69 +808,6 @@ Lorsqu’une Activité existante est modifiée, ses valeurs sont préremplies. L
 
 Les Exécutions déjà historisées ne sont jamais modifiées.
 
-## Écrans 12 à 18 — Catalogue des Activités et Exécution directe — V2
-
-### Écran 12 — Catalogue des Activités — Liste
-
-La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Activités` sélectionné. La liste contient les Activités persistantes et conserve recherche, filtres, tri et position de défilement dans son état de navigation.
-
-Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Aucun contrôle `Déployer`, aucune poignée de déplacement et aucun espace réservé à ces contrôles ne sont présents. Un futur déploiement des médias relève d’une évolution V2 distincte.
-
-![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
-
-#### État dérivé — Action contextuelle d’Exécution directe
-
-L’état contextuel conserve la même liste et révèle l’action d’Exécution directe de l’Activité ciblée. Il ne transforme pas la carte en écran d’exécution et ne modifie pas l’ordre de la liste. La frame et le contrat `CE-ACT-EXE-01c` définissent la position exacte du contrôle et son retour au Catalogue.
-
-![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
-
-### Écran 13 — Catalogue — Créer — Arbre d’actions
-
-L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non interactif. L’ordre est fixe :
-
-1. `Une nouvelle activité` ;
-2. `Une séance` ;
-3. `Un circuit` ;
-4. `Annuler`.
-
-`Annuler` est obligatoire et restaure exactement l’état précédent. L’arbre possède deux états de référence : frame `3787:5148` sur Catalogue des Activités et frame `3841:8375` sur Catalogue des Séances. Les icônes sont vectorielles : Ajouter DSF pour la nouvelle Activité, liste/séance, chemin Circuit en perspective et Ajouter tourné de `45°` pour Annuler.
-
-![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
-
-![Catalogue des Séances — Création — Arbre d’actions](./images/catalogue-seances-creer-arbre-actions.png)
-
-### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
-
-Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
-
-Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer. Le contrat complet est `CE-COMP-SEL-01`.
-
-![Composition d’une séance — Sélectionner plusieurs Activités existantes](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
-
-### Écran 15 — Création ou modification d’une Activité persistante
-
-L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
-
-### Écran 16 — Préparation d’une Activité directe
-
-La frame `3835:5385` affiche une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Activité. Aucun compteur de Tour ou de Cycle n’est affiché.
-
-![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
-
-### Écran 17 — Exécution directe en cours
-
-La frame `3835:5465` réutilise le moteur et le Shell d’Exécution. Elle développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
-
-![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
-
-### Écran 18 — Synthèse d’une Activité directe
-
-Les frames `3836:5437` et `3836:5503` représentent respectivement le Ressenti non renseigné et renseigné. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Activités dans son état précédent.
-
-![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
-
-![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
-
 ## Écran 5 — Réservé
 
 L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
@@ -1239,7 +1176,70 @@ La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Ex
 
 L’état initial, avant sélection du ressenti, est illustré par :
 
-![[images/synthese-evaluation-initiale.png|220]]
+![[images/synthese-evaluation-ini## Écrans 12 à 18 — Catalogue des Activités et Exécution directe — V2
+
+### Écran 12 — Catalogue des Activités — Liste
+
+La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Activités` sélectionné. La liste contient les Activités persistantes et conserve recherche, filtres, tri et position de défilement dans son état de navigation.
+
+Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Aucun contrôle `Déployer`, aucune poignée de déplacement et aucun espace réservé à ces contrôles ne sont présents. Un futur déploiement des médias relève d’une évolution V2 distincte.
+
+![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
+
+#### État dérivé — Action contextuelle d’Exécution directe
+
+L’état contextuel conserve la même liste et révèle l’action d’Exécution directe de l’Activité ciblée. Il ne transforme pas la carte en écran d’exécution et ne modifie pas l’ordre de la liste. La frame et le contrat `CE-ACT-EXE-01c` définissent la position exacte du contrôle et son retour au Catalogue.
+
+![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+
+### Écran 13 — Catalogue — Créer — Arbre d’actions
+
+L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non interactif. L’ordre est fixe :
+
+1. `Une nouvelle activité` ;
+2. `Une séance` ;
+3. `Un circuit` ;
+4. `Annuler`.
+
+`Annuler` est obligatoire et restaure exactement l’état précédent. L’arbre possède deux états de référence : frame `3787:5148` sur Catalogue des Activités et frame `3841:8375` sur Catalogue des Séances. Les icônes sont vectorielles : Ajouter DSF pour la nouvelle Activité, liste/séance, chemin Circuit en perspective et Ajouter tourné de `45°` pour Annuler.
+
+![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
+
+![Catalogue des Séances — Création — Arbre d’actions](./images/catalogue-seances-creer-arbre-actions.png)
+
+### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
+
+Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
+
+Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer. Le contrat complet est `CE-COMP-SEL-01`.
+
+![Composition d’une séance — Sélectionner plusieurs Activités existantes](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
+
+### Écran 15 — Création ou modification d’une Activité persistante
+
+L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
+
+### Écran 16 — Préparation d’une Activité directe
+
+La frame `3835:5385` affiche une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Activité. Aucun compteur de Tour ou de Cycle n’est affiché.
+
+![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
+
+### Écran 17 — Exécution directe en cours
+
+La frame `3835:5465` réutilise le moteur et le Shell d’Exécution. Elle développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
+
+![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
+
+### Écran 18 — Synthèse d’une Activité directe
+
+Les frames `3836:5437` et `3836:5503` représentent respectivement le Ressenti non renseigné et renseigné. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Activités dans son état précédent.
+
+![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
+
+![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+
+tiale.png|220]]
 
 ### Objectif
 
