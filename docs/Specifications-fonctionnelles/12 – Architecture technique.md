@@ -136,7 +136,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T03, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -295,7 +295,7 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T03, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -586,15 +586,15 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
 
-### Contraintes techniques propres à T03
+### Contraintes techniques propres à T04
 
-- Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T03 ; aucun spike ni prototype séparé ne précède ce lot.
-- Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T03.
+- Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T04 ; aucun spike ni prototype séparé ne précède ce lot.
+- Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
 - T02-S02 consomme définitivement la migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Cette migration ajoute la Récupération attachée à l’Activité, corrige les données nécessaires au calcul des Pauses et migre les anciennes lignes techniques `RECOVERY` vers l’Activité précédente compatible ; une ligne orpheline est ignorée. Elle ne persiste ni la Durée totale ni le pilote d’interface.
 - La configuration de la bilatéralité `V2-BILAT-01` utilise ensuite la migration SQLite additive `005` et fixe `DATABASE_VERSION = 5`. Elle ajoute les champs `side_mode` nécessaires à l’Activité persistante, à son occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut pour les données existantes. Elle n’ajoute aucune donnée d’Exécution ni de Résultat.
-- La persistance propre à T03 utilise la migration SQLite additive `006` et fixe `DATABASE_VERSION = 6`. Elle ajoute les données d’Exécution et de Résultats, notamment les Résultats de Récupération et l’identification du côté exécuté, sans revendiquer de nouveau les migrations `004` ou `005`. La séquence canonique est donc `004` pour T02-S02, `005` pour `V2-BILAT-01`, puis `006` pour T03. Les migrations conservent sans perte les Séances existantes et sont testées depuis chaque version de base encore supportée.
-- L’archivage, la restauration et la suppression restent hors du périmètre de livraison T03 ; leur modèle existant n’est pas supprimé.
+- La persistance propre à T04 utilise la migration SQLite additive `006` et fixe `DATABASE_VERSION = 6`. Elle ajoute les données d’Exécution et de Résultats, notamment les Résultats de Récupération et l’identification du côté exécuté, sans revendiquer de nouveau les migrations `004` ou `005`. La séquence canonique est donc `004` pour T02-S02, `005` pour `V2-BILAT-01`, puis `006` pour T04. Les migrations conservent sans perte les Séances existantes et sont testées depuis chaque version de base encore supportée.
+- L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
@@ -1245,7 +1245,7 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 ## 12.33 Réconciliation après interruption technique
 
-Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T03 ; la Synthèse appartient à la tranche qui la livre.
+Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre.
 
 ## 12.34 Architecture cible — Activités, Médias et Circuits
 
@@ -1253,7 +1253,7 @@ SQLite porte les définitions d’Activités, les copies de Séance, les associa
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
-Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries, la Récupération et `sideMode`. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent `executionSide`, `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T04 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries, la Récupération et `sideMode`. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent `executionSide`, `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
