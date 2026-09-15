@@ -30,7 +30,7 @@ test('registre canonique 3.37.0: incidents uniques, complets et à valeurs contr
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 134);
+  assertSequence(incidents, 'INC', 135);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,7 +40,7 @@ test('registre canonique 3.37.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 107);
+  assertSequence(ids('T'), 'T', 108);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
