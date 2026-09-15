@@ -3,7 +3,7 @@
   "status": "CERTIFIED",
   "slice_id": "V2-BILAT-01",
   "source_head": "3c81f3b83573eff25522fda5c6a32041ff422e1c",
-  "certified_target_head": "d065f20c93d9503602a43934dc7e0f53f6e490be",
+  "certified_target_head": "b8cda799f78e91fbf73c4e6ad87532d4acbf1f9f",
   "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
   "source_run_id": "34872653037",
   "source_artifact_id": "10358639677",
@@ -54,15 +54,18 @@
     ".github/orchestration/CHANGE_REPORT_0.6.24.md",
     ".github/orchestration/CHANGE_REPORT_0.6.25.md",
     ".github/orchestration/CHANGE_REPORT_0.6.26.md",
+    ".github/orchestration/CHANGE_REPORT_0.6.27.md",
     ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.23.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.24.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.25.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.26.md",
+    ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.27.md",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-certified-c04682f9.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-40d7a5aa.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-6d7bf27c.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-ff036c52.json",
+    ".github/orchestration/queue/v2/V2-BILAT-01-resume-final-39cee884.json",
     ".github/orchestration/tests/test-incident-register.sh",
     ".github/orchestration/v2-activation-registry.json",
     ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
@@ -100,7 +103,7 @@
     ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json": "SELF"
   },
   "certification": {
-    "diagnostic_comment_id": "5676074368",
+    "diagnostic_comment_id": "5676737869",
     "plan_comment_id": "5675850930",
     "review_comment_id": "5676018743",
     "user_gate_comment_id": "5676056231",
@@ -109,9 +112,9 @@
     "claude_invoked": false,
     "application_change_count": 0,
     "package_path_count": 30,
-    "intervening_path_count": 60,
+    "intervening_path_count": 63,
     "overlap_count": 0,
-    "local_protocol_tests": "289 PASS, 0 FAIL, 2 SKIP",
-    "note": "Attestation finalisee apres le plan et la revue approuves. Aucun fichier applicatif intermediaire et aucun chevauchement avec les 30 chemins restaures."
+    "local_protocol_tests": "290 PASS, 0 FAIL, 4 SKIP (archive sans historique Git complet)",
+    "note": "Attestation finalisee apres le plan, la revue et le correctif d'admission a trois HEAD. Aucun fichier applicatif intermediaire, aucun chevauchement avec les 30 chemins restaures et aucune demande rejouee."
   }
 }

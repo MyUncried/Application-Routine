@@ -39,7 +39,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { verifyPlanAtRevision } = require('./lib/plan-impact');
+const { extractTaggedJson, verifyPlanAtRevision } = require('./lib/plan-impact');
 const { ATTESTATION_SCHEMA } = require('./lib/recovery-migration');
 
 const SHA40 = /^[0-9a-f]{40}$/;
@@ -58,6 +58,29 @@ function fail(code, detail) {
   const error = new Error(code + (detail ? ': ' + detail : ''));
   error.code = code;
   throw error;
+}
+
+/** Révision applicative immuable sur laquelle le plan a réellement été scanné. */
+function resolveImpactApplicationHead(bootstrap, planBody) {
+  const applicationHead = String(bootstrap.planning_application_head || '').toLowerCase();
+  if (!SHA40.test(applicationHead)) {
+    fail('PLAN_APPLICATION_HEAD_INVALID', applicationHead || '<absent>');
+  }
+  const impactMatrix = extractTaggedJson(planBody, 'KODJO_PLAN_IMPACT_JSON');
+  if (String(impactMatrix.scan_revision || '').toLowerCase() !== applicationHead) {
+    fail('PLAN_APPLICATION_HEAD_MISMATCH',
+      'plan=' + String(impactMatrix.scan_revision || '<absent>') + ', bootstrap=' + applicationHead);
+  }
+  return applicationHead;
+}
+
+/** La migration doit désigner le même code applicatif que le plan approuvé. */
+function verifyAttestedApplicationHead(attestation, applicationHead) {
+  if (attestation.application_pr_head !== applicationHead) {
+    fail('RECOVERY_MIGRATION_APPLICATION_HEAD_MISMATCH',
+      'attestation=' + String(attestation.application_pr_head || '<absent>') +
+      ', plan=' + applicationHead);
+  }
 }
 
 /**
@@ -211,10 +234,12 @@ function verify(queueFile, options) {
   const hasImpactContract = planBody.includes('<KODJO_PLAN_IMPACT_JSON>');
   const hasReviewProof = reviewBody.includes('<KODJO_PLAN_IMPACT_REVIEW_JSON>');
   let impact = null;
+  let applicationHead = null;
   if (hasImpactContract) {
+    applicationHead = resolveImpactApplicationHead(bootstrap, planBody);
     impact = verifyPlanAtRevision({
       cwd,
-      sourceHead: queue.source_head,
+      sourceHead: applicationHead,
       planMarkdown: planBody,
       reviewMarkdown: reviewBody,
     });
@@ -310,6 +335,7 @@ function verify(queueFile, options) {
         attestation.session_id !== queue.session_id) {
       fail('RECOVERY_MIGRATION_PROVENANCE_MISMATCH');
     }
+    if (hasImpactContract) verifyAttestedApplicationHead(attestation, applicationHead);
     const binding = attestation.authorization_binding || {};
     const bindingMatches = Boolean(binding.authorized_plan &&
         binding.authorized_plan.plan_path === plan.plan_path &&
@@ -368,4 +394,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = { verify, ghClient, checkThumbsUp, issueOfComment, blobContent };
+module.exports = {
+  verify, ghClient, checkThumbsUp, issueOfComment, blobContent,
+  resolveImpactApplicationHead, verifyAttestedApplicationHead,
+};
