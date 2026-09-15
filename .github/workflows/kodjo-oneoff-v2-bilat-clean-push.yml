@@ -27,6 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config core.whitespace cr-at-eol
           git show 3a0dbbe7510f69f702c4b440e25b63b893d2d492:src/features/sessions/CompositionScreen.tsx > src/features/sessions/CompositionScreen.tsx
           python - <<'PY'
           from pathlib import Path
@@ -60,6 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config core.whitespace cr-at-eol
           rm -f .github/workflows/kodjo-oneoff-v2-bilat-clean-push.yml .kodjo-oneoff-trigger
           test "$(git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 --name-only)" = "src/features/sessions/CompositionScreen.tsx"
           test "$(git diff --numstat 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx)" = "2	2	src/features/sessions/CompositionScreen.tsx"
