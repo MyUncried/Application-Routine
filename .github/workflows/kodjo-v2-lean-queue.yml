@@ -50,7 +50,6 @@ jobs:
           fetch-depth: 0
           clean: true
           persist-credentials: false
-          # Le runner est persistant : ne jamais checkout dans son répertoire racine.
           path: _kodjo/${{ github.run_id }}
 
       - name: Resolve immutable request boundary
@@ -86,7 +85,6 @@ jobs:
         shell: powershell
         run: git config --global core.longpaths true
 
-      # KV2-03 : paquet de reprise du run source, quand la demande en declare un.
       - name: Resolve recovery source run
         id: recovery_source
         env:
@@ -115,21 +113,16 @@ jobs:
           KODJO_EVENT_AFTER: ${{ steps.boundary.outputs.after_sha }}
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
           KODJO_SOURCE_RECOVERY_DIR: ${{ runner.temp }}/kodjo-source-recovery
+          KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
           KODJO_CERTIFICATION_STOP_AFTER_RECOVERY: ${{ vars.KODJO_CERTIFICATION_STOP_AFTER_RECOVERY || '' }}
-          # Verification des preuves GitHub obligatoire : une reaction absente,
-          # illisible ou non verifiee bloque l'admission.
           KODJO_VERIFY_GITHUB: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          # KV2-10 : admission avant toute operation. Ajout seul, request_id unique,
-          # relance de workflow refusee. Aucun etat local, aucune purge manuelle.
           $selected = & node scripts/kodjo/verify-queue-admission.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & scripts/kodjo/run-queued-request.ps1 -QueueFile $selected
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      # KV2-18 : le diagnostic ne remonte que le run courant. Le glob precedent
-      # exportait l'historique de toutes les tranches presentes sur le runner.
       - name: Resolve current run diagnostic directory
         if: always()
         id: diag
@@ -154,8 +147,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      # KV2-03 : le paquet de reprise quitte le disque du runner. Sans lui, une
-      # reinstallation du runner detruisait definitivement le delta produit.
       - name: Preserve KODJO recovery package
         if: always() && steps.diag.outputs.dir != ''
         uses: actions/upload-artifact@v4
@@ -164,6 +155,16 @@ jobs:
           path: ${{ steps.diag.outputs.dir }}/recovery-package/
           if-no-files-found: warn
           retention-days: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}
+
+      # La métadonnée n'existe que lorsqu'une VISUAL_CORRECTION a été réellement
+      # committée, poussée et observée sur la PR existante. Le publisher exige en
+      # plus l'artefact de récupération du run courant avant de certifier le HEAD.
+      - name: Publish visual application checkpoint
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: node scripts/kodjo/publish-visual-checkpoint.js
 
       - name: Clean current run checkout
         if: always()
@@ -175,8 +176,6 @@ jobs:
             & $utility -Root '${{ github.workspace }}/_kodjo/${{ github.run_id }}' -WorkspaceRoot '${{ github.workspace }}' -RunId '${{ github.run_id }}' -MetricsFile $env:KODJO_INFRA_METRICS_FILE
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } else {
-            # Le checkout peut échouer avant que l'utilitaire soit copié. Ce repli
-            # autonome conserve les mêmes bornes d'identité et de tentatives.
             $runId = '${{ github.run_id }}'
             $workspace = [IO.Path]::GetFullPath('${{ github.workspace }}').TrimEnd('\')
             $kodjoRoot = [IO.Path]::GetFullPath((Join-Path $workspace '_kodjo')).TrimEnd('\')
