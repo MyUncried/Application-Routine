@@ -1297,7 +1297,7 @@ Règles bloquantes communes :
 |---|---|---|
 | `CE-ACT-EXE-01a` | `3786:5093` — `Catalogue des Activités — Liste` | Liste et actions de carte |
 | `CE-ACT-EXE-01b` | `3787:5148` — `Catalogue des Activités — Catalogue — Créer — Arbre d’actions` | Arbre de création sur Catalogue des Activités grisé |
-| `CE-ACT-EXE-01c` | `3787:5209` — `Catalogue des Activités — Action contextuelle directe` | Action directe contextualisée |
+| `CE-ACT-EXE-01c` | `3787:5209` — `Catalogue des Activités — Catalogue — Créer — Action contextuelle directe` | Variante de création directe contextualisée, sans menu arborescent |
 | `CE-ACT-EXE-01d` | `3841:8375` — `Catalogue des Séances — Catalogue — Créer — Arbre d’actions` | Même arbre sur Catalogue des Séances grisé |
 
 #### Shell, contexte et liste — `CE-ACT-EXE-01a`
@@ -1321,8 +1321,8 @@ La première carte affiche, dans cet ordre vertical : nom, zones corporelles, sy
 
 | Zone | Position de référence | Action | Exigence |
 |---|---|---|---|
-| Surface principale de carte | toute la carte sauf la cible Lecture | Ouvrir l’Activité en consultation/modification | La cible utilise l’ID de l’Activité. Elle ne lance jamais l’Exécution. |
-| Lecture | cible `48 × 48`, alignée à droite ; sur les cartes `354 pt`, `x=306` relatif à la carte | Démarrer l’Exécution directe | Icône Lecture vectorielle centrée dans son cadre interne ; cible indépendante et non superposée à la surface principale. Libellé d’accessibilité : `Exécuter l’activité <nom>`. |
+| Surface principale de carte | toute la carte sauf la cible Lecture | Ouvrir l’Activité en consultation/modification | La cible utilise l’ID de l’Activité et ouvre la frame `3879:6079` dans le prototype. Elle ne lance jamais l’Exécution. |
+| Lecture | cible `48 × 48`, alignée à droite ; sur les cartes `354 pt`, `x=306` relatif à la carte | Démarrer l’Exécution directe | Icône Lecture vectorielle centrée dans son cadre interne ; cible indépendante et non superposée à la surface principale. Dans le prototype, elle ouvre `3835:5385`, jamais un écran d’Exécution de Séance. Libellé d’accessibilité : `Exécuter l’activité <nom>`. |
 | Déployer | absent | Aucune | Le contrôle est invisible, non focusable, non accessible et ne réserve aucun espace. Les anciens nœuds `3832:5361`, `3806:5449`, `3806:5455`, `3806:5461` sont masqués dans Figma et ne doivent pas être implémentés. |
 | Déplacement | absent | Aucune | L’instance `Icon / Structure / Movable` de la première carte est masquée ; aucune poignée ni marge réservée. |
 
@@ -1342,16 +1342,26 @@ L’arbre est identique sur le Catalogue des Activités et sur le Catalogue des 
 | Action `Créer` ouverte | `x=156`, `y=162`, `90 × 32` | Reste à son emplacement ; point d’ancrage de l’arbre. |
 | Ligne verticale | `x=179`, `y=194`, `2 × 176` | Relie visuellement les quatre icônes ; derrière les icônes et boutons. |
 | Icônes | `x=164`, `y=212/254/296/338`, `32 × 32` | Une icône par ligne, pas de déplacement autonome. |
-| Boutons libellés | `x=206`, mêmes `y`, `172 × 32` | Ordre exact : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`. Intervalle vertical `10 pt`. |
+| Boutons libellés | `x=206`, mêmes `y`, `172 × 32` | Ordre exact : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`. Intervalle vertical `10 pt`. `Une nouvelle activité` ouvre `3879:5947`. |
 | Annuler | dernière ligne | Ferme l’arbre et restaure exactement l’état antérieur du catalogue | Icône `+` DSF tournée de `45°`, couleur/état gris DSF ; ne pas utiliser une lettre `X`. |
 
 Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF validée ; `Une séance` utilise l’icône de liste/séance Figma ; `Un circuit` utilise le chemin en perspective Figma avec trait et quatre cercles progressifs ; `Annuler` réutilise l’icône `+` avec rotation de `45°`. Les proportions internes, épaisseurs, rayons, liserés et courbes proviennent des vecteurs de la frame. Il est interdit de les remplacer par des symboles de police. Le chemin Circuit conserve un départ court descendant, une fin légèrement descendante et raccourcie, un dernier cercle présent, ainsi qu’une progression d’échelle et d’épaisseur du premier au quatrième cercle et du début à la fin du trait.
 
-#### Action contextuelle — `CE-ACT-EXE-01c`
+#### Éditeurs d’Activité persistante
 
-![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+| Usage | Frame Figma | Titre | Effet |
+|---|---|---|---|
+| Créer depuis le Catalogue | `3879:5947` | `Créer une activité` | Crée une nouvelle `ActivityDefinition` appartenant à l’Utilisateur, puis revient au Catalogue des Activités. |
+| Ouvrir une carte existante | `3879:6079` | `Modifier l’activité` | Modifie uniquement l’`ActivityDefinition` ciblée, puis revient au Catalogue des Activités. |
+| Ajouter depuis une Composition | `3542:4656` | `Ajouter une activité` | Crée ou modifie une `SessionActivity` de la Séance et revient à la Composition. |
 
-La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les cartes et la navigation de `01a`. L’action contextuelle directe se superpose à la carte ciblée sans déplacer la liste. Le fond et les autres cibles non concernées suivent l’état modal représenté dans Figma. Le libellé, l’icône, la position, le rayon, les couleurs et l’ombre proviennent de cette frame ; aucune action supplémentaire ne doit être déduite.
+Ces trois contextes réutilisent les mêmes composants de formulaire. Leur racine persistée et leur destination de retour sont toutefois distinctes. Aucune modification ne se propage entre une `ActivityDefinition` et les `SessionActivity` déjà copiées.
+
+#### Création directe contextualisée — `CE-ACT-EXE-01c`
+
+![Catalogue des Activités — Création directe contextualisée](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+
+La frame `3787:5209` réutilise exactement le Shell, le contrôle segmenté, les cartes et la navigation de `01a`. Elle remplace l’action générique `Créer` par `Créer une activité`, qui ouvre directement `3879:5947`. Cette variante n’est pas une action d’Exécution et ne se superpose à aucune carte. Le bouton Lecture de chaque carte reste l’unique déclencheur de l’Exécution directe.
 
 ### CE-ACT-EXE-02 — Préparation fixe de 5 s
 
@@ -1442,10 +1452,10 @@ Cette matrice est la preuve de propagation minimale. Une ligne ne peut être dé
 |---|---|---|---|---|---|---|---|---|
 | CAT-ACT-01 | Catalogue multi-type | D-108 à D-110 | 01 Cible fonctionnelle ; 03 Accéder au Catalogue | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 12 ; 08 §2 bis.1 | 10 règles Catalogue ; 11 §11.13 API Activités, Médias et Circuits ; 12 Shell Catalogue | `3786:5093` ; `CE-ACT-EXE-01a` ; `CE-ACT-EXE-01a-catalogue-activites-liste.png` | Intégrée |
 | CAT-ACT-02 | Créer depuis le Catalogue | D-164 et contrats Figma | 03 Créer un contenu depuis le Catalogue | 04 racines Activité, Séance, Circuit ; 09 modèles correspondants | 06 Écran 13 ; 08 §2 bis.2 et §2 bis.7 | 10 validations propres à chaque contenu ; 11 services dédiés ; 12 overlay DSF | `3787:5148`, `3841:8375` ; `CE-ACT-EXE-01b/01d` ; deux captures d’arbre | Intégrée |
-| CAT-ACT-03 | Créer ou modifier une Activité persistante | D-105, D-134 à D-139 | 03 Utiliser une Activité de référence | 04 Activité de référence ; 09 `ActivityDefinition` | 06 Écran 15 et Écran 4 ; 08 §2 bis.2 | 10 règles Activité ; 11 §11.13 opérations sur l’Activité persistante ; 12 composants éditeur | `CE-T01-13` à `CE-T01-16`, contexte Catalogue V2 | Intégrée |
+| CAT-ACT-03 | Créer ou modifier une Activité persistante | D-105, D-134 à D-139 | 03 Utiliser une Activité de référence | 04 propriété Utilisateur ; 09 `ActivityDefinition` distincte de `SessionActivity` | 06 Écran 15 et Écran 4 ; 08 §2 bis.2 | 10 règles Activité ; 11 §11.13 opérations sur l’Activité persistante ; 12 composants éditeur | `3879:5947`, `3879:6079` et `3542:4656` ; éditeurs contextualisés | Intégrée |
 | CAT-ACT-04 | Ajouter une Activité dans une Séance | D-147, D-165 | 03 Ajouter depuis une Composition et sélection multiple | 04 copie indépendante ; 09 ordre de Composition | 06 Écran 14 ; 08 §2 bis.3 | RM-163 ; API-COMP-SEL-01 à 03 ; architecture sans nouveau stockage | `3789:5349` ; `CE-COMP-SEL-01` ; `CE-COMP-SEL-01-selection-activites-existantes.png` | Intégrée |
 | CAT-ACT-05 | Icônes Recherche et Sélection | D-165 | 03 sélection multiple | Sans impact métier ou données | 06 Écran 14 ; 08 §2 bis.3 | 12 `Icon / Search`, `Icon / Selection Check` et tokens liés | composants `3847:5508`, `3847:5512` ; `CE-COMP-SEL-01` | Intégrée |
-| CAT-ACT-06 | Exécuter directement une Activité | D-157 à D-163 | 01 Bibliothèque ; 03 Exécuter directement | 04 Exécution `ACTIVITY` ; 09 instantané autonome | 06 Écrans 16 à 18 ; 08 §2 bis.4 | RM-096 à RM-103 ; API-ACT-EXE-01 à 05 ; moteur multi-origine | `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` ; `CE-ACT-EXE-02` à 05 et captures associées | Intégrée |
+| CAT-ACT-06 | Exécuter directement une Activité | D-157 à D-163 | 01 Bibliothèque ; 03 Exécuter directement | 04 Exécution `ACTIVITY` ; 09 instantané autonome | 06 Écrans 16 à 18 ; 08 §2 bis.4 | RM-096 à RM-103 ; API-ACT-EXE-01 à 05 ; moteur multi-origine | Lecture de `3786:5093` → `3835:5385`, puis `3835:5465`, `3836:5437`, `3836:5503` ; `CE-ACT-EXE-02` à 05 | Intégrée |
 | CAT-ACT-07 | Carte du Catalogue des Activités | D-164 | 03 Accéder au Catalogue | Sans impact de structure | 06 Écran 12 ; 08 §2 bis.1 | Accessibilité et cibles séparées au chapitre 12 | `3786:5093` ; `CE-ACT-EXE-01a` | Intégrée |
 | CAT-ACT-08 | Médias sur une Activité | D-138 et D-164 | 01 Bibliothèque V2 | 04 associations `0..n` ; 09 Média | 06 Écrans 12/15 ; 08 §2 bis.5 | 11 `API-MED-01..05` ; 12 composants Média | Bouton désactivé MVP ; déploiement Catalogue à détailler | Partiel — évolution V2 distincte |
 | CAT-ACT-09 | Créer et exécuter un Circuit | D-124 à D-133 | 01 Circuits ; 03 Circuit V2 | 04 Circuit ; 09 Circuit/Étape | 06 Écran 13 pour l’entrée `Un circuit`, écran de formulaire À CLARIFIER ; 08 §2 bis.7 | 10/11/12 contrats Circuit existants | Contrat fonctionnel futur du chapitre 13 ; formulaire détaillé non finalisé | À compléter avant développement |
@@ -1454,7 +1464,7 @@ Cette matrice est la preuve de propagation minimale. Une ligne ne peut être dé
 
 La revue indépendante de clôture contrôle les chapitres 00 à 13, `PRODUCT.md`, `INDEX.md` et les captures référencées. Résultat :
 
-- le Catalogue des Activités est intégré dans la vision, les besoins, les parcours, le modèle, les écrans, la conception détaillée, les données, les règles, les API, l’architecture et les contrats ;
+- le Catalogue des Activités est intégré dans la vision, les besoins, les parcours, les écrans, la conception détaillée, les règles, les API, l’architecture et les contrats ; le modèle de données distingue désormais explicitement la propriété Utilisateur, `ActivityDefinition` et `SessionActivity` ;
 - l’Exécution est unifiée autour des origines `SESSION | ACTIVITY` ; aucune Séance artificielle n’est créée pour une Activité directe ;
 - les cartes, l’arbre de création, la sélection multiple, la préparation de `5 s`, l’Exécution, la Synthèse et le retour au Catalogue sont reliés à leurs contrats et captures ;
 - les neuf captures référencées par ce périmètre existent sous leur nom Unicode exact ;
