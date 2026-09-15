@@ -14,7 +14,8 @@ Le modèle couvre les domaines fonctionnels suivants :
 2. leur planification par des routines ;
 3. leur exécution ;
 4. l'historique des exécutions ;
-5. les référentiels et préférences de l'utilisateur.
+5. le Catalogue des Activités persistantes et leur Exécution directe en V2 ;
+6. les référentiels et préférences de l'utilisateur.
 
 Dans le MVP, toutes les données sont stockées localement sur l'appareil.
 
@@ -28,12 +29,13 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une séance contient un **cycle**.
 - Un cycle contient un **Tour**.
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
-- Un Tour contient une suite ordonnée d'activités.
+- Un Tour contient une suite ordonnée d’objets `SessionActivity`.
+- Une `SessionActivity` est une copie appartenant à une Séance ; une `ActivityDefinition` V2 est une racine persistante autonome appartenant à l’Utilisateur.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
 - Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
 - Une **Exécution** est créée au démarrage d’une source exécutable : une Séance dans le MVP, ou une Activité persistante en V2.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
-- Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
+- Toute modification ultérieure d’une Séance, d’une `ActivityDefinition` ou d’une Routine est sans effet sur les Exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
 
 ## Vue d'ensemble du modèle
@@ -48,7 +50,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Tour | Conteneur ordonné d'activités portant son propre nombre de répétitions | Structure interne de séance |
 | Routine | Planification d'une séance | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
-| Activité | Action élémentaire d'une séance | Principale |
+| Activité de référence (`ActivityDefinition`) | Définition persistante autonome du Catalogue, directement exécutable et copiable | Principale — V2 |
+| Activité de Séance (`SessionActivity`) | Copie indépendante et ordonnée appartenant à une Séance | Structure interne de séance |
 | Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
 | Catégorie | Classement des séances | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
@@ -75,41 +78,45 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T03 ; D-156 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 ; D-156 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T03 |
+| DM-017 | Une `ActivityDefinition` V2 est une racine persistante appartenant directement à un Utilisateur. Une `SessionActivity` appartient uniquement à sa Séance et ne conserve aucun lien d’évolution avec sa définition source éventuelle. | V2 |
 
 ## Relations principales
 
 ```text
 UTILISATEUR
 │
+├── possède 0..n ACTIVITÉS PERSISTANTES — V2
+│       ├── référence 0..n ZONES CORPORELLES
+│       └── possède 0..n ASSOCIATIONS MÉDIA ORDONNÉES — V2
+│
 ├── possède 0..n SÉANCES
 │       │
 │       ├── appartient à 0..n CATÉGORIES
-│       ├── contient 0..n ACTIVITÉS AVANT LE CYCLE
-│       ├── contient 1 CYCLE
-│       │      │
-│       │      ├── nombre de répétitions
-│       │      ├── contient 1 TOUR
-│       │      │      │
-│       │      │      ├── nombre de répétitions
-│       │      │      └── contient 0..n ACTIVITÉS DANS LE TOUR
-│       │      └── contient 0..n ACTIVITÉS APRÈS LE TOUR ET DANS LE CYCLE
-│       └── contient 0..n ACTIVITÉS APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
+│       └── contient 1 CYCLE
+│              │
+│              ├── nombre de répétitions
+│              ├── contient 0..n ACTIVITÉS DE SÉANCE AVANT LE TOUR
+│              ├── contient 1 TOUR
+│              │      │
+│              │      ├── nombre de répétitions
+│              │      └── contient 0..n ACTIVITÉS DE SÉANCE DANS LE TOUR
+│              └── contient 0..n ACTIVITÉS DE SÉANCE APRÈS LE TOUR
 │
 ├── possède 0..n ROUTINES
 │       └── planifie 1 SÉANCE
 │
 ├── possède 0..n EXÉCUTIONS
 │       ├── possède 1 ORIGINE `SESSION` ou `ACTIVITY`
-│       ├── référence 0..1 SÉANCE ou 0..1 ACTIVITÉ PERSISTANTE
+│       ├── référence 0..1 SÉANCE ou 0..1 ACTIVITÉ PERSISTANTE selon l’origine
 │       ├── contient 1 INSTANTANÉ DE SOURCE
 │       └── contient 1 ÉTAT D'EXÉCUTION
 │
 ├── possède 0..n CATÉGORIES
-├── possède 0..n ZONES CORPORELLES
+├── consulte 1 RÉFÉRENTIEL DE ZONES CORPORELLES
 └── possède 1 PRÉFÉRENCES GLOBALES
 ```
 
-Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Tours sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
+Le schéma distingue les relations du MVP et les extensions V2 explicitement marquées. Cycles et Tours restent représentés sous forme de collections ordonnées dans la cible technique afin que leurs cardinalités puissent évoluer ultérieurement.
 # 09.1 Entité Utilisateur
 
 ## Définition
@@ -125,13 +132,14 @@ Un utilisateur possède directement :
 - ses informations générales ;
 - sa couleur ;
 - ses séances ;
+- ses activités persistantes à partir de la V2 ;
 - ses routines ;
-- ses exécutions de séance ;
+- ses Exécutions, qu’elles proviennent d’une Séance ou directement d’une Activité persistante ;
 - ses catégories ;
-- ses zones corporelles ;
+- son accès au référentiel applicatif de Zones corporelles ;
 - ses préférences globales.
 
-Il ne contient pas directement les activités, les médias, les structures internes d'exécution ni les mécanismes d'authentification.
+Il ne contient pas directement les `SessionActivity`, qui appartiennent à leur Séance, ni les fichiers Média, les structures internes d'Exécution ou les mécanismes d'authentification. En V2, il possède en revanche directement les `ActivityDefinition` de son Catalogue.
 
 ## Attributs fonctionnels
 
@@ -147,10 +155,11 @@ Il ne contient pas directement les activités, les médias, les structures inter
 
 - Une seule instance d'utilisateur existe dans la V1.
 - Un utilisateur possède 0..n séances.
+- Un utilisateur possède 0..n `ActivityDefinition` à partir de la V2.
 - Un utilisateur possède 0..n routines.
-- Un utilisateur possède 0..n exécutions de séance.
+- Un utilisateur possède 0..n Exécutions, d’origine `SESSION` ou `ACTIVITY` selon la version.
 - Un utilisateur possède une seule structure de préférences globales.
-- Toutes les données métier appartiennent directement ou indirectement à un seul Utilisateur. Les racines d’agrégat persistantes portent la référence de propriétaire ; les objets enfants héritent de cette propriété par leur rattachement.
+- Toutes les données métier personnelles appartiennent directement ou indirectement à un seul Utilisateur. Les racines d’agrégat persistantes portent la référence de propriétaire ; les objets enfants héritent de cette propriété par leur rattachement. Les Zones corporelles prédéfinies appartiennent au référentiel applicatif et ne portent pas de propriétaire utilisateur.
 
 
 # 09.2 Entité Séance
@@ -494,43 +503,32 @@ Une Occurrence planifiée possède directement :
 
 ## Définition
 
-Une **Activité** est la plus petite unité exécutable d'une séance.
+Une **Activité** est la plus petite unité métier exécutable. Le modèle persistant distingue obligatoirement deux formes :
 
-Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. En V2, une `ActivityDefinition` autonome peut être copiée dans plusieurs Séances sans lien de propagation.
+- dans le MVP, une `SessionActivity` appartenant à une seule Séance et portant sa position structurelle ;
+- en V2, une `ActivityDefinition` appartenant directement à un Utilisateur, autonome dans le Catalogue, exécutable directement et copiable dans plusieurs Séances sans lien de propagation.
 
 Le nom « Récupération » n’a aucune sémantique technique : une Activité ainsi nommée reste une Activité ordinaire. La phase attachée `RECOVERY` est, elle, dérivée du paramètre de durée de Récupération.
 
 ## Périmètre
 
-Une activité possède directement :
+Les deux formes possèdent les propriétés métier communes : identité, nom, description, mode d’exécution, cible éventuelle, Séries, Pause, Récupération, côté et Zones corporelles.
 
-- son identité ;
-- son nom ;
-- sa description ;
-- son mode d'exécution ;
-- sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée en mode À l’échec ;
-- son nombre de Séries ;
-- sa Pause entre Séries ;
-- sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
-- ses zones corporelles ;
-- aucun média fonctionnel dans le MVP ; `0..n` associations ordonnées seront disponibles en V2 ;
-- sa position structurelle dans la Séance et son ordre au sein de cette position.
+Une `ActivityDefinition` possède en plus son Utilisateur propriétaire, son statut et ses dates de cycle de vie ; elle peut porter `0..n` associations Média ordonnées en V2. Elle ne possède ni position structurelle, ni ordre dans une Séance, ni Tour.
 
-Elle ne contient pas directement :
+Une `SessionActivity` possède en plus sa position structurelle et son ordre dans sa Séance. Elle appartient à cette seule Séance, éventuellement à son Tour lorsqu’elle est positionnée `Dans Tour`, et hérite indirectement de l’Utilisateur propriétaire de la Séance.
 
-- le Tour ;
-- le cycle ;
-- la séance ;
-- les préférences globales.
+Aucune des deux formes ne contient directement les Préférences globales.
 
 ## Attributs fonctionnels
 
 | Attribut                   | Description                                     |         Caractère         | Règle principale                                                              |
 | -------------------------- | ----------------------------------------------- | :-----------------------: | ----------------------------------------------------------------------------- |
 | Identifiant                | Identifiant unique                              |        Obligatoire        | Stable                                                                        |
-| Position structurelle      | Emplacement de l’Activité dans la Composition   |        Obligatoire        | `Avant Tour`, `Dans Tour` ou `Après Tour`                                      |
-| Position                   | Ordre au sein de la position structurelle       |        Obligatoire        | Entier déterminant l’ordre d’exécution                                         |
-| Tour                       | Tour contenant l’Activité                       |       Conditionnel        | Obligatoire uniquement pour une Activité `Dans Tour`                           |
+| Propriétaire               | Utilisateur propriétaire                       | Conditionnel selon forme  | Obligatoire sur `ActivityDefinition` ; hérité via la Séance sur `SessionActivity` |
+| Position structurelle      | Emplacement dans la Composition                 | `SessionActivity` uniquement | `Avant Tour`, `Dans Tour` ou `Après Tour` ; absente sur `ActivityDefinition` |
+| Position                   | Ordre au sein de la position structurelle       | `SessionActivity` uniquement | Entier déterminant l’ordre d’exécution ; absent sur `ActivityDefinition` |
+| Tour                       | Tour contenant l’Activité                       | Conditionnel sur `SessionActivity` | Obligatoire uniquement pour une copie `Dans Tour` ; absent sur `ActivityDefinition` |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
 | Mode d'exécution           | Durée, Répétitions ou À l’échec                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
@@ -541,11 +539,15 @@ Elle ne contient pas directement :
 | Récupération               | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; phase `RECOVERY` insérée une fois si valeur > 0       |
 | Durée totale               | Durée dérivée                                   |          Calculé          | Non persistée ; disponible uniquement en mode Durée                            |
 | Zones corporelles          | Zones sollicitées                               |        Facultatif         | Zéro à plusieurs                                                              |
-| Médias                     | Photos ou vidéos ordonnées                      |        Hors MVP           | Évolution V2 : zéro à plusieurs médias                                        |
+| Médias                     | Photos ou vidéos ordonnées                      |        Hors MVP           | Évolution V2 : zéro à plusieurs associations ordonnées                        |
+| Statut                     | État de la définition persistante               | `ActivityDefinition` uniquement | `Active` ou `Archivée` en V2                                               |
+| Dates de cycle de vie      | Création, modification, archivage éventuel      | `ActivityDefinition` uniquement | Gérées automatiquement ; date d’archivage conditionnelle                       |
 
 ## Règles métier
 
-- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` V2 est autonome et ne porte aucune position de Séance.
+- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée.
+- Une `ActivityDefinition` V2 appartient à un seul Utilisateur, ne porte aucune position de Séance et constitue une racine persistante autonome du Catalogue.
+- Archiver ou supprimer une `ActivityDefinition` ne modifie aucune `SessionActivity` déjà copiée ni aucun Instantané d’Exécution.
 - Une Activité peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une Activité possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Pour `C` Séries, la Pause apparaît `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`.
@@ -670,10 +672,11 @@ Contient notamment :
 
 ## Règles métier
 
-- Une exécution est créée uniquement au démarrage d'une séance.
-- Elle référence une seule séance.
-- Elle peut référencer une routine.
-- Un Instantané de séance est créé automatiquement au démarrage effectif de l’Exécution.
+- Une Exécution est créée uniquement au démarrage effectif d’une Séance ou, en V2, d’une `ActivityDefinition` active et valide.
+- Son origine immuable vaut `SESSION` ou `ACTIVITY`.
+- Elle référence au plus une source persistante correspondant à son origine ; cette référence peut devenir absente après suppression de la source.
+- Elle peut référencer une Routine uniquement lorsque son origine vaut `SESSION`.
+- Un Instantané de source est créé automatiquement au démarrage effectif de l’Exécution.
 - L’Instantané est immuable après sa création.
 - Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur l’Instantané.
 - L’Exécution conserve la référence à la Séance source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
@@ -689,7 +692,7 @@ Contient notamment :
 
 | Objet | Version | Rôle et relations |
 |---|---|---|
-| `ActivityDefinition` | V2 | Référence persistante autonome sans type d’Activité, directement exécutable et copiable dans une Séance. |
+| `ActivityDefinition` | V2 | Racine persistante appartenant à un Utilisateur ; référence autonome sans type d’Activité, directement exécutable lorsqu’elle est active et valide, et copiable dans une Séance. |
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
 | `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
 | `ActivityMedia` | V2 | Association ordonnée entre une activité et un `MediaAsset`. |
@@ -809,7 +812,7 @@ Elles ne contiennent pas directement :
 - les séances ;
 - les routines ;
 - les activités ;
-- les exécutions de séance.
+- les Exécutions.
 
 ## Attributs fonctionnels
 
@@ -818,9 +821,9 @@ Elles ne contiennent pas directement :
 | Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                                                       |
 | Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                                                       |
 | Notifications                                      | Autorisation effective des rappels locaux                                  | Obligatoire | Non autorisées par défaut ; demande système lors de la première activation d’un rappel |
-| Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
-| Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
-| Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
+| Vibration                                          | Active les vibrations fonctionnelles d’Exécution                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
+| Écran maintenu actif                               | Empêche la mise en veille pendant une Exécution                  | Facultatif  | Pendant l'exécution uniquement                                           |
+| Durée par défaut d’une Activité en mode Durée       | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Récupération par défaut                            | Durée proposée après l’Activité selon sa direction effective               | Facultatif  | Création uniquement ; `0 s` si absente                                  |
 | Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'une Activité                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
@@ -833,9 +836,9 @@ Elles ne contiennent pas directement :
 
 - Chaque utilisateur possède une seule structure de préférences globales.
 - Les préférences s'appliquent à toutes les séances et à toutes les exécutions.
-- Modifier une préférence n'altère jamais les séances existantes.
+- Modifier une préférence n’altère jamais les Séances ni les Activités persistantes existantes.
 - Les valeurs par défaut sont utilisées uniquement lors de la création de nouveaux éléments.
-- Une exécution de séance utilise les préférences actives au moment de son démarrage.
+- Toute Exécution utilise les préférences actives au moment de son démarrage, quelle que soit son origine.
 - Une modification des préférences ne modifie jamais une exécution déjà en cours.
 - Les préférences sont enregistrées automatiquement après chaque modification.
 - Les valeurs par défaut du compte à rebours initial et de la fin de séance sont copiées dans la séance lors de sa création.
@@ -959,7 +962,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
-- Toute exécution de séance référence une seule séance.
+- Toute Exécution possède une origine `SESSION` ou `ACTIVITY`, un Instantané obligatoire et au plus une référence vers la source persistante correspondant à cette origine.
 - Toute Catégorie personnalisée appartient à un seul Utilisateur.
 - Dans le MVP, toute Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. L’utilisateur ne peut modifier aucune de ces deux valeurs.
 - Aucune règle ne fait actuellement dériver la couleur d’une Séance de ses Catégories. Une telle dérivation reste une évolution future à définir, notamment pour les Séances associées à plusieurs Catégories.
@@ -1019,9 +1022,9 @@ La restauration d'une Séance :
 
 ## Historique
 
-- L'historique est constitué exclusivement des exécutions de séance.
-- Chaque exécution possède son propre instantané de séance.
-- Une modification de la séance n'affecte jamais les exécutions existantes.
+- L’historique est constitué des Exécutions d’origine `SESSION` et, en V2, `ACTIVITY`.
+- Chaque Exécution possède son propre Instantané de source.
+- La modification, l’archivage ou la suppression d’une Séance ou d’une `ActivityDefinition` n’affecte jamais les Exécutions existantes.
 
 # 09.13 Cycles de vie
 
@@ -1045,11 +1048,25 @@ Création → Édition → Active
 - Une séance archivée n'est plus proposée pour créer une nouvelle routine ou être exécutée directement.
 - La duplication crée une nouvelle séance indépendante.
 
-## Cycle de vie d'une activité
+## Cycle de vie d’une Activité de référence — V2
 
-- Une Activité de Séance appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
-- Sa copie crée une nouvelle activité indépendante.
-- Sa suppression peut être annulée via la snackbar.
+```text
+Création → Active
+          ├─ Modifier
+          ├─ Archiver → Archivée → Restaurer
+          └─ Supprimer
+```
+
+- Une `ActivityDefinition` appartient pendant toute sa durée de vie à un seul Utilisateur.
+- Seule une définition active et valide peut être exécutée directement ou proposée pour une nouvelle insertion.
+- L’archivage la retire des propositions actives sans modifier ses copies de Séance ni ses Exécutions historiques.
+- Sa suppression peut rendre absente la référence facultative d’une Exécution, dont l’Instantané reste la source de restitution.
+
+## Cycle de vie d’une Activité de Séance
+
+- Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
+- Sa copie crée une nouvelle Activité de Séance indépendante et ne crée aucune `ActivityDefinition`.
+- Sa suppression peut être annulée via la snackbar et n’affecte jamais sa définition d’origine éventuelle.
 
 ## Cycle de vie d'une routine
 

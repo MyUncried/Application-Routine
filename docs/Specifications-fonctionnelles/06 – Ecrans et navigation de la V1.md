@@ -1307,11 +1307,11 @@ Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la
 
 ![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
 
-#### État dérivé — Action contextuelle d’Exécution directe
+#### État alternatif — Création directe depuis l’onglet Activités
 
-L’état contextuel conserve la même liste et révèle l’action d’Exécution directe de l’Activité ciblée. Il ne transforme pas la carte en écran d’exécution et ne modifie pas l’ordre de la liste. La frame et le contrat `CE-ACT-EXE-01c` définissent la position exacte du contrôle et son retour au Catalogue.
+La frame `3787:5209` conserve la même liste et remplace l’action générique `Créer` par l’action contextualisée `Créer une activité`. Cette variante ouvre directement l’éditeur d’une Activité persistante. Elle ne constitue pas une action d’Exécution : l’Exécution directe reste déclenchée exclusivement par le bouton Lecture de la carte.
 
-![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+![Catalogue des Activités — Création directe contextualisée](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
 
 ### Écran 13 — Catalogue — Créer — Arbre d’actions
 
@@ -1338,7 +1338,9 @@ Les Activités sont insérées selon leur ordre courant de présentation dans la
 
 ### Écran 15 — Création ou modification d’une Activité persistante
 
-L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
+L’écran réutilise les composants de l’Écran 4 sans confondre les objets persistés. Depuis le Catalogue, la frame `3879:5947` porte le titre `Créer une activité` et crée une `ActivityDefinition` ; la frame `3879:6079` porte le titre `Modifier l’activité` et modifie uniquement cette définition persistante. `Terminer` revient au Catalogue des Activités.
+
+Depuis une Composition, l’Écran 4 et sa frame `3542:4656` conservent le titre `Ajouter une activité` et agissent uniquement sur une `SessionActivity`. Le contexte d’ouverture détermine la racine persistée et la destination de retour. Aucune modification d’une définition ne se propage à ses copies de Séance, et aucune modification d’une copie ne remonte vers le Catalogue.
 
 ### Écran 16 — Préparation d’une Activité directe
 
@@ -1407,13 +1409,13 @@ Ce comportement concerne uniquement le parcours de création. Pour une Séance e
 
 #### Objectif
 
-Éviter la perte accidentelle des modifications apportées à une Activité dans l’écran unique `Création / modification d’une Activité`.
+Éviter la perte accidentelle des modifications apportées à une `ActivityDefinition` du Catalogue ou à une `SessionActivity` de Composition dans l’éditeur partagé.
 
 #### Ouverture
 
 La modale s’affiche depuis l’écran Activité lorsque l’utilisateur tente de quitter (Retour, geste de glissement, bouton matériel Android) alors que des modifications non enregistrées existent sur l’Activité en cours d’édition — comparées à son état au moment de l’ouverture de l’écran, jamais au reste de la Composition.
 
-L’écran Activité reste visible en arrière-plan, assombri et non interactif.
+L’écran Activité reste visible en arrière-plan, assombri et non interactif. La destination conservée dépend du contexte d’ouverture : Catalogue des Activités pour une `ActivityDefinition`, Composition pour une `SessionActivity`.
 
 #### Contenu
 
@@ -1434,7 +1436,7 @@ L’écran Activité reste visible en arrière-plan, assombri et non interactif.
 
 `Annuler` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
 
-`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
+`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à la destination d’origine : `Catalogue des Activités` pour une définition persistante, `Composition d’une séance` pour une copie de Séance. Dans ce second cas, le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Activité déjà enregistrée) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
 
 La référence de production est la frame Figma `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Elle instancie `Overlay / Decision Dialog`, variante `PrimaryTone=Danger, SecondaryTone=Neutral, Actions=2` (`2590:2934`) : dialogue centré de `354 × 186`, rayon `18`, boutons `147 × 48`, écart horizontal `12` et espacement `16` entre la dernière ligne du message et les actions. Les libellés sont centrés horizontalement et verticalement dans leurs boutons.
 
