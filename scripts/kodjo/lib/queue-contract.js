@@ -213,21 +213,6 @@ const PROPERTIES = {
     },
     diagnostic: 'KODJO_QUEUE_RETRY_SOURCE_MISSING',
   },
-  delivery_checkpoint: {
-    nature: 'AUTHORIZATION', required: 'optional', type: 'object',
-    validate: (value, queue) => {
-      if (String(queue.mode).toUpperCase() !== 'RESUME_DELTA') return value === undefined ? null : 'reserve a RESUME_DELTA';
-      if (!isObject(value)) return 'objet structure attendu';
-      const required = ['checkpoint_ref', 'application_pr', 'application_head', 'plan_comment_id', 'review_comment_id', 'gate_comment_id', 'protocol_head', 'package_run_id', 'package_artifact_id', 'delivery_head'];
-      for (const key of required) if (!isString(value[key])) return 'champ requis manquant ou vide: ' + key;
-      if (!/^issue_comment:[0-9]+$/.test(value.checkpoint_ref)) return 'checkpoint_ref invalide';
-      if (!/^[0-9]+$/.test(String(value.application_pr))) return 'application_pr invalide';
-      for (const key of ['application_head', 'protocol_head', 'delivery_head']) if (!SHA40.test(String(value[key]))) return key + ' invalide';
-      for (const key of ['plan_comment_id', 'review_comment_id', 'gate_comment_id', 'package_run_id', 'package_artifact_id']) if (!/^[0-9]+$/.test(String(value[key]))) return key + ' invalide';
-      return null;
-    },
-    diagnostic: 'KODJO_QUEUE_DELIVERY_CHECKPOINT_REFUSED',
-  },
   retry_reason: {
     nature: 'TRACEABILITY', required: 'resume_only', type: 'object',
     validate: (v, q) => {
