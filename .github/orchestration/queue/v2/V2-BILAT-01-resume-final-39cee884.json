@@ -1,0 +1,68 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-BILAT-01",
+  "issue_number": 52,
+  "source_head": "0229f551a9c8931718bc7dcdc59e50cb3eb45d1c",
+  "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "e096473ca508175f865688a1aee37750edd2f9c29bcafc2501f3e15544bb3281",
+  "mode": "RESUME_DELTA",
+  "session_id": "80daf10b-8c53-4990-af9d-38031814dc20",
+  "prompt_file": ".github/orchestration/v2-slices/V2-BILAT-01/implementation-mission.md",
+  "scope_allow": [
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/SideModeControl.tsx",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
+    "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/shared/i18n/index.test.ts",
+    "src/shared/i18n/resources/fr.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "39cee884-6755-45d8-850b-a99a74d827ed",
+  "created_at": "2026-09-15T07:51:05.583Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
+    "plan_blob_oid": "20ae36edc25e5979922b7d183b79ff752bac849b",
+    "approved_at_commit": "c6746e53bd800fbe497fcd867d349a1e24c50934",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+    "review_blob_oid": "cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04",
+    "reviewed_plan_blob_oid": "20ae36edc25e5979922b7d183b79ff752bac849b",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5676056231",
+    "gated_reference": "20ae36edc25e5979922b7d183b79ff752bac849b",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "recovery_migration": {
+    "attestation_path": ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json",
+    "attestation_blob_oid": "8eb2078878f1ba1ea96e43f108455fdb9c715f52",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "retry_of_run_id": "34872653037",
+  "retry_reason": {
+    "code": "CLARIFICATION",
+    "detail": "Reprendre exclusivement le paquet intact et certifié du run 34872653037 (artefact 10358639677, digest sha256:4736b6311775e7fc51740f7febfe636fce97ae26e1286c31d10cb06cf02a53b9, patch sha256:1e49b433f38fe901e93a2210e10c999e2ac6c86d7a026da126d1158717456c84) dans la session Claude existante 80daf10b-8c53-4990-af9d-38031814dc20, à partir de la PR applicative #131 au HEAD exact df38ade5e8737ed8f59a3a7472ebe9b168a85145. Appliquer uniquement le plan approuvé 20ae36edc25e5979922b7d183b79ff752bac849b et sa revue APPROVED cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04, dans le scope_allow exact de 10 fichiers. Corriger seulement les écarts de présentation bilatérale approuvés : contrôle Tour, dialogue conditionnel et textes français, indicateurs courts et accessibilité des cartes sans direction développée, synthèse Ajouter/Modifier avec direction propre seulement hors héritage, et libellé Durée totale sans changer les calculs. Aucun T03, aucun calcul ou modèle métier, aucune documentation. Exécuter Jest complet, TypeScript, lint et contrôle de périmètre. Publier uniquement avec IMPLEMENTED_AND_VERIFIED et conserver la PR #131 non fusionnée pour la revue visuelle utilisateur."
+  }
+}
