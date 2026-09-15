@@ -59,6 +59,7 @@
  */
 
 import type { Activity, ActivityType, ExerciseExecutionMode, Session } from "./Session";
+import { resolveEffectiveSideMode, sideMultiplier, type SideMode } from "./sideMode";
 
 /**
  * Modes sans durée conventionnelle (RM-072/D-112) : la durée estimée qui les
@@ -82,6 +83,16 @@ export type ActivityDurationFacts = {
   readonly pauseSeconds: number;
   /** T02-S02 : Récupération ATTACHÉE, exécutée une seule fois après toutes les Séries (`0` = aucune). */
   readonly recoverySeconds: number;
+  /**
+   * V2-BILAT-01 : direction PROPRE de cette Activité — OPTIONNELLE, une
+   * Facts antérieure à cette tranche (sans ce champ) équivaut à
+   * `UNILATERAL`, sans aucun changement de comportement (`?? "UNILATERAL"`,
+   * `computeZoneDurationFacts` ci-dessous). Seule `computeZoneDurationFacts`
+   * la consulte ; `computeActivityDurationSeconds` reste agnostique de
+   * `SideMode` et reçoit son multiplicateur déjà résolu (jamais de double
+   * multiplicateur).
+   */
+  readonly sideMode?: SideMode;
 };
 
 /**
@@ -121,11 +132,32 @@ export function computePauseOccurrences(
  * En modes Répétitions et « À l'échec », le terme `C × A` est omis (aucune
  * durée conventionnelle n'est inventée) ; les Pauses et la Récupération
  * restent comptées et le résultat est une borne MINIMALE.
+ *
+ * **V2-BILAT-01 — multiplicateur de côté `L` déjà RÉSOLU.** Cette fonction
+ * reste agnostique de `SideMode` : `sideMultiplierValue` (`L`, défaut `1`,
+ * comportement T02-S02 inchangé) et `recoveryMultiplier` (défaut `1`) sont
+ * fournis DÉJÀ RÉSOLUS par l'appelant (`computeZoneDurationFacts` pour une
+ * collection, `ExerciseScreen`/`compositionPresentation.ts` pour une
+ * Activité isolée) — jamais recalculés ici, pour qu'aucun appelant ne
+ * puisse appliquer deux fois le même multiplicateur.
+ *
+ * Formule « autonome » du plan (`D = L × [C × A + occurrences × B] + R`) :
+ * `L` multiplie la part Séries + Pauses, la Récupération `R` reste ajoutée
+ * UNE SEULE FOIS (`recoveryMultiplier` défaut `1`) — sauf lorsque c'est le
+ * TOUR LUI-MÊME qui est bilatéral (« Tour bilatéral : … `Ri` est comptée une
+ * fois PAR PASSAGE de côté »), seul cas où l'appelant transmet
+ * `recoveryMultiplier = L`.
  */
-export function computeActivityDurationSeconds(activity: ActivityDurationFacts): number {
+export function computeActivityDurationSeconds(
+  activity: ActivityDurationFacts,
+  sideMultiplierValue: number = 1,
+  recoveryMultiplier: number = 1,
+): number {
   // Chemin défensif : ancienne Activité `RECOVERY` autonome (D-041), que
   // `migration004` a convertie et supprimée — plus jamais produite par le
   // Domaine, conservée ici pour ne pas mal calculer une donnée inattendue.
+  // Une Récupération n'est jamais elle-même côtée (D-041) : aucun
+  // multiplicateur ne s'y applique.
   if (activity.type === "RECOVERY") {
     return activity.durationSeconds ?? 0;
   }
@@ -133,11 +165,11 @@ export function computeActivityDurationSeconds(activity: ActivityDurationFacts):
   const targetSeconds = isLowerBoundExecutionMode(activity.executionMode)
     ? 0
     : seriesCount * (activity.durationSeconds ?? 0);
-  return (
-    targetSeconds +
-    computePauseOccurrences(seriesCount, activity.recoverySeconds) * activity.pauseSeconds +
-    activity.recoverySeconds
-  );
+  const perPassSeconds =
+    targetSeconds + computePauseOccurrences(seriesCount, activity.recoverySeconds) * activity.pauseSeconds;
+  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
+  const R = recoveryMultiplier > 0 ? recoveryMultiplier : 1;
+  return perPassSeconds * L + activity.recoverySeconds * R;
 }
 
 /**
@@ -168,14 +200,24 @@ export const SERIES_COUNT_MAX = 99;
  *
  * Voir `computePauseOccurrences` — la Récupération remplace la dernière
  * Pause, elle ne s'y ajoute jamais.
+ *
+ * **V2-BILAT-01** — formule « autonome » du plan (`D = L × [C × A +
+ * occurrences × B] + R`) : `sideMultiplierValue` (`L`, défaut `1`,
+ * comportement T02-S02 inchangé) multiplie la part Séries + Pauses ; la
+ * Récupération reste ajoutée une seule fois, jamais multipliée — cette
+ * occurrence est toujours celle d'UNE Activité isolée (`ExerciseScreen`),
+ * jamais celle, gouvernée par le Tour, de `computeZoneDurationFacts`.
  */
 export function computeTotalDurationSeconds(
   seriesCount: number,
   facts: TotalDurationFacts,
+  sideMultiplierValue: number = 1,
 ): number {
+  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
   return (
-    seriesCount * facts.durationSeconds +
-    computePauseOccurrences(seriesCount, facts.recoverySeconds) * facts.pauseSeconds +
+    (seriesCount * facts.durationSeconds +
+      computePauseOccurrences(seriesCount, facts.recoverySeconds) * facts.pauseSeconds) *
+      L +
     facts.recoverySeconds
   );
 }
@@ -202,20 +244,29 @@ export function computeTotalDurationSeconds(
  * `A + B === 0` est impossible depuis l'interface (la durée d'une Série est
  * bornée `1..5999`, `validation.ts`) ; le garde retourne néanmoins le minimum
  * plutôt que `NaN`/`Infinity`.
+ *
+ * **V2-BILAT-01** — inverse EXACT de la formule directe étendue par `L`
+ * (plan `## Calculs`, `Cth = ((D − R) / L + B) / (A + B)` pour la branche
+ * `R > 0` ; `R = 0` : `D = L × C × (A+B)` donc `Cth = D / (L × (A+B))`) —
+ * `sideMultiplierValue` défaut `1`, comportement T02-S02 inchangé.
  */
 export function computeSeriesCountForTotalDuration(
   targetTotalSeconds: number,
   facts: TotalDurationFacts,
+  sideMultiplierValue: number = 1,
 ): number {
+  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
   const denominator = facts.durationSeconds + facts.pauseSeconds;
   if (denominator <= 0) {
     return SERIES_COUNT_MIN;
   }
-  const numerator =
+  const rounded =
     facts.recoverySeconds > 0
-      ? targetTotalSeconds - facts.recoverySeconds + facts.pauseSeconds
-      : targetTotalSeconds;
-  const rounded = Math.floor(numerator / denominator + 0.5);
+      ? Math.floor(
+          ((targetTotalSeconds - facts.recoverySeconds) / L + facts.pauseSeconds) / denominator +
+            0.5,
+        )
+      : Math.floor(targetTotalSeconds / (L * denominator) + 0.5);
   if (rounded < SERIES_COUNT_MIN) {
     return SERIES_COUNT_MIN;
   }
@@ -248,9 +299,14 @@ export type AdjustedTotalDuration = {
 export function applyTargetTotalDuration(
   targetTotalSeconds: number,
   facts: TotalDurationFacts,
+  sideMultiplierValue: number = 1,
 ): AdjustedTotalDuration {
-  const seriesCount = computeSeriesCountForTotalDuration(targetTotalSeconds, facts);
-  const totalDurationSeconds = computeTotalDurationSeconds(seriesCount, facts);
+  const seriesCount = computeSeriesCountForTotalDuration(
+    targetTotalSeconds,
+    facts,
+    sideMultiplierValue,
+  );
+  const totalDurationSeconds = computeTotalDurationSeconds(seriesCount, facts, sideMultiplierValue);
   return {
     seriesCount,
     totalDurationSeconds,
@@ -337,28 +393,57 @@ export type ZoneDurationFacts = {
  * (`SessionDraftExercise`) — partage exactement cette implémentation plutôt
  * que d'en réécrire une boucle équivalente
  * (`compositionPresentation.ts`, parité domaine/présentation testée).
+ *
+ * **V2-BILAT-01** — `contextSideMode` (défaut `UNILATERAL`, comportement
+ * antérieur inchangé) est la direction du TOUR lorsque `activities` en
+ * décrit le contenu `IN_TOUR` — omis (ou `UNILATERAL`) pour une zone
+ * `BEFORE_TOUR`/`AFTER_TOUR`, jamais gouvernée par un Tour.
+ *
+ * Pour chaque Activité, la direction EFFECTIVE (`resolveEffectiveSideMode`)
+ * détermine son propre multiplicateur `Li` (`sideMultiplier`). La
+ * Récupération, elle, n'est multipliée que lorsque c'est le TOUR LUI-MÊME
+ * qui est bilatéral (`contextSideMode !== "UNILATERAL"`, auquel cas
+ * `resolveEffectiveSideMode` retourne systématiquement `contextSideMode`
+ * pour toute Activité de la collection) — « Tour bilatéral : … `Ri` est
+ * comptée une fois par passage de côté » ; sinon (Tour unilatéral, ou zone
+ * hors Tour), chaque Récupération reste comptée une seule fois, même pour
+ * une Activité bilatérale (« Tour unilatéral + Activité bilatérale : … `Ri`
+ * est comptée une seule fois après ses deux côtés »).
  */
 export function computeZoneDurationFacts(
   activities: readonly ActivityDurationFacts[],
+  contextSideMode: SideMode = "UNILATERAL",
 ): ZoneDurationFacts {
+  const recoveryMultiplier = sideMultiplier(contextSideMode);
   let seconds = 0;
   let isLowerBoundEstimate = false;
   for (const activity of activities) {
     if (activity.type === "EXERCISE" && isLowerBoundExecutionMode(activity.executionMode)) {
       isLowerBoundEstimate = true;
     }
-    seconds += computeActivityDurationSeconds(activity);
+    const effectiveSideMode = resolveEffectiveSideMode(
+      activity.sideMode ?? "UNILATERAL",
+      contextSideMode,
+    );
+    seconds += computeActivityDurationSeconds(
+      activity,
+      sideMultiplier(effectiveSideMode),
+      recoveryMultiplier,
+    );
   }
   return { seconds, isLowerBoundEstimate };
 }
 
-function zoneDurationSeconds(activities: readonly Activity[]): ZoneDurationFacts {
-  return computeZoneDurationFacts(activities);
+function zoneDurationSeconds(
+  activities: readonly Activity[],
+  contextSideMode?: SideMode,
+): ZoneDurationFacts {
+  return computeZoneDurationFacts(activities, contextSideMode);
 }
 
 export function toEstimatedDurationFacts(session: Session): EstimatedDurationFacts {
   const beforeTour = zoneDurationSeconds(session.cycle.beforeTour ?? []);
-  const inTour = zoneDurationSeconds(session.cycle.tour.exercises);
+  const inTour = zoneDurationSeconds(session.cycle.tour.exercises, session.cycle.tour.sideMode);
   const afterTour = zoneDurationSeconds(session.cycle.afterTour ?? []);
 
   return {

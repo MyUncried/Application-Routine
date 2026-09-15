@@ -3,8 +3,9 @@ import {
   computeTotalDurationSeconds,
   computeZoneDurationFacts,
 } from "@/domain/sessions/calculations";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT, DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { sideMultiplier, type SideMode } from "@/domain/sessions/sideMode";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
@@ -27,6 +28,13 @@ export type CompositionSummaryFacts = {
    * Activités du Tour ne sont alors multipliées par rien).
    */
   readonly tourRepeatCount?: number;
+  /**
+   * V2-BILAT-01 : direction du Tour, entier optionnel — `DEFAULT_TOUR_SIDE_MODE`
+   * (`UNILATERAL`) par défaut, valeur pour laquelle la synthèse reste
+   * rigoureusement identique à celle d'avant cette tranche (chaque Activité
+   * conserve alors sa propre direction, jamais celle du Tour).
+   */
+  readonly tourSideMode?: SideMode;
 };
 
 /**
@@ -116,7 +124,10 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   // minimale. La parité
   // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
   // par ressemblance de deux implémentations.
-  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
+  const inTourOccurrence = computeZoneDurationFacts(
+    inTourExercises,
+    facts.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
+  );
 
   const totalSeconds = computeEstimatedDurationSeconds({
     beforeTourDurationSeconds: 0,
@@ -155,6 +166,25 @@ export type ExerciseRowSummaryFacts = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number;
   readonly pauseSeconds: number;
+  /**
+   * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
+   * direction PROPRE de l'Activité — champ OPTIONNEL, `UNILATERAL` par
+   * défaut (même convention que les autres champs optionnels de cette
+   * famille de Facts) : un appelant qui ne la transmet pas produit
+   * exactement le résumé d'avant cette tranche.
+   */
+  readonly sideMode?: SideMode;
+  /**
+   * V2-BILAT-01 : `true` lorsque la direction EFFECTIVEMENT appliquée à
+   * cette Activité provient du Tour (Activité `IN_TOUR` d'un Tour bilatéral)
+   * plutôt que de sa propre configuration — jamais dérivé ici à partir de
+   * `structuralPosition`/`tourSideMode` (ce module reste indépendant de la
+   * structure du Tour) : l'appelant (`CompositionScreen.tsx`) le calcule via
+   * `resolveEffectiveSideMode`/la zone structurelle. Aucune clause de
+   * direction n'est jamais affichée pour une direction héritée — « own
+   * bilateral base » exige explicitement une direction PROPRE.
+   */
+  readonly isSideModeInherited?: boolean;
 };
 
 /**
@@ -196,22 +226,40 @@ function formatCountWithUnit(count: number, singular: string, plural: string): s
  * `pauseSeconds === 0` — jamais affichée comme `"avec 0 s de pause"`. La
  * Consigne et les Zones corporelles ne figurent jamais dans ce résumé
  * (demande explicite).
+ *
+ * **V2-BILAT-01 (plan `## UI`, « Composition cards and summaries »)** :
+ * lorsque `facts.sideMode` est bilatéral ET PROPRE à l'Activité (jamais
+ * `facts.isSideModeInherited`), la clause `exerciseRow.perSide` (« par
+ * côté ») s'insère immédiatement après « {N} série(s) », et le suffixe de
+ * direction (`sideDirectionSuffixRightLeft`/`sideDirectionSuffixLeftRight`)
+ * s'ajoute : (1) après la cible (ou après `toFailure`), (2) donc toujours
+ * AVANT la clause de Pause. Une Activité unilatérale ou dont la direction
+ * est héritée d'un Tour bilatéral ne reçoit JAMAIS ces deux ajouts — le
+ * résumé reste alors rigoureusement identique à celui d'avant cette
+ * tranche.
  */
 export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
   const recap = strings.screens.exercise.recap;
 
-  const seriesLabel = formatCountWithUnit(
+  const isOwnBilateral = (facts.sideMode ?? "UNILATERAL") !== "UNILATERAL" && !facts.isSideModeInherited;
+  const directionSuffix = !isOwnBilateral
+    ? ""
+    : facts.sideMode === "RIGHT_LEFT"
+      ? exerciseRow.sideDirectionSuffixRightLeft
+      : exerciseRow.sideDirectionSuffixLeftRight;
+
+  const seriesLabel = `${formatCountWithUnit(
     facts.seriesCount,
     exerciseRow.seriesSingular,
     exerciseRow.seriesPlural,
-  );
+  )}${isOwnBilateral ? ` ${exerciseRow.perSide}` : ""}`;
 
   // T01-S10 (D-111/D-112) : mode « À l'échec » — aucune cible ; le nom n'est
   // jamais répété dans la synthèse compacte. Clause de pause omise à `0 s` ou
   // lorsqu'une seule Série ne crée aucun intervalle.
   if (facts.executionMode === "TO_FAILURE") {
-    const base = `${seriesLabel} ${exerciseRow.toFailure}`;
+    const base = `${seriesLabel} ${exerciseRow.toFailure}${directionSuffix}`;
     if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
       return base;
     }
@@ -227,7 +275,7 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
           exerciseRow.repetitionPlural,
         );
 
-  const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
+  const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}${directionSuffix}`;
 
   if (facts.pauseSeconds <= 0) {
     return base;
@@ -347,10 +395,16 @@ function formatRecoveryClause(recoverySeconds: number): string {
  *   CONDITIONNELLE de `calculations.ts` (`C × B` sans Récupération,
  *   `(C − 1) × B + R` avec) — la valeur DÉRIVÉE, jamais une donnée persistée
  *   (DM-015) ;
- * - modes Répétitions et « À l'échec » : `Durée minimale : ≥ {durée connue}`,
+ * - modes Répétitions et « À l'échec » : `Durée totale : ≥ {durée connue}`,
  *   borne composée des seules parts déterminables — Pauses entre Séries et
  *   Récupération (RM-132). Aucune durée conventionnelle n'est inventée pour
  *   l'Exercice lui-même.
+ *
+ * **V2-BILAT-01 (plan `## Calculs`, BIL-068)** : « le libellé visible reste
+ * `Durée totale` dans les TROIS modes » — remplace l'ancien libellé distinct
+ * `Durée minimale` des modes non chronométrés, supprimé (`fr.ts`). Seul le
+ * préfixe `≥` continue de signaler la borne inférieure ; il n'est jamais
+ * retiré du champ éditeur ni de cette ligne (décision T02-S02 conservée).
  *
  * La même fonction du Domaine (`computeTotalDurationSeconds`) sert les deux
  * cas : en mode non chronométré, `A` vaut `0`, ce qui EST exactement la
@@ -359,15 +413,19 @@ function formatRecoveryClause(recoverySeconds: number): string {
 export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string {
   const exercise = strings.screens.exercise;
   const isLowerBound = facts.executionMode !== "DURATION";
-  const totalSeconds = computeTotalDurationSeconds(facts.seriesCount, {
-    durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
-    pauseSeconds: facts.pauseSeconds,
-    recoverySeconds: facts.recoverySeconds ?? 0,
-  });
+  const totalSeconds = computeTotalDurationSeconds(
+    facts.seriesCount,
+    {
+      durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
+      pauseSeconds: facts.pauseSeconds,
+      recoverySeconds: facts.recoverySeconds ?? 0,
+    },
+    sideMultiplier(facts.sideMode ?? "UNILATERAL"),
+  );
   const formatted = formatCompactDuration(totalSeconds);
 
   return isLowerBound
-    ? `${exercise.recap.minimumDurationLabel} : ≥ ${formatted}`
+    ? `${exercise.recap.totalDurationLabel} : ≥ ${formatted}`
     : `${exercise.recap.totalDurationLabel} : ${formatted}`;
 }
 

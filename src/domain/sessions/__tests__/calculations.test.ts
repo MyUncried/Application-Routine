@@ -590,4 +590,170 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
     });
     expect(toEstimatedDurationFacts(session).isLowerBoundEstimate).toBe(true);
   });
+
+  /**
+   * V2-BILAT-01 : `Session.cycle.tour.sideMode` gouverne la zone `IN_TOUR`
+   * uniquement — `BEFORE_TOUR`/`AFTER_TOUR` utilisent toujours leur propre
+   * direction, jamais celle du Tour.
+   */
+  it("multiplies only the IN_TOUR zone by the Tour's own bilateral direction — BEFORE/AFTER keep using their own side", () => {
+    const session = aSession(
+      [anActivity({ id: "core", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 })],
+      {
+        beforeTour: [
+          anActivity({
+            id: "warmup",
+            durationSeconds: 10,
+            structuralPosition: "BEFORE_TOUR",
+            sideMode: "RIGHT_LEFT",
+          }),
+        ],
+        tour: {
+          id: "tour-1",
+          position: 1,
+          repeatCount: 1,
+          sideMode: "LEFT_RIGHT",
+          exercises: [anActivity({ id: "core", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 })],
+        },
+      },
+    );
+    // BEFORE_TOUR : direction propre `RIGHT_LEFT`, `Li = 2` → 10 × 2 = 20.
+    // IN_TOUR : direction du Tour `LEFT_RIGHT` prévaut → 20 × 2 = 40.
+    expect(toEstimatedDurationFacts(session)).toMatchObject({
+      beforeTourDurationSeconds: 20,
+      inTourDurationSeconds: 40,
+    });
+  });
+});
+
+/**
+ * V2-BILAT-01 (plan `## Calculs`) — les trois scénarios canoniques de
+ * `computeZoneDurationFacts`, `contextSideMode` étant la direction du Tour
+ * lui-même (`UNILATERAL` par défaut pour une zone hors Tour).
+ */
+describe("computeZoneDurationFacts — V2-BILAT-01 side mode", () => {
+  function activity(overrides: Partial<ActivityDurationFacts> = {}): ActivityDurationFacts {
+    return {
+      type: "EXERCISE",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      seriesCount: 2,
+      pauseSeconds: 5,
+      recoverySeconds: 20,
+      sideMode: "UNILATERAL",
+      ...overrides,
+    };
+  }
+
+  it("Tour et Activité unilatéraux : Li = 1, aucun changement par rapport à T02-S02", () => {
+    // 2×30 + 1×5 + 20 = 85 (formule T02-S02, L = 1).
+    expect(computeZoneDurationFacts([activity()], "UNILATERAL")).toEqual({
+      seconds: 85,
+      isLowerBoundEstimate: false,
+    });
+  });
+
+  it("Tour unilatéral + Activité bilatérale : Li = 2 pour cette Activité, Ri comptée une seule fois après ses deux côtés", () => {
+    // perPass = 2×30 + 1×5 = 65 ; × L(2) = 130 ; + R(20, jamais doublée) = 150.
+    expect(
+      computeZoneDurationFacts([activity({ sideMode: "RIGHT_LEFT" })], "UNILATERAL"),
+    ).toEqual({ seconds: 150, isLowerBoundEstimate: false });
+  });
+
+  it("Tour bilatéral : la direction du Tour prévaut pour toute Activité IN_TOUR, Ri comptée une fois par passage de côté", () => {
+    // Le Tour est bilatéral : chaque Activité — même déjà remise
+    // UNILATERAL par la transition atomique — prend Li = 2 ; la
+    // Récupération est ELLE AUSSI doublée (un passage par côté).
+    // perPass = 65 ; × 2 = 130 ; + R(20) × 2 = 40 → 170.
+    expect(
+      computeZoneDurationFacts([activity({ sideMode: "UNILATERAL" })], "RIGHT_LEFT"),
+    ).toEqual({ seconds: 170, isLowerBoundEstimate: false });
+  });
+
+  it("Tour bilatéral : la direction du Tour prévaut même si l'Activité porte encore une direction propre différente", () => {
+    // Même résultat que ci-dessus : la direction propre de l'Activité
+    // (ici encore `LEFT_RIGHT`) est sans effet dès que le Tour est
+    // bilatéral — jamais un double multiplicateur.
+    expect(
+      computeZoneDurationFacts([activity({ sideMode: "LEFT_RIGHT" })], "RIGHT_LEFT"),
+    ).toEqual({ seconds: 170, isLowerBoundEstimate: false });
+  });
+
+  it("never applies a double multiplier: Tour and Activity both bilateral never yields a factor greater than 2", () => {
+    const bilateralTour = computeZoneDurationFacts(
+      [activity({ sideMode: "RIGHT_LEFT" })],
+      "RIGHT_LEFT",
+    ).seconds;
+    const unilateralTour = computeZoneDurationFacts(
+      [activity({ sideMode: "RIGHT_LEFT" })],
+      "UNILATERAL",
+    ).seconds;
+    // Le Tour bilatéral double AUSSI la Récupération (170), l'Activité
+    // bilatérale seule ne double que la part Séries + Pauses (150) — les
+    // deux restent strictement inférieurs à un double comptage naïf
+    // (`2 × 150 = 300`), preuve qu'aucun double multiplicateur n'est
+    // jamais appliqué.
+    expect(bilateralTour).toBe(170);
+    expect(unilateralTour).toBe(150);
+    expect(bilateralTour).toBeLessThan(2 * unilateralTour);
+  });
+
+  it("treats a Facts item with no sideMode field as UNILATERAL — non-regression for every caller predating this tranche", () => {
+    const legacyFacts: ActivityDurationFacts = {
+      type: "EXERCISE",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      seriesCount: 2,
+      pauseSeconds: 5,
+      recoverySeconds: 20,
+    };
+    expect(computeZoneDurationFacts([legacyFacts])).toEqual({ seconds: 85, isLowerBoundEstimate: false });
+  });
+});
+
+/**
+ * V2-BILAT-01 — formule « autonome » (`D = L × [C × A + occurrences × B] +
+ * R`) : une occurrence d'Activité isolée (`ExerciseScreen`), la Récupération
+ * n'est jamais multipliée.
+ */
+describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode", () => {
+  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 0 };
+  const facts20R: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 20 };
+
+  it("multiplies the Series + Pauses part by L, without ever multiplying the Récupération (R = 0 branch)", () => {
+    // Sans multiplicateur : 3 × 30 + 3 × 10 = 120 (T02-S02, inchangé).
+    expect(computeTotalDurationSeconds(3, facts, 1)).toBe(120);
+    // Bilatéral : (3 × 30 + 3 × 10) × 2 = 240.
+    expect(computeTotalDurationSeconds(3, facts, 2)).toBe(240);
+  });
+
+  it("multiplies the Series + Pauses part by L, R staying outside (R > 0 branch)", () => {
+    // Sans multiplicateur : 3 × 30 + 2 × 10 + 20 = 130 (T02-S02, inchangé).
+    expect(computeTotalDurationSeconds(3, facts20R, 1)).toBe(130);
+    // Bilatéral : (3 × 30 + 2 × 10) × 2 + 20 = 240.
+    expect(computeTotalDurationSeconds(3, facts20R, 2)).toBe(240);
+  });
+
+  it("defaults L to 1 — non-regression for every caller predating this tranche", () => {
+    expect(computeTotalDurationSeconds(3, facts)).toBe(120);
+  });
+
+  it("inverts exactly the bilateral formula, in both branches", () => {
+    for (const seriesCount of [1, 2, 5, 12, 99]) {
+      const withoutRecovery = computeTotalDurationSeconds(seriesCount, facts, 2);
+      expect(computeSeriesCountForTotalDuration(withoutRecovery, facts, 2)).toBe(seriesCount);
+
+      const withRecovery = computeTotalDurationSeconds(seriesCount, facts20R, 2);
+      expect(computeSeriesCountForTotalDuration(withRecovery, facts20R, 2)).toBe(seriesCount);
+    }
+  });
+
+  it("applyTargetTotalDuration propagates the side multiplier to both the inverse and the recomputed duration", () => {
+    // Cible atteignable exactement : 3 Séries bilatérales, `(3×30+3×10)×2 = 240`.
+    expect(applyTargetTotalDuration(240, facts, 2)).toEqual({
+      seriesCount: 3,
+      totalDurationSeconds: 240,
+      wasAdjusted: false,
+    });
+  });
 });

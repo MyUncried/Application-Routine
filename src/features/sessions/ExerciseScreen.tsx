@@ -13,6 +13,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_REPETITION_COUNT,
+  DEFAULT_TOUR_SIDE_MODE,
 } from "@/domain/sessions/defaults";
 import {
   createExerciseDraft,
@@ -20,6 +21,7 @@ import {
   type SessionDraftExercise,
   type SessionDraftExerciseExecutionMode,
 } from "@/domain/sessions/SessionDraft";
+import { sideMultiplier } from "@/domain/sessions/sideMode";
 import {
   INSTRUCTION_MAX_LENGTH,
   NAME_MAX_LENGTH,
@@ -39,6 +41,7 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SideModeControl } from "@/features/sessions/SideModeControl";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import {
@@ -274,7 +277,11 @@ export function ExerciseScreen() {
    */
   function handleTotalDurationConfirmed(targetTotalSeconds: number) {
     const previousSeriesCount = local.seriesCount;
-    const adjusted = applyTargetTotalDuration(targetTotalSeconds, totalDurationFacts(local));
+    const adjusted = applyTargetTotalDuration(
+      targetTotalSeconds,
+      totalDurationFacts(local),
+      sideMultiplier(local.sideMode),
+    );
     patchLocal({ seriesCount: adjusted.seriesCount });
     closeOverlay();
     if (adjusted.wasAdjusted) {
@@ -341,10 +348,12 @@ export function ExerciseScreen() {
     seriesCount: local.seriesCount,
     pauseSeconds: local.pauseSeconds,
     recoverySeconds: local.recoverySeconds,
+    sideMode: local.sideMode,
   };
   const totalDurationSeconds = computeTotalDurationSeconds(
     local.seriesCount,
     totalDurationFacts(local),
+    sideMultiplier(local.sideMode),
   );
   const formattedTotalDuration = formatDurationRowValue(
     totalDurationSeconds,
@@ -359,6 +368,21 @@ export function ExerciseScreen() {
    * peuvent donc pas diverger.
    */
   const isTotalDurationDriveable = local.executionMode === "DURATION";
+
+  /**
+   * V2-BILAT-01 (plan `## UI`) : le contrôle `Côté` est désactivé — la
+   * direction propre de l'Activité devient sans effet — pour une Activité
+   * `IN_TOUR` gouvernée par un Tour déjà bilatéral. Le nom accessible
+   * complet APPEND alors exactement le suffixe publié par le plan, jamais
+   * une reformulation locale.
+   */
+  const sideModeStrings = strings.shared.sideMode;
+  const isSideModeInherited =
+    local.structuralPosition === "IN_TOUR" &&
+    (draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) !== "UNILATERAL";
+  const sideModeAccessibilityLabel = isSideModeInherited
+    ? `${sideModeStrings.activity.accessibilityLabels[local.sideMode]} — ${sideModeStrings.activity.inheritedAccessibilitySuffix}`
+    : sideModeStrings.activity.accessibilityLabels[local.sideMode];
 
   return (
     <ScreenShell>
@@ -502,10 +526,13 @@ export function ExerciseScreen() {
              * de l'activité` (supprimé, D-137) :
              * - rangée 1 : `Séries`, puis le paramètre du mode
              *   (`Durée`/`Répétitions`/badge « À l'échec »), puis `Pause` ;
-             * - rangée 2 : `Récupération` sous le paramètre de mode, puis
-             *   `Durée totale` sous `Pause` — l'alignement en colonnes est
-             *   obtenu par une CALE de la largeur de `Séries`, jamais par des
-             *   largeurs de colonne différentes entre les deux rangées.
+             * - rangée 2 : `Côté` sous `Séries` (V2-BILAT-01, plan `## UI` —
+             *   « ligne 2, colonne 1, sous Séries »), `Récupération` sous le
+             *   paramètre de mode, puis `Durée totale` sous `Pause` —
+             *   l'alignement en colonnes est obtenu par la largeur PARTAGÉE
+             *   de la colonne `Séries`/`Côté` (`narrowColumnWidth`), jamais
+             *   par des largeurs de colonne différentes entre les deux
+             *   rangées.
              */}
             <View style={styles.parameterCard} testID="exercise-parameter-card">
               <View style={styles.parameterRow} testID="exercise-parameter-row">
@@ -565,15 +592,27 @@ export function ExerciseScreen() {
 
               <View style={styles.parameterRow} testID="exercise-parameter-row-secondary">
                 {/*
-                 * Cale de la largeur EXACTE de la colonne `Séries` : elle
-                 * décale la seconde rangée d'une colonne, ce qui place
-                 * `Récupération` sous le contrôle `Durée`/`Répétitions` et
-                 * `Durée totale` sous `Pause`. Purement structurelle —
-                 * aucun contenu, aucun rôle d'accessibilité.
+                 * V2-BILAT-01 (plan `## UI`) : contrôle `Côté`, ligne 2/
+                 * colonne 1 — directement SOUS `Séries`, dans les TROIS
+                 * modes d'exécution (hors de tout bloc conditionnel de
+                 * mode). Remplace l'ancienne cale purement structurelle de
+                 * cette colonne — même largeur (`narrowColumnWidth`), la
+                 * grille de colonnes reste donc inchangée. Désactivé, et
+                 * proprement `UNILATERAL`, pour une Activité `IN_TOUR`
+                 * gouvernée par un Tour déjà bilatéral (le brouillon l'y a
+                 * déjà remise par `applyTourSideModeTransition` au moment
+                 * de l'activation, jamais restaurée) — la direction du Tour
+                 * prévaut alors, la direction propre de cette Activité
+                 * resterait sans effet si le contrôle l'autorisait ; le nom
+                 * accessible l'annonce alors explicitement.
                  */}
-                <View
-                  style={styles.parameterRowLeadingSpacer}
-                  testID="exercise-parameter-row-spacer"
+                <SideModeControl
+                  value={local.sideMode}
+                  onChange={(next) => patchLocal({ sideMode: next })}
+                  title={sideModeStrings.activity.label}
+                  accessibilityLabel={sideModeAccessibilityLabel}
+                  disabled={isSideModeInherited}
+                  testID="exercise-side-mode"
                 />
                 <ParameterField
                   testID="exercise-field-recoverySeconds"
@@ -892,7 +931,7 @@ function CollapsibleSection({
  * moteur de texte, jamais présumée. Un `Text` VIDE, lui, peut se réduire à
  * une hauteur nulle.
  */
-const LABEL_PLACEHOLDER = " ";
+const LABEL_PLACEHOLDER = " ";
 
 /**
  * Complément vertical portant la cible tactile d'un contrôle de paramètre de
@@ -1192,15 +1231,6 @@ const styles = StyleSheet.create({
     width: dimensions.exerciseParameterRow.rowWidth,
     height: dimensions.exerciseParameterRow.rowHeight,
     gap: dimensions.exerciseParameterRow.columnGap,
-  },
-  // T02-S02 (continuation) : cale de la seconde rangée, de la largeur EXACTE
-  // de la colonne `Séries`. Elle aligne `Récupération` sous le contrôle du
-  // mode (`Durée`/`Répétitions`) et `Durée totale` sous `Pause`. Exprimée en
-  // cale plutôt qu'en `justifyContent: "flex-end"` : la rangée conserve ainsi
-  // exactement la même grille de colonnes que la première, y compris son
-  // `columnGap`.
-  parameterRowLeadingSpacer: {
-    width: dimensions.exerciseParameterRow.narrowColumnWidth,
   },
   parameterLabel: {
     ...type.parameterColumnLabel,

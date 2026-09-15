@@ -927,6 +927,9 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
  * TOTALE en mode Durée (valeur exacte, RM-129), une BORNE MINIMALE dans les
  * modes non chronométrés (RM-132). Jamais une donnée persistée
  * (DM-015/DM-016) : toujours recalculée depuis les paramètres affichés.
+ *
+ * V2-BILAT-01 (BIL-068) : le libellé visible reste `Durée totale` dans les
+ * trois modes — le préfixe `≥` reste le seul signal de la borne inférieure.
  */
 describe("formatExerciseDurationLine (T02-S02)", () => {
   it("shows the exact total in Durée mode, applying the conditional canonical formula", () => {
@@ -957,7 +960,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         recoverySeconds: 25,
       }),
       // Récupération présente : 3×10 + 25 = 55 s.
-    ).toBe("Durée minimale : ≥ 55 s");
+    ).toBe("Durée totale : ≥ 55 s");
   });
 
   it("counts the pause after EVERY series when no Récupération replaces the last one", () => {
@@ -973,7 +976,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
       }),
       // 4 × 10 = 40 s — une Pause de plus que la variante avec Récupération
       // ci-dessus, exactement celle que la Récupération remplaçait.
-    ).toBe("Durée minimale : ≥ 40 s");
+    ).toBe("Durée totale : ≥ 40 s");
   });
 
   it("shows a '≥' lower bound in À l'échec mode as well (D-112)", () => {
@@ -988,7 +991,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         recoverySeconds: 0,
       }),
       // Aucune Récupération : la Pause suit CHAQUE Série — 2 × 30 = 60 s.
-    ).toBe("Durée minimale : ≥ 1 min");
+    ).toBe("Durée totale : ≥ 1 min");
   });
 
   it("never invents a conventional duration for the Exercise itself in a non-timed mode", () => {
@@ -1091,5 +1094,160 @@ describe("formatExerciseBodyZones", () => {
     expect(formatExerciseBodyZones(all)).toBe(
       "Cou · Épaules · Bras · Poignets et mains · Dos · Hanches et bassin · Cuisses · Genoux · Jambes · Chevilles et pieds",
     );
+  });
+});
+
+describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duration line", () => {
+  describe("formatCompositionSummary — tourSideMode", () => {
+    it("is unaffected by tourSideMode when every Activity stays UNILATERAL (non-regression)", () => {
+      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
+        formatCompositionSummary({ exercises }),
+      );
+    });
+
+    it("doubles the Tour occurrence duration when the Tour itself is bilateral", () => {
+      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      // Unilatéral : 45 s -> ceil(45/60) = 1 min. Bilatéral : 90 s -> 2 min.
+      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
+        "1 activité · 1 min",
+      );
+      expect(formatCompositionSummary({ exercises, tourSideMode: "RIGHT_LEFT" })).toBe(
+        "1 activité · 2 min",
+      );
+    });
+
+    it("never multiplies the displayed count by the side mode — only the duration", () => {
+      const exercises = [
+        { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
+        { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
+      ];
+      const summary = formatCompositionSummary({ exercises, tourSideMode: "LEFT_RIGHT" });
+      expect(summary.startsWith("2 activités")).toBe(true);
+    });
+  });
+
+  describe("formatExerciseDurationLine — sideMode (autonome, jamais la Récupération)", () => {
+    it("is unaffected by an UNILATERAL side mode (non-regression)", () => {
+      const facts = {
+        name: "Gainage",
+        executionMode: "DURATION" as const,
+        durationSeconds: 30,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        recoverySeconds: 20,
+      };
+      expect(formatExerciseDurationLine({ ...facts, sideMode: "UNILATERAL" })).toBe(
+        formatExerciseDurationLine(facts),
+      );
+    });
+
+    it("doubles the Series + Pauses part but never the Récupération", () => {
+      // 3×30 + 2×15 = 120 ; × 2 = 240 ; + 20 (jamais doublée) = 260 s.
+      expect(
+        formatExerciseDurationLine({
+          name: "Gainage",
+          executionMode: "DURATION",
+          durationSeconds: 30,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+          recoverySeconds: 20,
+          sideMode: "RIGHT_LEFT",
+        }),
+      ).toBe("Durée totale : 4 min 20 s");
+    });
+  });
+
+  describe("formatExerciseRowSummary — direction clause (plan `## UI`, « Composition cards and summaries »)", () => {
+    it("mode Durée, direction PROPRE RIGHT_LEFT : « par côté » après {N} série(s), suffixe après la cible, avant la Pause", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "DURATION",
+          durationSeconds: 90,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+          sideMode: "RIGHT_LEFT",
+        }),
+      ).toBe("3 séries par côté de 1 min 30 s, à droite, puis à gauche avec 15 s de pause par série");
+    });
+
+    it("mode Répétitions, direction PROPRE LEFT_RIGHT : suffixe exact « , à gauche, puis à droite »", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "REPETITIONS",
+          durationSeconds: null,
+          repetitionCount: 12,
+          seriesCount: 3,
+          pauseSeconds: 0,
+          sideMode: "LEFT_RIGHT",
+        }),
+      ).toBe("3 séries par côté de 12 répétitions, à gauche, puis à droite");
+    });
+
+    it("mode À l'échec, direction PROPRE RIGHT_LEFT : suffixe après `jusqu'à l'échec`, avant la Pause", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+          sideMode: "RIGHT_LEFT",
+        }),
+      ).toBe("3 séries par côté jusqu’à l’échec, à droite, puis à gauche, avec 15 s de pause entre les séries");
+    });
+
+    it("mode À l'échec sans Pause affichée : le suffixe de direction reste affiché", () => {
+      expect(
+        formatExerciseRowSummary({
+          executionMode: "TO_FAILURE",
+          durationSeconds: null,
+          repetitionCount: null,
+          seriesCount: 1,
+          pauseSeconds: 30,
+          sideMode: "LEFT_RIGHT",
+        }),
+      ).toBe("1 série par côté jusqu’à l’échec, à gauche, puis à droite");
+    });
+
+    it("Activité unilatérale (sideMode omis ou UNILATERAL) : aucune clause « par côté » ni suffixe — non-régression exacte", () => {
+      const facts = {
+        executionMode: "DURATION" as const,
+        durationSeconds: 90,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 15,
+      };
+      expect(formatExerciseRowSummary(facts)).toBe(formatExerciseRowSummary({ ...facts, sideMode: "UNILATERAL" }));
+      expect(formatExerciseRowSummary(facts)).not.toContain("par côté");
+      expect(formatExerciseRowSummary(facts)).not.toContain("à droite");
+      expect(formatExerciseRowSummary(facts)).not.toContain("à gauche");
+    });
+
+    it("direction bilatérale HÉRITÉE du Tour (`isSideModeInherited`) : aucune clause, comme une Activité unilatérale", () => {
+      const inherited = formatExerciseRowSummary({
+        executionMode: "DURATION",
+        durationSeconds: 90,
+        repetitionCount: null,
+        seriesCount: 3,
+        pauseSeconds: 15,
+        sideMode: "RIGHT_LEFT",
+        isSideModeInherited: true,
+      });
+      expect(inherited).toBe(
+        formatExerciseRowSummary({
+          executionMode: "DURATION",
+          durationSeconds: 90,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 15,
+        }),
+      );
+      expect(inherited).not.toContain("par côté");
+      expect(inherited).not.toContain("à droite");
+    });
   });
 });
