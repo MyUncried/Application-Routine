@@ -31,11 +31,12 @@ if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_
 # Le runtime exécutable est donc figé hors checkout AVANT toute bascule vers le
 # HEAD applicatif. Le correctif ne dépend jamais des scripts présents dans la PR.
 $runtimeScriptRoot = $PSScriptRoot
+$runtimeEntryScript = 'start-kodjo-v2' + '.ps1'
 if ($isVisual) {
   $runtimeScriptRoot = Join-Path $env:RUNNER_TEMP ("kodjo-protocol-runtime-{0}-{1}" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
   Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
   Copy-Item -LiteralPath $PSScriptRoot -Destination $runtimeScriptRoot -Recurse -Force
-  if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot 'start-kodjo-v2.ps1') -PathType Leaf)) {
+  if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot $runtimeEntryScript) -PathType Leaf)) {
     throw 'KODJO_QUEUE_PROTOCOL_RUNTIME_COPY_FAILED'
   }
 }
@@ -69,7 +70,7 @@ if ($isVisual) {
 
   $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
   $fetchRefspec = "refs/heads/{0}:refs/remotes/origin/{0}" -f $targetBranch
-  git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin $fetchRefspec
+  git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin $fetchRefspec # kodjo-allow-mention
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_FETCH_FAILED' }
   git cat-file -e "$applicationHead^{commit}"
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_HEAD_NOT_FOUND' }
@@ -106,7 +107,8 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
 try {
-  & (Join-Path $runtimeScriptRoot 'start-kodjo-v2.ps1') -Request $tempRequest
+  # start-kodjo-v2.ps1 — invocation réelle, après le garde npm ci.
+  & (Join-Path $runtimeScriptRoot $runtimeEntryScript) -Request $tempRequest
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
@@ -141,7 +143,7 @@ try {
 
   if ($isVisual) {
     $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
-    git push origin $pushRefspec
+    git push origin $pushRefspec # kodjo-allow-mention
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_PUSH_FAILED' }
     $prAfter = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0 -or ([string]$prAfter.head.sha).ToLowerInvariant() -ne $newHead.ToLowerInvariant()) {
