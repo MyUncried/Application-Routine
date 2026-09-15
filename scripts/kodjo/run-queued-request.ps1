@@ -22,8 +22,6 @@ if ($isVisual -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_
 $githubToken = $env:GH_TOKEN
 if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
 
-# Le HEAD protocolaire reste la borne d'autorisation, distincte du HEAD applicatif
-# d'une correction visuelle. Il doit appartenir à l'historique du checkout main.
 git cat-file -e "$($queue.source_head)^{commit}"
 if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_SOURCE_NOT_FOUND' }
 $reachable = @(git rev-list HEAD)
@@ -49,8 +47,6 @@ if ($isVisual) {
   $applicationHead = ([string]$target.application_head).ToLowerInvariant()
   if ($applicationHead -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_QUEUE_APPLICATION_HEAD_REFUSED' }
 
-  # Vérification GitHub réelle avant toute invocation Claude : PR ouverte, branche
-  # et HEAD exacts. Un mouvement concurrent de la PR bloque le correctif.
   $pr = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" | ConvertFrom-Json
   if ($LASTEXITCODE -ne 0 -or $null -eq $pr) { throw 'KODJO_QUEUE_APPLICATION_PR_UNREADABLE' }
   if ([string]$pr.state -ne 'open') { throw 'KODJO_QUEUE_APPLICATION_PR_NOT_OPEN' }
@@ -58,10 +54,9 @@ if ($isVisual) {
   if ([string]$pr.head.ref -ne $targetBranch) { throw 'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH' }
   if (([string]$pr.head.sha).ToLowerInvariant() -ne $applicationHead) { throw 'KODJO_QUEUE_APPLICATION_HEAD_MOVED' }
 
-  # Le checkout initial n'a que main. Le fetch privé est ponctuel, borné à la
-  # branche certifiée et authentifié sans persister le credential dans Git.
   $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
-  git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin "refs/heads/$targetBranch`:refs/remotes/origin/$targetBranch"
+  $fetchRefspec = "refs/heads/{0}:refs/remotes/origin/{0}" -f $targetBranch
+  git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin $fetchRefspec
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_FETCH_FAILED' }
   git cat-file -e "$applicationHead^{commit}"
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_HEAD_NOT_FOUND' }
@@ -77,8 +72,6 @@ if ($isVisual) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 }
 
-# KV2-19 : les dépendances sont installées APRES la bascule sur le HEAD exact
-# effectivement exécuté (HEAD applicatif pour VISUAL_CORRECTION).
 if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType Leaf) {
   $beforeDeps = @(git status --porcelain=v2 -z --untracked-files=all)
   $npmStartedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
@@ -117,8 +110,6 @@ try {
 
   git reset --quiet
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_INDEX_RESET_FAILED' }
-  # Les octets produits sont opposables. Neutraliser toute normalisation Windows
-  # au staging et considérer CR comme partie du terminateur CRLF au diff-check.
   git -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_ADD_FAILED' }
   & node (Join-Path $PSScriptRoot 'verify-staged-scope.js') $publishPathspec
@@ -136,9 +127,8 @@ try {
   $newHead = (git rev-parse HEAD).Trim()
 
   if ($isVisual) {
-    # Push non forcé vers la branche certifiée : si un tiers l'a avancée après le
-    # gate initial, Git refuse le non-fast-forward et aucune écriture n'est perdue.
-    git push origin "HEAD`:refs/heads/$targetBranch"
+    $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
+    git push origin $pushRefspec
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_PUSH_FAILED' }
     $prAfter = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0 -or ([string]$prAfter.head.sha).ToLowerInvariant() -ne $newHead.ToLowerInvariant()) {
