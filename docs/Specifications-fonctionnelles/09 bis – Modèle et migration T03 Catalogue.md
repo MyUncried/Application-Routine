@@ -1,6 +1,6 @@
 # Modèle et migration T03 — Catalogue des activités
 
-Ce complément précise les impacts de T03 sur le modèle de données et les services. Il complète les chapitres 09, 11 et 12 sans modifier le périmètre des contrats d’écran.
+Ce complément précise les impacts de T03 sur le modèle de données, les services et l’architecture. Il complète les chapitres 09, 11 et 12 sans modifier le périmètre des contrats d’écran. **Pour le périmètre T03, toute formulation antérieure de ces chapitres qui classerait `ActivityDefinition`, l’origine `ACTIVITY`, l’Exécution directe ou leur migration en V2 est supersédée par ce document et par D-167 à D-183.** Les formulations restant relatives aux médias multiples et aux Circuits conservent leur caractère post-MVP.
 
 ## ActivityDefinition et SessionActivity
 
