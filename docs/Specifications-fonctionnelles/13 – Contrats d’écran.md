@@ -1355,7 +1355,7 @@ Contrat des icônes : `Une nouvelle activité` utilise l’icône `+` DSF valid�
 | Ouvrir une carte existante | `3879:6079` | `Modifier l’activité` | Modifie uniquement l’`ActivityDefinition` ciblée, puis revient au Catalogue des Activités. |
 | Ajouter depuis une Composition | `3542:4656` | `Ajouter une activité` | Crée ou modifie une `SessionActivity` de la Séance et revient à la Composition. |
 
-Ces trois contextes réutilisent les mêmes composants de formulaire. Leur racine persistée et leur destination de retour sont toutefois distinctes. Aucune modification ne se propage entre une `ActivityDefinition` et les `SessionActivity` déjà copiées.
+Ces trois contextes réutilisent les mêmes composants de formulaire. Leur racine persistée et leur destination de retour sont toutefois distinctes. Dans les frames Catalogue, `Terminer` et le Retour à l’état sans changement rejoignent `3786:5093`; en présence de modifications non enregistrées, le dialogue d’abandon du chapitre 06 s’applique avant ce retour. Aucune modification ne se propage entre une `ActivityDefinition` et les `SessionActivity` déjà copiées.
 
 #### Création directe contextualisée — `CE-ACT-EXE-01c`
 
