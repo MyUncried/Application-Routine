@@ -1,1 +1,0 @@
-Source Figma : `3787:5209`. Capture documentaire pérenne référencée depuis `README-T03-FIGMA.md`.
