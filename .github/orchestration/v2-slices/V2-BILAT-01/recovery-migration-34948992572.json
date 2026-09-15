@@ -1,0 +1,64 @@
+{
+  "schema_version": "kodjo.protocol.v2.recovery-migration.0.6.24",
+  "status": "CERTIFIED",
+  "slice_id": "V2-BILAT-01",
+  "source_head": "4c72abe2cb7f72f3629092f7e3da8220a9e305dc",
+  "certified_target_head": "2cc717f6d2101e8b2e01dbfe2f7917bbe5f2eab9",
+  "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
+  "source_run_id": "34948992572",
+  "source_artifact_id": "10389171562",
+  "source_artifact_digest": "sha256:74476bf6ff3a33ab495d183bd7af29dfb241b1a1389182262f9103b830695b26",
+  "session_id": "80daf10b-8c53-4990-af9d-38031814dc20",
+  "application_pr": 142,
+  "application_pr_head": "3a0dbbe7510f69f702c4b440e25b63b893d2d492",
+  "authorization_binding": {
+    "authorized_plan": {
+      "plan_path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
+      "plan_blob_oid": "8f8f13c4f2bad4fd732cbea11258a859c55718dd"
+    },
+    "independent_review": {
+      "review_path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+      "review_blob_oid": "9702f222e3895c4562f7e48ac4bbc5f551135d93",
+      "reviewed_plan_blob_oid": "8f8f13c4f2bad4fd732cbea11258a859c55718dd"
+    },
+    "user_gate": {
+      "gate_ref": "issue_comment:5678273155",
+      "gated_reference": "8f8f13c4f2bad4fd732cbea11258a859c55718dd",
+      "decision": "APPROVED",
+      "user_login": "MyUncried"
+    }
+  },
+  "certified_protocol_executable_paths": [
+    ".github/workflows/kodjo-slice-implementation.yml",
+    "scripts/kodjo/lib/queue-request.js",
+    "scripts/kodjo/resolve-implementation-review-policy.js",
+    "scripts/kodjo/verify-queue-admission.js",
+    "tests/kodjo/incident-register.pilot.js",
+    "tests/kodjo/lifecycle-corrections.pilot.js",
+    "tests/kodjo/queue-contract.pilot.js"
+  ],
+  "certified_protocol_document_paths": [
+    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md",
+    ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+    ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md"
+  ],
+  "certified_product_document_paths": [],
+  "compatible_application_paths": [],
+  "post_certification_protocol_files": {
+    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34948992572.json": "SELF"
+  },
+  "certification": {
+    "diagnostic_comment_id": "5679014881",
+    "plan_comment_id": "5678082634",
+    "review_comment_id": "5678229732",
+    "user_gate_comment_id": "5678273155",
+    "source_artifact_verified": true,
+    "source_artifact_expires_at": "2026-12-14T08:48:28Z",
+    "claude_invoked": false,
+    "application_change_count": 0,
+    "intervening_path_count": 10,
+    "overlap_count": 0,
+    "qualification": "run 34948992572 execute success; Jest, TypeScript and lint PASS; 30 application paths delivered in PR #142",
+    "note": "Migration from the package source HEAD to the current protocol HEAD contains only protocol, workflow, test and protocol-document changes; no application path is intervening."
+  }
+}
