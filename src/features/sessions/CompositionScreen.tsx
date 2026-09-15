@@ -2256,8 +2256,8 @@ const styles = StyleSheet.create({
   // ancrées sur `activityMainCard`, désormais `position: "relative"`).
   activitySideModeIndicator: {
     position: "absolute",
-    left: 311,
-    top: 24.5,
+    right: spacing[16],
+    top: spacing[4],
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 4,
