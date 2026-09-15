@@ -22,6 +22,7 @@ const C = require(path.join(root, 'scripts', 'kodjo', 'lib', 'queue-contract.js'
 const A = require(path.join(root, 'scripts', 'kodjo', 'verify-authorizations.js'));
 const G = require(path.join(root, 'scripts', 'kodjo', 'generate-queue-schema.js'));
 const M = require(path.join(root, 'scripts', 'kodjo', 'lib', 'recovery-migration.js'));
+const P = require(path.join(root, 'scripts', 'kodjo', 'lib', 'plan-impact.js'));
 
 const canonical = (v) => Array.isArray(v)
   ? '[' + v.map(canonical).join(',') + ']'
@@ -268,6 +269,7 @@ function authFixture() {
     previous_slice_id: null, previous_checkpoint: null,
     product_sources: [{ path: 'x', sha256: '0'.repeat(64) }],
     authorized_actors: ['kodjo-protocol', 'kodjo-reviewer'], created_at: '2026-09-11T00:00:00.000Z',
+    planning_application_head: packageSource,
   };
   bootstrap.slice_bootstrap_sha256 = sha256(canonical(bootstrap));
   fs.writeFileSync(path.join(sliceDir, 'slice-bootstrap.json'), JSON.stringify(bootstrap, null, 2) + '\n');
@@ -322,6 +324,7 @@ function bindMigrationAttestation(f, overrides = {}) {
     slice_id: 'QUALIF', source_head: f.queue.source_head,
     certified_target_head: f.queue.source_head, baseline_head: f.queue.baseline_head,
     source_run_id: '34770454986', session_id: uuid(),
+    application_pr_head: f.packageSource,
     certified_protocol_executable_paths: [], certified_protocol_document_paths: [],
     certified_product_document_paths: [], compatible_application_paths: [],
     post_certification_protocol_files: { [attestationPath]: 'SELF' },
@@ -425,6 +428,111 @@ test('cycle de vie — plan puis revue puis attestation finale liée au blob du 
     'le gate reste lié au plan immuable malgré le commit final d attestation');
   const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
   assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
+});
+
+test('cycle à trois HEAD — le scan suit la révision applicative exacte, jamais source_head', () => {
+  const applicationHead = 'a'.repeat(40);
+  const planBody = '<KODJO_PLAN_IMPACT_JSON>\n' + JSON.stringify({
+    schema: 'kodjo.plan-impact.v1', scan_revision: applicationHead,
+  }) + '\n</KODJO_PLAN_IMPACT_JSON>\n';
+  assert.equal(A.resolveImpactApplicationHead({
+    planning_application_head: applicationHead,
+  }, planBody), applicationHead);
+  assert.throws(
+    () => A.resolveImpactApplicationHead({}, planBody),
+    /PLAN_APPLICATION_HEAD_INVALID/
+  );
+  assert.throws(
+    () => A.resolveImpactApplicationHead({
+      planning_application_head: 'b'.repeat(40),
+    }, planBody),
+    /PLAN_APPLICATION_HEAD_MISMATCH/
+  );
+  assert.doesNotThrow(() => A.verifyAttestedApplicationHead({
+    application_pr_head: applicationHead,
+  }, applicationHead));
+  assert.throws(
+    () => A.verifyAttestedApplicationHead({
+      application_pr_head: 'b'.repeat(40),
+    }, applicationHead),
+    /RECOVERY_MIGRATION_APPLICATION_HEAD_MISMATCH/
+  );
+
+  const admission = fs.readFileSync(path.join(root, 'scripts', 'kodjo',
+    'verify-authorizations.js'), 'utf8');
+  assert.match(admission, /sourceHead: applicationHead/);
+  assert.doesNotMatch(admission, /sourceHead: queue\.source_head/);
+});
+
+test('run 34943819818 — le plan réel passe sur la PR #131 et échoue sur le HEAD protocolaire', (t) => {
+  const applicationHead = 'df38ade5e8737ed8f59a3a7472ebe9b168a85145';
+  const protocolHead = '0229f551a9c8931718bc7dcdc59e50cb3eb45d1c';
+  for (const revision of [applicationHead, protocolHead]) {
+    const present = spawnSync('git', ['cat-file', '-e', revision + '^{commit}'], {
+      cwd: root, encoding: 'utf8', windowsHide: true,
+    });
+    if (present.status !== 0) return t.skip('source archive sans historique Git complet');
+  }
+  const bootstrap = JSON.parse(fs.readFileSync(path.join(root,
+    '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json'), 'utf8'));
+  const planBody = fs.readFileSync(path.join(root,
+    '.github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md'), 'utf8');
+  const reviewBody = fs.readFileSync(path.join(root,
+    '.github/orchestration/v2-slices/V2-BILAT-01/independent-review.md'), 'utf8');
+  assert.equal(A.resolveImpactApplicationHead(bootstrap, planBody), applicationHead);
+  assert.equal(P.verifyPlanAtRevision({
+    cwd: root, sourceHead: applicationHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
+  }).replay_scan.scan_revision, applicationHead);
+  assert.throws(() => P.verifyPlanAtRevision({
+    cwd: root, sourceHead: protocolHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
+  }), /PLAN_SCAN_PATH_INVALID/);
+});
+
+test('admission prospective réelle — les trois HEAD restent distincts avant Claude', (t) => {
+  const consumedRequestPath = path.join(root, '.github', 'orchestration', 'queue', 'v2',
+    'V2-BILAT-01-resume-final-39cee884.json');
+  const attestationPath = '.github/orchestration/v2-slices/V2-BILAT-01/' +
+    'recovery-migration-34872653037.json';
+  const head = spawnSync('git', ['rev-parse', 'HEAD'], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
+  });
+  if (head.status !== 0 || !fs.existsSync(consumedRequestPath)) {
+    return t.skip('source archive sans historique Git ou demande diagnostique réelle');
+  }
+  const attestationBlob = spawnSync('git', ['rev-parse', 'HEAD:' + attestationPath], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
+  });
+  if (attestationBlob.status !== 0) return t.skip('attestation finale absente du HEAD qualifié');
+
+  // La demande consommée n'est jamais rejouée : elle sert uniquement de
+  // témoin pour construire en mémoire une admission prospective non publiée.
+  const prospective = JSON.parse(fs.readFileSync(consumedRequestPath, 'utf8'));
+  prospective.request_id = '550e8400-e29b-41d4-a716-446655440107';
+  prospective.created_at = '2026-09-15T09:00:00.000Z';
+  prospective.source_head = head.stdout.trim();
+  prospective.recovery_migration.attestation_blob_oid = attestationBlob.stdout.trim();
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-prospective-admission-'));
+  const tempRequest = path.join(tempDir, 'prospective-resume-delta.json');
+  fs.writeFileSync(tempRequest, JSON.stringify(prospective, null, 2) + '\n');
+
+  const planBlob = prospective.authorized_plan.plan_blob_oid;
+  const gateId = Number(prospective.user_gate.gate_ref.split(':')[1]);
+  const github = fakeGithub({
+    comments: {
+      [gateId]: { id: gateId,
+        issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/52',
+        body: 'Validation utilisateur du plan immuable ' + planBlob,
+        user: { login: 'kodjo-protocol' } },
+    },
+    reactions: { [gateId]: [{ content: '+1', user: { login: 'MyUncried' } }] },
+  });
+  const result = A.verify(tempRequest, { cwd: root, github });
+  assert.equal(result.plan_blob_oid, planBlob);
+  assert.equal(result.recovery_migration_blob_oid, attestationBlob.stdout.trim());
+  assert.notEqual(prospective.source_head,
+    JSON.parse(fs.readFileSync(path.join(root, prospective.slice_bootstrap_file), 'utf8'))
+      .planning_application_head,
+    'le HEAD protocolaire et le HEAD applicatif ne doivent pas être confondus');
 });
 
 test('0.6.24 — la migration peut s appuyer sur les autorisations de la demande vérifiées séparément', () => {
