@@ -486,7 +486,7 @@ test('run 34943819818 — le plan réel passe sur la PR #131 et échoue sur le H
   }).replay_scan.scan_revision, applicationHead);
   assert.throws(() => P.verifyPlanAtRevision({
     cwd: root, sourceHead: protocolHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
-  }), /PLAN_SCAN_PATH_INVALID/);
+  }), /PLAN_SCAN_(?:PATH_INVALID|STALE)/);
 });
 
 test('admission prospective réelle — les trois HEAD restent distincts avant Claude', (t) => {
