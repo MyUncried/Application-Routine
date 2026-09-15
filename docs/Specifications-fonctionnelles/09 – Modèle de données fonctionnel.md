@@ -29,13 +29,13 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une séance contient un **cycle**.
 - Un cycle contient un **Tour**.
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
-- Un Tour contient une suite ordonnée d’`SessionActivity`.
+- Un Tour contient une suite ordonnée d’objets `SessionActivity`.
 - Une `SessionActivity` est une copie appartenant à une Séance ; une `ActivityDefinition` V2 est une racine persistante autonome appartenant à l’Utilisateur.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
 - Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
 - Une **Exécution** est créée au démarrage d’une source exécutable : une Séance dans le MVP, ou une Activité persistante en V2.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
-- Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
+- Toute modification ultérieure d’une Séance, d’une `ActivityDefinition` ou d’une Routine est sans effet sur les Exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
 
 ## Vue d'ensemble du modèle
@@ -78,6 +78,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T03 ; D-156 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T03 ; D-156 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T03 |
+| DM-017 | Une `ActivityDefinition` V2 est une racine persistante appartenant directement à un Utilisateur. Une `SessionActivity` appartient uniquement à sa Séance et ne conserve aucun lien d’évolution avec sa définition source éventuelle. | V2 |
 
 ## Relations principales
 
@@ -91,16 +92,15 @@ UTILISATEUR
 ├── possède 0..n SÉANCES
 │       │
 │       ├── appartient à 0..n CATÉGORIES
-│       ├── contient 0..n ACTIVITÉS DE SÉANCE AVANT LE CYCLE
-│       ├── contient 1 CYCLE
-│       │      │
-│       │      ├── nombre de répétitions
-│       │      ├── contient 1 TOUR
-│       │      │      │
-│       │      │      ├── nombre de répétitions
-│       │      │      └── contient 0..n ACTIVITÉS DE SÉANCE DANS LE TOUR
-│       │      └── contient 0..n ACTIVITÉS DE SÉANCE APRÈS LE TOUR ET DANS LE CYCLE
-│       └── contient 0..n ACTIVITÉS DE SÉANCE APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
+│       └── contient 1 CYCLE
+│              │
+│              ├── nombre de répétitions
+│              ├── contient 0..n ACTIVITÉS DE SÉANCE AVANT LE TOUR
+│              ├── contient 1 TOUR
+│              │      │
+│              │      ├── nombre de répétitions
+│              │      └── contient 0..n ACTIVITÉS DE SÉANCE DANS LE TOUR
+│              └── contient 0..n ACTIVITÉS DE SÉANCE APRÈS LE TOUR
 │
 ├── possède 0..n ROUTINES
 │       └── planifie 1 SÉANCE
