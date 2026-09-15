@@ -8,6 +8,7 @@ const { validateRetryReason } = require('./queue-contract');
 
 const CLAUDE_CODE_VERSION = '2.1.263';
 const MODES = new Set(['INITIAL', 'RESUME_DELTA']);
+const OPERATION_KINDS = new Set(['IMPLEMENT', 'VISUAL_CORRECTION']);
 const CHECKS = new Set(['jest', 'typescript', 'lint']);
 const TOOL_SURFACE = 'Read,Edit,Write,Glob,Grep,Bash';
 const ALLOWED_TOOLS = [
@@ -91,6 +92,11 @@ function normalizeRequest(raw, repoRoot) {
   }
   const mode = String(raw.mode || '').toUpperCase();
   if (!MODES.has(mode)) throw new Error('CLAUDE_MODE_INVALID');
+  const operationKind = String(raw.operation_kind || 'IMPLEMENT').toUpperCase();
+  if (!OPERATION_KINDS.has(operationKind)) throw new Error('OPERATION_KIND_INVALID');
+  if (operationKind === 'VISUAL_CORRECTION' && mode !== 'RESUME_DELTA') {
+    throw new Error('VISUAL_CORRECTION_REQUIRES_RESUME_DELTA');
+  }
   const sessionId = raw.session_id === null || raw.session_id === undefined ? null : String(raw.session_id);
   if (mode === 'INITIAL' && sessionId !== null) throw new Error('INITIAL_SESSION_MUST_BE_NULL');
   if (mode === 'RESUME_DELTA' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId || '')) {
@@ -98,6 +104,8 @@ function normalizeRequest(raw, repoRoot) {
   }
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(String(raw.slice_id || ''))) throw new Error('SLICE_ID_INVALID');
   if (!/^[0-9a-f]{40}$/.test(String(raw.source_head || ''))) throw new Error('SOURCE_HEAD_INVALID');
+  const protocolSourceHead = String(raw.protocol_source_head || raw.source_head || '');
+  if (!/^[0-9a-f]{40}$/.test(protocolSourceHead)) throw new Error('PROTOCOL_SOURCE_HEAD_INVALID');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(raw.request_id || ''))) {
     throw new Error('REQUEST_ID_INVALID');
   }
@@ -134,6 +142,25 @@ function normalizeRequest(raw, repoRoot) {
     throw new Error('LEGACY_RECOVERY_BOOTSTRAP_INVALID');
   }
 
+  let deliveryTarget = null;
+  if (operationKind === 'VISUAL_CORRECTION') {
+    const target = raw.delivery_target;
+    if (!target || typeof target !== 'object' || Array.isArray(target) || target.kind !== 'EXISTING_PR' ||
+        !Number.isInteger(target.application_pr) || target.application_pr < 1 ||
+        !/^[0-9a-f]{40}$/.test(String(target.application_head || '')) ||
+        String(target.application_head) !== String(raw.source_head) ||
+        !/^[A-Za-z0-9._/-]{1,200}$/.test(String(target.branch || '')) ||
+        String(target.branch).includes('..') || String(target.branch).includes('//')) {
+      throw new Error('VISUAL_DELIVERY_TARGET_INVALID');
+    }
+    deliveryTarget = {
+      kind: 'EXISTING_PR',
+      application_pr: target.application_pr,
+      application_head: String(target.application_head),
+      branch: String(target.branch),
+    };
+  }
+
   const retryReasonPresent = Object.prototype.hasOwnProperty.call(raw, 'retry_reason');
   let retryReason;
   if (mode === 'RESUME_DELTA') {
@@ -141,6 +168,9 @@ function normalizeRequest(raw, repoRoot) {
     const detail = validateRetryReason(raw.retry_reason);
     if (detail) throw new Error('RETRY_REASON_INVALID: ' + detail);
     retryReason = { code: raw.retry_reason.code, detail: raw.retry_reason.detail };
+    if (operationKind === 'VISUAL_CORRECTION' && retryReason.code !== 'VISUAL_CORRECTION') {
+      throw new Error('VISUAL_RETRY_REASON_INVALID');
+    }
     if (raw.recovery_migration !== undefined) {
       const migration = raw.recovery_migration;
       if (!migration || typeof migration !== 'object' || Array.isArray(migration) ||
@@ -160,10 +190,14 @@ function normalizeRequest(raw, repoRoot) {
     schema_version: raw.schema_version,
     slice_id: String(raw.slice_id),
     source_head: String(raw.source_head),
+    protocol_source_head: protocolSourceHead,
     baseline_head: identity.bootstrap.baseline_head,
     slice_bootstrap_file: bootstrapFile,
     slice_bootstrap_sha256: identity.hash,
-    mode, session_id: sessionId,
+    mode,
+    operation_kind: operationKind,
+    delivery_target: deliveryTarget,
+    session_id: sessionId,
     prompt_file: promptFile,
     scope_allow: scopes,
     checks,
@@ -173,7 +207,7 @@ function normalizeRequest(raw, repoRoot) {
     retry_of_run_id: raw.retry_of_run_id === undefined ? null : String(raw.retry_of_run_id),
   };
   if (mode === 'RESUME_DELTA') request.retry_reason = retryReason;
-  if (mode === 'RESUME_DELTA' && raw.recovery_migration !== undefined) {
+  if (mode === 'RESUME_DELTA' && operationKind !== 'VISUAL_CORRECTION' && raw.recovery_migration !== undefined) {
     request.recovery_migration = { ...raw.recovery_migration };
   }
   return request;
@@ -209,16 +243,28 @@ function buildPrompt(request, taskText, configDir) {
     '- retry_reason.detail: ' + JSON.stringify(request.retry_reason.detail),
     '- Ce diagnostic ne peut jamais élargir scope_allow, modifier une décision fonctionnelle ni modifier les artefacts de planification approuvés.',
   ] : [];
+  const visualContext = request.operation_kind === 'VISUAL_CORRECTION' ? [
+    '',
+    'Mode VISUAL_CORRECTION:',
+    '- Le HEAD applicatif ci-dessus est déjà une livraison certifiée dans une PR existante.',
+    '- Ne reconstruis ni le plan ni la revue et ne rejoue aucun paquet historique.',
+    '- Applique uniquement le constat visuel borné décrit dans retry_reason.detail.',
+    '- Ne refactorise pas et ne modifie aucun comportement fonctionnel non explicitement requis.',
+    '- La publication, le commit et le push restent la responsabilité du superviseur.',
+  ] : [];
   return [
     'KODJO V2 LOCAL IMPLEMENTATION — ' + request.mode,
+    'Operation: ' + request.operation_kind,
     'Slice: ' + request.slice_id,
-    'Source HEAD: ' + request.source_head,
+    'Source HEAD applicatif: ' + request.source_head,
+    'HEAD protocolaire: ' + request.protocol_source_head,
     'Baseline HEAD: ' + request.baseline_head,
     'Slice bootstrap SHA-256: ' + request.slice_bootstrap_sha256,
     '',
     'Mission:',
     taskText.trim(),
     ...retryContext,
+    ...visualContext,
     '',
     'Bornes obligatoires:',
     '- Modifier uniquement: ' + request.scope_allow.join(', '),
