@@ -91,11 +91,14 @@ Le MVP permet de :
 À partir de T03, le MVP permet de :
 - ouvrir le segment `Activités` du Catalogue ;
 - créer, consulter et modifier une `ActivityDefinition` persistante ;
-- archiver une Activité, la restaurer depuis les archives et la supprimer définitivement depuis les archives ;
+- archiver une Activité, accéder aux définitions archivées via `Filtrer > Archivées`, la restaurer et la supprimer définitivement depuis les archives ;
 - préserver les copies `SessionActivity` et les Instantanés/Exécutions historiques lorsqu’une définition est supprimée ;
 - ajouter une ou plusieurs Activités existantes à une Composition par copie indépendante ;
 - exécuter directement une Activité valide depuis son bouton Lecture ;
-- préserver recherche, filtres, tri et position de défilement pendant l’aller-retour courant, sans les persister après relance complète.
+- préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
+- afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
+
+`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Le détail visuel de ces panneaux reste à définir dans Figma.
 
 Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
 
@@ -230,7 +233,7 @@ Une Activité `Partielle` compte comme exécutée dans le Nombre d’Activités 
 
 Le Suivi du MVP comprend une liste chronologique du plus récent au plus ancien, une vue condensée ou déployée et le détail d’Exécution directement dans la carte déployée.
 
-Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées. Les fonctions correspondantes, dont les graphiques et comparaisons avancées, sont hors MVP.
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles mais désactivées. Cette règle du Suivi est distincte de D-184 pour les Catalogues : dans le Catalogue des activités, `Filtrer` est fonctionnel pour `Archivées`.
 
 ### Profil et préférences
 
@@ -269,7 +272,8 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 - structures comportant plusieurs Tours ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier ;
 - Circuits fonctionnels ;
-- médias multiples fonctionnels.
+- médias multiples fonctionnels ;
+- options avancées de filtre/tri Catalogue non encore arbitrées.
 
 ## 7. Principes métier structurants
 
@@ -312,7 +316,9 @@ Les principaux écrans du MVP sont :
 - Synthèse ;
 - Suivi.
 
-Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et de son complément T03. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
+Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06, son complément T03 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
+
+Le détail visuel des panneaux `Filtrer` et `Trier` des Catalogues n’est pas encore conçu dans Figma ; il reste `NON VÉRIFIABLE` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
 
 ## 9. Contraintes techniques initiales
 
@@ -343,6 +349,7 @@ Les versions futures pourront notamment introduire :
 - partage et relation avec des professionnels ;
 - tableaux de bord et analyses comparatives ;
 - filtres avancés et critères de tri supplémentaires dans le Suivi ;
+- critères supplémentaires de filtre et options utilisateur de tri dans les Catalogues après arbitrage fonctionnel/visuel ;
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
@@ -358,9 +365,11 @@ Les versions futures pourront notamment introduire :
 
 Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et `Circuits`. `Séances` est le segment sélectionné par défaut ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
+`Filtrer` et `Trier` sont des contrôles communs aux trois contextes de Catalogue. Le contenu des options peut dépendre du segment actif. Pour T03 / Activités, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
+
 ### Activités persistantes — MVP T03
 
-Une Activité de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
+Une Activité de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
@@ -382,7 +391,8 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
 - après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
-- la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche.
+- la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
+- dans le Catalogue des activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options.
 
 ### Médias et Circuits
 
@@ -395,7 +405,7 @@ Un Circuit reste conceptualisé et préparé dans le modèle/architecture, mais 
 | Tranche | Périmètre de référence |
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances. |
-| T03 | Catalogue des activités : persistance et cycle de vie, liste, arbre de création, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
+| T03 | Catalogue des activités : persistance et cycle de vie, liste, accès aux archives, arbre de création, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
 | T04 | Moteur d’Exécution complet des Séances ; ancienne T03, lots 1 et 2. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans modification implicite de contenu. |
 
@@ -411,18 +421,19 @@ En cas de contradiction, l’ordre de référence est :
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
 4. écrans et navigation ;
-5. versions du produit et vision générale ;
-6. documents de travail, historiques et revues externes.
+5. contrats d’écran du chapitre 13 ;
+6. versions du produit et vision générale ;
+7. documents de travail, historiques et revues externes.
 
 Pour T03, les compléments explicites de cette mise à jour sont :
 - `06 bis – Corrections UX T03 Catalogue.md` ;
 - `07 bis – Arbitrages T03 du 15 septembre 2026.md` ;
 - `09 bis – Modèle et migration T03 Catalogue.md` ;
+- `13 – Contrats d’écran.md` ;
+- `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour la seule traçabilité ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;
 - `Specifications-fonctionnelles/images/README-T03-FIGMA.md` pour les évidences Figma embarquées.
 
-Le chapitre 13 — Contrats d’écran est volontairement hors périmètre de cette passe documentaire et sera repris séparément.
+Toute évolution fonctionnelle doit préciser son impact sur Figma, la documentation fonctionnelle, le modèle de données, les règles métier, les API ou services, l’architecture technique, les contrats d’écran et la version du produit.
 
-Toute évolution fonctionnelle doit préciser son impact sur Figma, la documentation fonctionnelle, le modèle de données, les règles métier, les API ou services, l’architecture technique et la version du produit.
-
-Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique et contrat d’écran`. Une règle commune n’est pas recopiée dans chaque contrat ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
+Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique → contrat d’écran`. Une règle commune n’est pas recopiée inutilement ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
