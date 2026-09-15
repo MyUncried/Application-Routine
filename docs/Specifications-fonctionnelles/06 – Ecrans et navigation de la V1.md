@@ -1409,13 +1409,13 @@ Ce comportement concerne uniquement le parcours de création. Pour une Séance e
 
 #### Objectif
 
-Éviter la perte accidentelle des modifications apportées à une Activité dans l’écran unique `Création / modification d’une Activité`.
+Éviter la perte accidentelle des modifications apportées à une `ActivityDefinition` du Catalogue ou à une `SessionActivity` de Composition dans l’éditeur partagé.
 
 #### Ouverture
 
 La modale s’affiche depuis l’écran Activité lorsque l’utilisateur tente de quitter (Retour, geste de glissement, bouton matériel Android) alors que des modifications non enregistrées existent sur l’Activité en cours d’édition — comparées à son état au moment de l’ouverture de l’écran, jamais au reste de la Composition.
 
-L’écran Activité reste visible en arrière-plan, assombri et non interactif.
+L’écran Activité reste visible en arrière-plan, assombri et non interactif. La destination conservée dépend du contexte d’ouverture : Catalogue des Activités pour une `ActivityDefinition`, Composition pour une `SessionActivity`.
 
 #### Contenu
 
@@ -1436,7 +1436,7 @@ L’écran Activité reste visible en arrière-plan, assombri et non interactif.
 
 `Annuler` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
 
-`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
+`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à la destination d’origine : `Catalogue des Activités` pour une définition persistante, `Composition d’une séance` pour une copie de Séance. Dans ce second cas, le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Activité déjà enregistrée) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
 
 La référence de production est la frame Figma `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Elle instancie `Overlay / Decision Dialog`, variante `PrimaryTone=Danger, SecondaryTone=Neutral, Actions=2` (`2590:2934`) : dialogue centré de `354 × 186`, rayon `18`, boutons `147 × 48`, écart horizontal `12` et espacement `16` entre la dernière ligne du message et les actions. Les libellés sont centrés horizontalement et verticalement dans leurs boutons.
 
