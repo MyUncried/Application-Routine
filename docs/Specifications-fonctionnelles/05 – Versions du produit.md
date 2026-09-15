@@ -232,4 +232,4 @@ La première version fonctionnelle du Catalogue des Activités inclut l’exécu
 
 ### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
 
-Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est absent de l’état courant. Sa réintroduction éventuelle pour afficher les médias est une évolution post-MVP distincte, à détailler avec les comportements média.
+Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. Son activation pour afficher les médias reste une évolution post-MVP distincte.
