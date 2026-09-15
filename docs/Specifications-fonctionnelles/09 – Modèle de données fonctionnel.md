@@ -136,7 +136,7 @@ Un utilisateur possède directement :
 - ses routines ;
 - ses Exécutions, qu’elles proviennent d’une Séance ou directement d’une Activité persistante ;
 - ses catégories ;
-- ses zones corporelles ;
+- son accès au référentiel applicatif de Zones corporelles ;
 - ses préférences globales.
 
 Il ne contient pas directement les `SessionActivity`, qui appartiennent à leur Séance, ni les fichiers Média, les structures internes d'Exécution ou les mécanismes d'authentification. En V2, il possède en revanche directement les `ActivityDefinition` de son Catalogue.
@@ -159,7 +159,7 @@ Il ne contient pas directement les `SessionActivity`, qui appartiennent à leur 
 - Un utilisateur possède 0..n routines.
 - Un utilisateur possède 0..n Exécutions, d’origine `SESSION` ou `ACTIVITY` selon la version.
 - Un utilisateur possède une seule structure de préférences globales.
-- Toutes les données métier appartiennent directement ou indirectement à un seul Utilisateur. Les racines d’agrégat persistantes portent la référence de propriétaire ; les objets enfants héritent de cette propriété par leur rattachement.
+- Toutes les données métier personnelles appartiennent directement ou indirectement à un seul Utilisateur. Les racines d’agrégat persistantes portent la référence de propriétaire ; les objets enfants héritent de cette propriété par leur rattachement. Les Zones corporelles prédéfinies appartiennent au référentiel applicatif et ne portent pas de propriétaire utilisateur.
 
 
 # 09.2 Entité Séance
