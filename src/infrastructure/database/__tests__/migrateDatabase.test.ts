@@ -5,6 +5,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { MIGRATION_001 } from "@/infrastructure/database/migrations/migration001";
 import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002";
 import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003";
+import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 describe("migrateDatabase", () => {
@@ -212,10 +213,11 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // T02-S02 : la chaîne complète mène désormais à la version 4
-      // (`migration004`, Récupération attachée) — jamais à la version 3.
+      // V2-BILAT-01 : la chaîne complète mène désormais à la version 5
+      // (`migration005`, configuration de bilatéralité) — jamais à la
+      // version 3 ni 4.
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(4);
+      expect(DATABASE_VERSION).toBe(5);
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -578,6 +580,132 @@ describe("migrateDatabase", () => {
         "SELECT created_at, updated_at FROM activities WHERE id = 'ts-a'",
       );
       expect(row).toEqual({ created_at: createdAt, updated_at: updatedAt });
+    });
+  });
+
+  /**
+   * V2-BILAT-01 — `migration005` : configuration de bilatéralité PRÉALABLE à
+   * T03 (`activities.side_mode`/`tours.side_mode`), sans reconstruction de
+   * table (simple `ALTER TABLE ADD COLUMN` — voir `migration005.ts`).
+   */
+  describe("migration005 — bilatéralité (V2-BILAT-01)", () => {
+    async function seedVersion4(): Promise<void> {
+      await database.execAsync(MIGRATION_001);
+      await database.runAsync(
+        `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
+         VALUES (1, 'usr_' || lower(hex(randomblob(16))), '2026-01-01T00:00:00.000Z')`,
+      );
+      await database.execAsync(MIGRATION_002);
+      await database.execAsync(MIGRATION_003);
+      await database.execAsync(MIGRATION_004);
+      await database.execAsync("PRAGMA user_version = 4");
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "legacy-activity",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+    }
+
+    it("brings a version-4 database (v0…v4 chain) to version 5, defaulting every pre-existing row to UNILATERAL", async () => {
+      await seedVersion4();
+
+      await migrateDatabase(database);
+
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(DATABASE_VERSION).toBe(5);
+
+      const activityRow = await database.getFirstAsync<{ side_mode: string }>(
+        "SELECT side_mode FROM activities WHERE id = 'legacy-activity'",
+      );
+      expect(activityRow?.side_mode).toBe("UNILATERAL");
+      const tourRow = await database.getFirstAsync<{ side_mode: string }>(
+        "SELECT side_mode FROM tours WHERE id = 'tour-a'",
+      );
+      expect(tourRow?.side_mode).toBe("UNILATERAL");
+    });
+
+    it("is a no-op on a second call — a database already at version 5 is never replayed", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "fresh",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+
+      await migrateDatabase(database);
+
+      const row = await database.getFirstAsync<{ side_mode: string }>(
+        "SELECT side_mode FROM activities WHERE id = 'fresh'",
+      );
+      expect(row?.side_mode).toBe("UNILATERAL");
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(5);
+    });
+
+    it("still rejects a database newer than the application (v6 refused)", async () => {
+      await database.execAsync(`PRAGMA user_version = 6`);
+      await expect(migrateDatabase(database)).rejects.toThrow("newer than supported");
+    });
+
+    it("bounds side_mode to the three canonical values, on both activities and tours", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+
+      await expect(
+        database.runAsync(
+          `INSERT INTO activities (
+            id, session_id, cycle_id, tour_id, type, structural_position,
+            position, name, execution_mode, duration_seconds, repetition_count,
+            series_count, pause_seconds, instruction, created_at, updated_at, side_mode
+          ) VALUES (
+            'bad-side', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+            0, 'Exercice', 'DURATION', 30, NULL, 1, 0, NULL, 'now', 'now', 'BILATERAL'
+          )`,
+        ),
+      ).rejects.toThrow();
+
+      await expect(
+        database.runAsync(`UPDATE tours SET side_mode = 'NOT_A_MODE' WHERE id = 'tour-a'`),
+      ).rejects.toThrow();
+    });
+
+    it("accepts each of the three canonical values on an Activity and on the Tour", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+
+      for (const sideMode of ["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"]) {
+        await database.runAsync(`UPDATE tours SET side_mode = ? WHERE id = 'tour-a'`, [sideMode]);
+        const row = await database.getFirstAsync<{ side_mode: string }>(
+          "SELECT side_mode FROM tours WHERE id = 'tour-a'",
+        );
+        expect(row?.side_mode).toBe(sideMode);
+      }
+    });
+
+    it("rolls back the entire migration on failure, leaving user_version unchanged (shared transaction, non-regression)", async () => {
+      await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
+      await expect(migrateDatabase(database)).rejects.toThrow();
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(DATABASE_VERSION + 1);
+    });
+
+    it("adds no Execution/Snapshot/Result table when going from v4 to v5 — strictly the two side_mode columns (no T03 data)", async () => {
+      await seedVersion4();
+      const before = await database.getAllAsync<{ name: string }>(
+        "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
+      );
+
+      await migrateDatabase(database);
+
+      const after = await database.getAllAsync<{ name: string }>(
+        "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
+      );
+      expect(after).toEqual(before);
     });
   });
 });

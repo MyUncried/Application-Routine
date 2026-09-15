@@ -16,6 +16,63 @@ export const fr = {
       message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
     },
   },
+  // V2-BILAT-01 : textes PARTAGÉS entre plusieurs écrans — `SideModeControl`
+  // (`sideMode.ts`) est consommé aussi bien par `ExerciseScreen` (contrôle
+  // `Côté` d'une Activité) que par `CompositionScreen` (contrôle `Direction
+  // du Tour`) : les valeurs VISIBLES (`valueLabels`, plan `## UI`) sont un
+  // seul jeu partagé, jamais deux copies pouvant diverger — `UNILATERAL` y
+  // est visuellement VIDE (jamais le mot « Unilatéral »), `RIGHT_LEFT`/
+  // `LEFT_RIGHT` affichent `D→G`/`G→D`. Les noms ACCESSIBLES, eux, diffèrent
+  // explicitement entre les deux contextes (le plan les distingue mot pour
+  // mot) : `activity`/`tour` portent chacun leur propre jeu, composé par
+  // l'appelant (`SideModeControl` ne les dérive jamais lui-même).
+  shared: {
+    sideMode: {
+      valueLabels: {
+        UNILATERAL: "",
+        RIGHT_LEFT: "D→G",
+        LEFT_RIGHT: "G→D",
+      },
+      // Contrôle `Côté` d'une Activité (`ExerciseScreen`) — titre visible
+      // `Côté` (singulier), noms accessibles exacts du plan V2-BILAT-01.
+      activity: {
+        label: "Côté",
+        accessibilityLabels: {
+          UNILATERAL: "Côté : unilatéral",
+          RIGHT_LEFT: "Côté : bilatéral, droite puis gauche",
+          LEFT_RIGHT: "Côté : bilatéral, gauche puis droite",
+        },
+        // Suffixe ajouté au nom accessible lorsque le contrôle est
+        // désactivé (enfant `IN_TOUR` d'un Tour déjà bilatéral, direction
+        // hérité) — même convention de séparateur « — » que les autres
+        // suffixes d'indisponibilité déjà établis dans ce fichier
+        // (`activitiesUnavailableAccessibilityLabel`, etc.).
+        inheritedAccessibilitySuffix: "défini par le Tour, indisponible",
+      },
+      // Contrôle `Direction du Tour` (`CompositionScreen`) — aucun titre
+      // visible (« Côté »/« Côtés » proscrit par le plan pour ce contrôle),
+      // noms accessibles exacts du plan V2-BILAT-01.
+      tour: {
+        accessibilityLabels: {
+          UNILATERAL: "Direction du Tour : unilatéral",
+          RIGHT_LEFT: "Direction du Tour : droite puis gauche",
+          LEFT_RIGHT: "Direction du Tour : gauche puis droite",
+        },
+        // Correction bornée (plan `## 4.2`) : le Tour affiche un tiret
+        // CENTRÉ pour `UNILATERAL` — jamais l'affichage visuellement vide de
+        // l'Activité (`valueLabels.UNILATERAL` ci-dessus, INCHANGÉ) — afin
+        // que le contrôle Tour ne paraisse jamais vide/désactivé au repos.
+        // `RIGHT_LEFT`/`LEFT_RIGHT` restent les mêmes valeurs visibles
+        // COURTES que celles partagées avec l'Activité (`valueLabels`
+        // ci-dessus), jamais une seconde formulation.
+        valueLabels: {
+          UNILATERAL: "–",
+          RIGHT_LEFT: "D→G",
+          LEFT_RIGHT: "G→D",
+        },
+      },
+    },
+  },
   nav: {
     // RES-NAV-LABEL-01 (contre-recette iPhone, addendum Phase 2,
     // 2026-09-03) : "Mes séances" → "Séances" — source i18n canonique,
@@ -147,6 +204,25 @@ export const fr = {
         continueCreating: "Annuler",
         abandon: "Confirmer",
       },
+      // V2-BILAT-01 (plan `## UI`) : dialogue déterministe d'ACTIVATION de la
+      // bilatéralité du Tour — uniquement à la transition `UNILATERAL` →
+      // direction bilatérale (`RIGHT_LEFT`/`LEFT_RIGHT`). Titre et message
+      // reproduits mot pour mot depuis le plan technique approuvé.
+      // `Annuler` ne produit aucune mutation ; `Confirmer` applique la
+      // transition atomique (`applyTourSideModeTransition`). Le retour à
+      // `UNILATERAL` et le changement de sens entre deux directions déjà
+      // bilatérales n'affichent jamais ce dialogue.
+      // Correction bornée (plan `## 4.3`) : textes exacts republiés par le
+      // plan de correction de présentation — remplacent les précédents,
+      // approuvés pour l'implémentation initiale mais non conformes au
+      // produit attesté (CE-BIL-02).
+      tourBilateralConfirmModal: {
+        title: "Exécuter chaque Tour des deux côtés ?",
+        message:
+          "À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.",
+        cancel: "Annuler",
+        confirm: "Confirmer",
+      },
       // T02-S01 (CE-T02-01/CE-T02-02, D-124/D-127) : gestes et actions
       // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
       // `Supprimer` sont ceux, exacts, du groupe `144 × 69` de la frame
@@ -178,6 +254,17 @@ export const fr = {
         pauseSuffix: "de pause par série",
         // T01-S10 (D-111) : fragment des synthèses du mode « À l'échec ».
         toFailure: "jusqu’à l’échec",
+        // V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
+        // clause de côté d'une carte Activité dont la direction PROPRE est
+        // bilatérale (jamais héritée du Tour) — insérée immédiatement après
+        // « {N} série(s) », avant le connecteur `of` (« de »)/`toFailure`
+        // (« jusqu'à l'échec »), d'où « {N} série(s) par côté … ».
+        perSide: "par côté",
+        // Suffixe de direction, ajouté juste après la cible (ou après
+        // `toFailure`), donc AVANT la clause de Pause — jamais pour une
+        // Activité unilatérale ni pour une direction héritée du Tour.
+        sideDirectionSuffixRightLeft: ", à droite, puis à gauche",
+        sideDirectionSuffixLeftRight: ", à gauche, puis à droite",
       },
     },
     exercise: {
@@ -316,9 +403,8 @@ export const fr = {
       // et « À l'échec », la Durée totale reste AFFICHÉE mais devient une
       // BORNE MINIMALE non modifiable — la durée d'une Série y est inconnue.
       // Le `≥` du libellé dit exactement cela ; il reprend le glyphe déjà
-      // employé par toutes les bornes minimales de l'application
-      // (`recap.minimumDurationLabel`, synthèses du Catalogue et du Tour),
-      // jamais une écriture concurrente.
+      // employé par toutes les bornes minimales de l'application (synthèses
+      // du Catalogue et du Tour), jamais une écriture concurrente.
       totalDuration: {
         label: "Durée totale de l’activité",
         accessibilityLabel: "Durée totale de l’activité",
@@ -349,16 +435,21 @@ export const fr = {
       // séries ») uniquement lorsque `seriesCount > 1`.
       //
       // T02-S02 : la synthèse fixe reprend la Récupération attachée
-      // (« …, puis 20 s de récupération ») puis la ligne de durée
-      // (`Durée totale` / `Durée minimale` selon que la formule soit exacte
-      // ou une borne inférieure — modes `Répétitions`/`À l'échec`, RM-072).
+      // (« …, puis 20 s de récupération ») puis la ligne de durée.
+      //
+      // V2-BILAT-01 (plan `## Calculs`, BIL-068) : « le libellé visible reste
+      // `Durée totale` dans les trois modes » — `minimumDurationLabel`
+      // (« Durée minimale »), employé jusqu'ici pour les modes Répétitions/
+      // À l'échec, est donc SUPPRIMÉ plutôt que laissé mort : ces deux modes
+      // réutilisent désormais `totalDurationLabel`, la borne inférieure
+      // restant signalée par le seul préfixe `≥` (décision T02-S02 conservée
+      // — jamais retiré du champ éditeur ni de cette ligne).
       recap: {
         pauseLabel: "de pause",
         pauseSuffix: "entre les séries",
         recoveryPrefix: "puis",
         recoveryLabel: "de récupération",
         totalDurationLabel: "Durée totale",
-        minimumDurationLabel: "Durée minimale",
       },
       // T02-S02 : la Durée totale saisie n'est jamais persistée (DM-015/DM-016) ;
       // elle PILOTE le nombre de Séries via le calcul inverse

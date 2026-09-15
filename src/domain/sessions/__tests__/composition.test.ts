@@ -145,6 +145,39 @@ describe("moveActivity (AC-04)", () => {
   it("returns the collection unchanged for an unknown identifier (a drop without a valid target)", () => {
     expect(moveActivity(activities, "unknown", "IN_TOUR", 0)).toBe(activities);
   });
+
+  /**
+   * V2-BILAT-01 : une Activité déposée dans `IN_TOUR` alors que le Tour est
+   * déjà bilatéral y arrive `UNILATERAL` — jamais avec une direction propre
+   * résiduelle qu'aucun contrôle n'aurait jamais laissé saisir pendant
+   * qu'elle était gouvernée par le Tour.
+   */
+  describe("V2-BILAT-01 — side mode on displacement", () => {
+    it("resets the moved Activity to UNILATERAL when it enters IN_TOUR under a bilateral Tour", () => {
+      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
+      const next = moveActivity([source], "before-1", "IN_TOUR", 0, "LEFT_RIGHT");
+      expect(next[0]?.sideMode).toBe("UNILATERAL");
+      expect(next[0]?.structuralPosition).toBe("IN_TOUR");
+    });
+
+    it("keeps the Activity's own side mode when the destination Tour stays unilateral", () => {
+      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
+      const next = moveActivity([source], "before-1", "IN_TOUR", 0, "UNILATERAL");
+      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
+    });
+
+    it("keeps the Activity's own side mode when it does not enter IN_TOUR, even under a bilateral Tour", () => {
+      const source = anActivity("in-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" });
+      const next = moveActivity([source], "in-1", "BEFORE_TOUR", 0, "LEFT_RIGHT");
+      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
+    });
+
+    it("defaults tourSideMode to UNILATERAL — non-regression for every caller predating this tranche", () => {
+      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
+      const next = moveActivity([source], "before-1", "IN_TOUR", 0);
+      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
+    });
+  });
 });
 
 describe("removeActivity (AC-07)", () => {
@@ -359,5 +392,49 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
 
   it("returns the collection unchanged for an unknown identifier", () => {
     expect(duplicateActivity(activities, "unknown", "copy-1")).toBe(activities);
+  });
+
+  /** V2-BILAT-01 : la direction propre (`sideMode`) fait partie des paramètres reproduits à l'identique. */
+  it("conserves the source's own side mode on the copy", () => {
+    const bilateral = anActivity("in-3", "IN_TOUR", { sideMode: "RIGHT_LEFT" });
+    const next = duplicateActivity([...activities, bilateral], "in-3", "copy-1");
+    expect(next.find((activity) => activity.id === "copy-1")?.sideMode).toBe("RIGHT_LEFT");
+  });
+});
+
+describe("appendActivityAfterLastDisplayed — V2-BILAT-01 side mode", () => {
+  it("resets the appended Activity to UNILATERAL when it lands IN_TOUR under a bilateral Tour", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [anActivity("in-1", "IN_TOUR")],
+      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+      "LEFT_RIGHT",
+    );
+    expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("UNILATERAL");
+  });
+
+  it("keeps the appended Activity's own side mode when the Tour stays unilateral", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [anActivity("in-1", "IN_TOUR")],
+      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+      "UNILATERAL",
+    );
+    expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("RIGHT_LEFT");
+  });
+
+  it("keeps the appended Activity's own side mode on an empty composition, regardless of tourSideMode", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [],
+      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+      "LEFT_RIGHT",
+    );
+    expect(next[0]?.sideMode).toBe("UNILATERAL");
+  });
+
+  it("defaults tourSideMode to UNILATERAL — non-regression for every caller predating this tranche", () => {
+    const next = appendActivityAfterLastDisplayed(
+      [anActivity("in-1", "IN_TOUR")],
+      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
+    );
+    expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("RIGHT_LEFT");
   });
 });

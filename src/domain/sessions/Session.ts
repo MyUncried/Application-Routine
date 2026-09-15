@@ -1,3 +1,5 @@
+import type { SideMode } from "./sideMode";
+
 export const SESSION_COLORS = [
   "#E5484D",
   "#F47B20",
@@ -103,6 +105,17 @@ export type Activity = {
   instruction: string | null;
   /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent ; toujours vide pour une Récupération. */
   bodyZoneIds: readonly string[];
+  /**
+   * V2-BILAT-01 : direction PROPRE de cette occurrence d'Activité
+   * (`UNILATERAL`/`RIGHT_LEFT`/`LEFT_RIGHT`, `sideMode.ts`). Champ optionnel
+   * de transition (même convention que `cycle.beforeTour`/`afterTour`,
+   * T01-S10) — un consommateur lit `activity.sideMode ?? DEFAULT_SIDE_MODE`.
+   * Sa direction EFFECTIVE, dans le Tour, dépend en outre de
+   * `Session.cycle.tour.sideMode` (`resolveEffectiveSideMode`) — la
+   * direction du Tour prévaut lorsqu'elle est bilatérale ; hors du Tour,
+   * cette valeur propre gouverne seule.
+   */
+  sideMode?: SideMode;
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
@@ -154,6 +167,16 @@ export type Session = {
       position: 1;
       /** T01-S10 : répétition du Tour, entier `1..99` (D-058). Reste `1` pour toute Séance créée avant S10. */
       repeatCount: number;
+      /**
+       * V2-BILAT-01 : direction du Tour lui-même. Champ optionnel de
+       * transition (même convention que `cycle.beforeTour`/`afterTour`,
+       * T01-S10) : un consommateur lit `tour.sideMode ?? DEFAULT_TOUR_SIDE_MODE`.
+       * Bilatérale (`RIGHT_LEFT`/`LEFT_RIGHT`), elle prévaut sur la direction
+       * PROPRE de chaque Activité `IN_TOUR` (`resolveEffectiveSideMode`) —
+       * ses enfants sont alors tous `UNILATERAL`
+       * (`applyTourSideModeTransition`).
+       */
+      sideMode?: SideMode;
       /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Toujours au moins un élément (une Séance sans aucune Activité reste invalide, voir `toCreateSessionInput`). */
       exercises: readonly Activity[];
     };
@@ -211,6 +234,8 @@ export type CreateSessionActivityInput = {
   readonly recoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
+  /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
+  readonly sideMode?: SideMode;
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
@@ -238,6 +263,8 @@ export type CreateSessionInput = {
    * impossible la création d'une Séance à plusieurs Tours (AC-08/AC-12).
    */
   tourRepeatCount: number;
+  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`) — optionnel, `DEFAULT_TOUR_SIDE_MODE` si absent. */
+  tourSideMode?: SideMode;
   /**
    * Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier
    * `exercise`. Doit compter au moins un élément : une entrée vide est un
@@ -283,6 +310,8 @@ export type UpdateSessionActivityInput = {
   readonly recoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
+  /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
+  readonly sideMode?: SideMode;
 };
 
 /**
@@ -300,6 +329,8 @@ export type UpdateSessionInput = {
   readonly finalPhaseSeconds: number;
   /** Répétition du Tour, entier `1..99` (D-058). */
   readonly tourRepeatCount: number;
+  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`) — optionnel, `DEFAULT_TOUR_SIDE_MODE` si absent. */
+  readonly tourSideMode?: SideMode;
   /** TOUTES les Activités de la Séance modifiée, dans l'ordre, toutes zones structurelles confondues — au moins une (une Séance sans Activité reste invalide). */
   readonly activities: readonly UpdateSessionActivityInput[];
   /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */

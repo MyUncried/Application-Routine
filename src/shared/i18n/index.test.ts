@@ -129,7 +129,7 @@ describe("strings", () => {
     );
   });
 
-  it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095)", () => {
+  it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095; V2-BILAT-01 direction clause added)", () => {
     expect(strings.screens.composition.exerciseRow).toEqual({
       editAccessibilityLabel: "Modifier l’exercice",
       seriesSingular: "série",
@@ -142,6 +142,11 @@ describe("strings", () => {
       withPause: "avec",
       pauseSuffix: "de pause par série",
       toFailure: "jusqu’à l’échec",
+      // V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
+      // clause de côté d'une carte Activité à direction PROPRE bilatérale.
+      perSide: "par côté",
+      sideDirectionSuffixRightLeft: ", à droite, puis à gauche",
+      sideDirectionSuffixLeftRight: ", à gauche, puis à droite",
     });
   });
 
@@ -226,7 +231,11 @@ describe("strings", () => {
     // Le glyphe `≥` est celui, unique, de toutes les bornes minimales de
     // l'application — jamais une écriture concurrente.
     expect(strings.screens.exercise.totalDuration.compactLabelLowerBound).toContain("≥");
-    expect(strings.screens.exercise.recap.minimumDurationLabel).not.toContain("≥");
+    // V2-BILAT-01 (BIL-068) : le libellé visible de la ligne de durée reste
+    // `Durée totale` dans les trois modes — jamais lui-même porteur du `≥`,
+    // qui reste composé par `compositionPresentation.ts` au moment de
+    // l'affichage.
+    expect(strings.screens.exercise.recap.totalDurationLabel).not.toContain("≥");
   });
 
   it("T02-S02 — exposes the total-duration adjustment message with a {duration} placeholder (RM-130)", () => {
@@ -261,8 +270,10 @@ describe("strings", () => {
       // T02-S02 : proposition de Récupération attachée et ligne de durée.
       recoveryPrefix: "puis",
       recoveryLabel: "de récupération",
+      // V2-BILAT-01 (BIL-068) : `minimumDurationLabel` (« Durée minimale »)
+      // est retiré — le libellé visible reste `Durée totale` dans les trois
+      // modes, la borne inférieure restant signalée par le seul `≥`.
       totalDurationLabel: "Durée totale",
-      minimumDurationLabel: "Durée minimale",
     });
     expect(strings.screens.exercise.recap.pauseSuffix).not.toBe(
       strings.screens.composition.exerciseRow.pauseSuffix,
@@ -330,6 +341,48 @@ describe("strings", () => {
   it("exposes the exact generic root error message", () => {
     expect(strings.errors.root.message).toBe(
       "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
+    );
+  });
+
+  // Correction bornée V2-BILAT-01 (plan `## 4.3`/`## 4.1`/`## 4.2`) :
+  // textes exacts du dialogue de confirmation du Tour, labels accessibles
+  // Activité/Tour, et valeurs visibles distinctes de `UNILATERAL` entre les
+  // deux contextes.
+  it("exposes the exact Tour bilateral confirmation dialog title, message and actions (plan '## 4.3')", () => {
+    expect(strings.screens.composition.tourBilateralConfirmModal).toEqual({
+      title: "Exécuter chaque Tour des deux côtés ?",
+      message:
+        "À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.",
+      cancel: "Annuler",
+      confirm: "Confirmer",
+    });
+  });
+
+  it("exposes the exact Activity accessible side labels, and the empty unilateral visible value (plan '## 4.1', unchanged)", () => {
+    expect(strings.shared.sideMode.activity.accessibilityLabels).toEqual({
+      UNILATERAL: "Côté : unilatéral",
+      RIGHT_LEFT: "Côté : bilatéral, droite puis gauche",
+      LEFT_RIGHT: "Côté : bilatéral, gauche puis droite",
+    });
+    expect(strings.shared.sideMode.activity.inheritedAccessibilitySuffix).toBe(
+      "défini par le Tour, indisponible",
+    );
+    expect(strings.shared.sideMode.valueLabels.UNILATERAL).toBe("");
+  });
+
+  it("exposes the exact Tour accessible direction labels, and the '–' unilateral visible value, distinct from the Activity's empty value (plan '## 4.2')", () => {
+    expect(strings.shared.sideMode.tour.accessibilityLabels).toEqual({
+      UNILATERAL: "Direction du Tour : unilatéral",
+      RIGHT_LEFT: "Direction du Tour : droite puis gauche",
+      LEFT_RIGHT: "Direction du Tour : gauche puis droite",
+    });
+    expect(strings.shared.sideMode.tour.valueLabels).toEqual({
+      UNILATERAL: "–",
+      RIGHT_LEFT: "D→G",
+      LEFT_RIGHT: "G→D",
+    });
+    expect(strings.shared.sideMode.tour.valueLabels.UNILATERAL).not.toBe(
+      strings.shared.sideMode.valueLabels.UNILATERAL,
     );
   });
 });

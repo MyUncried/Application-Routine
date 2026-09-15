@@ -67,7 +67,7 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
     resetDraft: jest.fn(),
   };
 
-  render(
+  const { unmount } = render(
     <TestSafeAreaProvider>
       <SessionDraftContext.Provider value={contextValue}>
         <ExerciseScreen />
@@ -75,7 +75,7 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
     </TestSafeAreaProvider>,
   );
 
-  return { updateDraft };
+  return { updateDraft, unmount };
 }
 
 const t = strings.screens.exercise;
@@ -920,35 +920,28 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
   });
 
   /**
-   * T02-S02 (continuation après recette visuelle) : la seconde rangée est
-   * décalée d'une colonne, pour aligner `Récupération` sous le contrôle du
-   * mode (`Durée`/`Répétitions`) et `Durée totale` sous `Pause`.
+   * V2-BILAT-01 (plan `## UI`, « ligne 2, colonne 1, sous Séries ») : la
+   * seconde rangée place désormais le contrôle `Côté` en colonne 1 — même
+   * largeur que `Séries` (`narrowColumnWidth`) — ce qui aligne mécaniquement
+   * `Récupération` sous le contrôle du mode (`Durée`/`Répétitions`) et
+   * `Durée totale` sous `Pause`, sans plus jamais passer par une cale
+   * purement structurelle.
    */
-  it("offsets the second row by exactly one Séries column, aligning Récupération under the mode control and Durée totale under Pause", () => {
+  it("places Côté in column 1 of the second row, aligning Récupération under the mode control and Durée totale under Pause", () => {
     renderScreen(null);
 
     const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
-    const spacer = within(secondRow).getByTestId("exercise-parameter-row-spacer");
-    // La cale précède les deux champs et vaut EXACTEMENT la largeur de la
-    // colonne `Séries` : `74 + gap` décale la rangée d'une colonne pleine.
-    expect(StyleSheet.flatten(spacer.props.style).width).toBe(74);
+    expect(within(secondRow).getByTestId("exercise-side-mode")).toBeTruthy();
     expect(
       StyleSheet.flatten(screen.getByTestId("exercise-field-seriesCount").props.style).width,
     ).toBe(74);
     expect(
       testIdOrder(screen.toJSON(), [
-        "exercise-parameter-row-spacer",
+        "exercise-side-mode",
         "exercise-field-recoverySeconds",
         "exercise-field-totalDuration",
       ]),
-    ).toEqual([
-      "exercise-parameter-row-spacer",
-      "exercise-field-recoverySeconds",
-      "exercise-field-totalDuration",
-    ]);
-    // La cale est purement structurelle : ni nom accessible, ni rôle.
-    expect(spacer.props.accessibilityRole).toBeUndefined();
-    expect(spacer.props.accessibilityLabel).toBeUndefined();
+    ).toEqual(["exercise-side-mode", "exercise-field-recoverySeconds", "exercise-field-totalDuration"]);
   });
 
   it("gives Durée, Pause, Récupération and Durée totale a 124pt column and Séries a 74pt column, with labels above each control", () => {
@@ -1592,7 +1585,7 @@ describe("ExerciseScreen — synthèse fixe (recap + ligne de durée)", () => {
     ).toBeNull();
   });
 
-  it("shows 'Durée totale : {D}' in Durée mode and 'Durée minimale : ≥ {D}' in the non-timed modes", () => {
+  it("shows 'Durée totale : {D}' in Durée mode and 'Durée totale : ≥ {D}' in the non-timed modes (V2-BILAT-01, BIL-068 — label unchanged in all three modes)", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
 
@@ -1602,7 +1595,7 @@ describe("ExerciseScreen — synthèse fixe (recap + ligne de durée)", () => {
 
     fireEvent.press(screen.getByLabelText(t.executionMode.repetitions));
     expect(screen.getByTestId("exercise-summary-duration").props.children).toBe(
-      "Durée minimale : ≥ 0 s",
+      "Durée totale : ≥ 0 s",
     );
   });
 
@@ -1954,5 +1947,210 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
     confirmDuration(0, 30);
 
     expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
+  });
+});
+
+/**
+ * V2-BILAT-01 (plan `## UI`) : contrôle `Côté`, ligne 2/colonne 1 de la
+ * grille de paramètres (sous `Séries`), dans les trois modes — enfant
+ * `IN_TOUR` d'un Tour bilatéral : visible, désactivé, proprement
+ * `UNILATERAL`, nom accessible complétant explicitement l'indisponibilité.
+ */
+describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
+  const sideModeStrings = strings.shared.sideMode;
+
+  function renderWithTourSideMode(
+    draftExercise: SessionDraftExercise,
+    tourSideMode: "UNILATERAL" | "RIGHT_LEFT" | "LEFT_RIGHT",
+  ) {
+    const updateDraft = jest.fn();
+    mockSearchParams = { exerciseId: draftExercise.id };
+    render(
+      <TestSafeAreaProvider>
+        <SessionDraftContext.Provider
+          value={{
+            draft: {
+              name: "Séance simple",
+              color: "#3B82F6",
+              initialCountdownSeconds: 10,
+              finalPhaseSeconds: 5,
+              tourSideMode,
+              exercises: [draftExercise],
+              categoryDrafts: [],
+              selectedCategoryIds: [],
+            },
+            updateDraft,
+            resetDraft: jest.fn(),
+          }}
+        >
+          <ExerciseScreen />
+        </SessionDraftContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    return { updateDraft };
+  }
+
+  it("is rendered in column 1 of the second parameter row, beneath Séries, in every execution mode, with the visible title 'Côté'", () => {
+    for (const executionMode of ["DURATION", "REPETITIONS", "TO_FAILURE"] as const) {
+      const { unmount } = renderScreen({ ...createExerciseDraft("ex-1"), executionMode });
+      const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
+      expect(within(secondRow).getByTestId("exercise-side-mode")).toBeTruthy();
+      expect(within(secondRow).getByText(sideModeStrings.activity.label)).toBeTruthy();
+      expect(sideModeStrings.activity.label).toBe("Côté");
+      unmount();
+    }
+  });
+
+  it("is visually empty by default (UNILATERAL, never the word 'Unilatéral'), and cycles to D→G then G→D on successive presses", () => {
+    renderScreen({ ...createExerciseDraft("ex-1") });
+    expect(screen.queryByText("Unilatéral")).toBeNull();
+    expect(screen.getByTestId("exercise-side-mode-value").props.children).toBe("");
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByText(sideModeStrings.valueLabels.LEFT_RIGHT)).toBeTruthy();
+  });
+
+  it("exposes the exact accessible labels 'Côté : unilatéral' / 'bilatéral, droite puis gauche' / 'bilatéral, gauche puis droite'", () => {
+    renderScreen({ ...createExerciseDraft("ex-1") });
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityLabel).toBe(
+      "Côté : unilatéral",
+    );
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityLabel).toBe(
+      "Côté : bilatéral, droite puis gauche",
+    );
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityLabel).toBe(
+      "Côté : bilatéral, gauche puis droite",
+    );
+  });
+
+  it("is enabled for a BEFORE_TOUR Activity, even under a bilateral Tour", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "BEFORE_TOUR" },
+      "RIGHT_LEFT",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+  });
+
+  it("is disabled for an IN_TOUR Activity governed by a bilateral Tour, appending the exact inherited suffix to its accessible label", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
+      "RIGHT_LEFT",
+    );
+    const control = screen.getByTestId("exercise-side-mode-control");
+    expect(control.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(control.props.accessibilityLabel).toBe(
+      "Côté : unilatéral — défini par le Tour, indisponible",
+    );
+  });
+
+  it("is enabled for an IN_TOUR Activity when the Tour stays unilateral", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
+      "UNILATERAL",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+  });
+
+  it("persists the chosen side mode through Terminer", () => {
+    const { updateDraft } = renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+    });
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(updateDraft).toHaveBeenCalledWith({
+      exercises: [expect.objectContaining({ id: "ex-1", sideMode: "RIGHT_LEFT" })],
+    });
+  });
+
+  it("correction bornée (plan '## 3', étape 3) : transmet le contexte d'héritage déjà calculé à la synthèse — direction développée conservée pour une Activité PROPRE bilatérale hors héritage", () => {
+    renderWithTourSideMode(
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Fentes",
+        structuralPosition: "BEFORE_TOUR",
+        seriesCount: 3,
+        durationSeconds: 90,
+        pauseSeconds: 15,
+        sideMode: "RIGHT_LEFT",
+      },
+      "UNILATERAL",
+    );
+
+    expect(
+      within(screen.getByTestId("exercise-summary-card")).getByText(
+        /3 séries par côté de Fentes de 1 min 30 s, à droite, puis à gauche/,
+      ),
+    ).toBeTruthy();
+  });
+
+  it("correction bornée : omet la direction développée de la synthèse pour une Activité IN_TOUR dont la direction est HÉRITÉE d'un Tour déjà bilatéral", () => {
+    renderWithTourSideMode(
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Fentes",
+        structuralPosition: "IN_TOUR",
+        seriesCount: 3,
+        durationSeconds: 90,
+        pauseSeconds: 15,
+        sideMode: "UNILATERAL",
+      },
+      "RIGHT_LEFT",
+    );
+
+    const summary = within(screen.getByTestId("exercise-summary-card")).getByText(
+      /3 séries de Fentes de 1 min 30 s/,
+    );
+    expect(summary).toBeTruthy();
+    expect(screen.queryByText(/à droite, puis à gauche/)).toBeNull();
+    expect(screen.queryByText(/par côté/)).toBeNull();
+  });
+
+  it("le contrôle Activité et le contrat de route restent inchangés par la transmission de l'héritage (aucun paramètre supplémentaire requis)", () => {
+    renderWithTourSideMode(
+      { ...createExerciseDraft("ex-1"), structuralPosition: "BEFORE_TOUR" },
+      "UNILATERAL",
+    );
+    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+    expect(mockSearchParams).toEqual({ exerciseId: "ex-1" });
+  });
+
+  it("doubles the displayed total duration for a bilateral direction, without ever doubling the Récupération", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Gainage",
+      durationSeconds: 30,
+      seriesCount: 3,
+      pauseSeconds: 15,
+      recoverySeconds: 20,
+    });
+
+    // Unilatéral (défaut) : 3×30 + 2×15 + 20 = 140 s -> "2 min 20 s".
+    expect(
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 2 min 20 s"),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
+
+    // Bilatéral : (3×30 + 2×15) × 2 + 20 (jamais doublée) = 260 s -> "4 min 20 s".
+    expect(
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 4 min 20 s"),
+    ).toBeTruthy();
   });
 });
