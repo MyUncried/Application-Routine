@@ -42,4 +42,8 @@ Industrialiser le parcours réel de correction visuelle découvert lors de la cl
 
 ## Qualification
 
-La qualification est portée par `tests/kodjo/visual-correction.pilot.js` et par la CI protocolaire existante. Le registre d’incidents ne sera marqué `PASS/CORRIGÉ` qu’après exécution verte des oracles opposables.
+La qualification permanente est portée par `tests/kodjo/visual-correction-delivery.pilot.js` et par la CI protocolaire existante.
+
+La première exécution de la PR #145, run `34972332382`, a été volontairement laissée bloquante : 7 oracles transverses ont détecté des dépendances non propagées (ordre du garde `npm ci`, scanner des écritures Git bornées, projection des nouveaux champs, consommation de `delivery_checkpoint`, et ancien oracle supposant `V2-BILAT-01` encore ACTIVE). Aucun de ces écarts n’a été contourné ; leurs dépendances ont été réalignées avant nouvelle qualification.
+
+Le registre d’incidents ne sera marqué `PASS/CORRIGÉ` qu’après exécution verte des oracles opposables Linux et Windows.
