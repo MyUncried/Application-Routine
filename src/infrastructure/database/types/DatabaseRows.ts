@@ -3,6 +3,7 @@ import type {
   ExerciseExecutionMode,
   StructuralPosition,
 } from "@/domain/sessions/Session";
+import type { SideMode } from "@/domain/sessions/sideMode";
 
 /**
  * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles) :
@@ -35,6 +36,8 @@ export type SessionAggregateRow = {
   tour_position: 1;
   /** T01-S10 : `1..99` (D-058). */
   tour_repeat_count: number;
+  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
+  tour_side_mode: SideMode;
   activity_id: string;
   /** T01-S10 : `'EXERCISE'` ou `'RECOVERY'` (D-061). */
   activity_type: ActivityType;
@@ -52,6 +55,8 @@ export type SessionAggregateRow = {
   /** T02-S02 : Récupération ATTACHÉE, `0..5999` s — `0` = aucune (`migration004`). */
   recovery_seconds: number;
   instruction: string | null;
+  /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
+  activity_side_mode: SideMode;
 };
 
 export type ActivityBodyZoneRow = {

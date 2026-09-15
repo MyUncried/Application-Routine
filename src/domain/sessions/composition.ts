@@ -19,6 +19,7 @@
 
 import type { StructuralPosition } from "./Session";
 import type { SessionDraftExercise } from "./SessionDraft";
+import type { SideMode } from "./sideMode";
 
 /** Ordre canonique d'affichage et d'exécution des trois zones (D-061). */
 export const STRUCTURAL_ZONES = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const;
@@ -55,6 +56,25 @@ export function groupActivitiesByZone(
 }
 
 /**
+ * V2-BILAT-01 : direction propre à appliquer à une Activité DÉPLACÉE ou
+ * INSÉRÉE vers `targetZone` (`moveActivity`/`appendActivityAfterLastDisplayed`
+ * ci-dessous). Une Activité qui ENTRE dans le Tour alors que celui-ci est
+ * déjà bilatéral doit y arriver `UNILATERAL` — comme tout autre enfant
+ * `IN_TOUR` sous un Tour bilatéral (`applyTourSideModeTransition`), jamais
+ * avec une direction propre résiduelle qu'aucun contrôle n'aurait jamais
+ * laissé saisir pendant qu'elle était gouvernée par le Tour. Toute autre
+ * destination (`BEFORE_TOUR`/`AFTER_TOUR`, ou `IN_TOUR` d'un Tour
+ * unilatéral) conserve la direction propre inchangée.
+ */
+function resolveDisplacedSideMode(
+  sideMode: SideMode,
+  targetZone: StructuralPosition,
+  tourSideMode: SideMode,
+): SideMode {
+  return targetZone === "IN_TOUR" && tourSideMode !== "UNILATERAL" ? "UNILATERAL" : sideMode;
+}
+
+/**
  * Ajoute une NOUVELLE Activité immédiatement APRÈS la DERNIÈRE CARTE
  * ACTUELLEMENT AFFICHÉE, dont elle reprend la zone structurelle (T02-S02,
  * troisième recette visuelle, point 1).
@@ -86,12 +106,22 @@ export function groupActivitiesByZone(
 export function appendActivityAfterLastDisplayed(
   activities: readonly SessionDraftExercise[],
   activity: SessionDraftExercise,
+  tourSideMode: SideMode = "UNILATERAL",
 ): readonly SessionDraftExercise[] {
   const displayed = orderActivitiesByZone(activities);
   const lastDisplayed = displayed[displayed.length - 1];
 
   if (lastDisplayed === undefined) {
-    return [activity];
+    return [
+      {
+        ...activity,
+        sideMode: resolveDisplacedSideMode(
+          activity.sideMode,
+          activity.structuralPosition,
+          tourSideMode,
+        ),
+      },
+    ];
   }
 
   const anchorIndex = activities.indexOf(lastDisplayed);
@@ -99,6 +129,11 @@ export function appendActivityAfterLastDisplayed(
   next.splice(anchorIndex + 1, 0, {
     ...activity,
     structuralPosition: lastDisplayed.structuralPosition,
+    sideMode: resolveDisplacedSideMode(
+      activity.sideMode,
+      lastDisplayed.structuralPosition,
+      tourSideMode,
+    ),
   });
   return next;
 }
@@ -136,12 +171,21 @@ export function orderActivitiesByZone(
  * la zone de destination (une dépose au-delà de la dernière carte place
  * l'Activité en fin de zone). Un identifiant inconnu retourne la collection
  * inchangée — une dépose sans cible valide ne modifie jamais le brouillon.
+ *
+ * **V2-BILAT-01** : `tourSideMode` (défaut `UNILATERAL`, comportement
+ * antérieur inchangé) est la direction ACTUELLE du Tour. Une Activité
+ * déposée dans `IN_TOUR` alors que le Tour est déjà bilatéral y arrive
+ * `UNILATERAL` (`resolveDisplacedSideMode`) — jamais avec une direction
+ * propre résiduelle qui contredirait « enfant … proprement `UNILATERAL` »
+ * sous un Tour bilatéral. Toute autre dépose conserve la direction propre
+ * de l'Activité.
  */
 export function moveActivity(
   activities: readonly SessionDraftExercise[],
   activityId: string,
   targetZone: StructuralPosition,
   targetIndex: number,
+  tourSideMode: SideMode = "UNILATERAL",
 ): readonly SessionDraftExercise[] {
   const source = activities.find((activity) => activity.id === activityId);
   if (source === undefined) {
@@ -158,10 +202,11 @@ export function moveActivity(
     zones[activity.structuralPosition].push(activity);
   }
 
+  const displacedSideMode = resolveDisplacedSideMode(source.sideMode, targetZone, tourSideMode);
   const moved =
-    source.structuralPosition === targetZone
+    source.structuralPosition === targetZone && source.sideMode === displacedSideMode
       ? source
-      : { ...source, structuralPosition: targetZone };
+      : { ...source, structuralPosition: targetZone, sideMode: displacedSideMode };
 
   const destination = zones[targetZone];
   const index = Number.isFinite(targetIndex) ? Math.trunc(targetIndex) : destination.length;
@@ -190,7 +235,8 @@ export function removeActivity(
  * Duplique une Activité (D-138, révisant D-124 ; CE-T02-01) : la copie est
  * INDÉPENDANTE, porte `newId` (fourni par l'appelant — ce module reste pur,
  * sans `expo-crypto`), reprend TOUS les paramètres et associations de la
- * source — Pause et **Récupération attachée** comprises — et s'insère
+ * source — Pause, **Récupération attachée** et **direction (`sideMode`,
+ * V2-BILAT-01) comprises** — et s'insère
  * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle.
  *
  * **T02-S02 — titre strictement identique.** La copie conserve le nom exact
