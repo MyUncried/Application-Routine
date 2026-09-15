@@ -20,4 +20,8 @@ Les captures de référence de cette tranche sont stockées physiquement dans ce
 
 ![Catalogue — action contextuelle directe](./CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg)
 
-État Figma contrôlé le 15 septembre 2026 : le contrôle `Déployer` des cartes Activité réutilise le composant DSF canonique `2537:1033 — State=Collapsed`, identique au Catalogue des séances ; il est visible mais fonctionnellement désactivé en T03. Les captures ci-dessus ont été exportées après cette correction. Figma reste la source du rendu visuel courant ; ces fichiers sont les copies documentaires pérennes destinées à l’export/import.
+État Figma contrôlé le 15 septembre 2026 :
+- le contrôle `Déployer` des cartes Activité réutilise le composant DSF canonique `2537:1033 — State=Collapsed`, identique au Catalogue des séances ; il est visible mais fonctionnellement désactivé en T03 ;
+- le composant `Navigation / Bottom — Source exact` (`2537:214`) utilise des dessins de destination de dimension maximale `24 pt`, recentrés dans les boîtes optiques `32 × 32 pt`.
+
+Les trois captures ci-dessus ont été **réexportées après ces deux corrections**. Figma reste la source du rendu visuel courant ; ces fichiers sont les copies documentaires pérennes destinées à l’export/import.
