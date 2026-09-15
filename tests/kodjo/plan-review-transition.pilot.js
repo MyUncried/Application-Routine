@@ -76,9 +76,28 @@ test('cycle de vie: un plan historique traverse uniquement un delta protocolaire
   assert.deepEqual(proof.protocol_changes, proof.changed_paths);
   assert.ok(proof.changed_paths.includes('.github/workflows/kodjo-v2-review.yml'));
   assert.ok(proof.protected_blobs.every((item) => item.source_oid === item.execution_oid));
-  assert.ok(proof.product_source_evidence.every((item) => item.expected_sha256 === item.observed_sha256));
+  assert.ok(proof.product_source_evidence.every((item) => item.transition_matches));
   assert.match(proof.policy.classifier_sha256, /^[0-9a-f]{64}$/);
   assert.equal(JSON.parse(fs.readFileSync(outputPath, 'utf8')).status, 'PASS');
+});
+
+test('cycle de vie: une empreinte déclarative historique reste tracée sans remplacer l’identité Git', () => {
+  const value = fixture();
+  const bootstrap = JSON.parse(fs.readFileSync(path.join(value.root, value.bootstrapPath), 'utf8'));
+  bootstrap.product_sources[0].sha256 = '0'.repeat(64);
+  write(value.root, value.bootstrapPath, JSON.stringify(bootstrap, null, 2));
+  const historicalSource = commit(value.root, 'historical declared hash');
+  write(value.root, 'scripts/kodjo/change.js', 'change\n');
+  const executionHead = commit(value.root, 'protocol change');
+  const proof = verifyTransition({
+    cwd: value.root,
+    sourceHead: historicalSource,
+    executionHead,
+    bootstrapPath: value.bootstrapPath,
+  });
+  assert.equal(proof.status, 'PASS');
+  assert.equal(proof.product_source_evidence[0].declared_hash_matches_source, false);
+  assert.equal(proof.product_source_evidence[0].transition_matches, true);
 });
 
 test('cycle de vie: une modification applicative intermédiaire reste refusée', () => {

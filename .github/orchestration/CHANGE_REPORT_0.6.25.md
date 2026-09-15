@@ -13,7 +13,7 @@ Le workflow utilisait `source_head` pour deux autorités différentes : la réf�
 - conserver `source_head` et `application_head` sans les réécrire ;
 - relever automatiquement `protocol_execution_head` ;
 - vérifier l'ascendance et le checkout exact ;
-- protéger les entrées produit du plan par chemins exacts ;
+- protéger les entrées produit du plan par chemins exacts et identité de blob entre les deux HEAD, sans confondre une empreinte déclarative historique avec l'état du plan approuvé ;
 - n'admettre que des chemins protocolaires fermés ;
 - publier la preuve de transition dans l'artefact et le commentaire de revue.
 

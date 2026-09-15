@@ -14,7 +14,7 @@ Si `protocol_execution_head` diffère de `source_head`, la revue est admise uniq
 
 1. `source_head` est un ancêtre de `protocol_execution_head` ;
 2. le checkout exécuté correspond exactement à `protocol_execution_head` ;
-3. le bootstrap, le registre d'activation, la mission de planification, le plan versionné et chaque `product_source` du bootstrap sont inchangés ;
+3. le bootstrap, le registre d'activation, la mission de planification, le plan versionné et chaque `product_source` du bootstrap ont le même blob Git aux deux HEAD ; une empreinte déclarative historique du bootstrap est archivée mais ne remplace jamais cette comparaison ;
 4. chaque autre chemin modifié appartient à la surface protocolaire fermée du vérificateur ;
 5. une preuve JSON durable contient les deux HEAD, les chemins protégés, le diff classé et le verdict.
 

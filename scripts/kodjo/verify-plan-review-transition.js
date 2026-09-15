@@ -137,11 +137,19 @@ function verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath, outpu
       if (!file || !/^[0-9a-f]{64}$/.test(source.sha256 || '')) {
         throw new Error('PLAN_REVIEW_PRODUCT_SOURCE_PROOF_INVALID');
       }
-      const observed = sha256(fs.readFileSync(path.join(cwd, file)));
-      return { path: file, expected_sha256: source.sha256, observed_sha256: observed };
+      const sourceObserved = sha256(git(cwd, ['show', `${sourceHead}:${file}`]));
+      const executionObserved = sha256(fs.readFileSync(path.join(cwd, file)));
+      return {
+        path: file,
+        declared_sha256: source.sha256,
+        source_sha256: sourceObserved,
+        execution_sha256: executionObserved,
+        declared_hash_matches_source: source.sha256 === sourceObserved,
+        transition_matches: sourceObserved === executionObserved,
+      };
     });
-    if (proof.product_source_evidence.some((item) => item.expected_sha256 !== item.observed_sha256)) {
-      throw new Error('PLAN_REVIEW_PRODUCT_SOURCE_HASH_MISMATCH');
+    if (proof.product_source_evidence.some((item) => !item.transition_matches)) {
+      throw new Error('PLAN_REVIEW_PRODUCT_INPUT_CHANGED');
     }
 
     const raw = git(cwd, ['diff', '--name-only', '-z', sourceHead, executionHead, '--']);
