@@ -812,7 +812,7 @@ Elles ne contiennent pas directement :
 - les séances ;
 - les routines ;
 - les activités ;
-- les exécutions de séance.
+- les Exécutions.
 
 ## Attributs fonctionnels
 
@@ -821,9 +821,9 @@ Elles ne contiennent pas directement :
 | Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                                                       |
 | Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                                                       |
 | Notifications                                      | Autorisation effective des rappels locaux                                  | Obligatoire | Non autorisées par défaut ; demande système lors de la première activation d’un rappel |
-| Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
-| Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
-| Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
+| Vibration                                          | Active les vibrations fonctionnelles d’Exécution                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
+| Écran maintenu actif                               | Empêche la mise en veille pendant une Exécution                  | Facultatif  | Pendant l'exécution uniquement                                           |
+| Durée par défaut d’une Activité en mode Durée       | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Récupération par défaut                            | Durée proposée après l’Activité selon sa direction effective               | Facultatif  | Création uniquement ; `0 s` si absente                                  |
 | Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'une Activité                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
@@ -836,9 +836,9 @@ Elles ne contiennent pas directement :
 
 - Chaque utilisateur possède une seule structure de préférences globales.
 - Les préférences s'appliquent à toutes les séances et à toutes les exécutions.
-- Modifier une préférence n'altère jamais les séances existantes.
+- Modifier une préférence n’altère jamais les Séances ni les Activités persistantes existantes.
 - Les valeurs par défaut sont utilisées uniquement lors de la création de nouveaux éléments.
-- Une exécution de séance utilise les préférences actives au moment de son démarrage.
+- Toute Exécution utilise les préférences actives au moment de son démarrage, quelle que soit son origine.
 - Une modification des préférences ne modifie jamais une exécution déjà en cours.
 - Les préférences sont enregistrées automatiquement après chaque modification.
 - Les valeurs par défaut du compte à rebours initial et de la fin de séance sont copiées dans la séance lors de sa création.
