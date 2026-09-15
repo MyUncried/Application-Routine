@@ -28,7 +28,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Swipe gauche | carte suit geste, actions révélées derrière | 03, 06, 06 bis, 08, 10, 13 CE-T03-02/05/08 | carte immobile / overlay | CONFORME | D-175. |
 | Swipe droit / fermeture | ferme uniquement si commencé sur carte ouverte | 06 bis, 10, 13 | fermeture par fond/autre swipe | CONFORME | D-175. |
 | Concurrence contextuelle | autres contrôles actifs ; un seul contexte swipe | 06 bis, 10, 13 | verrouillage global | CONFORME | D-175. |
-| Composition actions | Dupliquer arrondi + gap fond Tour | 06 bis, 08, 13 CE-T03-08, Figma `2028:11808` | pas de gap / overlay | CONFORME DOCUMENTAIRE | Comparaison implémentation/Figma à faire. |
+| Composition actions | Dupliquer arrondi + gap fond Tour | 06 bis, 08, 13 CE-T03-08, Figma `2028:11808` | pas de gap / overlay | CONFORME | Règle documentaire et frame Figma identifiées ; conformité de l’implémentation sera vérifiée au développement. |
 | Cartes structurelles | CR initial + Fin non déplaçables | 00, 04, 06 bis, 10, 13 CE-T03-08 | poignée/appui long | CONFORME | D-177. |
 | Catégories destination | save → Catalogue des séances / Séances | 03, 06 bis, 10, 13 CE-T03-16 | retour dernier segment | CONFORME | D-168. |
 | Transition | cible entre droite, courant sort gauche | 06 bis, 13 CE-T03-16/17 | animation locale | CONFORME | D-178. |
@@ -39,7 +39,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Médias | multiples hors T03 ; Déployer activé plus tard | 00, 04, 05, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–05, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
 | Captures Figma | images physiques, chemins relatifs | images README + preuves chapitre 13 | URL temporaire | CONFORME | Export/import robuste. |
-| Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md`, `13A` | ancien chapitre moteur Session ; sections fusionnées | PARTIELLEMENT CONFORME | Structure désormais complète ; seule conformité visuelle détaillée Filtrer/Trier reste NON VÉRIFIABLE. |
+| Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md`, `13A` | ancien chapitre T03 moteur Session ; sections fusionnées | PARTIELLEMENT CONFORME | Structure et périmètre fonctionnel complets ; seule conformité visuelle détaillée Filtrer/Trier reste NON VÉRIFIABLE faute de design Figma. |
 
 ## Évidences Figma contrôlées
 
@@ -62,27 +62,32 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 |---|---|---|
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 explicitent les 21 rubriques. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
-| Couverture E01..E73 | CONFORME | Section 13 ; E70 volontairement non visuel. |
+| Couverture E01..E73 | CONFORME | Section 13 ; E70 explicitement non visuel. |
 | Frontière T03/T04 | CONFORME | Section 14 + remapping 13A. |
 | Cycle ActivityDefinition | CONFORME | CE-T03-04/05. |
 | Filtrer/Trier | PARTIELLEMENT CONFORME | D-184 + CE-T03-02/05 ; détail visuel Figma absent. |
 | Exécution directe | CONFORME | CE-T03-09..14. |
 | Suivi ACTIVITY | CONFORME | CE-T03-15. |
 | Navigation/Catégories | CONFORME | CE-T03-16/17. |
-| Valeurs de démonstration | CONFORME | règle commune §4.1 + tests négatifs. |
-| Responsive/accessibilité | CONFORME DOCUMENTAIRE | à valider sur implémentation 360/402/440 et VoiceOver/TalkBack. |
+| Valeurs Figma de démonstration | CONFORME | règle commune §4.1 + tests négatifs. |
+| Responsive/accessibilité | CONFORME | Les contrats définissent 360/402/440, cibles et états accessibles ; la conformité de l’implémentation sera évaluée lors de la recette applicative. |
 
-## Seconde passe indépendante à la clôture de branche
+## Contrôle de clôture documentaire
 
-Avant fusion, recontrôler :
-
-1. existence physique de `13`, `13A` et toutes images référencées ;
-2. absence de référence résiduelle à un fichier `13B` supprimé ;
-3. liens Markdown exacts ;
-4. noms Unicode sans `#Uxxxx` ni `\uXXXX` ;
-5. absence de fichiers temporaires ;
-6. diff uniquement documentaire/Figma attendu ;
-7. recherche sémantique des anciennes règles : Catalogue Activités V2, anciens CE-T03 moteur Session, Déployer absent, swipe immobile, structures déplaçables, Durée totale masquée, SessionActivity promue, SESSION_END direct, Trier fonctionnel ou Filtrer totalement disabled.
+| Contrôle | Résultat | Évidence / remarque |
+|---|---|---|
+| Baseline courante | CONFORME | `main` contrôlé au terme de la passe : `187d275dbfc585140c160bd3bbefbd411c7a441b`, identique à la baseline de départ. |
+| Branche vs baseline | CONFORME | Merge-base identique à la baseline ; branche uniquement en avance, aucun retard. |
+| Périmètre physique du diff | CONFORME | Diff limité à `docs/**` et aux évidences Figma documentaires. |
+| 17 contrats actifs | CONFORME | Recherche `## CE-T03-` : 17 occurrences. |
+| 21e rubrique Traçabilité | CONFORME | Recherche `### 21. Traçabilité` : 17 occurrences. |
+| 13A historique | CONFORME | Fichier physique présent, séparé du chapitre normatif ; anciens CE-T03 moteur Session explicitement remappés T04. |
+| Référence résiduelle à 13B | CONFORME | 13B a été supprimé après intégration de D-184 directement dans le chapitre 13 ; aucune référence normative ne doit subsister. |
+| Unicode des chemins | CONFORME | Tree Git contrôlé : aucune occurrence `#U` ni séquence `\u`; accents, apostrophes et tirets Unicode conservés. |
+| Fichiers temporaires | CONFORME | Tree Git : aucune occurrence `.tmp` ni `.base64` ; aucun intermédiaire de capture attendu. |
+| Captures Figma embarquées | CONFORME | Fichiers physiques et chemins relatifs présents ; trois captures Catalogue réexportées après corrections Déployer/navigation. |
+| Panneaux Filtrer/Trier Figma | NON VÉRIFIABLE | Aucun design détaillé validé ; le comportement est borné fonctionnellement mais aucune conformité visuelle détaillée ne peut être attestée. |
+| Options Filtrer/Trier supplémentaires | À CLARIFIER | Hors `Archivées` pour Filtrer Activités et état disabled de Trier, les options ne sont pas définies et ne doivent pas être implémentées. |
 
 ## Formulations historiques conservées par supersession
 
@@ -92,4 +97,4 @@ Avant fusion, recontrôler :
 - `13` est la référence contractuelle T03 ;
 - `13A` conserve l’historique, ses anciens CE-T03-01..13 étant fonctionnellement T04.
 
-Le seul écart volontaire restant pour la préparation T03 est **visuel** : les panneaux/options détaillés `Filtrer` et `Trier` ne sont pas encore dessinés dans Figma. Le comportement fonctionnel autorisé est néanmoins borné ; le développement ne doit pas inventer le design ni des options supplémentaires.
+Le seul écart volontaire restant pour la préparation T03 est visuel : les panneaux/options détaillés `Filtrer` et `Trier` ne sont pas encore dessinés dans Figma. Le comportement fonctionnel autorisé est borné ; le développement ne doit ni inventer le design, ni ajouter des options supplémentaires.
