@@ -37,7 +37,7 @@ Périmètre de cette matrice : décisions fonctionnelles, UX, données, API, arc
 | Migration | nouvelles structures ActivityDefinition/ACTIVITY sans promotion des SessionActivity historiques | 09, 09 bis, 11, 12, D-180 | migration implicite | CONFORME | Pas de création silencieuse de références. |
 | Médias | multiples hors MVP ; Déployer activé plus tard | 05, 09, 12, D-173 | activation T03 | CONFORME | Bouton Ajouter média reste désactivé selon règles existantes. |
 | Circuits | concept préparé ; segment visible disabled ; aucune création/exécution/planification T03 | 01–05, 09, 12, D-167/D-183 | Circuit fonctionnel en T03 | CONFORME | Fonctionnel post-MVP. |
-| Captures Figma | images physiques dans le dépôt, visibles en Markdown, chemins relatifs, aucune URL Figma temporaire requise | `Specifications-fonctionnelles/images/README-T03-FIGMA.md` + 3 JPG | URL courte Figma | CONFORME | Les trois évidences corrigées sont embarquées et affichables après export/import. |
+| Captures Figma | images physiques dans le dépôt, visibles en Markdown, chemins relatifs, aucune URL Figma temporaire requise | `Specifications-fonctionnelles/images/README-T03-FIGMA.md` + 3 JPG | URL courte Figma | CONFORME | Les trois évidences corrigées sont embarquées et ont été réexportées après correction finale de navigation. |
 | Contrats d’écran | hors périmètre de cette passe | chapitre 13 | — | NON VÉRIFIABLE dans cette passe | Passe dédiée demandée par le responsable produit. |
 
 ## Évidences Figma contrôlées
