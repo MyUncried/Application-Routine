@@ -155,12 +155,25 @@ test('cycle réel ef0bf111→8a091134: les seuls changements intermédiaires son
     cwd: root, encoding: 'utf8', windowsHide: true,
   });
   if (targetPresent.status !== 0) return t.skip('cible historique absente de l archive Git');
-  const proof = verifyTransition({
-    cwd: root,
-    sourceHead,
-    executionHead,
-    bootstrapPath: '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json',
+  const worktreeRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-real-transition-'));
+  const worktree = path.join(worktreeRoot, 'checkout');
+  const added = spawnSync('git', ['worktree', 'add', '--detach', worktree, executionHead], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
   });
-  assert.equal(proof.status, 'PASS');
-  assert.ok(proof.changed_paths.length > 0);
+  assert.equal(added.status, 0, added.stderr);
+  try {
+    const proof = verifyTransition({
+      cwd: worktree,
+      sourceHead,
+      executionHead,
+      bootstrapPath: '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json',
+    });
+    assert.equal(proof.status, 'PASS');
+    assert.ok(proof.changed_paths.length > 0);
+  } finally {
+    spawnSync('git', ['worktree', 'remove', '--force', worktree], {
+      cwd: root, encoding: 'utf8', windowsHide: true,
+    });
+    fs.rmSync(worktreeRoot, { recursive: true, force: true });
+  }
 });
