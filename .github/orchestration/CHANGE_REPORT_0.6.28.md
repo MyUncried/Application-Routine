@@ -46,4 +46,6 @@ La qualification permanente est portée par `tests/kodjo/visual-correction-deliv
 
 La première exécution de la PR #145, run `34972332382`, a été volontairement laissée bloquante : 7 oracles transverses ont détecté des dépendances non propagées (ordre du garde `npm ci`, scanner des écritures Git bornées, projection des nouveaux champs, consommation de `delivery_checkpoint`, et ancien oracle supposant `V2-BILAT-01` encore ACTIVE). Aucun de ces écarts n’a été contourné ; leurs dépendances ont été réalignées avant nouvelle qualification.
 
+La deuxième exécution réelle, run `34973302653`, n’a conservé qu’un seul échec : le test de complétude des autorisations pointait vers un module de checkpoint inexistant. Le consommateur réel est `scripts/kodjo/verify-visual-checkpoint.js`, appelé par `verify-queue-admission.js` avant toute mutation ; l’oracle référence désormais ce module exact.
+
 Le registre d’incidents ne sera marqué `PASS/CORRIGÉ` qu’après exécution verte des oracles opposables Linux et Windows.
