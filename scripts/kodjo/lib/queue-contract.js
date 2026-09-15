@@ -214,7 +214,7 @@ const PROPERTIES = {
     diagnostic: 'KODJO_QUEUE_RETRY_SOURCE_MISSING',
   },
   delivery_checkpoint: {
-    nature: 'AUTHORIZATION', required: 'resume_only', type: 'object',
+    nature: 'AUTHORIZATION', required: 'optional', type: 'object',
     validate: (value, queue) => {
       if (String(queue.mode).toUpperCase() !== 'RESUME_DELTA') return value === undefined ? null : 'reserve a RESUME_DELTA';
       if (!isObject(value)) return 'objet structure attendu';

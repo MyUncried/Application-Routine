@@ -49,7 +49,7 @@ function projectQueueRequest(queue) {
   if (queue.retry_of_run_id !== undefined) {
     request.retry_of_run_id = String(queue.retry_of_run_id);
   }
-  if (mode === 'RESUME_DELTA') {
+  if (mode === 'RESUME_DELTA' && queue.delivery_checkpoint !== undefined) {
     request.delivery_checkpoint = {
       checkpoint_ref: queue.delivery_checkpoint.checkpoint_ref,
       application_pr: String(queue.delivery_checkpoint.application_pr),

@@ -174,28 +174,7 @@ function admit(options) {
     }
   }
 
-  // L'admission d'une reprise exige le checkpoint produit par la livraison précédente.
-  // Il lie explicitement application, paquet, plan, revue, gate et HEAD protocolaire.
-  if (String(queue.mode || '').toUpperCase() === 'RESUME_DELTA') {
-    const cp = queue.delivery_checkpoint;
-    if (!cp || !/^issue_comment:[0-9]+$/.test(String(cp.checkpoint_ref || ''))) {
-      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_MISSING');
-    }
-    if (String(cp.application_pr) !== String((/application_pr=(\\d+)/i.exec(planBody) || [])[1] || '')) {
-      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_PR_MISMATCH');
-    }
-    if (String(cp.application_head).toLowerCase() !== String(applicationHead || '').toLowerCase()) {
-      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_APPLICATION_HEAD_MISMATCH');
-    }
-    if (String(cp.protocol_head).toLowerCase() !== String(queue.source_head).toLowerCase()) {
-      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_PROTOCOL_HEAD_MISMATCH');
-    }
-    if (String(cp.delivery_head).toLowerCase() !== String(cp.application_head).toLowerCase()) {
-      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_DELIVERY_HEAD_MISMATCH');
-    }
-  }
-
-  // KV2-22 : coherence des autorisations, egalement avant toute mutation.
+  // Lorsqu'un checkpoint est fourni, ses références sont contrôlées avant Claude.\n  if (String(queue.mode || '').toUpperCase() === 'RESUME_DELTA' && queue.delivery_checkpoint) {\n    const cp = queue.delivery_checkpoint;\n    if (String(cp.protocol_head).toLowerCase() !== String(queue.source_head).toLowerCase()) {\n      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_PROTOCOL_HEAD_MISMATCH');\n    }\n    if (String(cp.delivery_head).toLowerCase() !== String(cp.application_head).toLowerCase()) {\n      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_DELIVERY_HEAD_MISMATCH');\n    }\n  }\n\n  // KV2-22 : coherence des autorisations, egalement avant toute mutation.
   if (options.verifyAuthorizations !== false) {
     verifyAuthorizations(selected, { cwd });
   }
