@@ -23,7 +23,7 @@ jobs:
         run: |
           git diff --check
           git diff --name-only
-          test "$(git diff --name-only | sort | tr '\n' ' ')" = ".github/workflows/kodjo-pr145-ci-propagation-fix.yml scripts/kodjo/pr145-ci-propagation-fix.js tests/kodjo/protocol-0.6.22.pilot.js tests/kodjo/queue-contract.pilot.js "
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = ".github/orchestration/pr145-ci-propagation-trigger.txt .github/workflows/kodjo-pr145-ci-propagation-fix.yml scripts/kodjo/pr145-ci-propagation-fix.js tests/kodjo/protocol-0.6.22.pilot.js tests/kodjo/queue-contract.pilot.js "
       - name: Commit repaired branch
         run: |
           git config user.name "KODJO Protocol Repair"
