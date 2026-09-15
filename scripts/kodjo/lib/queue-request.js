@@ -50,6 +50,18 @@ function projectQueueRequest(queue) {
     request.retry_of_run_id = String(queue.retry_of_run_id);
   }
   if (mode === 'RESUME_DELTA') {
+    request.delivery_checkpoint = {
+      checkpoint_ref: queue.delivery_checkpoint.checkpoint_ref,
+      application_pr: String(queue.delivery_checkpoint.application_pr),
+      application_head: queue.delivery_checkpoint.application_head,
+      plan_comment_id: String(queue.delivery_checkpoint.plan_comment_id),
+      review_comment_id: String(queue.delivery_checkpoint.review_comment_id),
+      gate_comment_id: String(queue.delivery_checkpoint.gate_comment_id),
+      protocol_head: queue.delivery_checkpoint.protocol_head,
+      package_run_id: String(queue.delivery_checkpoint.package_run_id),
+      package_artifact_id: String(queue.delivery_checkpoint.package_artifact_id),
+      delivery_head: queue.delivery_checkpoint.delivery_head,
+    };
     request.retry_reason = {
       code: queue.retry_reason.code,
       detail: queue.retry_reason.detail,

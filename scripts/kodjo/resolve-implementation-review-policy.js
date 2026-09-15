@@ -2,7 +2,7 @@
 'use strict';
 
 const INITIAL = new Set(['IMPLEMENT']);
-const CORRECTIVE = new Set(['RESUME_DELTA', 'TARGETED_FIX', 'CORRECTION']);
+const CORRECTIVE = new Set(['RESUME_DELTA', 'TARGETED_FIX', 'CORRECTION', 'VISUAL_CORRECTION']);
 const OPERATIONS = new Set([...INITIAL, ...CORRECTIVE]);
 
 function requireBoolean(input, name) {
@@ -49,10 +49,21 @@ function resolveImplementationReviewPolicy(input) {
         };
   }
 
+  if (operation === 'VISUAL_CORRECTION') {
+    return {
+      status: 'VISUAL_CORRECTION_REQUIRED',
+      reason: 'VISUAL_CORRECTION_WITHIN_APPROVED_SCOPE',
+      route: 'VISUAL_CORRECTION',
+      review_required: false,
+      plan_revision_forbidden: true,
+    };
+  }
+
   return {
     status: 'REVIEW_NOT_REQUIRED',
     reason: 'CORRECTION_WITHIN_APPROVED_SCOPE',
     review_required: false,
+    plan_revision_forbidden: false,
   };
 }
 
