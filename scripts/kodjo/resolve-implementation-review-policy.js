@@ -63,7 +63,6 @@ function resolveImplementationReviewPolicy(input) {
     status: 'REVIEW_NOT_REQUIRED',
     reason: 'CORRECTION_WITHIN_APPROVED_SCOPE',
     review_required: false,
-    plan_revision_forbidden: false,
   };
 }
 

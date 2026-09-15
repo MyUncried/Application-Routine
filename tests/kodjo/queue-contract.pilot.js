@@ -465,8 +465,8 @@ test('cycle à trois HEAD — le scan suit la révision applicative exacte, jama
 });
 
 test('run 34943819818 — le plan réel passe sur la PR #131 et échoue sur le HEAD protocolaire', (t) => {
-  const applicationHead = 'df38ade5e8737ed8f59a3a7472ebe9b168a85145';
-  const protocolHead = '0229f551a9c8931718bc7dcdc59e50cb3eb45d1c';
+  const applicationHead = '3a0dbbe7510f69f702c4b440e25b63b893d2d492';
+  const protocolHead = '7e61a9d855dcb3362bb75f44410ac8ae10d63045';
   for (const revision of [applicationHead, protocolHead]) {
     const present = spawnSync('git', ['cat-file', '-e', revision + '^{commit}'], {
       cwd: root, encoding: 'utf8', windowsHide: true,
