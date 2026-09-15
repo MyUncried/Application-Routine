@@ -25,12 +25,12 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.34.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.34\.0\*\*/);
+test('registre canonique 3.35.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.35\.0\*\*/);
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 130);
+  assertSequence(incidents, 'INC', 132);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,9 +40,17 @@ test('registre canonique 3.34.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 103);
+  assertSequence(ids('T'), 'T', 105);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
+});
+
+test('validateur shell du registre dérive version et cardinalités du contenu', () => {
+  const validator = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'orchestration',
+    'tests', 'test-incident-register.sh'), 'utf8');
+  assert.match(validator, /version=\$\(sed/);
+  assert.match(validator, /mapfile -t test_ids/);
+  assert.doesNotMatch(validator, /-eq 109|3\.22\.0|1 109|1 82/);
 });
 
 test('gouvernance: un seul registre canonique visible à la racine', () => {

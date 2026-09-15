@@ -34,7 +34,9 @@ test('V2 plan and review resolve the private target HEAD through the authenticat
     assert.match(workflow, /scripts\/kodjo\/resolve-private-head\.js/);
     assert.doesNotMatch(workflow, /git\s+(?:ls-remote|fetch|pull)\s+origin/);
   }
-  assert.match(plan, /test "\$ACTUAL" = "\$SOURCE_HEAD"/);
+  assert.match(plan, /verify-plan-review-transition\.js "\$SOURCE_HEAD" "\$ACTUAL"/);
+  assert.match(plan, /protocol_execution_head=/);
+  assert.doesNotMatch(plan, /test "\$ACTUAL" = "\$SOURCE_HEAD"/);
   assert.match(plan, /PLAN_OID=\$\(git rev-parse/);
   assert.match(plan, /REVIEW_OID=\$\(git rev-parse/);
   assert.match(plan, /supersedes_plan_blob_oid=/);
@@ -69,7 +71,7 @@ test('V2 planning sépare le HEAD produit du HEAD applicatif de la PR ouverte', 
     assert.match(workflow, /application\.head\.sha|\.head\.sha/);
     assert.match(workflowPermissions(workflow), /^  pull-requests: read$/m);
   }
-  assert.match(plan, /product\/protocol HEAD \$SOURCE_HEAD and exact application HEAD \$APPLICATION_HEAD/);
+  assert.match(plan, /immutable product HEAD \$SOURCE_HEAD, protocol execution HEAD \$PROTOCOL_EXECUTION_HEAD and exact application HEAD \$APPLICATION_HEAD/);
   assert.match(plan, /scan "\$APPLICATION_HEAD"/);
   assert.match(review, /kodjo-v2-current-product-context/);
   assert.match(review, /ref: \$\{\{ steps\.gate\.outputs\.application_head \}\}/);
@@ -127,7 +129,11 @@ test('V2 independent review replays the scan and publishes its own proof', () =>
   assert.match(review, /Replay V2 direct-import scan independently/);
   assert.match(review, /verify-plan-impact\.js/);
   assert.match(review, /KODJO_PLAN_IMPACT_REVIEW_JSON/);
-  assert.match(review, /V2 target branch moved/);
+  assert.match(review, /verify-plan-review-transition\.js/);
+  assert.match(review, /protocol_execution_head=/);
+  assert.match(review, /KODJO_PLAN_REVIEW_TRANSITION_JSON/);
+  assert.match(review, /kodjo-v2-plan-review-transition\.json/);
+  assert.doesNotMatch(review, /V2 target branch moved/);
   assert.doesNotMatch(review, /orchestration\/slices\/\$slice\.yml/);
 });
 
