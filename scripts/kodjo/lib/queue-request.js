@@ -72,6 +72,9 @@ function projectQueueRequest(queue) {
         attestation_blob_oid: queue.recovery_migration.attestation_blob_oid,
         evidence_kind: queue.recovery_migration.evidence_kind,
       };
+      if (queue.recovery_migration.delivery_checkpoint !== undefined) {
+        request.recovery_migration.delivery_checkpoint = queue.recovery_migration.delivery_checkpoint;
+      }
     }
   }
   return request;
