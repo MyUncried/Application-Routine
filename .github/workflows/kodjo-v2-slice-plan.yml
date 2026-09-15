@@ -72,20 +72,21 @@ jobs:
           NODE
           source /tmp/kodjo-v2-gate.env
           ACTUAL=$(node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" "$target_branch")
-          test "$ACTUAL" = "$SOURCE_HEAD"
+          node scripts/kodjo/verify-plan-review-transition.js "$SOURCE_HEAD" "$ACTUAL" "$BOOTSTRAP_PATH" /tmp/kodjo-v2-plan-transition.json
           gh api "repos/$GITHUB_REPOSITORY/pulls/$APPLICATION_PR" > /tmp/kodjo-v2-application-pr.json
           test "$(jq -r .state /tmp/kodjo-v2-application-pr.json)" = open
           test "$(jq -r .head.sha /tmp/kodjo-v2-application-pr.json)" = "$APPLICATION_HEAD"
           test "$(jq -r .base.ref /tmp/kodjo-v2-application-pr.json)" = "$target_branch"
           PLAN_OID=$(git rev-parse "$SOURCE_HEAD:$PLAN_PATH")
           REVIEW_OID=$(git rev-parse "$SOURCE_HEAD:$REVIEW_PATH")
-          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\napplication_pr=%s\napplication_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$APPLICATION_PR" "$APPLICATION_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\nprotocol_execution_head=%s\napplication_pr=%s\napplication_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$ACTUAL" "$APPLICATION_PR" "$APPLICATION_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
 
       - name: Build authoritative V2 planning packet
         shell: bash
         env:
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
           REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
@@ -124,12 +125,13 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
-          You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against product/protocol HEAD $SOURCE_HEAD and exact application HEAD $APPLICATION_HEAD. This phase is READ-ONLY: never modify repository files and never implement.
+          You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against immutable product HEAD $SOURCE_HEAD, protocol execution HEAD $PROTOCOL_EXECUTION_HEAD and exact application HEAD $APPLICATION_HEAD. The source-to-execution transition is proven protocol-only. This phase is READ-ONLY: never modify repository files and never implement.
           The V2 slice bootstrap, planning mission, current product sources, Issue, comments, prior technical plan and prior independent review supplied below are authoritative. Preserve validated product decisions. Do not invent a V1 manifest, reuse a V1 slice contract or extend the functional scope.
           Declare every application module that the revised implementation would CREATE or MODIFY in exactly one block:
           <KODJO_MODIFIED_MODULES_JSON>
@@ -157,6 +159,7 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
@@ -206,6 +209,7 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_OID: ${{ steps.gate.outputs.plan_oid }}
@@ -217,6 +221,7 @@ jobs:
             echo "slice_id=$SLICE_ID"
             echo "bootstrap_path=$BOOTSTRAP_PATH"
             echo "source_head=$SOURCE_HEAD"
+            echo "protocol_execution_head=$PROTOCOL_EXECUTION_HEAD"
             echo "application_pr=$APPLICATION_PR"
             echo "application_head=$APPLICATION_HEAD"
             echo "supersedes_plan_blob_oid=$PLAN_OID"
@@ -225,6 +230,10 @@ jobs:
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
+            echo
+            echo '<KODJO_PLAN_TRANSITION_JSON>'
+            cat /tmp/kodjo-v2-plan-transition.json
+            echo '</KODJO_PLAN_TRANSITION_JSON>'
           } > /tmp/kodjo-v2-plan/out.md
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-plan/out.md
 
@@ -246,5 +255,6 @@ jobs:
             /tmp/kodjo-v2-plan/plan-impact-closure.json
             /tmp/kodjo-v2-plan/technical-plan.md
             /tmp/kodjo-v2-plan/plan-impact-replay.json
+            /tmp/kodjo-v2-plan-transition.json
           if-no-files-found: warn
           retention-days: 14

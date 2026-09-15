@@ -66,7 +66,10 @@ jobs:
           if (!$applicationPr -or !$applicationHead) { throw 'Application analysis provenance missing' }
           $remote=& node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY ([string]$b.target_branch)
           if ($LASTEXITCODE -ne 0) { throw 'V2 private target branch lookup failed' }
-          if (!$remote -or ([string]$remote).Trim() -ne $source) { throw 'V2 target branch moved' }
+          $protocolExecutionHead=([string]$remote).Trim()
+          $transitionProof=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-transition.json'
+          & node scripts/kodjo/verify-plan-review-transition.js $source $protocolExecutionHead $bootstrap $transitionProof
+          if ($LASTEXITCODE -ne 0) { throw 'V2 plan review transition refused' }
           $application=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$applicationPr" | ConvertFrom-Json
           if ($application.state -ne 'open' -or [string]$application.head.sha -ne $applicationHead) { throw 'V2 application PR moved or closed' }
           if ([string]$application.base.ref -ne [string]$b.target_branch) { throw 'V2 application PR target mismatch' }
@@ -75,6 +78,7 @@ jobs:
           "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "bootstrap_path=$bootstrap" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "protocol_execution_head=$protocolExecutionHead" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "application_pr=$applicationPr" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "application_head=$applicationHead" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -123,13 +127,14 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
-          You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against product/protocol HEAD $env:SOURCE_HEAD, exact application PR $env:APPLICATION_PR at $env:APPLICATION_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-current-product-context, and the checked-out application code and tests. This is READ-ONLY.
+          You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against immutable product HEAD $env:SOURCE_HEAD, protocol execution HEAD $env:PROTOCOL_EXECUTION_HEAD, exact application PR $env:APPLICATION_PR at $env:APPLICATION_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-current-product-context, and the checked-out application code and tests. The source-to-execution transition was admitted only because its closed diff is protocol-only and every protected plan input is unchanged. This is READ-ONLY.
           The direct-import scan was independently replayed. Its scan and proof are in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
           Never request or invent a V1 slice manifest. End with exactly VERDICT: APPROVE or VERDICT: REVISE.
           "@
@@ -151,6 +156,7 @@ jobs:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           PLAN_ID: ${{ steps.gate.outputs.plan_id }}
@@ -161,10 +167,12 @@ jobs:
           $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
           $proof=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json" -Encoding UTF8
+          $transition=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-transition.json" -Encoding UTF8
           $nl=[Environment]::NewLine
-          $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'application_pr='+$env:APPLICATION_PR+$nl+'application_head='+$env:APPLICATION_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'protocol_execution_head='+$env:PROTOCOL_EXECUTION_HEAD+$nl+'application_pr='+$env:APPLICATION_PR+$nl+'application_head='+$env:APPLICATION_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
           $impact=$nl+'<KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl+$proof.Trim()+$nl+'</KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl
-          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact,(New-Object Text.UTF8Encoding($false)))
+          $migration=$nl+'<KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl+$transition.Trim()+$nl+'</KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$migration,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md"
 
       - name: Preserve V2 review evidence
@@ -179,5 +187,6 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-plan-review.md
             ${{ runner.temp }}\kodjo-v2-plan-review-scan.json
             ${{ runner.temp }}\kodjo-v2-plan-review-proof.json
+            ${{ runner.temp }}\kodjo-v2-plan-review-transition.json
           if-no-files-found: warn
           retention-days: 14
