@@ -280,6 +280,30 @@ function verify(queueFile, options) {
     if (!supportedMigrationSchema || attestation.status !== 'CERTIFIED') {
       fail('RECOVERY_MIGRATION_ATTESTATION_NOT_CERTIFIED');
     }
+    const certifiedTarget = String(attestation.certified_target_head || '');
+    if (!SHA40.test(certifiedTarget)) {
+      fail('RECOVERY_MIGRATION_CERTIFIED_TARGET_INVALID');
+    }
+    // L'attestation est la derniere preuve Git du cycle de preparation d'une
+    // reprise. Son ancre doit donc porter le plan et la revue effectivement
+    // approuves. Sans cet invariant, une attestation ancienne peut rester
+    // formellement valide tout en precedant le plan qui autorise la reprise.
+    const approvalBeforeCertification = gitTry([
+      'merge-base', '--is-ancestor', plan.approved_at_commit, certifiedTarget,
+    ], cwd);
+    if (!approvalBeforeCertification.ok) {
+      fail('RECOVERY_MIGRATION_ATTESTATION_PRE_APPROVAL',
+        certifiedTarget + ' precede ' + plan.approved_at_commit);
+    }
+    for (const [kind, artifactPath, expectedBlob] of [
+      ['PLAN', plan.plan_path, plan.plan_blob_oid],
+      ['REVIEW', review.review_path, review.review_blob_oid],
+    ]) {
+      const actual = gitTry(['rev-parse', certifiedTarget + ':' + artifactPath], cwd);
+      if (!actual.ok || actual.stdout !== expectedBlob) {
+        fail('RECOVERY_MIGRATION_' + kind + '_NOT_AT_CERTIFIED_TARGET', artifactPath);
+      }
+    }
     if (attestation.slice_id !== queue.slice_id ||
         attestation.baseline_head !== queue.baseline_head ||
         String(attestation.source_run_id) !== String(queue.retry_of_run_id) ||

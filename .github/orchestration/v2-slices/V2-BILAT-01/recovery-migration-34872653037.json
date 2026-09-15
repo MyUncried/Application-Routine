@@ -3,7 +3,7 @@
   "status": "CERTIFIED",
   "slice_id": "V2-BILAT-01",
   "source_head": "3c81f3b83573eff25522fda5c6a32041ff422e1c",
-  "certified_target_head": "7945b027da837837edae4135862b0c3eb0bb01be",
+  "certified_target_head": "d065f20c93d9503602a43934dc7e0f53f6e490be",
   "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
   "source_run_id": "34872653037",
   "source_artifact_id": "10358639677",
@@ -12,16 +12,38 @@
   "session_id": "80daf10b-8c53-4990-af9d-38031814dc20",
   "application_pr": 131,
   "application_pr_head": "df38ade5e8737ed8f59a3a7472ebe9b168a85145",
-  "authorization_policy": "CURRENT_REQUEST_VERIFIED_SEPARATELY",
+  "authorization_binding": {
+    "authorized_plan": {
+      "plan_path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
+      "plan_blob_oid": "20ae36edc25e5979922b7d183b79ff752bac849b"
+    },
+    "independent_review": {
+      "review_path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+      "review_blob_oid": "cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04",
+      "reviewed_plan_blob_oid": "20ae36edc25e5979922b7d183b79ff752bac849b"
+    },
+    "user_gate": {
+      "gate_ref": "issue_comment:5676056231",
+      "gated_reference": "20ae36edc25e5979922b7d183b79ff752bac849b",
+      "decision": "APPROVED",
+      "user_login": "MyUncried"
+    }
+  },
   "certified_protocol_executable_paths": [
+    ".github/workflows/kodjo-v2-disposable-qualification.yml",
+    ".github/workflows/kodjo-v2-pilot-tests.yml",
     ".github/workflows/kodjo-v2-slice-plan-review.yml",
     ".github/workflows/kodjo-v2-slice-plan.yml",
     "scripts/kodjo/lib/recovery-migration.js",
     "scripts/kodjo/resolve-implementation-review-policy.js",
+    "scripts/kodjo/run-disposable-qualification.ps1",
+    "scripts/kodjo/run-disposable-resume-qualification.ps1",
     "scripts/kodjo/run-local-claude.js",
     "scripts/kodjo/verify-authorizations.js",
+    "scripts/kodjo/verify-plan-review-transition.js",
     "tests/kodjo/claude-local.pilot.js",
     "tests/kodjo/incident-register.pilot.js",
+    "tests/kodjo/plan-review-transition.pilot.js",
     "tests/kodjo/protocol-0.6.23.pilot.js",
     "tests/kodjo/protocol-0.6.24.pilot.js",
     "tests/kodjo/queue-contract.pilot.js",
@@ -30,15 +52,23 @@
   "certified_protocol_document_paths": [
     ".github/orchestration/CHANGE_REPORT_0.6.23.md",
     ".github/orchestration/CHANGE_REPORT_0.6.24.md",
+    ".github/orchestration/CHANGE_REPORT_0.6.25.md",
+    ".github/orchestration/CHANGE_REPORT_0.6.26.md",
     ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.23.md",
     ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.24.md",
+    ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.25.md",
+    ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.26.md",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-certified-c04682f9.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-40d7a5aa.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-6d7bf27c.json",
     ".github/orchestration/queue/v2/V2-BILAT-01-resume-checks-ff036c52.json",
+    ".github/orchestration/tests/test-incident-register.sh",
     ".github/orchestration/v2-activation-registry.json",
-    ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json"
+    ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
+    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json",
+    ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
+    ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md"
   ],
   "certified_product_document_paths": [
     "docs/INDEX.md",
@@ -67,17 +97,21 @@
   ],
   "compatible_application_paths": [],
   "post_certification_protocol_files": {
-    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json": "SELF",
-    "tests/kodjo/protocol-0.6.24.pilot.js": "588485a7d76ed15f370f825718f7532f0a340f16"
+    ".github/orchestration/v2-slices/V2-BILAT-01/recovery-migration-34872653037.json": "SELF"
   },
   "certification": {
-    "diagnostic_run": "34851607031",
-    "planning_review_run": "34899622779",
+    "diagnostic_comment_id": "5676074368",
+    "plan_comment_id": "5675850930",
+    "review_comment_id": "5676018743",
+    "user_gate_comment_id": "5676056231",
     "source_artifact_verified": true,
     "source_artifact_expires_at": "2026-12-13T17:05:54Z",
     "claude_invoked": false,
     "application_change_count": 0,
     "package_path_count": 30,
-    "note": "Les différences entre le HEAD du paquet et le HEAD certifié sont exclusivement protocolaires ou documentaires et sont listées chemin par chemin. Aucun fichier applicatif intermédiaire ne chevauche le paquet."
+    "intervening_path_count": 60,
+    "overlap_count": 0,
+    "local_protocol_tests": "289 PASS, 0 FAIL, 2 SKIP",
+    "note": "Attestation finalisee apres le plan et la revue approuves. Aucun fichier applicatif intermediaire et aucun chevauchement avec les 30 chemins restaures."
   }
 }

@@ -249,6 +249,10 @@ function authFixture() {
   git(['init', '-q', '.']);
   git(['config', 'user.email', 'auth@test.local']);
   git(['config', 'user.name', 'auth']);
+  fs.writeFileSync(path.join(dir, 'package-source.txt'), 'package source\n');
+  git(['add', '-A']);
+  git(['commit', '-qm', 'package source']);
+  const packageSource = git(['rev-parse', 'HEAD']);
   const sliceDir = path.join(dir, '.github', 'orchestration', 'v2-slices', 'QUALIF');
   fs.mkdirSync(sliceDir, { recursive: true });
   fs.mkdirSync(path.join(dir, '.github', 'orchestration', 'queue', 'v2'), { recursive: true });
@@ -308,7 +312,7 @@ function authFixture() {
     fs.writeFileSync(path.join(dir, rel), JSON.stringify(q, null, 2) + '\n');
     return rel;
   };
-  return { dir, queue, write, planBlob, reviewPath, reviewBlob, git };
+  return { dir, queue, write, packageSource, planCommit, planBlob, reviewPath, reviewBlob, git };
 }
 
 function bindMigrationAttestation(f, overrides = {}) {
@@ -377,6 +381,48 @@ test('sans vérification GitHub activée, l’admission est refusée', () => {
 test('la migration est liée aux empreintes du plan, de la revue et à la validation utilisateur', () => {
   const f = authFixture();
   const queue = bindMigrationAttestation(f);
+  const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
+  assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
+});
+
+test('cycle de vie — une attestation antérieure au plan approuvé est refusée avant Claude', () => {
+  const f = authFixture();
+  const queue = bindMigrationAttestation(f, {
+    certified_target_head: f.packageSource,
+  });
+  assert.throws(
+    () => A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) }),
+    /RECOVERY_MIGRATION_ATTESTATION_PRE_APPROVAL/
+  );
+});
+
+test('cycle de vie — l’ancre finale doit porter les blobs exacts du plan et de la revue', () => {
+  for (const [file, replacement, diagnostic] of [
+    ['technical-plan.md', '# Plan remplacé après approbation\n',
+      /RECOVERY_MIGRATION_PLAN_NOT_AT_CERTIFIED_TARGET/],
+    ['independent-review.md', '# Revue remplacée après approbation\n',
+      /RECOVERY_MIGRATION_REVIEW_NOT_AT_CERTIFIED_TARGET/],
+  ]) {
+    const f = authFixture();
+    const artifactPath = path.join(f.dir, '.github', 'orchestration', 'v2-slices', 'QUALIF', file);
+    fs.writeFileSync(artifactPath, replacement);
+    f.git(['add', '-A']); f.git(['commit', '-qm', 'artefact remplacé sans nouvelle approbation']);
+    f.queue.source_head = f.git(['rev-parse', 'HEAD']);
+    const queue = bindMigrationAttestation(f);
+    assert.throws(
+      () => A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) }),
+      diagnostic
+    );
+  }
+});
+
+test('cycle de vie — plan puis revue puis attestation finale liée au blob du plan passent', () => {
+  const f = authFixture();
+  const queue = bindMigrationAttestation(f);
+  assert.notEqual(queue.source_head, f.queue.source_head,
+    'le commit d attestation doit suivre le commit qui porte le plan et la revue');
+  assert.equal(queue.user_gate.gated_reference, f.planBlob,
+    'le gate reste lié au plan immuable malgré le commit final d attestation');
   const result = A.verify(f.write(queue), { cwd: f.dir, github: githubFor(f.planBlob) });
   assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
 });

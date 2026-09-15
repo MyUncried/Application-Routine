@@ -143,20 +143,37 @@ test('cycle de vie: source non ancêtre et HEAD exécuté discordant sont refus�
     'PLAN_REVIEW_EXECUTION_HEAD_MISMATCH');
 });
 
-test('cycle réel ef0bf111→HEAD: les seuls changements intermédiaires sont protocolaires', (t) => {
+test('cycle réel ef0bf111→8a091134: les seuls changements intermédiaires sont protocolaires', (t) => {
   const root = path.resolve(__dirname, '..', '..');
   const sourceHead = 'ef0bf111195d67f6223ee4844da2b6bf2aca00d2';
+  const executionHead = '8a091134815be32cecaba2db37b47491904f3998';
   const present = spawnSync('git', ['cat-file', '-e', `${sourceHead}^{commit}`], {
     cwd: root, encoding: 'utf8', windowsHide: true,
   });
   if (present.status !== 0) return t.skip('source archive sans métadonnées Git');
-  const executionHead = git(root, ['rev-parse', 'HEAD']);
-  const proof = verifyTransition({
-    cwd: root,
-    sourceHead,
-    executionHead,
-    bootstrapPath: '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json',
+  const targetPresent = spawnSync('git', ['cat-file', '-e', `${executionHead}^{commit}`], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
   });
-  assert.equal(proof.status, 'PASS');
-  assert.ok(proof.changed_paths.length > 0);
+  if (targetPresent.status !== 0) return t.skip('cible historique absente de l archive Git');
+  const worktreeRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-real-transition-'));
+  const worktree = path.join(worktreeRoot, 'checkout');
+  const added = spawnSync('git', ['worktree', 'add', '--detach', worktree, executionHead], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
+  });
+  assert.equal(added.status, 0, added.stderr);
+  try {
+    const proof = verifyTransition({
+      cwd: worktree,
+      sourceHead,
+      executionHead,
+      bootstrapPath: '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json',
+    });
+    assert.equal(proof.status, 'PASS');
+    assert.ok(proof.changed_paths.length > 0);
+  } finally {
+    spawnSync('git', ['worktree', 'remove', '--force', worktree], {
+      cwd: root, encoding: 'utf8', windowsHide: true,
+    });
+    fs.rmSync(worktreeRoot, { recursive: true, force: true });
+  }
 });
