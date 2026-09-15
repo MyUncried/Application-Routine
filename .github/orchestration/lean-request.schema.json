@@ -65,6 +65,19 @@
       "x-kodjo-nature": "BEHAVIOUR",
       "x-kodjo-diagnostic": "KODJO_QUEUE_MODE_REFUSED"
     },
+    "operation_kind": {
+      "type": "string",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_OPERATION_KIND_REFUSED"
+    },
+    "delivery_target": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_DELIVERY_TARGET_REFUSED"
+    },
     "session_id": {
       "type": [
         "string",
@@ -122,6 +135,11 @@
       "type": "object",
       "x-kodjo-nature": "AUTHORIZATION",
       "x-kodjo-diagnostic": "KODJO_QUEUE_USER_GATE_REFUSED"
+    },
+    "delivery_checkpoint": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_DELIVERY_CHECKPOINT_REFUSED"
     },
     "recovery_migration": {
       "type": "object",

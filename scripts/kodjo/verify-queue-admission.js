@@ -4,31 +4,10 @@
 /**
  * Admission d'une demande de file — KV2-10.
  *
- * L'audit du 2026-09-10 a etabli qu'aucune protection anti-rejeu n'existait : le
- * seul obstacle a une seconde execution etait une collision fortuite de nom de
- * branche. Une relance de workflow reinvoquait Claude avec `--resume`, ce qui
- * violait `max_ai_calls: 1` a l'echelle de la session.
- *
- * La protection retenue ne repose sur AUCUN etat local : elle se lit dans Git et
- * dans les variables du job. Une reinstallation du runner ne l'affaiblit pas, et
- * aucune purge n'est jamais demandee a l'utilisateur.
- *
- *   AR-1  Le repertoire de file est strictement en ajout. Toute entree dont le
- *         statut n'est pas `A` — modification, suppression, renommage, copie —
- *         est refusee : un ancien fichier ne peut donc pas etre rejoue.
- *   AR-2  `request_id` est unique dans l'arbre : un contenu identique ne peut pas
- *         etre reintroduit sous un autre nom de fichier.
- *   AR-3  Une relance de workflow ne reinvoque jamais Claude.
- *   AR-4  Une reprise legitime est une NOUVELLE demande, portant un nouveau
- *         `request_id` et `retry_of_run_id`. Regle de composition, verifiee ici
- *         pour les seuls champs presents.
- *
- * Limite assumee : le protocole ne peut pas distinguer techniquement une reprise
- * abusive composee par un acteur habilite d'une reprise legitime. Il peut
- * seulement exiger qu'elle soit declaree.
- *
- * Usage : node scripts/kodjo/verify-queue-admission.js <before> <after>
- * Sortie standard : le chemin de l'unique demande admise.
+ * Protection anti-rejeu et validation des autorisations avant toute mutation.
+ * Une correction visuelle d'une PR existante ajoute une preuve supplémentaire :
+ * le checkpoint de livraison doit être relu sur GitHub et correspondre exactement
+ * à la cible applicative avant toute invocation Claude.
  */
 
 const fs = require('node:fs');
@@ -36,6 +15,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { validateQueueRequest } = require('./lib/queue-contract');
 const { verify: verifyAuthorizations } = require('./verify-authorizations');
+const { verify: verifyVisualCheckpoint } = require('./verify-visual-checkpoint');
 
 const QUEUE_DIR = '.github/orchestration/queue/v2';
 const CONSUMED_REGISTRY = '.github/orchestration/queue/v2-consumed-registry.json';
@@ -50,7 +30,6 @@ function git(args, cwd) {
   return String(r.stdout);
 }
 
-/** Entrees `<statut>\0<chemin>` du repertoire de file entre deux revisions. */
 function queueChanges(before, after, cwd) {
   const usable = before && before !== NULL_SHA;
   const raw = usable
@@ -60,8 +39,6 @@ function queueChanges(before, after, cwd) {
   const out = [];
   for (let i = 0; i < records.length; i += 1) {
     const status = records[i];
-    // Un renommage ou une copie occupe trois enregistrements : statut, origine,
-    // destination. On les conserve tels quels pour pouvoir les refuser.
     if (/^[RC]/.test(status)) {
       out.push({ status: status[0], path: records[i + 2], origPath: records[i + 1] });
       i += 2;
@@ -77,14 +54,6 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
 }
 
-/**
- * Registre des demandes definitivement non rejouables.
- *
- * L'obsolescence est enregistree HORS de la demande : les fichiers historiques
- * restent a l'octet pres tels qu'ils ont ete commites. Une entree lie un chemin
- * ET son blob OID, de sorte que renommer le fichier ou recopier son contenu
- * ailleurs ne le rend pas rejouable.
- */
 function consumedRegistry(cwd) {
   const file = path.resolve(cwd, CONSUMED_REGISTRY);
   if (!fs.existsSync(file)) return { entries: [] };
@@ -92,7 +61,6 @@ function consumedRegistry(cwd) {
   return { entries: Array.isArray(registry.entries) ? registry.entries : [] };
 }
 
-/** Blob OID Git du fichier, calcule comme le ferait le depot. */
 function blobOid(file, cwd) {
   const r = spawnSync('git', ['hash-object', '--', file], { cwd, encoding: 'utf8', windowsHide: true, shell: false });
   if (r.error || r.status !== 0) throw new Error('GIT_READ_FAILED: git hash-object ' + file);
@@ -103,15 +71,12 @@ function admit(options) {
   const cwd = options.cwd || process.cwd();
   const attempt = Number(options.runAttempt || 1);
 
-  // AR-3 — avant toute lecture de Git : une relance ne reinvoque jamais Claude.
   if (Number.isFinite(attempt) && attempt > 1) {
     throw new Error('KODJO_QUEUE_RERUN_REFUSED: tentative ' + attempt +
       '. Une reprise legitime est une nouvelle demande portant un nouveau request_id.');
   }
 
   const changes = queueChanges(options.before, options.after, cwd);
-
-  // AR-1 — ajout seul.
   const mutations = changes.filter((entry) => entry.status !== 'A');
   if (mutations.length > 0) {
     throw new Error('KODJO_QUEUE_MUTATION_REFUSED: ' +
@@ -125,7 +90,6 @@ function admit(options) {
   }
   const selected = added[0].path;
 
-  // Obsolescence : refus par chemin OU par contenu, avant toute autre lecture.
   const registry = consumedRegistry(cwd);
   const selectedOid = blobOid(selected, cwd);
   const consumed = registry.entries.find(
@@ -137,8 +101,6 @@ function admit(options) {
   }
 
   const queue = readJson(path.resolve(cwd, selected));
-
-  // KV2-23 : contrat unique, proprietes connues seulement, avant toute mutation.
   const violations = validateQueueRequest(queue);
   if (violations.length > 0) {
     throw new Error('KODJO_QUEUE_CONTRACT_REFUSED: ' +
@@ -150,7 +112,6 @@ function admit(options) {
     throw new Error('KODJO_QUEUE_REQUEST_ID_INVALID: ' + (requestId || '<absent>'));
   }
 
-  // AR-2 — unicite dans l'arbre, lue dans Git : aucune dependance a un etat local.
   const queueRoot = path.resolve(cwd, QUEUE_DIR);
   const duplicates = [];
   if (fs.existsSync(queueRoot)) {
@@ -166,7 +127,6 @@ function admit(options) {
     throw new Error('KODJO_QUEUE_REQUEST_ID_DUPLICATE: ' + requestId + ' — ' + duplicates.join(', '));
   }
 
-  // AR-4 — une reprise se declare.
   if (String(queue.mode || '').toUpperCase() === 'RESUME_DELTA') {
     if (!queue.retry_of_run_id) throw new Error('KODJO_QUEUE_RETRY_SOURCE_MISSING');
     if (!queue.retry_reason || typeof queue.retry_reason !== 'object' || !queue.retry_reason.code) {
@@ -174,7 +134,15 @@ function admit(options) {
     }
   }
 
-  // Lorsqu'un checkpoint est fourni, ses références sont contrôlées avant Claude.\n  if (String(queue.mode || '').toUpperCase() === 'RESUME_DELTA' && queue.delivery_checkpoint) {\n    const cp = queue.recovery_migration && queue.recovery_migration.delivery_checkpoint;\n    if (String(cp.protocol_head).toLowerCase() !== String(queue.source_head).toLowerCase()) {\n      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_PROTOCOL_HEAD_MISMATCH');\n    }\n    if (String(cp.delivery_head).toLowerCase() !== String(cp.application_head).toLowerCase()) {\n      fail('KODJO_QUEUE_DELIVERY_CHECKPOINT_DELIVERY_HEAD_MISMATCH');\n    }\n  }\n\n  // KV2-22 : coherence des autorisations, egalement avant toute mutation.
+  // La route VISUAL_CORRECTION était auparavant du code mort : le contrôle de
+  // checkpoint avait été inséré sous forme de texte échappé et ne s'exécutait
+  // jamais. La preuve est désormais relue sur GitHub, avant les autorisations et
+  // avant toute opération mutable du superviseur.
+  if (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION' &&
+      options.verifyVisualCheckpoint !== false) {
+    verifyVisualCheckpoint(selected, { cwd });
+  }
+
   if (options.verifyAuthorizations !== false) {
     verifyAuthorizations(selected, { cwd });
   }

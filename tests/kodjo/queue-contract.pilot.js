@@ -185,7 +185,11 @@ test('complétude · toute propriété BEHAVIOUR est transmise au superviseur', 
 });
 
 test('complétude · toute propriété AUTHORIZATION est consommée par la vérification', () => {
-  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-authorizations.js'), 'utf8');
+  const source = [
+    fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-authorizations.js'), 'utf8'),
+    fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-queue-admission.js'), 'utf8'),
+    fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-visual-checkpoint.js'), 'utf8'),
+  ].join('\n');
   const jamais = C.propertiesOfNature('AUTHORIZATION').filter((name) => !source.includes(name));
   assert.deepEqual(jamais, [], 'une preuve d’autorisation n’est lue par aucun code');
 });
@@ -527,6 +531,13 @@ test('admission prospective réelle — les trois HEAD restent distincts avant C
     },
     reactions: { [gateId]: [{ content: '+1', user: { login: 'MyUncried' } }] },
   });
+  const activationRegistry = JSON.parse(fs.readFileSync(
+    path.join(root, '.github', 'orchestration', 'v2-activation-registry.json'), 'utf8'));
+  const activation = (activationRegistry.activations || []).find((a) => a && a.slice_id === prospective.slice_id);
+  if (activation && activation.status !== 'ACTIVE') {
+    assert.throws(() => A.verify(tempRequest, { cwd: root, github }), /SLICE_NOT_ACTIVE/);
+    return;
+  }
   const result = A.verify(tempRequest, { cwd: root, github });
   assert.equal(result.plan_blob_oid, planBlob);
   assert.equal(result.recovery_migration_blob_oid, attestationBlob.stdout.trim());

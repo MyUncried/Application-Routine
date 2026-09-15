@@ -80,9 +80,10 @@ test('la projection réelle refuse une amorce historique non booléenne', () => 
 test('la projection ne perd aucun champ du contrat local', () => {
   const actual = project(queue({ allow_legacy_recovery_bootstrap: true, retry_of_run_id: '123' }));
   assert.deepEqual(Object.keys(actual.output).sort(), [
-    'allow_legacy_recovery_bootstrap', 'baseline_head', 'checks', 'limits', 'mode',
-    'prompt_file', 'schema_version', 'scope_allow', 'session_id', 'slice_bootstrap_file',
-    'slice_bootstrap_sha256', 'slice_id', 'source_head', 'request_id', 'retry_of_run_id', 'retry_reason',
+    'allow_legacy_recovery_bootstrap', 'baseline_head', 'checks', 'delivery_target', 'limits', 'mode',
+    'operation_kind', 'prompt_file', 'protocol_source_head', 'schema_version', 'scope_allow',
+    'session_id', 'slice_bootstrap_file', 'slice_bootstrap_sha256', 'slice_id', 'source_head',
+    'request_id', 'retry_of_run_id', 'retry_reason',
   ].sort());
 });
 

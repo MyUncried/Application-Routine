@@ -124,7 +124,7 @@ test('0.6.22 — les preuves sont préservées avant le nettoyage borné du chec
   assert.ok(cleanup < metrics);
   assert.match(workflow, /Clean current run checkout[\s\S]*if: always\(\)/);
   assert.match(workflow, /working-directory: \$\{\{ runner\.temp \}\}/);
-  assert.match(workflow, /Le checkout peut échouer avant que l'utilitaire soit copié/);
+  assert.match(workflow, /RUN_CHECKOUT_IDENTITY_MISMATCH/);
   assert.match(workflow, /if-no-files-found: warn/);
   const cleanupScript = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'cleanup-run-checkout.ps1'), 'utf8');
   assert.match(cleanupScript, /RUN_CHECKOUT_IDENTITY_MISMATCH/);
