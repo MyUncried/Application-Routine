@@ -475,6 +475,7 @@ test('run 34943819818 — le plan réel passe sur la PR #131 et échoue sur le H
   }
   const bootstrap = JSON.parse(fs.readFileSync(path.join(root,
     '.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json'), 'utf8'));
+  bootstrap.planning_application_head = applicationHead;
   const planBody = fs.readFileSync(path.join(root,
     '.github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md'), 'utf8');
   const reviewBody = fs.readFileSync(path.join(root,
