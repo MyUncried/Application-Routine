@@ -1,6 +1,8 @@
 # INDEX — Documentation du projet Routine
 
-> Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155, CE-T01-13, CE-T02-01 et CE-BIL-01/02/02A.
+> Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155.
+>
+> Mise à jour T03 du 15 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les arbitrages UX, données et migration sont consolidés dans les compléments 06 bis, 07 bis et 09 bis et dans la matrice T03. Le chapitre 13 — Contrats d’écran est volontairement exclu de cette passe et sera traité séparément.
 
 ## 1. Objet
 
@@ -27,9 +29,7 @@ Présentation générale du dépôt et indications de démarrage du projet.
 
 ### Revue Claude
 
-Les documents de travail relatifs aux revues de Claude sont normalement regroupés dans un dossier `Revue-claude`. Ce dossier n’est pas inclus dans la présente archive documentaire.
-
-Ils constituent un historique et un registre de travail des remarques traitées. Ils ne constituent pas des spécifications de référence.
+Les documents de travail relatifs aux revues de Claude sont normalement regroupés dans un dossier `Revue-claude`. Ils constituent un historique et un registre de travail des remarques traitées et ne constituent pas des spécifications de référence.
 
 Toute décision issue d’une revue externe n’est considérée comme intégrée au produit qu’après sa validation et sa répercussion dans les documents de référence concernés, notamment le registre des décisions.
 
@@ -37,23 +37,25 @@ Toute décision issue d’une revue externe n’est considérée comme intégré
 
 La documentation détaillée se trouve dans le dossier [`Specifications-fonctionnelles`](./Specifications-fonctionnelles/).
 
-| Ordre | Document                                                                                                                                                                    | Rôle                                                                                                                                  | État actuel                                    |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 00    | [Glossaire](./Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md)                                                                                                  | Définit les termes fonctionnels et les conventions de vocabulaire du projet.                                                          | Baseline MVP                                   |
-| 01    | [Vision générale](./Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md)                                                                       | Présente la finalité, la vision du produit et ses principes directeurs.                                                               | Baseline MVP                                   |
-| 02    | [Utilisateurs et besoins](./Specifications-fonctionnelles/02%20%E2%80%93%20Utilisateurs%20et%20besoins.md)                                                                  | Décrit les utilisateurs visés, leurs besoins et les situations d’usage.                                                               | Baseline MVP                                   |
-| 03    | [Parcours utilisateur](./Specifications-fonctionnelles/03%20%E2%80%93%20Parcours%20utilisateur.md)                                                                          | Décrit les parcours principaux et complémentaires du MVP.                                                                             | Baseline MVP                                   |
-| 04    | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md)                                                                         | Définit les concepts fonctionnels et leurs relations.                                                                                 | Baseline MVP                                   |
-| 05    | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md)                                                                          | Répartit les fonctionnalités entre le MVP et les versions futures.                                                                    | Baseline MVP                                   |
-| 06    | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md)                                                | Décrit les écrans, les modales, leur objectif, leur contenu et la navigation.                                                         | Baseline MVP                                   |
-| 07    | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md)                               | Enregistre les décisions validées et leur intégration dans la documentation.                                                          | Baseline MVP                                   |
-| 08    | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md)                                  | Décrit le fonctionnement détaillé de la composition, de l’exécution, de la planification, du suivi et les règles de calcul associées. | Baseline MVP                                   |
-| 09    | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md)                                          | Définit les entités, attributs, relations, cycles de vie et règles de cohérence des données.                                          | Baseline MVP                                   |
-| 10    | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et les règles de calcul identifiées par un ID.                                                           | Baseline MVP                                   |
-| 11    | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md)                                                                              | Décrit les opérations et services fonctionnels nécessaires au développement.                                                          | Baseline MVP                                   |
-| 12    | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md)                                                                      | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les validations techniques à réaliser.  | Baseline MVP avec spikes techniques identifiés |
-| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | T01 révisée ; T02, T03 Catalogue et T04 Exécution couverts |
-
+| Ordre | Document | Rôle | État actuel |
+|---|---|---|---|
+| 00 | [Glossaire](./Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md) | Définit les termes fonctionnels et conventions de vocabulaire. | Baseline MVP T03 |
+| 01 | [Vision générale](./Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md) | Présente la finalité, la vision et le périmètre. | Baseline MVP T03 |
+| 02 | [Utilisateurs et besoins](./Specifications-fonctionnelles/02%20%E2%80%93%20Utilisateurs%20et%20besoins.md) | Décrit les utilisateurs visés et leurs besoins. | Baseline MVP T03 |
+| 03 | [Parcours utilisateur](./Specifications-fonctionnelles/03%20%E2%80%93%20Parcours%20utilisateur.md) | Décrit les parcours principaux. | Baseline MVP T03 |
+| 04 | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) | Définit les concepts et leurs relations. | Baseline MVP T03 |
+| 05 | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md) | Répartit les fonctionnalités entre MVP et versions futures. | Baseline MVP T03 |
+| 06 | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) | Décrit les écrans, modales, contenus et navigation. | Baseline + complément T03 |
+| 06 bis | [Corrections UX T03 Catalogue](./Specifications-fonctionnelles/06%20bis%20%E2%80%93%20Corrections%20UX%20T03%20Catalogue.md) | Supersède les formulations UX historiques incompatibles avec les arbitrages T03. | Référence T03 |
+| 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées. | Baseline MVP |
+| 07 bis | [Arbitrages T03 du 15 septembre 2026](./Specifications-fonctionnelles/07%20bis%20%E2%80%93%20Arbitrages%20T03%20du%2015%20septembre%202026.md) | Consolide D-167 à D-183 et supersède les règles antérieures divergentes. | Référence T03 |
+| 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé, l’exécution et les calculs. | Baseline MVP T03 |
+| 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit entités, relations et cycles de vie. | Baseline MVP T03 |
+| 09 bis | [Modèle et migration T03 Catalogue](./Specifications-fonctionnelles/09%20bis%20%E2%80%93%20Mod%C3%A8le%20et%20migration%20T03%20Catalogue.md) | Précise ActivityDefinition/SessionActivity, cycle de vie et migration T03. | Référence T03 |
+| 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
+| 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
+| 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Définit les contrats frame par frame. | **Non modifié dans cette passe ; reprise dédiée à venir** |
 
 ## 4. Images et maquettes
 
@@ -61,13 +63,23 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 [`docs/Specifications-fonctionnelles/images`](./Specifications-fonctionnelles/images/)
 
-Les fichiers image illustrent les écrans décrits dans les chapitres 06 et 08. Le chapitre 13 référence chaque frame Figma par son ID et précise les critères permettant de comparer l’implémentation à cette référence visuelle.
+Pour T03, les évidences Figma corrigées sont répertoriées et affichées dans :
 
-Le chapitre 13 affiche également les captures de référence de l’exécution directe d’une Activité, nommées selon les contrats `CE-ACT-EXE-01` à `CE-ACT-EXE-05`. Il porte aussi les contrats d’implémentation détaillés, dont `CE-COMP-SEL-01` et `CE-ACT-EXE-01a` à `CE-ACT-EXE-05` : géométrie de référence, règles adaptatives, zones tactiles, ordre des calques, composants et variantes Figma, tokens DSF, icônes exactes et critères de recette. Les captures seules ne suffisent pas à reconstruire un écran.
+[Évidences Figma — T03 Catalogue des activités](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 
-La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements.
+Les trois captures T03 sont des fichiers image physiques du dépôt, référencés par chemins relatifs. Elles restent donc visibles après export/import du dossier documentaire sans dépendre d’une URL Figma temporaire.
 
-En cas d’évolution d’un écran, Figma et les captures de référence du dépôt doivent être maintenus cohérents. Un ajustement cosmétique mineur explicitement validé peut toutefois être développé avant son report dans Figma ; il doit être tracé puis réaligné ultérieurement, sans devenir une règle fonctionnelle ni imposer une mise à jour préalable de Figma à chaque correction cosmétique.
+La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements. Un détail graphique n’est pas transformé automatiquement en règle fonctionnelle.
+
+Évidences Figma T03 contrôlées le 15 septembre 2026 :
+- `3786:5093` — Catalogue des activités — liste ;
+- `3787:5148` — Catalogue — Créer — arbre d’actions ;
+- `3787:5209` — Catalogue — action contextuelle directe ;
+- `1992:9910` — Catalogue des séances — référence du contrôle `Déployer` ;
+- `2537:1033` — composant DSF canonique `Déployer` ;
+- `2537:214` — composant DSF canonique `Navigation / Bottom`.
+
+Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances ; il reste visible mais fonctionnellement désactivé en T03. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
 
 ## 5. Ordre de lecture recommandé
 
@@ -79,31 +91,31 @@ Pour comprendre le produit :
 5. 04 – Modèle fonctionnel ;
 6. 05 – Versions du produit.
 
-Pour préparer le développement fonctionnel :
+Pour préparer le développement T03 hors contrats d’écran :
 1. 00 – Glossaire ;
 2. 07 – Registre des décisions ;
-3. 04 – Modèle fonctionnel ;
-4. 06 – Écrans et navigation ;
-5. 08 – Conception fonctionnelle détaillée ;
-6. 09 – Modèle de données fonctionnel ;
-7. 10 – Processus métier et règles métier transverses.
-8. 13 – Contrats d’écran applicables à la tranche développée.
+3. 07 bis – Arbitrages T03 ;
+4. 04 – Modèle fonctionnel ;
+5. 06 – Écrans et navigation ;
+6. 06 bis – Corrections UX T03 ;
+7. 08 – Conception fonctionnelle détaillée ;
+8. 09 – Modèle de données fonctionnel ;
+9. 09 bis – Modèle et migration T03 ;
+10. 10 – Processus métier et règles métier ;
+11. 11 – API fonctionnelles ;
+12. 12 – Architecture technique ;
+13. matrice T03.
 
-Pour préparer l’implémentation technique :
-1. 06 – Écrans et navigation ;
-2. 13 – Contrats d’écran applicables à la tranche développée ;
-3. 11 – API fonctionnelles ;
-4. 12 – Architecture technique ;
-5. `README.md` et les fichiers de configuration du projet.
+Le chapitre 13 sera relu et complété dans une passe séparée avant de constituer la source déterministe frame par frame du développement T03.
 
 ## 6. Ordre de référence en cas de contradiction
 
 En cas de contradiction, appliquer l’ordre suivant :
-1. décision validée dans le registre des décisions ;
+1. décision validée dans le registre des décisions ou arbitrage explicitement supersédant du 07 bis ;
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
-4. écrans et navigation ;
-5. contrats d’écran ;
+4. écrans et navigation, complétés pour T03 par 06 bis ;
+5. contrats d’écran lorsqu’ils auront été consolidés pour la tranche ;
 6. versions du produit et vision générale ;
 7. documents de travail, historiques et revues externes.
 
@@ -130,60 +142,44 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 
 ## 8. État de la baseline avant développement
 
-Les contre-revues et revues transverses fonctionnelles et techniques ont été intégrées dans la documentation de référence.
-
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Activités en Répétitions ou À l’échec ;
-- Durée totale d’une Activité en mode Durée, dépendance avec le nombre de Séries et règle d’arrondi ;
-- distinction entre Pause entre Séries d’un même côté et Récupération après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
+- `Durée totale` visible dans les trois modes ; en Répétitions et À l’échec : `Durée totale : ≥ {durée connue}` ;
+- distinction entre Pause entre Séries et Récupération ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Activités de la Composition, Nombre total d’Activités à exécuter et Nombre d’Activités exécutées ;
 - progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète cette baseline par les contrats opérationnels T01 révisés, T02, T03 Catalogue et T04 Exécution. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
-
-Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
-
-Toute modification fonctionnelle ultérieure doit être traitée comme une évolution explicite de cette baseline et répercutée conformément à la section 7.
+Les chapitres 00 à 12, leurs compléments T03 et les matrices transverses constituent la baseline fonctionnelle générale préparée pour T03. Le chapitre 13 n’est pas certifié par la présente passe.
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les contrats T01 à T04, les matrices historiques et les rapports de conformité associés conservent la traçabilité de ces décisions.
+La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les règles bilatérales validées restent inchangées et sont réutilisées par l’Exécution directe T03.
 
-## 10. MVP T03 — Catalogue des Activités
+## 10. MVP T03 — Catalogue des activités
 
-Le Catalogue multi-type présente `Activités / Séances / Circuits`. Dans le MVP, `Séances` reste la destination active par défaut et T03 active le Catalogue des Activités persistantes, leur création et modification, leur insertion dans une Composition et leur Exécution directe. `Circuits` reste visible mais désactivé.
+Le Catalogue multi-type présente `Activités / Séances / Circuits`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des activités persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Circuits` reste visible mais désactivé.
 
-Le sujet est intégré dans les documents de référence et ne doit plus être lu comme une annexe isolée :
+La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`.
 
-- 01 — vision et périmètre ;
-- 02 — besoins ;
-- 03 — parcours utilisateur ;
-- 04 — modèle fonctionnel ;
-- 05 — versions du produit ;
-- 06 — écrans, navigation et captures en contexte ;
-- 07 — décisions ;
-- 08 — cycle de vie détaillé ;
-- 09 — modèle de données ;
-- 10 — règles métier ;
-- 11 — API fonctionnelles ;
-- 12 — architecture ;
-- 13 — contrats d’écran et matrice de traçabilité ;
-- `PRODUCT.md` — synthèse produit.
+L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Activité, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
 
-L’Exécution directe utilise une préparation fixe de `5 s`, le moteur multi-origine `SESSION | ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme `Activité`, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans son état précédent.
+Les cartes du Catalogue des activités séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est visible mais désactivé, utilise le même composant DSF `2537:1033` que le Catalogue des séances et occupe la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est présente.
 
-Les cartes du Catalogue des Activités séparent l’ouverture en consultation ou modification de l’action d’Exécution directe. Elles n’affichent ni contrôle `Déployer` ni poignée de déplacement. La réintroduction éventuelle d’un déploiement pour les médias reste une évolution distincte.
+La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
 
-La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Les pictogrammes sont des composants vectoriels DSF, notamment `Icon / Search` et `Icon / Selection Check` ; les glyphes texte ne sont pas des références autorisées.
+Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Cette suppression ne cascade ni vers les copies déjà placées dans les Séances ni vers l’historique.
 
-Le Circuit demeure un sujet V2 conceptualisé dont le contrat détaillé doit être finalisé avant développement. Les médias multiples restent également post-MVP.
+La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
+
+Les Circuits fonctionnels et les médias multiples restent hors MVP.
 
 ## 11. Matrices et rapports de traçabilité
 
-- [Matrice transverse — Catalogue des Activités](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#matrice-de-traçabilité-transverse--catalogue-des-activités)
+- [Matrice T03 — Catalogue des activités](./MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md)
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
-- [Rapport de conformité final](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
+- [Rapport de conformité — Récupération et Durée totale](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
-- [Rapport de conformité final — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
+- [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
+- [Évidences Figma T03 embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
