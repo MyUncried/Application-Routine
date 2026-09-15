@@ -52,7 +52,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10    | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et les règles de calcul identifiées par un ID.                                                           | Baseline MVP                                   |
 | 11    | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md)                                                                              | Décrit les opérations et services fonctionnels nécessaires au développement.                                                          | Baseline MVP                                   |
 | 12    | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md)                                                                      | Décrit l’architecture, le stockage, l’état applicatif, les intégrations natives, les tests et les validations techniques à réaliser.  | Baseline MVP avec spikes techniques identifiés |
-| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | T01 révisée ; T02 et T03 couverts |
+| 13    | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)                                                                       | Définit, frame par frame, les éléments obligatoires, les données, les contrôles, le layout et les critères de conformité nécessaires au développement et à la recette. | T01 révisée ; T02, T03 Catalogue et T04 Exécution couverts |
 
 
 ## 4. Images et maquettes
@@ -141,7 +141,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète cette baseline par les contrats opérationnels T01 révisés, T02 et T03. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
+Les chapitres 00 à 12 constituent la **baseline documentaire générale du MVP**. Le chapitre 13 complète cette baseline par les contrats opérationnels T01 révisés, T02, T03 Catalogue et T04 Exécution. Un écran dont le contrat est validé doit être développé et recetté conformément à ce contrat en plus des chapitres 00 à 12.
 
 Les points explicitement identifiés dans le chapitre 12 comme spikes, validations techniques ou validations sur appareils ne constituent pas des décisions fonctionnelles ouvertes. Ils doivent être vérifiés au moment prévu pendant le développement et documentés si leur résultat impose une évolution de la baseline.
 
@@ -149,11 +149,11 @@ Toute modification fonctionnelle ultérieure doit être traitée comme une évol
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les contrats T01 à T03, les matrices historiques et les rapports de conformité associés conservent la traçabilité de ces décisions.
+La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les contrats T01 à T04, les matrices historiques et les rapports de conformité associés conservent la traçabilité de ces décisions.
 
-## 10. Extension V2 — Catalogue des Activités
+## 10. MVP T03 — Catalogue des Activités
 
-Le Catalogue multi-type présente `Activités / Séances / Circuits`. Le MVP conserve seule la destination Séances active ; l’extension V2 active le Catalogue des Activités persistantes, leur création et modification, leur insertion dans une Composition et leur Exécution directe.
+Le Catalogue multi-type présente `Activités / Séances / Circuits`. Dans le MVP, `Séances` reste la destination active par défaut et T03 active le Catalogue des Activités persistantes, leur création et modification, leur insertion dans une Composition et leur Exécution directe. `Circuits` reste visible mais désactivé.
 
 Le sujet est intégré dans les documents de référence et ne doit plus être lu comme une annexe isolée :
 

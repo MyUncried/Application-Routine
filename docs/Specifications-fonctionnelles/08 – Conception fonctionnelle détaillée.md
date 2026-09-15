@@ -182,17 +182,17 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
-# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — V2
+# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — MVP T03
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le défaut et le seul type actif dans le MVP. En V2, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
 
 La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` ni aucune poignée de déplacement n’est affiché dans l’état courant.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
-Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Chaque action ouvre le parcours correspondant ; `Annuler` restaure le Catalogue sans écriture.
+Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Dans T03, `Une nouvelle activité` et `Une séance` ouvrent leur parcours ; `Un circuit` reste visible mais désactivé ; `Annuler` restaure le Catalogue sans écriture.
 
 `Une nouvelle activité` réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
@@ -269,7 +269,7 @@ Une activité possède notamment :
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
 - une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
 - une Description et des Zones corporelles d’exécution facultatives ;
-- des Médias dans le périmètre cible post-T04. Dans le MVP, l’action `Ajouter un média` reste visible mais désactivée et la section Médias n’est pas affichée.
+- des Médias dans le périmètre cible post-T05. Dans le MVP, l’action `Ajouter un média` reste visible mais désactivée et la section Médias n’est pas affichée.
 
 Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
 
@@ -454,7 +454,7 @@ La **durée réelle** enregistrée à la fin de l'Exécution suit la même règl
 
 ### Barre de progression globale
 
-La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T03, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent la pondération hybride de RM-077 et leur part est acquise lorsque l’utilisateur touche `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
+La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent la pondération hybride de RM-077 et leur part est acquise lorsque l’utilisateur touche `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
@@ -929,7 +929,7 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
-| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Une Activité proprement bilatérale hors Tour bilatéral affiche en plus le petit indicateur `D→G` ou `G→D` à `x=311`, `y=24,5`, en `42 × 20 pt`; le texte de la carte ne développe jamais cette direction. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche révèle des actions couvrant le bloc ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
+| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche révèle des actions couvrant le bloc ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
@@ -981,7 +981,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
-| Ajouter un média          | Bouton            | Toujours                           | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif dans la cible post-T04 | Statique | Ajouter | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; aucune section Médias dans le MVP |
+| Ajouter un média          | Bouton            | Toujours                           | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif dans la cible post-T05 | Statique | Ajouter | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; aucune section Médias dans le MVP |
 | Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
 | Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
 | Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
@@ -992,7 +992,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; désactivé sous Tour bilatéral |
 | Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
 | Durée totale              | Roulette durée calculée/pilotable | Mode Durée uniquement | Non | Calculée | Valeur réalisable selon la formule | Calcul | Sélection | Valeur globale `D = L × [C × A + P(C,R) × B] + R`, avec `P=C` si `R=0`, sinon `C−1` pour une Activité autonome ; peut devenir le pilote après confirmation |
-| Médias                    | Section repliable + galerie | Cible post-T04 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
+| Médias                    | Section repliable + galerie | Cible post-T05 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
@@ -1017,7 +1017,7 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
-| Synthèse          | Cadre immuable de l’écran Ajouter/Modifier une Activité, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. Pour une Activité proprement bilatérale, elle ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La Récupération positive est ajoutée après l’Activité. Cette direction développée n’est jamais reprise dans le texte d’une carte de Composition. |
+| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La Récupération positive est ajoutée après l’Activité. |
 ## Exécution d'une séance
 
 ### Éléments affichés

@@ -134,10 +134,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-076 | Le Nombre d’Activités exécutées correspond aux Résultats d’Activité créés. Une Activité `Partielle` compte ; une Activité jamais atteinte ne compte pas. |
 | RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions ou À l’échec pèse `1/N` ; la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
 | RM-159 | La Durée synthétique des Activités, affichée dans le Catalogue et la Composition, additionne les occurrences déterminables d’Activités, les Pauses entre Séries et les Récupérations attachées après développement des Séries et répétitions du Tour ; elle exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
-| RM-125 | La fin de la dernière Activité déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T03, puis la Synthèse dans la tranche qui la livre. |
-| RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T03, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent RM-077 et leur part est acquise avec `Suivant`. Les Pauses manuelles sont exclues de l’avancement. |
-| RM-127 | T03 accepte les Activités en Durée, Répétitions ou À l’échec, les Séries multiples, les Tours multiples et les passages bilatéraux. Elle refuse avant toute écriture uniquement un Plan invalide ou impossible à développer. |
-| RM-128 | Dans T03, Sons et Annonces vocales sont activés par défaut. Aucun réglage utilisateur ni aucune préférence correspondante ne sont lus ou persistés par cette tranche ; la configuration depuis le Profil est hors T03. |
+| RM-125 | La fin de la dernière Activité déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T04, puis la Synthèse dans la tranche qui la livre. |
+| RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent RM-077 et leur part est acquise avec `Suivant`. Les Pauses manuelles sont exclues de l’avancement. |
+| RM-127 | T04 accepte les Activités en Durée, Répétitions ou À l’échec, les Séries multiples, les Tours multiples et les passages bilatéraux. Elle refuse avant toute écriture uniquement un Plan invalide ou impossible à développer. |
+| RM-128 | Dans T04, Sons et Annonces vocales sont activés par défaut. Aucun réglage utilisateur ni aucune préférence correspondante ne sont lus ou persistés par cette tranche ; la configuration depuis le Profil est hors T04. |
 
 ## 10. Synthèse, Suivi et historique
 
@@ -187,7 +187,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-110 | Sans filtre, toutes les Séances non archivées sont triées par dernière modification décroissante. Les filtres sont Toutes, Planifiées, Non planifiées, Archivées ; les tris initiaux portent uniquement sur dernière modification et nom. |
 | RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
 | RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
-| RM-113 | Une référence d’Activité V2 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
+| RM-113 | Une référence d’Activité du MVP T03 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
 | RM-114 | Le MVP affiche `+ Ajouter un média` désactivé et masque la section Médias. La V2 autorise `0..n` photos ou vidéos ordonnées. |
 | RM-115 | Une association média est copiée indépendamment mais partage un fichier immuable ; le fichier n’est supprimé que sans aucune référence. |
 | RM-116 | Un Circuit validé exige nom, couleur et au moins deux étapes. Une Séance peut apparaître plusieurs fois ; aucune répétition d’étape n’est définie. |
@@ -204,10 +204,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
-| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL` et en héritage du Tour. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
+| RM-152 | La synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Clause absente en `UNILATERAL` et en héritage du Tour. |
 | RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
 
-## 12. Règles métier — Exécution directe d’une Activité V2
+## 12. Règles métier — Exécution directe d’une Activité — MVP T03
 
 | ID | Règle |
 |---|---|
@@ -220,5 +220,5 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités. |
 
-| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité V2 distincte. |
+| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est disponible dans l’état courant. Une future action de déploiement des médias reste une capacité post-MVP distincte. |
 | RM-163 | À la validation d’une sélection multiple d’Activités existantes, `CompositionService` copie les Activités sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |

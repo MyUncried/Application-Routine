@@ -1,10 +1,12 @@
 # Rapport de conformité final — Activité, Récupération et Durée totale
 
+> **Correspondance de roadmap (D-166)** — Le Catalogue des Activités constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
+
 ## 1. Périmètre et références
 
 - Baseline documentaire exclusive : commit Git `917c53d91c4564d9b5047d6a301a5f4067883806`, branche `feat/creation-seance-catalogue`.
 - Référence de conception : fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`, contrôlé le 8 septembre 2026.
-- Périmètre fonctionnel : suppression du type d’Activité, Récupération attachée, Durée totale dépendante du nombre de Séries, écran Activité unifié, Composition, Exécution T03, DSF et captures associées.
+- Périmètre fonctionnel : suppression du type d’Activité, Récupération attachée, Durée totale dépendante du nombre de Séries, écran Activité unifié, Composition, Exécution T04, DSF et captures associées.
 - Opérations Git : aucun commit, push ou sync effectué.
 
 ## 2. Résultat de la seconde passe indépendante
@@ -36,7 +38,7 @@ La seconde passe a également détecté et corrigé quatre résidus qui contredi
 | Règles métier | `10 – Processus métier et règles métier transverses.md`, RM-033 à RM-038, RM-129 à RM-132 |
 | API | `11 – API fonctionnelles.md`, API-ACT-01 à 07, API-EXE-04/05/08 |
 | Architecture et stockage | `12 – Architecture technique.md` : Plan, migration `004`, `DATABASE_VERSION = 4`, valeurs persistées et dérivées |
-| Contrats d’écran | `13 – Contrats d’écran.md`, CE-T01-13 à 15, CE-T02-01/02 et CE-T03-01 à 13 |
+| Contrats d’écran | `13 – Contrats d’écran.md`, CE-T01-13 à 15, CE-T02-01/02 et CE-T04-01 à 13 |
 | DSF, variables et tokens | `12 – Architecture technique.md` : composants exacts, nodes et alias `VariableID:2290:52` → `VariableID:2290:3` |
 | Captures Figma | `06 – Ecrans et navigation de la V1.md` et dossier `Specifications-fonctionnelles/images` |
 
@@ -49,9 +51,9 @@ La seconde passe a également détecté et corrigé quatre résidus qui contredi
 - Séries est le pilote implicite initial ; le dernier contrôle confirmé devient le pilote ; cet état n’est pas persisté.
 - Durée totale est masquée en Répétitions et À l’échec sans déplacer les autres contrôles.
 - Une Récupération positive forme une phase `RECOVERY` attachée ; elle est copiée, déplacée et supprimée avec l’Activité, mais ne compte pas comme Activité.
-- T03 conserve une seule Série et un seul Tour ; l’exécution multi-Séries et multi-Tours relève de T04.
+- T04 conserve une seule Série et un seul Tour ; l’exécution multi-Séries et multi-Tours relève de T04.
 - Les durées estimée, synthétique et réelle restent distinctes ; seule la Pause manuelle est exclue du temps réel.
-- La cible Média post-T04 conserve le bouton visible mais désactivé et masque la section au runtime MVP.
+- La cible Média post-T05 conserve le bouton visible mais désactivé et masque la section au runtime MVP.
 
 ## 5. DSF et références exactes
 

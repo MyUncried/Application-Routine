@@ -39,7 +39,7 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 ### Activité
 
-Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance. En V2, elle peut aussi exister comme référence persistante autonome dans le catalogue Activités ; son ajout à une Séance crée une copie indépendante.
+Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des Activités ; son ajout à une Séance crée une copie indépendante.
 
 Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle. Pour une Activité autonome, cette Récupération est exécutée une seule fois après tous ses côtés ; dans un Tour bilatéral, elle est exécutée une fois après chaque passage de côté. `Récupération` n’est plus un type d’Activité.
 
@@ -100,9 +100,9 @@ Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
 Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, y compris pour la dernière Activité avant `SESSION_END`.
 
-Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
+Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique ; aucun titre `Côté` ou `Côtés` n’est visible. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé ; `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
 
-Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le libellé visible est toujours `Durée totale`; en Répétitions et À l’échec, la borne reste `Durée totale : ≥ {durée connue}`.
+Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans ses informations secondaires si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. La synthèse propre ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le libellé visible est toujours `Durée totale`; en Répétitions et À l’échec, la borne reste `Durée totale : ≥ {durée connue}`.
 
 Une Activité ne possède aucun média fonctionnel dans le MVP. Le bouton `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2, une Activité peut associer `0..n` photos ou vidéos ordonnées.
 
@@ -256,7 +256,7 @@ Le MVP comporte quatre onglets :
 
 ## 7. Principes métier structurants
 
-1. Une Séance est un contenu exécutable ; en V2, une Activité persistante l’est également ; une Routine planifie une Séance.
+1. Une Séance est un contenu exécutable ; dans le MVP T03, une Activité persistante l’est également ; une Routine planifie une Séance.
 2. Une Séance et ses Routines sont indépendantes.
 3. Chaque Exécution conserve son origine et un instantané immuable du contenu utilisé.
 4. Une modification ou une suppression ultérieure ne change jamais une Exécution passée.
@@ -324,7 +324,6 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
-- bibliothèque d’Activités persistantes, réutilisées par copie indépendante ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
 - Circuits persistants composés d’au moins deux Séances ordonnées, exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
@@ -335,15 +334,15 @@ Les versions futures pourront notamment introduire :
 
 ### Catalogue multi-type
 
-Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné et fonctionnel ; `Activités` et `Circuits` restent visibles mais désactivés. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` deviennent des filtres dédiés et non des segments de navigation.
+Le Catalogue conserve un seul écran mais distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est sélectionné par défaut et fonctionnel ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Les états `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` deviennent des filtres dédiés et non des segments de navigation.
 
-### Activités persistantes — V2
+### Activités persistantes — MVP T03
 
 Une Activité de catalogue est une référence persistante. L’utilisateur peut la créer, la consulter, la modifier, l’exécuter directement ou la sélectionner depuis une Composition. Son insertion dans une Séance copie son nom, son mode, ses paramètres, sa Pause, sa Récupération, son côté et ses associations média. La copie appartient à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue.
 
 Depuis `Créer`, l’arbre propose `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
-### Exécution directe d’une Activité — V2
+### Exécution directe d’une Activité — MVP T03
 
 Le bouton Lecture d’une carte valide lance une Exécution d’origine `ACTIVITY`. Le moteur crée un instantané autonome, affiche une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération, puis termine sans phase `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
 
@@ -353,7 +352,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 Le MVP ajoute le mode `À l’échec`, sans durée ni répétitions cibles. L’éditeur unifié place le Nom en premier et ordonne les paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale` lorsque cette valeur s’applique.
 
-Les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` sont persistés, copiés et exécutés selon la direction propre de l’Activité ou celle du Tour. T03 développe les Séries multiples, les répétitions du Tour et les passages bilatéraux dans le Plan d’Exécution.
+Les réglages `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` sont persistés, copiés et exécutés selon la direction propre de l’Activité ou celle du Tour. T04 développe les Séries multiples, les répétitions du Tour et les passages bilatéraux dans le Plan d’Exécution.
 
 ### Médias et Circuits
 
@@ -361,7 +360,16 @@ Une Activité peut associer `0..n` photos ou vidéos ordonnées en V2. Leur affi
 
 Un Circuit V2 possède un nom, une couleur et au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. Une Exécution de Circuit fige un instantané et relie les Exécutions de Séance commencées. La planification des Circuits relève de la V3.
 
-## 12. Gouvernance documentaire
+## 12. Roadmap des tranches MVP
+
+| Tranche | Périmètre de référence |
+|---|---|
+| T01–T02 | Création, modification et Composition des Séances. |
+| T03 | Catalogue des Activités, Activités persistantes, sélection multiple, copie indépendante et Exécution directe. |
+| T04 | Moteur d’Exécution des Séances ; ancienne T03, lots 1 et 2. |
+| T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans modification implicite de contenu. |
+
+## 13. Gouvernance documentaire
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
