@@ -35,6 +35,21 @@ Chaque carte :
 
 Une Récupération visible sur la première carte d’une maquette Figma est une donnée de démonstration : dans l’application, toute carte l’affiche uniquement lorsque l’`ActivityDefinition` concernée possède une Récupération non nulle.
 
+### 2.1 Contrôles communs `Filtrer` et `Trier`
+
+`Filtrer` et `Trier` sont des contrôles communs aux trois contextes du Catalogue `Activités / Séances / Circuits`. Leur représentation visuelle doit être commune ; le contenu des options peut dépendre du segment actif.
+
+Pour T03, dans `Catalogue des activités` :
+
+- `Filtrer` est fonctionnel **au minimum pour accéder à `Archivées`** ;
+- aucune autre option de filtre n’est définie à ce stade et aucune ne doit être inventée ;
+- `Trier` reste **visible mais désactivé** ;
+- le tri automatique appliqué reste `date de dernière modification décroissante` ;
+- un aller-retour courant conserve recherche / filtre Archives / tri implicite / scroll ;
+- un relaunch complet ne conserve pas cet état.
+
+Le détail graphique des panneaux/options `Filtrer` et `Trier` n’est pas encore conçu dans Figma. Il est donc `NON VÉRIFIABLE` visuellement au-delà du contrôle d’entrée lui-même. Aucune modale, feuille, popover ou liste locale ne doit être inventée au seul écran Activités avant arbitrage Figma/documentaire.
+
 ## 3. Arbre `Créer` depuis le Catalogue
 
 Ordre exact :
@@ -111,5 +126,7 @@ Le texte des cartes de Composition ne développe jamais la direction ; une direc
 - `1992:9910` — Catalogue des séances — référence du contrôle `Déployer` ;
 - `2537:1033` — composant canonique `Déployer` ;
 - `2537:214` — composant canonique de navigation basse.
+
+Le rendu détaillé des panneaux/options `Filtrer` et `Trier` n’a pas encore d’évidence Figma validée et reste `NON VÉRIFIABLE` visuellement.
 
 Captures documentaires embarquées : [`images/README-T03-FIGMA.md`](./images/README-T03-FIGMA.md).
