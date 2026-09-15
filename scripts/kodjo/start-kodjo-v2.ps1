@@ -22,6 +22,11 @@ try {
 
   Push-Location $repoRoot
   try {
+    $requestObject = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$requestObject.operation_kind -eq 'VISUAL_CORRECTION') {
+      & node scripts/kodjo/prepare-visual-recovery.js $Request
+      if ($LASTEXITCODE -ne 0) { throw 'KODJO_V2_VISUAL_RECOVERY_PREPARATION_FAILED' }
+    }
     & node scripts/kodjo/run-local-claude.js $Request
     exit $LASTEXITCODE
   }
