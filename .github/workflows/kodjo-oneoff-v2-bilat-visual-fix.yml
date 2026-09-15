@@ -24,36 +24,38 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Verify immutable source
+      - name: Verify current source
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "3a0dbbe7510f69f702c4b440e25b63b893d2d492"
+          test "$(git rev-parse HEAD)" = "01a36df2958e3be1f606bac5f600366d976bd570"
           test -z "$(git status --porcelain)"
 
-      - name: Apply bounded visual correction
-        shell: python
-        run: |
-          from pathlib import Path
-          p = Path('src/features/sessions/CompositionScreen.tsx')
-          s = p.read_text(encoding='utf-8')
-          old = '''  activitySideModeIndicator: {\n    position: "absolute",\n    left: 311,\n    top: 24.5,\n    alignItems: "center",'''
-          new = '''  activitySideModeIndicator: {\n    position: "absolute",\n    right: spacing[16],\n    top: spacing[4],\n    alignItems: "center",'''
-          if old not in s:
-              raise SystemExit('Expected legacy indicator coordinates not found')
-          if s.count(old) != 1:
-              raise SystemExit('Legacy indicator coordinates are not unique')
-          s = s.replace(old, new, 1)
-          p.write_text(s, encoding='utf-8', newline='\n')
-
-      - name: Verify bounded diff
+      - name: Restore exact baseline bytes and apply bounded correction
         shell: bash
         run: |
           set -euo pipefail
-          files="$(git diff --name-only)"
+          git show 3a0dbbe7510f69f702c4b440e25b63b893d2d492:src/features/sessions/CompositionScreen.tsx > src/features/sessions/CompositionScreen.tsx
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/features/sessions/CompositionScreen.tsx')
+          b = p.read_bytes()
+          old = b'  activitySideModeIndicator: {\r\n    position: "absolute",\r\n    left: 311,\r\n    top: 24.5,\r\n    alignItems: "center",'
+          new = b'  activitySideModeIndicator: {\r\n    position: "absolute",\r\n    right: spacing[16],\r\n    top: spacing[4],\r\n    alignItems: "center",'
+          if b.count(old) != 1:
+              raise SystemExit(f'Expected exactly one legacy coordinate block, found {b.count(old)}')
+          p.write_bytes(b.replace(old, new, 1))
+          PY
+
+      - name: Verify bounded diff against original HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 --name-only)"
           test "$files" = "src/features/sessions/CompositionScreen.tsx"
-          git diff --check
-          git diff -- src/features/sessions/CompositionScreen.tsx
+          git diff --check 3a0dbbe7510f69f702c4b440e25b63b893d2d492
+          test "$(git diff --numstat 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx)" = $'2\t2\tsrc/features/sessions/CompositionScreen.tsx'
+          git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx
 
       - name: Install dependencies
         run: npm ci
@@ -77,5 +79,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/features/sessions/CompositionScreen.tsx
-          git commit -m "fix(V2-BILAT-01): align activity direction indicator"
+          git commit -m "fix(V2-BILAT-01): preserve baseline bytes for indicator alignment"
           git push origin HEAD:kodjo/v2-v2-bilat-01-34948992572
