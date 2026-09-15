@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "01a36df2958e3be1f606bac5f600366d976bd570"
+          test "$(git rev-parse HEAD)" = "aa919e24f32f13d4444f7dfcfeb403bac4c70138"
           test -z "$(git status --porcelain)"
 
       - name: Restore exact baseline bytes and apply bounded correction
