@@ -104,7 +104,13 @@ test('0.6.24 — la preuve réelle du paquet 34872653037 est exacte et sans chan
     'sha256:4736b6311775e7fc51740f7febfe636fce97ae26e1286c31d10cb06cf02a53b9');
   assert.equal(attestation.source_patch_sha256,
     '1e49b433f38fe901e93a2210e10c999e2ac6c86d7a026da126d1158717456c84');
-  assert.equal(attestation.authorization_policy, 'CURRENT_REQUEST_VERIFIED_SEPARATELY');
+  assert.equal(attestation.authorization_policy, undefined);
+  assert.equal(attestation.authorization_binding.authorized_plan.plan_blob_oid,
+    '20ae36edc25e5979922b7d183b79ff752bac849b');
+  assert.equal(attestation.authorization_binding.independent_review.review_blob_oid,
+    'cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04');
+  assert.equal(attestation.authorization_binding.user_gate.gate_ref,
+    'issue_comment:5676056231');
   assert.deepEqual(attestation.compatible_application_paths, []);
   const intervening = [
     ...attestation.certified_protocol_executable_paths,

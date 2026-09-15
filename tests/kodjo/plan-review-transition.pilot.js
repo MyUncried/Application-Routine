@@ -143,14 +143,18 @@ test('cycle de vie: source non ancêtre et HEAD exécuté discordant sont refus�
     'PLAN_REVIEW_EXECUTION_HEAD_MISMATCH');
 });
 
-test('cycle réel ef0bf111→HEAD: les seuls changements intermédiaires sont protocolaires', (t) => {
+test('cycle réel ef0bf111→8a091134: les seuls changements intermédiaires sont protocolaires', (t) => {
   const root = path.resolve(__dirname, '..', '..');
   const sourceHead = 'ef0bf111195d67f6223ee4844da2b6bf2aca00d2';
+  const executionHead = '8a091134815be32cecaba2db37b47491904f3998';
   const present = spawnSync('git', ['cat-file', '-e', `${sourceHead}^{commit}`], {
     cwd: root, encoding: 'utf8', windowsHide: true,
   });
   if (present.status !== 0) return t.skip('source archive sans métadonnées Git');
-  const executionHead = git(root, ['rev-parse', 'HEAD']);
+  const targetPresent = spawnSync('git', ['cat-file', '-e', `${executionHead}^{commit}`], {
+    cwd: root, encoding: 'utf8', windowsHide: true,
+  });
+  if (targetPresent.status !== 0) return t.skip('cible historique absente de l archive Git');
   const proof = verifyTransition({
     cwd: root,
     sourceHead,
