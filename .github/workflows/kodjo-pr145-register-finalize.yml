@@ -1,0 +1,65 @@
+name: KODJO PR145 register finalize
+
+on:
+  push:
+    branches:
+      - protocol/visual-correction-structural-hardening-20260915
+    paths:
+      - .github/orchestration/pr145-register-finalize-trigger.txt
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: protocol/visual-correction-structural-hardening-20260915
+          fetch-depth: 0
+      - name: Finalize incident register and oracle
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          function once(text, oldValue, newValue, label) {
+            const count = text.split(oldValue).length - 1;
+            if (count !== 1) throw new Error(`${label}: expected 1 occurrence, got ${count}`);
+            return text.replace(oldValue, newValue);
+          }
+
+          const regPath = '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md';
+          let reg = fs.readFileSync(regPath, 'utf8');
+          reg = once(reg, '- Version du registre : **3.37.0**', '- Version du registre : **3.38.0**', 'register version');
+          const anchor = '| T-108 | 0.6.27 | Cycle de vie | VISUAL_CORRECTION et checkpoint certifié | PASS attendu | PR #131→#142 ; paquet 34948992572/10389171562 ; refus des références incohérentes |';
+          if (!reg.includes(anchor)) throw new Error('T-108 anchor missing');
+          if (reg.includes('| INC-136 |') || reg.includes('| T-109 |')) throw new Error('INC-136/T-109 already present');
+          const inc = "| INC-136 | 2026-09-15 | V2 correction visuelle 0.6.28 | DÉFAUT_CONCEPTION | Entrée réelle `RESUME_DELTA + VISUAL_CORRECTION` | La demande canonique `[KODJO_V2] RESUME_DELTA` avec `mode=VISUAL_CORRECTION` déclenchait le workflow legacy mais son job `implement` était `skipped`, donc aucune correction ne pouvait atteindre Claude ni la PR applicative existante | Le contrat d'entrée était scindé : ChatGPT publiait KODJO_V2 tandis que le workflow d'implémentation n'admettait que les préfixes KODJO_SLICE ; la correction précédente couvrait la politique interne et le checkpoint mais pas l'ingress réel de bout en bout | Commentaire issue #52 `5679259347`, run `34962253354`, job `104358341794` `skipped` ; PR protocolaire #145 ; certification finale run `34974141374` | Industrialiser le chemin canonique Lean Queue : `operation_kind=VISUAL_CORRECTION`, cible `EXISTING_PR`, vérification live du checkpoint/PR/branche/HEAD avant Claude, séparation HEAD protocolaire/applicatif, runtime figé hors checkout, push fast-forward non forcé sur la PR existante et nouveau `APPLICATION_CHECKPOINT` après livraison | Une correction visuelle bornée `RESUME_DELTA` vers une PR existante doit être admise et vérifiée par le chemin KODJO_V2 réel avant Claude ; aucune route legacy parallèle, référence incohérente, nouvelle PR ou fusion automatique ne peut être substituée silencieusement | T-109 : qualification PR #145 du chemin `RESUME_DELTA + VISUAL_CORRECTION → EXISTING_PR`, suite pilote Linux/Windows, parse PowerShell 5.1, parcours de file isolé et préflight jetable sans Claude | PASS — run `34974141374`, jobs Linux `104397476012` et Windows `104397693819` SUCCESS | Admission et livraison V2 / correction visuelle | CORRIGÉ | prolonge INC-135 | PR #145 ne modifie aucun fichier `src/**` ou `app/**` ; aucune invocation Claude applicative pendant la certification |";
+          const testRow = '| T-109 | 0.6.28 | Chemin réel de correction visuelle | `RESUME_DELTA + VISUAL_CORRECTION` vers `EXISTING_PR`, checkpoint/HEADs vérifiés, push fast-forward et nouveau checkpoint | PASS | PR #145 ; run `34974141374` Linux/Windows ; PowerShell 5.1 et préflight jetable sans Claude |';
+          reg = reg.replace(anchor, `${anchor}\n${inc}\n${testRow}`);
+          fs.writeFileSync(regPath, reg, 'utf8');
+
+          const testPath = 'tests/kodjo/incident-register.pilot.js';
+          let test = fs.readFileSync(testPath, 'utf8');
+          test = once(test, 'registre canonique 3.37.0: incidents uniques, complets et à valeurs contrôlées', 'registre canonique 3.38.0: incidents uniques, complets et à valeurs contrôlées', 'test title');
+          test = once(test, '/Version du registre : \\*\\*3\\.37\\.0\\*\\*/', '/Version du registre : \\*\\*3\\.38\\.0\\*\\*/', 'version regex');
+          test = once(test, "assertSequence(incidents, 'INC', 135);", "assertSequence(incidents, 'INC', 136);", 'incident cardinality');
+          test = once(test, "assertSequence(ids('T'), 'T', 108);", "assertSequence(ids('T'), 'T', 109);", 'test cardinality');
+          fs.writeFileSync(testPath, test, 'utf8');
+          NODE
+
+          rm -f .github/workflows/kodjo-pr145-register-finalize.yml
+          rm -f .github/orchestration/pr145-register-finalize-trigger.txt
+          git diff --check
+          node --test tests/kodjo/incident-register.pilot.js
+          git diff --name-only | sort
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md .github/orchestration/pr145-register-finalize-trigger.txt .github/workflows/kodjo-pr145-register-finalize.yml tests/kodjo/incident-register.pilot.js "
+      - name: Commit final register evidence
+        shell: bash
+        run: |
+          git config user.name "KODJO Protocol Certification"
+          git config user.email "kodjo-protocol@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(protocol): certify INC-136 and T-109"
+          git push origin HEAD:protocol/visual-correction-structural-hardening-20260915
