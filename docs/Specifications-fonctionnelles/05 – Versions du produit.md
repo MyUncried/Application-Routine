@@ -110,7 +110,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. La bibliothèque V2 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -189,15 +189,20 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### MVP
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
-- Catalogue affichant `Activités / Séances / Circuits`, avec `Séances` sélectionné et seul actif ;
+- Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
-- modèle et calculs de Récupération après l’Activité préparés avant T03.
+- modèle et calculs de Récupération après l’Activité préparés avant T04.
+
+### MVP — complément T03
+
+- Catalogue et cycle de vie des Activités de référence ;
+- création, consultation et modification d’une Activité persistante ;
+- ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes activités` dans la première livraison ;
+- Exécution directe avec préparation fixe de `5 s`, Synthèse à Ressenti obligatoire, Suivi général et statistiques compatibles.
 
 ### V2
 
-- catalogue et CRUD des Activités de référence ;
-- ajout dans une Séance par copie indépendante ; pas d’action `Enregistrer dans mes activités` dans la première livraison ;
 - `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
 - création, modification, archivage, suppression et exécution manuelle des Circuits ;
 - écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
@@ -206,16 +211,25 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - planification, récurrences, calendrier, rappels et notifications des Circuits.
 
-## Tranche Bilatéralité et révision de T03
+## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
-Une tranche spécifique précède l’Exécution T03. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+| Tranche | Périmètre |
+|---|---|
+| T01–T02 | Création, modification et Composition des Séances selon les contrats existants. |
+| T03 | Catalogue des Activités : liste, cycle de vie persistant, arbre de création, sélection multiple, copie dans une Séance et Exécution directe complète. |
+| T04 | Moteur d’Exécution des Séances, correspondant à l’ancienne T03 et à ses anciens lots 1 et 2. |
+| T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans changement automatique de périmètre. |
 
-T03 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T03.
+## Tranche Bilatéralité et révision de T04
 
-## Complément V2 — Activité directement exécutable
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
 
-La première version fonctionnelle du Catalogue des Activités inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient à la V2 et ne modifie pas le périmètre du MVP centré sur les Séances.
+T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
 
-### Précision V2 — Carte d’Activité et médias
+## MVP T03 — Activité directement exécutable
 
-Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est absent de l’état courant. Sa réintroduction éventuelle pour afficher les médias est une évolution V2 distincte, à détailler avec les comportements média.
+La première version fonctionnelle du Catalogue des Activités inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : une Activité persistante valide constitue aussi une source exécutable.
+
+### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
+
+Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est absent de l’état courant. Sa réintroduction éventuelle pour afficher les médias est une évolution post-MVP distincte, à détailler avec les comportements média.

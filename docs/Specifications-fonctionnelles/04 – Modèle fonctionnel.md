@@ -19,7 +19,7 @@ Le modèle fonctionnel repose sur les principes suivants :
 
 # 4.3 Concepts métier
 
-Le fonctionnement de l’application repose sur les concepts principaux suivants. Les formes MVP et V2 sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
+Le fonctionnement de l’application repose sur les concepts principaux suivants. Les deux formes du MVP T03 sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
 ## Utilisateur
 
 L'utilisateur est propriétaire de l'ensemble de ses données.
@@ -91,7 +91,7 @@ Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séri
 
 ### Activité de référence et Activité de Séance
 
-En V2, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
+Dans le MVP T03, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
 
 Une **Activité de Séance** est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier et associations média de la référence, puis rompt tout lien d’évolution : modifier ou supprimer la source ne modifie jamais la copie, et inversement. Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de catalogue.
 ## Routine
@@ -116,7 +116,7 @@ Une même séance peut être associée à plusieurs routines.
 Une **Exécution** représente la réalisation effective d’un contenu. Elle porte obligatoirement une origine :
 
 - `SESSION` pour une Séance lancée manuellement ou depuis une Routine ;
-- `ACTIVITY` pour une Activité persistante lancée directement depuis son Catalogue en V2.
+- `ACTIVITY` pour une Activité persistante lancée directement depuis son Catalogue dans le MVP T03.
 
 Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution `SESSION` peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
 
@@ -295,11 +295,11 @@ Ne sont pas inclus dans le MVP :
 
 # 4.9 Extension validée du modèle
 
-L’Activité possède deux formes distinctes : la **référence autonome** de V2 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier, dont la Pause et la Récupération, ainsi que ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
+L’Activité possède deux formes distinctes : la **référence autonome** du Catalogue T03 et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier, dont la Pause et la Récupération, ainsi que ses associations média ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
 
 Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-La nouvelle structure est exécutée par T03, y compris les Séries multiples, les Tours multiples et les passages bilatéraux décrits dans le Plan d’Exécution.
+La nouvelle structure est exécutée par T04, y compris les Séries multiples, les Tours multiples et les passages bilatéraux décrits dans le Plan d’Exécution.
 
 Le Média est un actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations peuvent référencer le même fichier sans duplication physique. Une suppression d’association ou de référence ne supprime le fichier que lorsqu’aucune entité ni aucun instantané ne le référence.
 
@@ -313,7 +313,7 @@ La direction effective est résolue une seule fois : celle du Tour si celui-ci e
 
 Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée`.
 
-## Exécution directe d’une Activité — V2
+## Exécution directe d’une Activité — MVP T03
 
 Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
 

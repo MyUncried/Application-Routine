@@ -62,7 +62,7 @@ Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivit
 
 Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries d’un même côté et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T03 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T04 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
 
@@ -118,11 +118,11 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, seule la vue `Séances` est active ; les deux autres types sont visibles mais désactivés. En V2, les vues Activités et Circuits deviennent fonctionnelles sans créer de navigation principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, `Séances` est active dès T01 et `Activités` devient active en T03 ; `Circuits` reste visible mais désactivé. En V2, la vue Circuits devient fonctionnelle sans créer de navigation principale supplémentaire.
 
-### Bibliothèque et Catalogue des Activités — V2
+### Catalogue des Activités — MVP T03
 
-La V2 apporte une bibliothèque d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement la bibliothèque. Les médias multiples ordonnés appartiennent également à la V2, mais leur affichage par déploiement de carte reste une évolution distincte à détailler.
 
