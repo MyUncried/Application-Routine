@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm .github/workflows/kodjo-oneoff-v2-bilat-clean-push.yml
+          rm -f .github/workflows/kodjo-oneoff-v2-bilat-clean-push.yml .kodjo-oneoff-trigger
           test "$(git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 --name-only)" = "src/features/sessions/CompositionScreen.tsx"
           test "$(git diff --numstat 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx)" = "2	2	src/features/sessions/CompositionScreen.tsx"
           git diff --check 3a0dbbe7510f69f702c4b440e25b63b893d2d492
