@@ -27,6 +27,19 @@ if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_SOURCE_NOT_FOUND' }
 $reachable = @(git rev-list HEAD)
 if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_ANCESTOR' }
 
+# Une PR applicative peut être basée sur un HEAD antérieur au protocole courant.
+# Le runtime exécutable est donc figé hors checkout AVANT toute bascule vers le
+# HEAD applicatif. Le correctif ne dépend jamais des scripts présents dans la PR.
+$runtimeScriptRoot = $PSScriptRoot
+if ($isVisual) {
+  $runtimeScriptRoot = Join-Path $env:RUNNER_TEMP ("kodjo-protocol-runtime-{0}-{1}" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+  Copy-Item -LiteralPath $PSScriptRoot -Destination $runtimeScriptRoot -Recurse -Force
+  if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot 'start-kodjo-v2.ps1') -PathType Leaf)) {
+    throw 'KODJO_QUEUE_PROTOCOL_RUNTIME_COPY_FAILED'
+  }
+}
+
 $tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 $publishPathspec = Join-Path $env:RUNNER_TEMP ("kodjo-publish-{0}-{1}.nul" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 Remove-Item -LiteralPath $publishPathspec -Force -ErrorAction SilentlyContinue
@@ -79,7 +92,7 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
   $npmExitCode = $LASTEXITCODE
   $npmFinishedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   if (-not [string]::IsNullOrWhiteSpace($env:KODJO_INFRA_METRICS_FILE)) {
-    & node (Join-Path $PSScriptRoot 'record-infrastructure-metric.js') npm-ci $env:KODJO_INFRA_METRICS_FILE $npmStartedMs $npmFinishedMs $npmExitCode $repoRoot
+    & node (Join-Path $runtimeScriptRoot 'record-infrastructure-metric.js') npm-ci $env:KODJO_INFRA_METRICS_FILE $npmStartedMs $npmFinishedMs $npmExitCode $repoRoot
     if ($LASTEXITCODE -ne 0) {
       Write-Warning 'KODJO_QUEUE_INFRASTRUCTURE_METRIC_FAILED: npm-ci'
       $global:LASTEXITCODE = 0
@@ -93,7 +106,7 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
 try {
-  & (Join-Path $PSScriptRoot 'start-kodjo-v2.ps1') -Request $tempRequest
+  & (Join-Path $runtimeScriptRoot 'start-kodjo-v2.ps1') -Request $tempRequest
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
@@ -112,7 +125,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_INDEX_RESET_FAILED' }
   git -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_ADD_FAILED' }
-  & node (Join-Path $PSScriptRoot 'verify-staged-scope.js') $publishPathspec
+  & node (Join-Path $runtimeScriptRoot 'verify-staged-scope.js') $publishPathspec
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_STAGED_SCOPE_REFUSED' }
   git -c core.whitespace=cr-at-eol diff --cached --check
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_DIFF_CHECK_FAILED' }
@@ -194,4 +207,18 @@ Human review remains required before merge.
 finally {
   git config --local --unset-all http.https://github.com/.extraheader 2>$null
   Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  if ($isVisual) {
+    # Rendre le checkout protocolaire aux étapes `always()` du workflow. La copie
+    # runtime, elle, peut être supprimée : toutes les écritures applicatives sont
+    # déjà durablement observées sur GitHub à ce stade.
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+      Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
 }
