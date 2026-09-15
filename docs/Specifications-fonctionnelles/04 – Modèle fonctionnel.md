@@ -25,6 +25,7 @@ Le fonctionnement de l’application repose sur les concepts principaux suivants
 L'utilisateur est propriétaire de l'ensemble de ses données.
 Il possède notamment :
 - ses séances ;
+- ses activités persistantes à partir de la V2 ;
 - ses routines ;
 - ses catégories ;
 - ses zones corporelles ;
@@ -67,7 +68,7 @@ Il est toujours contenu dans un cycle.
 Un Tour possède un nombre de répétitions propre, supérieur ou égal à 1.
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire exécuté pendant une Séance. Le modèle cible ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
+Une **Activité** représente une action élémentaire exécutable. Dans le MVP, elle existe comme `SessionActivity`, copie appartenant à une Séance. En V2, elle peut aussi exister comme `ActivityDefinition`, définition persistante autonome appartenant à l’Utilisateur et exposée dans le Catalogue des Activités. Le modèle cible ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -91,7 +92,7 @@ Pour une occurrence en mode Durée : `Durée totale = Séries × Durée + (Séri
 
 ### Activité de référence et Activité de Séance
 
-En V2, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle peut être créée, consultée, modifiée, supprimée selon son cycle de vie et exécutée directement lorsqu’elle est valide.
+En V2, une **Activité de référence** est une définition persistante autonome du Catalogue des Activités. Elle appartient à un seul Utilisateur, qui peut en posséder zéro, une ou plusieurs. Elle peut être créée, consultée, modifiée, archivée ou supprimée selon son cycle de vie et exécutée directement lorsqu’elle est active et valide.
 
 Une **Activité de Séance** est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier et associations média de la référence, puis rompt tout lien d’évolution : modifier ou supprimer la source ne modifie jamais la copie, et inversement. Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de catalogue.
 ## Routine
