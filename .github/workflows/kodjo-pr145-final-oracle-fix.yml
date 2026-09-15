@@ -1,0 +1,32 @@
+name: KODJO PR145 final oracle repair
+
+on:
+  push:
+    branches:
+      - protocol/visual-correction-structural-hardening-20260915
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.actor == 'MyUncried' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: protocol/visual-correction-structural-hardening-20260915
+          fetch-depth: 0
+      - name: Apply exact oracle repair
+        run: node scripts/kodjo/pr145-final-oracle-fix.js
+      - name: Verify targeted diff
+        run: |
+          git diff --check
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = ".github/orchestration/pr145-final-oracle-trigger.txt .github/workflows/kodjo-pr145-final-oracle-fix.yml scripts/kodjo/pr145-final-oracle-fix.js tests/kodjo/queue-contract.pilot.js "
+      - name: Commit repaired branch
+        run: |
+          git config user.name "KODJO Protocol Repair"
+          git config user.email "kodjo-protocol@users.noreply.github.com"
+          git add -A
+          git commit -m "test(protocol): point authorization oracle to real checkpoint verifier"
+          git push origin HEAD:protocol/visual-correction-structural-hardening-20260915
