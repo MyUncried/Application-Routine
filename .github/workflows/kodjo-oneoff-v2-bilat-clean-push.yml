@@ -1,0 +1,91 @@
+name: KODJO one-off V2-BILAT clean push repair
+
+on:
+  push:
+    branches:
+      - kodjo/v2-v2-bilat-01-34948992572
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.head_commit.message == 'chore: launch clean V2-BILAT visual repair'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: kodjo/v2-v2-bilat-01-34948992572
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify launch point
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "aa919e24f32f13d4444f7dfcfeb403bac4c70138"
+          test -z "$(git status --porcelain)"
+
+      - name: Restore baseline bytes and apply bounded correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show 3a0dbbe7510f69f702c4b440e25b63b893d2d492:src/features/sessions/CompositionScreen.tsx > src/features/sessions/CompositionScreen.tsx
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/features/sessions/CompositionScreen.tsx')
+          b = p.read_bytes()
+          old = b'  activitySideModeIndicator: {\r\n    position: "absolute",\r\n    left: 311,\r\n    top: 24.5,\r\n    alignItems: "center",'
+          new = b'  activitySideModeIndicator: {\r\n    position: "absolute",\r\n    right: spacing[16],\r\n    top: spacing[4],\r\n    alignItems: "center",'
+          if b.count(old) != 1:
+              raise SystemExit(f'Expected exactly one legacy coordinate block, found {b.count(old)}')
+          p.write_bytes(b.replace(old, new, 1))
+          PY
+
+      - name: Verify application diff is exactly two replacements
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx
+          test "$(git diff --numstat 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx)" = $'2\t2\tsrc/features/sessions/CompositionScreen.tsx'
+          git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Targeted Composition tests
+        run: npx jest src/features/sessions/__tests__/CompositionScreen.test.tsx --runInBand
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: ESLint bounded
+        run: npx eslint src/features/sessions/CompositionScreen.tsx
+
+      - name: Full Jest
+        run: npx jest --runInBand
+
+      - name: Remove one-off workflow and verify final net diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/kodjo-oneoff-v2-bilat-clean-push.yml
+          files="$(git diff 3a0dbbe7510f69f702c4b440e25b63b893d2d492 --name-only)"
+          test "$files" = "src/features/sessions/CompositionScreen.tsx"
+          test "$(git diff --numstat 3a0dbbe7510f69f702c4b440e25b63b893d2d492 -- src/features/sessions/CompositionScreen.tsx)" = $'2\t2\tsrc/features/sessions/CompositionScreen.tsx'
+          git diff --check 3a0dbbe7510f69f702c4b440e25b63b893d2d492
+
+      - name: Commit and push final clean state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(V2-BILAT-01): clean activity direction alignment"
+          git push origin HEAD:kodjo/v2-v2-bilat-01-34948992572
