@@ -188,7 +188,7 @@ test('complétude · toute propriété AUTHORIZATION est consommée par la véri
   const source = [
     fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-authorizations.js'), 'utf8'),
     fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-queue-admission.js'), 'utf8'),
-    fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'lib', 'visual-checkpoint.js'), 'utf8'),
+    fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-visual-checkpoint.js'), 'utf8'),
   ].join('\n');
   const jamais = C.propertiesOfNature('AUTHORIZATION').filter((name) => !source.includes(name));
   assert.deepEqual(jamais, [], 'une preuve d’autorisation n’est lue par aucun code');
