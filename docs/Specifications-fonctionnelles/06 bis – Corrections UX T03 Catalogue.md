@@ -1,6 +1,6 @@
 # Corrections UX T03 — Catalogue et parcours associés
 
-Ce document complète `06 – Ecrans et navigation de la V1.md` pour les corrections UX intégrées à T03. Lorsqu’une formulation historique du chapitre 06 diverge de ce document, la règle ci-dessous fait foi conjointement avec `07 bis – Arbitrages T03 du 15 septembre 2026.md`.
+Ce document complète les chapitres `03 – Parcours utilisateur`, `06 – Ecrans et navigation de la V1` et `08 – Conception fonctionnelle détaillée` pour les corrections UX intégrées à T03. **Toute formulation historique de ces trois chapitres qui diverge des règles ci-dessous est supersédée par ce document et par `07 bis – Arbitrages T03 du 15 septembre 2026.md`.** Elle ne constitue plus une règle active, notamment les anciennes descriptions « carte immobile / actions en superposition ».
 
 ## 1. Navigation principale
 
@@ -83,7 +83,7 @@ Dans cet état :
 - un glissement droit commencé ailleurs que sur la carte ouverte n’a aucun effet ;
 - seul un glissement droit commencé sur la carte ouverte referme ses options, hors sélection explicite d’une option.
 
-La règle historique « carte immobile, options en superposition » est supersédée.
+La règle historique « carte immobile, options en superposition » est supersédée dans tous les parcours de carte concernés par la correction T03.
 
 Dans `Composition d’une séance — actions glissées`, le cadre `Dupliquer` reprend le rayon DSF/Figma. Un espace visuel sépare son bord gauche du bord droit de la portion encore visible de la carte ; cet espace laisse apparaître le fond du conteneur Tour.
 
