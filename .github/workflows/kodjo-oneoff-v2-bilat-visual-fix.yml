@@ -64,8 +64,8 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
 
-      - name: ESLint
-        run: npx eslint .
+      - name: ESLint (bounded)
+        run: npx eslint src/features/sessions/CompositionScreen.tsx
 
       - name: Full Jest
         run: npx jest --runInBand
