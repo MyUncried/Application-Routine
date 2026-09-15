@@ -267,6 +267,19 @@ jobs:
           [IO.File]::WriteAllText($payloadPath,$payload,(New-Object Text.UTF8Encoding($false)))
           $posted=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath | ConvertFrom-Json
           if(!$posted.id){throw 'Implementation output publication failed'}
+          # Every successful delivery emits one certified, reusable checkpoint.
+          # It is published only after the commit and diagnostic artifact exist.
+          $appPr=[regex]::Match($env:TRIGGER_BODY,'(?m)^application_pr=([0-9]+)\s*$').Groups[1].Value
+          $gateId=[regex]::Match($env:TRIGGER_BODY,'(?m)^(?:gate_comment_id|user_gate_comment_id|validation_comment_id)=([0-9]+)\s*$').Groups[1].Value
+          if(!$appPr -or !$gateId){throw 'Delivery checkpoint requires application_pr and gate comment reference'}
+          $artifactName="kodjo-slice-implementation-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $artifact=(gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" | ConvertFrom-Json).artifacts | Where-Object { $_.name -eq $artifactName } | Select-Object -First 1
+          if(!$artifact -or !$artifact.id){throw 'Delivery checkpoint artifact not found'}
+          $cp='[KODJO_V2] APPLICATION_CHECKPOINT'+$nl+'status=CERTIFIED'+$nl+'slice_id='+$env:SLICE_ID+$nl+'checkpoint_ref=issue_comment:'+[string]$posted.id+$nl+'application_pr='+$appPr+$nl+'application_head='+$new+$nl+'plan_comment_id='+$env:PLAN_ID+$nl+'review_comment_id='+$env:REVIEW_ID+$nl+'gate_comment_id='+$gateId+$nl+'protocol_head='+$env:SOURCE_HEAD+$nl+'package_run_id='+$env:GITHUB_RUN_ID+$nl+'package_artifact_id='+[string]$artifact.id+$nl+'delivery_head='+$new+$nl+'STATUT : APPLICATION_CHECKPOINT_CERTIFIED'
+          $cpPayload=@{body=$cp}|ConvertTo-Json -Depth 4
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\checkpoint-payload.json",$cpPayload,(New-Object Text.UTF8Encoding($false)))
+          $cpPosted=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input "$env:RUNNER_TEMP\checkpoint-payload.json" | ConvertFrom-Json
+          if(!$cpPosted.id){throw 'Delivery checkpoint publication failed'}
           $dispatch=@{event_type='kodjo_implementation_ready';client_payload=@{issue_number=[string]$env:ISSUE_NUMBER;source_comment_id=[string]$posted.id}}|ConvertTo-Json -Depth 4
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\review-dispatch.json",$dispatch,(New-Object Text.UTF8Encoding($false)))
           gh api --method POST "repos/$env:GITHUB_REPOSITORY/dispatches" --input "$env:RUNNER_TEMP\review-dispatch.json"
