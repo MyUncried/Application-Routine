@@ -1,78 +1,72 @@
 [KODJO_V2] PLAN_OUTPUT
 slice_id=V2-BILAT-01
 bootstrap_path=.github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json
-source_head=ef0bf111195d67f6223ee4844da2b6bf2aca00d2
-protocol_execution_head=afb608a4f6872d9b8d60caa70b883ff449c062cb
-application_pr=131
-application_head=df38ade5e8737ed8f59a3a7472ebe9b168a85145
-supersedes_plan_blob_oid=07707548809b091cff7a32dfd40e079126b86924
-prior_review_blob_oid=1282a3b45e2329c47d867d6921f82b853e589ace
+source_head=4c72abe2cb7f72f3629092f7e3da8220a9e305dc
+protocol_execution_head=4c72abe2cb7f72f3629092f7e3da8220a9e305dc
+application_pr=142
+application_head=3a0dbbe7510f69f702c4b440e25b63b893d2d492
+supersedes_plan_blob_oid=20ae36edc25e5979922b7d183b79ff752bac849b
+prior_review_blob_oid=cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04
 planning_contract=kodjo.plan-impact.v1
 STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 
-# Plan technique final — KODJO V2-BILAT-01
+# Plan technique final — KODJO V2 — BILAT-01
 
-## 1. Statut et objectif
+## 1. Identité et statut
 
 - Tranche : `V2-BILAT-01`
 - Mode : `PLAN_ONLY`
-- Implémentation autorisée : non
-- PR applicative : `#131`
-- Objet : correction bornée de la présentation de la bilatéralité déjà implémentée.
-- La correction reste strictement présentationnelle.
-- Aucun calcul, modèle, service métier, repository, migration, persistance ou comportement T03 n’est réouvert.
-- Aucun manifeste V1 n’est créé, utilisé ou réutilisé.
-- Aucun nouveau fichier n’est créé et aucun fichier n’est supprimé.
+- Implémentation autorisée : **NON**
+- Objet : correction strictement visuelle de l’indicateur de direction des cartes d’Activité.
+- La transition entre la source et l’exécution est protocol-only.
+- Le scan déterministe fourni confirme le périmètre des importations directes.
+- Aucun manifeste V1 n’est créé, consulté ou réutilisé.
+- Aucun calcul, modèle, service, repository, migration, persistance, route, synthèse ou comportement T03 n’est réouvert.
 
-La revue indépendante du scan déterministe des imports directs est traitée ci-dessous. Les trois consommateurs détectés restent hors périmètre de modification.
+## 2. Décision produit opposable
+
+La décision utilisateur `5678061573` supersède explicitement, pour cette correction limitée, les coordonnées historiques de `BIL-065`.
+
+L’indicateur :
+
+- conserve une géométrie de `42 × 20 pt` ;
+- affiche uniquement `D→G` ou `G→D` ;
+- reste hors flux et positionné en absolu ;
+- utilise la marge intérieure droite déjà validée de la carte ;
+- aligne son centre vertical sur le centre vertical du titre de l’Activité ;
+- applique cette règle aux cartes de `60 pt`, `44 pt` et à l’état soulevé ;
+- reste non interactif ;
+- conserve son libellé accessible développé.
+
+Les règles suivantes restent inchangées :
+
+- `BIL-061` : contrôle du Tour, `42 × 34 pt`, espace `8 pt` et alignement ;
+- `BIL-062` : absence de titre du Tour, tiret, directions et accessibilité ;
+- absence d’indicateur propre sous un Tour bilatéral ;
+- absence d’indicateur propre pour une Activité `UNILATERAL` ;
+- absence de texte directionnel développé dans le contenu de la carte.
+
+Aucun texte de synthèse, calcul, stockage ou comportement T03 ne change.
+
+## 3. Décision de portée issue du scan
+
+Le scan direct-import déterministe ne présente qu’un consommateur de production candidat. Ce consommateur est déclaré inchangé : son contrat, ses propriétés, sa navigation et son flux de données ne sont pas affectés par une correction locale de rendu.
 
 <KODJO_PLAN_IMPACT_JSON>
 {
   "schema": "kodjo.plan-impact.v1",
-  "scan_revision": "df38ade5e8737ed8f59a3a7472ebe9b168a85145",
+  "scan_revision": "3a0dbbe7510f69f702c4b440e25b63b893d2d492",
   "modified_modules": [
     {
       "path": "src/features/sessions/CompositionScreen.tsx",
       "change": "MODIFY"
     },
     {
-      "path": "src/features/sessions/ExerciseScreen.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/SideModeControl.tsx",
-      "change": "MODIFY"
-    },
-    {
       "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/compositionPresentation.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/i18n/index.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/i18n/resources/fr.ts",
       "change": "MODIFY"
     }
   ],
-  "scan_sha256": "9f4967a65b42328cf65d995a3e96ee5cf31dd7e975468425147ff4b3dd929f44",
+  "scan_sha256": "90b35c3018600bfcb294685fb4ad404029e71a1caa0ad359e00b248825d16998",
   "rows": [
     {
       "path": "src/features/sessions/CompositionScreen.tsx",
@@ -83,71 +77,7 @@ La revue indépendante du scan déterministe des imports directs est traitée ci
       "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
-      "path": "src/features/sessions/ExerciseScreen.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/features/sessions/SideModeControl.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
       "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/features/sessions/compositionPresentation.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/shared/i18n/index.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module declare CREATE ou MODIFY dans le plan."
-    },
-    {
-      "path": "src/shared/i18n/resources/fr.ts",
       "candidate_kind": "MODIFIED_MODULE",
       "triggered_by": [],
       "risk_score": 0,
@@ -162,479 +92,82 @@ La revue indépendante du scan déterministe des imports directs est traitée ci
       ],
       "risk_score": 0,
       "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le contrat de route et les propriétés consommées par CompositionScreen restent inchangés ; la correction porte uniquement sur la présentation interne de l’écran."
-    },
-    {
-      "path": "app/(creation)/exercise.tsx",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/features/sessions/ExerciseScreen.tsx"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le contrat de route reste inchangé et ExerciseScreen conserve son interface publique ; seul le contexte d’héritage déjà calculé est transmis à la présentation interne."
-    },
-    {
-      "path": "src/shared/i18n/index.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/shared/i18n/resources/fr.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le chargeur i18n générique, ses clés et sa structure restent inchangés ; les nouvelles valeurs sont limitées à la ressource française fr.ts."
+      "justification": "Le scan direct-import identifie ce fichier comme consommateur de CompositionScreen, tandis que la correction reste confinée au rendu de l’écran et à ses tests ; son contrat, ses propriétés, sa navigation et son flux de données ne changent pas."
     }
   ],
   "scope_allow": [
     "src/features/sessions/CompositionScreen.tsx",
-    "src/features/sessions/ExerciseScreen.tsx",
-    "src/features/sessions/SideModeControl.tsx",
-    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
-    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-    "src/features/sessions/__tests__/SideModeControl.test.tsx",
-    "src/features/sessions/__tests__/compositionPresentation.test.ts",
-    "src/features/sessions/compositionPresentation.ts",
-    "src/shared/i18n/index.test.ts",
-    "src/shared/i18n/resources/fr.ts"
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx"
   ]
 }
 </KODJO_PLAN_IMPACT_JSON>
 
-## 2. Périmètre de modification
-
-Les modules suivants sont les seuls modules applicatifs et de test prévus pour modification :
+Aucun élargissement de portée n’est requis par le scan. Les modules concernés par l’implémentation restent :
 
 - `src/features/sessions/CompositionScreen.tsx`
-- `src/features/sessions/ExerciseScreen.tsx`
-- `src/features/sessions/SideModeControl.tsx`
 - `src/features/sessions/__tests__/CompositionScreen.test.tsx`
-- `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
-- `src/features/sessions/__tests__/SideModeControl.test.tsx`
-- `src/features/sessions/__tests__/compositionPresentation.test.ts`
-- `src/features/sessions/compositionPresentation.ts`
-- `src/shared/i18n/index.test.ts`
-- `src/shared/i18n/resources/fr.ts`
 
-Les éléments suivants restent explicitement inchangés :
+Aucun nouveau fichier ne sera créé.
 
-- `src/domain/sessions/*`
-- `src/infrastructure/database/*`
-- `src/features/sessions/DecisionDialog.tsx`
-- `src/features/sessions/formatSessionSummary.ts`
-- `src/shared/i18n/index.ts`
-- `src/shared/ui/tokens.ts`
-- `app/(creation)/composition.tsx`
-- `app/(creation)/exercise.tsx`
-- toutes les migrations ;
-- tous les modules d’Exécution, de Plan, de Résultat et d’Historique ;
-- toute route ;
-- tout manifeste ;
-- toute documentation fonctionnelle.
+## 4. Constat technique
 
-## 3. Constat technique
+### `src/features/sessions/CompositionScreen.tsx`
 
-### `SideModeControl.tsx`
+Le composant possède déjà :
 
-Le contrôle est partagé entre :
+- la direction propre ou héritée de l’Activité ;
+- l’absence d’indicateur sous un Tour bilatéral ;
+- l’absence d’indicateur en `UNILATERAL` ;
+- les libellés courts `D→G` et `G→D` ;
+- le libellé accessible développé ;
+- la géométrie `42 × 20 pt` ;
+- un positionnement absolu historique.
 
-- le contrôle de côté d’une Activité ;
-- le contrôle de direction du Tour.
+L’écart est exclusivement visuel :
 
-Le comportement actuel commun doit être conservé par défaut pour l’Activité :
+- le positionnement horizontal historique laisse environ `1 pt` de marge dans la carte de référence ;
+- le positionnement vertical historique est centré sur une ancienne carte de référence de `354 × 69 pt` ;
+- les cartes réellement rendues peuvent mesurer `60 pt`, `44 pt` ou utiliser une hauteur spécifique à l’état soulevé ;
+- dans la variante compacte, le positionnement historique peut provoquer un rognage avec le débordement masqué.
 
-- `UNILATERAL` : affichage vide ;
-- `RIGHT_LEFT` : `D→G` ;
-- `LEFT_RIGHT` : `G→D`.
+Le positionnement absolu doit être conservé. Un retour en flux réduirait la largeur disponible pour le nom, les Zones corporelles et la synthèse.
 
-Le contexte Tour est ajouté de manière optionnelle afin de permettre :
+### `src/features/sessions/__tests__/CompositionScreen.test.tsx`
 
-- `UNILATERAL` : affichage `–` ;
-- conservation de `D→G` et `G→D` ;
-- labels accessibles propres au Tour ;
-- espacement interne réduit localement pour éviter la troncature dans `42 × 34 pt`.
+Les tests couvrent déjà une partie du comportement fonctionnel. Ils doivent être complétés pour établir la correction visuelle sans supprimer ni réécrire les garanties existantes :
 
-Le comportement Activité par défaut ne doit pas changer.
+- présence de l’indicateur propre ;
+- absence en `UNILATERAL` ;
+- absence sous héritage du Tour ;
+- libellé accessible développé ;
+- dimensions ;
+- non-interactivité ;
+- marge droite ;
+- alignement vertical avec le titre ;
+- cartes de hauteur `60 pt`, `44 pt` et état soulevé ;
+- absence de rognage dans la variante compacte.
 
-### `CompositionScreen.tsx`
+Les scénarios de confirmation du Tour, d’atomicité, d’annulation et de remise des enfants restent inchangés et doivent continuer à passer.
 
-L’écran contient déjà :
+## 5. Portée fonctionnelle
 
-- le contrôle du Tour ;
-- la condition d’ouverture du dialogue ;
-- l’appel à `DecisionDialog` ;
-- le rendu des cartes d’Activité ;
-- l’indicateur court de direction.
+### Correction directe
 
-Les corrections portent sur :
-
-- les textes exacts du dialogue ;
-- le rendu `–` du Tour unilatéral ;
-- la visibilité complète des directions courtes ;
-- le positionnement de l’indicateur de carte ;
-- son exposition à l’accessibilité ;
-- la suppression de la direction développée dans le texte des cartes.
-
-### `ExerciseScreen.tsx`
-
-L’écran calcule déjà le contexte d’héritage du Tour pour le contrôle de côté. Le même contexte doit être transmis à `formatExerciseRecap`.
-
-Cette transmission ne crée :
-
-- aucun champ de domaine ;
-- aucune propriété persistée `isSideModeInherited` ;
-- aucune modification de route ;
-- aucune modification de modèle ou de DTO.
-
-### `compositionPresentation.ts`
-
-Les deux sorties doivent rester distinctes :
-
-- `formatExerciseRecap` conserve la direction développée pour la synthèse Ajouter/Modifier une Activité ;
-- `formatExerciseRowSummary` conserve uniquement la formulation de carte et son indicateur court.
-
-La carte ne doit jamais contenir :
-
-- `à droite, puis à gauche` ;
-- `à gauche, puis à droite`.
-
-### `fr.ts`
-
-Les ressources françaises doivent distinguer :
-
-- le libellé unilatéral de l’Activité : vide ;
-- le libellé unilatéral du Tour : `–` ;
-- les labels accessibles Activité ;
-- les labels accessibles Tour ;
-- le titre, le message et les actions exacts du dialogue.
-
-Le chargeur i18n générique reste inchangé.
-
-## 4. Comportement cible
-
-### 4.1 Contrôle Activité
-
-- `UNILATERAL` : affichage visuellement vide.
-- `RIGHT_LEFT` : `D→G`.
-- `LEFT_RIGHT` : `G→D`.
-- Dimensions : `74 × 42 pt`.
-- Titre visible : `Côté`.
-
-Labels accessibles exacts :
-
-- `Côté : unilatéral`
-- `Côté : bilatéral, droite puis gauche`
-- `Côté : bilatéral, gauche puis droite`
-
-Sous héritage d’un Tour bilatéral :
-
-- le contrôle reste visible ;
-- il est désactivé ;
-- aucune action n’est émise ;
-- le suffixe exact est `défini par le Tour, indisponible`.
-
-### 4.2 Contrôle Tour
-
-- `UNILATERAL` : `–` centré.
-- `RIGHT_LEFT` : `D→G`, entièrement visible.
-- `LEFT_RIGHT` : `G→D`, entièrement visible.
-- Dimensions : `42 × 34 pt`.
-- Espace avec le sélecteur : `8 pt`.
-- Aucun titre `Côté` ou `Côtés`.
-
-Labels accessibles exacts :
-
-- `Direction du Tour : unilatéral`
-- `Direction du Tour : droite puis gauche`
-- `Direction du Tour : gauche puis droite`
-
-La propriété indiquant le contexte Tour doit être optionnelle afin de préserver la compatibilité de tous les appels Activité existants.
-
-### 4.3 Dialogue de confirmation
-
-`DecisionDialog.tsx` est réutilisé sans modification.
-
-Le dialogue est absent :
-
-- lorsque le Tour est vide ;
-- lorsque tous les enfants propres sont `UNILATERAL`.
-
-Le dialogue est affiché lorsqu’au moins un enfant propre `RIGHT_LEFT` ou `LEFT_RIGHT` serait remplacé par la direction du Tour.
-
-Textes exacts :
-
-- Titre : `Exécuter chaque Tour des deux côtés ?`
-- Message : `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.`
-- Actions : `Annuler`, `Confirmer`
-
-Le style utilisé est celui de l’instance Composition/Tour attestée par le produit, et non celui du dialogue d’abandon d’Activité.
-
-Les garanties suivantes sont conservées :
-
-- annulation sans mutation ;
-- confirmation atomique ;
-- remise cohérente des enfants ;
-- absence de restauration d’un réglage propre écrasé ;
-- priorité du Tour sur les réglages individuels.
-
-### 4.4 Carte de Composition
-
-Pour une Activité propre bilatérale hors héritage d’un Tour bilatéral :
-
-- indicateur non interactif `D→G` ou `G→D` ;
-- dimensions `42 × 20 pt` ;
-- position `x=311`, `y=24,5` ;
-- texte visuel entièrement visible ;
-- libellé accessible développé.
-
-Libellés accessibles :
-
-- `Côté : bilatéral, droite puis gauche`
-- `Côté : bilatéral, gauche puis droite`
-
-Pour une Activité :
-
-- unilatérale ;
-- ou héritée d’un Tour bilatéral ;
-
-il n’y a :
-
-- aucun indicateur ;
-- aucune direction développée dans le texte de carte ;
-- aucune répétition de la direction du Tour.
-
-La formulation `par côté`, lorsqu’elle décrit le nombre de séries, reste autorisée et ne constitue pas une direction développée.
-
-### 4.5 Synthèse Ajouter/Modifier une Activité
-
-La base reste :
-
-`{N} série(s) par côté …`
-
-Suffixes exacts :
-
-- `, à droite, puis à gauche`
-- `, à gauche, puis à droite`
-
-Le suffixe est placé :
-
-1. après la cible ;
-2. après `jusqu’à l’échec` lorsqu’il est présent ;
-3. avant la Pause.
-
-Le suffixe est absent :
-
-- en `UNILATERAL` ;
-- lorsque la direction est héritée du Tour ;
-- du texte des cartes de Composition.
-
-Les formulations suivantes restent inchangées :
-
-- `Durée totale` ;
-- la borne `≥ …`.
-
-## 5. Données, calculs et persistance
-
-La correction ne modifie aucun des éléments suivants :
-
-- `side_mode` ;
-- `DATABASE_VERSION` ;
-- modèles ;
-- DTO ;
-- conversions SQL ;
-- migrations ;
-- valeurs persistées ;
-- calculs directs ou inverses ;
-- règle conditionnelle des pauses ;
-- durée globale ;
-- multiplicateur bilatéral ;
-- cible globale ;
-- arrondi `.5` vers le haut ;
-- durée réalisable ;
-- données d’Exécution ;
-- données de Plan ;
-- données de Résultat.
-
-Les trois valeurs déjà persistées continuent d’être consommées sans transformation :
-
-- `UNILATERAL`
-- `RIGHT_LEFT`
-- `LEFT_RIGHT`
-
-Aucun comportement T03 n’est ajouté ou modifié.
-
-## 6. Plan séquencé
-
-### Étape 1 — Contrôle partagé
-
-Modifier `SideModeControl.tsx` pour :
-
-- ajouter le contexte Tour optionnel ;
-- conserver le rendu Activité par défaut ;
-- afficher `–` uniquement pour le Tour unilatéral ;
-- réduire uniquement les espacements internes nécessaires ;
-- exposer les labels accessibles corrects ;
-- préserver la désactivation héritée sans dispatch.
-
-Résultat attendu : Activité unilatérale vide ; Tour unilatéral en `–` ; directions Tour entièrement visibles.
-
-### Étape 2 — Écran Composition
-
-Modifier `CompositionScreen.tsx` pour :
-
-- aligner le dialogue sur les textes exacts ;
-- conserver sa condition d’ouverture ;
-- conserver annulation et confirmation atomique ;
-- appliquer le style Composition/Tour ;
-- positionner l’indicateur de carte ;
-- supprimer son masquage incorrect à l’accessibilité ;
-- exposer le libellé développé ;
-- ne rien afficher sous héritage ;
-- supprimer toute direction développée du texte de carte.
-
-Résultat attendu : le Tour et les cartes respectent simultanément les contrats visuels, textuels et d’accessibilité.
-
-### Étape 3 — Transmission de l’héritage
-
-Modifier `ExerciseScreen.tsx` pour transmettre à `formatExerciseRecap` le contexte d’héritage déjà calculé.
-
-Résultat attendu : la synthèse réelle de l’éditeur omet la clause développée lorsqu’une Activité hérite d’un Tour bilatéral.
-
-### Étape 4 — Présentation et traductions
-
-Modifier `compositionPresentation.ts` pour :
-
-- conserver `par côté` ;
-- ajouter les deux suffixes exacts à la synthèse d’édition ;
-- respecter leur position avant la Pause ;
-- préserver `Durée totale` et la borne `≥` ;
-- ne jamais ajouter la direction développée à une carte.
-
-Modifier `fr.ts` pour :
-
-- mettre à jour le dialogue ;
-- conserver les labels accessibles exacts ;
-- fournir une valeur Tour distincte `–` ;
-- conserver la valeur Activité unilatérale vide ;
-- conserver les clés et la structure existantes.
-
-### Étape 5 — Tests ciblés
-
-Adapter les tests des contrôles, écrans, fonctions de présentation et ressources i18n.
-
-Ajouter explicitement la preuve :
-
-- de l’accessibilité de l’indicateur propre ;
-- de son absence sous héritage ;
-- de l’absence de direction développée dans le texte de carte ;
-- de la transmission réelle de l’héritage par `ExerciseScreen`.
-
-### Étape 6 — Validation finale
-
-Exécuter sans filtrage :
-
-- la suite Jest complète ;
-- les tests ciblés ;
-- la vérification TypeScript complète ;
-- le lint complet ;
-- le contrôle du diff ;
-- l’inspection visuelle aux dimensions de référence et sur largeur compacte.
-
-Vérifier également :
-
-- absence de modification des calculs ;
-- absence de modification de la persistance ;
-- absence de migration ;
-- absence de changement de route ;
-- absence de module T03 ;
-- absence de consommateur direct oublié ;
-- absence de fichier hors périmètre.
-
-## 7. Tests obligatoires
-
-### `SideModeControl.test.tsx`
-
-- Activité unilatérale vide.
-- Tour unilatéral affiché par `–`.
-- `D→G` et `G→D` entièrement visibles.
-- Dimensions et espacements locaux.
-- Labels Activité exacts.
-- Labels Tour exacts.
-- Suffixe `défini par le Tour, indisponible`.
-- Désactivation sans dispatch.
-- Compatibilité du comportement Activité par défaut.
-
-### `CompositionScreen.test.tsx`
-
-- Absence de dialogue pour un Tour vide.
-- Absence de dialogue lorsque tous les enfants sont unilatéraux.
-- Dialogue lorsqu’un enfant propre bilatéral serait remplacé.
-- Textes et actions exacts.
-- Style Composition/Tour.
-- Annulation sans mutation.
-- Confirmation atomique.
-- Tiret centré.
-- Directions Tour entièrement visibles.
-- Indicateur propre présent uniquement hors héritage.
-- Indicateur accessible avec un libellé développé.
-- Indicateur absent sous Tour bilatéral.
-- Texte de carte sans direction développée.
-
-### `ExerciseScreen.test.tsx`
-
-- Transmission du contexte d’héritage à la synthèse.
-- Omission de la direction développée sous Tour bilatéral.
-- Conservation de la direction développée pour une Activité propre hors héritage.
-- Contrôle Activité inchangé.
-- Contrat de route inchangé.
-
-### `compositionPresentation.test.ts`
-
-- Base `{N} série(s) par côté …`.
-- Suffixe droite puis gauche.
-- Suffixe gauche puis droite.
-- Position après la cible.
-- Position après `jusqu’à l’échec`.
-- Position avant la Pause.
-- Absence en unilatéral.
-- Absence en héritage.
-- Absence dans le texte de carte.
-- Conservation de `Durée totale`.
-- Conservation de `Durée totale : ≥ …`.
-
-### `src/shared/i18n/index.test.ts`
-
-- Titre et message exacts du dialogue.
-- Actions exactes.
-- Labels Activité exacts.
-- Labels Tour exacts.
-- Valeur Tour `–`.
-- Valeur Activité unilatérale vide.
-- Conservation des clés.
-- Conservation de la structure du chargeur.
-
-## 8. Traçabilité produit
-
-### Correction directe dans cette tranche
-
-- `BIL-002` : Activité vide, Tour `–`, directions courtes.
-- `BIL-003` : labels accessibles exacts.
-- `BIL-061` : contrôle Tour, dimensions, espace et alignement.
-- `BIL-062` : absence de titre, tiret et labels Tour.
-- `BIL-065` : indicateur, position, lisibilité et accessibilité.
-- `BIL-067` : direction développée uniquement dans la synthèse d’édition.
+- `BIL-065` : positionnement visuel, marge droite, alignement vertical, lisibilité et accessibilité de l’indicateur propre de carte.
 
 ### Préservé et retesté
 
-- `BIL-026` : confirmation conditionnelle.
-- `BIL-027` : remise des enfants.
-- `BIL-029` : enfants visibles et désactivés.
-- `BIL-030` : état propre affiché.
-- `BIL-031` : absence de restauration.
-- `BIL-058` : UI et validations.
+- `BIL-002` : états courts `D→G` et `G→D`.
+- `BIL-003` : libellé accessible développé.
+- `BIL-026` à `BIL-031` : confirmation, remise des enfants, désactivation et absence de restauration.
+- `BIL-058` : contrôles UI et validations.
+- `BIL-061` : contrôle du Tour, `42 × 34 pt`, espace `8 pt` et alignement inchangés.
+- `BIL-062` : absence de titre du Tour, tiret, directions et accessibilité inchangés.
 
-### Préservé
+### Préservé sans modification applicative
 
-- `BIL-001`, `BIL-004`, `BIL-005`, `BIL-006`, `BIL-007`, `BIL-008`, `BIL-009`
+- `BIL-001`
+- `BIL-004` à `BIL-009`
 - `BIL-011` à `BIL-020`
 - `BIL-023` à `BIL-025`
 - `BIL-028`
@@ -642,12 +175,9 @@ Vérifier également :
 - `BIL-053`, `BIL-054`
 - `BIL-057`
 - `BIL-063`, `BIL-064`
-- `BIL-066`
-- `BIL-068`
+- `BIL-066` à `BIL-068`
 
-Ces exigences restent protégées par l’absence de modification des domaines, calculs, modèles et routes, ainsi que par les tests ciblés et la suite complète.
-
-### Différé hors de cette tranche
+### Différé
 
 - `BIL-010`, `BIL-021`, `BIL-022`
 - `BIL-033`
@@ -656,55 +186,214 @@ Ces exigences restent protégées par l’absence de modification des domaines, 
 - `BIL-055`, `BIL-056`
 - `BIL-059`, `BIL-060`
 
-Ces exigences concernent respectivement l’exécution T03, la duplication de Tour, les passages, le Catalogue V2, le Plan, les Résultats ou la révision du lot T03. Aucun module correspondant n’est touché.
+Ces exigences concernent respectivement l’exécution T03, la duplication de Tour, le Catalogue V2, le Plan, les Résultats et les évolutions ultérieures. Elles restent hors de cette tranche.
 
-## 9. Risques résiduels et contrôles
+## 6. Comportement cible
 
-1. **Régression du contrôle Activité**  
-   Le contexte Tour est optionnel et le comportement par défaut reste celui de l’Activité. Les tests de compatibilité doivent rester obligatoires.
+Pour une Activité propre `RIGHT_LEFT` ou `LEFT_RIGHT`, hors héritage d’un Tour bilatéral :
 
-2. **Propagation incorrecte du tiret Tour**  
-   La valeur vide Activité ne doit pas être remplacée globalement. Le `–` est consommé uniquement dans le contexte Tour.
+- afficher un seul indicateur ;
+- utiliser respectivement `D→G` ou `G→D` ;
+- conserver le cadre `42 × 20 pt` ;
+- conserver le libellé accessible développé ;
+- ne permettre aucune interaction ;
+- maintenir le positionnement hors flux ;
+- utiliser la marge intérieure droite locale déjà validée ;
+- aligner le centre vertical du cadre sur le centre vertical du titre de l’Activité ;
+- appliquer la règle aux cartes de `60 pt`, `44 pt` et à l’état soulevé ;
+- ne modifier ni la hauteur ni la structure générale de la carte.
 
-3. **Indicateur inaccessible**  
-   Le texte visuel reste court, mais l’indicateur propre bilatéral doit exposer son libellé développé à l’accessibilité.
+Pour une Activité :
 
-4. **Confusion entre carte et éditeur**  
-   `formatExerciseRecap` reçoit la direction développée ; `formatExerciseRowSummary` ne la reçoit pas et ne l’ajoute pas.
+- `UNILATERAL` ;
+- ou héritant d’un Tour bilatéral ;
 
-5. **Héritage non transmis à l’écran réel**  
-   La modification de la présentation seule est insuffisante. `ExerciseScreen.tsx` doit transmettre le contexte déjà calculé.
+aucun indicateur propre ne doit être rendu.
 
-6. **Régression i18n**  
-   Les clés, le chargeur et la structure restent stables. Les valeurs françaises exactes sont vérifiées par les tests de ressource.
+Le texte de la carte ne doit pas contenir :
 
-## 10. Critères d’acceptation finale
+- `à droite, puis à gauche` ;
+- `à gauche, puis à droite`.
 
-Le plan est considéré comme réalisé uniquement si :
+La formulation `par côté`, lorsqu’elle décrit le nombre de séries, reste inchangée.
 
-- les trois modes continuent de fonctionner ;
-- l’Activité unilatérale reste vide ;
-- le Tour unilatéral affiche `–` ;
-- les directions Tour restent entièrement visibles ;
-- les labels accessibles sont exacts ;
-- le dialogue respecte la condition, les textes et l’atomicité attendues ;
-- l’indicateur propre est visible, non interactif et accessible ;
-- l’indicateur disparaît sous héritage ;
-- les cartes ne contiennent aucune direction développée ;
-- la synthèse d’édition conserve les suffixes exacts hors héritage ;
-- `Durée totale` et la borne `≥` sont conservées ;
-- aucun calcul, modèle, stockage, migration, route ou module T03 n’est modifié ;
-- Jest complet, TypeScript complet et lint complet passent ;
-- le diff reste limité au périmètre défini ;
-- aucune clarification supplémentaire n’est nécessaire.
+## 7. Stratégie de mise en page
+
+La correction reste locale à `CompositionScreen.tsx`.
+
+1. Conserver le positionnement absolu afin de ne pas réduire `boundaryRowTitleSlot`.
+2. Remplacer l’ancrage fondé sur le centre global de la carte par un ancrage calculé depuis le slot ou le cadre réel du titre.
+3. Positionner verticalement l’indicateur par son centre, avec un décalage égal à la moitié de sa hauteur.
+4. Appliquer horizontalement l’inset droit interne existant de la carte.
+5. Ne pas modifier `src/shared/ui/tokens.ts`.
+6. Ne pas créer de nouveau token.
+7. Ne pas remplacer les anciennes coordonnées par une nouvelle constante globale indépendante de la géométrie réelle.
+8. Ne pas changer la largeur de la carte, le texte, les Zones, la synthèse ou les règles de troncature.
+9. Conserver les conditions existantes d’affichage selon la direction propre, l’héritage du Tour et le mode unilatéral.
+10. Préserver l’accessibilité et la non-interactivité du rendu.
+
+Les trois variantes à contrôler sont :
+
+- carte standard rendue à `60 pt` ;
+- carte compacte rendue à `44 pt` ;
+- état soulevé avec sa hauteur propre.
+
+La variante compacte doit notamment démontrer que l’indicateur reste entièrement visible malgré le débordement masqué.
+
+## 8. Plan séquencé
+
+### Étape 1 — Vérification de portée
+
+- Considérer le scan direct-import comme la vérification de portée de la présente tranche.
+- Conserver `app/(creation)/composition.tsx` inchangé.
+- Ne modifier aucun autre consommateur, routeur ou module transitif.
+- Bloquer toute modification supplémentaire qui ne serait pas directement justifiée par la correction visuelle.
+
+**Résultat attendu :** portée confirmée et limitée à `CompositionScreen.tsx` et à son fichier de tests.
+
+### Étape 2 — Correction du positionnement
+
+Dans `CompositionScreen.tsx` :
+
+- conserver les conditions d’affichage ;
+- conserver les textes courts ;
+- conserver `42 × 20 pt` ;
+- conserver le positionnement absolu ;
+- utiliser l’inset droit interne existant ;
+- aligner le centre de l’indicateur sur le titre réel ;
+- vérifier les hauteurs `60 pt`, `44 pt` et soulevée ;
+- préserver l’accessibilité et la non-interactivité ;
+- ne modifier aucune logique de direction, d’héritage ou de Tour.
+
+**Résultat attendu :** marge droite visible et régulière, axe vertical commun avec le titre et absence de rognage.
+
+### Étape 3 — Tests ciblés
+
+Dans `CompositionScreen.test.tsx` :
+
+- vérifier `RIGHT_LEFT` et `LEFT_RIGHT` ;
+- vérifier les dimensions `42 × 20 pt` ;
+- vérifier une marge droite non nulle et conforme à l’inset local ;
+- vérifier l’alignement vertical avec le titre ;
+- vérifier les cartes de `60 pt`, `44 pt` et l’état soulevé ;
+- vérifier l’absence en `UNILATERAL` ;
+- vérifier l’absence sous Tour bilatéral ;
+- vérifier le libellé accessible développé ;
+- vérifier l’absence de direction développée dans le texte ;
+- vérifier la non-interactivité ;
+- vérifier l’absence de rognage dans la variante compacte ;
+- préserver les tests existants du Tour, de la confirmation, de l’atomicité, de l’annulation et de la remise des enfants.
+
+### Étape 4 — Validation complète
+
+Exécuter sans filtrage :
+
+- Jest complet ;
+- tests d’intégration transitifs, notamment les flux de composition et d’édition du Catalogue ;
+- vérification TypeScript complète ;
+- lint complet ;
+- contrôle du diff ;
+- inspection visuelle à la largeur de référence ;
+- inspection visuelle sur largeur compacte.
+
+Contrôler explicitement :
+
+- aucun calcul modifié ;
+- aucun texte de synthèse modifié ;
+- aucune migration ou persistance modifiée ;
+- aucune route modifiée ;
+- aucun module T03 modifié ;
+- aucun fichier hors périmètre modifié ;
+- aucun changement de `BIL-061` ou `BIL-062` ;
+- aucune modification de l’appelant `app/(creation)/composition.tsx`.
+
+## 9. Données et compatibilité
+
+Cette correction est strictement présentationnelle.
+
+Ne pas modifier :
+
+- `side_mode` ;
+- les modèles et DTO ;
+- les calculs ;
+- les pauses ;
+- les valeurs persistées ;
+- les conversions SQL ;
+- `DATABASE_VERSION` ;
+- les migrations ;
+- les données d’Exécution, de Plan ou de Résultat ;
+- les routes ;
+- les textes de synthèse ;
+- les modules T03.
+
+Les valeurs persistées suivantes continuent d’être consommées sans transformation :
+
+- `UNILATERAL`
+- `RIGHT_LEFT`
+- `LEFT_RIGHT`
+
+Aucune compatibilité de données ou de navigation supplémentaire n’est requise.
+
+## 10. Critères d’acceptation
+
+La correction est acceptable si :
+
+- l’indicateur propre apparaît uniquement hors héritage ;
+- l’indicateur reste absent en `UNILATERAL` ;
+- `D→G` et `G→D` sont entièrement visibles ;
+- la dimension reste `42 × 20 pt` ;
+- le bord droit ne touche pas le bord de la carte ;
+- la marge droite est régulière ;
+- le centre vertical de l’indicateur correspond à celui du titre ;
+- le résultat est correct pour les cartes de `60 pt`, `44 pt` et l’état soulevé ;
+- aucun rognage n’apparaît dans la variante compacte ;
+- le libellé accessible développé est conservé ;
+- l’indicateur reste non interactif ;
+- aucun texte directionnel développé n’est ajouté à la carte ;
+- `BIL-061` et `BIL-062` restent inchangés ;
+- les tests d’intégration transitifs passent ;
+- Jest complet passe ;
+- la vérification TypeScript complète passe ;
+- le lint complet passe ;
+- seul le périmètre autorisé est modifié.
+
+## 11. Risques et contrôles
+
+### Divergence entre hauteur documentaire et hauteur réelle
+
+La géométrie historique de référence ne doit pas être réappliquée aux variantes réelles. Les tests doivent cibler séparément les cartes de `60 pt`, `44 pt` et l’état soulevé.
+
+### Rognage de la carte compacte
+
+L’ancienne position pouvait dépasser la hauteur compacte. Le nouveau calcul doit être validé avec le débordement masqué et par inspection visuelle.
+
+### Régression du slot de titre
+
+Le positionnement absolu est obligatoire afin de préserver la largeur disponible pour le nom, les Zones et la synthèse.
+
+### Régression de l’héritage
+
+La correction ne doit pas réintroduire l’indicateur propre sous un Tour bilatéral.
+
+### Régression de `BIL-061` et `BIL-062`
+
+Le contrôle du Tour est hors correction. Il doit être couvert par les tests existants et la validation complète sans modification de sa géométrie ou de ses textes.
+
+### Consommateur direct inchangé
+
+Le consommateur identifié par le scan reste hors portée applicative. Les tests d’intégration qui montent le véritable écran restent inchangés, mais leur exécution complète est obligatoire.
+
+## 12. Conclusion
+
+Le scan déterministe résout la dernière vérification de portée. La décision `5678061573` résout la question de supersession de `BIL-065`. Aucune clarification produit ou technique ne reste ouverte.
 
 PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
 
 <KODJO_PLAN_TRANSITION_JSON>
 {
   "schema_version": "kodjo.protocol.v2.plan-review-transition.0.6.25",
-  "source_head": "ef0bf111195d67f6223ee4844da2b6bf2aca00d2",
-  "protocol_execution_head": "afb608a4f6872d9b8d60caa70b883ff449c062cb",
+  "source_head": "4c72abe2cb7f72f3629092f7e3da8220a9e305dc",
+  "protocol_execution_head": "4c72abe2cb7f72f3629092f7e3da8220a9e305dc",
   "bootstrap_path": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
   "status": "PASS",
   "reason": null,
@@ -719,36 +408,8 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
     "docs/RAPPORT-CONFORMITE-BILATERALITE.md",
     "docs/Specifications-fonctionnelles/12 – Architecture technique.md"
   ],
-  "changed_paths": [
-    ".github/orchestration/CHANGE_REPORT_0.6.25.md",
-    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md",
-    ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.25.md",
-    ".github/orchestration/tests/test-incident-register.sh",
-    ".github/workflows/kodjo-v2-disposable-qualification.yml",
-    ".github/workflows/kodjo-v2-slice-plan-review.yml",
-    ".github/workflows/kodjo-v2-slice-plan.yml",
-    "scripts/kodjo/run-disposable-qualification.ps1",
-    "scripts/kodjo/run-disposable-resume-qualification.ps1",
-    "scripts/kodjo/verify-plan-review-transition.js",
-    "tests/kodjo/incident-register.pilot.js",
-    "tests/kodjo/plan-review-transition.pilot.js",
-    "tests/kodjo/v2-planning-entry.pilot.js"
-  ],
-  "protocol_changes": [
-    ".github/orchestration/CHANGE_REPORT_0.6.25.md",
-    ".github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md",
-    ".github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.25.md",
-    ".github/orchestration/tests/test-incident-register.sh",
-    ".github/workflows/kodjo-v2-disposable-qualification.yml",
-    ".github/workflows/kodjo-v2-slice-plan-review.yml",
-    ".github/workflows/kodjo-v2-slice-plan.yml",
-    "scripts/kodjo/run-disposable-qualification.ps1",
-    "scripts/kodjo/run-disposable-resume-qualification.ps1",
-    "scripts/kodjo/verify-plan-review-transition.js",
-    "tests/kodjo/incident-register.pilot.js",
-    "tests/kodjo/plan-review-transition.pilot.js",
-    "tests/kodjo/v2-planning-entry.pilot.js"
-  ],
+  "changed_paths": [],
+  "protocol_changes": [],
   "protected_blobs": [
     {
       "path": ".github/orchestration/v2-activation-registry.json",
@@ -757,8 +418,8 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
     },
     {
       "path": ".github/orchestration/v2-slices/V2-BILAT-01/independent-review.md",
-      "source_oid": "1282a3b45e2329c47d867d6921f82b853e589ace",
-      "execution_oid": "1282a3b45e2329c47d867d6921f82b853e589ace"
+      "source_oid": "cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04",
+      "execution_oid": "cd5a8a7066db0d2fd6ed34ef47f54a443efc0c04"
     },
     {
       "path": ".github/orchestration/v2-slices/V2-BILAT-01/planning-mission.md",
@@ -772,8 +433,8 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
     },
     {
       "path": ".github/orchestration/v2-slices/V2-BILAT-01/technical-plan.md",
-      "source_oid": "07707548809b091cff7a32dfd40e079126b86924",
-      "execution_oid": "07707548809b091cff7a32dfd40e079126b86924"
+      "source_oid": "20ae36edc25e5979922b7d183b79ff752bac849b",
+      "execution_oid": "20ae36edc25e5979922b7d183b79ff752bac849b"
     },
     {
       "path": "docs/MATRICE-TRACABILITE-BILATERALITE.md",
@@ -835,17 +496,17 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
     "blobs": [
       {
         "path": "scripts/kodjo/verify-plan-review-transition.js",
-        "source_oid": null,
+        "source_oid": "ff40f12f7f4d5c03d849d70e1f498039621098e4",
         "execution_oid": "ff40f12f7f4d5c03d849d70e1f498039621098e4"
       },
       {
         "path": ".github/workflows/kodjo-v2-slice-plan.yml",
-        "source_oid": "4de9038787025fd7ccabac7054bfa46068fa50d2",
+        "source_oid": "19bd7127ae7cca036fe1c43cf4d38781d913b77d",
         "execution_oid": "19bd7127ae7cca036fe1c43cf4d38781d913b77d"
       },
       {
         "path": ".github/workflows/kodjo-v2-slice-plan-review.yml",
-        "source_oid": "ed50784c36a7ff27a78d14b147a81f07cef8b999",
+        "source_oid": "6a24287981898a85bb8b73fc60b466c668a15e89",
         "execution_oid": "6a24287981898a85bb8b73fc60b466c668a15e89"
       }
     ]
