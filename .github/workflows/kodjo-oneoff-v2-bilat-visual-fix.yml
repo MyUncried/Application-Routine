@@ -1,0 +1,81 @@
+name: KODJO one-off V2-BILAT-01 visual fix
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  fix:
+    if: github.event.issue.number == 52 && github.event.comment.user.login == 'MyUncried' && github.event.comment.body == '[KODJO_ONEOFF] APPLY_V2_BILAT_VISUAL_FIX_20260915'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: kodjo/v2-v2-bilat-01-34948992572
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify immutable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "3a0dbbe7510f69f702c4b440e25b63b893d2d492"
+          test -z "$(git status --porcelain)"
+
+      - name: Apply bounded visual correction
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/features/sessions/CompositionScreen.tsx')
+          s = p.read_text(encoding='utf-8')
+          old = '''  activitySideModeIndicator: {\n    position: "absolute",\n    left: 311,\n    top: 24.5,\n    alignItems: "center",'''
+          new = '''  activitySideModeIndicator: {\n    position: "absolute",\n    right: spacing[16],\n    top: spacing[4],\n    alignItems: "center",'''
+          if old not in s:
+              raise SystemExit('Expected legacy indicator coordinates not found')
+          if s.count(old) != 1:
+              raise SystemExit('Legacy indicator coordinates are not unique')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+      - name: Verify bounded diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(git diff --name-only)"
+          test "$files" = "src/features/sessions/CompositionScreen.tsx"
+          git diff --check
+          git diff -- src/features/sessions/CompositionScreen.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Targeted Composition tests
+        run: npx jest src/features/sessions/__tests__/CompositionScreen.test.tsx --runInBand
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npx eslint .
+
+      - name: Full Jest
+        run: npx jest --runInBand
+
+      - name: Commit and push to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/sessions/CompositionScreen.tsx
+          git commit -m "fix(V2-BILAT-01): align activity direction indicator"
+          git push origin HEAD:kodjo/v2-v2-bilat-01-34948992572
