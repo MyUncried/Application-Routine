@@ -28,7 +28,7 @@ Il possède notamment :
 - ses activités persistantes à partir de la V2 ;
 - ses routines ;
 - ses catégories ;
-- ses zones corporelles ;
+- l’accès au référentiel applicatif de zones corporelles utilisé par ses Activités ;
 - ses préférences globales ;
 - son historique d'exécution.
 
