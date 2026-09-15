@@ -1307,11 +1307,11 @@ Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la
 
 ![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
 
-#### État dérivé — Action contextuelle d’Exécution directe
+#### État alternatif — Création directe depuis l’onglet Activités
 
-L’état contextuel conserve la même liste et révèle l’action d’Exécution directe de l’Activité ciblée. Il ne transforme pas la carte en écran d’exécution et ne modifie pas l’ordre de la liste. La frame et le contrat `CE-ACT-EXE-01c` définissent la position exacte du contrôle et son retour au Catalogue.
+La frame `3787:5209` conserve la même liste et remplace l’action générique `Créer` par l’action contextualisée `Créer une activité`. Cette variante ouvre directement l’éditeur d’une Activité persistante. Elle ne constitue pas une action d’Exécution : l’Exécution directe reste déclenchée exclusivement par le bouton Lecture de la carte.
 
-![Catalogue des Activités — Action contextuelle directe](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
+![Catalogue des Activités — Création directe contextualisée](./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-directe.png)
 
 ### Écran 13 — Catalogue — Créer — Arbre d’actions
 
@@ -1338,7 +1338,9 @@ Les Activités sont insérées selon leur ordre courant de présentation dans la
 
 ### Écran 15 — Création ou modification d’une Activité persistante
 
-L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
+L’écran réutilise les composants de l’Écran 4 sans confondre les objets persistés. Depuis le Catalogue, la frame `3879:5947` porte le titre `Créer une activité` et crée une `ActivityDefinition` ; la frame `3879:6079` porte le titre `Modifier l’activité` et modifie uniquement cette définition persistante. `Terminer` revient au Catalogue des Activités.
+
+Depuis une Composition, l’Écran 4 et sa frame `3542:4656` conservent le titre `Ajouter une activité` et agissent uniquement sur une `SessionActivity`. Le contexte d’ouverture détermine la racine persistée et la destination de retour. Aucune modification d’une définition ne se propage à ses copies de Séance, et aucune modification d’une copie ne remonte vers le Catalogue.
 
 ### Écran 16 — Préparation d’une Activité directe
 
