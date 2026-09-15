@@ -3,7 +3,7 @@
   "status": "CERTIFIED",
   "slice_id": "V2-BILAT-01",
   "source_head": "3c81f3b83573eff25522fda5c6a32041ff422e1c",
-  "certified_target_head": "665f84ea42305cd294775d9846625590ab1778ff",
+  "certified_target_head": "c4eeccf7c2817583e341cc60bdfa36dfa903b5cd",
   "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
   "source_run_id": "34872653037",
   "source_artifact_id": "10358639677",
