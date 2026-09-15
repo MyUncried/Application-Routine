@@ -138,7 +138,7 @@ function verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath, outpu
         throw new Error('PLAN_REVIEW_PRODUCT_SOURCE_PROOF_INVALID');
       }
       const sourceObserved = sha256(git(cwd, ['show', `${sourceHead}:${file}`]));
-      const executionObserved = sha256(fs.readFileSync(path.join(cwd, file)));
+      const executionObserved = sha256(git(cwd, ['show', `${executionHead}:${file}`]));
       return {
         path: file,
         declared_sha256: source.sha256,
