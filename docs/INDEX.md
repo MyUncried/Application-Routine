@@ -2,7 +2,7 @@
 
 > Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155.
 >
-> Mise à jour T03 du 15 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les arbitrages UX, données et migration sont consolidés dans les compléments 06 bis, 07 bis et 09 bis, la matrice T03 et le chapitre 13. Les contrats d’écran T03 actifs sont `CE-T03-01` à `CE-T03-17`. L’ancien chapitre 13 est conservé bit à bit dans `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour traçabilité ; ses anciens contrats `CE-T03-01..13` d’Exécution de Séance sont remappés vers T04 et ne sont plus normatifs pour T03. `13B – Complément contrats T03 – Filtrer et Trier.md` complète normativement CE-T03-01/02/05 : `Filtrer` est fonctionnel sur Activités au minimum pour `Archivées`, `Trier` reste visible disabled, et aucune option non arbitrée ne doit être inventée.
+> Mise à jour T03 du 15 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les arbitrages UX, données et migration sont consolidés dans les compléments 06 bis, 07 bis et 09 bis, la matrice T03 et le chapitre 13. Les contrats d’écran T03 actifs sont `CE-T03-01` à `CE-T03-17`. L’ancien chapitre 13 est conservé bit à bit dans `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour traçabilité ; ses anciens contrats `CE-T03-01..13` d’Exécution de Séance sont remappés vers T04 et ne sont plus normatifs pour T03. Les règles `Filtrer`/`Trier` sont intégrées directement au chapitre 13 : `Filtrer` est fonctionnel sur Activités au minimum pour `Archivées`, `Trier` reste visible disabled, et aucune option non arbitrée ne doit être inventée.
 
 ## 1. Objet
 
@@ -55,9 +55,8 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
 | 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
-| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; contrats `CE-T03-01..17`, couverture T03-E et frontière T03/T04. | Référence normative T03 |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 17 contrats complets à 21 sections, couverture E01–E73, Filtrer/Trier et frontière T03/T04. | Référence normative T03 |
 | 13A | [Contrats d’écran hérités avant T03 Catalogue](./Specifications-fonctionnelles/13A%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran%20h%C3%A9rit%C3%A9s%20avant%20T03%20Catalogue.md) | Copie historique bit à bit de l’ancien chapitre 13 ; conserve les contrats T01/T02 et la provenance des anciens contrats d’Exécution. | Historique ; anciens `CE-T03-01..13` remappés T04 |
-| 13B | [Complément contrats T03 — Filtrer et Trier](./Specifications-fonctionnelles/13B%20%E2%80%93%20Compl%C3%A9ment%20contrats%20T03%20%E2%80%93%20Filtrer%20et%20Trier.md) | Complète CE-T03-01/02/05 sur les contrôles Catalogue dont le détail visuel n’est pas encore conçu. | Référence normative T03 ; rendu détaillé Figma partiellement non vérifiable |
 
 ## 4. Images et maquettes
 
@@ -88,7 +87,7 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 
 Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances ; il reste visible mais fonctionnellement désactivé en T03. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
 
-Les contrôles communs `Filtrer` et `Trier` sont prévus pour les Catalogues, mais le détail visuel de leurs panneaux/options n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est néanmoins fixé : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` jusqu’à création des frames Figma correspondantes.
+Les contrôles communs `Filtrer` et `Trier` sont prévus pour les Catalogues, mais le détail visuel de leurs panneaux/options n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est fixé dans D-184 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` jusqu’à création des frames Figma correspondantes.
 
 ## 5. Ordre de lecture recommandé
 
@@ -114,8 +113,7 @@ Pour préparer le développement T03 :
 11. 11 – API fonctionnelles ;
 12. 12 – Architecture technique ;
 13. 13 – Contrats d’écran T03 ;
-14. 13B – Complément Filtrer/Trier ;
-15. matrice T03.
+14. matrice T03.
 
 Le document 13A n’est consulté que pour la traçabilité ou pour les contrats T01/T02 historiques non supersédés ; ses anciens identifiants T03 d’Exécution de Séance doivent être lus comme T04.
 
@@ -126,7 +124,7 @@ En cas de contradiction, appliquer l’ordre suivant :
 2. glossaire, modèle fonctionnel et modèle de données ;
 3. conception fonctionnelle détaillée ;
 4. écrans et navigation, complétés pour T03 par 06 bis ;
-5. contrats d’écran du chapitre 13, complétés par 13B pour `Filtrer`/`Trier` ;
+5. contrats d’écran du chapitre 13 ;
 6. versions du produit et vision générale ;
 7. documents de travail, historiques et revues externes, dont 13A.
 
@@ -162,7 +160,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 13B, leurs compléments T03 et les matrices transverses constituent désormais la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste volontairement un invariant de migration non visuel rattaché au modèle 09 bis et aux contrats de persistance concernés.
+Les chapitres 00 à 13, leurs compléments T03 et les matrices transverses constituent désormais la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste volontairement un invariant de migration non visuel rattaché au modèle 09 bis et aux contrats de persistance concernés.
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
@@ -197,4 +195,3 @@ Les Circuits fonctionnels et les médias multiples restent hors MVP.
 - [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
 - [Évidences Figma T03 embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 - [Contrats T03 déterministes](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)
-- [Complément contrats Filtrer/Trier](./Specifications-fonctionnelles/13B%20%E2%80%93%20Compl%C3%A9ment%20contrats%20T03%20%E2%80%93%20Filtrer%20et%20Trier.md)
