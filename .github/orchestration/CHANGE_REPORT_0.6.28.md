@@ -48,4 +48,6 @@ La première exécution de la PR #145, run `34972332382`, a été volontairement
 
 La deuxième exécution réelle, run `34973302653`, n’a conservé qu’un seul échec : le test de complétude des autorisations pointait vers un module de checkpoint inexistant. Le consommateur réel est `scripts/kodjo/verify-visual-checkpoint.js`, appelé par `verify-queue-admission.js` avant toute mutation ; l’oracle référence désormais ce module exact.
 
-Le registre d’incidents ne sera marqué `PASS/CORRIGÉ` qu’après exécution verte des oracles opposables Linux et Windows.
+La certification opposable finale est le run `34974141374` sur le HEAD `0981ceec7d375e4408d16afebf654a15ce54d2ca` : job Linux `104397476012` SUCCESS et job Windows `104397693819` SUCCESS. Sont notamment verts : suite pilote complète sur les deux OS, invariants exécutables, lecture privée authentifiée, verrou du runner, parsing de tous les scripts PowerShell, parcours de file isolé sous Windows PowerShell 5.1, préflight jetable complet sans Claude et certification historique non bloquante.
+
+Le registre est donc porté en version `3.38.0` avec `INC-136` au statut `CORRIGÉ` et `T-109` au résultat `PASS`. Cette inscription ne modifie aucun fichier applicatif et ne constitue pas une nouvelle preuve applicative : elle atteste le chemin protocolaire certifié par le run ci-dessus.
