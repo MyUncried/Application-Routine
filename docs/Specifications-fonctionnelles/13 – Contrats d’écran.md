@@ -6,27 +6,17 @@ Ce chapitre constitue la **spécification déterministe des écrans de productio
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette et traçabilité.
 
-Les contrats T03 actifs sont `CE-T03-01` à `CE-T03-17`.
-
-L’ancien chapitre 13 est conservé dans `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour traçabilité. Les anciens contrats historiques `CE-T03-01..13` de l’Exécution complète des Séances sont fonctionnellement remappés vers `CE-T04-01..13` et ne sont plus des contrats T03.
-
-### 1.1 Remapping obligatoire
-
-| Ancien identifiant historique | Identifiant courant | Périmètre |
-|---|---|---|
-| `CE-T03-01..13` de 13A | `CE-T04-01..13` | Moteur d’Exécution complet des Séances |
-
-Aucun développement T03 ne doit invoquer l’ancien identifiant T03 pour justifier une orchestration de Séance.
+Les contrats T03 actifs sont `CE-T03-01` à `CE-T03-17`. Le présent chapitre constitue l’unique référence active des contrats d’écran T03. Aucun chapitre historique parallèle n’est requis pour l’application des contrats courants.
 
 ## 2. Sources et ordre d’application
 
 Pour T03 :
 
-1. décisions validées D-143 à D-184, avec priorité aux décisions supersédantes D-167 à D-184 ;
+1. décisions validées dans le chapitre 07, notamment D-143 à D-184, avec priorité aux décisions supersédantes D-167 à D-184 ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
-5. chapitre 06 et 06 bis pour navigation/interaction ;
+5. chapitre 06 pour navigation/interaction et corrections UX T03 ;
 6. présent chapitre 13 ;
 7. Figma pour le rendu visuel et les états effectivement représentés.
 
