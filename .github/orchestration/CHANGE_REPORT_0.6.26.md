@@ -2,34 +2,55 @@
 
 ## Objet
 
-Empêcher qu'une attestation de migration produite avant le plan final soit réutilisée après l'intégration du plan et de sa revue.
+Rétablir un chemin canonique pour le **premier plan d’une nouvelle tranche V2** après la régression de raccordement constatée sur `V2-CAT-01`.
 
-## Incident
+Le défaut observé est protocolaire : le workflow V2 disponible pour la planification (`START_PLAN_REVISION`) exige déjà un plan antérieur, une revue antérieure approuvée et une PR applicative. Ces préconditions conviennent à une révision mais sont circulaires pour une tranche neuve.
 
-Le paquet du run `34872653037` restait récupérable, mais son attestation était ancrée sur `7945b027da837837edae4135862b0c3eb0bb01be`. Le plan et la revue approuvés ont ensuite été intégrés sur `c6746e53bd800fbe497fcd867d349a1e24c50934`. Les 21 commits intermédiaires provoquaient donc le refus prévisible `RECOVERY_MIGRATION_UNCERTIFIED_DIFFERENCE`.
+## Correction minimale
 
-## Cause
+Ajouts uniquement :
 
-Le protocole contrôlait correctement les différences après l'ancre, mais ne vérifiait pas que cette ancre portait déjà les blobs du plan et de la revue autorisés. L'attestation pouvait être préparée trop tôt dans le cycle et devenir périmée après les étapes obligatoires suivantes.
+- `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.26.md` ;
+- `.github/workflows/kodjo-v2-slice-initial-plan.yml` ;
+- `.github/workflows/kodjo-v2-slice-initial-plan-review.yml` ;
+- `tests/kodjo/v2-initial-planning-entry.pilot.js`.
 
-## Correction
+Le parcours existant `START_PLAN_REVISION → START_PLAN_REVIEW` n’est pas modifié.
 
-- exiger que le commit d'approbation du plan soit ancêtre de `certified_target_head` ;
-- vérifier les blobs exacts du plan et de la revue à ce HEAD certifié ;
-- conserver le commit d'attestation comme dernière différence auto-référencée ;
-- maintenir tous les contrôles existants de provenance, classification, chevauchement et différences postérieures.
+## Nouveau parcours
 
-## Effets de bord examinés
+```text
+SPEC_PREPARED
+  → activation V2
+  → planning-mission
+  → START_INITIAL_PLAN
+  → PLAN_OUTPUT (planning_mode=INITIAL)
+  → START_INITIAL_PLAN_REVIEW
+  → PLAN_REVIEW_APPROVED | PLAN_REVISION_REQUIRED
+  → gate utilisateur ultérieur
+```
 
-- aucune modification applicative ;
-- aucune modification du format de la demande Lean Queue ;
-- aucune liste blanche supplémentaire ;
-- les attestations historiques restent compatibles lorsqu'elles ont réellement été produites après leurs plan et revue ;
-- une attestation historique antérieure à l'approbation est désormais refusée explicitement au lieu d'échouer plus tard par différence non certifiée.
+Aucune PR applicative n’est requise avant la production ou la revue du premier plan.
 
-## Qualification exigée
+## Garanties
 
-- tests ciblés des autorisations et de la migration ;
-- suite protocolaire Linux complète ;
-- prévol Windows complet, car l'admission réelle s'exécute sur le runner Windows ;
-- scénario de mise en service sans Claude avec l'attestation finale du paquet `34872653037`.
+- `source_head` du premier plan = `baseline_head` du bootstrap ;
+- tranche unique `ACTIVE` dans le registre ;
+- sources produit vérifiées par SHA-256 ;
+- code et tests lus au HEAD produit exact ;
+- plan-impact déterministe produit puis rejoué indépendamment ;
+- sortie opposable publiée par `github-actions[bot]` ;
+- revue indépendante sur runner Claude local ;
+- aucune modification de fichier métier pendant plan/revue ;
+- aucun contournement par PR vide, faux commentaire ou artefact fictif ;
+- `PLAN_REVIEW_APPROVED` ne vaut pas autorisation d’implémentation.
+
+## Compatibilité
+
+Le chemin de révision V2 introduit par la PR #114 reste inchangé et continue de porter ses préconditions historiques.
+
+## Qualification attendue
+
+Le test pilote `tests/kodjo/v2-initial-planning-entry.pilot.js` vérifie statiquement les nouveaux contrats et la conservation du parcours de révision. La PR doit en outre passer les contrôles CI applicables avant fusion.
+
+Après fusion, `V2-CAT-01` doit reprendre au point `PLANNING_AUTHORIZED` en produisant un `PLAN_OUTPUT` INITIAL canonique ; il n’est pas nécessaire de reconstruire son Issue, son bootstrap, sa baseline ou sa mission de planification.

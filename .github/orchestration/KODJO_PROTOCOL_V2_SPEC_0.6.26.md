@@ -1,40 +1,106 @@
 # KODJO Protocol V2 — addendum normatif 0.6.26
 
-La présente version supersède 0.6.25 pour la finalisation d'une attestation de migration de reprise. Toutes les autres règles restent applicables.
+La présente version complète et supersède `0.6.25` pour l’entrée de planification d’une **nouvelle tranche V2**. Toutes les autres règles 0.6.25 et antérieures restent applicables lorsqu’elles ne sont pas contredites ci-dessous.
 
-## A. Ordre de finalisation
+## A. Défaut corrigé
 
-Une attestation de migration utilisée par une demande `RESUME_DELTA` est produite après l'intégration du plan et de la revue approuvés.
+Le parcours introduit par la PR #114 (`START_PLAN_REVISION → PLAN_OUTPUT → START_PLAN_REVIEW`) est un parcours de **révision** : il suppose un plan antérieur, une revue antérieure approuvée et une PR applicative existante.
 
-Son `certified_target_head` doit :
+Cette précondition ne peut pas servir d’entrée au **premier plan** d’une nouvelle tranche, car à ce stade il n’existe encore ni plan canonique antérieur, ni revue antérieure, ni PR applicative.
 
-1. être égal ou postérieur au commit `approved_at_commit` du plan ;
-2. porter exactement le blob du plan autorisé à son chemin déclaré ;
-3. porter exactement le blob de la revue approuvée à son chemin déclaré.
+Une nouvelle tranche ne doit jamais fabriquer une PR applicative vide, un faux commentaire de bot, une revue fictive ou un artefact historique pour satisfaire ces préconditions.
 
-Ces trois propriétés sont vérifiées avant Claude. Une attestation antérieure au plan, ou ancrée sur une autre version du plan ou de la revue, est refusée.
+## B. Chemin canonique — premier plan
 
-## B. Commit final d'attestation
+Après `SPEC_PREPARED → activation V2 → planning-mission`, la première planification utilise exclusivement :
 
-L'attestation est ajoutée après son `certified_target_head`. Son propre chemin peut rester l'unique différence postérieure auto-référencée.
+`[KODJO_V2] START_INITIAL_PLAN`
 
-Le gate utilisateur est lié de préférence au blob immuable du plan. Il reste ainsi valable lorsque le commit final ajoute uniquement l'attestation, sans élargir l'autorisation fonctionnelle.
+Le déclencheur porte :
 
-Toute autre différence après `certified_target_head` reste soumise au contrôle exact de `post_certification_protocol_files`. Aucun répertoire documentaire ou protocolaire général n'est autorisé.
+- `slice_id` ;
+- `bootstrap_path` ;
+- `source_head`.
 
-## C. Invariants conservés
+Pour un premier plan :
 
-- provenance exacte du paquet, du run, de la baseline et de la session ;
-- ascendance du HEAD du paquet vers l'ancre certifiée puis vers le HEAD de la demande ;
-- classification séparée des exécutables, documents protocolaires et documents produit ;
-- refus de tout changement applicatif intermédiaire déclaré compatible ;
-- refus de tout chevauchement avec les fichiers restaurés par le paquet ;
-- refus de toute différence postérieure non attestée.
+- `source_head` doit être exactement le `baseline_head` du bootstrap ;
+- la tranche doit apparaître une seule fois dans le registre avec `status=ACTIVE` ;
+- `planning-mission.md` doit exister ;
+- aucune PR applicative n’est requise ;
+- aucun plan antérieur ni revue antérieure n’est requis ;
+- aucun fichier métier n’est modifié.
 
-## D. Qualification
+Le workflow analyse en lecture seule le code et les tests du `source_head`, les `product_sources` du bootstrap, la mission de planification, l’Issue et ses commentaires.
 
-Le scénario complet obligatoire est :
+## C. Sortie opposable du premier plan
 
-`paquet historique → évolutions intermédiaires → plan et revue approuvés → attestation finale → admission RESUME_DELTA sans Claude`.
+Le workflow publie un commentaire produit par `github-actions[bot]` au format canonique :
 
-Les cas négatifs minimaux sont : attestation antérieure à l'approbation, blob du plan différent, blob de la revue différent et modification non certifiée après l'attestation.
+```text
+[KODJO_V2] PLAN_OUTPUT
+slice_id=...
+bootstrap_path=...
+source_head=...
+planning_mode=INITIAL
+planning_contract=kodjo.plan-impact.v1
+STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
+```
+
+Le corps contient le plan technique complet ainsi que les blocs d’impact exigés par `kodjo.plan-impact.v1`.
+
+La présence éventuelle d’un `technical-plan.md` préparatoire dans le dossier de tranche ne lui donne aucune autorité protocolaire supplémentaire : il peut être fourni comme **seed de travail non opposable**, mais seule la sortie `PLAN_OUTPUT` de bot devient la source de la revue indépendante.
+
+## D. Revue indépendante du premier plan
+
+Le premier plan utilise :
+
+`[KODJO_V2] START_INITIAL_PLAN_REVIEW`
+
+Le déclencheur porte :
+
+- `slice_id` ;
+- `bootstrap_path` ;
+- `source_plan_comment_id` ;
+- `review_session_id` optionnel.
+
+La revue vérifie notamment :
+
+1. commentaire source produit par `github-actions[bot]` ;
+2. `PLAN_OUTPUT` de la même tranche ;
+3. `planning_mode=INITIAL` ;
+4. `planning_contract=kodjo.plan-impact.v1` ;
+5. `source_head = baseline_head` ;
+6. tranche toujours `ACTIVE` ;
+7. rejeu indépendant du scan d’impact ;
+8. code, tests et sources produit lus au `source_head` exact ;
+9. aucune PR applicative exigée.
+
+La sortie reste canonique : `PLAN_REVIEW_APPROVED` ou `PLAN_REVISION_REQUIRED`.
+
+## E. Révision avant implémentation
+
+Si la première revue conclut `REVISE`, la correction du plan reste une opération de planification et ne rend pas une PR applicative obligatoire.
+
+Le parcours historique `START_PLAN_REVISION` conserve son rôle pour les reprises auxquelles ses préconditions sont effectivement applicables. Il ne doit pas être utilisé pour fabriquer artificiellement l’état initial d’une nouvelle tranche.
+
+Une future consolidation peut unifier les workflows, mais aucune refonte générale n’est requise par 0.6.26.
+
+## F. Barrière d’implémentation inchangée
+
+Aucun des états suivants n’autorise l’implémentation : `SPEC_PREPARED`, activation V2, `PLANNING_AUTHORIZED`, `PLAN_READY_FOR_INDEPENDENT_REVIEW`, ni `PLAN_REVIEW_APPROVED` seul.
+
+L’autorisation d’implémentation exige toujours le gate utilisateur explicite et les contrôles d’autorisation applicables du protocole V2.
+
+## G. Qualification obligatoire
+
+La qualification de 0.6.26 couvre au minimum :
+
+1. nouvelle tranche active, sans PR applicative, produisant un `PLAN_OUTPUT` INITIAL ;
+2. revue indépendante de ce `PLAN_OUTPUT` sans PR applicative ;
+3. refus si `source_head != baseline_head` ;
+4. refus si la tranche n’est pas `ACTIVE` ;
+5. refus si le commentaire de plan n’est pas produit par `github-actions[bot]` ;
+6. refus si `planning_mode != INITIAL` ;
+7. conservation intacte du parcours `START_PLAN_REVISION` existant ;
+8. aucune implémentation autorisée par la seule réussite du plan ou de sa revue.
