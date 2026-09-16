@@ -188,7 +188,7 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
 
-La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` ni aucune poignée de déplacement n’est affiché dans l’état courant.
+La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 et réutilise le composant DSF canonique `2537:1033 — State=Collapsed`, avec une zone droite réservée identique sur toutes les cartes. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
@@ -218,7 +218,7 @@ La Synthèse affiche les données compatibles d’une Activité seule. Le Ressen
 
 ## 2 bis.5 Médias d’Activité
 
-Dans le MVP, `Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales. Une vidéo ne démarre jamais automatiquement. La réintroduction d’un contrôle `Déployer` sur la carte du Catalogue pour révéler les médias reste une évolution distincte à spécifier avant développement.
+Dans le MVP, `Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales. Une vidéo ne démarre jamais automatiquement. L’activation du contrôle `Déployer`, déjà visible mais désactivé en T03, pour révéler les médias reste une évolution distincte à spécifier avant développement.
 
 ## 2 bis.6 Bilatéralité
 
@@ -247,7 +247,6 @@ Une séance est composée, dans l'ordre, des éléments suivants :
 1. un compte à rebours initial ;
 2. un Cycle technique unique contenant, dans l’ordre, les Activités placées avant le Tour, un Tour unique et les Activités placées après le Tour ;
 3. une fin de séance.
-
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
@@ -497,7 +496,6 @@ Toutes les autres informations sont consultatives.
 ## 4.6 Réinitialisation d'une activité
 
 L'utilisateur peut décider de recommencer l'activité en cours depuis son début.
-
 Lorsque cette action est demandée, l'application affiche une demande de confirmation.
 
 Si l'utilisateur confirme :
@@ -914,7 +912,7 @@ Le suivi repose sur les principes suivants :
 | Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
 | Modifier | Toucher la zone principale ouvre la Composition préremplie. |
-| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche superpose `Supprimer` à la carte sans la déplacer, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
+| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
 | Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. |
 
 ## Composition d’une séance — création et modification
@@ -929,7 +927,7 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
-| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche révèle des actions couvrant le bloc ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
+| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
@@ -939,7 +937,7 @@ Le Cycle reste présent dans le modèle avec une répétition toujours égale à
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur confirmée et leur propre brouillon. L’ouverture copie la dernière valeur confirmée dans le brouillon ; le défilement ne modifie ni la carte ni la synthèse intégrée au Tour. Annuler abandonne le brouillon. Confirmer enregistre exactement les minutes et secondes centrées, puis actualise seulement la carte structurelle concernée. La synthèse sous `Nombre de tours` reste inchangée, car elle exclut ces deux éléments structurels hors Tour. Les secondes couvrent `00` à `59` avec un pas de `1`.
 
-Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. Avec Récupération, le groupe d’actions est superposé à droite du bloc et mesure `144 × 93` : `Dupliquer` et `Supprimer` occupent chacun `72 × 93`. Sans Récupération, les hauteurs restent `69`. Le bloc ne se déplace pas et les libellés restent centrés.
+Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. La carte ou le bloc suit le glissement et révèle progressivement `Dupliquer` et `Supprimer` placés derrière. Avec Récupération, le groupe d’actions couvre la hauteur `93`; sans Récupération, la hauteur reste `69`. `Dupliquer` conserve les rayons définis par Figma/DSF et un espace visuel à son bord gauche laisse apparaître le fond du conteneur Tour conformément à D-176.
 
 Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération mesure `362 × 97` au lieu de `354 × 93` et reste centré dans la section à `x = 6`. Son fond reprend le bleu du bandeau supérieur ; le cadre interne devient transparent. Le contour est `1` point `#D1D1D6`, le rayon `12`, et l’ombre périphérique utilise `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. Cet état n’est ni une sélection persistante ni une modification de données.
 
@@ -991,7 +989,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Nombre de Séries          | Roulette native compacte | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer ; valeur canonique persistée |
 | Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; désactivé sous Tour bilatéral |
 | Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
-| Durée totale              | Roulette durée calculée/pilotable | Mode Durée uniquement | Non | Calculée | Valeur réalisable selon la formule | Calcul | Sélection | Valeur globale `D = L × [C × A + P(C,R) × B] + R`, avec `P=C` si `R=0`, sinon `C−1` pour une Activité autonome ; peut devenir le pilote après confirmation |
+| Durée totale              | Roulette durée calculée/pilotable ou indicateur de borne | Mode déployé | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions/À l’échec : borne connue | Calcul | Sélection en mode Durée ; lecture en modes non chronométrés | Contrôle `Durée totale` en Durée ; contrôle `Durée totale >=` visible en Répétitions/À l’échec ; la Synthèse conserve `Durée totale : ≥ {durée connue}` |
 | Médias                    | Section repliable + galerie | Cible post-T05 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
@@ -1013,7 +1011,7 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Durée totale calculée | En mode Durée, pour une Activité autonome, `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Toute modification de `A`, `B`, `C`, `R` ou du réglage de côté recalcule `D` lorsque Séries est le pilote. |
 | Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
 | Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si la durée saisie est ajustée, un message bref annonce la valeur réalisable. |
-| Modes non chronométrés | En Répétitions et À l’échec, `Durée totale` est masquée et son emplacement reste vide sans déplacer les autres contrôles. La synthèse affiche une borne minimale `≥` composée des seules Pauses connues et de la Récupération. |
+| Modes non chronométrés | En Répétitions et À l’échec, le contrôle reste visible sous le libellé `Durée totale >=`. Il affiche la borne minimale composée des seules Pauses connues et de la Récupération ; la Synthèse l’exprime sous la forme `Durée totale : ≥ {durée connue}`. |
 | Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
