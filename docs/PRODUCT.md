@@ -98,7 +98,11 @@ Le MVP permet de :
 - préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Le détail visuel de ces panneaux reste à définir dans Figma.
+La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Activités` : `Créer`, `Filtrer` et `Trier` sont alignés horizontalement ; dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` d’espace entre contrôles et un ensemble centré. Cette géométrie est une contrainte de rendu/recette, pas une instruction de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
+
+`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Les **contrôles d’entrée** sont désormais conçus dans Figma ; seul le détail visuel de leurs **panneaux/options ouverts** reste à définir.
+
+Lorsque l’arbre `Créer` est ouvert, `Créer`, `Filtrer` et `Trier` restent visibles sous le scrim ; l’arbre est ancré au bouton `Créer`. L’état `Recherche globale — Champ déployé` conserve également cette rangée dans le Catalogue visible en arrière-plan.
 
 Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
 
@@ -119,7 +123,9 @@ Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une 
 
 Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
 
-Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le nom de l’Activité est en gras dans cette Synthèse. Le libellé visible est toujours `Durée totale`; en Répétitions et À l’échec, la borne reste `Durée totale : ≥ {durée connue}`.
+Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le nom de l’Activité est en gras dans cette Synthèse.
+
+Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -318,7 +324,7 @@ Les principaux écrans du MVP sont :
 
 Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06, son complément T03 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
-Le détail visuel des panneaux `Filtrer` et `Trier` des Catalogues n’est pas encore conçu dans Figma ; il reste `NON VÉRIFIABLE` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
+Les contrôles d’entrée `Créer / Filtrer / Trier` des Catalogues sont conçus et vérifiables dans Figma. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu ; il reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
 
 ## 9. Contraintes techniques initiales
 
@@ -365,7 +371,7 @@ Les versions futures pourront notamment introduire :
 
 Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et `Circuits`. `Séances` est le segment sélectionné par défaut ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois contextes de Catalogue. Le contenu des options peut dépendre du segment actif. Pour T03 / Activités, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
+`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. Dans la maquette de référence `402 pt`, chacun est dessiné en `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Activités, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
 ### Activités persistantes — MVP T03
 
@@ -373,7 +379,7 @@ Une Activité de Catalogue est une référence persistante `ActivityDefinition`.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Depuis `Créer`, l’arbre propose dans cet ordre `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Activité et Séance sont actives ; Circuit reste désactivé. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Depuis `Créer`, l’arbre propose dans cet ordre `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Activité et Séance sont actives ; Circuit reste désactivé. Dans l’état arbre ouvert, la rangée `Créer / Filtrer / Trier` reste visible sous le scrim et l’arbre est ancré à `Créer`. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
 
@@ -392,7 +398,8 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
 - après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
-- dans le Catalogue des activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options.
+- dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
+- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
 
 ### Médias et Circuits
 
