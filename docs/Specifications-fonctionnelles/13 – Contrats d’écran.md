@@ -90,9 +90,19 @@ Composant : `Navigation / Bottom — Source exact` (`2537:214`). Les quatre dess
 
 Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-retour courant. Ils ne survivent pas à un relaunch complet. Un relaunch revient au segment `Séances`.
 
-### 4.5 Filtrer / Trier communs aux Catalogues
+### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
-`Filtrer` et `Trier` sont des contrôles communs à `Activités / Séances / Circuits`; leur aspect d’entrée est commun, leurs options peuvent être contextuelles.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes d’entrée des Catalogues représentés en T03. Dans la référence Figma `402 × 874 pt` :
+
+- `Créer` = `108 × 32 pt` ;
+- `Filtrer` = `108 × 32 pt` ;
+- `Trier` = `108 × 32 pt` ;
+- gap horizontal = `8 pt` ;
+- ensemble centré horizontalement.
+
+Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
+
+`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
 Pour T03 / `Activités` :
 
@@ -104,7 +114,9 @@ Pour T03 / `Activités` :
 - aucune préférence de tri n’est persistée ;
 - aucun critère non arbitré n’est inventé.
 
-Le détail graphique des panneaux/options `Filtrer` et `Trier` n’existe pas encore dans Figma : conformité visuelle détaillée `NON VÉRIFIABLE`.
+En état arbre `Créer` ouvert, les trois commandes restent visibles dans l’arrière-plan sous scrim ; seul `Créer` porte l’arbre et celui-ci reste ancré sur la position de `Créer` dans la rangée commune. Dans `1992:10129 — Recherche globale — Champ déployé`, la même rangée reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
+
+Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le détail graphique des **panneaux/options ouverts** `Filtrer` et `Trier` n’existe pas encore : conformité visuelle détaillée `NON VÉRIFIABLE` / `À CLARIFIER` pour ces panneaux uniquement.
 
 ### 4.6 Roulettes
 
@@ -133,15 +145,15 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 | Propriété | Valeur |
 |---|---|
 | Bloc | B1 |
-| États | S01 + état vide/liste + retour Catégories |
+| États | S01 + état vide/liste + retour Catégories + recherche globale déployée |
 | T03-E | E01, E02, E04, E05, E06, E19, E67, E68, E69 |
-| Frames | `2117:86`, `1992:9910`, `3841:8375` |
+| Frames | `2117:86`, `1992:9910`, `1992:10129`, `3841:8375` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
 | Nature | Écran existant modifié |
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled et nouvel arbre `Créer`.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled, rangée déterministe `Créer / Filtrer / Trier` et nouvel arbre `Créer`.
 
 ### 3. Contexte d’entrée
 
@@ -154,6 +166,7 @@ Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour 
 - Circuits → aucune navigation ;
 - Créer → `CE-T03-03` ;
 - carte Séance → parcours existant T01/T02 ;
+- Recherche → expérience de Recherche globale existante ;
 - navigation basse → destination choisie.
 
 ### 5. Données affichées et source de vérité
@@ -162,31 +175,31 @@ Liste issue des services/repositories Séance. Noms, catégories, zones, durées
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Activités`, `Séances`, `Circuits`, `Créer`, `Catalogues` = statiques. Contenus de cartes = dynamiques/démonstration.
+`Catalogue des séances`, `Activités`, `Séances`, `Circuits`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
-Header fixe → segmenté trois types → zone commandes Catalogue (`Créer`, contrôles communs lorsqu’ils sont présents) → liste/état vide → Bottom Navigation.
+Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste/état vide → Bottom Navigation. En recherche globale déployée, cette structure reste le contexte d’arrière-plan représenté par `1992:10129`.
 
 ### 8. Éléments obligatoires
 
-Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Circuits disabled ; Créer ; navigation basse `Catalogues`; contrôles communs Filtrer/Trier lorsqu’affichés selon le pattern Catalogue.
+Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Circuits disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
 
 ### 9. Layout déterministe
 
-Segmenté sur largeur utile. Créer centré selon Figma. Liste dans Body scrollable, jamais sous navigation. Les contrôles Catalogue utilisent le même layout partagé entre segments.
+Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des activités ; elle ne devient pas un jeu de coordonnées absolues RN.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Aucun clavier hors recherche éventuelle.
+Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Dans `Recherche globale — Champ déployé`, le clavier/contexte de recherche ne supprime pas la rangée du Catalogue d’arrière-plan et ne réduit pas ses cibles tactiles sous `48 × 48 pt`.
 
 ### 11. États de l’écran
 
-Vide réel ; liste ; retour Catégories ; arbre Créer ouvert ; retour d’un sous-parcours ; relaunch sur Séances.
+Vide réel ; liste ; recherche globale déployée ; retour Catégories ; arbre Créer ouvert ; retour d’un sous-parcours ; relaunch sur Séances.
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Circuits disabled ; Créer ouvre arbre. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Activités navigue ; Séances maintient ; Circuits disabled ; Créer ouvre arbre. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -194,15 +207,15 @@ Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste
 
 ### 14. Validation
 
-Aucune validation pour changer de segment. Circuits ne déclenche aucun événement métier. Créer n’écrit aucune donnée à l’ouverture.
+Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture.
 
 ### 15. Brouillon et persistance
 
-Aucun état de segment persisté au relaunch. Aucun brouillon créé tant qu’une option de `Créer` n’est pas choisie.
+Aucun état de segment persisté au relaunch. Aucun brouillon créé tant qu’une option de `Créer` n’est pas choisie. État Recherche suit §4.4.
 
 ### 16. Navigation et conservation d’état
 
-Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9.
+Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. La recherche/filtres/tri implicite/scroll ne sont conservés que pendant l’aller-retour courant.
 
 ### 17. Erreurs et cas limites
 
@@ -210,19 +223,19 @@ Erreur de chargement : afficher état d’erreur prévu, pas un faux état vide.
 
 ### 18. Accessibilité
 
-Circuits annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; focus cohérent et cibles ≥48.
+Circuits annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
 
 ### 19. Invariants
 
-Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bottom label = `Catalogues`, jamais `Séances`.
+Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, Créer/Annuler, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, Créer/Annuler, arbre avec trois commandes visibles sous scrim, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : `Créer` seul centré, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
 
 ### 21. Traçabilité
 
-E01–E06 → D-167/D-179 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `3841:8375`; API Séance existantes.
+E01–E06 → D-167/D-179/D-184 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `1992:10129`, `3841:8375`; API Séance existantes.
 
 ---
 
@@ -235,10 +248,12 @@ E01–E06 → D-167/D-179 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9
 | Bloc | B1 |
 | États | S02–S12 |
 | T03-E | E03, E07–E12, E32–E36, E58–E62, E73 |
-| Frames | `3786:5093`, `3787:5209` |
+| Frames | `3786:5093`, recherche globale `1992:10129` pour le pattern de fond Catalogue |
 | Déployer | `2537:1033` |
 | Navigation | `2537:214` |
 | Nature | Nouvel écran T03 |
+
+L’ancienne référence `3787:5209` n’existe plus dans l’état Figma courant du 16 septembre 2026 et n’est plus une preuve active.
 
 ### 2. Finalité fonctionnelle
 
@@ -262,27 +277,27 @@ Noms, zones, séries, durées, récupération de la première carte = dynamiques
 
 ### 7. Structure de l’écran
 
-Header → segmenté → commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : barre bleue, contenu, zone Déployer, zone Lecture.
+Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : barre bleue, contenu, zone Déployer, zone Lecture.
 
 ### 8. Éléments obligatoires
 
-Barre bleue ; zone droite constante ; Déployer visible disabled ; Lecture active indépendante ; aucune poignée ; Filtrer actif ; Trier visible disabled.
+Barre bleue ; zone droite constante ; Déployer visible disabled ; Lecture active indépendante ; aucune poignée ; `Créer` actif ; Filtrer actif ; Trier visible disabled ; rangée commune conforme §4.5.
 
 ### 9. Layout déterministe
 
-Déployer et Lecture ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Les panneaux détaillés Filtrer/Trier ne sont pas définis visuellement : aucun layout local inventé.
+Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Seuls les panneaux/options ouverts Filtrer/Trier restent non définis visuellement : aucun layout local n’est inventé.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-§4.2. Liste et cartes prennent largeur utile. Recherche gère clavier sans masquer contenu/commandes. Cibles ≥48. Texte long peut passer sur plusieurs lignes selon DSF.
+§4.2. Liste et cartes prennent largeur utile. Recherche gère clavier sans masquer le contexte nécessaire ; le pattern `1992:10129` montre la rangée Catalogue conservée en arrière-plan. Cibles ≥48 même pour les commandes visuelles hautes de 32 pt. Texte long peut passer sur plusieurs lignes selon DSF.
 
 ### 11. États de l’écran
 
-Liste active ; vide ; recherche ; Filtrer ouvert ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte ouverte ; retour restauré ; relaunch perdu.
+Liste active ; vide ; recherche ; Filtrer ouvert lorsque son panneau sera défini ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte ouverte ; retour restauré ; relaunch perdu.
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. Créer = arbre.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. Créer = arbre.
 
 ### 13. Gestes
 
@@ -306,19 +321,19 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer disabled ; Filtrer bouton actif avec état appliqué ; Trier disabled/non déclenchable par technologie d’assistance.
+Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer disabled ; Filtrer bouton actif avec état appliqué ; Trier disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
 
 ### 19. Invariants
 
-Déployer visible disabled ; Lecture indépendante ; aucune poignée ; Filtrer donne accès à Archivées ; Trier disabled ; tri effectif `updatedAt DESC`; aucune option supplémentaire inventée.
+Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer visible disabled ; Lecture indépendante ; aucune poignée ; Filtrer donne accès à Archivées ; Trier disabled ; tri effectif `updatedAt DESC`; aucune option supplémentaire inventée.
 
 ### 20. Recette déterministe
 
-0/N cartes ; récupération 0/>0 ; surface/Lecture/Déployer ; Filtrer>Archivées ; Trier tap/clavier/VoiceOver sans action ; swipe ; retour état ; relaunch ; ordre updatedAt DESC ; responsive. Négatifs : Déployer actif/absent, Trier fonctionnel, option de filtre inventée, poignée, récupération forcée première carte.
+0/N cartes ; récupération 0/>0 ; géométrie rangée 108/108/108 avec gap 8 et centrage ; surface/Lecture/Déployer ; Filtrer>Archivées ; Trier tap/clavier/VoiceOver sans action ; recherche avec rangée d’arrière-plan ; swipe ; retour état ; relaunch ; ordre updatedAt DESC ; responsive. Négatifs : `Créer` seul centré, Filtrer/Trier absents, Déployer actif/absent, Trier fonctionnel, option de filtre inventée, poignée, récupération forcée première carte.
 
 ### 21. Traçabilité
 
-E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, `3787:5209`; `API-CAT-01`.
+E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, pattern recherche `1992:10129`; `API-CAT-01`.
 
 ![Catalogue des activités](./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg)
 
@@ -348,23 +363,23 @@ Aucune donnée métier créée. Fond = état réel du Catalogue d’origine.
 
 ### 6. Classification des valeurs Figma
 
-Les quatre libellés = statiques obligatoires. Cartes/fond = dynamiques/démonstration.
+Les quatre libellés de l’arbre et `Créer / Filtrer / Trier` = statiques obligatoires. Cartes/fond = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
-Catalogue en arrière-plan sous scrim + arbre contextuel à quatre options.
+Catalogue en arrière-plan sous scrim avec rangée `Créer / Filtrer / Trier` conservée + arbre contextuel à quatre options porté par `Créer`.
 
 ### 8. Éléments obligatoires
 
-Ordre exact : Nouvelle activité ; Séance ; Circuit ; Annuler. Circuit disabled. Annuler = icône Ajouter tournée 45°, pas X texte. Vecteurs DSF uniquement.
+Ordre exact : Nouvelle activité ; Séance ; Circuit ; Annuler. Circuit disabled. Annuler = icône Ajouter tournée 45°, pas X texte. Vecteurs DSF uniquement. Les trois commandes Catalogue restent visibles sous scrim ; seul `Créer` porte l’arbre.
 
 ### 9. Layout déterministe
 
-Rattachement à Créer selon frames. Cibles ≥48. Arbre reste dans zone sûre.
+Rangée d’arrière-plan conforme §4.5. L’arbre est ancré à la nouvelle position de `Créer` dans cette rangée et reste dans la zone sûre. `Filtrer` et `Trier` ne sont ni déplacés hors rangée ni masqués par une variante locale. Cibles interactives ≥48 malgré le dessin 32 pt de haut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; libellés complets ; placement peut s’adapter sans réduire cibles. Aucun clavier.
+360/402/440 ; libellés complets ; placement de l’arbre peut s’adapter sans réduire cibles ni casser l’ancrage logique à `Créer`. Aucun clavier.
 
 ### 11. États de l’écran
 
@@ -372,11 +387,11 @@ Ouvert sur fond Activités ; ouvert sur fond Séances ; Circuit disabled ; Annul
 
 ### 12. Contrôles et interactions
 
-Trois actions actives : Nouvelle activité, Séance, Annuler. Circuit ne reçoit aucun événement fonctionnel.
+Trois actions actives dans l’arbre : Nouvelle activité, Séance, Annuler. Circuit ne reçoit aucun événement fonctionnel. Les commandes `Filtrer` et `Trier` visibles sous le scrim ne deviennent pas des actions de l’arbre ; le scrim bloque leur interaction conformément au pattern modal.
 
 ### 13. Gestes
 
-Tap uniquement. Le fond/scrim n’est pas une fermeture implicite si non prévu par DSF.
+Tap uniquement sur les actions de l’arbre. Le fond/scrim n’est pas une fermeture implicite si non prévu par DSF.
 
 ### 14. Validation
 
@@ -396,19 +411,19 @@ Annuler restitue exactement segment, query, filtre, tri, scroll. Transition suiv
 
 ### 18. Accessibilité
 
-Ordre focus = ordre visuel ; Circuit annoncé disabled ; Annuler explicitement nommé.
+Ordre focus = ordre visuel de l’arbre ; Circuit annoncé disabled ; Annuler explicitement nommé ; éléments d’arrière-plan sous scrim non focusables.
 
 ### 19. Invariants
 
-Ordre exact ; Circuit non fonctionnel ; Annuler sans mutation ; pas de glyphes système.
+Ordre exact ; Circuit non fonctionnel ; Annuler sans mutation ; pas de glyphes système ; rangée Catalogue toujours présente sous scrim ; arbre attaché à `Créer`.
 
 ### 20. Recette déterministe
 
-Deux contextes d’origine ; quatre options ; Circuit disabled ; Annuler exact ; 360/402/440. Négatifs : ordre différent, X texte, Circuit fonctionnel, perte de contexte.
+Deux contextes d’origine ; quatre options ; Circuit disabled ; rangée `Créer / Filtrer / Trier` visible sous scrim ; arbre ancré à `Créer`; Annuler exact ; 360/402/440. Négatifs : ordre différent, X texte, disparition Filtrer/Trier, arbre ancré à Filtrer/Trier, Circuit fonctionnel, perte de contexte.
 
 ### 21. Traçabilité
 
-E19–E21/E72 → D-167/D-168/D-183 ; Figma `3787:5148`, `3841:8375`; aucune API d’écriture à l’ouverture.
+E19–E21/E72 → D-167/D-168/D-183/D-184 ; Figma `3787:5148`, `3841:8375`; aucune API d’écriture à l’ouverture.
 
 ![Arbre Créer](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg)
 
@@ -420,7 +435,7 @@ E19–E21/E72 → D-167/D-168/D-183 ; Figma `3787:5148`, `3841:8375`; aucune API
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; frames `3879:5947`, `3879:6079`, `3542:4656`, `3561:4695`, `3561:7802`, `3679:4880`, `3724:5428`, roulettes `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`; responsive `2296:91/173/255`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; frames `3879:5947`, `3879:6079`, `3542:4656`, `3561:4695`, `3561:7802`, `3679:4880`, `3724:5428`, roulettes `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, état vide `3943:6064`; responsive `2296:91/173/255`.
 
 ### 2. Finalité fonctionnelle
 
@@ -440,19 +455,19 @@ Nom, Description, mode, cible, Séries, Pause, Récupération, zones, sideMode, 
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones, valeurs numériques = dynamiques/démonstration. Titres, modes, Séries, Pause, Récupération, Durée totale, Terminer = statiques.
+Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Activité** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’activité` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
 
 ### 7. Structure de l’écran
 
-Nom → Ajouter média disabled → sections/accordéons → paramètres Séries/cible/Pause → Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
+Nom → Ajouter média disabled → sections/accordéons → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en Reps/Échec `≥ durée connue` ; nom en gras dans Synthèse uniquement ; Ajouter média visible disabled ; section Médias masquée ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
+Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; Ajouter média visible disabled ; section Médias masquée ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Reps/Échec, aligner Durée totale avec Pause ; centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe.
+DSF/grilles sans compensation locale. En Répétitions/À l’échec, `Durée totale >=` est le troisième élément de la deuxième rangée, après `Côté` puis `Récupération`, conformément aux frames `3561:4695`, `3561:7673`, `3561:7802`. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -460,11 +475,11 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
+Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Ajouter média disabled.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Ajouter média disabled.
 
 ### 13. Gestes
 
@@ -472,7 +487,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupération ≥0 ; FAILURE sans cible chiffrée ; calculs D-155/D-156.
+Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupération ≥0 ; FAILURE sans cible chiffrée ; calculs D-155/D-156. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie.
 
 ### 15. Brouillon et persistance
 
@@ -488,19 +503,19 @@ Succès → Catalogue activités restauré. Aucun SessionActivity créé dans ce
 
 ### 18. Accessibilité
 
-Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-plan ; unités annoncées ; CTA arrière inaccessible pendant wheel.
+Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-plan ; unités annoncées ; CTA arrière inaccessible pendant wheel. Le libellé accessible de la borne doit conserver la sémantique « durée totale supérieure ou égale à la durée connue » même si le visuel affiche `>=`.
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; Durée totale toujours visible ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : Durée totale masquée, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée et `Durée totale >=` en Reps/Échec, vérifier Synthèse `Durée totale : ≥ …`, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, Durée totale masquée, libellé Reps/Échec sans `>=`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
-E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; frames citées.
+E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
 
 ---
 
@@ -1694,7 +1709,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
 | E08 | Recherche Catalogue activités |
-| E09 | Filtrer/Trier Catalogue : Filtrer Archives défini ; Trier disabled ; autres options non définies |
+| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Activités ; Trier disabled ; autres options non définies |
 | E10 | Préserver recherche/filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
 | E12 | Ouvrir ActivityDefinition en consultation/modification |
@@ -1735,9 +1750,9 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E47 | Suivi type Activité |
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour Catalogue activités état restauré |
-| E50 | Nom Activity gras Synthèse éditeur |
-| E51 | Durée totale visible trois modes |
-| E52 | Reps/Failure `≥ durée connue` |
+| E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
+| E51 | Durée totale visible trois modes ; contrôle Reps/Failure libellé `Durée totale >=` |
+| E52 | Synthèse Reps/Failure `Durée totale : ≥ {durée connue}` |
 | E53 | Pas texte direction développé cartes Composition |
 | E54 | Roulette bloque arrière-plan |
 | E55 | CTA visible normal mais fonctionnel/accessibilité disabled |
@@ -1818,9 +1833,14 @@ Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE
 
 # 16. Évidences Figma embarquées
 
+Les fichiers historiques suivants restent physiquement présents tant qu’ils ne sont pas remplacés par un export vérifié ; leur statut courant est détaillé dans `images/README-T03-FIGMA.md` :
+
 - `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg`
 - `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg`
-- `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg`
+- `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg` — **historique uniquement**, le node source `3787:5209` n’existe plus dans le Figma courant.
+
+Les autres preuves existantes non impactées par la décision du 16 septembre restent inchangées :
+
 - `./images/CE-COMP-SEL-01-selection-activites-existantes.png`
 - `./images/CE-ACT-EXE-02-preparation-5-s.png`
 - `./images/CE-ACT-EXE-03-execution-en-cours.png`
@@ -1831,4 +1851,6 @@ Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE
 - `./images/suivi-condense.png`
 - `./images/suivi-deploye.png`
 
-Figma reste la source visuelle courante. Le détail des panneaux `Filtrer`/`Trier` reste `NON VÉRIFIABLE` tant qu’aucune frame dédiée n’est validée.
+Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `3787:5148`, `1992:9910`, `1992:10129`, `3841:8375`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`.
+
+Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` sont vérifiables ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER` tant qu’aucune frame dédiée n’est validée.
