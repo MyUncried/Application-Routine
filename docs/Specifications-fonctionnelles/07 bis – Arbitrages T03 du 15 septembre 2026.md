@@ -20,19 +20,30 @@ Ce document complète le registre `07 – Registre des décisions de conception.
 | D-178 | La transition canonique « avancer vers l’écran suivant » fait entrer l’écran cible depuis la droite pendant que l’écran courant sort vers la gauche. Le parcours Catégories → `Catalogue des séances` après enregistrement utilise cette transition commune, sans animation locale concurrente. | Validée | Règle de navigation transverse |
 | D-179 | La navigation principale doit être documentée destination par destination avec le libellé, le composant/icône DSF exact, l’état actif/inactif, un dessin de `24 pt`, son centrage, la cible tactile et les marges. Les pictogrammes restent vectoriels ; aucune substitution par glyphe/emoji système. | Validée | Précision DSF/navigation |
 | D-180 | La migration T03 crée les structures persistantes nécessaires à `ActivityDefinition`, aux relations associées et à l’origine d’Exécution `ACTIVITY`, sans convertir automatiquement les `SessionActivity` historiques en références de Catalogue. | Validée | Règle de migration T03 |
-| D-181 | Le libellé `Durée totale` reste visible dans les trois modes conformément à D-155. En Répétitions et À l’échec : `Durée totale : ≥ {durée connue}`. Toute règle antérieure indiquant la valeur masquée est obsolète. | Validée | Confirme D-155 ; supersède RM-132 et CAL-15/CAL-16 historiques |
+| D-181 | Le libellé fonctionnel `Durée totale` reste visible dans les trois modes conformément à D-155. En Répétitions et À l’échec, la Synthèse exprime la borne `Durée totale : ≥ {durée connue}`. Le rendu Figma du contrôle utilise le libellé court `Durée totale >=` dans ces deux modes ; cette forme de contrôle ne modifie pas la sémantique de la borne. Toute règle antérieure indiquant la valeur masquée est obsolète. | Validée post-Figma | Confirme D-155 ; supersède RM-132 et CAL-15/CAL-16 historiques |
 | D-182 | Le nom de l’Activité est en gras dans la Synthèse de l’écran Ajouter/Modifier une Activité uniquement. Cette correction n’ajoute aucun texte de direction développé aux cartes de Composition. | Validée | Précision éditeur T03 |
 | D-183 | D-166 est consolidée ainsi : T03 = Catalogue des activités, cycle de vie persistant, création/consultation/modification/archives, arbre de création, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. L’ancien T03 Moteur d’Exécution des Séances devient T04 ; l’ancien T04 devient T05 et les tranches suivantes sont décalées sans extension implicite. Circuits fonctionnels et médias multiples restent hors MVP. | Validée | Réécrit et consolide D-166 |
-| D-184 | `Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues `Activités / Séances / Circuits`; leur représentation visuelle est commune, tandis que le contenu des options peut dépendre du segment actif. En T03, pour `Activités`, `Filtrer` est fonctionnel au minimum pour accéder à `Archivées`; aucune autre option de filtre n’est définie et ne doit être inventée. `Trier` reste visible mais désactivé tant que ses options ne sont pas arbitrées. Le tri appliqué par défaut au Catalogue des activités reste la date de dernière modification décroissante. Le détail visuel des panneaux `Filtrer`/`Trier` reste `À CLARIFIER` / `NON VÉRIFIABLE` dans Figma tant qu’il n’est pas conçu. | Validée | Précise D-168, D-169 et D-110 pour les contrôles Catalogue T03 |
+| D-184 | `Créer`, `Filtrer` et `Trier` forment désormais une rangée de commandes d’entrée commune aux Catalogues représentés dans Figma. Dans la référence `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec un espace de `8 pt` entre contrôles et un ensemble centré horizontalement. Cette géométrie est une contrainte de rendu/recette Figma et ne doit pas être transcrite en coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Filtrer` et `Trier` restent communs aux trois Catalogues `Activités / Séances / Circuits`; leur contenu peut dépendre du segment. En T03, pour `Activités`, `Filtrer` est fonctionnel au minimum pour accéder à `Archivées`; aucune autre option ne doit être inventée. `Trier` reste visible mais désactivé et le tri appliqué reste la date de dernière modification décroissante. Quand l’arbre `Créer` est ouvert, les trois commandes restent visibles sous scrim et l’arbre est ancré à `Créer`. Les contrôles d’entrée sont donc **conçus et vérifiables dans Figma** ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `À CLARIFIER` / `NON VÉRIFIABLE`. | Validée post-Figma 16/09 | **Supersède la formulation antérieure de D-184** qui pouvait laisser entendre que la représentation visuelle des contrôles d’entrée Filtrer/Trier n’était pas conçue ; précise D-168, D-169 et D-110 |
 
 ## Évidence Figma vérifiée
 
-- Fichier Figma : `G6RY5Ebhgwb4AHIOYDwwvg`.
-- Catalogue des activités : `3786:5093`.
-- Arbre `Créer` sur Catalogue des activités : `3787:5148`.
-- État Catalogue / action contextuelle directe : `3787:5209`.
-- Composant canonique `Déployer` : `2537:1033 — State=Collapsed`, réutilisé depuis le Catalogue des séances.
+État contrôlé le **16 septembre 2026** dans le fichier `G6RY5Ebhgwb4AHIOYDwwvg` :
 
-Les valeurs de démonstration de ces frames ne sont pas des règles métier. En particulier, la première carte montre une Récupération uniquement pour illustrer ce cas ; une carte réelle l’affiche seulement si son `ActivityDefinition` en possède une.
+- Catalogue des activités : `3786:5093` ;
+- arbre `Créer` sur Catalogue des activités : `3787:5148` ;
+- Catalogue des séances — liste par défaut : `1992:9910` ;
+- Recherche globale — Champ déployé : `1992:10129` ;
+- arbre `Créer` sur Catalogue des séances : `3841:8375` ;
+- éditeur Répétitions : `3561:4695`, roulette ouverte `3561:7673` ;
+- éditeur À l’échec : `3561:7802` ;
+- éditeur vide : `3943:6064` ;
+- composant canonique `Déployer` : `2537:1033 — State=Collapsed` ;
+- navigation basse : `2537:214`.
 
-Les contrôles `Filtrer` et `Trier` sont prévus comme contrôles communs aux Catalogues, mais le détail visuel de leurs panneaux/options n’est pas encore conçu dans Figma. La documentation fonctionnelle fixe donc uniquement leur comportement T03 validé ; aucune structure graphique détaillée ne doit être inventée ou déclarée conforme avant une mise à jour Figma dédiée.
+La rangée Catalogue est vérifiée sur les frames concernées : `Créer`, `Filtrer`, `Trier` sont visibles en `108 × 32 pt`, séparés par `8 pt` et centrés comme ensemble. `Trier` reste disabled T03. `Recherche globale — Champ déployé` conserve la rangée dans l’arrière-plan du contexte de recherche. Dans les états arbre `Créer`, les trois commandes restent visibles sous scrim et l’arbre demeure rattaché à `Créer`.
+
+Dans l’éditeur, `Renforcement du genou` est une **valeur de démonstration du nom d’Activité** sur les états renseignés ; seul `3943:6064` conserve `Nom de l’activité` à l’état vide. Les écrans Répétitions et À l’échec affichent le libellé de contrôle `Durée totale >=`, tandis que la Synthèse fonctionnelle conserve `Durée totale : ≥ {durée connue}`.
+
+L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans l’état Figma courant. Elle n’est plus une évidence active et aucun remplacement n’est inventé.
+
+Le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est toujours pas conçu dans Figma. Cette seule partie reste `À CLARIFIER` / `NON VÉRIFIABLE`; aucune structure graphique détaillée ne doit être inventée avant une mise à jour Figma dédiée.
