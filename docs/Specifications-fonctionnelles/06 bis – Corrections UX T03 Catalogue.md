@@ -35,9 +35,22 @@ Chaque carte :
 
 Une Récupération visible sur la première carte d’une maquette Figma est une donnée de démonstration : dans l’application, toute carte l’affiche uniquement lorsque l’`ActivityDefinition` concernée possède une Récupération non nulle.
 
-### 2.1 Contrôles communs `Filtrer` et `Trier`
+### 2.1 Contrôles communs `Créer`, `Filtrer` et `Trier`
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois contextes du Catalogue `Activités / Séances / Circuits`. Leur représentation visuelle doit être commune ; le contenu des options peut dépendre du segment actif.
+Les Catalogues `Activités / Séances / Circuits` utilisent un même bandeau de trois actions, dans cet ordre : `Créer`, `Filtrer`, `Trier`. Le même bandeau reste visible sous le voile de `Recherche globale — Champ déployé`.
+
+À la largeur Figma de référence `402 pt` :
+
+- chaque surface visuelle mesure `108 × 32 pt` ;
+- l’espace entre deux surfaces est `8 pt` ;
+- le groupe complet mesure `340 pt` et est centré horizontalement ;
+- les positions Figma de référence sont `x=31`, `x=147`, `x=263` ; ces coordonnées sont des évidences de maquette et non des positions absolues à coder ;
+- `Créer` et `Filtrer` utilisent l’état actif bleu représenté dans Figma ;
+- `Trier` reste visible dans son état désactivé gris T03.
+
+La dimension visuelle `32 pt` de hauteur ne déroge pas à l’exigence transverse de cible accessible ≥ `48 × 48 pt`.
+
+`Filtrer` et `Trier` restent des contrôles communs aux trois contextes du Catalogue ; le contenu de leurs options peut dépendre du segment actif.
 
 Pour T03, dans `Catalogue des activités` :
 
@@ -48,7 +61,7 @@ Pour T03, dans `Catalogue des activités` :
 - un aller-retour courant conserve recherche / filtre Archives / tri implicite / scroll ;
 - un relaunch complet ne conserve pas cet état.
 
-Le détail graphique des panneaux/options `Filtrer` et `Trier` n’est pas encore conçu dans Figma. Il est donc `NON VÉRIFIABLE` visuellement au-delà du contrôle d’entrée lui-même. Aucune modale, feuille, popover ou liste locale ne doit être inventée au seul écran Activités avant arbitrage Figma/documentaire.
+Le **contrôle d’entrée** `Créer / Filtrer / Trier` est désormais représenté et vérifiable dans Figma. En revanche, le détail graphique des panneaux/options ouverts de `Filtrer` et `Trier` n’est toujours pas conçu : il reste `NON VÉRIFIABLE` visuellement. Aucune modale, feuille, popover ou liste locale ne doit être inventée avant arbitrage Figma/documentaire.
 
 ## 3. Arbre `Créer` depuis le Catalogue
 
@@ -60,6 +73,8 @@ Ordre exact :
 4. `Annuler`.
 
 `Annuler` restaure exactement l’état antérieur du Catalogue. L’icône d’annulation est le composant Ajouter tourné de `45°`, conformément au DSF ; aucun `X` texte ou système ne le remplace. Le fond grisé conserve le contexte du Catalogue actif.
+
+Lorsque l’arbre est ouvert, le contrôle `Créer` conserve la géométrie du bandeau commun `108 × 32 pt` et devient l’ancrage visuel de l’arbre. `Filtrer` et `Trier` restent visibles derrière le scrim, à leurs positions communes, mais le scrim bloque leur interaction jusqu’à fermeture de l’arbre.
 
 ## 4. Ajouter une Activité depuis une Composition
 
@@ -118,15 +133,24 @@ Dans la Synthèse de l’écran Ajouter/Modifier une Activité, le **nom de l’
 
 Le texte des cartes de Composition ne développe jamais la direction ; une direction propre bilatérale y est portée uniquement par l’indicateur court `D→G` ou `G→D`. `Durée totale` reste visible dans les trois modes ; en Répétitions et À l’échec : `Durée totale : ≥ {durée connue}`.
 
+Les frames Figma Répétitions `3561:4695`, Répétitions avec roulette ouverte `3561:7673` et À l’échec `3561:7802` affichent désormais explicitement le contrôle et son libellé `Durée totale >=`. Cette graphie de maquette matérialise la borne fonctionnelle `≥ {durée connue}` ; la valeur chiffrée montrée reste une donnée de démonstration.
+
+Dans les écrans `Création activité` renseignés, le nom `Renforcement du genou` est une **valeur de démonstration Figma** destinée à éviter un faux placeholder. Il ne constitue ni une valeur par défaut ni une donnée à coder en dur. Seul l’écran `Création activité — Durée / Pause / Séries — Vide` conserve le placeholder `Nom de l’activité`.
+
 ## 10. Évidences Figma
 
 - `3786:5093` — Catalogue des activités — liste ;
-- `3787:5148` — Catalogue — Créer — arbre d’actions ;
-- `3787:5209` — Catalogue — action contextuelle directe ;
+- `1992:9910` — Catalogue des séances — liste par défaut ;
+- `1992:10129` — Recherche globale — Champ déployé ;
+- `3787:5148` — Catalogue des activités — Créer — arbre d’actions ;
+- `3841:8375` — Catalogue des séances — Créer — arbre d’actions ;
+- `3561:4695` — Création activité — Répétitions / Pause / Séries — avec mode ;
+- `3561:7673` — Création activité — Répétitions — roulette compacte ouverte ;
+- `3561:7802` — Création activité — À l’échec ;
 - `1992:9910` — Catalogue des séances — référence du contrôle `Déployer` ;
 - `2537:1033` — composant canonique `Déployer` ;
 - `2537:214` — composant canonique de navigation basse.
 
-Le rendu détaillé des panneaux/options `Filtrer` et `Trier` n’a pas encore d’évidence Figma validée et reste `NON VÉRIFIABLE` visuellement.
+Le bandeau d’entrée `Créer / Filtrer / Trier` est désormais **CONFORME et vérifiable** dans les frames Catalogue et Recherche citées. Le rendu détaillé des panneaux/options ouverts de `Filtrer` et `Trier` reste `NON VÉRIFIABLE` faute de frame dédiée validée.
 
 Captures documentaires embarquées : [`images/README-T03-FIGMA.md`](./images/README-T03-FIGMA.md).
