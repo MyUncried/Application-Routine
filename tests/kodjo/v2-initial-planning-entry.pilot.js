@@ -8,8 +8,8 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '..', '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
-test('0.6.26 — une nouvelle tranche V2 possède une entrée de premier plan sans PR applicative', () => {
-  const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.26.md');
+test('0.6.29 — une nouvelle tranche V2 possède une entrée de premier plan sans PR applicative', () => {
+  const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md');
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
 
   assert.match(spec, /START_INITIAL_PLAN/);
@@ -23,7 +23,14 @@ test('0.6.26 — une nouvelle tranche V2 possède une entrée de premier plan sa
   assert.doesNotMatch(workflow, /pulls\/\$APPLICATION_PR/);
 });
 
-test('0.6.26 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
+test('0.6.29 — le premier plan vérifie les sources produit au baseline exact', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  assert.match(workflow, /git worktree add --detach \/tmp\/kodjo-v2-initial\/source "\$SOURCE_HEAD"/);
+  assert.match(workflow, /sha256sum "\/tmp\/kodjo-v2-initial\/source\/\$file"/);
+  assert.match(workflow, /test "\$expected" = "\$actual"/);
+});
+
+test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
 
   assert.match(workflow, /\[KODJO_V2\] START_INITIAL_PLAN_REVIEW/);
@@ -33,11 +40,20 @@ test('0.6.26 — la revue du premier plan n exige pas de PR applicative et rejou
   assert.match(workflow, /verify-plan-impact\.js/);
   assert.match(workflow, /PLAN_REVIEW_APPROVED/);
   assert.match(workflow, /PLAN_REVISION_REQUIRED/);
+  assert.match(workflow, /Checkout exact initial product source/);
+  assert.match(workflow, /Build exact product context from checked-out source/);
   assert.doesNotMatch(workflow, /application_pr=/i);
   assert.doesNotMatch(workflow, /pulls\//);
 });
 
-test('0.6.26 — le parcours de révision V2 historique est conservé séparément', () => {
+test('0.6.29 — un plan initial peut être republié après REVISE sans changer de chemin protocolaire', () => {
+  const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md');
+  assert.match(spec, /nouvelle invocation `START_INITIAL_PLAN`/);
+  assert.match(spec, /PLAN_REVIEW_OUTPUT/);
+  assert.match(spec, /nouvel identifiant de commentaire de plan/);
+});
+
+test('0.6.29 — le parcours de révision V2 historique est conservé séparément', () => {
   const revision = read('.github/workflows/kodjo-v2-slice-plan.yml');
   const review = read('.github/workflows/kodjo-v2-slice-plan-review.yml');
 
@@ -47,8 +63,8 @@ test('0.6.26 — le parcours de révision V2 historique est conservé séparéme
   assert.match(review, /application_pr/);
 });
 
-test('0.6.26 — aucun succès de plan ou de revue initiale n autorise l implémentation', () => {
-  const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.26.md');
+test('0.6.29 — aucun succès de plan ou de revue initiale n autorise l implémentation', () => {
+  const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md');
   assert.match(spec, /PLAN_REVIEW_APPROVED` seul/);
   assert.match(spec, /gate utilisateur explicite/);
 });
