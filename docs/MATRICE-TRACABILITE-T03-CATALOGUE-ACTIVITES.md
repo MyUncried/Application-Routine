@@ -75,7 +75,7 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 
 | Contrôle | Résultat | Évidence |
 |---|---|---|
-| 06 bis absorbé dans 06 | CONFORME | Règles UX T03 intégrées aux sections concernées de 06 ; anciennes formulations contradictoires remplacées. |
+| Corrections UX T03 intégrées dans 06 | CONFORME | Règles UX T03 présentes dans les sections concernées de 06 ; anciennes formulations contradictoires remplacées. |
 | D-167 à D-184 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-108, D-164 et D-166 portent leur supersession. |
 | 13 unique | CONFORME | `13 – Contrats d’écran.md` reste l’unique référence des contrats T03. |
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
@@ -85,10 +85,13 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Options Filtrer/Trier supplémentaires | À CLARIFIER | Hors `Archivées` pour Activités et état disabled de Trier, aucune option supplémentaire ne doit être implémentée. |
 | Captures Figma du 16/09 physiquement réexportées | PARTIELLEMENT CONFORME | Les nodes sont vérifiés mais les copies binaires concernées ne sont pas encore toutes réexportées. |
 
-## Contrôle de clôture attendu avant fusion
+## Contrôle de clôture du 16 septembre 2026
 
-- rechercher toute référence résiduelle à `06 bis`, `07 bis` et `13A` ;
-- vérifier que les trois fichiers retirés ne sont plus nécessaires à aucun lien Markdown ;
-- vérifier 17 occurrences `## CE-T03-` et 17 occurrences `### 21. Traçabilité` dans le chapitre 13 ;
-- rechercher les anciennes formulations `carte immobile`, `Durée totale masquée`, absence de `Déployer` sur Catalogue Activités, et ancien statut de D-108/D-164/D-166 ;
-- vérifier Unicode des chemins et absence de fichiers temporaires.
+| Axe de clôture | Statut | Évidence |
+|---|---|---|
+| Anciens compléments documentaires retirés | CONFORME | Les trois fichiers supprimés ne sont plus présents dans l’arbre courant et aucune référence Markdown active ne les cible. |
+| Chapitre de contrats T03 | CONFORME | `13 – Contrats d’écran.md` est l’unique chapitre actif de contrats T03. |
+| Structure des contrats | CONFORME | 17 contrats `CE-T03-01..17`, chacun avec 21 rubriques et une section `21. Traçabilité`. |
+| Anciennes règles UX contradictoires | CONFORME | Les formulations actives « carte immobile », Durée totale masquée et absence de `Déployer` sur les cartes Activité ont été éliminées des documents normatifs concernés. |
+| Décisions supersédées | CONFORME | D-108, D-164 et D-166 sont explicitement supersédées/précisées par les décisions T03 courantes. |
+| Unicode / fichiers temporaires | CONFORME | Aucun chemin dégradé `#Uxxxx` / `\uXXXX` ni fichier temporaire ajouté par la consolidation. |
