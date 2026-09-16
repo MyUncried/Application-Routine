@@ -1,0 +1,180 @@
+name: KODJO V2 — Initial Slice Plan Review
+run-name: KODJO V2 / INITIAL-PLAN-REVIEW / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-v2-initial-plan-review-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout protocol
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable initial V2 review gate
+        id: gate
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+          $slice=[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()
+          $bootstrap=[regex]::Match($env:TRIGGER_BODY,'(?m)^bootstrap_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()
+          $planId=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_plan_comment_id=([0-9]+)\s*$').Groups[1].Value
+          $reviewSession=[regex]::Match($env:TRIGGER_BODY,'(?m)^review_session_id=([0-9a-f-]{36})\s*$').Groups[1].Value
+          if (!$slice -or !$bootstrap -or !$planId) { throw 'Missing immutable initial V2 review inputs' }
+          if ($bootstrap -ne ".github/orchestration/v2-slices/$slice/slice-bootstrap.json") { throw 'V2 bootstrap path mismatch' }
+          if (!(Test-Path -LiteralPath $bootstrap)) { throw 'V2 bootstrap missing' }
+          $b=Get-Content -Raw -LiteralPath $bootstrap -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$b.slice_id -ne $slice -or [int]$b.issue_number -ne [int]$env:ISSUE_NUMBER) { throw 'V2 identity mismatch' }
+          if ([string]$b.repository -ne $env:GITHUB_REPOSITORY) { throw 'V2 repository mismatch' }
+          $registry=Get-Content -Raw -LiteralPath ([string]$b.activation_registry) -Encoding UTF8 | ConvertFrom-Json
+          $active=@($registry.activations | Where-Object { $_.slice_id -eq $slice })
+          if ($active.Count -ne 1 -or $active[0].status -ne 'ACTIVE') { throw 'V2 slice is not active' }
+          $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
+          if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ($plan.body -notmatch '(?m)^\[KODJO_V2\] PLAN_OUTPUT\s*$') { throw 'Not a V2 PLAN_OUTPUT' }
+          if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
+          if ($plan.body -notmatch "(?m)^bootstrap_path=$([regex]::Escape($bootstrap))\s*$") { throw 'Plan bootstrap mismatch' }
+          if ($plan.body -notmatch '(?m)^planning_mode=INITIAL\s*$') { throw 'Initial planning mode missing' }
+          if ($plan.body -notmatch '(?m)^planning_contract=kodjo\.plan-impact\.v1\s*$') { throw 'Plan impact contract missing' }
+          if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
+          $source=[regex]::Match($plan.body,'(?m)^source_head=([0-9a-f]{40})\s*$').Groups[1].Value
+          if ($source -ne [string]$b.baseline_head) { throw 'Initial plan source differs from bootstrap baseline' }
+          $planFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-plan.md'
+          [IO.File]::WriteAllText($planFile,[string]$plan.body,(New-Object Text.UTF8Encoding($false)))
+          "slice_id=$slice" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "bootstrap_path=$bootstrap" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "source_head=$source" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Snapshot protocol verifier and immutable slice metadata
+        run: |
+          $ErrorActionPreference='Stop'
+          $protocol=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol'
+          if(Test-Path -LiteralPath $protocol){Remove-Item -LiteralPath $protocol -Recurse -Force}
+          New-Item -ItemType Directory -Force -Path $protocol | Out-Null
+          Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $protocol
+          Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $protocol 'lib') -Recurse
+          $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
+          if(Test-Path -LiteralPath $context){Remove-Item -LiteralPath $context -Recurse -Force}
+          New-Item -ItemType Directory -Force -Path $context | Out-Null
+          Copy-Item -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Destination (Join-Path $context 'slice-bootstrap.json')
+          Copy-Item -LiteralPath .github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/planning-mission.md -Destination (Join-Path $context 'planning-mission.md')
+
+      - name: Checkout exact initial product source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.source_head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Build exact product context from checked-out source
+        run: |
+          $ErrorActionPreference='Stop'
+          $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
+          $bootstrapCopy=Join-Path $context 'slice-bootstrap.json'
+          $b=Get-Content -Raw -LiteralPath $bootstrapCopy -Encoding UTF8 | ConvertFrom-Json
+          foreach($source in $b.product_sources){
+            $sourcePath=[string]$source.path
+            if(!(Test-Path -LiteralPath $sourcePath)){throw "Product source missing at baseline: $sourcePath"}
+            $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath $sourcePath).Hash.ToLowerInvariant()
+            if($actual -ne [string]$source.sha256){throw "Product source hash mismatch at baseline: $sourcePath"}
+            $destination=Join-Path $context $sourcePath
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+            Copy-Item -LiteralPath $sourcePath -Destination $destination
+          }
+
+      - name: Replay initial V2 plan impact independently
+        env:
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $verifier=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol\verify-plan-impact.js'
+          $replay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-scan.json'
+          $proof=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-proof.json'
+          & node $verifier "$env:RUNNER_TEMP\kodjo-v2-initial-plan.md" $env:SOURCE_HEAD $replay $proof
+          if ($LASTEXITCODE -ne 0) { throw 'Independent initial V2 impact replay failed' }
+
+      - name: Review initial V2 plan with Claude
+        id: claude
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=@"
+          You are the independent KODJO V2 reviewer of the FIRST technical plan for $env:SLICE_ID. There is deliberately no application PR yet. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-initial-plan.md against immutable product HEAD $env:SOURCE_HEAD, exact product context in $env:RUNNER_TEMP\kodjo-v2-initial-current-product-context, and the checked-out code/tests. This is READ-ONLY.
+          The direct-import scan has been replayed independently; proof files are $env:RUNNER_TEMP\kodjo-v2-initial-review-scan.json and $env:RUNNER_TEMP\kodjo-v2-initial-review-proof.json. Verify scope, classifications, migration safety, backward compatibility, preservation of validated decisions, and absence of out-of-scope implementation. Do not require an application PR, prior approved plan or prior review for this INITIAL path. Do not invent a V1 manifest.
+          End with exactly VERDICT: APPROVE or VERDICT: REVISE.
+          "@
+          $out="$env:RUNNER_TEMP\kodjo-v2-initial-review.json"
+          $err="$env:RUNNER_TEMP\kodjo-v2-initial-review.err.txt"
+          $args=if($env:REVIEW_SESSION){@('-p','--resume',$env:REVIEW_SESSION,'--output-format','json','--dangerously-skip-permissions')}else{@('-p','--output-format','json','--dangerously-skip-permissions')}
+          & claude @args $prompt 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if (!(Test-Path $out) -or (Get-Item $out).Length -eq 0) { throw "Claude produced no JSON; exit=$code" }
+          $json=Get-Content -Raw -LiteralPath $out -Encoding UTF8 | ConvertFrom-Json
+          if (!$json.session_id -or !$json.result) { throw 'Claude initial V2 review result incomplete' }
+          if ($env:REVIEW_SESSION -and [string]$json.session_id -ne $env:REVIEW_SESSION) { throw 'Claude resumed a different review session' }
+          if ($code -ne 0) { throw "Claude initial V2 review failed; exit=$code" }
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-initial-review.md",[string]$json.result,(New-Object Text.UTF8Encoding($false)))
+          "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish independent initial V2 plan review
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          PLAN_ID: ${{ steps.gate.outputs.plan_id }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $review=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-initial-review.md" -Encoding UTF8
+          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
+          $proof=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-initial-review-proof.json" -Encoding UTF8
+          $nl=[Environment]::NewLine
+          $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'planning_mode=INITIAL'+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
+          $impact=$nl+'<KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl+$proof.Trim()+$nl+'</KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-initial-review-comment.md",$header+$review+$impact,(New-Object Text.UTF8Encoding($false)))
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-initial-review-comment.md"
+
+      - name: Preserve initial V2 review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-initial-plan-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}\kodjo-v2-initial-plan.md
+            ${{ runner.temp }}\kodjo-v2-initial-review.json
+            ${{ runner.temp }}\kodjo-v2-initial-review.err.txt
+            ${{ runner.temp }}\kodjo-v2-initial-review.md
+            ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
+            ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,206 @@
+name: KODJO V2 — Initial Slice Plan
+run-name: KODJO V2 / INITIAL-PLAN / ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-v2-initial-plan-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - name: Checkout protocol
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate initial V2 planning gate
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
+          BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
+          SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          test -n "$SLICE_ID"
+          test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
+          printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
+          test -f "$BOOTSTRAP_PATH"
+          SLICE_DIR=$(dirname "$BOOTSTRAP_PATH")
+          MISSION_PATH="$SLICE_DIR/planning-mission.md"
+          SEED_PATH="$SLICE_DIR/technical-plan.md"
+          test -f "$MISSION_PATH"
+          export SLICE_ID BOOTSTRAP_PATH SOURCE_HEAD ISSUE_NUMBER
+          node <<'NODE' > /tmp/kodjo-v2-initial.env
+          const fs=require('node:fs');
+          const b=JSON.parse(fs.readFileSync(process.env.BOOTSTRAP_PATH,'utf8').replace(/^\uFEFF/,''));
+          if(!String(b.schema_version||'').startsWith('kodjo.protocol.v2.slice-bootstrap.')) throw new Error('V2_BOOTSTRAP_SCHEMA_REFUSED');
+          if(b.slice_id!==process.env.SLICE_ID) throw new Error('V2_BOOTSTRAP_SLICE_MISMATCH');
+          if(Number(b.issue_number)!==Number(process.env.ISSUE_NUMBER)) throw new Error('V2_BOOTSTRAP_ISSUE_MISMATCH');
+          if(b.repository!==process.env.GITHUB_REPOSITORY) throw new Error('V2_BOOTSTRAP_REPOSITORY_MISMATCH');
+          if(b.baseline_head!==process.env.SOURCE_HEAD) throw new Error('V2_INITIAL_SOURCE_MUST_EQUAL_BASELINE');
+          if(!Array.isArray(b.product_sources)||b.product_sources.length===0) throw new Error('V2_BOOTSTRAP_SOURCES_MISSING');
+          const r=JSON.parse(fs.readFileSync(b.activation_registry,'utf8').replace(/^\uFEFF/,''));
+          const active=(r.activations||[]).filter(x=>x&&x.slice_id===b.slice_id);
+          if(active.length!==1||active[0].status!=='ACTIVE') throw new Error('V2_SLICE_NOT_ACTIVE');
+          process.stdout.write('target_branch='+b.target_branch+'\n');
+          NODE
+          source /tmp/kodjo-v2-initial.env
+          git cat-file -e "$SOURCE_HEAD^{commit}"
+          printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\nmission_path=%s\nseed_path=%s\ntarget_branch=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$MISSION_PATH" "$SEED_PATH" "$target_branch" >> "$GITHUB_OUTPUT"
+
+      - name: Build immutable initial planning packet
+        shell: bash
+        env:
+          BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+          MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
+          SEED_PATH: ${{ steps.gate.outputs.seed_path }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/kodjo-v2-initial
+          mkdir -p /tmp/kodjo-v2-initial
+          git worktree add --detach /tmp/kodjo-v2-initial/source "$SOURCE_HEAD"
+          cp "$BOOTSTRAP_PATH" /tmp/kodjo-v2-initial/slice-bootstrap.json
+          cp "$MISSION_PATH" /tmp/kodjo-v2-initial/planning-mission.md
+          if test -f "$SEED_PATH"; then cp "$SEED_PATH" /tmp/kodjo-v2-initial/non-opposable-seed-plan.md; fi
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > /tmp/kodjo-v2-initial/issue.json
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" | jq -s add > /tmp/kodjo-v2-initial/comments.json
+          jq -r '.product_sources[].path' /tmp/kodjo-v2-initial/slice-bootstrap.json > /tmp/kodjo-v2-initial/sources.list
+          : > /tmp/kodjo-v2-initial/product-evidence.txt
+          while IFS= read -r file; do
+            test -f "/tmp/kodjo-v2-initial/source/$file"
+            expected=$(jq -r --arg p "$file" '.product_sources[]|select(.path==$p)|.sha256' /tmp/kodjo-v2-initial/slice-bootstrap.json)
+            actual=$(sha256sum "/tmp/kodjo-v2-initial/source/$file" | awk '{print $1}')
+            test "$expected" = "$actual"
+            printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/product-evidence.txt
+            cat "/tmp/kodjo-v2-initial/source/$file" >> /tmp/kodjo-v2-initial/product-evidence.txt
+          done < /tmp/kodjo-v2-initial/sources.list
+          git -C /tmp/kodjo-v2-initial/source ls-files app src > /tmp/kodjo-v2-initial/code-files.txt
+
+      - name: Draft initial V2 plan
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          set -euo pipefail
+          test -n "${OPENAI_API_KEY:-}"
+          cat > /tmp/kodjo-v2-initial/draft-prompt.txt <<EOF
+          You are the KODJO V2 initial technical-plan builder for $SLICE_ID at immutable product HEAD $SOURCE_HEAD. This is the FIRST plan of a new slice. There is no application PR and no prior approved plan/review. READ ONLY: never implement and never modify repository files.
+          The bootstrap, planning mission, Issue, current product sources and checked-out code are authoritative. A file named non-opposable-seed-plan.md may be supplied only as a drafting aid; verify it independently and do not treat it as protocol authority. Do not invent scope.
+          Return a complete French technical plan. Declare every application module that implementation would CREATE or MODIFY in exactly one block:
+          <KODJO_MODIFIED_MODULES_JSON>
+          [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
+          </KODJO_MODIFIED_MODULES_JSON>
+          Use repository-relative POSIX paths only. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise PLAN_STATUS: CLARIFICATION_REQUIRED.
+          EOF
+          for file in slice-bootstrap.json planning-mission.md product-evidence.txt code-files.txt issue.json comments.json non-opposable-seed-plan.md; do
+            if test -f "/tmp/kodjo-v2-initial/$file"; then printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; cat "/tmp/kodjo-v2-initial/$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; fi
+          done
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-initial/draft-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:20000,text:{verbosity:"medium"}}' > /tmp/kodjo-v2-initial/draft-request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-initial/draft-request.json -o /tmp/kodjo-v2-initial/draft-response.json
+          test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-initial/draft-response.json)" = completed
+          jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-initial/draft-response.json > /tmp/kodjo-v2-initial/plan-draft.md
+
+      - name: Close impact scope and assemble canonical plan
+        shell: bash
+        env:
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/modules.json
+          for iteration in 1 2 3 4; do
+            (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/scan.json)
+            cat > /tmp/kodjo-v2-initial/decision-prompt.txt <<'EOF'
+          Classify every candidate in the supplied deterministic direct-import scan. Return exactly one block and nothing else:
+          <KODJO_PLAN_DECISIONS_JSON>
+          [{"path":"exact candidate path","classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION","justification":"positive evidence"}]
+          </KODJO_PLAN_DECISIONS_JSON>
+          Include every candidate exactly once. Production consumers use MODIFY or CONSUMER_UNAFFECTED. Tests use TEST_MUST_ADAPT or TEST_UNAFFECTED. Do not classify a modified_module; those are already fixed as MODIFY.
+          EOF
+            cat /tmp/kodjo-v2-initial/scan.json >> /tmp/kodjo-v2-initial/decision-prompt.txt
+            jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-initial/decision-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"low"}}' > /tmp/kodjo-v2-initial/decision-request.json
+            curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-initial/decision-request.json -o /tmp/kodjo-v2-initial/decision-response.json
+            jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-initial/decision-response.json > /tmp/kodjo-v2-initial/decisions.md
+            node - "$iteration" <<'NODE'
+          const fs=require('node:fs'); const {extractTaggedJson,sha256}=require('./scripts/kodjo/lib/plan-impact');
+          const scan=JSON.parse(fs.readFileSync('/tmp/kodjo-v2-initial/scan.json','utf8'));
+          const decisions=extractTaggedJson(fs.readFileSync('/tmp/kodjo-v2-initial/decisions.md','utf8'),'KODJO_PLAN_DECISIONS_JSON');
+          const byPath=new Map(decisions.map(x=>[x.path,x]));
+          if(byPath.size!==scan.candidates.length) throw new Error('INITIAL_PLAN_DECISION_CARDINALITY');
+          for(const c of scan.candidates) if(!byPath.has(c.path)) throw new Error('INITIAL_PLAN_CANDIDATE_UNCLASSIFIED:'+c.path);
+          const promoted=[...scan.modified_modules];
+          for(const c of scan.candidates){ const d=byPath.get(c.path); if(d.classification==='REQUIRES_CLARIFICATION') throw new Error('INITIAL_PLAN_REQUIRES_CLARIFICATION:'+c.path); if(c.candidate_kind==='CONSUMER'&&d.classification==='MODIFY'&&!promoted.some(x=>x.path===c.path)) promoted.push({path:c.path,change:'MODIFY'}); }
+          promoted.sort((a,b)=>a.path.localeCompare(b.path));
+          fs.writeFileSync('/tmp/kodjo-v2-initial/promoted.json',JSON.stringify(promoted,null,2)+'\n');
+          const stable=JSON.stringify(promoted)===JSON.stringify(scan.modified_modules);
+          if(stable){
+            const rows=[...scan.modified_modules.map(m=>({path:m.path,candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'Module explicitement déclaré par le plan initial.'})),...scan.candidates.map(c=>({...c,classification:byPath.get(c.path).classification,justification:byPath.get(c.path).justification}))];
+            const scope=rows.filter(r=>r.classification==='MODIFY'||r.classification==='TEST_MUST_ADAPT').map(r=>r.path).sort();
+            const matrix={schema:'kodjo.plan-impact.v1',scan_revision:scan.scan_revision,scan_sha256:sha256(scan),modified_modules:scan.modified_modules,rows,scope_allow:scope};
+            fs.writeFileSync('/tmp/kodjo-v2-initial/matrix.json',JSON.stringify(matrix,null,2)+'\n'); fs.writeFileSync('/tmp/kodjo-v2-initial/converged','yes');
+          }
+          NODE
+            if test -f /tmp/kodjo-v2-initial/converged; then break; fi
+            cp /tmp/kodjo-v2-initial/promoted.json /tmp/kodjo-v2-initial/modules.json
+            test "$iteration" -lt 4
+          done
+          test -f /tmp/kodjo-v2-initial/matrix.json
+          cp /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/technical-plan.md
+          printf '\n\n<KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
+          cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
+          printf '</KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
+          (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/replay.json /tmp/kodjo-v2-initial/proof.json)
+
+      - name: Publish canonical initial V2 PLAN_OUTPUT
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          BOOTSTRAP_PATH: ${{ steps.gate.outputs.bootstrap_path }}
+          SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
+        run: |
+          set -euo pipefail
+          STATUS='PLAN_READY_FOR_INDEPENDENT_REVIEW'
+          if grep -q '^PLAN_STATUS: CLARIFICATION_REQUIRED' /tmp/kodjo-v2-initial/technical-plan.md; then STATUS='CLARIFICATION_REQUIRED'; fi
+          {
+            echo '[KODJO_V2] PLAN_OUTPUT'
+            echo "slice_id=$SLICE_ID"
+            echo "bootstrap_path=$BOOTSTRAP_PATH"
+            echo "source_head=$SOURCE_HEAD"
+            echo 'planning_mode=INITIAL'
+            echo 'planning_contract=kodjo.plan-impact.v1'
+            echo "STATUT : $STATUS"
+            echo
+            cat /tmp/kodjo-v2-initial/technical-plan.md
+          } > /tmp/kodjo-v2-initial/comment.md
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-initial/comment.md
+
+      - name: Preserve initial planning evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-initial-plan-${{ github.run_id }}
+          path: |
+            /tmp/kodjo-v2-initial/technical-plan.md
+            /tmp/kodjo-v2-initial/scan.json
+            /tmp/kodjo-v2-initial/matrix.json
+            /tmp/kodjo-v2-initial/proof.json
+          if-no-files-found: warn
+          retention-days: 14
