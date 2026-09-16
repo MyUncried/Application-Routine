@@ -70,7 +70,7 @@ jobs:
           "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: Snapshot protocol verifier and product context
+      - name: Snapshot protocol verifier and immutable slice metadata
         run: |
           $ErrorActionPreference='Stop'
           $protocol=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol'
@@ -79,15 +79,10 @@ jobs:
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $protocol 'lib') -Recurse
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
+          if(Test-Path -LiteralPath $context){Remove-Item -LiteralPath $context -Recurse -Force}
           New-Item -ItemType Directory -Force -Path $context | Out-Null
           Copy-Item -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Destination (Join-Path $context 'slice-bootstrap.json')
-          Copy-Item -LiteralPath .github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/planning-mission.md -Destination $context
-          $b=Get-Content -Raw -LiteralPath ${{ steps.gate.outputs.bootstrap_path }} -Encoding UTF8 | ConvertFrom-Json
-          foreach($source in $b.product_sources){
-            $destination=Join-Path $context ([string]$source.path)
-            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-            Copy-Item -LiteralPath ([string]$source.path) -Destination $destination
-          }
+          Copy-Item -LiteralPath .github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/planning-mission.md -Destination (Join-Path $context 'planning-mission.md')
 
       - name: Checkout exact initial product source
         uses: actions/checkout@v6
@@ -96,6 +91,22 @@ jobs:
           fetch-depth: 0
           clean: true
           persist-credentials: false
+
+      - name: Build exact product context from checked-out source
+        run: |
+          $ErrorActionPreference='Stop'
+          $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
+          $bootstrapCopy=Join-Path $context 'slice-bootstrap.json'
+          $b=Get-Content -Raw -LiteralPath $bootstrapCopy -Encoding UTF8 | ConvertFrom-Json
+          foreach($source in $b.product_sources){
+            $sourcePath=[string]$source.path
+            if(!(Test-Path -LiteralPath $sourcePath)){throw "Product source missing at baseline: $sourcePath"}
+            $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath $sourcePath).Hash.ToLowerInvariant()
+            if($actual -ne [string]$source.sha256){throw "Product source hash mismatch at baseline: $sourcePath"}
+            $destination=Join-Path $context $sourcePath
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+            Copy-Item -LiteralPath $sourcePath -Destination $destination
+          }
 
       - name: Replay initial V2 plan impact independently
         env:
@@ -117,7 +128,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
-          You are the independent KODJO V2 reviewer of the FIRST technical plan for $env:SLICE_ID. There is deliberately no application PR yet. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-initial-plan.md against immutable product HEAD $env:SOURCE_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-initial-current-product-context, and the checked-out code/tests. This is READ-ONLY.
+          You are the independent KODJO V2 reviewer of the FIRST technical plan for $env:SLICE_ID. There is deliberately no application PR yet. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-initial-plan.md against immutable product HEAD $env:SOURCE_HEAD, exact product context in $env:RUNNER_TEMP\kodjo-v2-initial-current-product-context, and the checked-out code/tests. This is READ-ONLY.
           The direct-import scan has been replayed independently; proof files are $env:RUNNER_TEMP\kodjo-v2-initial-review-scan.json and $env:RUNNER_TEMP\kodjo-v2-initial-review-proof.json. Verify scope, classifications, migration safety, backward compatibility, preservation of validated decisions, and absence of out-of-scope implementation. Do not require an application PR, prior approved plan or prior review for this INITIAL path. Do not invent a V1 manifest.
           End with exactly VERDICT: APPROVE or VERDICT: REVISE.
           "@
