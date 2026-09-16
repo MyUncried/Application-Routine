@@ -82,16 +82,10 @@ jobs:
           if test -f "$SEED_PATH"; then cp "$SEED_PATH" /tmp/kodjo-v2-initial/non-opposable-seed-plan.md; fi
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > /tmp/kodjo-v2-initial/issue.json
           gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" | jq -s add > /tmp/kodjo-v2-initial/comments.json
-          jq -r '.product_sources[].path' /tmp/kodjo-v2-initial/slice-bootstrap.json > /tmp/kodjo-v2-initial/sources.list
-          : > /tmp/kodjo-v2-initial/product-evidence.txt
-          while IFS= read -r file; do
-            test -f "/tmp/kodjo-v2-initial/source/$file"
-            expected=$(jq -r --arg p "$file" '.product_sources[]|select(.path==$p)|.sha256' /tmp/kodjo-v2-initial/slice-bootstrap.json)
-            actual=$(sha256sum "/tmp/kodjo-v2-initial/source/$file" | awk '{print $1}')
-            test "$expected" = "$actual"
-            printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/product-evidence.txt
-            cat "/tmp/kodjo-v2-initial/source/$file" >> /tmp/kodjo-v2-initial/product-evidence.txt
-          done < /tmp/kodjo-v2-initial/sources.list
+          node scripts/kodjo/verify-initial-product-sources.js \
+            /tmp/kodjo-v2-initial/slice-bootstrap.json \
+            /tmp/kodjo-v2-initial/source \
+            /tmp/kodjo-v2-initial/product-evidence.txt
           git -C /tmp/kodjo-v2-initial/source ls-files app src > /tmp/kodjo-v2-initial/code-files.txt
 
       - name: Draft initial V2 plan
