@@ -39,8 +39,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 09/09 bis, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
 | Médias | multiples hors T03 ; Déployer activé plus tard | 00, 04, 05, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–05, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
-| Captures Figma | copies documentaires mises à jour et chemins relatifs | images README + preuves chapitre 13 | captures précédentes / node supprimé `3787:5209` | PARTIELLEMENT CONFORME | Référentiel documentaire mis à jour ; les nouveaux exports binaires restent à remplacer physiquement si le canal GitHub utilisé ne permet pas le transfert binaire. |
-| Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md`, `13A` | ancien chapitre T03 moteur Session ; sections fusionnées | PARTIELLEMENT CONFORME | Structure et périmètre fonctionnel complets ; panneaux/options ouverts Filtrer/Trier restent NON VÉRIFIABLES. |
+| Captures Figma | copies documentaires et chemins relatifs | images README + preuves chapitre 13 | captures précédentes / node supprimé `3787:5209` | PARTIELLEMENT CONFORME | Référentiel documentaire mis à jour ; les exports binaires des frames modifiées ne peuvent pas être transférés physiquement via le canal GitHub disponible dans cette session. |
+| Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md`, `13A` | ancien chapitre T03 moteur Session ; sections fusionnées | PARTIELLEMENT CONFORME | 17 contrats et 17 rubriques Traçabilité vérifiés ; panneaux/options ouverts Filtrer/Trier restent NON VÉRIFIABLES. |
 
 ## Évidences Figma contrôlées
 
@@ -67,7 +67,7 @@ Le node historique `3787:5209` n’existe plus dans l’état Figma courant et n
 
 | Contrôle | Résultat | Évidence |
 |---|---|---|
-| 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 explicitent les 21 rubriques. |
+| 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 explicitent les 21 rubriques ; 17 occurrences de `### 21. Traçabilité` vérifiées. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
 | Couverture E01..E73 | CONFORME | Section 13 ; E70 explicitement non visuel. |
 | Frontière T03/T04 | CONFORME | Section 14 + remapping 13A. |
@@ -77,7 +77,7 @@ Le node historique `3787:5209` n’existe plus dans l’état Figma courant et n
 | Exécution directe | CONFORME | CE-T03-09..14. |
 | Suivi ACTIVITY | CONFORME | CE-T03-15. |
 | Navigation/Catégories | CONFORME | CE-T03-16/17. |
-| Valeurs Figma de démonstration | CONFORME | règle commune §4.1 + tests négatifs. |
+| Valeurs Figma de démonstration | CONFORME | règle commune §4.1 + tests négatifs ; `Renforcement du genou` explicitement classé démonstration. |
 | Responsive/accessibilité | CONFORME | Les contrats définissent 360/402/440, cibles et états accessibles ; la conformité de l’implémentation sera évaluée lors de la recette applicative. |
 
 ## Contrôle de clôture documentaire
@@ -85,14 +85,17 @@ Le node historique `3787:5209` n’existe plus dans l’état Figma courant et n
 | Contrôle | Résultat | Évidence / remarque |
 |---|---|---|
 | Baseline documentaire | CONFORME | Branche `docs/t03-figma-sync-20260916` créée depuis `4d4c738facac7f499e4a67a92aacac135112f1ab`; la baseline antérieure n’est pas écrasée. |
-| Périmètre physique du diff | À CONTRÔLER EN CLÔTURE | Doit rester limité aux documents réellement affectés et aux évidences Figma demandées. |
-| 17 contrats actifs | À CONTRÔLER EN CLÔTURE | Rechercher `## CE-T03-` après mise à jour du chapitre 13. |
-| 21e rubrique Traçabilité | À CONTRÔLER EN CLÔTURE | Rechercher `### 21. Traçabilité` après mise à jour du chapitre 13. |
-| 13A historique | CONFORME | Aucun changement demandé sur l’historique. |
-| Référence résiduelle à 13B | À CONTRÔLER EN CLÔTURE | 13B doit rester absent. |
-| Unicode des chemins | À CONTRÔLER EN CLÔTURE | Vérifier aucune occurrence `#U` ni séquence `\u`. |
-| Fichiers temporaires | À CONTRÔLER EN CLÔTURE | Vérifier absence `.tmp` et `.base64`. |
-| Captures Figma embarquées | PARTIELLEMENT CONFORME | Références et liste d’évidences mises à jour ; nouveaux binaires à contrôler/remplacer physiquement avant certification complète. |
+| Branche vs baseline | CONFORME | Comparaison Git : branche en avance uniquement, merge-base = `4d4c738facac7f499e4a67a92aacac135112f1ab`, aucun retard. |
+| Périmètre physique du diff | CONFORME | Diff limité à six fichiers documentaires concernés ; aucun fichier applicatif modifié. |
+| 17 contrats actifs | CONFORME | Recherche `## CE-T03-` : 17 occurrences vérifiées. |
+| 21e rubrique Traçabilité | CONFORME | Recherche `### 21. Traçabilité` : 17 occurrences vérifiées. |
+| 13A historique | CONFORME | Aucun changement dans le diff ; historique préservé. |
+| Référence résiduelle à 13B | CONFORME | Aucun fichier 13B dans le répertoire de spécifications courant. |
+| Unicode des chemins | CONFORME | Les chemins du diff conservent accents, apostrophes et tirets Unicode ; aucune dégradation de nom observée. |
+| Fichiers temporaires | CONFORME | Le diff ne contient aucun fichier temporaire ou intermédiaire ajouté. |
+| PRODUCT.md | CONFORME | Contrôlé séparément : la sémantique Filtrer/Trier et `Durée totale ≥` y était déjà correcte ; D-185 est un détail UX/DSF qui ne nécessite pas de modification de la synthèse produit. |
+| INDEX.md | CONFORME | Mis à jour : D-185, nouvelles évidences Figma, suppression de la référence normative au node disparu `3787:5209`. |
+| Captures Figma embarquées | PARTIELLEMENT CONFORME | Le registre des évidences est à jour et ne présente plus les anciennes captures comme courantes ; remplacement/ajout des binaires Figma reste impossible via le canal de transfert binaire disponible dans cette session. |
 | Panneaux Filtrer/Trier Figma | NON VÉRIFIABLE | Aucun design détaillé validé ; le comportement est borné fonctionnellement mais aucune conformité visuelle détaillée ne peut être attestée. |
 | Options Filtrer/Trier supplémentaires | À CLARIFIER | Hors `Archivées` pour Filtrer Activités et état disabled de Trier, les options ne sont pas définies et ne doivent pas être implémentées. |
 
@@ -104,4 +107,4 @@ Le node historique `3787:5209` n’existe plus dans l’état Figma courant et n
 - `13` est la référence contractuelle T03 ;
 - `13A` conserve l’historique, ses anciens CE-T03-01..13 étant fonctionnellement T04.
 
-Le seul écart visuel volontaire restant pour la préparation T03 porte sur les panneaux/options détaillés `Filtrer` et `Trier`, qui ne sont pas encore dessinés dans Figma. Le bandeau d’entrée `Créer / Filtrer / Trier` est désormais déterministe et représenté ; le développement ne doit ni inventer le design des panneaux, ni ajouter des options supplémentaires.
+L’écart visuel volontaire restant porte sur les panneaux/options détaillés `Filtrer` et `Trier`, qui ne sont pas encore dessinés dans Figma. Le bandeau d’entrée `Créer / Filtrer / Trier` est désormais déterministe et représenté. Un écart documentaire distinct subsiste sur les **copies binaires** des captures Figma : le registre et les contrats sont à jour, mais les fichiers image concernés doivent encore être réexportés physiquement dans Git avant qu’une conformité complète des copies d’écran puisse être déclarée.
