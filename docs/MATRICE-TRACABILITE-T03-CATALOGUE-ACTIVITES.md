@@ -46,8 +46,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 09/09 bis, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
 | Médias | multiples hors T03 ; Déployer activé plus tard | 00, 04, 05, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–05, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
-| Référence Figma `3787:5209` | ne plus la présenter comme preuve active | 06 bis, 07 bis, 13, README preuves | node historique encore cité comme courant | CONFORME | Node absent du Figma courant ; conservé uniquement comme trace historique, aucun remplacement inventé. |
-| Captures Figma physiques | copies embarquées doivent refléter les écrans modifiés du 16/09 avant d’être dites courantes | images README + preuves chapitre 13 | mention « réexportées le 15/09 » interprétée comme état courant | PARTIELLEMENT CONFORME | Figma courant contrôlé ; transfert binaire Figma→GitHub non encore matérialisé dans cette passe. Les anciens fichiers restent présents mais ne doivent pas être déclarés réexportés le 16/09. |
+| Référence Figma `3787:5209` | ne plus la présenter comme preuve active | 06 bis, 07 bis, 13, README preuves, INDEX | node historique encore cité comme courant | CONFORME | Node absent du Figma courant ; conservé uniquement comme trace historique, aucun remplacement inventé. |
+| Captures Figma physiques | copies embarquées doivent refléter les écrans modifiés du 16/09 avant d’être dites courantes | images README + preuves chapitre 13 | mention « réexportées le 15/09 » interprétée comme état courant | PARTIELLEMENT CONFORME | Figma courant contrôlé ; transfert binaire Figma→GitHub non matérialisable avec les connecteurs disponibles dans cette passe. Les anciens fichiers restent présents et sont explicitement marqués historiques/à réexporter. |
 | Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md`, `13A` | ancien chapitre T03 moteur Session ; sections fusionnées | CONFORME | Structure conservée ; géométrie d’entrée Catalogue désormais déterministe. Seuls panneaux/options ouverts Filtrer/Trier restent NON VÉRIFIABLE. |
 
 ## Évidences Figma contrôlées le 16 septembre 2026
@@ -77,7 +77,7 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 
 | Contrôle | Résultat | Évidence |
 |---|---|---|
-| 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
+| 21 sections par contrat | CONFORME | Recherche indépendante sur le chapitre 13 : 17 occurrences `## CE-T03-` et 17 occurrences `### 21. Traçabilité`. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
 | Couverture E01..E73 | CONFORME | Section 13 ; E70 explicitement non visuel. |
 | Frontière T03/T04 | CONFORME | Section 14 + remapping 13A. |
@@ -92,28 +92,34 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Valeurs Figma de démonstration | CONFORME | règle commune §4.1 + CE-T03-04 + tests négatifs. |
 | Responsive/accessibilité | CONFORME | Les contrats définissent 360/402/440, cibles et états accessibles ; conformité implémentation à vérifier en recette applicative. |
 
-## Contrôle de clôture documentaire — état de la présente passe
+## Contrôle de clôture documentaire — seconde passe indépendante
 
 | Contrôle | Résultat | Évidence / remarque |
 |---|---|---|
 | Baseline documentaire | CONFORME | Branche `docs/t03-catalogue-activites-final-20260915` vérifiée au HEAD `4d4c738facac7f499e4a67a92aacac135112f1ab` avant création de la branche dérivée. |
 | Baseline non écrasée | CONFORME | Modifications réalisées sur `docs/t03-catalogue-activites-figma-20260916`. |
-| Périmètre physique du diff | À VÉRIFIER EN PASSE 2 | Doit rester limité aux documents réellement affectés et, si transfert possible, aux seules évidences Figma nécessaires. |
-| 17 contrats actifs | À VÉRIFIER EN PASSE 2 | Attendu : 17 occurrences `## CE-T03-`. |
-| 21e rubrique Traçabilité | À VÉRIFIER EN PASSE 2 | Attendu : 17 occurrences `### 21. Traçabilité`. |
-| Unicode des chemins | À VÉRIFIER EN PASSE 2 | Rechercher `#U`, `\u`; préserver accents, apostrophes et tirets Unicode. |
-| Fichiers temporaires | À VÉRIFIER EN PASSE 2 | Aucun intermédiaire ne doit être commité. |
-| Contrôles d’entrée Catalogue | CONFORME | Figma contrôlé le 16/09 : 108×32, gaps 8, ensemble centré. |
+| Branche vs baseline | CONFORME | Comparaison Git : branche uniquement en avance, merge-base = baseline exacte, aucun retard. |
+| Périmètre physique du diff | CONFORME | Diff limité à 7 fichiers Markdown réellement affectés : INDEX, PRODUCT, matrice, 06 bis, 07 bis, 13 et README des preuves. Aucun binaire ni autre chapitre modifié. |
+| 17 contrats actifs | CONFORME | Recherche `## CE-T03-` : 17 occurrences. |
+| 21e rubrique Traçabilité | CONFORME | Recherche `### 21. Traçabilité` : 17 occurrences. |
+| Ancienne formule `Créer centré` dans le chapitre 13 | CONFORME | Aucune occurrence active ; elle n’apparaît plus que comme cas négatif de recette (« Créer seul centré »). |
+| Ancienne règle `Durée totale` masquée | CONFORME | Aucune règle active ; seule occurrence résiduelle dans le chapitre 13 = cas négatif de recette « Durée totale masquée ». |
+| `Nom de l’activité` sur état renseigné | CONFORME | CE-T03-04 le réserve explicitement à l’état vide/placeholder ; `Renforcement du genou` est classé démonstration. |
+| Formulations historiques des chapitres 03/06/08 | CONFORME PAR SUPERSESSION | `06 bis` déclare explicitement superséder les formulations historiques divergentes de 03/06/08. Une recherche dans 06/08 retrouve des formulations anciennes (p. ex. « futur bouton Filtrer » / ancien état sans Déployer) ; elles ne sont pas actives pour T03 et ne sont pas réécrites afin de respecter la modification minimale et la traçabilité historique. |
+| Unicode des chemins | CONFORME | Tree Git contrôlé : aucune occurrence `#U` ni séquence `\u`; les chemins modifiés conservent accents, apostrophes et tirets Unicode. |
+| Fichiers temporaires | CONFORME | Tree Git contrôlé : aucune occurrence `.tmp` ni `.base64`; aucun intermédiaire ajouté. |
+| Références Markdown modifiées | CONFORME | Les liens d’images existants du chapitre 13 pointent vers des fichiers physiquement présents dans `docs/Specifications-fonctionnelles/images`; aucun fichier référencé n’a été supprimé ou renommé. |
+| Contrôles d’entrée Catalogue | CONFORME | Figma contrôlé le 16/09 : `108 × 32 pt`, gaps `8 pt`, ensemble centré, état Trier disabled. |
 | Panneaux Filtrer/Trier Figma | NON VÉRIFIABLE | Aucun design détaillé validé ; le comportement est borné fonctionnellement mais aucune conformité visuelle détaillée ne peut être attestée. |
 | Options Filtrer/Trier supplémentaires | À CLARIFIER | Hors `Archivées` pour Filtrer Activités et état disabled de Trier, les options ne sont pas définies et ne doivent pas être implémentées. |
-| Captures Figma du 16/09 physiquement réexportées | NON VÉRIFIABLE À CE STADE | Ne pas déclarer « réexporté » tant qu’un nouveau binaire n’est pas présent dans GitHub. |
+| Captures Figma du 16/09 physiquement réexportées | PARTIELLEMENT CONFORME | Les nodes courants ont été effectivement contrôlés et les anciennes copies sont correctement reclassées dans le README. Les nouveaux binaires ne peuvent pas être transférés de Figma vers GitHub avec les connecteurs disponibles dans cette conversation ; aucune fausse réexportation n’est déclarée. |
 
 ## Formulations historiques conservées par supersession
 
-- `06 bis` supersède les formulations UX divergentes ;
+- `06 bis` supersède explicitement les formulations UX divergentes des chapitres 03, 06 et 08 ;
 - `07 bis` supersède les décisions citées et consolide D-184 au 16 septembre ;
 - `09 bis` supersède les anciens marquages V2 pour ActivityDefinition/ACTIVITY/migration ;
 - `13` est la référence contractuelle T03 ;
 - `13A` conserve l’historique, ses anciens CE-T03-01..13 étant fonctionnellement T04.
 
-Le seul écart visuel fonctionnel volontaire restant est le détail des panneaux/options ouverts `Filtrer` et `Trier`. Les contrôles d’entrée sont conçus. Le statut des copies d’écran physiques est suivi séparément : aucune capture n’est déclarée courante sans présence binaire effectivement vérifiée dans le dépôt.
+Le seul écart visuel fonctionnel volontaire restant est le détail des panneaux/options ouverts `Filtrer` et `Trier`. Les contrôles d’entrée sont conçus. Le second écart, documentaire mais non fonctionnel, concerne les copies d’écran binaires du 16 septembre : les nodes sont contrôlés, mais les fichiers physiques n’ont pas pu être réexportés dans GitHub avec les connecteurs disponibles ; le README les marque donc sans ambiguïté comme historiques/à réexporter au lieu de déclarer une conformité non prouvée.
