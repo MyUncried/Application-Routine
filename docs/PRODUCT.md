@@ -322,7 +322,7 @@ Les principaux écrans du MVP sont :
 - Synthèse ;
 - Suivi.
 
-Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06, son complément T03 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
+Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
 Les contrôles d’entrée `Créer / Filtrer / Trier` des Catalogues sont conçus et vérifiables dans Figma. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu ; il reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
 
@@ -432,12 +432,11 @@ En cas de contradiction, l’ordre de référence est :
 6. versions du produit et vision générale ;
 7. documents de travail, historiques et revues externes.
 
-Pour T03, les compléments explicites de cette mise à jour sont :
-- `06 bis – Corrections UX T03 Catalogue.md` ;
-- `07 bis – Arbitrages T03 du 15 septembre 2026.md` ;
+Pour T03, les références explicites de cette mise à jour sont :
+- `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
+- `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-184 ;
 - `09 bis – Modèle et migration T03 Catalogue.md` ;
-- `13 – Contrats d’écran.md` ;
-- `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour la seule traçabilité ;
+- `13 – Contrats d’écran.md`, unique référence des contrats d’écran T03 ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;
 - `Specifications-fonctionnelles/images/README-T03-FIGMA.md` pour les évidences Figma embarquées.
 
