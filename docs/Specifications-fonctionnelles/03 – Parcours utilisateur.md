@@ -236,8 +236,8 @@ Les exécutions déjà réalisées sont conservées.
 
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
-3. Activer le filtre `Archivées` depuis le futur bouton Filtrer.
-4. Glisser la carte vers la gauche : l’action `Supprimer` se superpose à la carte sans la déplacer.
+3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
+4. Glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
 5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
 
 Les Exécutions historiques restent conservées après suppression.
@@ -413,7 +413,7 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 3. Consulter ou modifier l’Activité.
 4. Revenir au Catalogue dans son état précédent.
 
-Le bouton Lecture reste réservé à l’Exécution directe. Aucun contrôle `Déployer` n’est affiché dans cette version. Un futur contrôle de déploiement des médias pourra être introduit après le MVP sans modifier l’action principale de la carte.
+Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 ; il est réservé à l’évolution Médias et ne modifie pas l’action principale de la carte.
 
 ## Ajouter plusieurs Activités existantes à une Composition — MVP T03
 
