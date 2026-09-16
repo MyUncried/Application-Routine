@@ -63,11 +63,11 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 [`docs/Specifications-fonctionnelles/images`](./Specifications-fonctionnelles/images/)
 
-Pour T03, les évidences Figma corrigées sont répertoriées et affichées dans :
+L’inventaire complet des preuves visuelles — numéro documentaire, titre, node Figma, fichier, dimensions, type de preuve et statut — est tenu dans :
 
-[Évidences Figma — T03 Catalogue des activités](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
+[Registre des évidences Figma](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 
-Les captures T03 sont des fichiers image physiques du dépôt, référencés par chemins relatifs. Elles restent donc visibles après export/import du dossier documentaire sans dépendre d’une URL Figma temporaire.
+Les captures sont des fichiers image physiques du dépôt, référencés par chemins relatifs. Elles restent donc visibles après export/import du dossier documentaire sans dépendre d’une URL Figma temporaire.
 
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements. Un détail graphique n’est pas transformé automatiquement en règle fonctionnelle.
 
@@ -96,7 +96,7 @@ Le contrôle `Déployer` du Catalogue des activités réutilise exactement le co
 
 Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont donc vérifiables. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est fixé dans D-184 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes.
 
-Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques : les anciennes captures du 15 septembre restent traçables et ne sont pas déclarées réexportées au 16 septembre tant que leur remplacement binaire n’a pas été effectivement écrit et vérifié dans le dépôt.
+Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points restés `À CLARIFIER`.
 
 ## 5. Ordre de lecture recommandé
 
@@ -199,5 +199,5 @@ Les Circuits fonctionnels et les médias multiples restent hors MVP.
 - [Rapport de conformité — Récupération et Durée totale](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
 - [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
-- [Évidences Figma T03 embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
+- [Registre des évidences Figma embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 - [Contrats T03 déterministes](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)

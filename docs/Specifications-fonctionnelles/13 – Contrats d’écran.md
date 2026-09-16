@@ -325,7 +325,9 @@ Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer visible disabled ;
 
 E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, pattern recherche `1992:10129`; `API-CAT-01`.
 
-![Catalogue des activités](./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg)
+![Catalogue des activités](./images/ecran-12-catalogue-activites-liste.png)
+
+*Export du 16 septembre 2026, node `3786:5093`, 402 × 874 px.*
 
 ---
 
@@ -415,7 +417,9 @@ Deux contextes d’origine ; quatre options ; Circuit disabled ; rangée `Créer
 
 E19–E21/E72 → D-167/D-168/D-183/D-184 ; Figma `3787:5148`, `3841:8375`; aucune API d’écriture à l’ouverture.
 
-![Arbre Créer](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg)
+![Arbre Créer](./images/ecran-13-catalogue-activites-creer-arbre.png)
+
+*Export du 16 septembre 2026, node `3787:5148`, 402 × 874 px.*
 
 ---
 
@@ -691,7 +695,7 @@ E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
 
 ### 1. Identification
 
-Bloc B4 ; états S47–S54 ; T03-E E25–E31 ; frames `3789:5349`, `3789:5405`; preuve `CE-COMP-SEL-01-selection-activites-existantes.png`.
+Bloc B4 ; états S47–S54 ; T03-E E25–E31 ; frames `3789:5349`, `3789:5405`; preuve `ecran-14-selection-activites-existantes.png`.
 
 ### 2. Finalité fonctionnelle
 
@@ -773,7 +777,7 @@ Sélection B puis A alors que liste A/B → insertion A/B ; recherche/filtre ave
 
 E25–E31 → D-165/D-171 ; 09 bis ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
 
-![Sélection Activités](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
+![Sélection Activités](./images/ecran-14-selection-activites-existantes.png)
 
 ---
 
@@ -863,7 +867,7 @@ Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap 
 
 E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2028:11700`, `2028:11808`, `3518:4576`.
 
-![Actions glissées](./images/composition-actions-glissees.png)
+![Actions glissées](./images/ecran-3a-composition-actions-glissees.png)
 
 ---
 
@@ -873,7 +877,7 @@ E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2
 
 ### 1. Identification
 
-Bloc B5 ; état S55 ; T03-E E32, E37–E39, E42 ; source Catalogue `3786:5093`; preuve `CE-ACT-EXE-02-preparation-5-s.png`; Shell Execution partagé.
+Bloc B5 ; état S55 ; T03-E E32, E37–E39, E42 ; source Catalogue `3786:5093`; preuve `ecran-16-preparation-directe-5-s.png`; Shell Execution partagé.
 
 ### 2. Finalité fonctionnelle
 
@@ -955,7 +959,7 @@ Vérifier 5 s, snapshot, origin, source supprimée après lancement, absence Ses
 
 E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
 
-![Préparation](./images/CE-ACT-EXE-02-preparation-5-s.png)
+![Préparation](./images/ecran-16-preparation-directe-5-s.png)
 
 ---
 
@@ -963,7 +967,7 @@ E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
 
 ### 1. Identification
 
-Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuve `CE-ACT-EXE-03-execution-en-cours.png`.
+Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuve `ecran-17-execution-directe-en-cours.png`.
 
 ### 2. Finalité fonctionnelle
 
@@ -1045,7 +1049,7 @@ C=1/N ; Pause R=0/R>0 ; Recovery ; reset ; passage anticipé ; pause/reprise ; b
 
 E40/E43 → D-139/D-140/D-156/D-172 ; API-ACT-EXE-03 ; modèle Execution.
 
-![Exécution directe](./images/CE-ACT-EXE-03-execution-en-cours.png)
+![Exécution directe](./images/ecran-17-execution-directe-en-cours.png)
 
 ---
 
@@ -1401,9 +1405,9 @@ Terminer vide/non vide ; commentaire 0/200/201 ; double tap ; erreur save ; reto
 
 E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
-![Synthèse Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
+![Synthèse Ressenti requis](./images/ecran-18-synthese-directe-ressenti-requis.png)
 
-![Synthèse Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+![Synthèse Ressenti sélectionné](./images/ecran-18a-synthese-directe-ressenti-selectionne.png)
 
 ---
 
@@ -1413,7 +1417,7 @@ E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
 ### 1. Identification
 
-Bloc B7 ; états S71–S74 ; T03-E E47–E48 ; frames structure `1992:8843`, `1992:8996`; images `suivi-condense.png`, `suivi-deploye.png`.
+Bloc B7 ; états S71–S74 ; T03-E E47–E48 ; frames structure `1992:8843`, `1992:8996`; images `ecran-11-suivi-condense.png`, `ecran-11a-suivi-deploye.png`.
 
 ### 2. Finalité fonctionnelle
 
@@ -1495,9 +1499,9 @@ Execution directe → Suivi ; source supprimée ; mix Session/Activity ; bilater
 
 E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
-![Suivi condensé](./images/suivi-condense.png)
+![Suivi condensé](./images/ecran-11-suivi-condense.png)
 
-![Suivi déployé](./images/suivi-deploye.png)
+![Suivi déployé](./images/ecran-11a-suivi-deploye.png)
 
 ---
 
@@ -1507,7 +1511,7 @@ E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
 ### 1. Identification
 
-Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frame `2028:11204`; image `categories-seance.png`.
+Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frame `2028:11204`; image `ecran-6-categories-seance.png`.
 
 ### 2. Finalité fonctionnelle
 
@@ -1589,7 +1593,7 @@ Créer/modifier, save, double tap, erreur, destination/animation, dernier segmen
 
 E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
 
-![Catégories](./images/categories-seance.png)
+![Catégories](./images/ecran-6-categories-seance.png)
 
 ---
 
@@ -1823,24 +1827,26 @@ Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE
 
 # 16. Évidences Figma embarquées
 
-Les fichiers historiques suivants restent physiquement présents tant qu’ils ne sont pas remplacés par un export vérifié ; leur statut courant est détaillé dans `images/README-T03-FIGMA.md` :
+Les fichiers historiques suivants restent physiquement présents dans le dépôt mais ne sont plus embarqués comme preuve courante ; leur statut est détaillé dans `images/README-T03-FIGMA.md` :
 
-- `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg`
-- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg`
+- `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-12-catalogue-activites-liste.png`, réexporté le 16 septembre 2026 depuis `3786:5093`.
+- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-13-catalogue-activites-creer-arbre.png`, réexporté le 16 septembre 2026 depuis `3787:5148`.
 - `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg` — **historique uniquement**, le node source `3787:5209` n’existe plus dans le Figma courant.
 
-Les autres preuves existantes non impactées par la décision du 16 septembre restent inchangées :
+Les preuves suivantes ont été réexportées depuis le Figma courant le 16 septembre 2026, au format documentaire `402 × 874 px` :
 
-- `./images/CE-COMP-SEL-01-selection-activites-existantes.png`
-- `./images/CE-ACT-EXE-02-preparation-5-s.png`
-- `./images/CE-ACT-EXE-03-execution-en-cours.png`
-- `./images/CE-ACT-EXE-04-synthese-ressenti-requis.png`
-- `./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png`
-- `./images/composition-actions-glissees.png`
-- `./images/categories-seance.png`
-- `./images/suivi-condense.png`
-- `./images/suivi-deploye.png`
+- `./images/ecran-14-selection-activites-existantes.png` — `3789:5349`, binaire modifié.
+- `./images/ecran-16-preparation-directe-5-s.png` — `3835:5385`, binaire inchangé : l’export courant est identique à l’existant.
+- `./images/ecran-17-execution-directe-en-cours.png` — `3835:5465`, binaire inchangé.
+- `./images/ecran-18-synthese-directe-ressenti-requis.png` — `3836:5437`, binaire inchangé.
+- `./images/ecran-18a-synthese-directe-ressenti-selectionne.png` — `3836:5503`, binaire inchangé.
+- `./images/ecran-3a-composition-actions-glissees.png` — `2028:11808`, binaire modifié.
+- `./images/ecran-6-categories-seance.png` — `2028:11204`, binaire modifié.
+- `./images/ecran-11-suivi-condense.png` — `1992:8843`, binaire modifié.
+- `./images/ecran-11a-suivi-deploye.png` — `1992:8996`, binaire modifié.
 
 Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `3787:5148`, `1992:9910`, `1992:10129`, `3841:8375`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`.
+
+Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
 
 Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` sont vérifiables ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER` tant qu’aucune frame dédiée n’est validée.

@@ -22,16 +22,16 @@ Le MVP permet à l'utilisateur :
 - d’exécuter directement une Activité avec préparation, Synthèse et Suivi.
 ## Parcours de référence
 
-| Tranche | Besoin utilisateur | Parcours de référence | Statut documentaire |
-|---|---|---|---|
-| T01–T02 | Gérer les catégories et zones corporelles | Gestion des référentiels utilisateur | Spécifié MVP |
-| T01–T02 | Créer et réorganiser une Séance | Parcours principal — Créer une Séance | Spécifié MVP |
-| T03 | Gérer des Activités persistantes | Accéder au Catalogue des Activités ; créer, consulter ou modifier une Activité | Spécifié MVP |
-| T03 | Ajouter des Activités existantes à une Séance | Sélectionner plusieurs Activités existantes depuis la Composition | Spécifié MVP |
-| T03 | Exécuter directement une Activité | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue | Spécifié MVP |
-| T04 | Exécuter une Séance | Exécution guidée fondamentale, auparavant T03 | Spécifié MVP |
-| T05 et suivantes | Dupliquer, planifier et suivre les Séances | Parcours complémentaires 1 à 4 | Spécifié MVP |
-| Hors MVP | Créer et exécuter un Circuit | Parcours Circuit | Partiel — à compléter |
+| Tranche          | Besoin utilisateur                            | Parcours de référence                                                          | Statut documentaire   |
+| ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------ | --------------------- |
+| T01–T02          | Gérer les catégories et zones corporelles     | Gestion des référentiels utilisateur                                           | Spécifié MVP          |
+| T01–T02          | Créer et réorganiser une Séance               | Parcours principal — Créer une Séance                                          | Spécifié MVP          |
+| T03              | Gérer des Activités persistantes              | Accéder au Catalogue des Activités ; créer, consulter ou modifier une Activité | Spécifié MVP          |
+| T03              | Ajouter des Activités existantes à une Séance | Sélectionner plusieurs Activités existantes depuis la Composition              | Spécifié MVP          |
+| T03              | Exécuter directement une Activité             | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue     | Spécifié MVP          |
+| T04              | Exécuter une Séance                           | Exécution guidée fondamentale, auparavant T03                                  | Spécifié MVP          |
+| T05 et suivantes | Dupliquer, planifier et suivre les Séances    | Parcours complémentaires 1 à 4                                                 | Spécifié MVP          |
+| Hors MVP         | Créer et exécuter un Circuit                  | Parcours Circuit                                                               | Partiel — à compléter |
 ## Principes communs
 
 - Une séance définit le contenu à exécuter.

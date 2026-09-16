@@ -192,9 +192,11 @@ Ces règles communes prévalent sur les coordonnées des captures. Une exception
 
 ## Navigation principale et articulation des écrans
 
-## Écran de lancement – Splash KODJO
+## Écran 0 – Splash KODJO
 
-![[images/splash-kodjo.png|260]]
+![[images/ecran-0-splash-kodjo.png|260]]
+
+*Écran 0 — Splash KODJO — Figma `1992:469`*
 
 Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien`. Il reste affiché 2,5 secondes puis ouvre automatiquement le `Catalogue des séances` avec une transition `DISSOLVE` de 0,3 seconde. Le type `Séances` est sélectionné ; le Catalogue présente l’état vide lorsqu’aucune Séance non archivée n’existe, sinon la liste par défaut alimentée par les données locales.
 
@@ -356,22 +358,26 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 ## Écran 1 – Profil
 
-![[images/profil.png|260]]
+![[images/ecran-1-profil.png|260]]
+
+*Écran 1 — Profil — Vue d’ensemble (Vibration désactivée) — Figma `1992:375`*
 
 L’écran de modification du Profil est illustré par :
 
-![[images/modifier-profil.png|260]]
+![[images/ecran-1a-modifier-profil.png|260]]
+
+*Écran 1a — Profil — Modifier le profil — Figma `1992:778`*
 
 ### États Figma de référence
 
 Les états complémentaires suivants font partie de la référence de développement :
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Vibration activée | ![[images/profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` |
-| Sélecteur du compte à rebours | ![[images/profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné |
-| Sélecteur de fin de séance | ![[images/profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné |
-| Profil d’un parcours encore vide | ![[images/profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 1b | Vibration activée | ![[images/ecran-1b-profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` | `1992:684` |
+| Écran 1c | Sélecteur du compte à rebours | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné | `1992:474` |
+| Écran 1d | Sélecteur de fin de séance | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné | `1992:579` |
+| Écran 1e | Profil d’un parcours encore vide | ![[images/ecran-1e-profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu | `2139:86` |
 
 ### Objectif
 
@@ -413,23 +419,27 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 ## Écran 2 – Catalogue des séances
 
-![[images/catalogue-seances.png|260]]
+![[images/ecran-2-catalogue-seances.png|260]]
+
+*Écran 2 — Catalogue des séances — Liste par défaut — Figma `1992:9910`*
 
 L’état de résultats de la recherche globale est illustré par :
 
-![[images/recherche-globale-resultats.png|260]]
+![[images/ecran-2a-recherche-globale-resultats.png|260]]
+
+*Écran 2a — Recherche globale — Résultats affichés — Figma `1992:10320`*
 
 ### États Figma de référence
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Séance déployée | ![[images/catalogue-seance-deployee.png\|220]] | Consultation de la Composition sans quitter le Catalogue |
-| Champ de recherche déployé | ![[images/recherche-globale-champ.png\|220]] | État de saisie précédant les résultats globaux ; la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan (`1992:10129`) |
-| Carte condensée avec actions | ![[images/catalogue-condense-actions.png\|220]] | La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière |
-| Carte déployée avec actions | ![[images/catalogue-deployee-actions.png\|220]] | Même convention de glissement avec déplacement réel de la carte |
-| Liste des Séances archivées | ![[images/catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles |
-| Séance restaurée | ![[images/catalogue-archivees-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` |
-| Catalogue après archivage | ![[images/catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 2b | Séance déployée | ![[images/ecran-2b-catalogue-seance-deployee.png\|220]] | Consultation de la Composition sans quitter le Catalogue | `1992:10014` |
+| Écran 2c | Champ de recherche déployé | ![[images/ecran-2c-recherche-globale-champ.png\|220]] | État de saisie précédant les résultats globaux ; la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan (`1992:10129`) | `1992:10129` |
+| Écran 2d | Carte condensée avec actions | ![[images/ecran-2d-catalogue-condense-actions.png\|220]] | La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière | `1992:10518` |
+| Écran 2e | Carte déployée avec actions | ![[images/ecran-2e-catalogue-deployee-actions.png\|220]] | Même convention de glissement avec déplacement réel de la carte | `1992:10628` |
+| Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `1992:10749` |
+| Écran 2g | Séance restaurée | ![[images/ecran-2g-catalogue-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` | `1992:10848` |
+| Écran 2h | Catalogue après archivage | ![[images/ecran-2h-catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active | `1992:10937` |
 
 ### Objectif
 
@@ -540,7 +550,9 @@ Tant qu’elle ne contient aucun Exercice :
 
 ### État vide
 
-![[images/catalogue-vide.png|260]]
+![[images/ecran-2i-catalogue-vide.png|260]]
+
+*Écran 2i — Catalogue des séances — État vide — Figma `2117:86`*
 
 Si aucune Séance n’a encore été créée, l’écran affiche : `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` Il présente également l’action permettant de créer la première Séance.
 
@@ -552,23 +564,27 @@ Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame d�
 
 ## Écran 3 – Composition d’une séance
 
-![[images/composition-seance.png|260]]
+![[images/ecran-3-composition-seance.png|260]]
+
+*Écran 3 — Composition d’une séance — Figma `2028:11700`*
 
 L’état révélant les actions d’une Activité est illustré par :
 
-![[images/composition-actions-glissees.png|260]]
+![[images/ecran-3a-composition-actions-glissees.png|260]]
+
+*Écran 3a — Composition — Actions glissées — Figma `2028:11808`*
 
 ### États Figma de référence
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Composition initiale | ![[images/composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée |
-| Nom renseigné | ![[images/composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` |
-| Palette de couleurs ouverte | ![[images/composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé |
-| Compte à rebours ouvert | ![[images/composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires |
-| Fin de séance ouverte | ![[images/composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires |
-| Nombre de Tours | ![[images/composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
-| Appui long — carte soulevée | ![[images/composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 3b | Composition initiale | ![[images/ecran-3b-composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée | `2028:11137` |
+| Écran 3c | Nom renseigné | ![[images/ecran-3c-composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` | `2028:12003` |
+| Écran 3d | Palette de couleurs ouverte | ![[images/ecran-3d-composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé | `2028:11921` |
+| Écran 3e | Compte à rebours ouvert | ![[images/ecran-3e-composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires | `2028:11375` |
+| Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
+| Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
+| Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité | `3518:4576` |
 
 ### Objectif
 
@@ -693,7 +709,9 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 ## Écran 4 – Création / modification d’une Activité
 
-![[images/creation-activite-exercice.png|260]]
+![[images/ecran-4-creation-activite-duree.png|260]]
+
+*Écran 4 — Activité — Durée / Pause / Séries — Figma `3542:4656`*
 
 La capture Figma matérialise la structure cible commune. Jusqu’à la livraison fonctionnelle des Médias, le bouton `Ajouter un média` est visible mais désactivé et la section Médias peut être masquée dans l’application. Le Design System conserve néanmoins la section repliable et ses composants pour la tranche Média post-T05. Le bouton réutilise `Action / Add Media — Source exact` (`3382:60`) et son icône vectorielle DSF `icon/ajouter` (`3382:61`) en `16 × 16` ; aucun caractère typographique `+` n’est utilisé.
 
@@ -701,19 +719,19 @@ La capture Figma matérialise la structure cible commune. Jusqu’à la livraiso
 
 La frame principale est `3542:4656`. Les états Description et Zone corporelle sont `3553:4704` et `3553:4768`. Les roulettes canoniques sont `3556:7645`, `3556:7712`, `3556:7801` et `3561:7673`. Les modes Répétitions et À l’échec sont `3561:4695` et `3561:7802`. L’état vide de référence est `3943:6064`. Les états de calcul sont `3580:4733`, `3580:4845` et `3580:4957`.
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Mode Répétitions | ![[images/creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions ; contrôle `Durée totale >=` visible |
-| Mode À l’échec | ![[images/creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; ordre `Séries` → cadre `à l’échec` → `Pause`; contrôle `Durée totale >=` visible |
-| Durée ouverte | ![[images/creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite |
-| Pause ouverte | ![[images/creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite |
-| Nombre de Séries ouvert | ![[images/creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
-| Répétitions ouvertes | ![[images/creation-activite-repetitions-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
-| Description déployée | ![[images/creation-activite-description.png\|220]] | Champ facultatif intégré au même écran |
-| Zone corporelle déployée | ![[images/creation-activite-zone-corporelle.png\|220]] | Référentiel facultatif intégré au même écran |
-| Séries pilote | ![[images/creation-activite-series-pilote.png\|220]] | `Séries` pilote et `Durée totale` calculée |
-| Durée totale pilote | ![[images/creation-activite-duree-totale-pilote.png\|220]] | `Durée totale` pilote et Séries calculées |
-| Durée ajustée | ![[images/creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions ; contrôle `Durée totale >=` visible | `3561:4695` |
+| Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; ordre `Séries` → cadre `à l’échec` → `Pause`; contrôle `Durée totale >=` visible | `3561:7802` |
+| Écran 4c | Durée ouverte | ![[images/ecran-4c-creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite | `3556:7645` |
+| Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
+| Écran 4e | Nombre de Séries ouvert | ![[images/ecran-4e-creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3556:7801` |
+| Écran 4f | Répétitions ouvertes | ![[images/ecran-4f-creation-activite-repetitions-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3561:7673` |
+| Écran 4g | Description déployée | ![[images/ecran-4g-creation-activite-description.png\|220]] | Champ facultatif intégré au même écran | `3553:4704` |
+| Écran 4h | Zone corporelle déployée | ![[images/ecran-4h-creation-activite-zone-corporelle.png\|220]] | Référentiel facultatif intégré au même écran | `3553:4768` |
+| Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | `Séries` pilote et `Durée totale` calculée | `3580:4733` |
+| Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | `Durée totale` pilote et Séries calculées | `3580:4845` |
+| Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
 
 ### Objectif
 
@@ -802,11 +820,16 @@ L’ancien écran autonome `Création / modification d’une Activité — Récu
 
 ## Écran 6 – Catégories de la séance
 
-![[images/categories-seance.png|260]]
+
+![[images/ecran-6-categories-seance.png|260]]
+
+*Écran 6 — Catégories de la séance — Figma `2028:11204`*
 
 L’état de création intégrée d’une nouvelle Catégorie est illustré par :
 
-![[images/categories-nouvelle-inline.png|220]]
+![[images/ecran-6a-categories-nouvelle-inline.png|260]]
+
+*Écran 6a — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
 
 ### Objectif
 
@@ -827,31 +850,37 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 
 ## Écran 7 – Calendrier
 
-![[images/calendrier-jour.png|260]]
+![[images/ecran-7-calendrier-jour.png|260]]
+
+*Écran 7 — Calendrier — Jour — Figma `1992:5510`*
 
 La vue Semaine est illustrée par :
 
-![[images/calendrier-semaine.png|260]]
+![[images/ecran-7a-calendrier-semaine.png|260]]
+
+*Écran 7a — Calendrier — Semaine — Figma `1992:5101`*
 
 La vue Mois est illustrée par :
 
-![[images/calendrier-mois.png|260]]
+![[images/ecran-7b-calendrier-mois.png|260]]
+
+*Écran 7b — Calendrier — Mois — Figma `1992:5237`*
 
 ### États Figma de référence
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Appui long en vue Jour | ![[images/calendrier-jour-appui-long.png\|220]] | Sélection d’une plage horaire avant planification |
-| Choix de la Séance | ![[images/calendrier-choisir-seance.png\|220]] | Bottom sheet défilant ouvert par `+ Planifier` |
-| Créneau à planifier | ![[images/calendrier-creneau-a-planifier.png\|220]] | Étape intermédiaire issue de la plage sélectionnée |
-| Jour après planification | ![[images/calendrier-jour-apres-planification.png\|220]] | Résultat attendu après enregistrement |
-| Jour suivant | ![[images/calendrier-jour-suivant.png\|220]] | Résultat d’un glissement gauche ou du chevron suivant |
-| Semaine, mardi sélectionné | ![[images/calendrier-semaine-mardi.png\|220]] | Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible |
-| Séance hebdomadaire déployée | ![[images/calendrier-semaine-deployee.png\|220]] | Détail d’une occurrence et zone `Démarrer` |
-| Actions glissées | ![[images/calendrier-semaine-actions.png\|220]] | `Dupliquer` et `Supprimer` sur une occurrence hebdomadaire |
-| Actions sur Étirements | ![[images/calendrier-etirements-actions.png\|220]] | Même interaction appliquée à une autre occurrence représentée |
-| Après suppression | ![[images/calendrier-apres-suppression.png\|220]] | Liste hebdomadaire actualisée après suppression |
-| Calendrier vide | ![[images/calendrier-vide.png\|220]] | État sans occurrence planifiée |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 7c | Appui long en vue Jour | ![[images/ecran-7c-calendrier-jour-appui-long.png\|220]] | Sélection d’une plage horaire avant planification | `1992:5602` |
+| Écran 7d | Choix de la Séance | ![[images/ecran-7d-calendrier-choisir-seance.png\|220]] | Bottom sheet défilant ouvert par `+ Planifier` | `1992:6249` |
+| Écran 7e | Créneau à planifier | ![[images/ecran-7e-calendrier-creneau-a-planifier.png\|220]] | Étape intermédiaire issue de la plage sélectionnée | `1992:5794` |
+| Écran 7f | Jour après planification | ![[images/ecran-7f-calendrier-jour-apres-planification.png\|220]] | Résultat attendu après enregistrement | `1992:5697` |
+| Écran 7g | Jour suivant | ![[images/ecran-7g-calendrier-jour-suivant.png\|220]] | Résultat d’un glissement gauche ou du chevron suivant | `2059:267` |
+| Écran 7h | Semaine, mardi sélectionné | ![[images/ecran-7h-calendrier-semaine-mardi.png\|220]] | Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible | `2252:86` |
+| Écran 7i | Séance hebdomadaire déployée | ![[images/ecran-7i-calendrier-semaine-deployee.png\|220]] | Détail d’une occurrence et zone `Démarrer` | `1992:6389` |
+| Écran 7j | Actions glissées | ![[images/ecran-7j-calendrier-semaine-actions.png\|220]] | `Dupliquer` et `Supprimer` sur une occurrence hebdomadaire | `1992:5962` |
+| Écran 7k | Actions sur Étirements | ![[images/ecran-7k-calendrier-etirements-actions.png\|220]] | Même interaction appliquée à une autre occurrence représentée | `2094:86` |
+| Écran 7l | Après suppression | ![[images/ecran-7l-calendrier-apres-suppression.png\|220]] | Liste hebdomadaire actualisée après suppression | `2074:86` |
+| Écran 7m | Calendrier vide | ![[images/ecran-7m-calendrier-vide.png\|220]] | État sans occurrence planifiée | `2128:86` |
 
 ### Objectif
 
@@ -894,19 +923,21 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 ## Écran 8 – Planifier une séance
 
-![[images/planifier-seance.png|260]]
+![[images/ecran-8-planifier-seance.png|260]]
+
+*Écran 8 — Planifier une séance — Création — Figma `1992:6838`*
 
 ### États Figma de référence
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Date ouverte | ![[images/planifier-date-ouverte.png\|220]] | Sélecteur de date compact |
-| Heure ouverte | ![[images/planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite |
-| Rappel personnalisé ouvert | ![[images/planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite |
-| Rappel personnalisé sélectionné | ![[images/planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement |
-| Nombre de semaines ouvert | ![[images/planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer |
-| Aucune répétition | ![[images/planifier-sans-repetition.png\|220]] | Variante de planification unique |
-| Changer la Séance | ![[images/planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 8a | Date ouverte | ![[images/ecran-8a-planifier-date-ouverte.png\|220]] | Sélecteur de date compact | `1992:6622` |
+| Écran 8b | Heure ouverte | ![[images/ecran-8b-planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite | `1992:7006` |
+| Écran 8c | Rappel personnalisé ouvert | ![[images/ecran-8c-planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite | `1992:7187` |
+| Écran 8d | Rappel personnalisé sélectionné | ![[images/ecran-8d-planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement | `1992:7369` |
+| Écran 8e | Nombre de semaines ouvert | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `1992:7537` |
+| Écran 8f | Aucune répétition | ![[images/ecran-8f-planifier-sans-repetition.png\|220]] | Variante de planification unique | `1992:7716` |
+| Écran 8g | Changer la Séance | ![[images/ecran-8g-planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée | `1992:7861` |
 
 ### Objectif
 
@@ -964,14 +995,16 @@ Les occurrences futures sont recalculées à partir de la nouvelle planification
 
 ## Écran 9 – Exécution de séance
 
-![[images/execution-seance.png|260]]
+![[images/ecran-9-execution-seance.png|260]]
+
+*Écran 9 — Exécution de séance — Groupes d’information — Figma `1992:8132`*
 
 ### États Figma de référence
 
-| État | Capture | Règle matérialisée |
-| --- | --- | --- |
-| Avant démarrage | ![[images/execution-etat-initial.png\|220]] | La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseigné dans le prototype |
-| Sons et annonces désactivés | ![[images/execution-bips-vocal-desactives.png\|220]] | État alternatif des deux commandes de guidage sonore |
+| N° | État | Capture | Règle matérialisée | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 9a | Avant démarrage | ![[images/ecran-9a-execution-etat-initial.png\|220]] | La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseigné dans le prototype | `1992:8626` |
+| Écran 9b | Sons et annonces désactivés | ![[images/ecran-9b-execution-sons-annonces-desactives.png\|220]] | État alternatif des deux commandes de guidage sonore | `1992:8530` |
 
 ### Objectif
 
@@ -1156,11 +1189,15 @@ La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Ex
 
 ## Écran 10 – Synthèse de séance
 
-![[images/synthese-seance.png|260]]
+![[images/ecran-10-synthese-seance.png|260]]
+
+*Écran 10 — Synthèse de séance — Ressenti sélectionné — Figma `1992:8780`*
 
 L’état initial, avant sélection du ressenti, est illustré par :
 
-![[images/synthese-evaluation-initiale.png|220]]
+![[images/ecran-10a-synthese-evaluation-initiale.png|260]]
+
+*Écran 10a — Synthèse de séance — Évaluation initiale — Figma `1992:8718`*
 
 ### Objectif
 
@@ -1227,15 +1264,21 @@ La commande `Vue d’ensemble` reste visible mais désactivée dans le MVP. La v
 
 ## Écran 11 – Suivi : Séances
 
-![[images/suivi-condense.png|260]]
+![[images/ecran-11-suivi-condense.png|260]]
+
+*Écran 11 — Suivi : Séances — Liste condensée — Figma `1992:8843`*
 
 La vue déployée est illustrée par :
 
-![[images/suivi-deploye.png|260]]
+![[images/ecran-11a-suivi-deploye.png|260]]
+
+*Écran 11a — Suivi : Séances — Vue déployée — Figma `1992:8996`*
 
 L’état sans Exécution enregistrée est illustré par :
 
-![[images/suivi-vide.png|220]]
+![[images/ecran-11b-suivi-vide.png|260]]
+
+*Écran 11b — Suivi : Séances — État vide — Figma `2117:190`*
 
 ### Objectif
 
@@ -1290,7 +1333,9 @@ La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : 
 
 Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 et réutilise le composant canonique `2537:1033 — State=Collapsed`, avec une zone droite réservée identique sur toutes les cartes. Aucune poignée de déplacement n’est affichée.
 
-![Catalogue des Activités — Liste](./images/CE-ACT-EXE-01a-catalogue-activites-liste.png)
+![[images/ecran-12-catalogue-activites-liste.png|260]]
+
+*Écran 12 — Catalogue des Activités — Liste — Figma `3786:5093`*
 
 L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans l’état courant et n’est plus une preuve active. Aucun état de remplacement n’est inventé.
 
@@ -1307,9 +1352,13 @@ L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non intera
 
 Lorsque l’arbre est ouvert, la rangée `Créer / Filtrer / Trier` reste visible dans l’arrière-plan sous le scrim ; seul `Créer` porte l’arbre, ancré à sa position gauche dans la rangée. `Filtrer` et `Trier` restent visibles mais non interactifs sous le voile.
 
-![Catalogue des Activités — Création — Arbre d’actions](./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions.png)
+![[images/ecran-13-catalogue-activites-creer-arbre.png|260]]
 
-![Catalogue des Séances — Création — Arbre d’actions](./images/catalogue-seances-creer-arbre-actions.png)
+*Écran 13 — Catalogue des Activités — Créer — Arbre d’actions — Figma `3787:5148`*
+
+![[images/ecran-13a-catalogue-seances-creer-arbre.png|260]]
+
+*Écran 13a — Catalogue des Séances — Créer — Arbre d’actions — Figma `3841:8375`*
 
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
@@ -1317,37 +1366,59 @@ Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la fram
 
 Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
 
-![Composition d’une séance — Sélectionner plusieurs Activités existantes](./images/CE-COMP-SEL-01-selection-activites-existantes.png)
+![[images/ecran-14-selection-activites-existantes.png|260]]
+
+*Écran 14 — Composition — Sélectionner plusieurs Activités existantes — Figma `3789:5349`*
 
 ### Écran 15 — Création ou modification d’une Activité persistante
 
 L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
 
+Les deux contextes disposent d’une frame de référence distincte : `3879:5947` pour la création et `3879:6079` pour la modification. Seul le titre d’en-tête et le contenu de démonstration les distinguent ; la structure reste celle de l’Écran 4.
+
+![[images/ecran-15-creation-activite-persistante.png|260]]
+
+*Écran 15 — Créer une Activité persistante — Figma `3879:5947`*
+
+![[images/ecran-15a-modification-activite-persistante.png|260]]
+
+*Écran 15a — Modifier une Activité persistante — Figma `3879:6079`*
+
 ### Écran 16 — Préparation d’une Activité directe
 
 La frame de référence affiche une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Activité. Aucun compteur de Tour ou de Cycle n’est affiché.
 
-![Exécution directe d’une Activité — Préparation fixe de 5 s](./images/CE-ACT-EXE-02-preparation-5-s.png)
+![[images/ecran-16-preparation-directe-5-s.png|260]]
+
+*Écran 16 — Exécution directe — Préparation fixe de 5 s — Figma `3835:5385`*
 
 ### Écran 17 — Exécution directe en cours
 
 L’écran réutilise le moteur et le Shell d’Exécution. Il développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
 
-![Exécution directe d’une Activité — En cours](./images/CE-ACT-EXE-03-execution-en-cours.png)
+![[images/ecran-17-execution-directe-en-cours.png|260]]
+
+*Écran 17 — Exécution directe — En cours — Figma `3835:5465`*
 
 ### Écran 18 — Synthèse d’une Activité directe
 
 Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Activités dans son état précédent.
 
-![Synthèse d’une Activité directe — Ressenti requis](./images/CE-ACT-EXE-04-synthese-ressenti-requis.png)
+![[images/ecran-18-synthese-directe-ressenti-requis.png|260]]
 
-![Synthèse d’une Activité directe — Ressenti sélectionné](./images/CE-ACT-EXE-05-synthese-ressenti-selectionne.png)
+*Écran 18 — Synthèse d’une Activité directe — Ressenti requis — Figma `3836:5437`*
+
+![[images/ecran-18a-synthese-directe-ressenti-selectionne.png|260]]
+
+*Écran 18a — Synthèse d’une Activité directe — Ressenti sélectionné — Figma `3836:5503`*
 
 ## Les modales
 
-### Modale – Abandonner la création d’une séance
+### Modale 1 – Abandonner la création d’une séance
 
-![[images/abandon-creation.png|260]]
+![[images/modale-1-abandon-creation-seance.png|260]]
+
+*Modale 1 — Abandonner la création de la séance — Figma `2028:11298`*
 
 #### Objectif
 
@@ -1382,9 +1453,11 @@ La Composition reste visible en arrière-plan, assombrie et non interactive.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
-### Modale – Abandonner les modifications d’une Activité (D-094)
+### Modale 2 – Abandonner les modifications d’une Activité (D-094)
 
-![[images/activite-abandon-modifications.png|260]]
+![[images/modale-2-abandon-modifications-activite.png|260]]
+
+*Modale 2 — Abandonner les modifications d’une Activité — source Figma **À CLARIFIER** (node historique `3224:4082` absent du Figma courant)*
 
 #### Objectif
 
@@ -1419,31 +1492,41 @@ L’écran Activité reste visible en arrière-plan, assombri et non interactif.
 
 La référence de production est la frame Figma `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Elle instancie `Overlay / Decision Dialog`, variante `PrimaryTone=Danger, SecondaryTone=Neutral, Actions=2` (`2590:2934`) : dialogue centré de `354 × 186`, rayon `18`, boutons `147 × 48`, écart horizontal `12` et espacement `16` entre la dernière ligne du message et les actions. Les libellés sont centrés horizontalement et verticalement dans leurs boutons.
 
-### Modale – Confirmer la suppression d’une Séance archivée
+### Modale 3 – Confirmer la suppression d’une Séance archivée
 
-![[images/catalogue-archivees-actions.png|260]]
+![[images/modale-3-seance-archivee-action-supprimer.png|260]]
+
+*Modale 3 — Séance archivée — Action Supprimer révélée — Figma `2234:88`*
 
 L’action `Supprimer` est révélée par glissement gauche : la carte se déplace avec le geste et révèle l’action placée derrière.
 
-![[images/suppression-seance-archivee.png|260]]
+![[images/modale-3a-confirmer-suppression-seance-archivee.png|260]]
+
+*Modale 3a — Confirmer la suppression d’une séance archivée — Figma `2234:189`*
 
 Le dialogue flottant centré demande une confirmation explicite. `Annuler` ferme le dialogue et revient au résultat du filtre `Archivées`.
 
 Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
-### Modales – Suppression d’une planification
+### Modale 4 – Suppression d’une planification
 
-![[images/calendrier-suppression-unique.png|260]]
+![[images/modale-4-suppression-planification-unique.png|260]]
+
+*Modale 4 — Supprimer une planification unique — Figma `1992:5365`*
 
 Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée, la Séance associée et les Exécutions historiques sont conservées.
 
-![[images/calendrier-suppression-periodique.png|260]]
+![[images/modale-4a-suppression-occurrences.png|260]]
+
+*Modale 4a — Supprimer des occurrences — Figma `1992:6102`*
 
 Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
 
-### Modale – Réinitialisation de l’Activité
+### Modale 5 – Réinitialisation de l’Activité
 
-![[images/execution-reinitialiser.png|260]]
+![[images/modale-5-reinitialiser-activite.png|260]]
+
+*Modale 5 — Réinitialiser l’activité — Figma `1992:8224`*
 
 Référence Figma : `1992:8224`, `Modal — Réinitialiser l’activité`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Neutral,Actions=2` (`2590:2926`), instance `2591:3047`. Il mesure `354 × 215`.
 
@@ -1488,9 +1571,11 @@ Après confirmation :
 
 Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
 
-### Modale – Passage à l’Activité suivante
+### Modale 6 – Passage à l’Activité suivante
 
-![[images/execution-activite-suivante.png|260]]
+![[images/modale-6-activite-suivante.png|260]]
+
+*Modale 6 — Passer à l’activité suivante — Figma `1992:8326`*
 
 Référence Figma : `1992:8326`, `Modal — Passer à l’activité suivante`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Neutral,Actions=2` (`2590:2926`), instance `2591:3058`. Il mesure `354 × 215`.
 
@@ -1533,9 +1618,11 @@ Après confirmation :
 
 Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`. Le terme visuel `partiellement exécutée` décrit le résultat à l’utilisateur ; le statut métier enregistré reste `Partielle`.
 
-### Modale – Pause / arrêt de l’Exécution
+### Modale 7 – Pause / arrêt de l’Exécution
 
-![[images/execution-pause.png|260]]
+![[images/modale-7-seance-en-pause.png|260]]
+
+*Modale 7 — Séance en pause — Figma `1992:8428`*
 
 Référence Figma : `1992:8428`, `Modal — Séance en pause`. Le dialogue flottant centré utilise `Overlay / Decision Dialog`, variante `PrimaryTone=Primary,SecondaryTone=Danger,Actions=2` (`2590:2960`), instance `2591:3070`. Il mesure `354 × 194`.
 
@@ -1631,3 +1718,36 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 Les contrôles d’entrée `Créer / Filtrer / Trier` sont conçus et vérifiables dans Figma. Les références courantes principales sont `3786:5093` (Catalogue Activités), `3787:5148` (arbre Créer Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3841:8375` (arbre Créer Séances), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom).
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Seul le détail visuel des panneaux/options **ouverts** `Filtrer` et `Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER`; aucune modale, feuille, popover ou liste locale ne doit être inventée avant arbitrage.
+
+## Composant transverse `Status / Badge`
+
+La preuve visuelle canonique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
+
+![[images/status-badge-composant.png|700]]
+
+*Composant — `Status / Badge — Source exact` — Figma `3959:5970` — export PNG ×2*
+
+Les sept variantes se répartissent en deux familles sémantiques, sans que cette répartition scinde le composant :
+
+| Famille | Variantes | Node de variante |
+| --- | --- | --- |
+| Statuts d’exécution | `Terminée`, `Partielle`, `Interrompue` | `3959:5966`, `3959:5963`, `3959:5969` |
+| Statuts d’élément / provenance | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `3959:5951`, `3959:5954`, `3959:5957`, `3959:5960` |
+
+Les preuves d’usage sont distinctes de la preuve du composant et ne s’y substituent pas :
+
+| N° | Écran | Variantes visibles | Node Figma |
+| --- | --- | --- | --- |
+| Écran 11 | Suivi : Séances — Liste condensée | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
+| Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
+| Écran 2a | Recherche globale — Résultats affichés | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `1992:10320` |
+
+## Points `À CLARIFIER` relevés lors du contrôle visuel du 16 septembre 2026
+
+Ces points sont consignés sans modification des règles fonctionnelles. Ils sont détaillés dans `images/README-T03-FIGMA.md`.
+
+1. **Modale 2 — Abandonner les modifications d’une Activité.** Le node `3224:4082` cité par ce chapitre n’existe plus dans le Figma courant et aucune frame de remplacement n’a été identifiée. La capture `modale-2-abandon-modifications-activite.png` est conservée telle quelle comme évidence historique ; elle n’est pas déclarée courante.
+2. **Section Médias de l’éditeur d’Activité.** La règle transverse « Règles transverses de l’éditeur d’Activité » indique que « la section Médias est masquée » dans les frames MVP. Les frames courantes `3542:4656`, `3561:4695` et `3561:7802` affichent au contraire la section Médias repliable. La règle n’est pas modifiée ; la contradiction entre le texte et la frame doit être arbitrée.
+3. **Écran 13 — libellé de la première option de l’arbre `Créer`.** Ce chapitre indique `Une nouvelle activité`; les frames `3787:5148` et `3841:8375` affichent `Une activité`. Aucun libellé n’est modifié avant arbitrage.
+4. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
+5. **Écran 2h — Catalogue après archivage.** La frame `1992:10937` affiche la snackbar `Séance supprimée`, alors que la légende du chapitre décrit un retrait par archivage.
