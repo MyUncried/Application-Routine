@@ -9,7 +9,7 @@ KODJO est une application mobile qui permet à une personne de créer, organiser
 - **KODJO** est le nom du produit et de l’application.
 - **ANKUSHA** est la société propriétaire, la marque mère et l’éditeur de KODJO.
 - Le slogan produit est **Keep On. Do Just One.**
-- Le splash affiche `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien` avant d’ouvrir le Catalogue des séances.
+- Le splash affiche `KODJO`, `Keep On. Do Just One.` et `Votre assistant du quotidien` avant d’ouvrir le `Catalogue des séances`, segment `Séances` du Catalogue.
 
 ## Le problème rencontré
 
@@ -19,8 +19,9 @@ Les exercices et séances sont souvent communiqués oralement, sur papier, par m
 
 KODJO réunit dans une même application :
 
-- un Catalogue des séances ;
+- un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
+- à partir de T03, un Catalogue des activités persistantes et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
 - une Exécution guidée, adaptée aux Activités chronométrées, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
@@ -29,7 +30,7 @@ KODJO réunit dans une même application :
 
 ## Utilisateur prioritaire du MVP
 
-Le MVP s’adresse en priorité à une personne qui crée ses propres Séances, les planifie, les exécute et consulte leur historique sur son appareil.
+Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Activités, planifie ses Séances, les exécute et consulte leur historique sur son appareil.
 
 Il fonctionne :
 
@@ -44,7 +45,13 @@ L’architecture textuelle repose néanmoins sur un lexique centralisé et des c
 
 ### Catalogue des séances
 
-Le Catalogue des séances est l’écran d’accueil après le splash. Il permet de rechercher une Séance, d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
+Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet de rechercher une Séance, d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
+
+### Catalogue des activités — T03
+
+T03 rend le segment `Activités` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Circuits` reste visible mais désactivé.
+
+Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
 ### Création et composition
 
@@ -60,11 +67,11 @@ Une Séance contient :
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause uniquement entre les Séries d’un même côté et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
+Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause selon la règle D-156 et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses intermédiaires, le multiplicateur de côté éventuel et la Récupération finale. T03 est révisée pour exécuter les Séries, les Tours et leurs passages bilatéraux conformément au Plan d’Exécution.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses applicables, le multiplicateur de côté éventuel et la Récupération finale. En Répétitions et À l’échec, le libellé `Durée totale` reste visible sous forme de borne minimale `≥` calculée à partir des temps connus. T04 porte l’orchestration complète d’Exécution des Séances, y compris Séries, Tours et passages bilatéraux conformément au Plan d’Exécution.
 
-Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle.
+Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
 
 ### Planification et calendrier
 
@@ -72,13 +79,13 @@ Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendri
 
 ### Exécution guidée
 
-L’Exécution présente l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression. Le Cycle n’est jamais exposé.
+L’Exécution d’une Séance présente l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression. Le Cycle n’est jamais exposé.
 
 L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’une Activité chronométrée, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec.
 
 ### Suivi
 
-Le Suivi conserve les Exécutions terminées, partielles et interrompues. Chaque Exécution repose sur un instantané immuable de la Séance au démarrage afin que l’historique demeure fidèle après une modification, un archivage ou une suppression de la Séance source.
+Le Suivi conserve les Exécutions terminées, partielles et interrompues. Chaque Exécution repose sur un instantané immuable de sa source au démarrage afin que l’historique demeure fidèle après une modification, un archivage ou une suppression de la source.
 
 Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP ; leurs fonctions sont prévues après le MVP.
 
@@ -91,7 +98,8 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 ## Principes d’expérience
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
-- navigation principale fixe : `Séances`, `Calendrier`, `Suivi`, `Profil` ;
+- navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
+- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
 - sauvegarde immédiate des Préférences ;
@@ -118,19 +126,19 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. Dans le MVP, seule la vue `Séances` est active ; les deux autres types sont visibles mais désactivés. En V2, les vues Activités et Circuits deviennent fonctionnelles sans créer de navigation principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est fonctionnel à partir de T03 ; `Circuits` reste visible mais désactivé. Une version post-MVP rendra les Circuits fonctionnels sans créer de destination principale supplémentaire.
 
-### Bibliothèque et Catalogue des Activités — V2
+### Catalogue des activités — MVP T03
 
-La V2 apporte une bibliothèque d’Activités persistantes. Le Catalogue des Activités permet de créer, consulter, modifier et exécuter directement une Activité de référence. Depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des activités permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
-Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement la bibliothèque. Les médias multiples ordonnés appartiennent également à la V2, mais leur affichage par déploiement de carte reste une évolution distincte à détailler.
+Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Les médias multiples ordonnés restent post-MVP ; le contrôle `Déployer` est visible mais fonctionnellement désactivé en T03 et sera activé dans une évolution Médias distincte.
 
-L’Exécution directe réutilise le moteur commun avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
+L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
 
-### Circuits — V2 et V3
+### Circuits — post-MVP
 
-La V2 permet de créer et d’exécuter manuellement des Circuits persistants composés de Séances ordonnées. Leur planification appartient à la V3.
+Les Circuits restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
 
 ## Vision de la bilatéralité
 

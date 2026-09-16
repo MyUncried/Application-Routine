@@ -27,7 +27,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 ## 11.1 Principes généraux
 
 Les API fonctionnelles respectent les principes suivants :
-- une Séance représente un contenu exécutable ; en V2, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
+- une Séance représente un contenu exécutable ; dans le MVP T03, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
 - une Routine représente la planification d’une Séance ;
 - une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
@@ -111,7 +111,7 @@ Une même Séance peut être associée à plusieurs Routines afin de permettre p
 | API-EXE-04 | Réinitialiser l’étape courante | ID Exécution, confirmation | Activité, Série ou Récupération courante recommencée | Confirmation obligatoire ; pendant `RECOVERY`, seul le chronomètre de Récupération repart du début et l’action est libellée `Réinitialiser la récupération` ; aucun Résultat antérieur n’est modifié | Exécution |
 | API-EXE-05 | Actionner `Suivant` | ID Exécution, confirmation éventuelle | Série, Activité ou Récupération courante clôturée, suite activée | Pour une Activité chronométrée ou une phase `RECOVERY` avant zéro, confirmation obligatoire ; l’Activité quittée avant zéro est `Partielle`, tandis qu’une Récupération quittée avant zéro conserve l’Activité terminée et enregistre `recoveryElapsedSeconds` partiel ; en Répétitions ou À l’échec, `Suivant` termine normalement la Série sans confirmation | Exécution |
 | API-EXE-06 | Arrêter l’exécution               | ID Exécution, confirmation       | Exécution clôturée                                                        | Arrêt disponible depuis l’état Pause ; après confirmation, l’Exécution est clôturée avec le statut `Interrompue` et la Synthèse est ouverte                                                          | Exécution                        |
-| API-EXE-07 | Terminer l’exécution              | ID Exécution                     | Exécution terminée, statut déterminé, résultats enregistrés et écran de sortie applicable ouvert | L’étape `SESSION_END` doit être achevée ; si sa durée vaut `0 s`, l’achèvement est immédiat. T03 ouvre la fin minimale ; la Synthèse n’est ouverte que par la tranche qui la livre. Un arrêt avant cet achèvement relève d’API-EXE-06 et produit le statut `Interrompue` | Exécution, Occurrence éventuelle |
+| API-EXE-07 | Terminer l’exécution              | ID Exécution                     | Exécution terminée, statut déterminé, résultats enregistrés et écran de sortie applicable ouvert | L’étape `SESSION_END` doit être achevée ; si sa durée vaut `0 s`, l’achèvement est immédiat. T04 ouvre la fin minimale ; la Synthèse n’est ouverte que par la tranche qui la livre. Un arrêt avant cet achèvement relève d’API-EXE-06 et produit le statut `Interrompue` | Exécution, Occurrence éventuelle |
 | API-EXE-08 | Obtenir l’état courant            | ID Exécution                     | Étape courante, progression, temps total écoulé, Durée estimée d’exécution, état temporel courant et prochaine étape | Le temps total écoulé inclut toutes les phases effectivement exécutées, dont Pauses entre Séries, `RECOVERY`, Compte à rebours initial et Fin de séance, et exclut uniquement les Pauses manuelles ; l’état temporel fournit le temps restant pour une Activité chronométrée ou `RECOVERY` et le temps écoulé pour une Activité en Répétitions ou À l’échec | Exécution, lecture |
 | API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 minutes consécutives en pause, l’application demande si l’utilisateur souhaite reprendre ; si oui, reprise à l’activité interrompue ; en l’absence de réponse, clôture automatique au statut `Interrompue` | Exécution |
 | API-EXE-10 | Réconcilier une Exécution après interruption technique | ID Exécution, choix `Reprendre` ou `Arrêter` | Exécution reprise ou clôturée `Interrompue` | Aucune nouvelle Exécution tant que la réconciliation n’est pas faite | Exécution |
@@ -255,10 +255,10 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
-| `API-ACT-REF-01..05` | V2 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
-| `API-ACT-COPY-01` | V2 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
+| `API-ACT-REF-01..05` | MVP T03 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
-| `API-CAT-01` | MVP/V2 | type, filtre, tri | Dans le MVP, accepte uniquement `SESSION`; en V2, `ACTIVITY` et `CIRCUIT`. Défaut : non archivés, dernière modification décroissante. |
+| `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
 | `API-CIR-01..06` | V2 | Circuit et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Circuit. |
 | `API-CIR-EXE-01` | V2 | ID Circuit | Fige l’instantané et crée l’Exécution globale. |
 | `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
@@ -279,7 +279,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
 | `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |
 
-## 11.14 Exécution directe d’une Activité — V2
+## 11.14 Exécution directe d’une Activité — MVP T03
 
 | ID | Service | Entrée | Sortie | Règles |
 |---|---|---|---|---|
@@ -292,7 +292,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.
 
 
-## 11.15 Sélection multiple d’Activités existantes — V2
+## 11.15 Sélection multiple d’Activités existantes — MVP T03
 
 `CompositionService` reçoit les identifiants sélectionnés dans l’ordre courant de présentation produit par la liste filtrée au moment de la validation. Il crée une copie indépendante de chaque `ActivityDefinition` dans cet ordre, en une seule opération de composition. L’ordre temporel des touchers ne fait pas partie du contrat et ne doit pas être persisté.
 
