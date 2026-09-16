@@ -24,15 +24,21 @@ Ce document complète le registre `07 – Registre des décisions de conception.
 | D-182 | Le nom de l’Activité est en gras dans la Synthèse de l’écran Ajouter/Modifier une Activité uniquement. Cette correction n’ajoute aucun texte de direction développé aux cartes de Composition. | Validée | Précision éditeur T03 |
 | D-183 | D-166 est consolidée ainsi : T03 = Catalogue des activités, cycle de vie persistant, création/consultation/modification/archives, arbre de création, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. L’ancien T03 Moteur d’Exécution des Séances devient T04 ; l’ancien T04 devient T05 et les tranches suivantes sont décalées sans extension implicite. Circuits fonctionnels et médias multiples restent hors MVP. | Validée | Réécrit et consolide D-166 |
 | D-184 | `Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues `Activités / Séances / Circuits`; leur représentation visuelle est commune, tandis que le contenu des options peut dépendre du segment actif. En T03, pour `Activités`, `Filtrer` est fonctionnel au minimum pour accéder à `Archivées`; aucune autre option de filtre n’est définie et ne doit être inventée. `Trier` reste visible mais désactivé tant que ses options ne sont pas arbitrées. Le tri appliqué par défaut au Catalogue des activités reste la date de dernière modification décroissante. Le détail visuel des panneaux `Filtrer`/`Trier` reste `À CLARIFIER` / `NON VÉRIFIABLE` dans Figma tant qu’il n’est pas conçu. | Validée | Précise D-168, D-169 et D-110 pour les contrôles Catalogue T03 |
+| D-185 | Le bandeau d’actions des Catalogues est commun aux écrans `Catalogue des séances`, `Catalogue des activités` et au fond de `Recherche globale — Champ déployé`. Ordre exact : `Créer`, `Filtrer`, `Trier`. À la référence `402 pt`, les trois surfaces visibles mesurent chacune `108 × 32 pt`, sont séparées de `8 pt` et le groupe de `340 pt` est centré horizontalement (`x=31/147/263` dans Figma). `Créer` et `Filtrer` sont représentés actifs ; `Trier` reste visible désactivé en T03. Dans l’arbre `Créer` ouvert, `Créer` conserve sa géométrie et sert d’ancrage à l’arbre, tandis que `Filtrer` et `Trier` restent visibles sous le scrim et non interactifs. Le détail des panneaux/options ouverts de Filtrer/Trier reste non défini. | Validée post-Figma | Précise D-184 et remplace l’ancienne disposition où `Créer` était seul centré |
 
 ## Évidence Figma vérifiée
 
 - Fichier Figma : `G6RY5Ebhgwb4AHIOYDwwvg`.
 - Catalogue des activités : `3786:5093`.
+- Catalogue des séances : `1992:9910`.
+- Recherche globale — Champ déployé : `1992:10129`.
 - Arbre `Créer` sur Catalogue des activités : `3787:5148`.
-- État Catalogue / action contextuelle directe : `3787:5209`.
+- Arbre `Créer` sur Catalogue des séances : `3841:8375`.
+- Création activité — Répétitions : `3561:4695`.
+- Création activité — Répétitions — roulette ouverte : `3561:7673`.
+- Création activité — À l’échec : `3561:7802`.
 - Composant canonique `Déployer` : `2537:1033 — State=Collapsed`, réutilisé depuis le Catalogue des séances.
 
-Les valeurs de démonstration de ces frames ne sont pas des règles métier. En particulier, la première carte montre une Récupération uniquement pour illustrer ce cas ; une carte réelle l’affiche seulement si son `ActivityDefinition` en possède une.
+Les valeurs de démonstration de ces frames ne sont pas des règles métier. En particulier, la première carte montre une Récupération uniquement pour illustrer ce cas ; une carte réelle l’affiche seulement si son `ActivityDefinition` en possède une. Le nom `Renforcement du genou` montré dans les écrans `Création activité` renseignés est également une valeur de démonstration ; l’écran `Création activité — Durée / Pause / Séries — Vide` conserve le placeholder `Nom de l’activité`.
 
-Les contrôles `Filtrer` et `Trier` sont prévus comme contrôles communs aux Catalogues, mais le détail visuel de leurs panneaux/options n’est pas encore conçu dans Figma. La documentation fonctionnelle fixe donc uniquement leur comportement T03 validé ; aucune structure graphique détaillée ne doit être inventée ou déclarée conforme avant une mise à jour Figma dédiée.
+Le contrôle d’entrée `Créer / Filtrer / Trier` est désormais représenté dans Figma et vérifiable selon D-185. Le détail visuel des panneaux/options ouverts de `Filtrer` et `Trier` n’est toujours pas conçu. La documentation fonctionnelle fixe donc uniquement leur comportement T03 validé ; aucune structure graphique détaillée ne doit être inventée ou déclarée conforme avant une mise à jour Figma dédiée.
