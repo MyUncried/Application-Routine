@@ -2,7 +2,7 @@
 
 > Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155.
 >
-> Mise à jour T03 du 15 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les arbitrages UX, données et migration sont consolidés dans les compléments 06 bis, 07 bis et 09 bis, la matrice T03 et le chapitre 13. Les contrats d’écran T03 actifs sont `CE-T03-01` à `CE-T03-17`. L’ancien chapitre 13 est conservé bit à bit dans `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour traçabilité ; ses anciens contrats `CE-T03-01..13` d’Exécution de Séance sont remappés vers T04 et ne sont plus normatifs pour T03. Les règles `Filtrer`/`Trier` sont intégrées directement au chapitre 13 : `Filtrer` est fonctionnel sur Activités au minimum pour `Archivées`, `Trier` reste visible disabled, et aucune option non arbitrée ne doit être inventée.
+> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les arbitrages UX, données et migration sont consolidés dans les compléments 06 bis, 07 bis et 09 bis, la matrice T03 et le chapitre 13. Les contrats d’écran T03 actifs sont `CE-T03-01` à `CE-T03-17`. L’ancien chapitre 13 est conservé bit à bit dans `13A – Contrats d’écran hérités avant T03 Catalogue.md` pour traçabilité ; ses anciens contrats `CE-T03-01..13` d’Exécution de Séance sont remappés vers T04 et ne sont plus normatifs pour T03. Les règles `Filtrer`/`Trier` sont intégrées directement au chapitre 13 : `Filtrer` est fonctionnel sur Activités au minimum pour `Archivées`, `Trier` reste visible disabled, et aucune option non arbitrée ne doit être inventée. D-185 fixe désormais aussi le bandeau d’entrée commun `Créer / Filtrer / Trier` : trois surfaces `108 × 32 pt`, gap `8 pt`, groupe centré à la référence Figma `402 pt`.
 
 ## 1. Objet
 
@@ -46,16 +46,16 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 04 | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) | Définit les concepts et leurs relations. | Baseline MVP T03 |
 | 05 | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md) | Répartit les fonctionnalités entre MVP et versions futures. | Baseline MVP T03 |
 | 06 | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) | Décrit les écrans, modales, contenus et navigation. | Baseline + complément T03 |
-| 06 bis | [Corrections UX T03 Catalogue](./Specifications-fonctionnelles/06%20bis%20%E2%80%93%20Corrections%20UX%20T03%20Catalogue.md) | Supersède les formulations UX historiques incompatibles avec les arbitrages T03 ; fixe aussi la règle commune Filtrer/Trier. | Référence T03 |
+| 06 bis | [Corrections UX T03 Catalogue](./Specifications-fonctionnelles/06%20bis%20%E2%80%93%20Corrections%20UX%20T03%20Catalogue.md) | Supersède les formulations UX historiques incompatibles avec les arbitrages T03 ; fixe le bandeau Catalogue commun et les règles Filtrer/Trier. | Référence T03 |
 | 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées. | Baseline MVP |
-| 07 bis | [Arbitrages T03 du 15 septembre 2026](./Specifications-fonctionnelles/07%20bis%20%E2%80%93%20Arbitrages%20T03%20du%2015%20septembre%202026.md) | Consolide D-167 à D-184 et supersède les règles antérieures divergentes. | Référence T03 |
+| 07 bis | [Arbitrages T03 du 15 septembre 2026](./Specifications-fonctionnelles/07%20bis%20%E2%80%93%20Arbitrages%20T03%20du%2015%20septembre%202026.md) | Consolide D-167 à D-185 et supersède les règles antérieures divergentes. | Référence T03 |
 | 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé, l’exécution et les calculs. | Baseline MVP T03 |
 | 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit entités, relations et cycles de vie. | Baseline MVP T03 |
 | 09 bis | [Modèle et migration T03 Catalogue](./Specifications-fonctionnelles/09%20bis%20%E2%80%93%20Mod%C3%A8le%20et%20migration%20T03%20Catalogue.md) | Précise ActivityDefinition/SessionActivity, cycle de vie et migration T03. | Référence T03 |
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
 | 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
-| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 17 contrats complets à 21 sections, couverture E01–E73, Filtrer/Trier et frontière T03/T04. | Référence normative T03 |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 17 contrats complets à 21 sections, couverture E01–E73, bandeau Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 |
 | 13A | [Contrats d’écran hérités avant T03 Catalogue](./Specifications-fonctionnelles/13A%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran%20h%C3%A9rit%C3%A9s%20avant%20T03%20Catalogue.md) | Copie historique bit à bit de l’ancien chapitre 13 ; conserve les contrats T01/T02 et la provenance des anciens contrats d’Exécution. | Historique ; anciens `CE-T03-01..13` remappés T04 |
 
 ## 4. Images et maquettes
@@ -64,18 +64,21 @@ Les captures intégrées aux spécifications sont stockées dans :
 
 [`docs/Specifications-fonctionnelles/images`](./Specifications-fonctionnelles/images/)
 
-Pour T03, les évidences Figma corrigées sont répertoriées et affichées dans :
+Pour T03, les évidences Figma sont répertoriées dans :
 
 [Évidences Figma — T03 Catalogue des activités](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 
-Les captures T03 sont des fichiers image physiques du dépôt, référencés par chemins relatifs. Elles restent donc visibles après export/import du dossier documentaire sans dépendre d’une URL Figma temporaire.
-
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements. Un détail graphique n’est pas transformé automatiquement en règle fonctionnelle.
 
-Évidences Figma T03 contrôlées le 15 septembre 2026 :
+Évidences Figma T03 contrôlées le 16 septembre 2026 :
 - `3786:5093` — Catalogue des activités — liste ;
-- `3787:5148` — Catalogue — Créer — arbre d’actions ;
-- `3787:5209` — Catalogue — action contextuelle directe ;
+- `1992:9910` — Catalogue des séances — liste par défaut ;
+- `1992:10129` — Recherche globale — Champ déployé ;
+- `3787:5148` — Catalogue des activités — Créer — arbre d’actions ;
+- `3841:8375` — Catalogue des séances — Créer — arbre d’actions ;
+- `3561:4695` — Création activité — Répétitions / Pause / Séries — avec mode ;
+- `3561:7673` — Création activité — Répétitions — roulette compacte ouverte ;
+- `3561:7802` — Création activité — À l’échec ;
 - `3788:5258` — Composition — Ajouter une activité — arbre ;
 - `3789:5349` et `3789:5405` — sélection multiple d’Activités existantes ;
 - `3879:5947` / `3879:6079` — création/modification d’une Activité persistante ;
@@ -85,9 +88,13 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `2537:1033` — composant DSF canonique `Déployer` ;
 - `2537:214` — composant DSF canonique `Navigation / Bottom`.
 
-Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances ; il reste visible mais fonctionnellement désactivé en T03. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
+Le node historique `3787:5209` n’existe plus dans le Figma courant et ne doit plus être utilisé comme évidence.
 
-Les contrôles communs `Filtrer` et `Trier` sont prévus pour les Catalogues, mais le détail visuel de leurs panneaux/options n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est fixé dans D-184 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` jusqu’à création des frames Figma correspondantes.
+Le bandeau commun `Créer / Filtrer / Trier` est désormais représenté dans les Catalogues et dans le fond de Recherche globale : trois surfaces `108 × 32 pt`, gap `8 pt`, groupe centré à `402 pt`; `Trier` reste disabled T03. Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances et reste visible mais fonctionnellement désactivé. Les dessins des quatre destinations de navigation ont une dimension maximale de `24 pt` et sont recentrés dans leurs boîtes `32 × 32 pt`.
+
+Le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu. Pour T03 Activités, le comportement est fixé dans D-184/D-185 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` jusqu’à création des frames Figma correspondantes.
+
+Le statut des copies d’écran physiques est suivi dans `README-T03-FIGMA.md` : aucune copie obsolète ne doit être présentée comme évidence courante.
 
 ## 5. Ordre de lecture recommandé
 
@@ -160,38 +167,16 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - progression hybride des Activités chronométrées et des Activités en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
-Les chapitres 00 à 13, leurs compléments T03 et les matrices transverses constituent désormais la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste volontairement un invariant de migration non visuel rattaché au modèle 09 bis et aux contrats de persistance concernés.
+Les chapitres 00 à 13, leurs compléments T03 et les matrices transverses constituent la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste volontairement un invariant de migration non visuel rattaché au modèle 09 bis et aux contrats de persistance concernés.
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les règles bilatérales validées restent inchangées et sont réutilisées par l’Exécution directe T03.
+La baseline distingue notamment :
+- `ActivityDefinition`, persistante dans le Catalogue T03, de `SessionActivity`, copie indépendante embarquée dans une Séance ;
+- `Exercise`, mode d’Activité exécutable, de la Récupération optionnelle attachée à une Activité ;
+- la Pause entre Séries de la Récupération ;
+- l’Exécution `SESSION` de l’Exécution directe `ACTIVITY` ;
+- l’Exécution autonome T03 de l’orchestration complète de Séance T04 ;
+- la définition courante du Catalogue de l’instantané immuable d’Exécution.
 
-## 10. MVP T03 — Catalogue des activités
-
-Le Catalogue multi-type présente `Activités / Séances / Circuits`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des activités persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Circuits` reste visible mais désactivé.
-
-La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`.
-
-L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Activité, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
-
-Les cartes du Catalogue des activités séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est visible mais désactivé, utilise le même composant DSF `2537:1033` que le Catalogue des séances et occupe la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est présente.
-
-`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. En T03 sur `Activités`, `Filtrer` est fonctionnel au minimum pour accéder à `Archivées`; aucune autre option n’est définie. `Trier` est visible mais désactivé ; le tri par défaut reste la dernière modification décroissante. Le détail visuel de ces panneaux n’est pas encore défini dans Figma et ne doit pas être inventé.
-
-La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
-
-Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Cette suppression ne cascade ni vers les copies déjà placées dans les Séances ni vers l’historique.
-
-La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
-
-Les Circuits fonctionnels et les médias multiples restent hors MVP.
-
-## 11. Matrices et rapports de traçabilité
-
-- [Matrice T03 — Catalogue des activités](./MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md)
-- [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
-- [Rapport de conformité — Récupération et Durée totale](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
-- [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
-- [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
-- [Évidences Figma T03 embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
-- [Contrats T03 déterministes](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)
+La bilatéralité T03 ne crée aucune nouvelle sémantique : elle réutilise les règles existantes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` et `executionSide`. Les règles de calcul existantes restent inchangées.
