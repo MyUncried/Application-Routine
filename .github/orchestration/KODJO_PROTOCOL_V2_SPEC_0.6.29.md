@@ -33,6 +33,8 @@ Pour un premier plan :
 
 Le workflow analyse en lecture seule le code et les tests du `source_head`, les `product_sources` du bootstrap, la mission de planification, l’Issue et ses commentaires.
 
+Les empreintes des `product_sources` sont des empreintes des **blobs Git du HEAD**, et non des octets dépendants du worktree d’un poste. La compatibilité avec les empreintes CRLF historiques est limitée au bootstrap déjà activé de `V2-CAT-01` ; les activations futures calculent les empreintes depuis Git.
+
 ## C. Sortie opposable du premier plan
 
 Le workflow publie un commentaire produit par `github-actions[bot]` au format canonique :
@@ -48,6 +50,8 @@ STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 ```
 
 Le corps contient le plan technique complet ainsi que les blocs d’impact exigés par `kodjo.plan-impact.v1`.
+
+Les sorties génératives utilisées pour construire le premier plan sont structurées par schéma JSON. Les marqueurs protocolaires, la matrice d’impact, les empreintes et le `scope_allow` sont assemblés mécaniquement ; ils ne dépendent pas d’un bloc Markdown libre éventuellement omis par le modèle.
 
 La présence éventuelle d’un `technical-plan.md` préparatoire dans le dossier de tranche ne lui donne aucune autorité protocolaire supplémentaire : il peut être fourni comme **seed de travail non opposable**, mais seule la sortie `PLAN_OUTPUT` de bot devient la source de la revue indépendante.
 
@@ -105,4 +109,20 @@ La qualification de 0.6.29 couvre au minimum :
 7. rejeu du plan-impact au `source_head` exact ;
 8. conservation intacte du parcours `START_PLAN_REVISION` existant ;
 9. aucune implémentation autorisée par la seule réussite du plan ou de sa revue ;
-10. possibilité de republier un plan INITIAL après un verdict `REVISE`, sans PR applicative.
+10. possibilité de republier un plan INITIAL après un verdict `REVISE`, sans PR applicative ;
+11. vérification des `product_sources` indépendante des fins de ligne du worktree ;
+12. sorties génératives structurées puis assemblage mécanique des marqueurs et preuves ;
+13. scan d’impact INITIAL limité à un niveau d’importateurs directs, sans promotion transitive.
+
+## H. Contrat d’impact du premier plan
+
+Pour `START_INITIAL_PLAN`, `scanDirectImporters` reste un scan **à un seul niveau** à partir des `modified_modules` explicitement déclarés par le premier plan :
+
+- chaque importateur direct candidat est classé exactement une fois ;
+- un consommateur direct classé `MODIFY` entre dans `scope_allow` mais ne devient pas une nouvelle racine de scan ;
+- un test classé `TEST_MUST_ADAPT` entre dans `scope_allow` ;
+- aucune boucle de promotion successive ni fermeture transitive n’est exécutée ;
+- le volume `modified_modules`, `candidates`, consommateurs directs `MODIFY` et `scope_allow` est journalisé ;
+- un `scope_allow` supérieur à 20 produit un avertissement explicite mais ne change pas le contrat et ne bloque pas à lui seul la planification.
+
+Cette règle supersède `INC-125/T-100` **uniquement pour le chemin `START_INITIAL_PLAN`**. Le parcours historique `START_PLAN_REVISION` n’est pas modifié par cette révision 0.6.29.
