@@ -61,6 +61,17 @@ La revue `5712601284` a demandé une révision avant développement. Les points 
 
 Le prochain plan doit énumérer et justifier l’intégralité de son `scope_allow` ; sa section de périmètre technique et l’artefact machine ne doivent pas diverger.
 
+### Corrections imposées après la seconde revue indépendante
+
+La revue `5714616288` a confirmé les corrections précédentes et demande uniquement de fermer les écarts de déterminisme de scope suivants avant développement :
+
+- la liste de scope présentée en prose doit être **strictement identique** au `scope_allow` machine final : même nombre de chemins, mêmes chemins et mêmes statuts d’écriture ; aucune entrée machine ne peut être omise de la section de périmètre technique ;
+- si `app/(creation)/composition.tsx`, `src/features/sessions/SessionDraftProvider.tsx`, `src/features/sessions/SessionService.ts` ou `src/features/sessions/__tests__/SessionService.test.ts` restent classés comme modifiés/adaptés par l’artefact final, chacun doit être explicitement listé et justifié dans le plan ; sinon ils doivent être reclassés comme non affectés avec justification déterministe ;
+- `src/features/sessions/SessionCard.tsx` est gelé pour cette tranche et `src/features/sessions/__tests__/SessionCard.test.tsx` ne doit pas être ouvert en écriture en l’absence d’un changement concret de contrat démontré ; le simple passage par le barrel i18n ne suffit pas à justifier `MODIFY` ;
+- toute entrée ajoutée au scope pour satisfaire un impact direct doit correspondre à un changement réellement requis par la tranche ; aucune écriture de confort ou de régression préventive sur un composant gelé n’est autorisée.
+
+Pour éviter une nouvelle ambiguïté de revue, le prochain plan doit également rendre déterministes les réserves non bloquantes déjà identifiées : ne pas traiter `Lecture`/`Démarrer` au conditionnel lorsqu’une décision ou un contrat d’écran fixe déjà son état ; expliciter l’ancrage de l’arbre `Créer` conformément à D-184 ; couvrir complètement D-168 pour la restauration du contexte Catalogue concerné ; préciser le comportement de validation sans sélection prévu par `09 bis` ; et, si `SegmentedControl` est extrait, imposer la préservation de la traduction visuelle DSF canonique sans refonte.
+
 ## Périmètre fonctionnel inclus
 
 Le périmètre exact est celui de l’Issue #150. Le plan doit le traiter sans l’élargir.
