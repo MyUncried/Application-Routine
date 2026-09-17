@@ -1,0 +1,76 @@
+{
+  "schema_version": "kodjo.protocol.v2.product-source-hash-migration.v1",
+  "slice_id": "V2-CAT-01",
+  "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "slice_bootstrap_sha256": "16964a2679134baea1f535930899f24702a7e9cf97590486559f1adb7075d3ac",
+  "authority": "GIT_BLOB",
+  "scope": "PRODUCT_SOURCE_HASHES_ONLY",
+  "legacy_product_sources": [
+    {
+      "path": "docs/PRODUCT.md",
+      "sha256": "e7b541ac38aa7cdafa84adb8791b2936c6a2515ddc0d750a9887fc739f67cc33"
+    },
+    {
+      "path": "docs/INDEX.md",
+      "sha256": "9a06be0f88a4933fc7d226b3d6fb71b39f9f7eeb91edfc7ae1c1334cfce68d88"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md",
+      "sha256": "18dbd018d6bd5f320130f576dfd2f35f1c780ca21e03fff843985ed2de169cc6"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md",
+      "sha256": "261694d498d4f4eb772f42535b2e03806a4f191db95a3c436b386e8f28b383b0"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/05 – Versions du produit.md",
+      "sha256": "a5d59c17a20c75d475507dbecbd9991a7badd54640eb70e1196fab60b23164ce"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "sha256": "e6d11c07be3f5f7735bd518e13d25b107028d223b599e5e543e7eab50802263c"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "sha256": "1e9db752cbde1382747733fa976921f8c745c5b91e59a1c100ee97db1ff7976f"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "sha256": "19c3f09580f30c59c83ae1bb03f478598fa81414c5a427abc34cef2492b99b58"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+      "sha256": "f2c79ad1e4d4e6a8a78b17570dac136a4ba675e470d8d3fd28dec54437c0161b"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 bis – Modèle et migration T03 Catalogue.md",
+      "sha256": "775d55ed3804425563c3d072b4ef0d5fc3fc5f3a8b0b8e99d01a99a8ae0cef84"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "sha256": "233fcac8e351152e443bf1054594bcd358bb65ca8b776ace3717bb78b4f003bb"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md",
+      "sha256": "349c24d7d88e9c9989d065c92fec386e02b8e8d1dd0eb03ea38e5746ad26d3a5"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "sha256": "2154f66cc21a349dbf926785abc002f4737c7fd225b9976dccb1fc8774902a41"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "sha256": "b288655be2d0392363bee3b39f6d96c9a333e60209b95de0dcdf9fa375b9293f"
+    },
+    {
+      "path": "docs/MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md",
+      "sha256": "cdbea10df53d81cdde02c367b5fc8ec4063eb939ee2356c7076ad4b7090cf373"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md",
+      "sha256": "e5b1d2c275ada45f5ca6fc058ddfed5e0ac7ca8d2415ee0be919873050329653"
+    }
+  ],
+  "reason": "Migration bornée du bootstrap historique V2-CAT-01 : les empreintes enregistrées avant la correction d’autorité Git ne sont pas utilisées comme autorité de contenu. Le baseline_head et l’identité complète du bootstrap restent immuables ; les blobs Git du baseline_head deviennent l’unique autorité de contenu.",
+  "created_at": "2026-09-17T09:15:00.000Z"
+}
