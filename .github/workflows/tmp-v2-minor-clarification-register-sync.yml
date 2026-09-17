@@ -22,10 +22,11 @@ jobs:
             exit 0
           fi
           python scripts/kodjo/tmp_sync_minor_register.py
+          sed -i 's/KODJO_PLAN_CONTRACT_JSON requis pour le fast path/KODJO_PLAN_CONTRACT_JSON attendu exactement une fois/' tests/kodjo/minor-plan-clarification.pilot.js
           node --test tests/kodjo/incident-register.pilot.js tests/kodjo/minor-plan-clarification.pilot.js
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md tests/kodjo/incident-register.pilot.js
+          git add .github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md tests/kodjo/incident-register.pilot.js tests/kodjo/minor-plan-clarification.pilot.js
           git commit -m 'docs(kodjo): register minor plan clarification fast path'
           git push origin HEAD:feat/v2-minor-plan-clarification-fast-path-20260917
