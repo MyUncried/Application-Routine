@@ -96,7 +96,9 @@ try {
   }
 
   const requiredTestWrites = [...requiredWrites].sort();
-  if (mode === 'consume') {
+  const hasEmbeddedContract = /<KODJO_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_PLAN_CONTRACT_JSON>/.test(markdown);
+  const consume = mode === 'consume' || hasEmbeddedContract;
+  if (consume) {
     let embedded;
     try {
       embedded = extractTaggedJson(markdown, 'KODJO_PLAN_CONTRACT_JSON');
@@ -122,7 +124,7 @@ try {
   };
   fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');
-  process.stdout.write(`[KODJO_V2] plan contract consistency verified — mode=${mode} version=${CURRENT_CONTRACT_VERSION} scope=${scope.length} tests=${requiredWrites.size}\n`);
+  process.stdout.write(`[KODJO_V2] plan contract consistency verified — mode=${consume ? 'consume' : 'produce'} version=${CURRENT_CONTRACT_VERSION} scope=${scope.length} tests=${requiredWrites.size}\n`);
 } catch (error) {
   process.stderr.write(String(error && error.message ? error.message : error) + '\n');
   process.exit(1);
