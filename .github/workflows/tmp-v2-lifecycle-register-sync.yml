@@ -1,0 +1,58 @@
+name: TEMP V2 lifecycle register sync
+
+on:
+  push:
+    branches:
+      - fix/v2-plan-consumption-lifecycle-20260917
+    paths:
+      - .github/workflows/tmp-v2-lifecycle-register-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v2-plan-consumption-lifecycle-20260917
+          fetch-depth: 0
+      - name: Apply bounded register update
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          register=Path('.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md')
+          text=register.read_text(encoding='utf-8')
+          if 'Version du registre : **3.42.0**' not in text:
+              text=text.replace('Version du registre : **3.41.0**','Version du registre : **3.42.0**',1)
+              lines=text.splitlines()
+              idx=next(i for i,line in enumerate(lines) if line.startswith('| T-115 |'))
+              additions=[
+              "| INC-143 | 2026-09-17 | V2 planification 0.6.31 | DÉFAUT_CONCEPTION | Consommation d’un PLAN_OUTPUT après évolution du protocole | Un plan produit avant #166 a été relu sous un protocole plus récent et a atteint Claude malgré des contradictions désormais détectables déterministiquement | Les invariants de cohérence étaient exécutés à la production mais pas rejoués aux points de consommation ; aucun artefact ne portait de version de contrat exploitable | Audit indépendant `AUDIT-INDEPENDANT-KODJO-V2-59c9834d.md` : reproduction `PLAN_SCOPE_CONTRADICTION`, 23 violations de contrat de tests, plan réel run `35227078398`, revue `35241462839` | Contrat `kodjo.plan-contract-consistency.v2` avec `contract_version=2` et `protocol_commit`, mode consume, rejet `PLAN_PROTOCOL_STALE`/`PLAN_CONTRACT_DRIFT`, rejeu avant Claude dans les deux revues | Tout PLAN_OUTPUT est revalidé avec les invariants courants avant revue ; un plan hérité sans contrat v2 est périmé et doit être republié | T-116 | NON RETESTÉ | START_INITIAL_PLAN_REVIEW, START_PLAN_REVIEW, fast path | OUVERT | renforce INC-140/141 | Le chemin INITIAL conserve `verify-initial-product-sources.js` et documente pourquoi le transition verifier complet n’est pas applicable à une mission courante supersédante |",
+              "| T-116 | V2 0.6.31 | Péremption et rejeu du contrat de plan | Cycle de vie artefact | Soumettre un plan sans contrat, v1, v2 divergent puis v2 cohérent ; vérifier les deux workflows de revue | Les trois premiers cas sont refusés avant Claude ; le v2 cohérent est accepté ; les deux revues référencent le vérificateur courant | plan-contract-consistency.pilot.js + plan-consumption-lifecycle.pilot.js | NON RETESTÉ | INC-143 |",
+              "| INC-144 | 2026-09-17 | V2 implémentation 0.6.31 | DÉFAUT_CONCEPTION | Gate plan/revue/utilisateur avant IMPLEMENT | `kodjo-v2-implementation-artifact.yml` pouvait être dispatché sans preuve locale qu’un plan avait une revue APPROVE ni qu’un gate utilisateur explicite visait exactement cette revue | Le workflow d’implémentation validait identité de tranche, source et sécurité d’écriture mais ne liait pas causalement plan, revue et autorisation utilisateur | Audit indépendant `AUDIT-INDEPENDANT-KODJO-V2-59c9834d.md`, constat D-7 ; inspection du workflow courant | Ajouter `plan_comment_id`, `review_comment_id`, `user_gate_comment_id`, vérifier auteurs/marqueurs/liaisons, rejouer impact et contrat courant avant l’agent | Aucune exécution IMPLEMENT ne démarre sans PLAN_OUTPUT courant, PLAN_REVIEW_OUTPUT APPROVE lié et commentaire `USER_IMPLEMENTATION_APPROVED` lié ; TARGETED_FIX conserve sa causalité de reprise existante | T-117 | NON RETESTÉ | workflow_dispatch IMPLEMENT | OUVERT | — | Exploitabilité antérieure du dispatch hors procédure non démontrée ; le correctif rend le gate exécutable dans le workflow lui-même |",
+              "| T-117 | V2 0.6.31 | Gate d’implémentation causal | Autorisation | Tester liaison plan→revue APPROVE→gate utilisateur, revue REVISE et mauvais review id ; vérifier placement du gate avant agent | Cas nominal PASS ; revue non approuvée et liaison incorrecte refusées ; workflow structurellement gardé avant agent | implementation-plan-gate.pilot.js + plan-consumption-lifecycle.pilot.js | NON RETESTÉ | INC-144 |",
+              ]
+              lines[idx+1:idx+1]=additions
+              text='\n'.join(lines)+'\n'
+              history='| 3.41.0 | 2026-09-17 | Ajout d’INC-142 et T-115 : fast path de clarification mineure du plan initial, transformation littérale déterministe, revalidation machine et revue réduite avec fallback complet. |'
+              if history not in text:
+                  raise SystemExit('history anchor missing')
+              text=text.replace(history,"| 3.42.0 | 2026-09-17 | Ajout d’INC-143/144 et T-116/117 : contrat de plan versionné et rejoué à la consommation, péremption des plans hérités et gate plan/revue/utilisateur avant IMPLEMENT. |\n"+history,1)
+              register.write_text(text,encoding='utf-8')
+          test=Path('tests/kodjo/incident-register.pilot.js')
+          t=test.read_text(encoding='utf-8')
+          t=t.replace("test('registre canonique 3.41.0: incidents uniques, complets et à valeurs contrôlées'", "test('registre canonique 3.42.0: incidents uniques, complets et à valeurs contrôlées'",1)
+          t=t.replace('/Version du registre : \\*\\*3\\.41\\.0\\*\\*/','/Version du registre : \\*\\*3\\.42\\.0\\*\\*/',1)
+          t=t.replace("assertSequence(incidents, 'INC', 142);","assertSequence(incidents, 'INC', 144);",1)
+          t=t.replace("assertSequence(ids('T'), 'T', 115);","assertSequence(ids('T'), 'T', 117);",1)
+          test.write_text(t,encoding='utf-8')
+          PY
+          git diff --check
+          git status --short
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md tests/kodjo/incident-register.pilot.js
+          git commit -m 'docs(kodjo): record plan lifecycle audit incidents'
+          git push origin HEAD:fix/v2-plan-consumption-lifecycle-20260917
