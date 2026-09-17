@@ -62,18 +62,25 @@ function fixture(expectedOverride = null, content = '# Déterministe\nligne Unic
   return { dir, source, file, bootstrap, bootstrapObject, baselineHead, blob: blob.stdout, evidence: path.join(dir, 'evidence.txt') };
 }
 
-function run(f) {
-  return spawnSync(process.execPath, [verifier, f.bootstrap, f.source, f.evidence], { encoding: 'utf8' });
+function run(f, materializeRoot = null) {
+  const args = [verifier, f.bootstrap, f.source, f.evidence];
+  if (materializeRoot) args.push(materializeRoot);
+  return spawnSync(process.execPath, args, { encoding: 'utf8' });
 }
 
-test('autorité Git blob: une matérialisation CRLF du worktree ne change ni le hash ni la preuve', () => {
+test('autorité Git blob: une matérialisation CRLF du worktree ne change ni le hash, ni la preuve, ni le contexte canonique', () => {
   const f = fixture();
   fs.writeFileSync(f.file, f.blob.toString('utf8').replace(/\n/g, '\r\n'), 'utf8');
-  const result = run(f);
+  const materialized = path.join(f.dir, 'materialized');
+  fs.mkdirSync(materialized, { recursive: true });
+  const result = run(f, materialized);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /authority=GIT_BLOB/);
+  assert.match(result.stdout, /materialized=CANONICAL_GIT_BLOBS/);
   assert.match(result.stdout, new RegExp(`baseline_head=${f.baselineHead}`));
   assert.equal(fs.readFileSync(f.evidence, 'utf8'), '\n===== docs/Référence.md =====\n' + f.blob.toString('utf8'));
+  assert.deepEqual(fs.readFileSync(path.join(materialized, 'docs', 'Référence.md')), f.blob);
+  assert.notDeepEqual(fs.readFileSync(f.file), f.blob);
 });
 
 test('mismatch réel du blob Git: le diagnostic contient chemin, expected, actual, baseline et nature', () => {
