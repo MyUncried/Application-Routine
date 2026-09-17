@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
           clean: true
-          persist-credentials: true
+          persist-credentials: false
           path: _kodjo/${{ github.run_id }}
 
       - name: Resolve exactly one immutable causal request
@@ -48,12 +48,12 @@ jobs:
           if($parts.Count -ne 2 -or $parts[0] -ne 'A'){ throw "CAUSAL_REQUEST_MUTATION_REFUSED: $($lines[0])" }
           $path = $parts[1]
           if($path -notmatch '^\.github/orchestration/queue/v2-causal/[A-Za-z0-9._-]+\.json$'){ throw 'CAUSAL_REQUEST_PATH_INVALID' }
-          $q = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
+          $q = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json
           if($q.schema_version -ne 'kodjo.protocol.v2.comment-causal-request.0.6.32'){ throw 'CAUSAL_REQUEST_SCHEMA_REFUSED' }
           if($q.mode -ne 'INITIAL' -or ([string]$q.operation_kind).ToUpperInvariant() -ne 'IMPLEMENT'){ throw 'CAUSAL_REQUEST_MODE_REFUSED' }
           if($q.slice_id -notmatch '^[A-Za-z0-9._-]{1,80}$'){ throw 'CAUSAL_REQUEST_SLICE_INVALID' }
           if([int]$q.issue_number -lt 1){ throw 'CAUSAL_REQUEST_ISSUE_INVALID' }
-          foreach($field in @('source_head','planning_source_head')){
+          foreach($field in @('source_head','planning_source_head','baseline_head')){
             if([string]$q.$field -notmatch '^[0-9a-f]{40}$'){ throw "CAUSAL_REQUEST_$($field.ToUpperInvariant())_INVALID" }
           }
           if([string]$q.source_head -ne $env:BEFORE_SHA){ throw 'CAUSAL_REQUEST_SOURCE_MUST_EQUAL_PARENT' }
@@ -62,6 +62,8 @@ jobs:
           }
           if(-not $q.slice_bootstrap_file -or -not $q.slice_bootstrap_sha256 -or -not $q.prompt_file){ throw 'CAUSAL_REQUEST_IDENTITY_MISSING' }
           if(-not ($q.scope_allow -is [System.Array]) -or $q.scope_allow.Count -lt 1){ throw 'CAUSAL_REQUEST_SCOPE_MISSING' }
+          $actualBootstrap = & node scripts/kodjo/validate-slice-bootstrap.js . ([string]$q.slice_bootstrap_file) ([string]$q.baseline_head)
+          if($LASTEXITCODE -ne 0 -or ([string]$actualBootstrap).Trim() -ne [string]$q.slice_bootstrap_sha256){ throw 'CAUSAL_REQUEST_BOOTSTRAP_REFUSED' }
           $utf8 = New-Object Text.UTF8Encoding($false)
           [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "path=$path`n", $utf8)
           [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "slice_id=$($q.slice_id)`n", $utf8)
@@ -96,44 +98,39 @@ jobs:
             $plan $review $gate $env:SLICE_ID $env:PLANNING_SOURCE_HEAD $env:ISSUE_NUMBER (Get-Location).Path `
             scripts/kodjo/verify-plan-contract-consistency.js scripts/kodjo/verify-plan-impact.js $env:PROTOCOL_HEAD $proof
           if($LASTEXITCODE -ne 0){ throw 'CAUSAL_IMPLEMENTATION_GATE_REFUSED' }
-          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH | ConvertFrom-Json
-          $p = Get-Content -Raw -LiteralPath $proof | ConvertFrom-Json
+          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH -Encoding UTF8 | ConvertFrom-Json
+          $p = Get-Content -Raw -LiteralPath $proof -Encoding UTF8 | ConvertFrom-Json
           $declared = @($q.scope_allow | ForEach-Object { [string]$_ } | Sort-Object -Unique)
           $approved = @($p.plan_contract.write_scope | ForEach-Object { [string]$_ } | Sort-Object -Unique)
           if($declared.Count -ne $approved.Count -or (Compare-Object $declared $approved)){ throw 'CAUSAL_REQUEST_SCOPE_CONTRADICTION' }
 
-      - name: Project verified causal request to Lean Queue runtime
+      - name: Project verified causal request to local supervisor request
         id: project
         env:
           REQUEST_PATH: ${{ steps.request.outputs.path }}
         run: |
           $ErrorActionPreference='Stop'
-          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH | ConvertFrom-Json
-          $lean = [ordered]@{
-            schema_version='kodjo.protocol.v2.lean-request.0.6.13'
+          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH -Encoding UTF8 | ConvertFrom-Json
+          $local = [ordered]@{
+            schema_version='kodjo.protocol.v2.local-implementation.0.6.12'
             slice_id=[string]$q.slice_id
-            issue_number=[int]$q.issue_number
             source_head=[string]$q.source_head
+            protocol_source_head=[string]$q.source_head
             baseline_head=[string]$q.baseline_head
             slice_bootstrap_file=[string]$q.slice_bootstrap_file
             slice_bootstrap_sha256=[string]$q.slice_bootstrap_sha256
             mode='INITIAL'
             operation_kind='IMPLEMENT'
+            delivery_target=$null
             session_id=$null
             prompt_file=[string]$q.prompt_file
             scope_allow=@($q.scope_allow)
             checks=@($q.checks)
             limits=$q.limits
             request_id=[string]$q.request_id
-            created_at=[string]$q.created_at
-            authorized_plan=[ordered]@{ plan_comment_id=[string]$q.plan_comment_id; evidence_kind='COMMENT_CAUSAL' }
-            independent_review=[ordered]@{ review_comment_id=[string]$q.review_comment_id; source_plan_comment_id=[string]$q.plan_comment_id; verdict='APPROVED'; evidence_kind='COMMENT_CAUSAL' }
-            user_gate=[ordered]@{ gate_ref=('issue_comment:' + [string]$q.user_gate_comment_id); source_plan_comment_id=[string]$q.plan_comment_id; source_review_comment_id=[string]$q.review_comment_id; decision='APPROVED'; user_login='MyUncried'; evidence_kind='ORGANISATIONAL' }
           }
-          $runtimeAbs = Join-Path $env:RUNNER_TEMP "kodjo-v2-causal-runtime-${{ github.run_id }}.json"
-          [IO.File]::WriteAllText($runtimeAbs, ($lean | ConvertTo-Json -Depth 12), (New-Object Text.UTF8Encoding($false)))
-          $runtimeRel = [IO.Path]::GetRelativePath((Get-Location).Path, $runtimeAbs)
-          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "path=$runtimeRel`n", (New-Object Text.UTF8Encoding($false)))
+          $runtimeAbs = Join-Path $env:RUNNER_TEMP "kodjo-v2-causal-local-${{ github.run_id }}.json"
+          [IO.File]::WriteAllText($runtimeAbs, ($local | ConvertTo-Json -Depth 12), (New-Object Text.UTF8Encoding($false)))
           [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "absolute=$runtimeAbs`n", (New-Object Text.UTF8Encoding($false)))
 
       - name: Execute through existing Windows local supervisor
@@ -141,7 +138,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          & scripts/kodjo/run-queued-request.ps1 -QueueFile '${{ steps.project.outputs.path }}'
+          & scripts/kodjo/run-queued-request.ps1 -QueueFile '${{ steps.request.outputs.path }}' -LocalRequestFile '${{ steps.project.outputs.absolute }}'
           if($LASTEXITCODE -ne 0){ exit $LASTEXITCODE }
 
       - name: Remove transient projected request
