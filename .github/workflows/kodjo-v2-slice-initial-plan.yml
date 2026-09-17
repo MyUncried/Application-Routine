@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   plan:
-    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN')
+    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
