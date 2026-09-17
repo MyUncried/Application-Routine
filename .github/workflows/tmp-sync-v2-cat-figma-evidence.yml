@@ -1,0 +1,61 @@
+name: TEMP sync V2-CAT-01 Figma evidence
+
+on:
+  push:
+    branches:
+      - docs/v2-cat-01-review-findings-20260917
+    paths:
+      - .github/workflows/tmp-sync-v2-cat-figma-evidence.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/v2-cat-01-review-findings-20260917
+          fetch-depth: 0
+      - name: Record verified Figma resynchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          replacements={
+            Path('docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md'):[(
+              'Arbitrage résolu pour V2-CAT-01 : le libellé fonctionnel exact est `Une nouvelle activité`. Les textes `Une activité` encore visibles dans les frames `3787:5148` et `3841:8375` constituent un écart Figma à resynchroniser et ne déterminent plus le libellé fonctionnel. Voir D-186.',
+              'Arbitrage résolu pour V2-CAT-01 : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées dans Figma le 17 septembre 2026 et affichent désormais ce libellé exact. Voir D-186.')],
+            Path('docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md'):[(
+              'Les occurrences `Une activité` encore visibles dans les frames `3787:5148` et `3841:8375` sont un écart Figma à resynchroniser et ne constituent plus la règle fonctionnelle.',
+              'Les frames `3787:5148` et `3841:8375` ont été resynchronisées le 17 septembre 2026 et affichent `Une nouvelle activité`.')],
+            Path('docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md'):[(
+              'Arbitrage V2-CAT-01 résolu : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` affichent encore `Une activité` et doivent être resynchronisées ; cet écart graphique ne remplace pas la décision fonctionnelle D-186.',
+              'Arbitrage V2-CAT-01 résolu : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées dans Figma le 17 septembre 2026 et affichent désormais ce libellé. Voir D-186.')],
+            Path('.github/orchestration/v2-slices/V2-CAT-01/planning-mission.md'):[(
+              'le libellé exact de la première option `Créer` est `Une nouvelle activité` ; l’arbitrage utilisateur est tracé dans l’Issue #150 et les anciennes occurrences Figma `Une activité` constituent un écart graphique à resynchroniser, pas une règle fonctionnelle ;',
+              'le libellé exact de la première option `Créer` est `Une nouvelle activité` ; l’arbitrage utilisateur est tracé dans l’Issue #150 et les frames Figma `3787:5148` et `3841:8375` ont été resynchronisées le 17 septembre 2026 avec ce libellé exact ;')]
+          }
+          for p, reps in replacements.items():
+            s=p.read_text(encoding='utf-8')
+            for old,new in reps:
+              if s.count(old)!=1:
+                raise SystemExit(f'Expected exactly one occurrence in {p}: {old[:80]}')
+              s=s.replace(old,new)
+            p.write_text(s,encoding='utf-8')
+          PY
+          grep -Fq 'resynchronisées dans Figma le 17 septembre 2026' 'docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md'
+          grep -Fq '3787:5148' '.github/orchestration/v2-slices/V2-CAT-01/planning-mission.md'
+          git diff --check
+      - name: Commit and remove transport workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/tmp-sync-v2-cat-figma-evidence.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs(kodjo): record V2-CAT-01 Figma label synchronization'
+          git push origin HEAD:docs/v2-cat-01-review-findings-20260917
