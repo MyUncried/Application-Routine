@@ -129,7 +129,7 @@ Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée total
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Une Activité ne possède aucun média fonctionnel dans le MVP. Le bouton `+ Ajouter un média` reste visible mais désactivé et la section Médias est masquée. Les médias multiples ordonnés restent post-MVP.
+Une Activité ne possède aucun média fonctionnel dans le MVP. La section Médias est visible et repliable dans l’éditeur ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les médias multiples ordonnés restent post-MVP.
 
 ### Exécution d’une Séance
 
@@ -434,7 +434,7 @@ En cas de contradiction, l’ordre de référence est :
 
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
-- `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-184 ;
+- `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-186 ;
 - `09 bis – Modèle et migration T03 Catalogue.md` ;
 - `13 – Contrats d’écran.md`, unique référence des contrats d’écran T03 ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;

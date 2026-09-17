@@ -12,7 +12,7 @@ Les contrats T03 actifs sont `CE-T03-01` à `CE-T03-17`. Le présent chapitre co
 
 Pour T03 :
 
-1. décisions validées dans le chapitre 07, notamment D-143 à D-184, avec priorité aux décisions supersédantes D-167 à D-184 ;
+1. décisions validées dans le chapitre 07, notamment D-143 à D-186, avec priorité aux décisions supersédantes D-167 à D-186 ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -457,7 +457,7 @@ Nom → Ajouter média disabled → sections/accordéons → paramètres Séries
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; Ajouter média visible disabled ; section Médias masquée ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
+Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
 
 ### 9. Layout déterministe
 

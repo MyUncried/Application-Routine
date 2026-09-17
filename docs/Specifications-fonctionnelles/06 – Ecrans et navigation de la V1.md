@@ -713,7 +713,7 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 *Écran 4 — Activité — Durée / Pause / Séries — Figma `3542:4656`*
 
-La capture Figma matérialise la structure cible commune. Jusqu’à la livraison fonctionnelle des Médias, le bouton `Ajouter un média` est visible mais désactivé et la section Médias peut être masquée dans l’application. Le Design System conserve néanmoins la section repliable et ses composants pour la tranche Média post-T05. Le bouton réutilise `Action / Add Media — Source exact` (`3382:60`) et son icône vectorielle DSF `icon/ajouter` (`3382:61`) en `16 × 16` ; aucun caractère typographique `+` n’est utilisé.
+La capture Figma matérialise la structure cible commune. Dans le MVP, la section Médias reste visible et repliable ; son contrôle `Déployer / Condenser` et son placeholder média sont désactivés et aucune fonction d’import, capture, lecture ou stockage n’est active. Le Design System conserve la section et ses composants pour l’activation fonctionnelle du lot Média post-MVP. Le bouton réutilise `Action / Add Media — Source exact` (`3382:60`) et son icône vectorielle DSF `icon/ajouter` (`3382:61`) en `16 × 16` ; aucun caractère typographique `+` n’est utilisé.
 
 ### États Figma de référence
 
@@ -766,7 +766,7 @@ Le reste du formulaire affiche ensuite, dans cet ordre :
 - segment `Durée / Répétitions / À l’échec` ;
 - cadre `Séries / cible du mode / Pause` ;
 - cadre bleu, ligne 2 : `Côté / Récupération / Durée totale` ;
-- section repliable `Médias`, préparée dans Figma mais masquable tant que la fonction Média n’est pas livrée ;
+- section repliable `Médias`, visible dans le MVP ; son contrôle `Déployer / Condenser` et son placeholder restent désactivés tant que la fonction Média n’est pas livrée ;
 - synthèse calculée de l’Activité, immuable et ancrée en bas de l’écran ;
 - bouton final fixe `Terminer`.
 
@@ -1697,7 +1697,7 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ## Règles transverses de l’éditeur d’Activité
 
-Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans toutes les frames MVP, `Ajouter un média` reste visible mais désactivé, utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`; la section Médias est masquée. Les composants Média du DSF constituent la référence post-MVP.
+Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la section Médias est visible et repliable conformément aux frames courantes ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans fonction média réelle. Le bouton utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`. Les composants Média du DSF constituent la référence d’activation fonctionnelle post-MVP.
 
 La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Côté / Récupération / Durée totale >=`, sans cible chiffrée. La frame `3561:4695` et la roulette `3561:7673` appliquent la même visibilité `Durée totale >=` en Répétitions. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
 
@@ -1747,7 +1747,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 Ces points sont consignés sans modification des règles fonctionnelles. Ils sont détaillés dans `images/README-T03-FIGMA.md`.
 
 1. **Modale 2 — Abandonner les modifications d’une Activité.** Le node `3224:4082` cité par ce chapitre n’existe plus dans le Figma courant et aucune frame de remplacement n’a été identifiée. La capture `modale-2-abandon-modifications-activite.png` est conservée telle quelle comme évidence historique ; elle n’est pas déclarée courante.
-2. **Section Médias de l’éditeur d’Activité.** La règle transverse « Règles transverses de l’éditeur d’Activité » indique que « la section Médias est masquée » dans les frames MVP. Les frames courantes `3542:4656`, `3561:4695` et `3561:7802` affichent au contraire la section Médias repliable. La règle n’est pas modifiée ; la contradiction entre le texte et la frame doit être arbitrée.
-3. **Écran 13 — libellé de la première option de l’arbre `Créer`.** Ce chapitre indique `Une nouvelle activité`; les frames `3787:5148` et `3841:8375` affichent `Une activité`. Aucun libellé n’est modifié avant arbitrage.
+2. **Section Médias de l’éditeur d’Activité.** Arbitrage résolu pour V2-CAT-01 : les frames courantes `3542:4656`, `3561:4695` et `3561:7802` font foi pour la présence de la section Médias repliable. La section est visible ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les anciennes formulations « section Médias masquée » sont supersédées par D-185.
+3. **Écran 13 — libellé de la première option de l’arbre `Créer`.** Arbitrage résolu pour V2-CAT-01 : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées dans Figma le 17 septembre 2026 et affichent désormais ce libellé exact. Voir D-186.
 4. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 5. **Écran 2h — Catalogue après archivage.** La frame `1992:10937` affiche la snackbar `Séance supprimée`, alors que la légende du chapitre décrit un retrait par archivage.

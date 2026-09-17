@@ -190,7 +190,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
-- bouton `+ Ajouter un média` visible mais désactivé ; section Médias masquée.
+- section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
