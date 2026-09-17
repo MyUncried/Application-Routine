@@ -81,6 +81,17 @@ test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejou
   assert.doesNotMatch(workflow, /pulls\//);
 });
 
+test('0.6.29 — la revue initiale réutilise le vérificateur portable des sources produit', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
+  assert.match(workflow, /Copy-Item -LiteralPath scripts\/kodjo\/verify-initial-product-sources\.js -Destination \$protocol/);
+  assert.match(workflow, /\$sourceVerifier=Join-Path \$protocol 'verify-initial-product-sources\.js'/);
+  assert.match(workflow, /& node \$sourceVerifier \$bootstrapCopy \(Get-Location\)\.Path \$evidence/);
+  assert.match(workflow, /Portable initial product source verification failed/);
+  assert.match(workflow, /product-evidence\.txt/);
+  assert.doesNotMatch(workflow, /Get-FileHash -Algorithm SHA256/);
+  assert.doesNotMatch(workflow, /Product source hash mismatch at baseline/);
+});
+
 test('0.6.29 — un plan initial peut être republié après REVISE sans changer de chemin protocolaire', () => {
   const spec = read('.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md');
   assert.match(spec, /nouvelle invocation `START_INITIAL_PLAN`/);
