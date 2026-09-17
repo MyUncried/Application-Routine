@@ -20,11 +20,26 @@ Le chemin local existant et qualifié est :
 - ajout de l’entrée immuable `.github/orchestration/queue/v2-causal/*.json` ;
 - réutilisation de `verify-implementation-plan-gate.js` avant toute invocation locale ;
 - comparaison stricte du `scope_allow` transporté avec `plan_contract.write_scope` recalculé ;
-- projection temporaire vers le format Lean Queue existant, sous `RUNNER_TEMP` ;
+- projection temporaire vers le format local existant, sous `RUNNER_TEMP` ;
 - appel exclusif de `run-queued-request.ps1` pour l’exécution ;
 - ajout de `.github/orchestration/v2-slices/V2-CAT-01/implementation-mission.md` ;
 - ajout de `tests/kodjo/comment-causal-implementation-entry.pilot.js` ;
 - ajout de la spécification `KODJO_PROTOCOL_V2_SPEC_0.6.32.md`.
+
+### Correctif post-qualification du premier run causal
+
+Le run réel `35273737374` a été bloqué avant le gate et avant Claude par un faux positif de dérive : sous Windows, `git diff --name-only` avait quoté et échappé en octal les chemins documentaires Unicode, de sorte que leur préfixe `docs/` n’était plus reconnu.
+
+Correction bornée :
+
+- ajout de `scripts/kodjo/verify-causal-application-drift.js` ;
+- lecture des chemins Git avec `core.quotepath=false`, sortie `-z` et décodage UTF-8 déterministe ;
+- comparaison sur les chemins physiques verbatim ;
+- refus inchangé de toute vraie dérive hors `.github/`, `scripts/kodjo/`, `tests/kodjo/` et `docs/` ;
+- cleanup final conditionnel pour ne jamais appeler `Remove-Item` avec un chemin vide lorsque l’exécution s’arrête avant projection ;
+- tests de non-régression couvrant un nom documentaire avec tiret et accents Unicode ainsi qu’un vrai chemin applicatif `src/`.
+
+Aucune invocation Claude n’a eu lieu dans le run défaillant et aucun fichier applicatif n’a été modifié.
 
 ## Invariants conservés
 
@@ -45,7 +60,7 @@ Chaîne causale utilisée :
 - gate utilisateur : `5720551793` ;
 - planning source : `63a3c26ed492f7c0925cfb57419f3dc2dcc5e476`.
 
-Après fusion et qualification de 0.6.32, une nouvelle demande comment-causale sera ajoutée sous `queue/v2-causal`. Son parent exact deviendra le `source_head` d’implémentation et le workflow local produira la PR applicative.
+Après fusion et qualification de 0.6.32, toute nouvelle demande comment-causale est ajoutée sous `queue/v2-causal`. Son parent exact devient le `source_head` d’implémentation et le workflow local produit la PR applicative.
 
 ## Hors périmètre
 
