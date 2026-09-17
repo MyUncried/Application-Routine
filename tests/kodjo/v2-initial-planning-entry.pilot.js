@@ -43,6 +43,17 @@ test('0.6.29 — les activations futures hachent le blob Git du HEAD et non les 
   assert.doesNotMatch(activation, /sha256File\(abs\)/);
 });
 
+test('0.6.29 — les sorties génératives du plan initial sont structurées puis assemblées mécaniquement', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  assert.equal((workflow.match(/type:\"json_schema\"/g) || []).length, 2);
+  assert.match(workflow, /name:\"kodjo_initial_plan\"/);
+  assert.match(workflow, /name:\"kodjo_initial_plan_decisions\"/);
+  assert.match(workflow, /jq '\.modified_modules' \/tmp\/kodjo-v2-initial\/draft-structured\.json/);
+  assert.match(workflow, /printf '<\/KODJO_MODIFIED_MODULES_JSON>\\nPLAN_STATUS: %s/);
+  assert.match(workflow, /JSON\.parse\(fs\.readFileSync\('\/tmp\/kodjo-v2-initial\/decisions\.json'/);
+  assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
+});
+
 test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
 
