@@ -11,6 +11,7 @@ const I = require('../../scripts/kodjo/lib/slice-identity');
 
 const root = path.resolve(__dirname, '..', '..');
 const verifier = path.join(root, 'scripts', 'kodjo', 'verify-initial-product-sources.js');
+const migrationsPath = path.join(root, 'scripts', 'kodjo', 'lib', 'initial-product-source-migrations.json');
 const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
 
 function git(cwd, args) {
@@ -97,30 +98,26 @@ test('source absente du commit baseline: le diagnostic est nominatif et refuse l
   assert.match(result.stderr, /nature=SOURCE_MISSING_AT_BASELINE/);
 });
 
-test('migration historique: elle est liée à l identité complète du bootstrap et ne généralise aucun bypass', () => {
-  const f = fixture('0'.repeat(64));
-  const migration = {
-    schema_version: 'kodjo.protocol.v2.product-source-hash-migration.v1',
-    slice_id: f.bootstrapObject.slice_id,
-    baseline_head: f.bootstrapObject.baseline_head,
-    slice_bootstrap_sha256: f.bootstrapObject.slice_bootstrap_sha256,
-    authority: 'GIT_BLOB',
-    scope: 'PRODUCT_SOURCE_HASHES_ONLY',
-    legacy_product_sources: f.bootstrapObject.product_sources,
-    reason: 'fixture',
-    created_at: '2026-09-17T09:15:00.000Z',
-  };
-  fs.writeFileSync(path.join(f.dir, 'product-source-hash-migration.json'), JSON.stringify(migration, null, 2) + '\n');
-  const result = run(f);
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /V2_INITIAL_PRODUCT_SOURCE_MIGRATION_ACCEPTED/);
-  assert.match(result.stdout, /migration=BOUND_LEGACY_BOOTSTRAP/);
+test('migration historique: le registre embarqué est borné à l identité exacte du bootstrap V2-CAT-01', () => {
+  const b = JSON.parse(fs.readFileSync(path.join(root, '.github', 'orchestration', 'v2-slices', 'V2-CAT-01', 'slice-bootstrap.json'), 'utf8'));
+  const registry = JSON.parse(fs.readFileSync(migrationsPath, 'utf8'));
+  assert.equal(registry.schema_version, 'kodjo.protocol.v2.product-source-hash-migrations.v1');
+  assert.equal(registry.migrations.length, 1);
+  const m = registry.migrations[0];
+  assert.equal(m.slice_id, b.slice_id);
+  assert.equal(m.baseline_head, b.baseline_head);
+  assert.equal(m.slice_bootstrap_sha256, b.slice_bootstrap_sha256);
+  assert.equal(m.authority, 'GIT_BLOB');
+  assert.equal(m.scope, 'PRODUCT_SOURCE_HASHES_ONLY');
+  assert.deepEqual(m.legacy_product_sources, b.product_sources);
+});
 
-  migration.slice_bootstrap_sha256 = 'f'.repeat(64);
-  fs.writeFileSync(path.join(f.dir, 'product-source-hash-migration.json'), JSON.stringify(migration, null, 2) + '\n');
-  const refused = run(f);
-  assert.equal(refused.status, 78);
-  assert.match(refused.stderr, /PRODUCT_SOURCE_MIGRATION_BOOTSTRAP_MISMATCH/);
+test('une tranche non attestée ne bénéficie jamais de la migration historique', () => {
+  const f = fixture('0'.repeat(64));
+  const result = run(f);
+  assert.equal(result.status, 78);
+  assert.doesNotMatch(result.stderr, /MIGRATION_ACCEPTED/);
+  assert.match(result.stderr, /nature=AGGREGATED_SOURCE_FAILURES/);
 });
 
 test('V2-CAT-01 réel: les 16 sources historiques sont contrôlées en une passe contre le baseline Git exact', () => {
@@ -132,5 +129,6 @@ test('V2-CAT-01 réel: les 16 sources historiques sont contrôlées en une passe
   assert.match(result.stdout, /baseline_head=63a3c26ed492f7c0925cfb57419f3dc2dcc5e476/);
   assert.match(result.stdout, /authority=GIT_BLOB/);
   assert.match(result.stdout, /migration=BOUND_LEGACY_BOOTSTRAP/);
+  assert.match(result.stdout, /migration_id=V2-CAT-01-LEGACY-PRODUCT-SOURCE-HASHES/);
   assert.ok(fs.statSync(evidence).size > 0);
 });
