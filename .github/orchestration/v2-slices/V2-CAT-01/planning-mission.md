@@ -72,6 +72,19 @@ La revue `5714616288` a confirmé les corrections précédentes et demande uniqu
 
 Pour éviter une nouvelle ambiguïté de revue, le prochain plan doit également rendre déterministes les réserves non bloquantes déjà identifiées : ne pas traiter `Lecture`/`Démarrer` au conditionnel lorsqu’une décision ou un contrat d’écran fixe déjà son état ; expliciter l’ancrage de l’arbre `Créer` conformément à D-184 ; couvrir complètement D-168 pour la restauration du contexte Catalogue concerné ; préciser le comportement de validation sans sélection prévu par `09 bis` ; et, si `SegmentedControl` est extrait, imposer la préservation de la traduction visuelle DSF canonique sans refonte.
 
+
+### Corrections imposées après la troisième revue indépendante
+
+La revue `5714941349` a confirmé les axes précédemment fermés et ne laisse qu'un écart de scope et deux formulations à corriger. Le prochain plan doit appliquer exactement les règles suivantes :
+
+- `src/features/sessions/SessionService.ts` est classé `CONSUMER_UNAFFECTED` pour cette tranche : aucun changement de contrat consommé n'est démontré, `SessionService` ne consomme que `SessionDraft`, `toCreateSessionInput` et `toUpdateSessionInput`, et l'évolution additive du brouillon ne justifie aucune écriture dans ce service ;
+- `src/features/sessions/__tests__/SessionService.test.ts` est classé `TEST_UNAFFECTED` : aucun contrat couvert par ce test ne change dans V2-CAT-01 ; il ne doit apparaître ni dans `modified_modules`, ni dans `TEST_MUST_ADAPT`, ni dans `scope_allow` ;
+- le `scope_allow` machine final doit être strictement identique à la liste de périmètre technique en prose et à `modified_modules` pour les chemins en écriture ; aucun importeur classé non affecté ne peut rester autorisé en écriture ;
+- sur la carte d'Activité du Catalogue, `Lecture`/`Démarrer` doit être présenté comme **présent** lorsque le contrat `CE-T03-02` le fixe, et non sous une formulation conditionnelle ; dans cette tranche il reste systématiquement désactivé et sans handler fonctionnel ;
+- dans le parcours de sélection d'Activités existantes depuis la Composition, une validation sans sélection est **invalide**, ne crée aucune donnée et ne modifie ni le brouillon ni le Catalogue ; cette règle doit figurer dans la spécification comportementale du plan, pas seulement dans la stratégie de tests.
+
+Les axes explicitement déclarés conformes par la revue `5714941349` ne doivent pas être rouverts.
+
 ## Périmètre fonctionnel inclus
 
 Le périmètre exact est celui de l’Issue #150. Le plan doit le traiter sans l’élargir.
