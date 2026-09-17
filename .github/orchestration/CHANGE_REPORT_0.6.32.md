@@ -41,6 +41,21 @@ Correction bornée :
 
 Aucune invocation Claude n’a eu lieu dans le run défaillant et aucun fichier applicatif n’a été modifié.
 
+### Correctif post-run causal du gate commentaire
+
+Le run réel `35275552037` a franchi le contrôle de dérive mais a été bloqué dans `Validate approved PLAN_OUTPUT, review and explicit user gate`, toujours avant projection et avant Claude, avec `IMPLEMENTATION_PLAN_COMMENT_INVALID`.
+
+Cause démontrée : les commentaires GitHub sont matérialisés par Windows PowerShell 5.1 via `Out-File -Encoding utf8`, qui préfixe le JSON d’un BOM UTF-8. `verify-implementation-plan-gate.js` utilisait `JSON.parse()` directement sur ces octets décodés et rejetait donc un JSON par ailleurs valide.
+
+Correction bornée :
+
+- `loadComment()` retire uniquement un éventuel BOM initial `U+FEFF` avant `JSON.parse()` ;
+- aucune autre tolérance syntaxique n’est introduite ;
+- les contrôles d’auteur, marqueur, slice, source, causalité plan/revue/gate, impact et contrat restent inchangés ;
+- `implementation-plan-gate.pilot.js` couvre explicitement le cas BOM sur les trois commentaires.
+
+Aucune invocation Claude n’a eu lieu dans ce second run défaillant et aucun fichier applicatif n’a été modifié.
+
 ## Invariants conservés
 
 - aucun développement avant PLAN_REVIEW_APPROVED et USER_IMPLEMENTATION_APPROVED ;
