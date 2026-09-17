@@ -54,6 +54,19 @@ test('0.6.29 — les sorties génératives du plan initial sont structurées pui
   assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
 });
 
+test('0.6.29 — la fermeture de scope converge par croissance réelle et comparaison canonique', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  assert.match(workflow, /MAX_ITERATIONS=\$\(wc -l < \/tmp\/kodjo-v2-initial\/code-files\.txt\)/);
+  assert.match(workflow, /const compareText=\(a,b\)=>a<b\?-1:a>b\?1:0/);
+  assert.match(workflow, /INITIAL_PLAN_SCOPE_NON_PROGRESS/);
+  assert.match(workflow, /INITIAL_PLAN_SCOPE_ITERATION/);
+  assert.match(workflow, /advisory threshold 20/);
+  assert.match(workflow, /advisory threshold 6/);
+  assert.match(workflow, /scope-iterations\.jsonl/);
+  assert.doesNotMatch(workflow, /localeCompare/);
+  assert.doesNotMatch(workflow, /for iteration in 1 2 3 4/);
+});
+
 test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
 
