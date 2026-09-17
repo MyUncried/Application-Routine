@@ -12,7 +12,7 @@ const script = path.join(root, 'scripts', 'kodjo', 'apply-minor-plan-clarificati
 const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
 
 function sourceComment(label = 'Une activité') {
-  return `[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-TEST\nbootstrap_path=.github/orchestration/v2-slices/V2-TEST/slice-bootstrap.json\nsource_head=${head}\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n# Plan\n\nLe libellé est \`${label}\`.\n\n## Tests\n- \`src/example.test.ts\` est créé.\n\n<KODJO_MODIFIED_MODULES_JSON>\n[{"path":"src/example.test.ts","change":"CREATE"}]\n</KODJO_MODIFIED_MODULES_JSON>\n<KODJO_PLAN_IMPACT_JSON>\n{"schema":"kodjo.plan-impact.v1","scan_revision":"${head}","scan_sha256":"x","modified_modules":[{"path":"src/example.test.ts","change":"CREATE"}],"rows":[{"path":"src/example.test.ts","candidate_kind":"MODIFIED_MODULE","triggered_by":[],"risk_score":0,"classification":"MODIFY","justification":"test"}],"scope_allow":["src/example.test.ts"]}\n</KODJO_PLAN_IMPACT_JSON>\n<KODJO_PLAN_CONTRACT_JSON>\n{"schema":"kodjo.plan-contract-consistency.v1","scan_revision":"${head}","write_scope":["src/example.test.ts"],"required_test_writes":["src/example.test.ts"]}\n</KODJO_PLAN_CONTRACT_JSON>\n`;
+  return `[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-TEST\nbootstrap_path=.github/orchestration/v2-slices/V2-TEST/slice-bootstrap.json\nsource_head=${head}\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n# Plan\n\nLe libellé est \`${label}\`.\n\n## Tests\n- \`src/example.test.ts\` est créé.\n\n<KODJO_MODIFIED_MODULES_JSON>\n[{"path":"src/example.test.ts","change":"CREATE"}]\n</KODJO_MODIFIED_MODULES_JSON>\n<KODJO_PLAN_IMPACT_JSON>\n{"schema":"kodjo.plan-impact.v1","scan_revision":"${head}","scan_sha256":"x","modified_modules":[{"path":"src/example.test.ts","change":"CREATE"}],"rows":[{"path":"src/example.test.ts","candidate_kind":"MODIFIED_MODULE","triggered_by":[],"risk_score":0,"classification":"MODIFY","justification":"test"}],"scope_allow":["src/example.test.ts"]}\n</KODJO_PLAN_IMPACT_JSON>\n<KODJO_PLAN_CONTRACT_JSON>\n{"schema":"kodjo.plan-contract-consistency.v2","contract_version":2,"protocol_commit":"${head}","scan_revision":"${head}","write_scope":["src/example.test.ts"],"required_test_writes":["src/example.test.ts"]}\n</KODJO_PLAN_CONTRACT_JSON>\n`;
 }
 
 function run(body, fromText, toText, expected = 1) {
@@ -54,7 +54,7 @@ test('fast path: refuse toute tentative de toucher aux marqueurs protocolaires',
   assert.match(result.stderr, /MINOR_CLARIFICATION_REPLACEMENT_INVALID/);
 });
 
-test('fast path: exige le contrat plan-machine introduit par le durcissement C-3 C-4', () => {
+test('fast path: exige le contrat plan-machine versionné courant', () => {
   const body = sourceComment().replace(/<KODJO_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_PLAN_CONTRACT_JSON>\n/, '');
   const result = run(body, 'Une activité', 'Une nouvelle activité');
   assert.notEqual(result.status, 0);
