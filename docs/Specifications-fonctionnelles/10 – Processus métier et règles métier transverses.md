@@ -188,7 +188,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
 | RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
 | RM-113 | Une référence d’Activité du MVP T03 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
-| RM-114 | Le MVP affiche `+ Ajouter un média` désactivé et masque la section Médias. La V2 autorise `0..n` photos ou vidéos ordonnées. |
+| RM-114 | Le MVP affiche la section Médias repliable ; son contrôle `Déployer / Condenser` et son placeholder restent désactivés, sans import, capture, lecture ni stockage. La V2 média autorise `0..n` photos ou vidéos ordonnées. |
 | RM-115 | Une association média est copiée indépendamment mais partage un fichier immuable ; le fichier n’est supprimé que sans aucune référence. |
 | RM-116 | Un Circuit validé exige nom, couleur et au moins deux étapes. Une Séance peut apparaître plusieurs fois ; aucune répétition d’étape n’est définie. |
 | RM-117 | L’écran de transition d’un Circuit est obligatoire. Il attend l’utilisateur en manuel ou passe automatiquement après la durée globale, `30 s` par défaut. |

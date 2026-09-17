@@ -218,7 +218,7 @@ La Synthèse affiche les données compatibles d’une Activité seule. Le Ressen
 
 ## 2 bis.5 Médias d’Activité
 
-Dans le MVP, `Ajouter un média` reste visible mais désactivé et la section Médias est masquée. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales. Une vidéo ne démarre jamais automatiquement. L’activation du contrôle `Déployer`, déjà visible mais désactivé en T03, pour révéler les médias reste une évolution distincte à spécifier avant développement.
+Dans le MVP, la section Médias est visible et repliable. Le contrôle `Déployer / Condenser` et le placeholder média restent désactivés : aucun import, capture, lecture ni stockage média n’est fonctionnel. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales ; une vidéo ne démarre jamais automatiquement. L’activation fonctionnelle des médias reste une évolution distincte.
 
 ## 2 bis.6 Bilatéralité
 
@@ -268,7 +268,7 @@ Une activité possède notamment :
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
 - une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
 - une Description et des Zones corporelles d’exécution facultatives ;
-- des Médias dans le périmètre cible post-T05. Dans le MVP, l’action `Ajouter un média` reste visible mais désactivée et la section Médias n’est pas affichée.
+- des Médias dans le périmètre cible post-MVP. Dans le MVP, la section Médias est affichée et repliable mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est active.
 
 Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
 
@@ -979,7 +979,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
-| Ajouter un média          | Bouton            | Toujours                           | Oui dans le rendu | Désactivé dans le MVP | Centré horizontalement ; devient actif dans la cible post-T05 | Statique | Ajouter | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; aucune section Médias dans le MVP |
+| Ajouter un média          | Bouton / section repliable | Toujours | Oui dans le rendu | Contrôle et placeholder désactivés dans le MVP | Centré horizontalement ; activation fonctionnelle post-MVP | Statique | Déployer / Condenser | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; section Médias visible, aucune fonction média réelle |
 | Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
 | Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
 | Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
@@ -990,7 +990,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; désactivé sous Tour bilatéral |
 | Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
 | Durée totale              | Roulette durée calculée/pilotable ou indicateur de borne | Mode déployé | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions/À l’échec : borne connue | Calcul | Sélection en mode Durée ; lecture en modes non chronométrés | Contrôle `Durée totale` en Durée ; contrôle `Durée totale >=` visible en Répétitions/À l’échec ; la Synthèse conserve `Durée totale : ≥ {durée connue}` |
-| Médias                    | Section repliable + galerie | Cible post-T05 ; repliée par défaut | Non | Vide | 0..n médias ordonnés | Activité | Déployer / consulter | Galerie horizontale avec aperçu suivant tronqué ; absente de l’interface MVP |
+| Médias                    | Section repliable + placeholder | MVP : visible, repliable, inactive | Non | Vide | Aucune fonction média active dans le MVP ; `0..n` médias ordonnés post-MVP | Activité | Déployer / Condenser désactivé | Présence UI conforme aux frames courantes ; import, capture, lecture, stockage et galerie fonctionnelle restent post-MVP |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.

@@ -35,7 +35,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Hors MVP ; V2 avec `0..n` photos ou vidéos ordonnées par Activité |
+| Médias | Fonctions média hors MVP ; section UI visible/repliable mais inactive ; cible post-MVP avec `0..n` photos ou vidéos ordonnées par Activité |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -1295,6 +1295,8 @@ Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le
 ## Architecture MVP T03 — Catalogue des Activités et moteur multi-origine
 
 T03 livre le Catalogue des Activités et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
+
+Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Activités persistantes y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
 
 ### Moteur d’Exécution multi-origine
 

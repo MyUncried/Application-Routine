@@ -4,7 +4,7 @@ Baseline de consolidation : `main` au commit `7b6415f44a9ea39bd41d7e88ea6d232e07
 
 Branche de consolidation : `docs/consolidate-06-07-t03-20260916`.
 
-Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-184. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
+Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-186. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
 
 ## Matrice
 
@@ -42,7 +42,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Lecture Activity | indépendante, lance direct execution | 03, 06, 07, 13 CE-T03-02/09 | confusion Déployer | CONFORME | D-173. |
 | Première carte + Recovery | démo Figma seulement | Figma + 06 + 07 + 13 | règle de position | CONFORME | Pas de règle métier. |
 | Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 07, 09/09 bis, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
-| Médias | multiples hors T03 ; Déployer activé plus tard | 00, 04, 05, 07, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
+| Médias | section visible/repliable ; contrôle Déployer/Condenser et placeholder désactivés ; fonctions et médias multiples hors T03 | 00, 04, 05, 07, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–07, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
 | Référence Figma `3787:5209` | ne plus la présenter comme preuve active | 06, 07, 13, README preuves, INDEX | node historique encore cité comme courant | CONFORME | Node absent du Figma courant ; aucun remplacement inventé. |
 | Captures Figma physiques | copies embarquées doivent refléter les écrans modifiés du 16/09 avant d’être dites courantes | images README + preuves chapitre 13 | export du 15/09 interprété comme courant | PARTIELLEMENT CONFORME | Les nodes courants ont été contrôlés ; les anciens binaires restent explicitement à réexporter/historiques. |
@@ -76,7 +76,7 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Contrôle | Résultat | Évidence |
 |---|---|---|
 | Corrections UX T03 intégrées dans 06 | CONFORME | Règles UX T03 présentes dans les sections concernées de 06 ; anciennes formulations contradictoires remplacées. |
-| D-167 à D-184 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-108, D-164 et D-166 portent leur supersession. |
+| D-167 à D-186 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-108, D-116, D-164, D-166 et RES-NAV-LABEL-01 portent leur supersession explicite. |
 | 13 unique | CONFORME | `13 – Contrats d’écran.md` reste l’unique référence des contrats T03. |
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
@@ -93,5 +93,5 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Chapitre de contrats T03 | CONFORME | `13 – Contrats d’écran.md` est l’unique chapitre actif de contrats T03. |
 | Structure des contrats | CONFORME | 17 contrats `CE-T03-01..17`, chacun avec 21 rubriques et une section `21. Traçabilité`. |
 | Anciennes règles UX contradictoires | CONFORME | Les formulations actives « carte immobile », Durée totale masquée et absence de `Déployer` sur les cartes Activité ont été éliminées des documents normatifs concernés. |
-| Décisions supersédées | CONFORME | D-108, D-164 et D-166 sont explicitement supersédées/précisées par les décisions T03 courantes. |
+| Décisions supersédées | CONFORME | D-108, D-116, D-164, D-166 et RES-NAV-LABEL-01 sont explicitement supersédés/précisés par les décisions T03 courantes. |
 | Unicode / fichiers temporaires | CONFORME | Aucun chemin dégradé `#Uxxxx` / `\uXXXX` ni fichier temporaire ajouté par la consolidation. |
