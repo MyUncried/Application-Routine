@@ -343,6 +343,8 @@ test('exception shell — aucune entree de workflow ne peut remplacer les comman
       'failed_checks',
       'issue_number',
       'mode',
+      'plan_comment_id',
+      'review_comment_id',
       'slice_bootstrap_file',
       'slice_bootstrap_sha256',
       'scope_allow',
@@ -352,6 +354,7 @@ test('exception shell — aucune entree de workflow ne peut remplacer les comman
       'source_result_artifact',
       'source_run_id',
       'slice_id',
+      'user_gate_comment_id',
     ].sort()
   );
 
