@@ -1,0 +1,153 @@
+name: KODJO V2 — Approved Plan Local Implementation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/orchestration/queue/v2-causal/*.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+  actions: read
+
+concurrency:
+  group: kodjo-v2-comment-causal-local
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: powershell
+        working-directory: _kodjo/${{ github.run_id }}
+    steps:
+      - name: Checkout protocol and queue request
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+          path: _kodjo/${{ github.run_id }}
+
+      - name: Resolve exactly one immutable causal request
+        id: request
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.after }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:BEFORE_SHA -notmatch '^[0-9a-f]{40}$' -or $env:AFTER_SHA -notmatch '^[0-9a-f]{40}$'){ throw 'CAUSAL_REQUEST_BOUNDARY_INVALID' }
+          $raw = git diff --name-status $env:BEFORE_SHA $env:AFTER_SHA -- .github/orchestration/queue/v2-causal
+          $lines = @($raw -split "`r?`n" | Where-Object { $_ })
+          if($lines.Count -ne 1){ throw "CAUSAL_REQUEST_CARDINALITY_REFUSED: $($lines.Count)" }
+          $parts = $lines[0] -split "`t"
+          if($parts.Count -ne 2 -or $parts[0] -ne 'A'){ throw "CAUSAL_REQUEST_MUTATION_REFUSED: $($lines[0])" }
+          $path = $parts[1]
+          if($path -notmatch '^\.github/orchestration/queue/v2-causal/[A-Za-z0-9._-]+\.json$'){ throw 'CAUSAL_REQUEST_PATH_INVALID' }
+          $q = Get-Content -Raw -LiteralPath $path -Encoding UTF8 | ConvertFrom-Json
+          if($q.schema_version -ne 'kodjo.protocol.v2.comment-causal-request.0.6.32'){ throw 'CAUSAL_REQUEST_SCHEMA_REFUSED' }
+          if($q.mode -ne 'INITIAL' -or ([string]$q.operation_kind).ToUpperInvariant() -ne 'IMPLEMENT'){ throw 'CAUSAL_REQUEST_MODE_REFUSED' }
+          if($q.slice_id -notmatch '^[A-Za-z0-9._-]{1,80}$'){ throw 'CAUSAL_REQUEST_SLICE_INVALID' }
+          if([int]$q.issue_number -lt 1){ throw 'CAUSAL_REQUEST_ISSUE_INVALID' }
+          foreach($field in @('source_head','planning_source_head','baseline_head')){
+            if([string]$q.$field -notmatch '^[0-9a-f]{40}$'){ throw "CAUSAL_REQUEST_$($field.ToUpperInvariant())_INVALID" }
+          }
+          if([string]$q.source_head -ne $env:BEFORE_SHA){ throw 'CAUSAL_REQUEST_SOURCE_MUST_EQUAL_PARENT' }
+          $changedSincePlan = @(git diff --name-only ([string]$q.planning_source_head) ([string]$q.source_head) --)
+          if($LASTEXITCODE -ne 0){ throw 'CAUSAL_REQUEST_DRIFT_SCAN_FAILED' }
+          $applicationDrift = @($changedSincePlan | Where-Object {
+            $_ -and $_ -notmatch '^(\.github/|scripts/kodjo/|tests/kodjo/|docs/)'
+          })
+          if($applicationDrift.Count -gt 0){ throw ('CAUSAL_REQUEST_APPLICATION_DRIFT: ' + ($applicationDrift -join ', ')) }
+          foreach($field in @('plan_comment_id','review_comment_id','user_gate_comment_id')){
+            if([string]$q.$field -notmatch '^[1-9][0-9]*$'){ throw "CAUSAL_REQUEST_$($field.ToUpperInvariant())_INVALID" }
+          }
+          if(-not $q.slice_bootstrap_file -or -not $q.slice_bootstrap_sha256 -or -not $q.prompt_file){ throw 'CAUSAL_REQUEST_IDENTITY_MISSING' }
+          if(-not ($q.scope_allow -is [System.Array]) -or $q.scope_allow.Count -lt 1){ throw 'CAUSAL_REQUEST_SCOPE_MISSING' }
+          $actualBootstrap = & node scripts/kodjo/validate-slice-bootstrap.js . ([string]$q.slice_bootstrap_file) ([string]$q.baseline_head)
+          if($LASTEXITCODE -ne 0 -or ([string]$actualBootstrap).Trim() -ne [string]$q.slice_bootstrap_sha256){ throw 'CAUSAL_REQUEST_BOOTSTRAP_REFUSED' }
+          $utf8 = New-Object Text.UTF8Encoding($false)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "path=$path`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "slice_id=$($q.slice_id)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "issue_number=$($q.issue_number)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "source_head=$($q.source_head)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "planning_source_head=$($q.planning_source_head)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "plan_id=$($q.plan_comment_id)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "review_id=$($q.review_comment_id)`n", $utf8)
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "gate_id=$($q.user_gate_comment_id)`n", $utf8)
+
+      - name: Validate approved PLAN_OUTPUT, review and explicit user gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_PATH: ${{ steps.request.outputs.path }}
+          SLICE_ID: ${{ steps.request.outputs.slice_id }}
+          ISSUE_NUMBER: ${{ steps.request.outputs.issue_number }}
+          PLANNING_SOURCE_HEAD: ${{ steps.request.outputs.planning_source_head }}
+          PLAN_ID: ${{ steps.request.outputs.plan_id }}
+          REVIEW_ID: ${{ steps.request.outputs.review_id }}
+          GATE_ID: ${{ steps.request.outputs.gate_id }}
+          PROTOCOL_HEAD: ${{ steps.request.outputs.source_head }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $proof = Join-Path $env:RUNNER_TEMP "kodjo-v2-causal-gate-${{ github.run_id }}.json"
+          $plan = Join-Path $env:RUNNER_TEMP "kodjo-v2-plan-${{ github.run_id }}.json"
+          $review = Join-Path $env:RUNNER_TEMP "kodjo-v2-review-${{ github.run_id }}.json"
+          $gate = Join-Path $env:RUNNER_TEMP "kodjo-v2-gate-${{ github.run_id }}.json"
+          gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$env:PLAN_ID" | Out-File $plan -Encoding utf8
+          gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$env:REVIEW_ID" | Out-File $review -Encoding utf8
+          gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$env:GATE_ID" | Out-File $gate -Encoding utf8
+          node scripts/kodjo/verify-implementation-plan-gate.js `
+            $plan $review $gate $env:SLICE_ID $env:PLANNING_SOURCE_HEAD $env:ISSUE_NUMBER (Get-Location).Path `
+            scripts/kodjo/verify-plan-contract-consistency.js scripts/kodjo/verify-plan-impact.js $env:PROTOCOL_HEAD $proof
+          if($LASTEXITCODE -ne 0){ throw 'CAUSAL_IMPLEMENTATION_GATE_REFUSED' }
+          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH -Encoding UTF8 | ConvertFrom-Json
+          $p = Get-Content -Raw -LiteralPath $proof -Encoding UTF8 | ConvertFrom-Json
+          $declared = @($q.scope_allow | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+          $approved = @($p.plan_contract.write_scope | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+          if($declared.Count -ne $approved.Count -or (Compare-Object $declared $approved)){ throw 'CAUSAL_REQUEST_SCOPE_CONTRADICTION' }
+
+      - name: Project verified causal request to local supervisor request
+        id: project
+        env:
+          REQUEST_PATH: ${{ steps.request.outputs.path }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $q = Get-Content -Raw -LiteralPath $env:REQUEST_PATH -Encoding UTF8 | ConvertFrom-Json
+          $local = [ordered]@{
+            schema_version='kodjo.protocol.v2.local-implementation.0.6.12'
+            slice_id=[string]$q.slice_id
+            source_head=[string]$q.source_head
+            protocol_source_head=[string]$q.source_head
+            baseline_head=[string]$q.baseline_head
+            slice_bootstrap_file=[string]$q.slice_bootstrap_file
+            slice_bootstrap_sha256=[string]$q.slice_bootstrap_sha256
+            mode='INITIAL'
+            operation_kind='IMPLEMENT'
+            delivery_target=$null
+            session_id=$null
+            prompt_file=[string]$q.prompt_file
+            scope_allow=@($q.scope_allow)
+            checks=@($q.checks)
+            limits=$q.limits
+            request_id=[string]$q.request_id
+          }
+          $runtimeAbs = Join-Path $env:RUNNER_TEMP "kodjo-v2-causal-local-${{ github.run_id }}.json"
+          [IO.File]::WriteAllText($runtimeAbs, ($local | ConvertTo-Json -Depth 12), (New-Object Text.UTF8Encoding($false)))
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "absolute=$runtimeAbs`n", (New-Object Text.UTF8Encoding($false)))
+
+      - name: Execute through existing Windows local supervisor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          & scripts/kodjo/run-queued-request.ps1 -QueueFile '${{ steps.request.outputs.path }}' -LocalRequestFile '${{ steps.project.outputs.absolute }}'
+          if($LASTEXITCODE -ne 0){ exit $LASTEXITCODE }
+
+      - name: Remove transient projected request
+        if: always()
+        run: |
+          Remove-Item -LiteralPath '${{ steps.project.outputs.absolute }}' -Force -ErrorAction SilentlyContinue
