@@ -29,9 +29,11 @@ test('0.6.32 — l entree IMPLEMENT comment-causal utilise le runner Claude loca
   assert.ok(gate >= 0 && agent > gate, 'le gate doit preceder le superviseur local');
 });
 
-test('0.6.32 — la demande causale est immuable et lie plan revue gate', () => {
+test('0.6.32 — la demande causale est immuable, sans derive applicative et lie plan revue gate', () => {
   const workflow = read(workflowPath);
   assert.match(workflow, /CAUSAL_REQUEST_SOURCE_MUST_EQUAL_PARENT/);
+  assert.match(workflow, /CAUSAL_REQUEST_APPLICATION_DRIFT/);
+  assert.match(workflow, /\^\(\\\.github\/\|scripts\/kodjo\/\|tests\/kodjo\/\|docs\/\)/);
   assert.match(workflow, /CAUSAL_REQUEST_BOOTSTRAP_REFUSED/);
   assert.match(workflow, /plan_comment_id/);
   assert.match(workflow, /review_comment_id/);
