@@ -23,7 +23,7 @@ test('0.6.29 — une nouvelle tranche V2 possède une entrée de premier plan sa
   assert.doesNotMatch(workflow, /pulls\/\$APPLICATION_PR/);
 });
 
-test('0.6.29 — le premier plan vérifie les sources produit au baseline exact avec diagnostic nominatif', () => {
+test('0.6.29 — le premier plan vérifie les sources produit depuis les blobs Git du baseline exact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
   const verifier = read('scripts/kodjo/verify-initial-product-sources.js');
   assert.match(workflow, /git worktree add --detach \/tmp\/kodjo-v2-initial\/source "\$SOURCE_HEAD"/);
@@ -32,7 +32,11 @@ test('0.6.29 — le premier plan vérifie les sources produit au baseline exact 
   assert.match(verifier, /expected=/);
   assert.match(verifier, /actual=/);
   assert.match(verifier, /nature=SHA256_MISMATCH/);
-  assert.match(verifier, /LEGACY_WORKTREE_CRLF_HASH/);
+  assert.match(verifier, /spawnSync\('git', \['show', `\$\{head\}:\$\{file\}`\]/);
+  assert.match(verifier, /authority=GIT_BLOB/);
+  assert.match(verifier, /baseline_head/);
+  assert.doesNotMatch(verifier, /legacyCrlfHash/);
+  assert.doesNotMatch(verifier, /fs\.readFileSync\(absolute\)/);
   assert.doesNotMatch(workflow, /test "\$expected" = "\$actual"/);
 });
 
@@ -81,13 +85,15 @@ test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejou
   assert.doesNotMatch(workflow, /pulls\//);
 });
 
-test('0.6.29 — la revue initiale réutilise le vérificateur portable des sources produit', () => {
+test('0.6.29 — la revue initiale réutilise le vérificateur Git-blob des sources produit', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
+  const verifier = read('scripts/kodjo/verify-initial-product-sources.js');
   assert.match(workflow, /Copy-Item -LiteralPath scripts\/kodjo\/verify-initial-product-sources\.js -Destination \$protocol/);
   assert.match(workflow, /\$sourceVerifier=Join-Path \$protocol 'verify-initial-product-sources\.js'/);
   assert.match(workflow, /& node \$sourceVerifier \$bootstrapCopy \(Get-Location\)\.Path \$evidence/);
   assert.match(workflow, /Portable initial product source verification failed/);
   assert.match(workflow, /product-evidence\.txt/);
+  assert.match(verifier, /authority=GIT_BLOB/);
   assert.doesNotMatch(workflow, /Get-FileHash -Algorithm SHA256/);
   assert.doesNotMatch(workflow, /Product source hash mismatch at baseline/);
 });
