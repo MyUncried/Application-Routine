@@ -101,15 +101,9 @@ jobs:
           $protocol=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol'
           $sourceVerifier=Join-Path $protocol 'verify-initial-product-sources.js'
           $evidence=Join-Path $context 'product-evidence.txt'
-          & node $sourceVerifier $bootstrapCopy (Get-Location).Path $evidence
+          & node $sourceVerifier $bootstrapCopy (Get-Location).Path $evidence $context
           if ($LASTEXITCODE -ne 0) { throw 'Portable initial product source verification failed' }
-          $b=Get-Content -Raw -LiteralPath $bootstrapCopy -Encoding UTF8 | ConvertFrom-Json
-          foreach($source in $b.product_sources){
-            $sourcePath=[string]$source.path
-            $destination=Join-Path $context $sourcePath
-            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-            Copy-Item -LiteralPath $sourcePath -Destination $destination
-          }
+          if (!(Test-Path -LiteralPath $evidence)) { throw 'Canonical product evidence missing' }
 
       - name: Replay initial V2 plan impact independently
         env:

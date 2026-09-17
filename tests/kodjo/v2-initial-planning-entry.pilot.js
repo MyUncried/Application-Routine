@@ -85,17 +85,62 @@ test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejou
   assert.doesNotMatch(workflow, /pulls\//);
 });
 
-test('0.6.29 — la revue initiale réutilise le vérificateur Git-blob des sources produit', () => {
+test('0.6.29 — la revue initiale emporte le registre de migration et matérialise le contexte depuis les blobs Git', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
   const verifier = read('scripts/kodjo/verify-initial-product-sources.js');
+  const migrations = JSON.parse(read('scripts/kodjo/lib/initial-product-source-migrations.json'));
+  const bootstrap = JSON.parse(read('.github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json'));
+
   assert.match(workflow, /Copy-Item -LiteralPath scripts\/kodjo\/verify-initial-product-sources\.js -Destination \$protocol/);
+  assert.match(workflow, /Copy-Item -LiteralPath scripts\/kodjo\/lib -Destination \(Join-Path \$protocol 'lib'\) -Recurse/);
   assert.match(workflow, /\$sourceVerifier=Join-Path \$protocol 'verify-initial-product-sources\.js'/);
-  assert.match(workflow, /& node \$sourceVerifier \$bootstrapCopy \(Get-Location\)\.Path \$evidence/);
-  assert.match(workflow, /Portable initial product source verification failed/);
-  assert.match(workflow, /product-evidence\.txt/);
+  assert.match(workflow, /& node \$sourceVerifier \$bootstrapCopy \(Get-Location\)\.Path \$evidence \$context/);
+  assert.match(workflow, /Canonical product evidence missing/);
+  assert.doesNotMatch(workflow, /Copy-Item -LiteralPath \$sourcePath -Destination \$destination/);
+  assert.match(verifier, /initial-product-source-migrations\.json/);
+  assert.match(verifier, /materialized=CANONICAL_GIT_BLOBS/);
+  assert.match(verifier, /AGGREGATED_SOURCE_FAILURES/);
   assert.match(verifier, /authority=GIT_BLOB/);
   assert.doesNotMatch(workflow, /Get-FileHash -Algorithm SHA256/);
   assert.doesNotMatch(workflow, /Product source hash mismatch at baseline/);
+
+  assert.equal(migrations.schema_version, 'kodjo.protocol.v2.product-source-hash-migrations.v1');
+  assert.equal(migrations.migrations.length, 1);
+  const migration = migrations.migrations[0];
+  assert.equal(migration.slice_id, bootstrap.slice_id);
+  assert.equal(migration.baseline_head, bootstrap.baseline_head);
+  assert.equal(migration.slice_bootstrap_sha256, bootstrap.slice_bootstrap_sha256);
+  assert.deepEqual(migration.legacy_product_sources, bootstrap.product_sources);
+});
+
+test('0.6.29 — les frontières aval de la revue initiale sont ordonnées et utilisent le chemin Claude déjà éprouvé', () => {
+  const initial = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
+  const historical = read('.github/workflows/kodjo-v2-slice-plan-review.yml');
+
+  const replay = initial.indexOf('- name: Replay initial V2 plan impact independently');
+  const claude = initial.indexOf('- name: Review initial V2 plan with Claude');
+  const publish = initial.indexOf('- name: Publish independent initial V2 plan review');
+  const preserve = initial.indexOf('- name: Preserve initial V2 review evidence');
+  assert.ok(replay >= 0 && replay < claude && claude < publish && publish < preserve);
+
+  for (const token of [
+    "@('-p','--output-format','json','--dangerously-skip-permissions')",
+    'if (!$json.session_id -or !$json.result)',
+    "VERDICT:\\s*APPROVE",
+    "VERDICT:\\s*REVISE",
+    'PLAN_REVIEW_APPROVED',
+    'PLAN_REVISION_REQUIRED',
+    'gh issue comment $env:ISSUE_NUMBER',
+    '<KODJO_PLAN_IMPACT_REVIEW_JSON>',
+  ]) assert.ok(initial.includes(token), `missing initial review boundary token: ${token}`);
+
+  for (const token of [
+    "@('-p','--output-format','json','--dangerously-skip-permissions')",
+    'if (!$json.session_id -or !$json.result)',
+    "VERDICT:\\s*APPROVE",
+    "VERDICT:\\s*REVISE",
+    'gh issue comment $env:ISSUE_NUMBER',
+  ]) assert.ok(historical.includes(token), `historical review no longer proves shared boundary: ${token}`);
 });
 
 test('0.6.29 — un plan initial peut être republié après REVISE sans changer de chemin protocolaire', () => {
