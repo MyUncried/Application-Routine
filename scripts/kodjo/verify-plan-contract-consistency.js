@@ -6,6 +6,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { canonicalJson, extractTaggedJson, normalizeRepoPath, fail } = require('./lib/plan-impact');
 
+const CURRENT_CONTRACT_VERSION = 2;
+const CURRENT_SCHEMA = 'kodjo.plan-contract-consistency.v2';
 const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
 const SOURCE_PATH = /(?:`|\b)((?:app|src)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
 
@@ -45,13 +47,19 @@ function gitPathExists(cwd, revision, file) {
   const result = spawnSync('git', ['cat-file', '-e', revision + ':' + file], { cwd, encoding: 'utf8', windowsHide: true, shell: false });
   return !result.error && result.status === 0;
 }
+function validateProtocolCommit(value) {
+  if (!/^[0-9a-f]{40}$/i.test(String(value || ''))) fail('PLAN_PROTOCOL_PROVENANCE_MISSING', 'protocol_commit absent ou invalide');
+  return String(value).toLowerCase();
+}
 
 try {
-  const [planFile, revision, gitCwd, outputFile] = process.argv.slice(2);
+  const [planFile, revision, gitCwd, outputFile, mode = 'produce', protocolCommitArg] = process.argv.slice(2);
   if (!planFile || !revision || !gitCwd || !outputFile) {
-    throw new Error('USAGE: verify-plan-contract-consistency.js <plan.md> <revision> <git_cwd> <output.json>');
+    throw new Error('USAGE: verify-plan-contract-consistency.js <plan.md> <revision> <git_cwd> <output.json> [produce|consume] [protocol_commit]');
   }
+  if (!['produce', 'consume'].includes(mode)) fail('PLAN_CONTRACT_MODE_INVALID', 'mode attendu: produce ou consume');
   if (!/^[0-9a-f]{40}$/i.test(revision)) fail('PLAN_SCAN_STALE', 'revision Git invalide: ' + revision);
+  const protocolCommit = validateProtocolCommit(protocolCommitArg || process.env.KODJO_PROTOCOL_COMMIT || process.env.GITHUB_SHA);
   const markdown = fs.readFileSync(planFile, 'utf8');
   const matrix = extractTaggedJson(markdown, 'KODJO_PLAN_IMPACT_JSON');
   const scope = [...new Set((matrix.scope_allow || []).map((p) => normalizeRepoPath(p, 'scope_allow')))].sort();
@@ -87,15 +95,34 @@ try {
     }
   }
 
+  const requiredTestWrites = [...requiredWrites].sort();
+  if (mode === 'consume') {
+    let embedded;
+    try {
+      embedded = extractTaggedJson(markdown, 'KODJO_PLAN_CONTRACT_JSON');
+    } catch {
+      fail('PLAN_PROTOCOL_STALE', 'plan sans KODJO_PLAN_CONTRACT_JSON versionne');
+    }
+    if (embedded.schema !== CURRENT_SCHEMA || Number(embedded.contract_version) < CURRENT_CONTRACT_VERSION) {
+      fail('PLAN_PROTOCOL_STALE', `contrat plan ancien: schema=${embedded.schema || 'absent'} version=${embedded.contract_version || 'absente'} minimum=${CURRENT_CONTRACT_VERSION}`);
+    }
+    validateProtocolCommit(embedded.protocol_commit);
+    if (embedded.scan_revision !== matrix.scan_revision || canonicalJson(embedded.write_scope || []) !== canonicalJson(scope) || canonicalJson(embedded.required_test_writes || []) !== canonicalJson(requiredTestWrites)) {
+      fail('PLAN_CONTRACT_DRIFT', 'contrat embarque != contrat recalcule');
+    }
+  }
+
   const contract = {
-    schema: 'kodjo.plan-contract-consistency.v1',
+    schema: CURRENT_SCHEMA,
+    contract_version: CURRENT_CONTRACT_VERSION,
+    protocol_commit: protocolCommit,
     scan_revision: matrix.scan_revision,
     write_scope: scope,
-    required_test_writes: [...requiredWrites].sort(),
+    required_test_writes: requiredTestWrites,
   };
   fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');
-  process.stdout.write(`[KODJO_V2] plan contract consistency verified — scope=${scope.length} tests=${requiredWrites.size}\n`);
+  process.stdout.write(`[KODJO_V2] plan contract consistency verified — mode=${mode} version=${CURRENT_CONTRACT_VERSION} scope=${scope.length} tests=${requiredWrites.size}\n`);
 } catch (error) {
   process.stderr.write(String(error && error.message ? error.message : error) + '\n');
   process.exit(1);
