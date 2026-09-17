@@ -124,7 +124,10 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/modules.json
-          for iteration in 1 2 3 4; do
+          : > /tmp/kodjo-v2-initial/scope-iterations.jsonl
+          MAX_ITERATIONS=$(wc -l < /tmp/kodjo-v2-initial/code-files.txt)
+          iteration=1
+          while test "$iteration" -le "$MAX_ITERATIONS"; do
             (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/scan.json)
             cat > /tmp/kodjo-v2-initial/decision-prompt.txt <<'EOF'
           Classify every candidate in the supplied deterministic direct-import scan. Return each candidate exactly once in the structured decisions array. Production consumers use MODIFY or CONSUMER_UNAFFECTED. Tests use TEST_MUST_ADAPT or TEST_UNAFFECTED. Do not classify a modified_module; those are already fixed as MODIFY.
@@ -144,11 +147,26 @@ jobs:
           const byPath=new Map(decisions.map(x=>[x.path,x]));
           if(byPath.size!==scan.candidates.length) throw new Error('INITIAL_PLAN_DECISION_CARDINALITY');
           for(const c of scan.candidates) if(!byPath.has(c.path)) throw new Error('INITIAL_PLAN_CANDIDATE_UNCLASSIFIED:'+c.path);
+          const compareText=(a,b)=>a<b?-1:a>b?1:0;
           const promoted=[...scan.modified_modules];
-          for(const c of scan.candidates){ const d=byPath.get(c.path); if(d.classification==='REQUIRES_CLARIFICATION') throw new Error('INITIAL_PLAN_REQUIRES_CLARIFICATION:'+c.path); if(c.candidate_kind==='CONSUMER'&&d.classification==='MODIFY'&&!promoted.some(x=>x.path===c.path)) promoted.push({path:c.path,change:'MODIFY'}); }
-          promoted.sort((a,b)=>a.path.localeCompare(b.path));
+          const added=[];
+          for(const c of scan.candidates){
+            const d=byPath.get(c.path);
+            if(d.classification==='REQUIRES_CLARIFICATION') throw new Error('INITIAL_PLAN_REQUIRES_CLARIFICATION:'+c.path);
+            if(c.candidate_kind==='CONSUMER'&&d.classification==='MODIFY'&&!promoted.some(x=>x.path===c.path)){
+              promoted.push({path:c.path,change:'MODIFY'});
+              added.push({path:c.path,triggered_by:c.triggered_by,justification:d.justification});
+            }
+          }
+          promoted.sort((a,b)=>compareText(a.path,b.path));
           fs.writeFileSync('/tmp/kodjo-v2-initial/promoted.json',JSON.stringify(promoted,null,2)+'\n');
           const stable=JSON.stringify(promoted)===JSON.stringify(scan.modified_modules);
+          const diagnostic={iteration:Number(process.argv[2]),module_count_before:scan.modified_modules.length,candidate_count:scan.candidates.length,added_count:added.length,module_count_after:promoted.length,added_modules:added};
+          fs.appendFileSync('/tmp/kodjo-v2-initial/scope-iterations.jsonl',JSON.stringify(diagnostic)+'\n');
+          process.stderr.write(`INITIAL_PLAN_SCOPE_ITERATION iteration=${diagnostic.iteration} modules_before=${diagnostic.module_count_before} candidates=${diagnostic.candidate_count} added=${diagnostic.added_count} modules_after=${diagnostic.module_count_after}\n`);
+          if(diagnostic.module_count_after>20) process.stderr.write(`::warning title=KODJO initial scope expansion::module_count=${diagnostic.module_count_after} exceeds advisory threshold 20\n`);
+          if(diagnostic.iteration>6) process.stderr.write(`::warning title=KODJO initial scope iterations::iteration=${diagnostic.iteration} exceeds advisory threshold 6\n`);
+          if(!stable&&added.length===0) throw new Error('INITIAL_PLAN_SCOPE_NON_PROGRESS');
           if(stable){
             const rows=[...scan.modified_modules.map(m=>({path:m.path,candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'Module explicitement déclaré par le plan initial.'})),...scan.candidates.map(c=>({...c,classification:byPath.get(c.path).classification,justification:byPath.get(c.path).justification}))];
             const scope=rows.filter(r=>r.classification==='MODIFY'||r.classification==='TEST_MUST_ADAPT').map(r=>r.path).sort();
@@ -158,9 +176,12 @@ jobs:
           NODE
             if test -f /tmp/kodjo-v2-initial/converged; then break; fi
             cp /tmp/kodjo-v2-initial/promoted.json /tmp/kodjo-v2-initial/modules.json
-            test "$iteration" -lt 4
+            iteration=$((iteration + 1))
           done
-          test -f /tmp/kodjo-v2-initial/matrix.json
+          if ! test -f /tmp/kodjo-v2-initial/matrix.json; then
+            printf 'INITIAL_PLAN_SCOPE_DID_NOT_CONVERGE max_iterations=%s\n' "$MAX_ITERATIONS" >&2
+            exit 1
+          fi
           cp /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/technical-plan.md
           printf '\n\n<KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
@@ -200,5 +221,6 @@ jobs:
             /tmp/kodjo-v2-initial/scan.json
             /tmp/kodjo-v2-initial/matrix.json
             /tmp/kodjo-v2-initial/proof.json
+            /tmp/kodjo-v2-initial/scope-iterations.jsonl
           if-no-files-found: warn
           retention-days: 14
