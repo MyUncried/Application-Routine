@@ -58,7 +58,7 @@ test('fast path: exige le contrat plan-machine introduit par le durcissement C-3
   const body = sourceComment().replace(/<KODJO_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_PLAN_CONTRACT_JSON>\n/, '');
   const result = run(body, 'Une activité', 'Une nouvelle activité');
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /KODJO_PLAN_CONTRACT_JSON requis pour le fast path/);
+  assert.match(result.stderr, /KODJO_PLAN_CONTRACT_JSON attendu exactement une fois/);
 });
 
 test('fast path: refuse un plan source déjà non reviewable', () => {
