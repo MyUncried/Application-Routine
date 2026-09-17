@@ -77,6 +77,7 @@ jobs:
           if(Test-Path -LiteralPath $protocol){Remove-Item -LiteralPath $protocol -Recurse -Force}
           New-Item -ItemType Directory -Force -Path $protocol | Out-Null
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $protocol
+          Copy-Item -LiteralPath scripts/kodjo/verify-initial-product-sources.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $protocol 'lib') -Recurse
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
           if(Test-Path -LiteralPath $context){Remove-Item -LiteralPath $context -Recurse -Force}
@@ -97,12 +98,14 @@ jobs:
           $ErrorActionPreference='Stop'
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-current-product-context'
           $bootstrapCopy=Join-Path $context 'slice-bootstrap.json'
+          $protocol=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol'
+          $sourceVerifier=Join-Path $protocol 'verify-initial-product-sources.js'
+          $evidence=Join-Path $context 'product-evidence.txt'
+          & node $sourceVerifier $bootstrapCopy (Get-Location).Path $evidence
+          if ($LASTEXITCODE -ne 0) { throw 'Portable initial product source verification failed' }
           $b=Get-Content -Raw -LiteralPath $bootstrapCopy -Encoding UTF8 | ConvertFrom-Json
           foreach($source in $b.product_sources){
             $sourcePath=[string]$source.path
-            if(!(Test-Path -LiteralPath $sourcePath)){throw "Product source missing at baseline: $sourcePath"}
-            $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath $sourcePath).Hash.ToLowerInvariant()
-            if($actual -ne [string]$source.sha256){throw "Product source hash mismatch at baseline: $sourcePath"}
             $destination=Join-Path $context $sourcePath
             New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
             Copy-Item -LiteralPath $sourcePath -Destination $destination
@@ -176,5 +179,6 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-initial-review.md
             ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
             ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
+            ${{ runner.temp }}\kodjo-v2-initial-current-product-context\product-evidence.txt
           if-no-files-found: warn
           retention-days: 14
