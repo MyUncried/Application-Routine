@@ -1,0 +1,291 @@
+from pathlib import Path
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[2]
+
+def run(*args):
+    subprocess.run(args, cwd=ROOT, check=True)
+
+validator = r'''#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { canonicalJson, extractTaggedJson, normalizeRepoPath, fail } = require('./lib/plan-impact');
+
+const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
+const SOURCE_PATH = /(?:`|\b)((?:app|src)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
+
+function isTestPath(value) { return TEST_PATH.test(value); }
+function extractPaths(text) {
+  const found = new Set();
+  let match;
+  SOURCE_PATH.lastIndex = 0;
+  while ((match = SOURCE_PATH.exec(text)) !== null) found.add(normalizeRepoPath(match[1], 'plan_path'));
+  return [...found].sort();
+}
+function stripMachineBlocks(markdown) {
+  let out = String(markdown);
+  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON']) {
+    out = out.replace(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>', 'g'), '');
+  }
+  return out;
+}
+function sectionsMatching(markdown, matcher) {
+  const lines = String(markdown).replace(/\r\n/g, '\n').split('\n');
+  const sections = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const heading = lines[i].match(/^(#{1,6})\s+(.+)$/);
+    if (!heading || !matcher.test(heading[2])) continue;
+    const level = heading[1].length;
+    let j = i + 1;
+    while (j < lines.length) {
+      const next = lines[j].match(/^(#{1,6})\s+/);
+      if (next && next[1].length <= level) break;
+      j += 1;
+    }
+    sections.push(lines.slice(i, j).join('\n'));
+  }
+  return sections;
+}
+function gitPathExists(cwd, revision, file) {
+  const result = spawnSync('git', ['cat-file', '-e', revision + ':' + file], { cwd, encoding: 'utf8', windowsHide: true, shell: false });
+  return !result.error && result.status === 0;
+}
+
+try {
+  const [planFile, revision, gitCwd, outputFile] = process.argv.slice(2);
+  if (!planFile || !revision || !gitCwd || !outputFile) {
+    throw new Error('USAGE: verify-plan-contract-consistency.js <plan.md> <revision> <git_cwd> <output.json>');
+  }
+  if (!/^[0-9a-f]{40}$/i.test(revision)) fail('PLAN_SCAN_STALE', 'revision Git invalide: ' + revision);
+  const markdown = fs.readFileSync(planFile, 'utf8');
+  const matrix = extractTaggedJson(markdown, 'KODJO_PLAN_IMPACT_JSON');
+  const scope = [...new Set((matrix.scope_allow || []).map((p) => normalizeRepoPath(p, 'scope_allow')))].sort();
+  if (!Array.isArray(matrix.scope_allow) || scope.length !== matrix.scope_allow.length) fail('PLAN_SCOPE_CONTRADICTION', 'scope_allow invalide ou duplique');
+  const prose = stripMachineBlocks(markdown);
+
+  const scopeSections = sectionsMatching(prose, /scope_allow/i);
+  if (scopeSections.length > 1) fail('PLAN_SCOPE_CONTRADICTION', 'plusieurs sections scope_allow en prose');
+  if (scopeSections.length === 1) {
+    const declared = extractPaths(scopeSections[0]);
+    if (declared.length === 0) fail('PLAN_SCOPE_CONTRADICTION', 'section scope_allow en prose sans chemins explicites');
+    if (canonicalJson(declared) !== canonicalJson(scope)) {
+      fail('PLAN_SCOPE_CONTRADICTION', 'scope_allow prose != scope_allow machine');
+    }
+  }
+
+  const testText = sectionsMatching(prose, /\btests?\b/i).join('\n');
+  const testPaths = new Set(extractPaths(testText).filter(isTestPath));
+  const modules = Array.isArray(matrix.modified_modules) ? matrix.modified_modules : [];
+  const rows = Array.isArray(matrix.rows) ? matrix.rows : [];
+  const requiredWrites = new Set();
+  for (const module of modules) if (isTestPath(module.path)) requiredWrites.add(normalizeRepoPath(module.path, 'test_module'));
+  for (const row of rows) if (row.classification === 'TEST_MUST_ADAPT') requiredWrites.add(normalizeRepoPath(row.path, 'test_row'));
+  for (const testPath of requiredWrites) {
+    if (!testPaths.has(testPath)) fail('TEST_CONTRACT_CONSISTENCY', 'test en écriture absent de la section Tests: ' + testPath);
+    if (!scope.includes(testPath)) fail('TEST_CONTRACT_CONSISTENCY', 'test en écriture absent de scope_allow: ' + testPath);
+  }
+  for (const testPath of testPaths) {
+    if (gitPathExists(gitCwd, revision, testPath)) continue;
+    const create = modules.find((module) => module.path === testPath && module.change === 'CREATE');
+    if (!create || !scope.includes(testPath)) {
+      fail('TEST_CONTRACT_CONSISTENCY', 'nouveau test exige sans CREATE autorise: ' + testPath);
+    }
+  }
+
+  const contract = {
+    schema: 'kodjo.plan-contract-consistency.v1',
+    scan_revision: matrix.scan_revision,
+    write_scope: scope,
+    required_test_writes: [...requiredWrites].sort(),
+  };
+  fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
+  fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');
+  process.stdout.write(`[KODJO_V2] plan contract consistency verified — scope=${scope.length} tests=${requiredWrites.size}\n`);
+} catch (error) {
+  process.stderr.write(String(error && error.message ? error.message : error) + '\n');
+  process.exit(1);
+}
+'''
+(ROOT / 'scripts/kodjo/verify-plan-contract-consistency.js').write_text(validator, encoding='utf-8')
+
+initial = ROOT / '.github/workflows/kodjo-v2-slice-initial-plan.yml'
+text = initial.read_text(encoding='utf-8')
+old = 'Return a complete French technical plan in the structured response field plan_markdown. Separately return modified_modules with every application module that implementation would CREATE or MODIFY, using repository-relative POSIX paths only. Return plan_status=READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise plan_status=CLARIFICATION_REQUIRED. Do not embed KODJO tags or PLAN_STATUS markers inside plan_markdown; the workflow assembles those mechanically.'
+new = old + ' Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If plan_markdown contains a scope_allow section, it must enumerate exactly the complete write scope; the workflow will reject any difference with the machine scope.'
+if old not in text: raise SystemExit('initial prompt anchor missing')
+text = text.replace(old, new, 1)
+anchor = "          printf '</KODJO_PLAN_IMPACT_JSON>\\n' >> /tmp/kodjo-v2-initial/technical-plan.md\n          (cd /tmp/kodjo-v2-initial/source && node \"$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js\" /tmp/kodjo-v2-initial/technical-plan.md \"$SOURCE_HEAD\" /tmp/kodjo-v2-initial/replay.json /tmp/kodjo-v2-initial/proof.json)"
+replacement = "          printf '</KODJO_PLAN_IMPACT_JSON>\\n' >> /tmp/kodjo-v2-initial/technical-plan.md\n          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-initial/technical-plan.md \"$SOURCE_HEAD\" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/plan-contract.json\n          printf '\\n<KODJO_PLAN_CONTRACT_JSON>\\n' >> /tmp/kodjo-v2-initial/technical-plan.md\n          cat /tmp/kodjo-v2-initial/plan-contract.json >> /tmp/kodjo-v2-initial/technical-plan.md\n          printf '</KODJO_PLAN_CONTRACT_JSON>\\n' >> /tmp/kodjo-v2-initial/technical-plan.md\n          (cd /tmp/kodjo-v2-initial/source && node \"$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js\" /tmp/kodjo-v2-initial/technical-plan.md \"$SOURCE_HEAD\" /tmp/kodjo-v2-initial/replay.json /tmp/kodjo-v2-initial/proof.json)"
+if anchor not in text: raise SystemExit('initial assembly anchor missing')
+text = text.replace(anchor, replacement, 1)
+artifact_anchor = '            /tmp/kodjo-v2-initial/proof.json\n'
+if artifact_anchor not in text: raise SystemExit('initial artifact anchor missing')
+text = text.replace(artifact_anchor, artifact_anchor + '            /tmp/kodjo-v2-initial/plan-contract.json\n', 1)
+initial.write_text(text, encoding='utf-8')
+
+revision = ROOT / '.github/workflows/kodjo-v2-slice-plan.yml'
+text = revision.read_text(encoding='utf-8')
+old = 'A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow.'
+new = old + ' Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If the prose contains a scope_allow section, it must enumerate exactly the complete machine write scope.'
+if old not in text: raise SystemExit('revision prompt anchor missing')
+text = text.replace(old, new, 1)
+anchor = '          test -f /tmp/kodjo-v2-plan/technical-plan.md\n          (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)'
+replacement = '          test -f /tmp/kodjo-v2-plan/technical-plan.md\n          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json\n          printf "\\n<KODJO_PLAN_CONTRACT_JSON>\\n" >> /tmp/kodjo-v2-plan/technical-plan.md\n          cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md\n          printf "</KODJO_PLAN_CONTRACT_JSON>\\n" >> /tmp/kodjo-v2-plan/technical-plan.md\n          (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)'
+if anchor not in text: raise SystemExit('revision assembly anchor missing')
+text = text.replace(anchor, replacement, 1)
+artifact_anchor = '            /tmp/kodjo-v2-plan/plan-impact-replay.json\n'
+if artifact_anchor not in text: raise SystemExit('revision artifact anchor missing')
+text = text.replace(artifact_anchor, artifact_anchor + '            /tmp/kodjo-v2-plan/plan-contract.json\n', 1)
+revision.write_text(text, encoding='utf-8')
+
+pilot = ROOT / 'tests/kodjo/v2-initial-planning-entry.pilot.js'
+text = pilot.read_text(encoding='utf-8')
+insert = r'''
+
+test('0.6.29 — le contrat de plan bloque divergence scope et tests hors contrat avant revue', () => {
+  const initial = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  const revision = read('.github/workflows/kodjo-v2-slice-plan.yml');
+  const verifier = read('scripts/kodjo/verify-plan-contract-consistency.js');
+  for (const workflow of [initial, revision]) {
+    assert.match(workflow, /verify-plan-contract-consistency\.js/);
+    assert.match(workflow, /KODJO_PLAN_CONTRACT_JSON/);
+    assert.match(workflow, /Every new test required by the plan must be named/);
+  }
+  assert.match(verifier, /scope_allow prose != scope_allow machine/);
+  assert.match(verifier, /TEST_CONTRACT_CONSISTENCY/);
+  assert.match(verifier, /nouveau test exige sans CREATE autorise/);
+  assert.match(verifier, /test en écriture absent de la section Tests/);
+});
+'''
+marker = "test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact'"
+pos = text.find(marker)
+if pos < 0: raise SystemExit('pilot insertion anchor missing')
+text = text[:pos] + insert + '\n' + text[pos:]
+pilot.write_text(text, encoding='utf-8')
+
+contract_test = r'''\'use strict\';
+
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+const root = path.resolve(__dirname, '..', '..');
+const verifier = path.join(root, 'scripts', 'kodjo', 'verify-plan-contract-consistency.js');
+const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+
+function plan({ scope, modules, rows, prose }) {
+  return `${prose}\n\n<KODJO_PLAN_IMPACT_JSON>\n${JSON.stringify({schema:'kodjo.plan-impact.v1',scan_revision:head,scan_sha256:'x',modified_modules:modules,rows,scope_allow:scope},null,2)}\n</KODJO_PLAN_IMPACT_JSON>\n`;
+}
+function run(markdown) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-plan-contract-'));
+  const input = path.join(dir, 'plan.md');
+  const output = path.join(dir, 'contract.json');
+  fs.writeFileSync(input, markdown, 'utf8');
+  const result = spawnSync(process.execPath, [verifier, input, head, root, output], { cwd: root, encoding: 'utf8' });
+  return { ...result, output };
+}
+
+test('contrat: scope prose et scope machine doivent être identiques', () => {
+  const result = run(plan({
+    scope:['src/a.ts','src/b.ts'],
+    modules:[{path:'src/a.ts',change:'MODIFY'}],
+    rows:[{path:'src/a.ts',candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'x'},{path:'src/b.ts',candidate_kind:'CONSUMER',triggered_by:['src/a.ts'],risk_score:0,classification:'MODIFY',justification:'x'}],
+    prose:'## Proposition de `scope_allow`\n```text\nsrc/a.ts\n```\n',
+  }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /scope_allow prose != scope_allow machine/);
+});
+
+test('contrat: un nouveau test exigé doit être CREATE et autorisé', () => {
+  const testPath='src/example/__tests__/BrandNewContract.test.ts';
+  const result = run(plan({
+    scope:['src/a.ts'],
+    modules:[{path:'src/a.ts',change:'MODIFY'}],
+    rows:[{path:'src/a.ts',candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'x'}],
+    prose:`## Tests requis\n- créer \`${testPath}\`\n`,
+  }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /TEST_CONTRACT_CONSISTENCY/);
+  assert.match(result.stderr, /nouveau test exige sans CREATE autorise/);
+});
+
+test('contrat: les tests en écriture sont explicités et le contrat canonique est produit', () => {
+  const testPath='src/example/__tests__/BrandNewContract.test.ts';
+  const result = run(plan({
+    scope:['src/a.ts',testPath],
+    modules:[{path:'src/a.ts',change:'MODIFY'},{path:testPath,change:'CREATE'}],
+    rows:[{path:'src/a.ts',candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'x'},{path:testPath,candidate_kind:'MODIFIED_MODULE',triggered_by:[],risk_score:0,classification:'MODIFY',justification:'x'}],
+    prose:`## Proposition de \`scope_allow\`\n\`src/a.ts\`\n\`${testPath}\`\n\n## Tests requis\n- créer \`${testPath}\`\n`,
+  }));
+  assert.equal(result.status, 0, result.stderr);
+  const contract=JSON.parse(fs.readFileSync(result.output,'utf8'));
+  assert.equal(contract.schema,'kodjo.plan-contract-consistency.v1');
+  assert.deepEqual(contract.write_scope,['src/a.ts',testPath].sort());
+  assert.deepEqual(contract.required_test_writes,[testPath]);
+});
+'''.replace("\\'use strict\\';", "'use strict';")
+(ROOT / 'tests/kodjo/plan-contract-consistency.pilot.js').write_text(contract_test, encoding='utf-8')
+
+spec = ROOT / '.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md'
+spec.write_text(spec.read_text(encoding='utf-8') + r'''
+
+## Durcissement de cohérence plan / scope / tests — 17/09/2026
+
+À la suite des revues réelles de `V2-CAT-01`, deux invariants déterministes deviennent obligatoires pour `START_INITIAL_PLAN` et `START_PLAN_REVISION` :
+
+1. **Cohérence du périmètre d’écriture.** Si le plan contient une section de prose `scope_allow`, l’ensemble des chemins qui y est énuméré doit être strictement identique au `scope_allow` machine dérivé de `KODJO_PLAN_IMPACT_JSON`. Une différence de cardinalité ou de chemin produit `PLAN_SCOPE_CONTRADICTION` avant toute revue indépendante. Le contrat canonique est publié dans `KODJO_PLAN_CONTRACT_JSON` et dérive directement du scope machine.
+2. **Cohérence du contrat de tests.** Tout nouveau test exigé par le plan doit être nommé dans la section Tests par son chemin POSIX exact. S’il n’existe pas au HEAD scanné, il doit apparaître comme `CREATE` dans `modified_modules` et dans `scope_allow`. Tout test placé en écriture par `MODIFY`/`TEST_MUST_ADAPT` doit être explicitement présent dans la section Tests. Toute divergence produit `TEST_CONTRACT_CONSISTENCY` avant la revue indépendante.
+
+Ces contrôles sont mécaniques et précèdent Claude reviewer. La revue indépendante conserve son rôle d’évaluation de pertinence du scope ; elle ne doit plus être le premier mécanisme découvrant une incohérence entre représentations du même contrat.
+''', encoding='utf-8')
+
+report = ROOT / '.github/orchestration/CHANGE_REPORT_0.6.29.md'
+report.write_text(report.read_text(encoding='utf-8') + r'''
+
+## Cohérence scope/tests — 17/09/2026
+
+Les revues réelles de `V2-CAT-01` ont démontré deux défauts de contrôle : un `scope_allow` machine pouvait diverger d’une liste exhaustive en prose, et un nouveau test pouvait être exigé sans autorisation `CREATE`. Le correctif introduit `scripts/kodjo/verify-plan-contract-consistency.js`, exécuté sur les chemins INITIAL et PLAN_REVISION avant revue indépendante. Il publie `KODJO_PLAN_CONTRACT_JSON` et bloque `PLAN_SCOPE_CONTRADICTION` ou `TEST_CONTRACT_CONSISTENCY` selon le cas. Aucun comportement applicatif n’est modifié.
+''', encoding='utf-8')
+
+reg = ROOT / '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
+text = reg.read_text(encoding='utf-8')
+text = text.replace('Version du registre : **3.39.0**', 'Version du registre : **3.40.0**', 1)
+lines = text.splitlines()
+out=[]
+inserted_inc=False
+inserted_test=False
+for line in lines:
+    out.append(line)
+    if line.startswith('| INC-139 |') and not inserted_inc:
+        out.append('| INC-140 | 2026-09-17 | V2 planification 0.6.29 | DÉFAUT_CONCEPTION | Cohérence scope plan | Un `scope_allow` machine pouvait autoriser des chemins absents d’une liste exhaustive déclarée en prose | Les deux représentations du périmètre étaient validées séparément sans invariant d’identité | Revue V2-CAT-01 `5714941349` : 68 chemins en prose/modified_modules contre 70 dans scope_allow | `verify-plan-contract-consistency.js` compare toute section scope_allow en prose au scope machine avant revue | Une seule définition exhaustive du périmètre ; toute divergence bloque avant Claude reviewer | T-113 | NON RETESTÉ | START_INITIAL_PLAN + START_PLAN_REVISION | OUVERT | — | Qualification PR requise |')
+        out.append('| INC-141 | 2026-09-17 | V2 planification 0.6.29 | DÉFAUT_CONCEPTION | Contrat de tests du plan | Un plan pouvait exiger la création d’un test absent de `modified_modules`/`scope_allow` | Les exigences de tests en prose n’étaient pas reliées mécaniquement au contrat d’écriture | Revue V2-CAT-01 `5712601284`, écart C-4 | `verify-plan-contract-consistency.js` exige chemin exact, CREATE pour tout nouveau test, et présence des tests en écriture dans la section Tests | Aucun test nouveau ou adapté requis ne peut rester hors contrat machine | T-114 | NON RETESTÉ | START_INITIAL_PLAN + START_PLAN_REVISION | OUVERT | — | Qualification PR requise |')
+        inserted_inc=True
+    if line.startswith('| T-112 |') and not inserted_test:
+        out.append('| T-113 | V2 0.6.29 | Identité scope prose/machine | Cohérence du contrat de plan | Injecter un scope prose incomplet puis un scope identique | Le premier cas échoue `PLAN_SCOPE_CONTRADICTION`, le second produit `KODJO_PLAN_CONTRACT_JSON` | plan-contract-consistency.pilot.js | NON RETESTÉ | INC-140 |')
+        out.append('| T-114 | V2 0.6.29 | Tests requis dans le contrat d’écriture | Cohérence tests/scope | Exiger un test inexistant sans CREATE puis avec CREATE autorisé | Le premier cas échoue `TEST_CONTRACT_CONSISTENCY`, le second passe | plan-contract-consistency.pilot.js | NON RETESTÉ | INC-141 |')
+        inserted_test=True
+if not inserted_inc or not inserted_test: raise SystemExit('incident/test anchors missing')
+reg.write_text('\n'.join(out)+'\n', encoding='utf-8')
+
+p = ROOT / 'tests/kodjo/incident-register.pilot.js'
+text = p.read_text(encoding='utf-8')
+text = text.replace("registre canonique 3.39.0", "registre canonique 3.40.0", 1)
+text = text.replace(r'/Version du registre : \*\*3\.39\.0\*\*/', r'/Version du registre : \*\*3\.40\.0\*\*/', 1)
+text = text.replace("assertSequence(incidents, 'INC', 139);", "assertSequence(incidents, 'INC', 141);", 1)
+text = text.replace("assertSequence(ids('T'), 'T', 112);", "assertSequence(ids('T'), 'T', 114);", 1)
+p.write_text(text, encoding='utf-8')
+
+run('node', '--test', 'tests/kodjo/plan-contract-consistency.pilot.js', 'tests/kodjo/v2-initial-planning-entry.pilot.js', 'tests/kodjo/incident-register.pilot.js')
+run('git', 'diff', '--check')
+run('git', 'config', 'user.name', 'MyUncried')
+run('git', 'config', 'user.email', 'hadjou@gmail.com')
+run('git', 'rm', '.github/workflows/tmp-v2-plan-contract-consistency-sync.yml', 'scripts/kodjo/tmp_apply_plan_contract_hardening.py')
+run('git', 'add', '.github/workflows/kodjo-v2-slice-initial-plan.yml', '.github/workflows/kodjo-v2-slice-plan.yml', 'scripts/kodjo/verify-plan-contract-consistency.js', 'tests/kodjo/plan-contract-consistency.pilot.js', 'tests/kodjo/v2-initial-planning-entry.pilot.js', '.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.29.md', '.github/orchestration/CHANGE_REPORT_0.6.29.md', '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md', 'tests/kodjo/incident-register.pilot.js')
+run('git', 'commit', '-m', 'fix(kodjo): enforce plan scope and test contract consistency')
+run('git', 'push', 'origin', 'HEAD:fix/v2-plan-contract-consistency-20260917')
