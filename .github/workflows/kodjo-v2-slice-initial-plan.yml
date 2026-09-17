@@ -99,7 +99,7 @@ jobs:
           cat > /tmp/kodjo-v2-initial/draft-prompt.txt <<EOF
           You are the KODJO V2 initial technical-plan builder for $SLICE_ID at immutable product HEAD $SOURCE_HEAD. This is the FIRST plan of a new slice. There is no application PR and no prior approved plan/review. READ ONLY: never implement and never modify repository files.
           The bootstrap, planning mission, Issue, current product sources and checked-out code are authoritative. A file named non-opposable-seed-plan.md may be supplied only as a drafting aid; verify it independently and do not treat it as protocol authority. Do not invent scope.
-          Return a complete French technical plan in the structured response field plan_markdown. Separately return modified_modules with every application module that implementation would CREATE or MODIFY, using repository-relative POSIX paths only. Return plan_status=READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise plan_status=CLARIFICATION_REQUIRED. Do not embed KODJO tags or PLAN_STATUS markers inside plan_markdown; the workflow assembles those mechanically. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If plan_markdown contains a scope_allow section, it must enumerate exactly the complete write scope; the workflow will reject any difference with the machine scope.
+          Return a complete French technical plan in the structured response field plan_markdown. Separately return modified_modules with every application module that implementation would CREATE or MODIFY, using repository-relative POSIX paths only. Return plan_status=READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise plan_status=CLARIFICATION_REQUIRED. Do not embed KODJO tags or PLAN_STATUS markers inside plan_markdown; the workflow assembles those mechanically. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If plan_markdown contains a scope_allow section, it must enumerate exactly the complete write scope; the workflow will reconcile that section mechanically with the deterministic direct-impact closure before contract verification.
           EOF
           for file in slice-bootstrap.json planning-mission.md product-evidence.txt code-files.txt issue.json comments.json non-opposable-seed-plan.md; do
             if test -f "/tmp/kodjo-v2-initial/$file"; then printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; cat "/tmp/kodjo-v2-initial/$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; fi
@@ -127,7 +127,13 @@ jobs:
           (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/scan.json)
           cat > /tmp/kodjo-v2-initial/decision-prompt.txt <<'EOF'
           Classify every candidate in the supplied deterministic direct-import scan. Return each candidate exactly once in the structured decisions array. Production consumers use MODIFY or CONSUMER_UNAFFECTED. Tests use TEST_MUST_ADAPT or TEST_UNAFFECTED. Do not classify a modified_module; those are already fixed as MODIFY. This is a one-level direct-import contract: do not infer transitive importers.
+          The locked planning mission and current plan prose are authoritative for explicit path-level determinations. If either explicitly states that a candidate is CONSUMER_UNAFFECTED or TEST_UNAFFECTED, preserve that classification exactly. A direct import alone never proves that a test or consumer must change.
           EOF
+          printf '\n===== LOCKED PLANNING MISSION =====\n' >> /tmp/kodjo-v2-initial/decision-prompt.txt
+          cat /tmp/kodjo-v2-initial/planning-mission.md >> /tmp/kodjo-v2-initial/decision-prompt.txt
+          printf '\n===== CURRENT PLAN PROSE =====\n' >> /tmp/kodjo-v2-initial/decision-prompt.txt
+          cat /tmp/kodjo-v2-initial/plan-draft.md >> /tmp/kodjo-v2-initial/decision-prompt.txt
+          printf '\n===== DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-initial/decision-prompt.txt
           cat /tmp/kodjo-v2-initial/scan.json >> /tmp/kodjo-v2-initial/decision-prompt.txt
           DECISION_SCHEMA=$(jq -nc '{type:"object",additionalProperties:false,required:["decisions"],properties:{decisions:{type:"array",items:{type:"object",additionalProperties:false,required:["path","classification","justification"],properties:{path:{type:"string",minLength:1},classification:{type:"string",enum:["MODIFY","TEST_MUST_ADAPT","CONSUMER_UNAFFECTED","TEST_UNAFFECTED","REQUIRES_CLARIFICATION"]},justification:{type:"string",minLength:1}}}}}}')
           jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-initial/decision-prompt.txt --argjson schema "$DECISION_SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_initial_plan_decisions",strict:true,schema:$schema}}}' > /tmp/kodjo-v2-initial/decision-request.json
@@ -152,7 +158,10 @@ jobs:
           const matrix={schema:'kodjo.plan-impact.v1',scan_revision:scan.scan_revision,scan_sha256:sha256(scan),modified_modules:scan.modified_modules,rows,scope_allow:scope};
           fs.writeFileSync('/tmp/kodjo-v2-initial/matrix.json',JSON.stringify(matrix,null,2)+'\n');
           NODE
-          cp /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/technical-plan.md
+          node scripts/kodjo/reconcile-initial-plan-prose.js \
+            /tmp/kodjo-v2-initial/plan-draft.md \
+            /tmp/kodjo-v2-initial/matrix.json \
+            /tmp/kodjo-v2-initial/technical-plan.md
           printf '\n\n<KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
