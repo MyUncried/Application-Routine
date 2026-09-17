@@ -52,7 +52,7 @@ Ne jamais utiliser un rapport historique ou une règle supersédée comme exigen
 
 La revue `5712601284` a demandé une révision avant développement. Les points suivants sont désormais déterminés et doivent être intégrés au prochain plan sans rouvrir les éléments déjà validés :
 
-- le libellé exact de la première option `Créer` est `Une nouvelle activité` ; l’arbitrage utilisateur est tracé dans l’Issue #150 et les anciennes occurrences Figma `Une activité` constituent un écart graphique à resynchroniser, pas une règle fonctionnelle ;
+- le libellé exact de la première option `Créer` est `Une nouvelle activité` ; l’arbitrage utilisateur est tracé dans l’Issue #150 et les frames Figma `3787:5148` et `3841:8375` ont été resynchronisées le 17 septembre 2026 avec ce libellé exact ;
 - la section Médias de l’éditeur est visible et repliable ; `Déployer / Condenser` et le placeholder restent désactivés et aucune fonction média réelle n’entre dans la tranche ;
 - `scope_allow` doit rester minimal et correspondre strictement aux fichiers réellement à créer/modifier et aux tests qui doivent réellement s’adapter ; les calculs de bilatéralité déjà validés, notamment `src/domain/sessions/calculations.ts`, sont gelés et hors périmètre ; `src/domain/sessions/Session.ts` ne doit être classé `MODIFY` que si un changement concret indispensable est démontré ; les importeurs d’un contrat inchangé doivent être classés `CONSUMER_UNAFFECTED` ou `TEST_UNAFFECTED` ;
 - tout nouveau test exigé par le plan doit apparaître explicitement en `CREATE` dans `modified_modules` et donc dans le scope machine ; aucun test nouveau ne peut être exigé uniquement en prose ;
