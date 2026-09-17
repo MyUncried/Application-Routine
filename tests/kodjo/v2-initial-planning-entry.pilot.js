@@ -54,6 +54,17 @@ test('0.6.29 — les sorties génératives du plan initial sont structurées pui
   assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
 });
 
+test('0.6.29 — le premier plan ferme le périmètre sur un seul niveau d importateurs directs', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  assert.equal((workflow.match(/scan-plan-impact\.js\" scan/g) || []).length, 1);
+  assert.doesNotMatch(workflow, /for iteration in 1 2 3 4/);
+  assert.doesNotMatch(workflow, /promoted\.json/);
+  assert.match(workflow, /contract=ONE_LEVEL_DIRECT_IMPORTS/);
+  assert.match(workflow, /INITIAL_PLAN_DIRECT_SCOPE/);
+  assert.match(workflow, /INITIAL_PLAN_DIRECT_SCOPE_WARNING/);
+  assert.match(workflow, /scope\.length>20/);
+});
+
 test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
 
