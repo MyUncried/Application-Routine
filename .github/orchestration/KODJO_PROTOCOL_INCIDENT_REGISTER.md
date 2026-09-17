@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.40.0**
+- Version du registre : **3.41.0**
 - Date : **2026-09-17**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
@@ -525,5 +525,8 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | T-112 | V2 0.6.29 | Scope INITIAL à un niveau | Exhaustivité / bornage | Exécuter un unique scan direct, classifier chaque candidat une fois, journaliser les volumes et rejouer la preuve au même source_head | ONE_LEVEL_DIRECT_IMPORTS ; aucun rescan promu ; warning si scope_allow>20 ; proof MATCH | PASS — PR #157, run 35170319436 ; run réel 35171512526 ; artefact 10476907373 | v2-initial-planning-entry.pilot.js, workflow initial ; INC-139 |
 | T-113 | V2 0.6.29 | Identité scope prose/machine | Cohérence du contrat de plan | Injecter un scope prose incomplet puis un scope identique | Le premier cas échoue `PLAN_SCOPE_CONTRADICTION`, le second produit `KODJO_PLAN_CONTRACT_JSON` | plan-contract-consistency.pilot.js | NON RETESTÉ | INC-140 |
 | T-114 | V2 0.6.29 | Tests requis dans le contrat d’écriture | Cohérence tests/scope | Exiger un test inexistant sans CREATE puis avec CREATE autorisé | Le premier cas échoue `TEST_CONTRACT_CONSISTENCY`, le second passe | plan-contract-consistency.pilot.js | NON RETESTÉ | INC-141 |
+| INC-142 | 2026-09-17 | V2 planification 0.6.30 | DÉFAUT_CONCEPTION | Clarification mineure du plan | Une correction littérale mineure imposait jusqu’ici une reconstruction complète du plan et une revue produit complète alors que le contrat machine restait inchangé | Le protocole ne distinguait pas clarification littérale bornée et révision structurelle | Parcours V2-CAT-01 du 17/09/2026 : arbitrage de libellé puis relances complètes de plan/revue | Fast path `START_MINOR_PLAN_CLARIFICATION` : remplacement littéral exact hors blocs machine, rejeu impact/contrat, revue Claude réduite, repli obligatoire vers le parcours complet | Aucun fast path si source_head, contrat machine, scope, tests, migration, API, architecture, données ou stratégie changent | T-115 | NON RETESTÉ | START_INITIAL_PLAN uniquement | OUVERT | — | Extension START_PLAN_REVISION explicitement hors 0.6.30 |
+| T-115 | V2 0.6.30 | Clarification mineure bornée | Routage / preuve | Remplacer un littéral exact avec contrat inchangé, puis injecter occurrence incorrecte, marqueur protégé, contrat absent et statut non admissible | Le cas nominal produit `kodjo.minor-plan-clarification.v1`; tous les cas non admissibles échouent avant publication ; le workflow impose une revue réduite et un fallback complet | minor-plan-clarification.pilot.js + workflow 0.6.30 | NON RETESTÉ | INC-142 |
 
+| 3.41.0 | 2026-09-17 | Ajout d’INC-142 et T-115 : fast path de clarification mineure du plan initial, transformation littérale déterministe, revalidation machine et revue réduite avec fallback complet. |
 | 3.39.0 | 2026-09-17 | Ajout d’INC-137 à INC-139 et T-110 à T-112 : portabilité des empreintes, sorties structurées et contrat INITIAL à un niveau ; qualification Linux/Windows puis exécution réelle V2-CAT-01 entièrement verte. |
