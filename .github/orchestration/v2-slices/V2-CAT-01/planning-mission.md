@@ -48,6 +48,19 @@ Le bootstrap de tranche fixe les sources produit à utiliser. Priorité aux sour
 
 Ne jamais utiliser un rapport historique ou une règle supersédée comme exigence courante lorsqu’une source normative plus récente existe.
 
+## Corrections imposées après la revue indépendante du plan initial
+
+La revue `5712601284` a demandé une révision avant développement. Les points suivants sont désormais déterminés et doivent être intégrés au prochain plan sans rouvrir les éléments déjà validés :
+
+- le libellé exact de la première option `Créer` est `Une nouvelle activité` ; l’arbitrage utilisateur est tracé dans l’Issue #150 et les anciennes occurrences Figma `Une activité` constituent un écart graphique à resynchroniser, pas une règle fonctionnelle ;
+- la section Médias de l’éditeur est visible et repliable ; `Déployer / Condenser` et le placeholder restent désactivés et aucune fonction média réelle n’entre dans la tranche ;
+- `scope_allow` doit rester minimal et correspondre strictement aux fichiers réellement à créer/modifier et aux tests qui doivent réellement s’adapter ; les calculs de bilatéralité déjà validés, notamment `src/domain/sessions/calculations.ts`, sont gelés et hors périmètre ; `src/domain/sessions/Session.ts` ne doit être classé `MODIFY` que si un changement concret indispensable est démontré ; les importeurs d’un contrat inchangé doivent être classés `CONSUMER_UNAFFECTED` ou `TEST_UNAFFECTED` ;
+- tout nouveau test exigé par le plan doit apparaître explicitement en `CREATE` dans `modified_modules` et donc dans le scope machine ; aucun test nouveau ne peut être exigé uniquement en prose ;
+- `src/features/activities/` est autorisé comme frontière de présentation dédiée aux Activités persistantes : écrans, composants et adaptateurs UI propres à cette feature ; le domaine reste dans `src/domain/activities/`, la persistance SQLite dans `src/infrastructure/database/`, et les composants réellement partagés restent dans les espaces partagés ;
+- le libellé permanent de navigation basse `Catalogues` supersède explicitement l’ancien jalon `RES-NAV-LABEL-01` (`Séances`).
+
+Le prochain plan doit énumérer et justifier l’intégralité de son `scope_allow` ; sa section de périmètre technique et l’artefact machine ne doivent pas diverger.
+
 ## Périmètre fonctionnel inclus
 
 Le périmètre exact est celui de l’Issue #150. Le plan doit le traiter sans l’élargir.
@@ -61,8 +74,8 @@ Le périmètre exact est celui de l’Issue #150. Le plan doit le traiter sans l
 
 ### Options de création depuis les Catalogues
 
-- Écran/options : `Activité`, `Séance`, `Circuit`, `Annuler`.
-- `Activité` et `Séance` disponibles ; `Circuit` visible mais désactivé ; `Annuler` disponible.
+- Écran/options : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`.
+- `Une nouvelle activité` et `Une séance` disponibles ; `Un circuit` visible mais désactivé ; `Annuler` disponible.
 - Apparition progressive et rapide des options.
 - Mise à niveau des écrans déjà développés concernés, notamment zone bleue supérieure, boutons d’action et barre de navigation.
 
