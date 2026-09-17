@@ -1,0 +1,63 @@
+name: KODJO temporary final certification register update
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-register:
+    if: github.head_ref == 'docs/v2-0.6.29-final-certification-20260917'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply exact register traceability delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const registerPath = '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md';
+          const testPath = 'tests/kodjo/incident-register.pilot.js';
+          let register = fs.readFileSync(registerPath, 'utf8');
+          let test = fs.readFileSync(testPath, 'utf8');
+
+          if (!register.includes('| INC-137 |')) {
+            if (!register.includes('Version du registre : **3.38.0**')) throw new Error('REGISTER_BASE_VERSION_MISMATCH');
+            register = register.replace('Version du registre : **3.38.0**', 'Version du registre : **3.39.0**');
+            register = register.replace('Date : **2026-09-15**', 'Date : **2026-09-17**');
+            register += `\n\n## Mise à jour 3.39.0 — certification du premier plan V2 0.6.29\n\n| INC-137 | 2026-09-17 | V2 planification 0.6.29 | DÉFAUT_CONCEPTION | Vérification des product_sources du premier plan | Le run 35156563712 échoue silencieusement dans Build immutable initial planning packet sur la première comparaison SHA-256 | Le bootstrap V2-CAT-01 avait été haché sur les octets d’un worktree Windows CRLF alors que le runner Linux vérifiait les blobs checkoutés LF | Run 35156563712 ; PR #153 ; PR #154 ; run réel final 35171512526 journalisant LEGACY_WORKTREE_CRLF_HASH | Empreintes futures calculées depuis les blobs Git du HEAD ; vérificateur nominatif ; compatibilité limitée au bootstrap historique V2-CAT-01 | Une source produit est identifiée par les octets Git du HEAD, indépendamment des fins de ligne du worktree | T-110 : qualification PR #154 puis exécution réelle 35171512526 avec les sources historiques acceptées nominativement et le gate vert | PASS — PR #154 qualifiée ; run 35171512526 SUCCESS | START_INITIAL_PLAN / activation V2 | CORRIGÉ | prolonge INC-117/118 sans modifier leur politique de staging | Aucun fichier produit ni bootstrap existant modifié |\n| INC-138 | 2026-09-17 | V2 planification 0.6.29 | DÉFAUT_CONCEPTION | Construction du premier plan | Après résolution de l’incident d’empreinte, un brouillon libre pouvait omettre KODJO_MODIFIED_MODULES_JSON et provoquer PLAN_SCOPE_UNCLASSIFIED | Les marqueurs et données structurantes du plan dépendaient encore d’une sortie Markdown libre du modèle | Reproduction sur le run 35164576137 et son rerun ; PR #155 ; run réel final 35171512526 | Deux sorties json_schema strictes ; assemblage mécanique de modified_modules, PLAN_STATUS, décisions et matrice d’impact | Les champs protocolaires déterministes ne dépendent jamais de la présence spontanée d’un bloc Markdown généré | T-111 : qualification Linux/Windows de la PR #155 puis Draft initial V2 plan et assemblage réels verts sur 35171512526 | PASS — PR #155 qualifiée ; run 35171512526 SUCCESS | START_INITIAL_PLAN | CORRIGÉ | prolonge INC-013/014/016/124 | Aucun élargissement de scope ni modification applicative |\n| INC-139 | 2026-09-17 | V2 planification 0.6.29 | DÉFAUT_CONCEPTION | Fermeture du scope du premier plan | Le run 35168034496 répète plusieurs classifications puis échoue dans Close impact scope and assemble canonical plan ; 37 modules avaient été interprétés à tort comme une croissance | La boucle INITIAL ajoutait une promotion transitive non contractuelle à scanDirectImporters et comparait en plus un ordre compareText à un ordre localeCompare, de sorte que stable pouvait rester faux sans ajout | Run 35168034496 ; PR #156 fermée comme piste supersédée ; PR #157 ; qualification 35170319436 ; run réel final 35171512526 | Suppression de la boucle de promotion pour START_INITIAL_PLAN ; un scan direct unique, classification unique, scope_allow direct et warning au-delà de 20 chemins | Le premier plan respecte ONE_LEVEL_DIRECT_IMPORTS : un consommateur direct MODIFY entre dans scope_allow sans devenir une nouvelle racine | T-112 : oracle permanent v2-initial-planning-entry + qualification Linux/Windows #157 + run réel 35171512526 : 38 modules, 70 candidats, 7 consommateurs directs MODIFY, scope_allow 73, preuve MATCH | PASS — run 35170319436 Linux/Windows ; run 35171512526 SUCCESS ; artefact 10476907373 | START_INITIAL_PLAN uniquement | CORRIGÉ | supersède INC-125/T-100 pour START_INITIAL_PLAN uniquement ; START_PLAN_REVISION inchangé | PR #156 fermée non fusionnée ; warning de volume observé sans blocage |\n| T-110 | V2 0.6.29 | Empreintes product_sources portables | Portabilité / preuve | Qualifier le vérificateur LF/CRLF, calculer les activations futures depuis Git, puis exécuter le premier plan réel sur le bootstrap historique | Sources historiques reconnues nominativement ; aucun mismatch silencieux ; Build immutable initial planning packet PASS | PASS — PR #154 ; run 35171512526 | verify-initial-product-sources.js, activate-kodjo-v2-slice.js ; INC-137 |\n| T-111 | V2 0.6.29 | Sorties structurées du premier plan | Contrat génératif | Imposer json_schema au brouillon et aux décisions, assembler les marqueurs mécaniquement et exécuter le parcours réel | Draft et assemblage passent sans bloc KODJO manquant ; preuves déterministes non confiées au modèle | PASS — PR #155 ; run 35171512526 | v2-initial-planning-entry.pilot.js ; INC-138 |\n| T-112 | V2 0.6.29 | Scope INITIAL à un niveau | Exhaustivité / bornage | Exécuter un unique scan direct, classifier chaque candidat une fois, journaliser les volumes et rejouer la preuve au même source_head | ONE_LEVEL_DIRECT_IMPORTS ; aucun rescan promu ; warning si scope_allow>20 ; proof MATCH | PASS — PR #157, run 35170319436 ; run réel 35171512526 ; artefact 10476907373 | v2-initial-planning-entry.pilot.js, workflow initial ; INC-139 |\n\n| 3.39.0 | 2026-09-17 | Ajout d’INC-137 à INC-139 et T-110 à T-112 : portabilité des empreintes, sorties structurées et contrat INITIAL à un niveau ; qualification Linux/Windows puis exécution réelle V2-CAT-01 entièrement verte. |\n`;
+          }
+
+          test = test.replace(/registre canonique 3\.38\.0:/g, 'registre canonique 3.39.0:');
+          test = test.replace(/Version du registre : \\*\\*3\\\.38\\\.0\\*\\*/g, 'Version du registre : \\*\\*3\\.39\\.0\\*\\*');
+          test = test.replace("assertSequence(incidents, 'INC', 136);", "assertSequence(incidents, 'INC', 139);");
+          test = test.replace("assertSequence(ids('T'), 'T', 109);", "assertSequence(ids('T'), 'T', 112);");
+
+          fs.writeFileSync(registerPath, register, 'utf8');
+          fs.writeFileSync(testPath, test, 'utf8');
+          NODE
+
+          git diff --check
+          git diff -- .github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md tests/kodjo/incident-register.pilot.js
+
+      - name: Commit exact traceability delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'Register already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- .github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md tests/kodjo/incident-register.pilot.js
+          test "$(git diff --cached --name-only | wc -l)" -eq 2
+          git commit -m 'docs(kodjo): trace 0.6.29 certification incidents'
+          git push origin "HEAD:${{ github.head_ref }}"
