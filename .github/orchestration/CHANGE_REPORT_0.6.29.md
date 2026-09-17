@@ -135,3 +135,8 @@ Contenu contrôlé de l’artefact :
 **QUALIFIED** pour le chemin `START_INITIAL_PLAN` démontré par le run réel `35171512526`.
 
 Cette qualification n’autorise pas l’implémentation : le plan doit encore suivre la revue indépendante puis le gate utilisateur prévu par le protocole. Elle ne modifie pas non plus le comportement de `START_PLAN_REVISION`.
+
+
+## Cohérence scope/tests — 17/09/2026
+
+Les revues réelles de `V2-CAT-01` ont démontré deux défauts de contrôle : un `scope_allow` machine pouvait diverger d’une liste exhaustive en prose, et un nouveau test pouvait être exigé sans autorisation `CREATE`. Le correctif introduit `scripts/kodjo/verify-plan-contract-consistency.js`, exécuté sur les chemins INITIAL et PLAN_REVISION avant revue indépendante. Il publie `KODJO_PLAN_CONTRACT_JSON` et bloque `PLAN_SCOPE_CONTRADICTION` ou `TEST_CONTRACT_CONSISTENCY` selon le cas. Aucun comportement applicatif n’est modifié.

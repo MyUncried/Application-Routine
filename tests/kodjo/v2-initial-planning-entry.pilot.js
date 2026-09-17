@@ -70,6 +70,23 @@ test('0.6.29 — le premier plan ferme le périmètre sur un seul niveau d impor
   assert.match(workflow, /scope\.length>20/);
 });
 
+
+
+test('0.6.29 — le contrat de plan bloque divergence scope et tests hors contrat avant revue', () => {
+  const initial = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  const revision = read('.github/workflows/kodjo-v2-slice-plan.yml');
+  const verifier = read('scripts/kodjo/verify-plan-contract-consistency.js');
+  for (const workflow of [initial, revision]) {
+    assert.match(workflow, /verify-plan-contract-consistency\.js/);
+    assert.match(workflow, /KODJO_PLAN_CONTRACT_JSON/);
+    assert.match(workflow, /Every new test required by the plan must be named/);
+  }
+  assert.match(verifier, /scope_allow prose != scope_allow machine/);
+  assert.match(verifier, /TEST_CONTRACT_CONSISTENCY/);
+  assert.match(verifier, /nouveau test exige sans CREATE autorise/);
+  assert.match(verifier, /test en écriture absent de la section Tests/);
+});
+
 test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml');
 
