@@ -61,7 +61,7 @@ function loadBoundMigration(bootstrap) {
 }
 
 function main() {
-  const [bootstrapPath, sourceRoot, evidencePath] = process.argv.slice(2);
+  const [bootstrapPath, sourceRoot, evidencePath, materializeRoot] = process.argv.slice(2);
   if (!bootstrapPath || !sourceRoot || !evidencePath) {
     fail('V2_INITIAL_PRODUCT_SOURCE_VERIFY_USAGE nature=INVALID_ARGUMENTS');
   }
@@ -108,6 +108,16 @@ function main() {
 
     chunks.push(`\n===== ${file} =====\n`);
     chunks.push(bytes);
+    if (materializeRoot) {
+      const destination = path.resolve(materializeRoot, file);
+      const rootPrefix = path.resolve(materializeRoot) + path.sep;
+      if (!destination.startsWith(rootPrefix)) {
+        failures.push(`V2_INITIAL_PRODUCT_SOURCE_VERIFY_FAILED path=${JSON.stringify(file)} actual=INVALID_MATERIALIZATION_PATH nature=PATH_INVALID`);
+      } else {
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+        fs.writeFileSync(destination, bytes);
+      }
+    }
   }
 
   if (failures.length) {
@@ -116,7 +126,7 @@ function main() {
   }
 
   fs.writeFileSync(evidencePath, Buffer.concat(chunks.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part, 'utf8'))));
-  process.stdout.write(`V2_INITIAL_PRODUCT_SOURCE_VERIFY_OK sources=${bootstrap.product_sources.length} migrated=${migrated} baseline_head=${baselineHead} authority=GIT_BLOB${migration ? ` migration=BOUND_LEGACY_BOOTSTRAP migration_id=${migration.migration_id}` : ''}\n`);
+  process.stdout.write(`V2_INITIAL_PRODUCT_SOURCE_VERIFY_OK sources=${bootstrap.product_sources.length} migrated=${migrated} baseline_head=${baselineHead} authority=GIT_BLOB${materializeRoot ? ' materialized=CANONICAL_GIT_BLOBS' : ''}${migration ? ` migration=BOUND_LEGACY_BOOTSTRAP migration_id=${migration.migration_id}` : ''}\n`);
 }
 
 try {
