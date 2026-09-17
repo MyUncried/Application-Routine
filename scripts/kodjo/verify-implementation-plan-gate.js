@@ -21,7 +21,12 @@ function requireCondition(condition, code) {
 }
 function loadComment(file, code) {
   let value;
-  try { value = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { throw new Error(code); }
+  try {
+    const raw = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+    value = JSON.parse(raw);
+  } catch {
+    throw new Error(code);
+  }
   requireCondition(value && ID.test(String(value.id || '')), code);
   requireCondition(typeof value.body === 'string', code);
   requireCondition(value.user && typeof value.user.login === 'string', code);
