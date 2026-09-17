@@ -174,7 +174,7 @@ jobs:
           <KODJO_PLAN_DECISIONS_JSON>
           [{"path":"copy the exact candidate path","classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION","justification":"non-empty positive evidence"}]
           </KODJO_PLAN_DECISIONS_JSON>
-          A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow.
+          A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If the prose contains a scope_allow section, it must enumerate exactly the complete machine write scope.
           Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
           EOF
             printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
@@ -199,6 +199,10 @@ jobs:
             fi
           done
           test -f /tmp/kodjo-v2-plan/technical-plan.md
+          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
+          printf "\n<KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
+          cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
+          printf "</KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)
           grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
@@ -255,6 +259,7 @@ jobs:
             /tmp/kodjo-v2-plan/plan-impact-closure.json
             /tmp/kodjo-v2-plan/technical-plan.md
             /tmp/kodjo-v2-plan/plan-impact-replay.json
+            /tmp/kodjo-v2-plan/plan-contract.json
             /tmp/kodjo-v2-plan-transition.json
           if-no-files-found: warn
           retention-days: 14

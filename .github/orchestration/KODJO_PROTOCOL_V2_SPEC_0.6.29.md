@@ -126,3 +126,13 @@ Pour `START_INITIAL_PLAN`, `scanDirectImporters` reste un scan **à un seul nive
 - un `scope_allow` supérieur à 20 produit un avertissement explicite mais ne change pas le contrat et ne bloque pas à lui seul la planification.
 
 Cette règle supersède `INC-125/T-100` **uniquement pour le chemin `START_INITIAL_PLAN`**. Le parcours historique `START_PLAN_REVISION` n’est pas modifié par cette révision 0.6.29.
+
+
+## Durcissement de cohérence plan / scope / tests — 17/09/2026
+
+À la suite des revues réelles de `V2-CAT-01`, deux invariants déterministes deviennent obligatoires pour `START_INITIAL_PLAN` et `START_PLAN_REVISION` :
+
+1. **Cohérence du périmètre d’écriture.** Si le plan contient une section de prose `scope_allow`, l’ensemble des chemins qui y est énuméré doit être strictement identique au `scope_allow` machine dérivé de `KODJO_PLAN_IMPACT_JSON`. Une différence de cardinalité ou de chemin produit `PLAN_SCOPE_CONTRADICTION` avant toute revue indépendante. Le contrat canonique est publié dans `KODJO_PLAN_CONTRACT_JSON` et dérive directement du scope machine.
+2. **Cohérence du contrat de tests.** Tout nouveau test exigé par le plan doit être nommé dans la section Tests par son chemin POSIX exact. S’il n’existe pas au HEAD scanné, il doit apparaître comme `CREATE` dans `modified_modules` et dans `scope_allow`. Tout test placé en écriture par `MODIFY`/`TEST_MUST_ADAPT` doit être explicitement présent dans la section Tests. Toute divergence produit `TEST_CONTRACT_CONSISTENCY` avant la revue indépendante.
+
+Ces contrôles sont mécaniques et précèdent Claude reviewer. La revue indépendante conserve son rôle d’évaluation de pertinence du scope ; elle ne doit plus être le premier mécanisme découvrant une incohérence entre représentations du même contrat.
