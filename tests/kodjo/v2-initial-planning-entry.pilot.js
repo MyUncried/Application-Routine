@@ -23,11 +23,24 @@ test('0.6.29 — une nouvelle tranche V2 possède une entrée de premier plan sa
   assert.doesNotMatch(workflow, /pulls\/\$APPLICATION_PR/);
 });
 
-test('0.6.29 — le premier plan vérifie les sources produit au baseline exact', () => {
+test('0.6.29 — le premier plan vérifie les sources produit au baseline exact avec diagnostic nominatif', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  const verifier = read('scripts/kodjo/verify-initial-product-sources.js');
   assert.match(workflow, /git worktree add --detach \/tmp\/kodjo-v2-initial\/source "\$SOURCE_HEAD"/);
-  assert.match(workflow, /sha256sum "\/tmp\/kodjo-v2-initial\/source\/\$file"/);
-  assert.match(workflow, /test "\$expected" = "\$actual"/);
+  assert.match(workflow, /verify-initial-product-sources\.js/);
+  assert.match(verifier, /V2_INITIAL_PRODUCT_SOURCE_VERIFY_FAILED/);
+  assert.match(verifier, /expected=/);
+  assert.match(verifier, /actual=/);
+  assert.match(verifier, /nature=SHA256_MISMATCH/);
+  assert.match(verifier, /LEGACY_WORKTREE_CRLF_HASH/);
+  assert.doesNotMatch(workflow, /test "\$expected" = "\$actual"/);
+});
+
+test('0.6.29 — les activations futures hachent le blob Git du HEAD et non les octets du worktree', () => {
+  const activation = read('scripts/kodjo/activate-kodjo-v2-slice.js');
+  assert.match(activation, /gitBytes\(root,\['show',`\$\{head\}:\$\{normalized\}`\]\)/);
+  assert.match(activation, /sha256Bytes\(blob\)/);
+  assert.doesNotMatch(activation, /sha256File\(abs\)/);
 });
 
 test('0.6.29 — la revue du premier plan n exige pas de PR applicative et rejoue le plan-impact', () => {
