@@ -18,6 +18,24 @@ function extractPaths(text) {
   return [...found].sort();
 }
 
+function sectionsMatching(markdown, matcher) {
+  const lines = String(markdown).replace(/\r\n/g, '\n').split('\n');
+  const sections = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const heading = lines[i].match(/^(#{1,6})\s+(.+)$/);
+    if (!heading || !matcher.test(heading[2])) continue;
+    const level = heading[1].length;
+    let end = i + 1;
+    while (end < lines.length) {
+      const next = lines[end].match(/^(#{1,6})\s+/);
+      if (next && next[1].length <= level) break;
+      end += 1;
+    }
+    sections.push(lines.slice(i, end).join('\n'));
+  }
+  return sections;
+}
+
 function replaceScopeSection(markdown, scope) {
   const lines = String(markdown).replace(/\r\n/g, '\n').split('\n');
   const matches = [];
@@ -45,7 +63,8 @@ function replaceScopeSection(markdown, scope) {
 }
 
 function appendMissingRequiredTests(markdown, requiredTests) {
-  const existing = new Set(extractPaths(markdown).filter((p) => TEST_PATH.test(p)));
+  const testSections = sectionsMatching(markdown, /\btests?\b/i).join('\n');
+  const existing = new Set(extractPaths(testSections).filter((p) => TEST_PATH.test(p)));
   const missing = requiredTests.filter((p) => !existing.has(p));
   if (missing.length === 0) return markdown;
   const lines = String(markdown).replace(/\r\n/g, '\n').split('\n');
