@@ -15,6 +15,7 @@ test('0.6.29 — une nouvelle tranche V2 possède une entrée de premier plan sa
   assert.match(spec, /START_INITIAL_PLAN/);
   assert.match(spec, /aucune PR applicative n’est requise/);
   assert.match(workflow, /\[KODJO_V2\] START_INITIAL_PLAN/);
+  assert.match(workflow, /!contains\(github\.event\.comment\.body, '\[KODJO_V2\] START_INITIAL_PLAN_REVIEW'\)/);
   assert.match(workflow, /V2_INITIAL_SOURCE_MUST_EQUAL_BASELINE/);
   assert.match(workflow, /planning_mode=INITIAL/);
   assert.match(workflow, /planning_contract=kodjo\.plan-impact\.v1/);
