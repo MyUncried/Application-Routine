@@ -11,6 +11,9 @@ export type SegmentedControlOption<T extends string> = {
   readonly accessibilityLabel?: string;
 };
 
+/** Épaisseur de la bordure de `styles.container` — extraite en constante pour que le centrage vertical du cadre (`indicatorTop`) la prenne en compte sans jamais dupliquer la valeur en dur (drift). */
+const CONTAINER_BORDER_WIDTH = 1;
+
 export type SegmentedControlProps<T extends string> = {
   readonly options: readonly SegmentedControlOption<T>[];
   readonly value: T;
@@ -74,6 +77,18 @@ export function SegmentedControl<T extends string>({
 
   const padding = dimensions.segmentedControl.padding;
   const gap = dimensions.segmentedControl.gap;
+  // VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 2) : le
+  // cadre coloré (positionné en absolu) se rapporte à la boîte de
+  // remplissage du conteneur (bordure exclue) — `top: padding` seul
+  // ignorait la bordure (`CONTAINER_BORDER_WIDTH`), décalant le cadre d'un
+  // point vers le haut (marge haute 4, marge basse 2). Centré ici sur la
+  // hauteur RÉELLEMENT disponible (hauteur totale moins bordure haute et
+  // basse), marges haute et basse désormais rigoureusement égales.
+  const indicatorTop =
+    (dimensions.segmentedControl.height -
+      CONTAINER_BORDER_WIDTH * 2 -
+      dimensions.segmentedControl.segmentHeight) /
+    2;
   const innerWidth = Math.max(0, containerWidth - padding * 2);
   const segmentWidth =
     options.length > 0 ? Math.max(0, (innerWidth - gap * (options.length - 1)) / options.length) : 0;
@@ -100,7 +115,7 @@ export function SegmentedControl<T extends string>({
             styles.indicator,
             {
               left: padding,
-              top: padding,
+              top: indicatorTop,
               width: segmentWidth,
               transform: [{ translateX }],
             },
@@ -139,10 +154,15 @@ export function SegmentedControl<T extends string>({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
+    // VISUAL_CORRECTION (obligation 2) : centrage vertical explicite des
+    // segments eux-mêmes (défense en profondeur, indépendante du calcul
+    // pixel exact de `indicatorTop` ci-dessus, qui ne régit que le cadre
+    // coloré positionné en absolu).
+    alignItems: "center",
     width: "100%",
     height: dimensions.segmentedControl.height,
     backgroundColor: colors.background,
-    borderWidth: 1,
+    borderWidth: CONTAINER_BORDER_WIDTH,
     borderColor: colors.border,
     borderRadius: dimensions.segmentedControl.containerRadius,
     padding: dimensions.segmentedControl.padding,

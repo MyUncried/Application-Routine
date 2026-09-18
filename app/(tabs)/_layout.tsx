@@ -12,6 +12,7 @@ import {
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
+  NAVIGATION_BAR_HEIGHT,
   NAVIGATION_ICON_SLOT,
   NAVIGATION_ITEM_VERTICAL_PADDING,
   NAVIGATION_LABEL_GAP,
@@ -290,8 +291,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: NAVIGATION_ROW_GAP,
   },
+  // VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) :
+  // hauteur EXPLICITE `NAVIGATION_BAR_HEIGHT` (`dimensions.mainNavigation
+  // .visualHeight`, `66`) — auparavant dérivée du seul contenu
+  // (`NAVIGATION_CONTENT_HEIGHT`, `56`), laissant une marge nulle entre le
+  // haut des icônes et le bord supérieur du cadre. `alignItems: "center"`
+  // centre désormais chaque item dans cet espace excédentaire, restituant
+  // la marge attendue en haut ET en bas, symétriquement.
   tabsGroup: {
     flex: 1,
+    height: NAVIGATION_BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.background,
@@ -308,10 +317,15 @@ const styles = StyleSheet.create({
   // par ordre de rendu, premier enfant de `tabsGroup`), teinte pâle
   // partagée avec les autres surfaces de sélection du DSF
   // (`colors.selectionSurface`), jamais une nouvelle couleur locale.
+  //
+  // VISUAL_CORRECTION (obligation 1) : hauteur FIXE
+  // `dimensions.activeDestination.visualHeight` (`56`), centrée
+  // verticalement dans le cadre global désormais plus haut (`66`) — jamais
+  // étirée sur toute la hauteur de la barre (`top:0, bottom:0` précédent).
   activeIndicator: {
     position: "absolute",
-    top: 0,
-    bottom: 0,
+    top: (NAVIGATION_BAR_HEIGHT - dimensions.activeDestination.visualHeight) / 2,
+    height: dimensions.activeDestination.visualHeight,
     borderRadius: dimensions.activeDestination.radius,
     backgroundColor: colors.selectionSurface,
   },

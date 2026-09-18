@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { dimensions } from "@/shared/ui/tokens";
 
 describe("SegmentedControl", () => {
   const options = [
@@ -68,6 +70,35 @@ describe("SegmentedControl", () => {
 
       expect(screen.getAllByTestId("seg-indicator")).toHaveLength(1);
       expect(screen.getByTestId("seg-activities").props.accessibilityState.selected).toBe(true);
+    });
+
+    /**
+     * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 2) : le
+     * cadre coloré doit rester centré verticalement, marges haute et basse
+     * ÉGALES — la bordure du conteneur (`1` pt, `styles.container.borderWidth`)
+     * doit être prise en compte, pas seulement le padding déclaré.
+     */
+    it("centers the indicator vertically, with equal top and bottom margins (accounting for the container border)", () => {
+      render(<SegmentedControl options={options} value="sessions" onChange={jest.fn()} testID="seg" />);
+      fireEvent(screen.getByTestId("seg"), "layout", {
+        nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } },
+      });
+
+      const indicator = screen.getByTestId("seg-indicator");
+      const flattenedTop = StyleSheet.flatten(indicator.props.style).top as number;
+      const containerBorderWidth = 1;
+      const expectedTop =
+        (dimensions.segmentedControl.height -
+          containerBorderWidth * 2 -
+          dimensions.segmentedControl.segmentHeight) /
+        2;
+      const marginBottom =
+        dimensions.segmentedControl.height -
+        containerBorderWidth * 2 -
+        (flattenedTop + dimensions.segmentedControl.segmentHeight);
+
+      expect(flattenedTop).toBe(expectedTop);
+      expect(marginBottom).toBe(flattenedTop);
     });
   });
 });

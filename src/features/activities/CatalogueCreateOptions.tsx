@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { strings } from "@/shared/i18n";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Hauteur du séparateur sous l'en-tête (`ScreenShell.tsx`, `HeaderSeparator`,
+ * `styles.separator.height`) — reprise ici en constante, jamais dupliquée
+ * en dur, pour composer `menuTop` (voir plus bas).
+ */
+const HEADER_SEPARATOR_HEIGHT = 1;
 
 export type CatalogueCreateOptionsProps = {
   visible: boolean;
@@ -37,6 +45,23 @@ export function CatalogueCreateOptions({
   onSelectNewSession,
   onCancel,
 }: CatalogueCreateOptionsProps) {
+  const insets = useSafeAreaInsets();
+  // VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 3) :
+  // `menuTop` composait auparavant SEULEMENT `dimensions.contextBand.height`
+  // — en omettant la hauteur réelle de l'en-tête fixe (`insets.top +
+  // dimensions.header.contentHeight`) et de son séparateur, tous deux
+  // frères PRÉCÉDENT ce composant dans `ScreenShell` (`CatalogueScreen.tsx`).
+  // L'arbre se positionnait donc ~100 pt trop haut, chevauchant l'en-tête
+  // au lieu d'apparaître sous la rangée `Créer` — d'où le bouton perçu comme
+  // non fonctionnel (l'arbre s'ouvrait bien, mais invisible/confondu avec
+  // l'en-tête). `menuTop` inclut désormais la hauteur RÉELLE cumulée des
+  // trois éléments fixes qui précèdent toujours ce composant à l'écran.
+  const menuTop =
+    insets.top +
+    dimensions.header.contentHeight +
+    HEADER_SEPARATOR_HEIGHT +
+    dimensions.contextBand.height +
+    spacing[8];
   // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
   // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
   // rendu (`react-hooks/refs`).
@@ -98,7 +123,7 @@ export function CatalogueCreateOptions({
         />
       </Animated.View>
       <Animated.View
-        style={[styles.menu, { opacity: progress, transform: [{ scale }] }]}
+        style={[styles.menu, { top: menuTop, opacity: progress, transform: [{ scale }] }]}
         testID="catalogue-create-tree"
       >
         <CreateTreeOption
@@ -161,8 +186,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlayScrim,
   },
   menu: {
+    // `top` est calculé dynamiquement (`menuTop`, ci-dessus) et transmis en
+    // style inline — dépend d'`insets.top`, indisponible dans cette feuille
+    // de styles statique.
     position: "absolute",
-    top: dimensions.contextBand.height + spacing[8],
     left: spacing[24],
     right: spacing[24],
     backgroundColor: colors.background,

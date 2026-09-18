@@ -4,10 +4,12 @@ import { StyleSheet, Text } from "react-native";
 
 import {
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
+  NAVIGATION_BAR_HEIGHT,
+  NAVIGATION_CONTENT_HEIGHT,
   NAVIGATION_ICON_SLOT,
   NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
-import { icon, minTouchTarget } from "@/shared/ui/tokens";
+import { dimensions, icon, minTouchTarget } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -180,6 +182,32 @@ describe("Navigation basse — cadre actif animé (V2-CAT-01)", () => {
     fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
 
     expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
+  });
+
+  /**
+   * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
+   * barre retrouve une hauteur strictement supérieure au contenu d'un item
+   * (marge visible en haut/bas), et le cadre actif reste centré
+   * verticalement DANS ce cadre global désormais plus haut — jamais étiré
+   * sur toute sa hauteur.
+   */
+  it("gives the bar a height strictly greater than the item content, and centers the active frame vertically within it", () => {
+    renderTabsLayout();
+
+    const tabsGroup = screen.getByTestId("navigation-tabs-group");
+    expect(StyleSheet.flatten(tabsGroup.props.style).height).toBe(NAVIGATION_BAR_HEIGHT);
+    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThan(NAVIGATION_CONTENT_HEIGHT);
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+
+    const indicator = screen.getByTestId("navigation-active-indicator");
+    const flattened = StyleSheet.flatten(indicator.props.style);
+    expect(flattened.height).toBe(dimensions.activeDestination.visualHeight);
+    const marginTop = flattened.top as number;
+    const marginBottom = NAVIGATION_BAR_HEIGHT - (marginTop + dimensions.activeDestination.visualHeight);
+    expect(marginBottom).toBe(marginTop);
   });
 });
 
