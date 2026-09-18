@@ -90,6 +90,21 @@ test('UI plan: le type de preuve doit correspondre au risque', () => {
   assert.match(result.stderr,/VISUAL exige VISUAL_COMPARE/);
 });
 
+test('UI plan: handoff factice PLAN vers PLAN_REVIEW conserve exactement le contrat atomique', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-plan-e2e-'));
+  const plan=path.join(dir,'plan.md');
+  const produced=path.join(dir,'produced.json');
+  const consumed=path.join(dir,'consumed.json');
+  fs.writeFileSync(plan,fixture(validMatrix()));
+  const first=run([plan,'b'.repeat(40),dir,produced,'produce',protocolCommit],dir);
+  assert.equal(first.status,0,first.stderr);
+  const contract=JSON.parse(fs.readFileSync(produced,'utf8'));
+  fs.appendFileSync(plan,'<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n');
+  const second=run([plan,'b'.repeat(40),dir,consumed,'consume',protocolCommit],dir);
+  assert.equal(second.status,0,second.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(consumed,'utf8')),contract);
+});
+
 test('UI plan: consume refuse un contrat embarque divergent', () => {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-plan-'));
   const matrix=validMatrix();
