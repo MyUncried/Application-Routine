@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
@@ -105,8 +105,18 @@ export function CatalogueScreen() {
             onPress={() => setIsCreateTreeOpen(true)}
             testID="catalogue-create-action"
           />
-          <CommandAction label={t.filterAction} disabled testID="catalogue-filter-action" />
-          <CommandAction label={t.sortAction} disabled testID="catalogue-sort-action" />
+          <CommandAction
+            label={t.filterAction}
+            iconElement={<FilterIcon disabled testID="catalogue-filter-icon" />}
+            disabled
+            testID="catalogue-filter-action"
+          />
+          <CommandAction
+            label={t.sortAction}
+            iconElement={<SortIcon disabled testID="catalogue-sort-icon" />}
+            disabled
+            testID="catalogue-sort-action"
+          />
         </View>
       </ContextBand>
 
@@ -175,32 +185,51 @@ export function CatalogueScreen() {
 
 /**
  * Une commande de la rangée `Créer / Filtrer / Trier` (V2-CAT-01, plan
- * §4.1) — `Créer` seul actif dans cette tranche ; `Filtrer`/`Trier` restent
- * visibles mais inertes (recherche, filtre et tri fonctionnels hors
- * périmètre).
+ * §4.1 ; VISUAL_CORRECTION, revue iPhone du HEAD `cc1c618`) — `Créer` seul
+ * actif dans cette tranche ; `Filtrer`/`Trier` restent visibles mais inertes
+ * (recherche, filtre et tri fonctionnels hors périmètre).
  *
- * Correction UI-CAT-001 (cycle de correction après contre-recette iPhone,
- * 2026-09-03, CE-T01-02) : cadre visuel exact `90 × 32`, rayon du token
- * `dimensions.compactSecondaryButton` (16, pas la valeur improvisée
- * précédente 20) — la cible tactile réelle (`minTouchTarget`, 48×48) est
- * obtenue via `hitSlop`, jamais en agrandissant la boîte visuelle
- * elle-même (doc12 §Dimensions structurantes, doc13 §3.3).
+ * D-184 : trois commandes `108 × 32` pt (`COMMAND_ACTION_WIDTH`), espace
+ * `8` pt entre elles (`commandRow.gap`), rayon du token
+ * `dimensions.compactSecondaryButton` (16) — la cible tactile réelle
+ * (`minTouchTarget`, `48×48`) est obtenue via `hitSlop`, jamais en
+ * agrandissant la boîte visuelle elle-même (doc12 §Dimensions structurantes,
+ * doc13 §3.3).
+ *
+ * **Correction du bouton non fonctionnel sur appareil réel (obligation 1)** :
+ * la géométrie visuelle (`108 × 32`) dépasse déjà `minTouchTarget` (`48`)
+ * dans les deux axes — la formule `(minTouchTarget − dimension) / 2`
+ * produisait donc un `hitSlop` NÉGATIF (`(48 − 90) / 2 = −21` avec l'ancienne
+ * largeur `90`), qui RÉDUIT la zone tactile native au lieu de l'agrandir.
+ * `fireEvent.press` (Testing Library) déclenche directement le gestionnaire
+ * sans jamais passer par le calcul RÉEL de zone tactile côté plateforme —
+ * un tel défaut ne peut donc jamais être détecté par ce seul mécanisme
+ * (d'où la consigne de ne pas conclure à partir des seuls `fireEvent.press`
+ * existants). `Math.max(0, ...)` élimine toute valeur négative : `hitSlop`
+ * n'agrandit plus jamais en dessous de `0`, quelle que soit la géométrie
+ * visuelle fournie.
  */
 function CommandAction({
   label,
   icon,
+  iconElement,
   onPress,
   disabled = false,
   testID,
 }: {
   label: string;
   icon?: "action-add";
+  /** Pictogramme composé localement (Filtrer/Trier) — voir `FilterIcon`/`SortIcon`. */
+  iconElement?: ReactNode;
   onPress?: () => void;
   disabled?: boolean;
   testID: string;
 }) {
-  const horizontalHitSlop = (minTouchTarget - CREATE_ACTION_WIDTH) / 2;
-  const verticalHitSlop = (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2;
+  const horizontalHitSlop = Math.max(0, (minTouchTarget - COMMAND_ACTION_WIDTH) / 2);
+  const verticalHitSlop = Math.max(
+    0,
+    (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
+  );
 
   return (
     <Pressable
@@ -219,6 +248,7 @@ function CommandAction({
       testID={testID}
     >
       {icon ? <KodjoIcon name={icon} opacity={disabled ? 0.4 : 1} testID={`${testID}-icon`} /> : null}
+      {iconElement}
       <Text style={[styles.createActionLabel, disabled ? styles.createActionLabelDisabled : null]}>
         {label}
       </Text>
@@ -226,7 +256,49 @@ function CommandAction({
   );
 }
 
-const CREATE_ACTION_WIDTH = 90;
+/**
+ * Pictogramme `Filtrer` (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame `3786:5093`,
+ * nœud `3947:5933`) : trois lignes horizontales décroissantes. Composé
+ * localement à partir de primitives `View` — `src/shared/ui/KodjoIcon.tsx`
+ * et `assets/icons/` (registre d'icônes SVG canoniques du DSF) sont hors du
+ * périmètre d'écriture autorisé de cette correction visuelle bornée
+ * (`scope_allow`) : aucun nouvel actif SVG ni nouvelle entrée de registre
+ * ne peut y être ajouté ici. Écart disclosed plutôt qu'un élargissement de
+ * périmètre non autorisé — même géométrie de trait (largeurs décroissantes,
+ * couleur `colors.primary`/`colors.disabled`) que le pictogramme Figma
+ * référencé.
+ */
+function FilterIcon({ disabled = false, testID }: { disabled?: boolean; testID?: string }) {
+  const color = disabled ? colors.disabled : colors.primary;
+  return (
+    <View style={styles.filterIcon} testID={testID}>
+      <View style={[styles.filterIconBar, { width: 14, backgroundColor: color }]} />
+      <View style={[styles.filterIconBar, { width: 10, backgroundColor: color }]} />
+      <View style={[styles.filterIconBar, { width: 6, backgroundColor: color }]} />
+    </View>
+  );
+}
+
+/**
+ * Pictogramme `Trier` (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame `3786:5093`,
+ * `Action/Utility` type `Sort`) : flèches haut/bas (`↕`). Même disclosure
+ * de périmètre que `FilterIcon` ci-dessus — glyphe Unicode monochrome
+ * plutôt qu'un nouvel actif SVG du registre `KodjoIcon`, hors périmètre
+ * d'écriture autorisé.
+ */
+function SortIcon({ disabled = false, testID }: { disabled?: boolean; testID?: string }) {
+  return (
+    <Text
+      style={[styles.sortIcon, { color: disabled ? colors.disabled : colors.primary }]}
+      testID={testID}
+    >
+      ↕
+    </Text>
+  );
+}
+
+// D-184 : trois commandes `108 × 32` pt.
+const COMMAND_ACTION_WIDTH = 108;
 
 function LoadingBody() {
   return (
@@ -324,25 +396,27 @@ const styles = StyleSheet.create({
   // V2-CAT-01 : le sélecteur de segment lui-même est désormais porté par
   // `@/shared/ui/SegmentedControl` (composant canonique partagé) — cette
   // rangée ne porte plus que `Créer / Filtrer / Trier` (plan §4.1).
+  // D-184 : espace `8` pt entre les trois commandes (`spacing[8]`, plutôt
+  // que l'ancien `spacing[16]`).
   commandRow: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: spacing[16],
+    gap: spacing[8],
     marginTop: spacing[8],
   },
   // Correction CAT-R02 (contre-recette iPhone, `[ChatGPT]
   // DEVICE_REVIEW_FAIL`, 2026-09-03) : aucun fond propre n'était déclaré
   // — la teinte pâle de la bande Context transparaissait à l'intérieur
   // du bouton. `backgroundColor: colors.background` (blanc) ajouté ;
-  // bordure/icône/libellé bleus déjà conformes, géométrie `90×32`/rayon
-  // `16`/cible tactile `48` (`UI-CAT-001`) inchangée.
+  // bordure/icône/libellé bleus déjà conformes. D-184 : géométrie
+  // `108×32`/rayon `16`/cible tactile `48`.
   createAction: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: spacing[6],
-    width: CREATE_ACTION_WIDTH,
+    width: COMMAND_ACTION_WIDTH,
     height: dimensions.compactSecondaryButton.visualHeight,
     borderRadius: dimensions.compactSecondaryButton.radius,
     borderWidth: 1,
@@ -358,6 +432,23 @@ const styles = StyleSheet.create({
   },
   createActionLabelDisabled: {
     color: colors.disabled,
+  },
+  // Pictogramme `Filtrer` (`FilterIcon`) : trois traits horizontaux
+  // décroissants empilés, centrés.
+  filterIcon: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+  filterIconBar: {
+    height: 2,
+    borderRadius: 1,
+  },
+  // Pictogramme `Trier` (`SortIcon`) : glyphe `↕` à la taille du libellé
+  // des commandes.
+  sortIcon: {
+    fontSize: type.button.fontSize,
+    lineHeight: type.button.fontSize,
   },
   body: {
     flex: 1,

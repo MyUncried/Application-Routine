@@ -234,9 +234,9 @@ describe("CatalogueScreen — cadre commun", () => {
     const flattened = StyleSheet.flatten(createAction.props.style);
     expect(flattened.backgroundColor).toBe(colors.background);
     expect(flattened.borderColor).toBe(colors.primary);
-    // Géométrie déjà couverte par ailleurs (UI-CAT-001) — revérifiée ici
-    // pour prouver qu'elle n'a pas régressé avec ce changement de fond.
-    expect(flattened.width).toBe(90);
+    // Géométrie déjà couverte par ailleurs (UI-CAT-001, D-184) — revérifiée
+    // ici pour prouver qu'elle n'a pas régressé avec ce changement de fond.
+    expect(flattened.width).toBe(108);
     expect(flattened.height).toBe(32);
     expect(flattened.borderRadius).toBe(16);
   });
@@ -376,7 +376,7 @@ describe("CatalogueScreen — cadre commun", () => {
     });
   });
 
-  it("Créer has the exact CE-T01-02 visual frame (90×32, compact-secondary radius), and a real ≥48×48 touch target via hitSlop, not visual enlargement (UI-CAT-001)", async () => {
+  it("Créer has the exact D-184 visual frame (108×32, compact-secondary radius), and a real ≥48×48 touch target via hitSlop, not visual enlargement (UI-CAT-001, D-184)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -389,13 +389,65 @@ describe("CatalogueScreen — cadre commun", () => {
 
     const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
     const flattened = StyleSheet.flatten(createAction.props.style);
-    expect(flattened.width).toBe(90);
+    expect(flattened.width).toBe(108);
     expect(flattened.height).toBe(32);
     expect(flattened.borderRadius).toBe(16);
 
     const hitSlop = createAction.props.hitSlop;
     expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(48);
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
+  });
+
+  // Correction VISUAL_CORRECTION (revue iPhone du HEAD `cc1c618`, PR #181) :
+  // preuve ciblée du mécanisme fautif diagnostiqué comme cause réelle de
+  // « + Créer toujours inactif sur appareil réel ». Avec la géométrie
+  // visuelle `90×32` précédente et `minTouchTarget = 48`, la formule
+  // `(minTouchTarget − dimension) / 2` produisait un `hitSlop` NÉGATIF
+  // (`(48 − 90) / 2 = −21`), qui RÉDUIT la zone tactile native au lieu de
+  // l'agrandir — un défaut invisible pour `fireEvent.press`, qui invoque le
+  // gestionnaire JS directement sans jamais passer par le calcul réel de
+  // zone tactile de la plateforme. Ce test échouerait avec l'ancien calcul
+  // non bridé et prouve que `hitSlop` ne peut plus jamais redevenir négatif,
+  // quelle que soit la géométrie visuelle du bouton.
+  it("never produces a negative hitSlop on any command action, the real cause of the button being unresponsive on device (fireEvent.press cannot reveal this)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const testIDs = ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"];
+    for (const testID of testIDs) {
+      const action = screen.getByTestId(testID);
+      const hitSlop = action.props.hitSlop;
+      expect(hitSlop.top).toBeGreaterThanOrEqual(0);
+      expect(hitSlop.bottom).toBeGreaterThanOrEqual(0);
+      expect(hitSlop.left).toBeGreaterThanOrEqual(0);
+      expect(hitSlop.right).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  // Correction VISUAL_CORRECTION (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame
+  // `3786:5093`) : Filtrer (nœud `3947:5933`) et Trier (`Action/Utility`
+  // type `Sort`) doivent chacun afficher leur pictogramme, plus la seule
+  // étiquette texte qui existait jusqu'ici.
+  it("renders the Filtrer and Trier pictograms alongside their labels (Figma frame 3786:5093)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("catalogue-filter-icon")).toBeTruthy();
+    expect(screen.getByTestId("catalogue-sort-icon")).toBeTruthy();
   });
 
   it("pressing Séances (already selected) changes nothing: no reload, no navigation", async () => {
