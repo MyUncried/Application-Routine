@@ -65,11 +65,12 @@ Aucune nouvelle tranche ne reçoit automatiquement une entrée de migration.
 
 ## 6. Schéma et identité
 
-`slice-bootstrap.schema.json` déclare `planning_application_head` comme propriété SHA-40 optionnelle afin de conserver la lecture des identités historiques.
+`slice-bootstrap.schema.json` déclare `planning_application_head` et `planning_documentary_head` comme propriétés SHA-40 optionnelles afin de conserver la lecture des identités historiques déjà versionnées.
 
 `slice-identity.js` impose :
 - un SHA-40 valide lorsque le champ existe ;
-- l’identité exacte bootstrap / registre dès que le champ existe dans l’un des deux.
+- l’identité exacte bootstrap / registre dès que `planning_application_head` existe dans l’un des deux ;
+- la même cohérence pour `planning_documentary_head` lorsqu’il existe, sans le rendre obligatoire pour les nouvelles tranches.
 
 ## 7. Acceptation
 
