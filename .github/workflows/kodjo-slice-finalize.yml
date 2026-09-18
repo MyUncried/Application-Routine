@@ -96,15 +96,19 @@ jobs:
             $remote=gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$($meta.application_branch)" --jq '.object.sha'
             if($LASTEXITCODE-ne0-or([string]$remote).Trim()-ne$head){throw 'V2 target branch moved'}
 
+            $utf8NoBom=New-Object Text.UTF8Encoding($false)
             $planFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-plan.md'
-            git cat-file -p $meta.plan_blob_oid | Out-File -LiteralPath $planFile -Encoding utf8
+            $planRaw=(git cat-file -p $meta.plan_blob_oid) -join [Environment]::NewLine
             if($LASTEXITCODE-ne0){throw 'V2 approved plan blob unreadable'}
+            [IO.File]::WriteAllText($planFile,$planRaw,$utf8NoBom)
 
             $changedFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-changed-files.txt'
             $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$($meta.base_head)...$head"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$compare){throw 'V2 final diff unreadable'}
             if([string]$compare.status-ne'ahead'){throw 'V2 final HEAD ancestry mismatch'}
-            @($compare.files|ForEach-Object{[string]$_.filename}) | Set-Content -LiteralPath $changedFile -Encoding utf8
+            $changedText=((@($compare.files|ForEach-Object{[string]$_.filename})) -join [Environment]::NewLine)
+            if(-not[string]::IsNullOrWhiteSpace($changedText)){$changedText+=[Environment]::NewLine}
+            [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
 
             $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
             $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
