@@ -102,7 +102,7 @@ function validateReview(input, review) {
     if (!PRESERVE_STATUSES.has(String(row.preserve_status))) {
       fail('UI_IMPLEMENTATION_REVIEW_STATUS_INVALID', id + '.preserve_status');
     }
-    if (String(row.implementation_status) === 'NON_CONFORME' || String(row.preserve_status) === 'FAIL') blocking = true;
+    if (String(row.implementation_status) !== 'CONFORME' || String(row.preserve_status) !== 'PASS') blocking = true;
     const proofs = Array.isArray(row.proof_results) ? row.proof_results : null;
     if (!proofs) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_results absent');
     const expectedProofs = expected.proof_required.slice().sort();
