@@ -102,42 +102,77 @@ function verify(args) {
   if (!queue.authorized_plan || !/^[0-9a-f]{40}$/.test(String(queue.authorized_plan.plan_blob_oid || ''))) {
     fail('V2_FINAL_PLAN_BINDING_MISSING');
   }
+  const operationKind = String(queue.operation_kind || 'IMPLEMENT');
+  if (!['IMPLEMENT','VISUAL_CORRECTION'].includes(operationKind)) fail('V2_FINAL_OPERATION_KIND_INVALID');
+  if (operationKind === 'VISUAL_CORRECTION') {
+    if (queue.mode !== 'RESUME_DELTA') fail('V2_FINAL_VISUAL_MODE_INVALID');
+    if (!queue.delivery_target || queue.delivery_target.kind !== 'EXISTING_PR' ||
+        String(queue.delivery_target.application_head || '') !== baseHead) {
+      fail('V2_FINAL_VISUAL_TARGET_INVALID');
+    }
+    if (!queue.delivery_checkpoint || String(queue.delivery_checkpoint.application_head || '') !== baseHead ||
+        String(queue.delivery_checkpoint.delivery_head || '') !== baseHead) {
+      fail('V2_FINAL_VISUAL_CHECKPOINT_INVALID');
+    }
+  }
 
   const applicationBranch = one(implementation, 'application_branch');
   const applicationPr = Number(one(implementation, 'application_pr'));
   if (!Number.isInteger(applicationPr) || applicationPr < 1 || !applicationBranch || applicationBranch.includes('..')) {
     fail('V2_FINAL_APPLICATION_TARGET_INVALID');
   }
-
-  const reviewContract = taggedJson(review, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
-  if (reviewContract.schema !== 'kodjo.ui-implementation-review.v1' || reviewContract.verdict !== 'APPROVE') {
-    fail('V2_FINAL_REVIEW_CONTRACT_NOT_APPROVED');
-  }
-  const deviceField = one(review, 'device_gate_required');
-  if (!['true','false'].includes(deviceField)) fail('V2_FINAL_DEVICE_GATE_INVALID');
-  const deviceGateRequired = deviceField === 'true';
-  if (Boolean(reviewContract.device_gate_required) !== deviceGateRequired) fail('V2_FINAL_DEVICE_GATE_MISMATCH');
-
-  const criteria = Array.isArray(reviewContract.criteria) ? reviewContract.criteria : [];
-  const ids = criteria.map((c) => String(c && c.criterion_id || ''));
-  if (ids.some((id) => !id) || new Set(ids).size !== ids.length) fail('V2_FINAL_CRITERIA_INVALID');
-  for (const criterion of criteria) {
-    if (criterion.implementation_status !== 'CONFORME' || criterion.preserve_status !== 'PASS') {
-      fail('V2_FINAL_CRITERION_NOT_CLOSED', String(criterion.criterion_id));
+  if (operationKind === 'VISUAL_CORRECTION') {
+    if (Number(queue.delivery_target.application_pr) !== applicationPr ||
+        String(queue.delivery_target.branch || '') !== applicationBranch) {
+      fail('V2_FINAL_VISUAL_DELIVERY_TARGET_MISMATCH');
     }
-    const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];
-    for (const proof of proofs) {
-      const type = String(proof.proof_type || '');
-      const status = String(proof.status || '');
-      if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK') {
-        if (status !== 'PENDING_DEVICE') fail('V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID', String(criterion.criterion_id) + ':' + type);
-      } else if (status !== 'PASS') {
-        fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
+  }
+
+  let deviceGateRequired = operationKind === 'VISUAL_CORRECTION';
+  let criterionCount = null;
+  let criterionIdsHash = null;
+  let technicalReviewHash = null;
+  let reviewMode = 'VISUAL_CORRECTION_DELTA';
+
+  if (operationKind === 'IMPLEMENT') {
+    const reviewContract = taggedJson(review, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
+    if (reviewContract.schema !== 'kodjo.ui-implementation-review.v1' || reviewContract.verdict !== 'APPROVE') {
+      fail('V2_FINAL_REVIEW_CONTRACT_NOT_APPROVED');
+    }
+    const deviceField = one(review, 'device_gate_required');
+    if (!['true','false'].includes(deviceField)) fail('V2_FINAL_DEVICE_GATE_INVALID');
+    deviceGateRequired = deviceField === 'true';
+    if (Boolean(reviewContract.device_gate_required) !== deviceGateRequired) fail('V2_FINAL_DEVICE_GATE_MISMATCH');
+
+    const criteria = Array.isArray(reviewContract.criteria) ? reviewContract.criteria : [];
+    const ids = criteria.map((item) => String(item && item.criterion_id || ''));
+    if (ids.some((id) => !id) || new Set(ids).size !== ids.length) fail('V2_FINAL_CRITERIA_INVALID');
+    for (const criterion of criteria) {
+      if (criterion.implementation_status !== 'CONFORME' || criterion.preserve_status !== 'PASS') {
+        fail('V2_FINAL_CRITERION_NOT_CLOSED', String(criterion.criterion_id));
+      }
+      const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];
+      for (const proof of proofs) {
+        const type = String(proof.proof_type || '');
+        const status = String(proof.status || '');
+        if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK') {
+          if (status !== 'PENDING_DEVICE') fail('V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID', String(criterion.criterion_id) + ':' + type);
+        } else if (status !== 'PASS') {
+          fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
+        }
       }
     }
+    const boundaries = Array.isArray(reviewContract.boundary_results) ? reviewContract.boundary_results : [];
+    if (boundaries.some((row) => String(row && row.status || '') !== 'PASS')) fail('V2_FINAL_BOUNDARY_NOT_PASS');
+    criterionCount = ids.length;
+    criterionIdsHash = sha256(ids.slice().sort());
+    technicalReviewHash = sha256(reviewContract);
+    reviewMode = 'CRITERION_COMPLETE';
+  } else {
+    if (fields(review, 'device_gate_required').length > 0) fail('V2_FINAL_VISUAL_UNEXPECTED_DEVICE_FIELD');
+    if (/<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>/.test(review)) fail('V2_FINAL_VISUAL_UNEXPECTED_FULL_REVIEW_CONTRACT');
+    technicalReviewHash = sha256(review);
   }
-  const boundaries = Array.isArray(reviewContract.boundary_results) ? reviewContract.boundary_results : [];
-  if (boundaries.some((row) => String(row && row.status || '') !== 'PASS')) fail('V2_FINAL_BOUNDARY_NOT_PASS');
 
   const result = {
     schema: 'kodjo.ui-final-verification.v1',
@@ -152,10 +187,12 @@ function verify(args) {
     implementation_review_comment_id: String(reviewId),
     implementation_comment_id: reviewSourceImplementation,
     human_device_approval_comment_id: String(visualId),
+    operation_kind: operationKind,
+    review_mode: reviewMode,
     device_gate_required: deviceGateRequired,
-    criterion_count: ids.length,
-    criterion_ids_sha256: sha256(ids.slice().sort()),
-    technical_review_sha256: sha256(reviewContract),
+    criterion_count: criterionCount,
+    criterion_ids_sha256: criterionIdsHash,
+    technical_review_sha256: technicalReviewHash,
     device_evidence_satisfied: true,
     final_status: 'READY_TO_CLOSE',
   };
