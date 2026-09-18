@@ -237,7 +237,8 @@ jobs:
             echo "application_head=$APPLICATION_HEAD"
             echo "supersedes_plan_blob_oid=$PLAN_OID"
             echo "prior_review_blob_oid=$REVIEW_OID"
-            echo 'planning_contract=kodjo.plan-impact.v1'\n            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
+            echo 'planning_contract=kodjo.plan-impact.v1'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
@@ -266,7 +267,8 @@ jobs:
             /tmp/kodjo-v2-plan/plan-impact-closure.json
             /tmp/kodjo-v2-plan/technical-plan.md
             /tmp/kodjo-v2-plan/plan-impact-replay.json
-            /tmp/kodjo-v2-plan/plan-contract.json\n            /tmp/kodjo-v2-plan/ui-plan-contract.json
+            /tmp/kodjo-v2-plan/plan-contract.json
+            /tmp/kodjo-v2-plan/ui-plan-contract.json
             /tmp/kodjo-v2-plan-transition.json
           if-no-files-found: warn
           retention-days: 14
