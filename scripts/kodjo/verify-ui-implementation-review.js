@@ -70,6 +70,10 @@ function buildInput(planBody, changedFiles) {
     changed_files: changed,
     criteria: normalizedCriteria,
     preservation,
+    boundary_requirements: [
+      ...(Array.isArray(preservation.preserve) ? preservation.preserve.map((x) => ({ category:'PRESERVE', target:String(x.target || '') })) : []),
+      ...(Array.isArray(preservation.forbidden) ? preservation.forbidden.map((x) => ({ category:'FORBIDDEN', target:String(x.target || '') })) : []),
+    ].sort((a,b) => (a.category + ':' + a.target).localeCompare(b.category + ':' + b.target)),
     device_gate_required: deviceGateRequired,
   };
 }
@@ -125,6 +129,26 @@ function validateReview(input, review) {
       fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', id + ': evidence absente');
     }
   }
+  const boundaries = Array.isArray(review.boundary_results) ? review.boundary_results : null;
+  if (!boundaries) fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', 'boundary_results absent');
+  const expectedBoundaries = input.boundary_requirements.map((x) => x.category + ':' + x.target).sort();
+  const observedBoundaries = boundaries.map((x) => String(x && x.category || '') + ':' + String(x && x.target || '')).sort();
+  if (JSON.stringify(expectedBoundaries) !== JSON.stringify(observedBoundaries)) {
+    fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_COVERAGE_INCOMPLETE', 'PRESERVE/FORBIDDEN incomplet');
+  }
+  for (const row of boundaries) {
+    if (!['PRESERVE','FORBIDDEN'].includes(String(row.category))) {
+      fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', 'categorie inconnue');
+    }
+    if (!PRESERVE_STATUSES.has(String(row.status))) {
+      fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', String(row.category) + ':' + String(row.target));
+    }
+    if (String(row.status) !== 'PASS') blocking = true;
+    if (typeof row.evidence !== 'string' || !row.evidence.trim()) {
+      fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', 'evidence absente');
+    }
+  }
+
   const verdict = String(review.verdict || '');
   if (!['APPROVE','REVISE'].includes(verdict)) fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INVALID', verdict);
   if (blocking && verdict !== 'REVISE') fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT', 'blocking => REVISE');
