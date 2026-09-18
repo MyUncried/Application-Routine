@@ -1,0 +1,92 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-CAT-01",
+  "issue_number": 150,
+  "source_head": "862d48d119451ba270dacbc911469bfd1de46bef",
+  "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
+  "mode": "RESUME_DELTA",
+  "operation_kind": "VISUAL_CORRECTION",
+  "delivery_target": {
+    "kind": "EXISTING_PR",
+    "application_pr": 181,
+    "application_head": "8ed43b8261c4525a93f7d444e604a356778cac68",
+    "branch": "kodjo/v2-v2-cat-01-35333601872"
+  },
+  "session_id": "af6b1de4-998a-41c0-b54d-35e3946f20a4",
+  "prompt_file": ".github/orchestration/v2-slices/V2-CAT-01/implementation-mission.md",
+  "scope_allow": [
+    "app/(creation)/activity-selection.tsx",
+    "app/(creation)/exercise.tsx",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ActivitySelectionScreen.tsx",
+    "src/features/activities/CatalogueCreateOptions.tsx",
+    "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/shared/i18n/resources/fr.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "3c6dd456-c631-4c86-9d65-6bfc018b0042",
+  "created_at": "2026-09-18T11:58:49Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+    "plan_blob_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "approved_at_commit": "db73ff1676a5e0b86803ef5271a392e1daf4de47",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+    "review_blob_oid": "845d920fe0e5dd1baf0d88d625f7da3d67d94670",
+    "reviewed_plan_blob_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5726224356",
+    "gated_reference": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "delivery_checkpoint": {
+    "checkpoint_ref": "issue_comment:5729642726",
+    "application_pr": 181,
+    "application_head": "8ed43b8261c4525a93f7d444e604a356778cac68",
+    "protocol_head": "862d48d119451ba270dacbc911469bfd1de46bef",
+    "delivery_head": "8ed43b8261c4525a93f7d444e604a356778cac68",
+    "package_run_id": "35333601872",
+    "package_artifact_id": "10543225852",
+    "attestation_blob_oid": "988b89c56f837d031a9855f50e9209920db139c8",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "recovery_migration": {
+    "attestation_path": ".github/orchestration/v2-slices/V2-CAT-01/recovery-migration-35333601872.json",
+    "attestation_blob_oid": "988b89c56f837d031a9855f50e9209920db139c8",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "retry_of_run_id": "35333601872",
+  "retry_reason": {
+    "code": "VISUAL_CORRECTION",
+    "detail": "Correction visuelle bornée sur la PR #181, sans nouveau plan ni nouvelle PR. Reprendre strictement les écrans Figma courants 3787:5148 (arbre Catalogue Activités), 3841:8375 (arbre Catalogue Séances), 3789:5349 (sélection multiple) et 3879:5947 / 3542:4656 (éditeur Activité). Constats device utilisateur : (1) arbres Créer non conformes : icônes absentes, options sans forme/dimensions Figma, scrim incomplet, arrière-plan/navigation/liste encore interactifs, Annuler défaillant dans Composition ; (2) depuis Catalogue Activités, Une nouvelle activité ouvre un nouvel éditeur simplifié non conforme. Le plan approuvé exigeait de réutiliser/extracter la présentation complète déjà portée par ExerciseScreen, pas de recréer une UI parallèle. Conserver toutes les fonctions existantes : sections repliables, roulettes, Séries, mode/cible, Pause, Côté, Récupération, Durée totale, synthèse, overlays et garde de sortie ; (3) section Médias absente dans création/modification depuis Composition ET Catalogue : elle doit être visible/repliable, placeholder et Ajouter un média visibles mais désactivés, aucune fonction média réelle ; (4) sélection d’activités existantes : cartes/contenu non conformes à Figma, contrôle de sélection explicite manquant, sélection multiple réellement visible et utilisable requise, bouton Ajouter activé dès au moins une sélection ; (5) tous les contrôles arrière-plan sous arbre doivent être visuellement grisés et fonctionnellement bloqués, y compris navigation, retour, listes et cadre vide. Réutiliser les composants/tokens/icônes existants ; ne pas modifier règles métier, persistance, calculs bilatéraux ou scope."
+  }
+}
