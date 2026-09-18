@@ -31,3 +31,9 @@ test('existing delivery bridge conserve le contrat historique LOT_1_OF_1', () =>
   assert.match(bridge, /STATUT : IMPLEMENTATION_READY_FOR_REVIEW/);
   assert.match(bridge, /source_implementation_trigger_comment_id=\$GATE_ID/);
 });
+
+test('existing delivery bridge utilise source_head comme base de revue, jamais baseline_head', () => {
+  assert.match(bridge, /base=\$\(jq -r '\.source_head' "\$queue_path"\)/);
+  assert.doesNotMatch(bridge, /base=\$\(jq -r '\.baseline_head' "\$queue_path"\)/);
+  assert.match(bridge, /\(\.operation_kind \/\/ "IMPLEMENT"\) == "IMPLEMENT"/);
+});
