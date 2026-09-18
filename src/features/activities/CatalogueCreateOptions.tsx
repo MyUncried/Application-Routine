@@ -66,44 +66,28 @@ export function CatalogueCreateOptions({
   // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
   // rendu (`react-hooks/refs`).
   const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
-  const [shouldRender, setShouldRender] = useState(visible);
-  // Ajustement d'état PENDANT le rendu (patron officiellement recommandé
-  // pour dériver un état d'un changement de prop, `react.dev/learn/
-  // you-might-not-need-an-effect`) — jamais un `setState` synchrone dans un
-  // effet (`react-hooks/set-state-in-effect`) : `shouldRender` doit devenir
-  // vrai IMMÉDIATEMENT (avant même le premier rendu du fondu), pas après un
-  // aller-retour d'effet.
-  const [previousVisible, setPreviousVisible] = useState(visible);
-  if (visible !== previousVisible) {
-    setPreviousVisible(visible);
-    if (visible) {
-      setShouldRender(true);
-    }
-  }
 
+  // Correction VISUAL_CORRECTION (revue iPhone du HEAD `fa4d803`, issue
+  // #150 commentaire 5736165618) : la mécanique précédente démontait
+  // entièrement ce sous-arbre (`shouldRender` → `return null`) tant que
+  // `visible` était faux, puis le RECRÉAIT (nouvelles vues natives) au
+  // moment même où l'animation pilotée nativement (`useNativeDriver: true`)
+  // démarrait — une course entre la création de la vue native et son
+  // rattachement à l'`Animated.Value`, qui pouvait laisser la vue bloquée à
+  // son opacité de départ (0) sur appareil réel sans jamais produire le
+  // moindre changement visuel, alors que les mêmes assertions passaient en
+  // test (environnement JS, sans ce rattachement natif à reproduire). Ce
+  // sous-arbre reste désormais TOUJOURS monté — le rendu/positionnement
+  // déjà validés (`menuTop`, styles) ne changent pas — seules la visibilité
+  // et l'interactivité restent pilotées par `opacity`/`pointerEvents`,
+  // jamais par un montage/démontage conditionnel.
   useEffect(() => {
-    if (visible) {
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: APPEAR_DURATION_MS,
-        useNativeDriver: true,
-      }).start();
-      return;
-    }
     Animated.timing(progress, {
-      toValue: 0,
-      duration: DISMISS_DURATION_MS,
+      toValue: visible ? 1 : 0,
+      duration: visible ? APPEAR_DURATION_MS : DISMISS_DURATION_MS,
       useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        setShouldRender(false);
-      }
-    });
+    }).start();
   }, [visible, progress]);
-
-  if (!shouldRender) {
-    return null;
-  }
 
   const t = strings.screens.sessions.createTree;
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] });
@@ -114,6 +98,7 @@ export function CatalogueCreateOptions({
       <Animated.View
         pointerEvents={visible ? "auto" : "none"}
         style={[styles.backdrop, { opacity: progress }]}
+        testID="catalogue-create-tree-scrim"
       >
         <Pressable
           onPress={onCancel}
@@ -122,7 +107,13 @@ export function CatalogueCreateOptions({
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
+      {/*
+       * Toujours monté (voir commentaire ci-dessus) — `pointerEvents`
+       * désormais explicite ici aussi : sans lui, les options resteraient
+       * tactiles même invisibles (opacité 0) tant que l'arbre reste monté.
+       */}
       <Animated.View
+        pointerEvents={visible ? "auto" : "none"}
         style={[styles.menu, { top: menuTop, opacity: progress, transform: [{ scale }] }]}
         testID="catalogue-create-tree"
       >
