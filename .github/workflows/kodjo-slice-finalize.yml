@@ -111,14 +111,18 @@ jobs:
             if(-not[string]::IsNullOrWhiteSpace($changedText)){$changedText+=[Environment]::NewLine}
             [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
 
-            $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
-            $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
-            if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
-            [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
+            if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
+              $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
+              $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
+              if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
+              [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
 
-            $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
-            node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay
-            if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+              $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
+              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay
+              if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+            } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){
+              throw 'V2 final review mode invalid'
+            }
 
             "v2_mode=true"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
             "final_contract=$metaFile"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
