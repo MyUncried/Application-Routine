@@ -64,6 +64,7 @@ function main() {
   const review = gh('repos/' + repository + '/issues/comments/' + reviewId, cwd);
   if (issueOf(review) !== issueNumber) fail('HANDOFF_REVIEW_ISSUE_MISMATCH');
   const reviewBody = String(review.body || '');
+  if (!review.user || review.user.login !== 'github-actions[bot]') fail('HANDOFF_REVIEW_AUTHOR_MISMATCH');
   if (!/^\[KODJO_V2\] PLAN_REVIEW_OUTPUT\s*$/m.test(reviewBody)) fail('HANDOFF_REVIEW_MARKER_INVALID');
   if (field(reviewBody, 'verdict') !== 'APPROVE') fail('HANDOFF_REVIEW_NOT_APPROVED');
   if (!/^STATUT : PLAN_REVIEW_APPROVED\s*$/m.test(reviewBody)) fail('HANDOFF_REVIEW_NOT_APPROVED');
@@ -79,6 +80,7 @@ function main() {
   const plan = gh('repos/' + repository + '/issues/comments/' + planId, cwd);
   if (issueOf(plan) !== issueNumber) fail('HANDOFF_PLAN_ISSUE_MISMATCH');
   const planBody = String(plan.body || '');
+  if (!plan.user || plan.user.login !== 'github-actions[bot]') fail('HANDOFF_PLAN_AUTHOR_MISMATCH');
   if (!/^\[KODJO_V2\] PLAN_OUTPUT\s*$/m.test(planBody)) fail('HANDOFF_PLAN_MARKER_INVALID');
   if (!/^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$/m.test(planBody)) fail('HANDOFF_PLAN_NOT_REVIEWABLE');
   if (field(planBody, 'slice_id') !== sliceId) fail('HANDOFF_PLAN_SLICE_MISMATCH');
