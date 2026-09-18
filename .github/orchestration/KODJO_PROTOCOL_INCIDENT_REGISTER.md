@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.42.0**
+- Version du registre : **3.43.0**
 - Date : **2026-09-17**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
@@ -535,3 +535,7 @@ Les anciennes entrées `KIP-001` à `KIP-038` sont supersédées par les entrée
 | 3.42.0 | 2026-09-17 | Ajout d’INC-143/144 et T-116/117 : contrat de plan versionné et rejoué à la consommation, péremption des plans hérités et gate plan/revue/utilisateur avant IMPLEMENT. |
 | 3.41.0 | 2026-09-17 | Ajout d’INC-142 et T-115 : fast path de clarification mineure du plan initial, transformation littérale déterministe, revalidation machine et revue réduite avec fallback complet. |
 | 3.39.0 | 2026-09-17 | Ajout d’INC-137 à INC-139 et T-110 à T-112 : portabilité des empreintes, sorties structurées et contrat INITIAL à un niveau ; qualification Linux/Windows puis exécution réelle V2-CAT-01 entièrement verte. |
+| INC-145 | 2026-09-18 | V2 correction visuelle | DÉFAUT_CONCEPTION | Admission RESUME_DELTA après revue d'écarts | Le run `35361210141` échoue avant Claude avec `RECOVERY_MIGRATION_APPLICATION_HEAD_MISMATCH` alors que la queue, le checkpoint et l'attestation désignent tous le HEAD applicatif `8ed43b...` | Le vérificateur imposait à tort `attestation.application_pr_head = plan.scan_revision`, invariant valable pour le plan initial mais faux pour une VISUAL_CORRECTION d'une PR existante | Run `35361210141`, job `105652639647`, queue `V2-CAT-01-visual-correction-6d9d2c5a.json` | En VISUAL_CORRECTION, conserver `scan_revision` pour le replay du plan et lier séparément l'attestation au `delivery_target.application_head`, identique au checkpoint ; autres opérations inchangées | La baseline de plan et le HEAD applicatif repris sont deux preuves distinctes et ne doivent jamais être forcées à l'égalité | T-118 | NON RETESTÉ — qualification Linux/Windows requise | Admission V2 VISUAL_CORRECTION | CORRIGÉ SOUS RÉSERVE DE CERTIFICATION | prolonge INC-134/136 | Aucun Claude invoqué ; aucune modification applicative |
+| T-118 | V2 correction visuelle | Séparation scan du plan / HEAD repris | Admission / reprise | Opposer plan.scan_revision historique, delivery_target/checkpoint/attestation sur un HEAD applicatif plus récent, puis un checkpoint divergent | Le cas nominal passe l'invariant de HEAD ; la divergence checkpoint/delivery est refusée avant Claude ; IMPLEMENT conserve l'ancien binding | queue-contract.pilot.js | qualification Linux/Windows requise | INC-145 |
+| 3.43.0 | 2026-09-18 | Ajout d'INC-145/T-118 : VISUAL_CORRECTION distingue désormais la révision historique de scan du plan du HEAD applicatif réellement repris. |
+
