@@ -156,11 +156,3 @@ jobs:
           fi
           echo "source_comment_id=$output_id" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch historical implementation review
-        shell: bash
-        env:
-          SOURCE_COMMENT_ID: ${{ steps.publish.outputs.source_comment_id }}
-        run: |
-          set -euo pipefail
-          jq -n --arg issue "$ISSUE_NUMBER" --arg source "$SOURCE_COMMENT_ID"             '{event_type:"kodjo_implementation_ready",client_payload:{issue_number:$issue,source_comment_id:$source}}' > /tmp/dispatch.json
-          gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" --input /tmp/dispatch.json
