@@ -71,6 +71,10 @@ jobs:
             exit 1
           fi
 
+      - name: Install project dependencies
+        shell: bash
+        run: npm ci --no-audit --no-fund
+
       - name: Install EAS CLI
         shell: bash
         run: npm install --global eas-cli@21.7.1
