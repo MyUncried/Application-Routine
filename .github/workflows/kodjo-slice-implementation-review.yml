@@ -251,7 +251,7 @@ jobs:
             echo "Every criterion_id in the UI review input must appear exactly once in your structured output. Do not invent or omit criteria."
             echo "For each proof_required, return exactly one proof_result. FUNCTIONAL_TEST, STATIC_ANALYSIS and ACCESSIBILITY_CHECK are blocking and may be PASS only with evidence from the supplied material."
             echo "VISUAL_COMPARE and DEVICE_CHECK cannot be certified by this automated review. Return PENDING_DEVICE unless there is a demonstrated FAIL; never return PASS for those two proof types."
-            echo "PRESERVE must be independently checked against the diff. A demonstrated preservation failure is blocking."
+            echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results with direct diff evidence. Any FAIL or NON_VERIFIABLE boundary is blocking."
             echo "Requirements allocated to later increments remain deferred and are not defects."
             echo "The deterministic gate immediately preceding this review has completed npm test and TypeScript successfully."
             echo "Return verdict=REVISE for any blocking defect. Otherwise return verdict=APPROVE even when device_gate_required=true; APPROVE is technical approval only and never closes the device/human gate."
@@ -275,7 +275,7 @@ jobs:
           REVIEW_SCHEMA=$(jq -nc '{
             type:"object",
             additionalProperties:false,
-            required:["schema","verdict","device_gate_required","criteria"],
+            required:["schema","verdict","device_gate_required","criteria","boundary_results"],
             properties:{
               schema:{type:"string",enum:["kodjo.ui-implementation-review.v1"]},
               verdict:{type:"string",enum:["APPROVE","REVISE"]},
@@ -304,6 +304,20 @@ jobs:
                         }
                       }
                     }
+                  }
+                }
+              },
+              boundary_results:{
+                type:"array",
+                items:{
+                  type:"object",
+                  additionalProperties:false,
+                  required:["category","target","status","evidence"],
+                  properties:{
+                    category:{type:"string",enum:["PRESERVE","FORBIDDEN"]},
+                    target:{type:"string",minLength:1},
+                    status:{type:"string",enum:["PASS","FAIL","NON_VERIFIABLE"]},
+                    evidence:{type:"string",minLength:1}
                   }
                 }
               }
