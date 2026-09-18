@@ -123,6 +123,17 @@ test('implementation review: un défaut fonctionnel impose REVISE', () => {
   assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
 });
 
+test('implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pas être approuvé', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-review-'));
+  const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), review=path.join(dir,'review.json'), out=path.join(dir,'out.json');
+  const value=validReview();
+  value.criteria[0].implementation_status='PARTIELLEMENT_CONFORME';
+  fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+});
+
 test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée', () => {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-review-'));
   const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), review=path.join(dir,'review.json'), out=path.join(dir,'out.json');
