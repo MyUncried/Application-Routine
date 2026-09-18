@@ -232,6 +232,63 @@ Independent implementation review remains required before human review and merge
   $sessionId = [string]$result.session_id
   if ($sessionId -notmatch '^[0-9a-fA-F-]{36}$') { throw 'KODJO_IMPLEMENTATION_REVIEW_SESSION_INVALID' }
 
+  $reviewBaseHead = if ($isVisual) { $applicationHead } else { [string]$queue.source_head }
+  if ($reviewBaseHead -notmatch '^[0-9a-f]{40}
+[KODJO_SLICE] IMPLEMENTATION_OUTPUT
+slice_id=$($queue.slice_id)
+increment=LOT_1_OF_1
+base_head=$reviewBaseHead
+head=$newHead
+session_id=$sessionId
+plan_comment_id=$($planIdMatch.Groups[1].Value)
+plan_review_comment_id=$($reviewIdMatch.Groups[1].Value)
+source_implementation_trigger_comment_id=$gateCommentId
+continuity_origin=V2_LEAN_QUEUE
+v2_queue_path=$QueueFile
+v2_protocol_head=$($queue.source_head)
+v2_request_id=$($queue.request_id)
+application_pr=$deliveredPr
+application_branch=$deliveredBranch
+STATUT : IMPLEMENTATION_READY_FOR_REVIEW
+"@
+  $reviewPayload = @{ body = $reviewBody } | ConvertTo-Json -Depth 4
+  $reviewPayloadPath = Join-Path $env:RUNNER_TEMP ("kodjo-review-output-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
+  [IO.File]::WriteAllText($reviewPayloadPath, $reviewPayload, (New-Object Text.UTF8Encoding($false)))
+  $reviewPosted = gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$($queue.issue_number)/comments" --input $reviewPayloadPath | ConvertFrom-Json
+  if ($LASTEXITCODE -ne 0 -or $null -eq $reviewPosted -or -not $reviewPosted.id) { throw 'KODJO_IMPLEMENTATION_REVIEW_OUTPUT_PUBLICATION_FAILED' }
+
+  $reviewMetadataPath = [string]$env:KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE
+  if (-not [string]::IsNullOrWhiteSpace($reviewMetadataPath)) {
+    $reviewMetadata = [ordered]@{
+      schema_version = 'kodjo.protocol.v2.implementation-review-bridge.0.6.38'
+      issue_number = [int]$queue.issue_number
+      source_comment_id = [string]$reviewPosted.id
+      application_pr = [int]$deliveredPr
+      application_head = [string]$newHead
+      request_id = [string]$queue.request_id
+    }
+    [IO.File]::WriteAllText([IO.Path]::GetFullPath($reviewMetadataPath), ($reviewMetadata | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
+  }
+}
+finally {
+  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
+  if ($isVisual) {
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+    }
+  }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+) { throw 'KODJO_IMPLEMENTATION_REVIEW_BASE_HEAD_INVALID' }
+
   $reviewBody = @"
 [KODJO_SLICE] IMPLEMENTATION_OUTPUT
 slice_id=$($queue.slice_id)
