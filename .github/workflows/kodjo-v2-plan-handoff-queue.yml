@@ -69,16 +69,30 @@ jobs:
         shell: bash
         env:
           REQUEST_ID: ${{ steps.request.outputs.request_id }}
+          SHORT_ID: ${{ steps.request.outputs.short_id }}
           SLICE_ID: ${{ steps.request.outputs.slice_id }}
           HANDOFF_ID: ${{ steps.gate.outputs.handoff_id }}
+          SOURCE_FILE: ${{ runner.temp }}/kodjo-approved-plan-lean-request.json
         run: |
+          set -euo pipefail
+          BEFORE="$(git rev-parse HEAD)"
+          TARGET=".github/orchestration/queue/v2/${SLICE_ID}-validate-${SHORT_ID}.json"
+          cp "$SOURCE_FILE" "$TARGET"
+          git config user.name 'KODJO Protocol Handoff Validation'
+          git config user.email 'kodjo-protocol@users.noreply.github.com'
+          git add -- "$TARGET"
+          git commit -m "test(kodjo): bounded handoff admission $SLICE_ID"
+          AFTER="$(git rev-parse HEAD)"
+          SELECTED="$(KODJO_VERIFY_GITHUB=1 GITHUB_RUN_ATTEMPT=1 node scripts/kodjo/verify-queue-admission.js "$BEFORE" "$AFTER")"
+          test "$SELECTED" = "$TARGET"
+          git reset --hard "$BEFORE"
           {
             echo '[KODJO_V2] PLAN_HANDOFF_VALIDATED'
             echo "slice_id=$SLICE_ID"
             echo "handoff_comment_id=$HANDOFF_ID"
             echo "request_id=$REQUEST_ID"
             echo 'STATUT : PLAN_HANDOFF_VALIDATED'
-            echo 'STOP : BEFORE_QUEUE_COMMIT'
+            echo 'STOP : BEFORE_RUN_QUEUED_REQUEST'
           } > "${RUNNER_TEMP}/handoff-validated.md"
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file "${RUNNER_TEMP}/handoff-validated.md"
 
