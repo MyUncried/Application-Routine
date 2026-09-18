@@ -142,11 +142,41 @@ try {
     $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
     git push origin $pushRefspec # kodjo-allow-mention
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_PUSH_FAILED' }
-    $prAfter = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" | ConvertFrom-Json
-    if ($LASTEXITCODE -ne 0 -or ([string]$prAfter.head.sha).ToLowerInvariant() -ne $newHead.ToLowerInvariant()) {
+
+    # GitHub peut exposer brièvement l'ancien head.sha de la PR après que le
+    # push de la branche a déjà réussi. La livraison est donc observée avec un
+    # retry borné au lieu de transformer cette cohérence éventuelle en échec.
+    $prAfter = $null
+    $deliveryObserved = $false
+    $observedHead = ''
+    for ($attempt = 1; $attempt -le 6; $attempt++) {
+      $prJson = & gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" 2>$null
+      $ghExit = $LASTEXITCODE
+      $prAfter = $null
+      if ($ghExit -eq 0 -and $null -ne $prJson) {
+        try {
+          $prAfter = (($prJson -join "`n") | ConvertFrom-Json)
+        } catch {
+          $prAfter = $null
+        }
+      }
+
+      if ($null -ne $prAfter) {
+        if ([string]$prAfter.state -ne 'open') { throw 'KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY' }
+        if ([string]$prAfter.head.ref -ne $targetBranch) { throw 'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH' }
+        $observedHead = ([string]$prAfter.head.sha).ToLowerInvariant()
+        if ($observedHead -eq $newHead.ToLowerInvariant()) {
+          $deliveryObserved = $true
+          break
+        }
+      }
+
+      if ($attempt -lt 6) { Start-Sleep -Seconds 2 }
+    }
+    if (-not $deliveryObserved) {
+      Write-Warning ("KODJO_QUEUE_EXISTING_PR_DELIVERY_NOT_OBSERVED expected={0} observed={1}" -f $newHead.ToLowerInvariant(), $observedHead)
       throw 'KODJO_QUEUE_EXISTING_PR_DELIVERY_NOT_OBSERVED'
     }
-    if ([string]$prAfter.state -ne 'open') { throw 'KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY' }
 
     $metadataPath = [string]$env:KODJO_VISUAL_DELIVERY_METADATA_FILE
     if (-not [string]::IsNullOrWhiteSpace($metadataPath)) {
