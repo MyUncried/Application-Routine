@@ -23,7 +23,7 @@ test('existing delivery bridge lie queue, checkpoint, PR et HEAD exact', () => {
   assert.match(bridge, /cp_head.*application_head/);
   assert.match(bridge, /cp_delivery.*application_head/);
   assert.match(bridge, /\.state == "open" and \.base\.ref == "main" and \.head\.sha == \$head/);
-  assert.match(bridge, /compare\/\$base\.\.\.\$application_head/);
+  assert.match(bridge, /compare\/\$implementation_base\.\.\.\$application_head/);
 });
 
 test('existing delivery bridge conserve le contrat historique LOT_1_OF_1', () => {
