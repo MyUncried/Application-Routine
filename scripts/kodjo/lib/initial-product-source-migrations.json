@@ -5,7 +5,7 @@
       "migration_id": "V2-CAT-01-LEGACY-PRODUCT-SOURCE-HASHES",
       "slice_id": "V2-CAT-01",
       "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
-      "slice_bootstrap_sha256": "16964a2679134baea1f535930899f24702a7e9cf97590486559f1adb7075d3ac",
+      "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
       "authority": "GIT_BLOB",
       "scope": "PRODUCT_SOURCE_HASHES_ONLY",
       "legacy_product_sources": [
