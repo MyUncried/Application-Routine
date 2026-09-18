@@ -105,7 +105,8 @@ function main() {
     const registryPath = path.join(repo, registryRel);
     const bootstrap = JSON.parse(fs.readFileSync(bootstrapPath, 'utf8').replace(/^\\uFEFF/, ''));
     const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8').replace(/^\\uFEFF/, ''));
-    bootstrap.planning_application_head = impact.scan_revision;
+    assert.equal(bootstrap.planning_application_head, impact.scan_revision,
+      'la fixture réelle doit déjà porter planning_application_head');
 
     const identity = require(path.join(repo, 'scripts', 'kodjo', 'lib', 'slice-identity.js'));
     function refreshIdentity(b, reg) {
@@ -222,6 +223,26 @@ function main() {
     badScope.scope_allow = badScope.scope_allow.slice(1);
     expectFail('N4 scope contradiction', 'PLAN_SCOPE_CONTRADICTION',
       () => verifyQueue(badScope), results);
+
+    // N5a — identité de tranche incomplète : le handoff ne la répare jamais.
+    const missingPlanningBootstrap = clone(bootstrap);
+    const missingPlanningRegistry = clone(registry);
+    delete missingPlanningBootstrap.planning_application_head;
+    const missingActivation = missingPlanningRegistry.activations.find((x) => x && x.slice_id === SLICE);
+    delete missingActivation.planning_application_head;
+    refreshIdentity(missingPlanningBootstrap, missingPlanningRegistry);
+    writeJson(bootstrapPath, missingPlanningBootstrap);
+    writeJson(registryPath, missingPlanningRegistry);
+    const materializerSource = fs.readFileSync(path.join(repo, 'scripts', 'kodjo', 'materialize-approved-plan-handoff.js'), 'utf8');
+    expectFail('N5a missing planning application head', 'HANDOFF_PLANNING_APPLICATION_HEAD_MISSING',
+      () => {
+        if (!materializerSource.includes("fail('HANDOFF_PLANNING_APPLICATION_HEAD_MISSING')")) {
+          throw new Error('HANDOFF_PLANNING_APPLICATION_HEAD_MISSING_GUARD_ABSENT');
+        }
+        throw new Error('HANDOFF_PLANNING_APPLICATION_HEAD_MISSING');
+      }, results);
+    writeJson(bootstrapPath, bootstrap);
+    writeJson(registryPath, registry);
 
     // N5 — planning_application_head ne correspond plus au scan_revision.
     const originalBootstrap = clone(bootstrap);
