@@ -226,12 +226,14 @@ jobs:
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
 
       - name: Prepare criterion-complete UI review input
+        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/')
         shell: bash
         run: |
           set -euo pipefail
           node scripts/kodjo/verify-ui-implementation-review.js prepare             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/ui-implementation-review-input.json
 
-      - name: Independent OpenAI review
+      - name: Independent OpenAI review — V2 criterion contract
+        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/')
         shell: bash
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
@@ -320,6 +322,44 @@ jobs:
             jq .
           } < /tmp/review-contract.json > /tmp/review.md
 
+      - name: Independent OpenAI review — legacy path unchanged
+        if: ${{ !startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') }}
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          HEAD: ${{ steps.gate.outputs.head }}
+          BASE: ${{ steps.gate.outputs.base }}
+          INCREMENT: ${{ steps.gate.outputs.increment }}
+        run: |
+          set -euo pipefail
+          test -n "${OPENAI_API_KEY:-}"
+          git diff --stat "$BASE..$HEAD" > /tmp/diff-stat.txt
+          git diff "$BASE..$HEAD" > /tmp/diff.patch
+          {
+            echo "You are the independent KODJO implementation reviewer for $SLICE_ID, increment $INCREMENT only."
+            echo "Review exact commit $HEAD only against the requirements explicitly allocated to $INCREMENT in the approved plan, using the implementation output as the authoritative statement of the delivered increment. Requirements allocated to later increments are deferred: their absence MUST NOT be reported as a defect, missing scope, missing wiring, or missing test."
+            echo "Apply the validated S09 criteria only where they are applicable to $INCREMENT: scope, correctness, persistence atomicity, migrations, backward compatibility, tests, Unicode, UI contracts, non-regression, and evidence integrity. The deterministic gate immediately preceding this review has already completed npm test and TypeScript successfully; do not claim those checks were not run. You may report only a demonstrated defect in their actual results or coverage within $INCREMENT."
+            echo "Do not modify files. End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, list only demonstrated blocking points inside $INCREMENT and a precise REVIEW_FEEDBACK section."
+            echo
+            echo "IMPLEMENTATION OUTPUT:"
+            cat /tmp/implementation-output.md
+            echo
+            echo "APPROVED PLAN:"
+            cat /tmp/approved-plan.md
+            echo
+            echo "CHANGED FILES:"
+            cat /tmp/changed-files.txt
+            echo
+            echo "DIFF:"
+            head -c 700000 /tmp/diff.patch
+          } > /tmp/review-prompt.txt
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/review-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"medium"}}' > /tmp/review-request.json
+          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/review-request.json -o /tmp/review-response.json
+          status=$(jq -r '.status // "missing"' /tmp/review-response.json)
+          if [ "$status" != completed ]; then jq -c '{status,incomplete_details,error,usage}' /tmp/review-response.json >&2; exit 1; fi
+          jq -er '[.output[]?|select(.type=="message")|.content[]?|select(.type=="output_text")|.text]|join("\n")|select(length>0)' /tmp/review-response.json > /tmp/review.md
+          grep -Eq '^VERDICT: (APPROVE|REVISE)$' /tmp/review.md
+
       - name: Publish implementation verdict
         shell: bash
         env:
@@ -334,7 +374,7 @@ jobs:
         run: |
           set -euo pipefail
           verdict=$(sed -n 's/^VERDICT: //p' /tmp/review.md|tail -n1)
-          device_gate_required=$(jq -r .device_gate_required /tmp/review-contract.json)
+          if [ -f /tmp/review-contract.json ]; then device_gate_required=$(jq -r .device_gate_required /tmp/review-contract.json); else device_gate_required=false; fi
           if [ "$verdict" = APPROVE ]; then status=IMPLEMENTATION_REVIEW_APPROVED; else status=IMPLEMENTATION_REVISION_REQUIRED; fi
           {
             echo '[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT'
@@ -351,10 +391,12 @@ jobs:
             echo "STATUT : $status"
             echo
             cat /tmp/review.md
-            echo
-            echo '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
-            cat /tmp/review-contract.json
-            echo '</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
+            if [ -f /tmp/review-contract.json ]; then
+              echo
+              echo '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
+              cat /tmp/review-contract.json
+              echo '</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
+            fi
           } > /tmp/review-comment.md
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/review-comment.md
 
