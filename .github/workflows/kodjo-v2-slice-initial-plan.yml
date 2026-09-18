@@ -102,6 +102,7 @@ jobs:
           You are the KODJO V2 initial technical-plan builder for $SLICE_ID at immutable product HEAD $SOURCE_HEAD. This is the FIRST plan of a new slice. There is no application PR and no prior approved plan/review. READ ONLY: never implement and never modify repository files.
           The bootstrap, planning mission, Issue, current product sources and checked-out code are authoritative. A file named non-opposable-seed-plan.md may be supplied only as a drafting aid; verify it independently and do not treat it as protocol authority. Do not invent scope.
           Return a complete French technical plan in the structured response field plan_markdown. Separately return modified_modules with every application module that implementation would CREATE or MODIFY, using repository-relative POSIX paths only. Return plan_status=READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise plan_status=CLARIFICATION_REQUIRED. Do not embed KODJO tags or PLAN_STATUS markers inside plan_markdown; the workflow assembles those mechanically. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If plan_markdown contains a scope_allow section, it must enumerate exactly the complete write scope; the workflow will reconcile that section mechanically with the deterministic direct-impact closure before contract verification.
+          For every plan, plan_markdown must also contain exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> JSON block with schema kodjo.ui-criteria.v1. For UI-adjacent changes, decompose every normative requirement into atomic criteria with criterion_id, source {path, locator, requirement}, risk_types, reuse_search, component_decision REUSE|EXTEND|CREATE, selected_component, decision_justification, change_targets, tests and proof_required. Also provide explicit preservation {preserve:[], change:[], forbidden:[]} entries. Search for existing components/patterns before CREATE; do not silently replace a validated primitive. For a genuinely non-UI plan, emit the same block with criteria:[] and empty preservation arrays.
           EOF
           for file in slice-bootstrap.json planning-mission.md product-evidence.txt code-files.txt issue.json comments.json non-opposable-seed-plan.md; do
             if test -f "/tmp/kodjo-v2-initial/$file"; then printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; cat "/tmp/kodjo-v2-initial/$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; fi
@@ -167,6 +168,10 @@ jobs:
           printf '\n\n<KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
+          node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/ui-plan-contract.json
+          printf '\n<KODJO_UI_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
+          cat /tmp/kodjo-v2-initial/ui-plan-contract.json >> /tmp/kodjo-v2-initial/technical-plan.md
+          printf '</KODJO_UI_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/plan-contract.json
           printf '\n<KODJO_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/plan-contract.json >> /tmp/kodjo-v2-initial/technical-plan.md
@@ -189,7 +194,7 @@ jobs:
             echo "bootstrap_path=$BOOTSTRAP_PATH"
             echo "source_head=$SOURCE_HEAD"
             echo 'planning_mode=INITIAL'
-            echo 'planning_contract=kodjo.plan-impact.v1'
+            echo 'planning_contract=kodjo.plan-impact.v1'\n            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
             echo "STATUT : $STATUS"
             echo
             cat /tmp/kodjo-v2-initial/technical-plan.md
@@ -206,6 +211,6 @@ jobs:
             /tmp/kodjo-v2-initial/scan.json
             /tmp/kodjo-v2-initial/matrix.json
             /tmp/kodjo-v2-initial/proof.json
-            /tmp/kodjo-v2-initial/plan-contract.json
+            /tmp/kodjo-v2-initial/plan-contract.json\n            /tmp/kodjo-v2-initial/ui-plan-contract.json
           if-no-files-found: warn
           retention-days: 14
