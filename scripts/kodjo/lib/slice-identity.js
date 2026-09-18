@@ -37,6 +37,7 @@ function validateBootstrap(raw) {
   if (typeof raw.target_branch !== 'string' || !raw.target_branch) fail('SLICE_BOOTSTRAP_TARGET_BRANCH_INVALID');
   if (!SHA40.test(String(raw.baseline_head || ''))) fail('SLICE_BOOTSTRAP_BASELINE_HEAD_INVALID');
   if (raw.planning_application_head !== undefined && !SHA40.test(String(raw.planning_application_head || ''))) fail('SLICE_BOOTSTRAP_PLANNING_APPLICATION_HEAD_INVALID');
+  if (raw.planning_documentary_head !== undefined && !SHA40.test(String(raw.planning_documentary_head || ''))) fail('SLICE_BOOTSTRAP_PLANNING_DOCUMENTARY_HEAD_INVALID');
   if (raw.protocol_version !== '0.6.12') fail('SLICE_BOOTSTRAP_PROTOCOL_VERSION_INVALID');
   if (!SHA40.test(String(raw.protocol_commit || ''))) fail('SLICE_BOOTSTRAP_PROTOCOL_COMMIT_INVALID');
   if (raw.activation_registry !== '.github/orchestration/v2-activation-registry.json') fail('SLICE_BOOTSTRAP_REGISTRY_PATH_INVALID');
@@ -62,6 +63,9 @@ function validateRegistry(raw, bootstrap) {
   const bootstrapPlanningHead = bootstrap.planning_application_head;
   const activationPlanningHead = a.planning_application_head;
   if ((bootstrapPlanningHead !== undefined || activationPlanningHead !== undefined) && bootstrapPlanningHead !== activationPlanningHead) fail('ACTIVATION_PLANNING_APPLICATION_HEAD_MISMATCH');
+  const bootstrapDocumentaryHead = bootstrap.planning_documentary_head;
+  const activationDocumentaryHead = a.planning_documentary_head;
+  if ((bootstrapDocumentaryHead !== undefined || activationDocumentaryHead !== undefined) && bootstrapDocumentaryHead !== activationDocumentaryHead) fail('ACTIVATION_PLANNING_DOCUMENTARY_HEAD_MISMATCH');
   return a;
 }
 
