@@ -25,7 +25,8 @@ Aucun nouveau workflow, marker, repository_dispatch, queue ou bridge n’est ajo
 - liaison visual approval → review → implementation output → Lean Queue ;
 - liaison exacte au HEAD applicatif ;
 - contrôle PR/branche distante ;
-- rejeu du contrat de revue 0.6.40 ;
+- pour IMPLEMENT, rejeu du contrat de revue 0.6.40 et contrôle critère/preuve ;
+- pour VISUAL_CORRECTION, conservation de la revue différentielle historique avec contrôle queue/checkpoint/PR/HEAD, sans inventer un contrat UI complet ;
 - contrôle des preuves techniques et device ;
 - final checks Jest/TypeScript/lint ;
 - publication `READY_TO_CLOSE` avec contrat final déterministe.
