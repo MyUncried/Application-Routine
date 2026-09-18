@@ -81,6 +81,18 @@ if ($isVisual) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
   git switch -c $branch
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
+
+  # Contrat de développement UI : aucune nouvelle interface de transport.
+  # La mission existante doit pointer exactement vers la matrice UI déjà
+  # approuvée dans technical-plan.md et vers son blob autorisé.
+  $planPath = [string]$queue.authorized_plan.plan_path
+  $planBlob = [string]$queue.authorized_plan.plan_blob_oid
+  $missionPath = [string]$queue.prompt_file
+  if ([string]::IsNullOrWhiteSpace($planPath) -or [string]::IsNullOrWhiteSpace($planBlob)) {
+    throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_INPUT_MISSING'
+  }
+  & node (Join-Path $runtimeScriptRoot 'verify-implementation-mission.js') $missionPath $planPath $planBlob
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_REFUSED' }
 }
 
 if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType Leaf) {
