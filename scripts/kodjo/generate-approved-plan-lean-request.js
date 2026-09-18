@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { validateQueueRequest } = require('./lib/queue-contract');
 const { verify: verifyAuthorizations } = require('./verify-authorizations');
+const { DEFAULT_LIMITS } = require('./lib/claude-local');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const SHA64 = /^[0-9a-f]{64}$/;
@@ -140,13 +141,7 @@ function main() {
     prompt_file: missionRel,
     scope_allow: [...impact.scope_allow],
     checks: ['jest', 'typescript', 'lint'],
-    limits: {
-      max_ai_calls: 1,
-      max_duration_seconds: 4500,
-      max_prompt_bytes: 65536,
-      max_total_prompt_bytes: 65536,
-      max_rollovers: 0,
-    },
+    limits: { ...DEFAULT_LIMITS },
     request_id: requestId,
     created_at: new Date().toISOString(),
     authorized_plan: {
