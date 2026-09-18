@@ -66,12 +66,17 @@ Quand une revue rend `APPROVE`, le workflow de revue concerné doit appeler le m
 
 1. prendre exactement le `PLAN_OUTPUT` revu ;
 2. prendre exactement le `PLAN_REVIEW_OUTPUT` APPROVE ;
-3. écrire ces contenus dans `technical-plan.md` et `independent-review.md` ;
-4. produire `implementation-mission.md` de manière déterministe à partir du plan approuvé ;
-5. appliquer, si nécessaire, la mise à jour de `planning_application_head` définie au §4 ;
-6. créer **un seul commit protocolaire de matérialisation**, sans fichier applicatif, contenant ces artefacts et les seules mises à jour d’identité nécessaires ;
-7. calculer `plan_blob_oid`, `review_blob_oid` et `approved_at_commit`, où `approved_at_commit` est exactement ce commit de matérialisation ;
-8. publier un commentaire de gate canonique contenant au minimum le `plan_blob_oid`, la tranche et `approved_at_commit`.
+3. écrire le `PLAN_OUTPUT` dans `technical-plan.md` ;
+4. matérialiser `independent-review.md` sous une enveloppe canonique compatible avec le socle stable :
+   - `Verdict: APPROVED` lorsque `PLAN_REVIEW_OUTPUT.verdict=APPROVE` ;
+   - `Plan reviewed: \`technical-plan.md\`` ;
+   - puis le `PLAN_REVIEW_OUTPUT` original conservé intégralement et sans reformulation ;
+   cette enveloppe est une normalisation protocolaire déterministe, pas une nouvelle décision ;
+5. produire `implementation-mission.md` de manière déterministe à partir du plan approuvé ;
+6. appliquer, si nécessaire, la mise à jour de `planning_application_head` définie au §4 ;
+7. créer **un seul commit protocolaire de matérialisation**, sans fichier applicatif, contenant ces artefacts et les seules mises à jour d’identité nécessaires ;
+8. calculer `plan_blob_oid`, `review_blob_oid` et `approved_at_commit`, où `approved_at_commit` est exactement ce commit de matérialisation ;
+9. publier un commentaire de gate canonique contenant au minimum le `plan_blob_oid`, la tranche et `approved_at_commit`.
 
 Ce mécanisme est identique pour INITIAL et pour REVIEW/RÉVISION. La différence entre les deux parcours reste uniquement en amont, pendant la construction et la revue du plan.
 
@@ -292,7 +297,7 @@ L’architecture est acceptable uniquement si :
 1. un seul contrat exécutable existe après review : `lean-request.0.6.13` ;
 2. INITIAL et REVIEW convergent avant IMPLEMENT ;
 3. aucune transformation runtime parallèle n’existe après création de la demande Lean Queue ;
-4. les preuves plan/revue sont des blobs Git immuables compatibles avec `verify-authorizations.js` ;
+4. les preuves plan/revue sont des blobs Git immuables compatibles avec `verify-authorizations.js`, et `independent-review.md` porte explicitement `Verdict: APPROVED` et `Plan reviewed: \`technical-plan.md\`` tout en conservant le `PLAN_REVIEW_OUTPUT` source ;
 5. `implementation-mission.md` est matérialisé déterministement et utilisé comme `prompt_file` sans devenir une nouvelle source de décision ;
 6. `source_head == approved_at_commit` pour ce handoff et l’ancestralité est contrôlée avant génération ;
 7. `planning_application_head` est obligatoire, initialisé depuis `baseline_head` puis mis à jour uniquement vers la révision réellement scannée ;
