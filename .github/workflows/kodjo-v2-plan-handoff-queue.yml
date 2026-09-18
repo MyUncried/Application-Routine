@@ -7,7 +7,7 @@ on:
 permissions:
   contents: write
   issues: write
-  actions: read
+  actions: write
 
 concurrency:
   group: kodjo-v2-plan-handoff-queue-${{ github.event.issue.number }}
@@ -116,6 +116,7 @@ jobs:
           test "$(git diff --cached --name-only)" = "$TARGET"
           git commit -m "chore(kodjo): queue approved $SLICE_ID implementation"
           git push origin HEAD:main
+          gh workflow run kodjo-v2-lean-queue.yml --repo "$GITHUB_REPOSITORY" --ref main
           {
             echo '[KODJO_V2] IMPLEMENTATION_QUEUED'
             echo "slice_id=$SLICE_ID"
