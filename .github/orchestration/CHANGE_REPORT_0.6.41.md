@@ -1,0 +1,55 @@
+# CHANGE REPORT — KODJO Protocol V2 0.6.41
+
+Date : 2026-09-19  
+Objet : étape 4/4 — qualification E2E UI et raccord V2 au gate humain/device existant.
+
+## Défaut constaté
+
+Le workflow de finalisation existant était exclusivement lié au manifeste legacy `.github/orchestration/slices/<slice>.yml`.
+
+Une tranche V2 Lean Queue pouvait atteindre une revue technique approuvée mais ne disposait pas d’un chemin final compatible vers `READY_TO_CLOSE`.
+
+## Correction minimale
+
+Le workflow `kodjo-slice-finalize.yml` est conservé.
+
+Il bifurque désormais après lecture des artefacts autoritatifs :
+
+- chemin legacy : strictement conservé ;
+- chemin V2 : identifié par `continuity_origin=V2_LEAN_QUEUE`, validé par `verify-v2-finalization.js`.
+
+Aucun nouveau workflow, marker, repository_dispatch, queue ou bridge n’est ajouté.
+
+## Contrôles V2 ajoutés
+
+- liaison visual approval → review → implementation output → Lean Queue ;
+- liaison exacte au HEAD applicatif ;
+- contrôle PR/branche distante ;
+- rejeu du contrat de revue 0.6.40 ;
+- contrôle des preuves techniques et device ;
+- final checks Jest/TypeScript/lint ;
+- publication `READY_TO_CLOSE` avec contrat final déterministe.
+
+## Non-régression
+
+Aucun fichier `app/**` ou `src/**` n’est modifié.
+
+Le legacy conserve :
+- son manifeste ;
+- ses contrôles existants ;
+- `STATUT : DONE`.
+
+Les étapes 1–3 restent inchangées.
+
+## Qualification attendue
+
+- `ui-e2e-finalization.pilot.js` nominal + négatifs ;
+- suite pilote Linux ;
+- Windows preflight ;
+- parse PowerShell 5.1 ;
+- contrôle des fichiers modifiés ;
+- seconde passe indépendante.
+
+## Limite explicite
+
+Le test E2E automatisé simule l’existence d’une approbation humaine liée à un HEAD exact. Il ne remplace pas une vraie validation iPhone/device lorsqu’une fonctionnalité réelle l’exige.
