@@ -153,6 +153,9 @@ test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le c
   assert.match(wf,/KODJO_UI_IMPLEMENTATION_REVIEW_JSON/);
   assert.match(wf,/device_gate_required/);
   assert.match(wf,/legacy path unchanged/);
-  assert.match(wf,/!startsWith\(steps\.gate\.outputs\.manifest, '\.github\/orchestration\/queue\/v2\/'\)/);
+  assert.match(wf,/v2_operation_kind=LEGACY/);
+  assert.match(wf,/v2_operation_kind=\$\(jq -r '\.operation_kind \/\/ "IMPLEMENT"'/);
+  assert.match(wf,/steps\.gate\.outputs\.v2_operation_kind == 'IMPLEMENT'/);
+  assert.match(wf,/steps\.gate\.outputs\.v2_operation_kind == 'VISUAL_CORRECTION'/);
   assert.doesNotMatch(wf,/kodjo_ui_implementation_review_ready|repository_dispatch.*ui_implementation/i);
 });
