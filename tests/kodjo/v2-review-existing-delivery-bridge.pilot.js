@@ -12,7 +12,8 @@ test('existing delivery bridge réutilise le moteur historique et ne relance auc
   assert.match(bridge, /\[KODJO_V2\] REVIEW_EXISTING_DELIVERY/);
   assert.match(bridge, /\[KODJO_SLICE\] IMPLEMENTATION_OUTPUT/);
   assert.match(bridge, /continuity_origin=V2_LEAN_QUEUE/);
-  assert.match(bridge, /event_type:"kodjo_implementation_ready"/);
+  assert.doesNotMatch(bridge, /repos\/\$GITHUB_REPOSITORY\/dispatches|event_type:"kodjo_implementation_ready"/);
+  assert.match(bridge, /STATUT : IMPLEMENTATION_READY_FOR_REVIEW/);
   assert.doesNotMatch(bridge, /claude|run-local-claude|start-kodjo-v2|IMPLEMENTATION_REVISION/);
 });
 
