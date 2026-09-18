@@ -38,6 +38,38 @@ function refs(cwd) {
   return git(['for-each-ref', '--format=%(refname) %(objectname)', 'refs/heads', 'refs/tags'], cwd);
 }
 
+const IMPLEMENTATION_STOP_STATUSES = new Set([
+  'CHANGE_REQUEST_REQUIRED',
+  'SCOPE_EXPANSION_REQUIRED',
+  'NATIVE_PRIMITIVE_EXCEPTION_REQUIRED',
+  'CLARIFICATION_REQUIRED',
+]);
+
+function extractClaudeResultText(stdout) {
+  const raw = String(stdout || '').trim();
+  if (!raw) return '';
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.result === 'string') return parsed.result;
+    if (parsed && parsed.type === 'result' && typeof parsed.result === 'string') return parsed.result;
+  } catch (_) {
+    // Sortie non JSON : conserver le texte brut pour diagnostic.
+  }
+  return raw;
+}
+
+function extractImplementationStopStatus(stdout) {
+  const text = extractClaudeResultText(stdout).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const matches = [...text.matchAll(/^KODJO_STOP_STATUS:\s*([A-Z_]+)\s*$/gm)].map((m) => m[1]);
+  if (matches.length === 0) return null;
+  if (matches.length !== 1) throw new Error('IMPLEMENTATION_STOP_STATUS_DUPLICATE');
+  if (matches[0] === 'NONE') return null;
+  if (!IMPLEMENTATION_STOP_STATUSES.has(matches[0])) {
+    throw new Error('IMPLEMENTATION_STOP_STATUS_INVALID: ' + matches[0]);
+  }
+  return matches[0];
+}
+
 /**
  * Delta du depot, analyse sans ambiguite — KV2-02.
  *
@@ -776,6 +808,43 @@ function main() {
     return die('RECOVERY_PACKAGE_WRITE_FAILED', err.message);
   }
 
+  let implementationStopStatus = null;
+  try {
+    implementationStopStatus = extractImplementationStopStatus(result.stdout || '');
+  } catch (err) {
+    return die('IMPLEMENTATION_STOP_STATUS_REFUSED', err.message);
+  }
+  if (request.operation_kind === 'IMPLEMENT' && implementationStopStatus) {
+    const blocked = {
+      schema_version: 'kodjo.protocol.v2.local-result.0.6.39',
+      run_id: runId,
+      github_run_id: process.env.GITHUB_RUN_ID || null,
+      github_run_attempt: process.env.GITHUB_RUN_ATTEMPT || null,
+      request_id: request.request_id,
+      session_id: request.generated_session_id,
+      source_head: request.source_head,
+      status: implementationStopStatus,
+      diagnostic: 'IMPLEMENTATION_BLOCKED_BY_CONTRACT',
+      claude_invoked: true,
+      claude_started_at: claudeStartedAt,
+      claude_finished_at: claudeFinishedAt,
+      claude_duration_ms: claudeDurationMs,
+      modified_files: files,
+      recovered_files: recoveredFiles,
+      recovery_files: recoveryFiles,
+      recovery_package: recoveryPackage ? recoveryPackage.manifest : null,
+      checks: [],
+      publishable_paths: [],
+      publishable_pathspec_file: null,
+      integrity_status: integrityStatus,
+      limits_effective: request.limits,
+      turn_limit_effective: TURN_LIMIT_POLICY,
+    };
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(blocked, null, 2) + '\n', 'utf8');
+    process.stderr.write('[KODJO_V2] ' + implementationStopStatus + ' — publication interdite\n');
+    return 76;
+  }
+
   // C4 : interruption déterministe uniquement pour la tranche de certification.
   // Le paquet atomique existe déjà et aucun contrôle ni chemin de publication
   // n'a encore été exécuté. La sortie 75 laisse le workflow préserver l'artefact.
@@ -911,6 +980,7 @@ module.exports = {
   deltaFingerprint, fingerprintDrift,
   writeRecoveryPackage, restoreFromPackage, buildRecoveryPatch, RECOVERY_PACKAGE_SCHEMA,
   certifyRecoverySourceMigration,
+  extractClaudeResultText, extractImplementationStopStatus, IMPLEMENTATION_STOP_STATUSES,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
   certificationStopAfterRecoveryEnabled,
   RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,

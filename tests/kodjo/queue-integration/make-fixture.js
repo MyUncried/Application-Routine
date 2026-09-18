@@ -36,7 +36,32 @@ function main(repo, sourceHead) {
 
   const missionPath = '.github/orchestration/v2-slices/' + SLICE + '/implementation-mission.md';
   const planFile = path.join(sliceDir, 'technical-plan.md');
-  if (!fs.existsSync(planFile)) fs.writeFileSync(planFile, '# Plan technique de qualification\n', 'utf8');
+  const uiMatrix = {
+    schema: 'kodjo.ui-criteria.v1',
+    criteria: [],
+    preservation: { preserve: [], change: [], forbidden: [] },
+  };
+  const { sha256: planSha256 } = require(path.join(repo, 'scripts', 'kodjo', 'lib', 'plan-impact.js'));
+  const uiPlanContract = {
+    schema: 'kodjo.ui-plan-contract.v1',
+    contract_version: 1,
+    protocol_commit: 'f'.repeat(40),
+    scan_revision: 'd'.repeat(40),
+    ui_applicable: false,
+    ui_paths: [],
+    criterion_count: 0,
+    matrix_sha256: planSha256(uiMatrix),
+  };
+  const planText = '# Plan technique de qualification\n\n' +
+    '<KODJO_UI_CRITERIA_MATRIX_JSON>\n' + JSON.stringify(uiMatrix) + '\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n' +
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n' + JSON.stringify(uiPlanContract) + '\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+  fs.writeFileSync(planFile, planText, 'utf8');
+  const { execFileSync } = require('node:child_process');
+  const gitNow = (args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' }).trim();
+  const planBlobForMission = gitNow(['hash-object', planFile]);
+  const { renderImplementationMission } = require(path.join(repo, 'scripts', 'kodjo', 'lib', 'implementation-contract.js'));
+  const rendered = renderImplementationMission(SLICE, planText, planBlobForMission);
+  fs.writeFileSync(path.join(repo, missionPath), rendered.mission, 'utf8');
   const reviewFile = path.join(sliceDir, 'independent-review.md');
   if (!fs.existsSync(reviewFile)) {
     fs.writeFileSync(reviewFile,
@@ -81,7 +106,6 @@ function main(repo, sourceHead) {
 
   // Le plan approuve doit exister comme objet Git : les preuves d'autorisation
   // sont des hashes verifiables, jamais des chaines declaratives.
-  const { execFileSync } = require('node:child_process');
   const git = (args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' }).trim();
   const planPath = '.github/orchestration/v2-slices/' + SLICE + '/technical-plan.md';
   const planBlob = git(['rev-parse', 'HEAD:' + planPath]);
