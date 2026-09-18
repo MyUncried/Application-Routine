@@ -152,7 +152,8 @@ function isFixedPlanHandoffWriterOperation(filePath, line, patternId, root) {
   }
   if (materialize && patternId === 'GIT_PUSH') return value === 'git push origin HEAD:main';
   if (queue && patternId === 'GIT_COMMIT') {
-    return value === 'git commit -m "chore(kodjo): queue approved $SLICE_ID implementation"';
+    return value === 'git commit -m "chore(kodjo): queue approved $SLICE_ID implementation"' ||
+      value === 'git commit -m "test(kodjo): bounded handoff admission $SLICE_ID"';
   }
   if (queue && patternId === 'GIT_PUSH') return value === 'git push origin HEAD:main';
   return false;
