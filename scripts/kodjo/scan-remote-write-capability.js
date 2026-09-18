@@ -108,16 +108,13 @@ function isFixedEvidenceWriterOperation(filePath, line, patternId, root) {
 /**
  * The lean supervisor is a post-agent deterministic writer. Claude receives no
  * GH_TOKEN and run-local-claude.js proves that it did not mutate Git refs.
- * The standard Lean Queue and the comment-causal transport both delegate every
- * Git mutation to the same run-queued-request.ps1 writer. Allowances stay file-
- * and line-exact so no other remote writer is opened.
+ * The canonical Lean Queue remains the only post-agent writer. Allowances stay
+ * file- and line-exact so no other functional writer is opened.
  */
 function isFixedLeanSupervisorOperation(filePath, line, patternId, root) {
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
   const value = line.trim();
-  if (patternId === 'CONTENTS_WRITE' &&
-      (rel === '.github/workflows/kodjo-v2-lean-queue.yml' ||
-       rel === '.github/workflows/kodjo-v2-comment-causal-implementation.yml')) {
+  if (patternId === 'CONTENTS_WRITE' && rel === '.github/workflows/kodjo-v2-lean-queue.yml') {
     return value === 'contents: write';
   }
   if (rel !== 'scripts/kodjo/run-queued-request.ps1') return false;
