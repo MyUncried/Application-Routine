@@ -31,3 +31,12 @@ test('existing delivery bridge conserve le contrat historique LOT_1_OF_1', () =>
   assert.match(bridge, /STATUT : IMPLEMENTATION_READY_FOR_REVIEW/);
   assert.match(bridge, /source_implementation_trigger_comment_id=\$GATE_ID/);
 });
+
+test('existing delivery bridge compare uniquement le delta applicatif depuis le parent exact', () => {
+  assert.match(bridge, /parents \| length/);
+  assert.match(bridge, /implementation_base=\$\(jq -r '\.parents\[0\]\.sha'/);
+  assert.match(bridge, /Implementation base does not match immutable V2 source_head/);
+  assert.match(bridge, /compare\/\$implementation_base\.\.\.\$application_head/);
+  assert.match(bridge, /base_head=\$BASE/);
+  assert.match(bridge, /contains\("\\nbase_head=" \+ \$base \+ "\\n"\)/);
+});
