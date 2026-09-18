@@ -1,6 +1,6 @@
 # KODJO — Registre versionné des incidents et tests du protocole
 
-- Version du registre : **3.46.0**
+- Version du registre : **3.47.0**
 - Date : **2026-09-17**
 - Dépôt autoritatif : `MyUncried/Application-Routine`
 - Périmètre reconstruit : V1, V1.1, V1.2, V1.3, V1.4/S09 et protocole générique S10
