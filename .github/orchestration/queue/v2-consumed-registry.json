@@ -75,6 +75,22 @@
       "source_head": "e4f39a63813c2754a131e0506b21257838c89c7b",
       "status": "OBSOLETE_NON_REPLAYABLE",
       "reason": "Demande non exécutée : le workflow a échoué dans la sonde optionnelle de reprise, avant admission et avant invocation Claude."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-CAT-01-implement-e1d58602.json",
+      "blob_oid": "992586434a69607dd9934f4c2177f19ef54de3a3",
+      "slice_id": "V2-CAT-01",
+      "source_head": "db73ff1676a5e0b86803ef5271a392e1daf4de47",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande valide mais non exécutée : le push de mise en file réalisé avec GITHUB_TOKEN n’a déclenché aucun workflow Lean Queue. Remplacée après ajout du dispatch explicite."
+    },
+    {
+      "path": ".github/orchestration/queue/v2/V2-CAT-01-implement-68ad3a70.json",
+      "blob_oid": "241c13deab9ba9a9816a9ef419fbe8caf0617a92",
+      "slice_id": "V2-CAT-01",
+      "source_head": "db73ff1676a5e0b86803ef5271a392e1daf4de47",
+      "status": "OBSOLETE_NON_REPLAYABLE",
+      "reason": "Demande admise jusqu’à Lean Queue puis refusée avant Claude avec BUDGET_INVALID_MAX_DURATION_SECONDS, car le handoff utilisait des limites supérieures au runtime stable. Remplacée après alignement sur DEFAULT_LIMITS."
     }
   ]
 }
