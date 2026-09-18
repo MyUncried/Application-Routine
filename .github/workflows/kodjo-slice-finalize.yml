@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 concurrency:
   group: kodjo-slice-finalize-${{ github.event.issue.number }}
