@@ -129,6 +129,7 @@ jobs:
 
             [ "$increment" = 'LOT_1_OF_1' ] || { echo 'V2 review must cover LOT_1_OF_1' >&2; exit 1; }
             baseline="$base"
+            manifest="$v2_queue_path"
             [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 baseline SHA' >&2; exit 1; }
 
             pr_json=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$application_pr")
