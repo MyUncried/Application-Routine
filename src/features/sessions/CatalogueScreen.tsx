@@ -281,19 +281,31 @@ function FilterIcon({ disabled = false, testID }: { disabled?: boolean; testID?:
 
 /**
  * Pictogramme `Trier` (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame `3786:5093`,
- * `Action/Utility` type `Sort`) : flèches haut/bas (`↕`). Même disclosure
- * de périmètre que `FilterIcon` ci-dessus — glyphe Unicode monochrome
- * plutôt qu'un nouvel actif SVG du registre `KodjoIcon`, hors périmètre
- * d'écriture autorisé.
+ * `Action/Utility` type `Sort`) : flèches haut/bas. Même disclosure de
+ * périmètre que `FilterIcon` ci-dessus — `src/shared/ui/KodjoIcon.tsx` et
+ * `assets/icons/` restent hors du périmètre d'écriture autorisé, et
+ * `react-native-svg` n'est pas une dépendance du projet.
+ *
+ * Correction VISUAL_CORRECTION (revue indépendante du HEAD `8dbe586`,
+ * commentaire 5735387835) : le glyphe Unicode `↕` précédent dépend d'une
+ * police système — sa forme et sa disponibilité varient d'une plateforme à
+ * l'autre, ce qui n'est pas un contrat visuel stable. Remplacé par des
+ * primitives `View` (même technique que `FilterIcon`) : une tige verticale
+ * entre deux triangles pleins (astuce des bordures transparentes), dont la
+ * géométrie et la couleur sont fixées par ce composant et ne dépendent plus
+ * d'aucune police.
  */
 function SortIcon({ disabled = false, testID }: { disabled?: boolean; testID?: string }) {
+  const color = disabled ? colors.disabled : colors.primary;
   return (
-    <Text
-      style={[styles.sortIcon, { color: disabled ? colors.disabled : colors.primary }]}
-      testID={testID}
-    >
-      ↕
-    </Text>
+    <View style={styles.sortIcon} testID={testID}>
+      <View style={[styles.sortIconArrowUp, { borderBottomColor: color }]} testID={`${testID}-arrow-up`} />
+      <View style={[styles.sortIconStem, { backgroundColor: color }]} testID={`${testID}-stem`} />
+      <View
+        style={[styles.sortIconArrowDown, { borderTopColor: color }]}
+        testID={`${testID}-arrow-down`}
+      />
+    </View>
   );
 }
 
@@ -444,11 +456,36 @@ const styles = StyleSheet.create({
     height: 2,
     borderRadius: 1,
   },
-  // Pictogramme `Trier` (`SortIcon`) : glyphe `↕` à la taille du libellé
-  // des commandes.
+  // Pictogramme `Trier` (`SortIcon`) : tige verticale entre deux triangles
+  // pleins (astuce des bordures transparentes) — aucune dépendance à une
+  // police, contrairement à un glyphe Unicode.
   sortIcon: {
-    fontSize: type.button.fontSize,
-    lineHeight: type.button.fontSize,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 10,
+    height: 14,
+  },
+  sortIconArrowUp: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderBottomWidth: 5,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+  },
+  sortIconStem: {
+    width: 2,
+    height: 4,
+  },
+  sortIconArrowDown: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderTopWidth: 5,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
   },
   body: {
     flex: 1,

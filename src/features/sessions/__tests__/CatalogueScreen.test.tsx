@@ -450,6 +450,77 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByTestId("catalogue-sort-icon")).toBeTruthy();
   });
 
+  // Correction VISUAL_CORRECTION (revue indépendante du HEAD `8dbe586`,
+  // commentaire 5735387835) : contrat de rendu du pictogramme Trier —
+  // au-delà de la seule présence d'un `testID`, prouve qu'il n'est PLUS un
+  // glyphe de police (aucun texte `↕`, dont la forme et la disponibilité
+  // varient d'une plateforme à l'autre) mais une composition vectorielle
+  // stable : deux triangles pleins (bordures transparentes formant la
+  // pointe) encadrant une tige. La commande `Trier` restant désactivée
+  // dans cette tranche (recherche/filtre/tri fonctionnels hors périmètre),
+  // ce test vérifie la géométrie, pas une couleur précise — la couleur de
+  // l'état inerte (`colors.disabled`) est l'unique objet du test dédié
+  // suivant.
+  it("renders Trier as a stable vector shape (two solid triangles and a stem), not a font glyph (VISUAL_CORRECTION, comment 5735387835)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const sortIcon = screen.getByTestId("catalogue-sort-icon");
+    expect(within(sortIcon).queryByText("↕")).toBeNull();
+
+    const arrowUp = screen.getByTestId("catalogue-sort-icon-arrow-up");
+    const arrowDown = screen.getByTestId("catalogue-sort-icon-arrow-down");
+    const stem = screen.getByTestId("catalogue-sort-icon-stem");
+
+    const flattenedUp = StyleSheet.flatten(arrowUp.props.style);
+    const flattenedDown = StyleSheet.flatten(arrowDown.props.style);
+    const flattenedStem = StyleSheet.flatten(stem.props.style);
+
+    // Triangle plein via bordures transparentes : une seule bordure colorée
+    // (bas pour la pointe haute, haut pour la pointe basse), les bordures
+    // latérales restant transparentes, quelle que soit la couleur exacte.
+    expect(flattenedUp.borderBottomWidth).toBeGreaterThan(0);
+    expect(flattenedUp.borderLeftColor).toBe("transparent");
+    expect(flattenedUp.borderRightColor).toBe("transparent");
+
+    expect(flattenedDown.borderTopWidth).toBeGreaterThan(0);
+    expect(flattenedDown.borderLeftColor).toBe("transparent");
+    expect(flattenedDown.borderRightColor).toBe("transparent");
+
+    expect(flattenedStem.width).toBeGreaterThan(0);
+    expect(flattenedStem.height).toBeGreaterThan(0);
+  });
+
+  // Trier reste désactivé dans cette tranche : ce test est l'unique
+  // vérification que la forme vectorielle passe bien à `colors.disabled`
+  // pendant qu'elle reste inerte.
+  it("dims the Trier vector shape to colors.disabled while it remains inert (VISUAL_CORRECTION, comment 5735387835)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const flattenedUp = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-arrow-up").props.style);
+    const flattenedDown = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-arrow-down").props.style);
+    const flattenedStem = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-stem").props.style);
+
+    expect(flattenedUp.borderBottomColor).toBe(colors.disabled);
+    expect(flattenedDown.borderTopColor).toBe(colors.disabled);
+    expect(flattenedStem.backgroundColor).toBe(colors.disabled);
+  });
+
   it("pressing Séances (already selected) changes nothing: no reload, no navigation", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
