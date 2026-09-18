@@ -12,7 +12,7 @@
 - Commit d’activation protocolaire : `9827a5a27dbda2c5219b6e5082f3f8118d54854b`
 - Branche cible future : `main`
 - Identité : `.github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json`
-- Empreinte d’identité : `16964a2679134baea1f535930899f24702a7e9cf97590486559f1adb7075d3ac`
+- Empreinte d’identité à l’activation (historique) : `16964a2679134baea1f535930899f24702a7e9cf97590486559f1adb7075d3ac` ; l’identité courante et son empreinte sont celles du `slice-bootstrap.json` et du registre d’activation.
 - Protocole applicable : KODJO Protocol V2, règles courantes jusqu’à l’addendum `0.6.25`
 
 La source du plan reste le HEAD produit/documentaire `63a3c26ed492f7c0925cfb57419f3dc2dcc5e476`. Les commits protocolaires ajoutés ensuite n’autorisent aucune dérive du périmètre ni aucun changement produit implicite.

@@ -12,6 +12,8 @@
     "repository": { "type": "string", "pattern": "^[^/\\s]+/[^/\\s]+$" },
     "target_branch": { "type": "string", "minLength": 1 },
     "baseline_head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "planning_application_head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "planning_documentary_head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "protocol_version": { "const": "0.6.12" },
     "protocol_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "activation_registry": { "const": ".github/orchestration/v2-activation-registry.json" },

@@ -55,6 +55,8 @@ jobs:
           if(Number(b.issue_number)!==Number(process.env.ISSUE_NUMBER)) throw new Error('V2_BOOTSTRAP_ISSUE_MISMATCH');
           if(b.repository!==process.env.GITHUB_REPOSITORY) throw new Error('V2_BOOTSTRAP_REPOSITORY_MISMATCH');
           if(b.baseline_head!==process.env.SOURCE_HEAD) throw new Error('V2_INITIAL_SOURCE_MUST_EQUAL_BASELINE');
+          if(!/^[0-9a-f]{40}$/.test(String(b.planning_application_head||''))) throw new Error('V2_INITIAL_PLANNING_APPLICATION_HEAD_MISSING');
+          if(b.planning_application_head!==b.baseline_head) throw new Error('V2_INITIAL_PLANNING_APPLICATION_HEAD_MUST_EQUAL_BASELINE');
           if(!Array.isArray(b.product_sources)||b.product_sources.length===0) throw new Error('V2_BOOTSTRAP_SOURCES_MISSING');
           const r=JSON.parse(fs.readFileSync(b.activation_registry,'utf8').replace(/^\uFEFF/,''));
           const active=(r.activations||[]).filter(x=>x&&x.slice_id===b.slice_id);

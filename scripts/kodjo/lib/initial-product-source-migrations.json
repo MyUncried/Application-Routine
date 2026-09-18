@@ -5,7 +5,7 @@
       "migration_id": "V2-CAT-01-LEGACY-PRODUCT-SOURCE-HASHES",
       "slice_id": "V2-CAT-01",
       "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
-      "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
+      "product_identity_sha256": "7b88040c25e1e7d6ab483422da67988f772e7e711a6eb02c1060abd71749fe7c",
       "authority": "GIT_BLOB",
       "scope": "PRODUCT_SOURCE_HASHES_ONLY",
       "legacy_product_sources": [
@@ -26,7 +26,7 @@
         {"path":"docs/MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md","sha256":"cdbea10df53d81cdde02c367b5fc8ec4063eb939ee2356c7076ad4b7090cf373"},
         {"path":"docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md","sha256":"e5b1d2c275ada45f5ca6fc058ddfed5e0ac7ca8d2415ee0be919873050329653"}
       ],
-      "reason": "Migration bornée du bootstrap historique V2-CAT-01. Le bootstrap reste immuable ; les blobs Git du baseline_head sont l’unique autorité de contenu.",
+      "reason": "Migration bornée des empreintes de sources produit historiques V2-CAT-01. La liaison porte uniquement sur slice_id, baseline_head et product_sources ; les champs de planification ultérieurs n’altèrent pas cette compatibilité.",
       "created_at": "2026-09-17T09:15:00.000Z"
     }
   ]

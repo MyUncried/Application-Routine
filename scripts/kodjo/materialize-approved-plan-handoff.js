@@ -103,6 +103,9 @@ function main() {
   const registry = JSON.parse(fs.readFileSync(registryAbs, 'utf8').replace(/^\uFEFF/, ''));
   const matches = (registry.activations || []).filter((x) => x && x.slice_id === sliceId);
   if (matches.length !== 1 || matches[0].status !== 'ACTIVE') fail('HANDOFF_SLICE_NOT_ACTIVE');
+  const currentPlanningHead = String(bootstrap.planning_application_head || '');
+  if (!SHA40.test(currentPlanningHead)) fail('HANDOFF_PLANNING_APPLICATION_HEAD_MISSING');
+  if (String(matches[0].planning_application_head || '') !== currentPlanningHead) fail('HANDOFF_PLANNING_APPLICATION_HEAD_REGISTRY_MISMATCH');
 
   // No application drift is allowed between the application revision scanned by
   // the approved plan and the protocol HEAD that materializes it.

@@ -26,13 +26,13 @@ function main(){
     const blob=gitBytes(root,['show',`${head}:${normalized}`]);
     return {path:normalized,sha256:sha256Bytes(blob)};
   });
-  const bootstrap={schema_version:I.BOOTSTRAP_SCHEMA,slice_id:sliceId,issue_number:issue,repository:'MyUncried/Application-Routine',target_branch:target,baseline_head:head,protocol_version:'0.6.12',protocol_commit:head,activation_registry:'.github/orchestration/v2-activation-registry.json',previous_slice_id:arg('--previous-slice-id'),previous_checkpoint:arg('--previous-checkpoint'),product_sources:productSources,authorized_actors:actors,created_at:new Date().toISOString()};
+  const bootstrap={schema_version:I.BOOTSTRAP_SCHEMA,slice_id:sliceId,issue_number:issue,repository:'MyUncried/Application-Routine',target_branch:target,baseline_head:head,planning_application_head:head,protocol_version:'0.6.12',protocol_commit:head,activation_registry:'.github/orchestration/v2-activation-registry.json',previous_slice_id:arg('--previous-slice-id'),previous_checkpoint:arg('--previous-checkpoint'),product_sources:productSources,authorized_actors:actors,created_at:new Date().toISOString()};
   bootstrap.previous_slice_id=bootstrap.previous_slice_id||null; bootstrap.previous_checkpoint=bootstrap.previous_checkpoint||null;
   bootstrap.slice_bootstrap_sha256=I.sha256(I.canonical(bootstrap)); I.validateBootstrap(bootstrap);
   const registryPath=path.join(root,'.github','orchestration','v2-activation-registry.json'); const registry=JSON.parse(fs.readFileSync(registryPath,'utf8'));
   if(registry.activations.some(a=>a.slice_id===sliceId)) throw new Error('SLICE_ALREADY_REGISTERED');
   const bootstrapRel=`.github/orchestration/v2-slices/${sliceId}/slice-bootstrap.json`;
-  registry.activations.push({slice_id:sliceId,status:'ACTIVE',issue_number:issue,baseline_head:head,bootstrap_path:bootstrapRel,slice_bootstrap_sha256:bootstrap.slice_bootstrap_sha256});
+  registry.activations.push({slice_id:sliceId,status:'ACTIVE',issue_number:issue,baseline_head:head,planning_application_head:head,bootstrap_path:bootstrapRel,slice_bootstrap_sha256:bootstrap.slice_bootstrap_sha256});
   I.validateRegistry(registry,bootstrap); writeJson(path.join(root,bootstrapRel),bootstrap); writeJson(registryPath,registry);
   process.stdout.write(`KODJO_V2_SLICE_ACTIVATION_PREPARED=${sliceId}\nKODJO_V2_SLICE_BOOTSTRAP=${bootstrapRel}\nKODJO_V2_SLICE_BOOTSTRAP_SHA256=${bootstrap.slice_bootstrap_sha256}\n`);
 }

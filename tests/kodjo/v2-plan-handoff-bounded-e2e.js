@@ -87,7 +87,8 @@ function main() {
     const bootstrap = JSON.parse(fs.readFileSync(bootstrapPath, 'utf8').replace(/^\\uFEFF/, ''));
     const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8').replace(/^\\uFEFF/, ''));
     assert.equal(bootstrap.baseline_head, impact.scan_revision);
-    bootstrap.planning_application_head = impact.scan_revision;
+    assert.equal(bootstrap.planning_application_head, impact.scan_revision,
+      'la tranche active doit porter planning_application_head avant le handoff');
 
     const identity = require(path.join(repo, 'scripts', 'kodjo', 'lib', 'slice-identity.js'));
     const unsigned = JSON.parse(JSON.stringify(bootstrap));
@@ -98,7 +99,8 @@ function main() {
     const activation = registry.activations.find((x) => x && x.slice_id === SLICE);
     assert.ok(activation && activation.status === 'ACTIVE');
     activation.slice_bootstrap_sha256 = bootstrap.slice_bootstrap_sha256;
-    activation.planning_application_head = impact.scan_revision;
+    assert.equal(activation.planning_application_head, bootstrap.planning_application_head,
+      'le registre doit porter le même planning_application_head');
     writeJson(registryPath, registry);
 
     fs.writeFileSync(path.join(repo, planPath), planBody.replace(/\\r\\n/g, '\n') + '\n', 'utf8');
