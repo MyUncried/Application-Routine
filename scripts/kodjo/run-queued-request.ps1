@@ -179,12 +179,14 @@ Existing application PR: #$targetPr
 Previous HEAD: $applicationHead
 Delivered HEAD: $newHead
 Protocol HEAD: $($queue.source_head)
-Verdict: IMPLEMENTED_AND_VERIFIED
+Verdict: IMPLEMENTATION_CHECKS_PASSED
 
-Human visual review remains required before merge.
+Independent implementation review and human visual review remain required before merge.
 "@
     gh pr comment $targetPr --body $body
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_COMMENT_FAILED' }
+    $deliveredPr = $targetPr
+    $deliveredBranch = $targetBranch
   } else {
     git push --set-upstream origin $branch
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PUSH_FAILED' }
@@ -195,12 +197,40 @@ Automated KODJO V2 delivery.
 Slice: $($queue.slice_id)
 Authorized source: $($queue.source_head)
 Queue request: $QueueFile
-Verdict: IMPLEMENTED_AND_VERIFIED
+Verdict: IMPLEMENTATION_CHECKS_PASSED
 
-Human review remains required before merge.
+Independent implementation review remains required before human validation and merge.
 "@
-    gh pr create --base main --head $branch --title ("feat({0}): verified implementation" -f $queue.slice_id) --body $body
+    gh pr create --base main --head $branch --title ("feat({0}): implementation candidate" -f $queue.slice_id) --body $body
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PR_FAILED' }
+    $createdPr = gh pr view $branch --json number,headRefOid,headRefName,baseRefName,state | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0 -or $null -eq $createdPr) { throw 'KODJO_QUEUE_CREATED_PR_UNREADABLE' }
+    if ([string]$createdPr.state -ne 'OPEN' -or [string]$createdPr.baseRefName -ne 'main' -or
+        ([string]$createdPr.headRefOid).ToLowerInvariant() -ne $newHead.ToLowerInvariant()) {
+      throw 'KODJO_QUEUE_CREATED_PR_DELIVERY_NOT_OBSERVED'
+    }
+    $deliveredPr = [int]$createdPr.number
+    $deliveredBranch = [string]$createdPr.headRefName
+  }
+
+  $reviewMetadataPath = [string]$env:KODJO_REVIEW_DELIVERY_METADATA_FILE
+  if (-not [string]::IsNullOrWhiteSpace($reviewMetadataPath)) {
+    $reviewMetadata = [ordered]@{
+      schema_version = 'kodjo.protocol.v2.review-delivery.0.6.38'
+      slice_id = [string]$queue.slice_id
+      issue_number = [int]$queue.issue_number
+      queue_path = [string]$QueueFile
+      application_pr = [int]$deliveredPr
+      application_branch = [string]$deliveredBranch
+      application_head = [string]$newHead
+      protocol_head = [string]$queue.source_head
+      request_id = [string]$queue.request_id
+      operation_kind = [string]$operationKind
+      authorized_plan = $queue.authorized_plan
+      independent_review = $queue.independent_review
+      user_gate = $queue.user_gate
+    }
+    [IO.File]::WriteAllText([IO.Path]::GetFullPath($reviewMetadataPath), ($reviewMetadata | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
   }
 }
 finally {
