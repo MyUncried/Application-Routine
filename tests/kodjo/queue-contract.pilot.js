@@ -434,6 +434,33 @@ test('cycle de vie — plan puis revue puis attestation finale liée au blob du 
   assert.equal(result.recovery_migration_blob_oid, queue.recovery_migration.attestation_blob_oid);
 });
 
+test('VISUAL_CORRECTION — l attestation suit le HEAD applicatif repris, pas le scan historique du plan', () => {
+  const planApplicationHead = 'a'.repeat(40);
+  const deliveryHead = 'b'.repeat(40);
+  const queue = {
+    operation_kind: 'VISUAL_CORRECTION',
+    delivery_target: { kind: 'EXISTING_PR', application_head: deliveryHead },
+    delivery_checkpoint: { application_head: deliveryHead },
+  };
+
+  assert.equal(A.resolveAttestedApplicationHead(queue, planApplicationHead), deliveryHead);
+  assert.doesNotThrow(() => A.verifyAttestedApplicationHead({
+    application_pr_head: deliveryHead,
+  }, A.resolveAttestedApplicationHead(queue, planApplicationHead)));
+
+  assert.throws(
+    () => A.resolveAttestedApplicationHead({
+      ...queue,
+      delivery_checkpoint: { application_head: 'c'.repeat(40) },
+    }, planApplicationHead),
+    /VISUAL_CORRECTION_CHECKPOINT_HEAD_MISMATCH/
+  );
+
+  assert.equal(A.resolveAttestedApplicationHead({
+    operation_kind: 'IMPLEMENT',
+  }, planApplicationHead), planApplicationHead);
+});
+
 test('cycle à trois HEAD — le scan suit la révision applicative exacte, jamais source_head', () => {
   const applicationHead = 'a'.repeat(40);
   const planBody = '<KODJO_PLAN_IMPACT_JSON>\n' + JSON.stringify({
