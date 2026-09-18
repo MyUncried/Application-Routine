@@ -232,11 +232,14 @@ Independent implementation review remains required before human review and merge
   $sessionId = [string]$result.session_id
   if ($sessionId -notmatch '^[0-9a-fA-F-]{36}$') { throw 'KODJO_IMPLEMENTATION_REVIEW_SESSION_INVALID' }
 
+  $reviewBaseHead = if ($isVisual) { $applicationHead } else { [string]$queue.source_head }
+  if ($reviewBaseHead -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_IMPLEMENTATION_REVIEW_BASE_HEAD_INVALID' }
+
   $reviewBody = @"
 [KODJO_SLICE] IMPLEMENTATION_OUTPUT
 slice_id=$($queue.slice_id)
 increment=LOT_1_OF_1
-base_head=$($queue.baseline_head)
+base_head=$reviewBaseHead
 head=$newHead
 session_id=$sessionId
 plan_comment_id=$($planIdMatch.Groups[1].Value)
