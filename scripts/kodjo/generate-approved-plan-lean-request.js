@@ -56,6 +56,7 @@ function main() {
   const handoff = gh('repos/' + repository + '/issues/comments/' + handoffId, cwd);
   if (issueOf(handoff) !== issueNumber) fail('HANDOFF_READY_ISSUE_MISMATCH');
   const body = String(handoff.body || '');
+  if (!handoff.user || handoff.user.login !== 'github-actions[bot]') fail('HANDOFF_READY_AUTHOR_MISMATCH');
   if (!/^\[KODJO_V2\] PLAN_HANDOFF_READY\s*$/m.test(body)) fail('HANDOFF_READY_MARKER_INVALID');
   if (!/^STATUT : USER_APPROVAL_REQUIRED\s*$/m.test(body)) fail('HANDOFF_READY_STATUS_INVALID');
 
