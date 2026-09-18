@@ -114,6 +114,7 @@ jobs:
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
           KODJO_SOURCE_RECOVERY_DIR: ${{ runner.temp }}/kodjo-source-recovery
           KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
+          KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE: ${{ runner.temp }}/kodjo-implementation-review-${{ github.run_id }}-${{ github.run_attempt }}.json
           KODJO_CERTIFICATION_STOP_AFTER_RECOVERY: ${{ vars.KODJO_CERTIFICATION_STOP_AFTER_RECOVERY || '' }}
           KODJO_VERIFY_GITHUB: '1'
         run: |
@@ -165,6 +166,34 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
         run: node scripts/kodjo/publish-visual-checkpoint.js
+
+      - name: Dispatch validated implementation review
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE: ${{ runner.temp }}/kodjo-implementation-review-${{ github.run_id }}-${{ github.run_attempt }}.json
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = [string]$env:KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE
+          if ([string]::IsNullOrWhiteSpace($path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_MISSING'
+          }
+          $meta = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$meta.schema_version -ne 'kodjo.protocol.v2.implementation-review-bridge.0.6.38') {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_SCHEMA_INVALID'
+          }
+          $payload = [ordered]@{
+            event_type = 'kodjo_implementation_ready'
+            client_payload = [ordered]@{
+              issue_number = [string]$meta.issue_number
+              source_comment_id = [string]$meta.source_comment_id
+            }
+          }
+          $dispatchFile = Join-Path $env:RUNNER_TEMP ('kodjo-review-dispatch-' + $env:GITHUB_RUN_ID + '.json')
+          [IO.File]::WriteAllText($dispatchFile, ($payload | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/dispatches" --input $dispatchFile
+          if ($LASTEXITCODE -ne 0) { throw 'KODJO_IMPLEMENTATION_REVIEW_DISPATCH_FAILED' }
 
       - name: Clean current run checkout
         if: always()
