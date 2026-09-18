@@ -41,6 +41,17 @@ function stableSources(value) {
   return JSON.stringify((value || []).map((x) => ({ path: String(x.path || ''), sha256: String(x.sha256 || '') })));
 }
 
+function productIdentitySha256(bootstrap) {
+  return I.sha256(I.canonical({
+    slice_id: bootstrap.slice_id,
+    baseline_head: bootstrap.baseline_head,
+    product_sources: (bootstrap.product_sources || []).map((x) => ({
+      path: String(x.path || ''),
+      sha256: String(x.sha256 || ''),
+    })),
+  }));
+}
+
 function loadBoundMigration(bootstrap) {
   const registryPath = path.join(__dirname, 'lib', 'initial-product-source-migrations.json');
   if (!fs.existsSync(registryPath)) return null;
@@ -53,7 +64,13 @@ function loadBoundMigration(bootstrap) {
   if (candidates.length !== 1) throw new Error('PRODUCT_SOURCE_MIGRATION_CARDINALITY_INVALID');
   const migration = candidates[0];
   if (migration.baseline_head !== bootstrap.baseline_head) throw new Error('PRODUCT_SOURCE_MIGRATION_BASELINE_MISMATCH');
-  if (migration.slice_bootstrap_sha256 !== bootstrap.slice_bootstrap_sha256) throw new Error('PRODUCT_SOURCE_MIGRATION_BOOTSTRAP_MISMATCH');
+  if (migration.product_identity_sha256 !== undefined) {
+    if (!/^[0-9a-f]{64}$/.test(String(migration.product_identity_sha256 || '')) || migration.product_identity_sha256 !== productIdentitySha256(bootstrap)) {
+      throw new Error('PRODUCT_SOURCE_MIGRATION_IDENTITY_MISMATCH');
+    }
+  } else if (migration.slice_bootstrap_sha256 !== bootstrap.slice_bootstrap_sha256) {
+    throw new Error('PRODUCT_SOURCE_MIGRATION_BOOTSTRAP_MISMATCH');
+  }
   if (migration.authority !== 'GIT_BLOB') throw new Error('PRODUCT_SOURCE_MIGRATION_AUTHORITY_INVALID');
   if (migration.scope !== 'PRODUCT_SOURCE_HASHES_ONLY') throw new Error('PRODUCT_SOURCE_MIGRATION_SCOPE_INVALID');
   if (stableSources(migration.legacy_product_sources) !== stableSources(bootstrap.product_sources)) throw new Error('PRODUCT_SOURCE_MIGRATION_SOURCES_MISMATCH');
