@@ -126,10 +126,10 @@ jobs:
             first?.buildUrl ||
             first?.url ||
             findUrl(first) ||
-            '';
+            (buildId ? 'https://expo.dev/accounts/ankushas-team/projects/routine/builds/' + buildId : '');
 
-          if (!buildUrl) {
-            throw new Error('EAS_BUILD_URL_NOT_FOUND');
+          if (!buildId) {
+            throw new Error('EAS_BUILD_ID_NOT_FOUND');
           }
 
           const output = process.env.GITHUB_OUTPUT;
