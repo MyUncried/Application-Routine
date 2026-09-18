@@ -25,12 +25,12 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.43.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.43\.0\*\*/);
+test('registre canonique 3.44.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.44\.0\*\*/);
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 145);
+  assertSequence(incidents, 'INC', 146);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,7 +40,7 @@ test('registre canonique 3.43.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 118);
+  assertSequence(ids('T'), 'T', 119);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
