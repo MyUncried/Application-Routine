@@ -136,6 +136,31 @@ function isFixedLeanSupervisorOperation(filePath, line, patternId, root) {
   return false;
 }
 
+
+/**
+ * The PLAN→IMPLEMENT handoff has two deterministic protocol writers:
+ * materialization of approved evidence and insertion of one canonical Lean
+ * Queue request. Their allowances are workflow- and line-exact.
+ */
+function isFixedPlanHandoffWriterOperation(filePath, line, patternId, root) {
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  const value = line.trim();
+  const materialize = rel === '.github/workflows/kodjo-v2-plan-handoff-materialize.yml';
+  const queue = rel === '.github/workflows/kodjo-v2-plan-handoff-queue.yml';
+  if (!materialize && !queue) return false;
+  if (patternId === 'CONTENTS_WRITE') return value === 'contents: write';
+  if (patternId === 'PERSIST_CREDENTIALS_TRUE') return value === 'persist-credentials: true';
+  if (materialize && patternId === 'GIT_COMMIT') {
+    return value === 'git commit -m "chore(kodjo): materialize approved plan handoff $SLICE_ID"';
+  }
+  if (materialize && patternId === 'GIT_PUSH') return value === 'git push origin HEAD:main';
+  if (queue && patternId === 'GIT_COMMIT') {
+    return value === 'git commit -m "chore(kodjo): queue approved $SLICE_ID implementation"';
+  }
+  if (queue && patternId === 'GIT_PUSH') return value === 'git push origin HEAD:main';
+  return false;
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -152,6 +177,7 @@ function main() {
         if (!p.re.test(code)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;
+        if (isFixedPlanHandoffWriterOperation(file, line, p.id, root)) continue;
         if (p.id === 'SHELL_EXECUTION' && SHELL_TRUE_EXEMPTIONS[rel]) {
           exemptionsUsed.add(rel);
           continue;
