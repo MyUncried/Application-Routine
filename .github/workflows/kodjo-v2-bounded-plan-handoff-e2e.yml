@@ -24,3 +24,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tests/kodjo/v2-plan-handoff-bounded-e2e.js
+
+      - name: Run bounded negative handoff cases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tests/kodjo/v2-plan-handoff-negative-e2e.js
