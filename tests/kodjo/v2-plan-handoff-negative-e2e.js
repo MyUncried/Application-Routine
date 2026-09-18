@@ -44,14 +44,14 @@ function field(body, name) {
   return m ? m[1].trim() : '';
 }
 function handoffInputPreflight(planBody, reviewBody, gateBody) {
-  if (!/^\\[KODJO_V2\\] PLAN_OUTPUT/m.test(planBody)) throw new Error('HANDOFF_PLAN_MARKER_INVALID');
+  if (!/^\[KODJO_V2\] PLAN_OUTPUT/m.test(planBody)) throw new Error('HANDOFF_PLAN_MARKER_INVALID');
   if (!/^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW$/m.test(planBody)) throw new Error('HANDOFF_PLAN_NOT_REVIEWABLE');
-  if (!/^\\[KODJO_V2\\] PLAN_REVIEW_OUTPUT/m.test(reviewBody)) throw new Error('HANDOFF_REVIEW_MARKER_INVALID');
+  if (!/^\[KODJO_V2\] PLAN_REVIEW_OUTPUT/m.test(reviewBody)) throw new Error('HANDOFF_REVIEW_MARKER_INVALID');
   if (field(reviewBody, 'source_plan_comment_id') !== PLAN_COMMENT_ID) throw new Error('HANDOFF_REVIEW_PLAN_LINK_MISMATCH');
   if (field(reviewBody, 'verdict') !== 'APPROVE' || !/^STATUT : PLAN_REVIEW_APPROVED$/m.test(reviewBody)) {
     throw new Error('HANDOFF_REVIEW_NOT_APPROVED');
   }
-  if (!/^\\[KODJO_V2\\] USER_IMPLEMENTATION_APPROVED/m.test(gateBody)) throw new Error('HANDOFF_USER_GATE_MARKER_INVALID');
+  if (!/^\[KODJO_V2\] USER_IMPLEMENTATION_APPROVED/m.test(gateBody)) throw new Error('HANDOFF_USER_GATE_MARKER_INVALID');
   if (field(gateBody, 'source_plan_comment_id') !== PLAN_COMMENT_ID) throw new Error('HANDOFF_USER_GATE_PLAN_LINK_MISMATCH');
   if (field(gateBody, 'source_review_comment_id') !== REVIEW_COMMENT_ID) throw new Error('HANDOFF_USER_GATE_REVIEW_LINK_MISMATCH');
 }
