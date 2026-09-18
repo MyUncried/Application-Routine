@@ -119,7 +119,8 @@ jobs:
         run: |
           set -euo pipefail
           git cat-file -e "$BASELINE^{commit}" || git fetch --no-tags origin "$BASELINE"
-          git merge-base --is-ancestor "$BASELINE" "$APPLICATION_HEAD"
+          git rev-list "$APPLICATION_HEAD" > /tmp/application-ancestors.txt
+          grep -Fx "$BASELINE" /tmp/application-ancestors.txt >/dev/null
           git diff --name-status "$BASELINE..$APPLICATION_HEAD" > /tmp/changed-files.txt
           git diff --stat "$BASELINE..$APPLICATION_HEAD" > /tmp/diff-stat.txt
           git diff "$BASELINE..$APPLICATION_HEAD" > /tmp/diff.patch
