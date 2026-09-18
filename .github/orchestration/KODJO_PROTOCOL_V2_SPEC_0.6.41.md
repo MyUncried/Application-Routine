@@ -71,13 +71,14 @@ Il vérifie :
 10. branche distante encore exactement au HEAD approuvé ;
 11. plan approuvé relu depuis son blob ;
 12. diff base→HEAD reconstruit par l’API GitHub ;
-13. rejeu de `verify-ui-implementation-review.js validate` contre le contrat de revue publié ;
-14. critères techniques tous `CONFORME` ;
-15. `PRESERVE/FORBIDDEN` tous `PASS` ;
-16. preuves techniques toutes `PASS` ;
-17. preuves `VISUAL_COMPARE/DEVICE_CHECK` encore `PENDING_DEVICE` avant le gate humain.
+13. pour `operation_kind=IMPLEMENT`, rejeu de `verify-ui-implementation-review.js validate` contre le contrat de revue publié ;
+14. pour `IMPLEMENT`, critères techniques tous `CONFORME` ;
+15. pour `IMPLEMENT`, `PRESERVE/FORBIDDEN` tous `PASS` ;
+16. pour `IMPLEMENT`, preuves techniques toutes `PASS` ;
+17. pour `IMPLEMENT`, preuves `VISUAL_COMPARE/DEVICE_CHECK` encore `PENDING_DEVICE` avant le gate humain ;
+18. pour `VISUAL_CORRECTION`, conservation de la revue différentielle historique : aucun contrat UI complet n’est inventé ; le finalizer contrôle la queue, le checkpoint, la cible PR/branche/HEAD et la revue du delta avant le même gate humain/device.
 
-L’approbation utilisateur sur le HEAD exact constitue alors l’évidence humaine/device qui satisfait ces preuves en attente.
+L’approbation utilisateur sur le HEAD exact constitue alors l’évidence humaine/device finale. Pour `IMPLEMENT`, elle satisfait les preuves device explicitement `PENDING_DEVICE`. Pour `VISUAL_CORRECTION`, elle clôt le delta visuel borné après revue indépendante conforme.
 
 ## Vérification finale
 
@@ -123,7 +124,7 @@ Inchangés :
 - IMPLEMENTATION_REVIEW 0.6.40 ;
 - Lean Queue 0.6.13 ;
 - recovery/checkpoint/attestation ;
-- VISUAL_CORRECTION ;
+- sémantique VISUAL_CORRECTION : revue différentielle conservée ;
 - application code ;
 - canal de revue ;
 - canal de finalisation ;
@@ -133,7 +134,8 @@ Inchangés :
 
 La qualification 0.6.41 doit couvrir :
 
-- chaîne synthétique complète plan → revue technique → gate humain/device → READY_TO_CLOSE ;
+- chaîne synthétique complète IMPLEMENT → revue technique critère-complet → gate humain/device → READY_TO_CLOSE ;
+- chaîne VISUAL_CORRECTION → revue différentielle historique → gate humain/device → READY_TO_CLOSE ;
 - mauvais HEAD utilisateur ;
 - mauvaise revue référencée ;
 - faux PASS device avant gate humain ;
