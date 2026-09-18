@@ -387,7 +387,7 @@ jobs:
             echo "source_implementation_comment_id=$SOURCE_COMMENT_ID"
             echo "source_implementation_trigger_comment_id=$IMPLEMENTATION_TRIGGER_COMMENT_ID"
             echo "verdict=$verdict"
-            echo "device_gate_required=$device_gate_required"
+            if [ -f /tmp/review-contract.json ]; then echo "device_gate_required=$device_gate_required"; fi
             echo "STATUT : $status"
             echo
             cat /tmp/review.md
