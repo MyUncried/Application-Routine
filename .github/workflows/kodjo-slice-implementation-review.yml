@@ -109,12 +109,16 @@ jobs:
             test -f "$v2_queue_path"
             jq -e --arg slice "$slice" --arg base "$base" --arg protocol "$v2_protocol_head" --arg request "$v2_request_id" '
               .slice_id == $slice
-              and .baseline_head == $base
               and .source_head == $protocol
               and .request_id == $request
               and .authorized_plan.plan_blob_oid
               and .independent_review.review_blob_oid
               and .user_gate.gate_ref
+              and (
+                ((.operation_kind // "IMPLEMENT") == "IMPLEMENT" and .source_head == $base)
+                or
+                (.operation_kind == "VISUAL_CORRECTION" and .delivery_target.application_head == $base)
+              )
             ' "$v2_queue_path" >/dev/null
             KODJO_VERIFY_GITHUB=1 node scripts/kodjo/verify-authorizations.js "$v2_queue_path"
 
@@ -139,7 +143,7 @@ jobs:
             ' <<<"$pr_json" >/dev/null
 
             implementation_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$head" --jq '.status')
-            [ "$implementation_status" = ahead ] || { echo 'V2 implementation HEAD is not strictly descended from baseline' >&2; exit 1; }
+            [ "$implementation_status" = ahead ] || { echo 'V2 implementation HEAD is not strictly descended from implementation base' >&2; exit 1; }
 
             plan_blob=$(jq -r '.authorized_plan.plan_blob_oid' "$v2_queue_path")
             [[ "$plan_blob" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 plan blob' >&2; exit 1; }
