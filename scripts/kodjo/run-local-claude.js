@@ -572,7 +572,10 @@ if (env.KODJO_QUALIFICATION_ISOLATED_CHECKS === '1') {
 }
 delete env.CLAUDE_CODE_OAUTH_TOKEN;
 delete env.ANTHROPIC_API_KEY;
-const result = spawnSync(commands[id][0], commands[id][1], { cwd: process.cwd(), env, shell: false, stdio: 'inherit', windowsHide: true });
+const child = process.platform === 'win32'
+  ? { bin: (process.env.ComSpec || 'cmd.exe'), args: ['/d', '/s', '/c', commands[id][0], ...commands[id][1]] }
+  : { bin: commands[id][0], args: commands[id][1] };
+const result = spawnSync(child.bin, child.args, { cwd: process.cwd(), env, shell: false, stdio: 'inherit', windowsHide: true });
 process.exit(result.error || result.status === null ? 78 : result.status);
 `;
 
