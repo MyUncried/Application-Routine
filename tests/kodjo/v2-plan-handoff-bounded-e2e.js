@@ -54,15 +54,15 @@ function main() {
   const reviewBody = String(reviewComment.body || '');
   const userGateBody = String(userGateComment.body || '');
 
-  assert.match(planBody, /^\\[KODJO_V2\\] PLAN_OUTPUT/m);
+  assert.match(planBody, /^\[KODJO_V2\] PLAN_OUTPUT/m);
   assert.match(planBody, /^slice_id=V2-CAT-01$/m);
   assert.match(planBody, /^planning_mode=INITIAL$/m);
   assert.match(planBody, /^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW$/m);
-  assert.match(reviewBody, /^\\[KODJO_V2\\] PLAN_REVIEW_OUTPUT/m);
+  assert.match(reviewBody, /^\[KODJO_V2\] PLAN_REVIEW_OUTPUT/m);
   assert.match(reviewBody, /^source_plan_comment_id=5720329801$/m);
   assert.match(reviewBody, /^verdict=APPROVE$/m);
   assert.match(reviewBody, /^STATUT : PLAN_REVIEW_APPROVED$/m);
-  assert.match(userGateBody, /^\\[KODJO_V2\\] USER_IMPLEMENTATION_APPROVED/m);
+  assert.match(userGateBody, /^\[KODJO_V2\] USER_IMPLEMENTATION_APPROVED/m);
   assert.match(userGateBody, /^source_plan_comment_id=5720329801$/m);
   assert.match(userGateBody, /^source_review_comment_id=5720519466$/m);
 
