@@ -100,7 +100,14 @@ jobs:
           [ "$parent_count" -eq 1 ] || { echo 'Existing V2 application HEAD must have exactly one parent' >&2; exit 1; }
           implementation_base=$(jq -r '.parents[0].sha' <<<"$commit_json")
           [[ "$implementation_base" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid implementation base' >&2; exit 1; }
-          [ "$implementation_base" = "$protocol_head" ] || { echo 'Implementation base does not match immutable V2 source_head' >&2; exit 1; }
+
+          operation_kind=$(jq -r '.operation_kind // "IMPLEMENT"' "$queue_path")
+          if [ "$operation_kind" = 'VISUAL_CORRECTION' ]; then
+            expected_base=$(jq -r '.delivery_target.application_head // empty' "$queue_path")
+            [ "$implementation_base" = "$expected_base" ] || { echo 'Visual correction base does not match delivery_target.application_head' >&2; exit 1; }
+          else
+            [ "$implementation_base" = "$protocol_head" ] || { echo 'Implementation base does not match immutable V2 source_head' >&2; exit 1; }
+          fi
 
           status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$implementation_base...$application_head" --jq '.status')
           [ "$status" = ahead ]
