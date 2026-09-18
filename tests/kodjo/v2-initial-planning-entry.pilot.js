@@ -56,7 +56,9 @@ test('0.6.29 — les sorties génératives du plan initial sont structurées pui
   assert.match(workflow, /name:\"kodjo_initial_plan\"/);
   assert.match(workflow, /name:\"kodjo_initial_plan_decisions\"/);
   assert.match(workflow, /jq '\.modified_modules' \/tmp\/kodjo-v2-initial\/draft-structured\.json/);
-  assert.match(workflow, /printf '<\/KODJO_MODIFIED_MODULES_JSON>\\nPLAN_STATUS: %s/);
+  assert.match(workflow, /printf '<\/KODJO_MODIFIED_MODULES_JSON>\\n<KODJO_UI_CRITERIA_MATRIX_JSON>\\n'/);
+  assert.match(workflow, /cat \/tmp\/kodjo-v2-initial\/ui-criteria-matrix\.json/);
+  assert.match(workflow, /<\/KODJO_UI_CRITERIA_MATRIX_JSON>\\nPLAN_STATUS: %s/);
   assert.match(workflow, /JSON\.parse\(fs\.readFileSync\('\/tmp\/kodjo-v2-initial\/decisions\.json'/);
   assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
 });

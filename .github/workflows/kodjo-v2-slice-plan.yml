@@ -138,6 +138,7 @@ jobs:
           [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
           </KODJO_MODIFIED_MODULES_JSON>
           Use repository-relative POSIX paths only. This is a draft pending the deterministic direct-import scan.
+          Preserve or rebuild exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> block with schema kodjo.ui-criteria.v1. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. The final closure prompt will revalidate this block.
           EOF
           for file in slice-bootstrap.json planning-mission.md prior-technical-plan.md prior-independent-review.md product-evidence.txt; do
             printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-plan/draft-prompt.txt
@@ -175,7 +176,9 @@ jobs:
           [{"path":"copy the exact candidate path","classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION","justification":"non-empty positive evidence"}]
           </KODJO_PLAN_DECISIONS_JSON>
           A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If the prose contains a scope_allow section, it must enumerate exactly the complete machine write scope.
-          Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint. End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
+          Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint.
+          Include exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> JSON block with schema kodjo.ui-criteria.v1. For every UI-adjacent normative requirement in scope, provide an atomic criterion with criterion_id, source {path, locator, requirement}, risk_types, reuse_search, component_decision REUSE|EXTEND|CREATE, selected_component, decision_justification, change_targets, tests and proof_required. Provide preservation {preserve:[], change:[], forbidden:[]}. Do not silently drop prior criteria during revision. A CREATE decision must follow an explicit search for existing components/patterns. For a genuinely non-UI plan, emit criteria:[] and empty preservation arrays.
+          End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
           EOF
             printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
             cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
@@ -199,6 +202,10 @@ jobs:
             fi
           done
           test -f /tmp/kodjo-v2-plan/technical-plan.md
+          node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/ui-plan-contract.json
+          printf "\n<KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
+          cat /tmp/kodjo-v2-plan/ui-plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
+          printf "</KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
           printf "\n<KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
@@ -231,6 +238,7 @@ jobs:
             echo "supersedes_plan_blob_oid=$PLAN_OID"
             echo "prior_review_blob_oid=$REVIEW_OID"
             echo 'planning_contract=kodjo.plan-impact.v1'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
@@ -260,6 +268,7 @@ jobs:
             /tmp/kodjo-v2-plan/technical-plan.md
             /tmp/kodjo-v2-plan/plan-impact-replay.json
             /tmp/kodjo-v2-plan/plan-contract.json
+            /tmp/kodjo-v2-plan/ui-plan-contract.json
             /tmp/kodjo-v2-plan-transition.json
           if-no-files-found: warn
           retention-days: 14

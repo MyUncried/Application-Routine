@@ -21,7 +21,7 @@ function extractPaths(text) {
 }
 function stripMachineBlocks(markdown) {
   let out = String(markdown);
-  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON']) {
+  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON']) {
     out = out.replace(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>', 'g'), '');
   }
   return out;

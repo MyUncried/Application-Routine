@@ -92,6 +92,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $destination | Out-Null
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-contract-consistency.js -Destination $destination
+          Copy-Item -LiteralPath scripts/kodjo/verify-ui-plan-criteria.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $destination 'lib') -Recurse
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-current-product-context'
           New-Item -ItemType Directory -Force -Path $context | Out-Null
@@ -134,6 +135,17 @@ jobs:
           & node $verifier "$env:RUNNER_TEMP\kodjo-v2-plan.md" $env:APPLICATION_HEAD (Get-Location).Path $contract consume $env:PROTOCOL_EXECUTION_HEAD
           if ($LASTEXITCODE -ne 0) { throw 'V2 plan contract is stale or inconsistent' }
 
+      - name: Revalidate UI criteria contract before Claude
+        env:
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
+          PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $verifier=Join-Path $env:RUNNER_TEMP 'kodjo-v2-impact-protocol\verify-ui-plan-criteria.js'
+          $contract=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-ui-contract.json'
+          & node $verifier "$env:RUNNER_TEMP\kodjo-v2-plan.md" $env:APPLICATION_HEAD (Get-Location).Path $contract consume $env:PROTOCOL_EXECUTION_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'V2 UI criteria contract is stale or inconsistent' }
+
       - name: Review V2 plan with Claude
         id: claude
         env:
@@ -147,7 +159,7 @@ jobs:
           $ErrorActionPreference='Stop'
           $prompt=@"
           You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against immutable product HEAD $env:SOURCE_HEAD, protocol execution HEAD $env:PROTOCOL_EXECUTION_HEAD, exact application PR $env:APPLICATION_PR at $env:APPLICATION_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-current-product-context, and the checked-out application code and tests. The source-to-execution transition was admitted only because its closed diff is protocol-only and every protected plan input is unchanged. This is READ-ONLY.
-          The direct-import scan and current versioned plan contract were independently replayed. Their evidence is in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json, $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json. A legacy or stale plan is rejected before you run. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
+          The direct-import scan and current versioned plan contract were independently replayed. The UI criteria contract was also replayed. Independently verify source-to-criteria completeness against current normative product sources and checked-out code: no normative UI requirement may be omitted or collapsed into a vague criterion; verify every REUSE|EXTEND|CREATE decision against actual existing components/patterns, PRESERVE/CHANGE/FORBIDDEN coverage, and risk-to-test-to-proof adequacy. A self-consistent but incomplete UI matrix requires VERDICT: REVISE. Their evidence is in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json, $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json. A legacy or stale plan is rejected before you run. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
           Never request or invent a V1 slice manifest. End with exactly VERDICT: APPROVE or VERDICT: REVISE.
           "@
           $out="$env:RUNNER_TEMP\kodjo-v2-plan-review.json"
@@ -180,13 +192,15 @@ jobs:
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
           $proof=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json" -Encoding UTF8
           $contract=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json" -Encoding UTF8
+          $uiContract=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-ui-contract.json" -Encoding UTF8
           $transition=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-transition.json" -Encoding UTF8
           $nl=[Environment]::NewLine
           $header='[KODJO_V2] PLAN_REVIEW_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'bootstrap_path='+$env:BOOTSTRAP_PATH+$nl+'source_head='+$env:SOURCE_HEAD+$nl+'protocol_execution_head='+$env:PROTOCOL_EXECUTION_HEAD+$nl+'application_pr='+$env:APPLICATION_PR+$nl+'application_head='+$env:APPLICATION_HEAD+$nl+'source_plan_comment_id='+$env:PLAN_ID+$nl+'reviewer=CLAUDE'+$nl+'review_session_id='+$env:SESSION_ID+$nl+'verdict='+$verdict+$nl+'STATUT : '+$status+$nl+$nl
           $impact=$nl+'<KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl+$proof.Trim()+$nl+'</KODJO_PLAN_IMPACT_REVIEW_JSON>'+$nl
           $contractProof=$nl+'<KODJO_PLAN_CONTRACT_REVIEW_JSON>'+$nl+$contract.Trim()+$nl+'</KODJO_PLAN_CONTRACT_REVIEW_JSON>'+$nl
+          $uiContractProof=$nl+'<KODJO_UI_PLAN_CONTRACT_REVIEW_JSON>'+$nl+$uiContract.Trim()+$nl+'</KODJO_UI_PLAN_CONTRACT_REVIEW_JSON>'+$nl
           $migration=$nl+'<KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl+$transition.Trim()+$nl+'</KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl
-          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$migration,(New-Object Text.UTF8Encoding($false)))
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$migration,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md"
 
       - name: Preserve V2 review evidence
@@ -202,6 +216,7 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-plan-review-scan.json
             ${{ runner.temp }}\kodjo-v2-plan-review-proof.json
             ${{ runner.temp }}\kodjo-v2-plan-review-contract.json
+            ${{ runner.temp }}\kodjo-v2-plan-review-ui-contract.json
             ${{ runner.temp }}\kodjo-v2-plan-review-transition.json
           if-no-files-found: warn
           retention-days: 14
