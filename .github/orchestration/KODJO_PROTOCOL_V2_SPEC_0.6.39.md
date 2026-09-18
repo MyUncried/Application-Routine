@@ -45,7 +45,7 @@ Pour chaque critère approuvé :
 3. ne jamais créer silencieusement une copie locale équivalente lorsqu’un composant est à réutiliser/étendre ;
 4. ne pas substituer une primitive native, un composant canonique ou un asset imposé ;
 5. s’arrêter avant code concerné avec :
-   - `CHANGE_REQUEST_REQUIRED` si substitution/refonte nécessaire ;
+   - `CHANGE_REQUEST_REQUIRED` si substitution/refonte nécessaire, y compris si un asset canonique requis est indisponible (`blocking_reason=CANONICAL_ASSET_UNAVAILABLE`) ;
    - `SCOPE_EXPANSION_REQUIRED` si le périmètre doit s’élargir ;
    - `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED` si une primitive native doit être abandonnée ;
    - `CLARIFICATION_REQUIRED` si la règle normative reste ambiguë ;
