@@ -197,6 +197,34 @@ test('E2E UI: la finalisation refuse un faux PASS device avant gate humain', () 
   assert.match(r.stderr,/V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID/);
 });
 
+test('E2E UI: VISUAL_CORRECTION conserve la revue différentielle historique et reste finalisable', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-e2e-'));
+  const f=fixture(dir);
+  const queue=JSON.parse(fs.readFileSync(f.queuePath,'utf8'));
+  queue.mode='RESUME_DELTA';
+  queue.operation_kind='VISUAL_CORRECTION';
+  queue.delivery_target={kind:'EXISTING_PR',application_pr:200,application_head:f.base,branch:'kodjo/v2-e2e-ui'};
+  queue.delivery_checkpoint={checkpoint_ref:'issue_comment:777',application_pr:200,application_head:f.base,protocol_head:'a'.repeat(40),delivery_head:f.base,package_run_id:'1',package_artifact_id:'2',attestation_blob_oid:'',evidence_kind:'ORGANISATIONAL'};
+  fs.writeFileSync(f.queuePath,JSON.stringify(queue));
+
+  const full=fs.readFileSync(f.reviewFile,'utf8');
+  const delta=full
+    .replace(/^device_gate_required=true\n/m,'')
+    .replace(/\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[\s\S]*?<\/KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\n?/m,'\n')
+    .replace(/\n\{[\s\S]*$/,'\nREVIEW_FEEDBACK: Aucun blocage démontré sur le delta visuel.\n');
+  fs.writeFileSync(f.reviewFile,delta);
+
+  const out=path.join(dir,'final.json');
+  const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
+  assert.equal(r.status,0,r.stderr);
+  const result=JSON.parse(fs.readFileSync(out,'utf8'));
+  assert.equal(result.operation_kind,'VISUAL_CORRECTION');
+  assert.equal(result.review_mode,'VISUAL_CORRECTION_DELTA');
+  assert.equal(result.criterion_count,null);
+  assert.equal(result.device_gate_required,true);
+  assert.equal(result.final_status,'READY_TO_CLOSE');
+});
+
 test('E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin legacy', () => {
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8');
   assert.match(wf,/\[KODJO_SLICE\] VISUAL_APPROVED/);
