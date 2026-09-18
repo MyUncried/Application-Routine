@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 concurrency:
   group: kodjo-slice-implementation-review-${{ github.event.issue.number }}
