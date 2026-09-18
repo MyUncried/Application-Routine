@@ -100,7 +100,13 @@ function validateDeliveryCheckpoint(value, queue) {
     'package_run_id', 'package_artifact_id', 'attestation_blob_oid', 'evidence_kind',
   ];
   for (const field of required) {
-    if (value[field] === undefined || value[field] === null || value[field] === '') return 'champ requis manquant ou vide: ' + field;
+    if (value[field] === undefined || value[field] === null) return 'champ requis manquant: ' + field;
+    // Un checkpoint publié après une VISUAL_CORRECTION peut légitimement ne
+    // porter aucune attestation de migration : ce chemin matérialise un
+    // recovery vide sur le HEAD applicatif et ne rejoue pas la migration
+    // historique. L'attestation reste obligatoire dès qu'une
+    // recovery_migration est effectivement fournie.
+    if (field !== 'attestation_blob_oid' && value[field] === '') return 'champ requis manquant ou vide: ' + field;
   }
   if (!COMMENT_REF.test(String(value.checkpoint_ref))) return 'checkpoint_ref issue_comment:<id> attendu';
   if (!Number.isInteger(value.application_pr) || value.application_pr < 1) return 'application_pr entier >= 1 attendu';
@@ -109,7 +115,15 @@ function validateDeliveryCheckpoint(value, queue) {
   if (!SHA40.test(String(value.delivery_head))) return 'delivery_head SHA-40 attendu';
   if (!/^[1-9][0-9]*$/.test(String(value.package_run_id))) return 'package_run_id numerique attendu';
   if (!/^[1-9][0-9]*$/.test(String(value.package_artifact_id))) return 'package_artifact_id numerique attendu';
-  if (!SHA40.test(String(value.attestation_blob_oid))) return 'attestation_blob_oid SHA-40 attendu';
+  const checkpointAttestation = String(value.attestation_blob_oid || '');
+  if (checkpointAttestation && !SHA40.test(checkpointAttestation)) return 'attestation_blob_oid SHA-40 attendu';
+  if (queue.recovery_migration) {
+    const migrationAttestation = String(queue.recovery_migration.attestation_blob_oid || '');
+    if (!checkpointAttestation) return 'attestation_blob_oid requis lorsque recovery_migration est present';
+    if (checkpointAttestation.toLowerCase() !== migrationAttestation.toLowerCase()) {
+      return 'attestation_blob_oid doit correspondre a recovery_migration';
+    }
+  }
   if (value.evidence_kind !== 'ORGANISATIONAL') return 'evidence_kind doit valoir ORGANISATIONAL';
   if (String(value.protocol_head).toLowerCase() !== String(queue.source_head || '').toLowerCase()) {
     return 'protocol_head doit etre egal a source_head';
