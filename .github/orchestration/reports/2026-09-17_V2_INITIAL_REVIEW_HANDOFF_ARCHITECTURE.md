@@ -81,12 +81,13 @@ Ce mécanisme est identique pour INITIAL et pour REVIEW/RÉVISION. La différenc
 
 Il ne constitue **pas** une nouvelle source fonctionnelle ou un second plan. Il est une enveloppe d’exécution déterministe du plan approuvé et doit :
 
-- référencer la tranche, `technical-plan.md`, `plan_blob_oid` et `approved_at_commit` ;
+- référencer la tranche, `technical-plan.md` et le `plan_blob_oid`, calculable avant la création du commit ;
 - ordonner à l’agent d’implémenter exclusivement le plan approuvé ;
 - rappeler que `scope_allow` de la Lean Request est opposable et qu’aucun élargissement n’est autorisé ;
 - référencer les checks autorisés par la demande ;
 - imposer `CLARIFICATION_REQUIRED` si une règle nécessaire n’est pas déterminable depuis le plan approuvé et ses sources ;
-- ne contenir aucune décision produit ou technique nouvelle absente du plan approuvé.
+- ne contenir aucune décision produit ou technique nouvelle absente du plan approuvé ;
+- ne pas embarquer `approved_at_commit` : cette valeur n’existe qu’après création du commit qui contient la mission et est portée ensuite par le gate et la Lean Request, afin d’éviter toute auto-référence cryptographique.
 
 Sa génération doit être mécanique. Toute information métier ou technique qui modifierait le sens du plan doit d’abord être intégrée au plan et revue ; elle ne peut pas être introduite par `implementation-mission.md`.
 
