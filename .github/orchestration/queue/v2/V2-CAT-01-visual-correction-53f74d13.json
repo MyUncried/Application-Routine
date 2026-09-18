@@ -1,0 +1,73 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-CAT-01",
+  "issue_number": 150,
+  "source_head": "514ac404378e6616bbb9d6ca0af00f06e34ccc0e",
+  "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
+  "mode": "RESUME_DELTA",
+  "operation_kind": "VISUAL_CORRECTION",
+  "delivery_target": {
+    "kind": "EXISTING_PR",
+    "application_pr": 181,
+    "application_head": "8dbe5865f10348a58683a37f4fdfea1dbcc2a5f8",
+    "branch": "kodjo/v2-v2-cat-01-35333601872"
+  },
+  "session_id": "af6b1de4-998a-41c0-b54d-35e3946f20a4",
+  "prompt_file": ".github/orchestration/v2-slices/V2-CAT-01/implementation-mission.md",
+  "scope_allow": [
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/__tests__/CatalogueScreen.test.tsx"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "53f74d13-f0be-4e8a-bb92-3e1309be906b",
+  "created_at": "2026-09-18T21:50:00+02:00",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+    "plan_blob_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "approved_at_commit": "db73ff1676a5e0b86803ef5271a392e1daf4de47",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+    "review_blob_oid": "845d920fe0e5dd1baf0d88d625f7da3d67d94670",
+    "reviewed_plan_blob_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5726224356",
+    "gated_reference": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "delivery_checkpoint": {
+    "checkpoint_ref": "issue_comment:5735351095",
+    "application_pr": 181,
+    "application_head": "8dbe5865f10348a58683a37f4fdfea1dbcc2a5f8",
+    "protocol_head": "514ac404378e6616bbb9d6ca0af00f06e34ccc0e",
+    "delivery_head": "8dbe5865f10348a58683a37f4fdfea1dbcc2a5f8",
+    "package_run_id": "35383171142",
+    "package_artifact_id": "10563816109",
+    "attestation_blob_oid": "",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "retry_of_run_id": "35383171142",
+  "retry_reason": {
+    "code": "VISUAL_CORRECTION",
+    "detail": "Révision ciblée après revue indépendante du HEAD 8dbe5865f10348a58683a37f4fdfea1dbcc2a5f8. Corriger uniquement le pictogramme Trier : remplacer le glyphe Unicode ↕ par une implémentation vectorielle/canonique conforme au contrat UI/Figma, avec rendu stable et centré. Ajouter/adapter le test ciblé pour couvrir le contrat de rendu de l’icône. Ne modifier aucun autre comportement ni autre fichier."
+  }
+}
