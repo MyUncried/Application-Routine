@@ -1,0 +1,142 @@
+name: KODJO V2 — Approved Plan Handoff Materialization
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: kodjo-v2-plan-handoff-materialize-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    if: >
+      (github.event.comment.user.login == 'github-actions[bot]' &&
+       contains(github.event.comment.body, '[KODJO_V2] PLAN_REVIEW_OUTPUT') &&
+       contains(github.event.comment.body, 'verdict=APPROVE') &&
+       contains(github.event.comment.body, 'STATUT : PLAN_REVIEW_APPROVED'))
+      ||
+      (github.event.comment.user.login == 'MyUncried' &&
+       contains(github.event.comment.body, '[KODJO_V2] MATERIALIZE_PLAN_HANDOFF'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      EVENT_COMMENT_ID: ${{ github.event.comment.id }}
+
+    steps:
+      - name: Checkout exact main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Resolve review comment
+        id: review
+        shell: bash
+        run: |
+          set -euo pipefail
+          if printf '%s\n' "$TRIGGER_BODY" | grep -q '^\[KODJO_V2\] PLAN_REVIEW_OUTPUT$'; then
+            REVIEW_ID="$EVENT_COMMENT_ID"
+          else
+            REVIEW_ID="$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^review_comment_id=//p' | head -n1)"
+          fi
+          printf '%s' "$REVIEW_ID" | grep -Eq '^[1-9][0-9]*$'
+          echo "review_id=$REVIEW_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare canonical materialization
+        id: prepare
+        shell: bash
+        env:
+          REVIEW_COMMENT_ID: ${{ steps.review.outputs.review_id }}
+          HANDOFF_METADATA_FILE: ${{ runner.temp }}/kodjo-plan-handoff-metadata.json
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/materialize-approved-plan-handoff.js
+          jq -r '"slice_id=" + .slice_id,
+                 "plan_path=" + .plan_path,
+                 "review_path=" + .review_path,
+                 "prompt_file=" + .prompt_file,
+                 "bootstrap_path=" + .bootstrap_path,
+                 "plan_comment_id=" + .source_plan_comment_id,
+                 "review_comment_id=" + .source_review_comment_id,
+                 "planning_application_head=" + .planning_application_head,
+                 "supersedes_plan_blob_oid=" + (.supersedes_plan_blob_oid // "")' "$HANDOFF_METADATA_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Commit protocol-only materialization
+        id: commit
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.prepare.outputs.slice_id }}
+          PLAN_PATH: ${{ steps.prepare.outputs.plan_path }}
+          REVIEW_PATH: ${{ steps.prepare.outputs.review_path }}
+          PROMPT_FILE: ${{ steps.prepare.outputs.prompt_file }}
+          BOOTSTRAP_PATH: ${{ steps.prepare.outputs.bootstrap_path }}
+        run: |
+          set -euo pipefail
+          git config user.name 'KODJO Protocol Handoff'
+          git config user.email 'kodjo-protocol@users.noreply.github.com'
+          git add -- "$PLAN_PATH" "$REVIEW_PATH" "$PROMPT_FILE" "$BOOTSTRAP_PATH" .github/orchestration/v2-activation-registry.json
+          mapfile -t CHANGED < <(git diff --cached --name-only)
+          EXPECTED=("$PLAN_PATH" "$REVIEW_PATH" "$PROMPT_FILE" "$BOOTSTRAP_PATH" ".github/orchestration/v2-activation-registry.json")
+          for changed in "${CHANGED[@]}"; do
+            allowed=false
+            for expected in "${EXPECTED[@]}"; do
+              if [ "$changed" = "$expected" ]; then allowed=true; break; fi
+            done
+            if [ "$allowed" != true ]; then
+              echo "HANDOFF_UNEXPECTED_MUTATION: $changed" >&2
+              exit 1
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo 'HANDOFF_ALREADY_MATERIALIZED' >&2
+            exit 1
+          fi
+          git commit -m "chore(kodjo): materialize approved plan handoff $SLICE_ID"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          APPROVED_AT="$(git rev-parse HEAD)"
+          echo "approved_at_commit=$APPROVED_AT" >> "$GITHUB_OUTPUT"
+
+      - name: Publish canonical handoff gate
+        shell: bash
+        env:
+          SLICE_ID: ${{ steps.prepare.outputs.slice_id }}
+          PLAN_PATH: ${{ steps.prepare.outputs.plan_path }}
+          REVIEW_PATH: ${{ steps.prepare.outputs.review_path }}
+          PROMPT_FILE: ${{ steps.prepare.outputs.prompt_file }}
+          BOOTSTRAP_PATH: ${{ steps.prepare.outputs.bootstrap_path }}
+          PLAN_COMMENT_ID: ${{ steps.prepare.outputs.plan_comment_id }}
+          REVIEW_COMMENT_ID: ${{ steps.prepare.outputs.review_comment_id }}
+          APPROVED_AT: ${{ steps.commit.outputs.approved_at_commit }}
+          PLANNING_APPLICATION_HEAD: ${{ steps.prepare.outputs.planning_application_head }}
+          SUPERSEDES: ${{ steps.prepare.outputs.supersedes_plan_blob_oid }}
+        run: |
+          set -euo pipefail
+          PLAN_BLOB="$(git rev-parse "$APPROVED_AT:$PLAN_PATH")"
+          REVIEW_BLOB="$(git rev-parse "$APPROVED_AT:$REVIEW_PATH")"
+          BOOTSTRAP_SHA="$(jq -r .slice_bootstrap_sha256 "$BOOTSTRAP_PATH")"
+          {
+            echo '[KODJO_V2] PLAN_HANDOFF_READY'
+            echo "slice_id=$SLICE_ID"
+            echo "source_plan_comment_id=$PLAN_COMMENT_ID"
+            echo "source_review_comment_id=$REVIEW_COMMENT_ID"
+            echo "plan_blob_oid=$PLAN_BLOB"
+            echo "review_blob_oid=$REVIEW_BLOB"
+            echo "approved_at_commit=$APPROVED_AT"
+            echo "bootstrap_path=$BOOTSTRAP_PATH"
+            echo "bootstrap_sha256=$BOOTSTRAP_SHA"
+            echo "prompt_file=$PROMPT_FILE"
+            echo "planning_application_head=$PLANNING_APPLICATION_HEAD"
+            if [ -n "$SUPERSEDES" ]; then echo "supersedes_plan_blob_oid=$SUPERSEDES"; fi
+            echo 'STATUT : USER_APPROVAL_REQUIRED'
+          } > "${RUNNER_TEMP}/handoff-ready.md"
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file "${RUNNER_TEMP}/handoff-ready.md"

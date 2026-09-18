@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory = $true)][string]$QueueFile,
-  [Parameter(Mandatory = $false)][string]$LocalRequestFile = ''
+  [Parameter(Mandatory = $true)][string]$QueueFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,13 +9,7 @@ if (-not $repoRoot) { throw 'KODJO_V2_REPOSITORY_NOT_FOUND' }
 
 $queueAbsolute = [IO.Path]::GetFullPath((Join-Path $repoRoot $QueueFile))
 $queue = Get-Content -LiteralPath $queueAbsolute -Raw -Encoding UTF8 | ConvertFrom-Json
-$causalLocal = -not [string]::IsNullOrWhiteSpace($LocalRequestFile)
-if ($causalLocal) {
-  if ($queue.schema_version -ne 'kodjo.protocol.v2.comment-causal-request.0.6.32') { throw 'KODJO_CAUSAL_QUEUE_SCHEMA_REFUSED' }
-  if ([string]$queue.mode -ne 'INITIAL' -or ([string]$queue.operation_kind).ToUpperInvariant() -ne 'IMPLEMENT') { throw 'KODJO_CAUSAL_QUEUE_MODE_REFUSED' }
-} elseif ($queue.schema_version -ne 'kodjo.protocol.v2.lean-request.0.6.13') {
-  throw 'KODJO_QUEUE_SCHEMA_REFUSED'
-}
+if ($queue.schema_version -ne 'kodjo.protocol.v2.lean-request.0.6.13') { throw 'KODJO_QUEUE_SCHEMA_REFUSED' }
 if ($queue.source_head -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_QUEUE_SOURCE_HEAD_REFUSED' }
 if ($queue.slice_id -notmatch '^[A-Za-z0-9._-]{1,80}$') { throw 'KODJO_QUEUE_SLICE_ID_REFUSED' }
 if (-not $queue.prompt_file -or -not $queue.slice_bootstrap_file -or -not $queue.scope_allow) { throw 'KODJO_QUEUE_INCOMPLETE' }
@@ -25,7 +18,6 @@ $operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)
 $isVisual = $operationKind -eq 'VISUAL_CORRECTION'
 if ($operationKind -notin @('IMPLEMENT', 'VISUAL_CORRECTION')) { throw 'KODJO_QUEUE_OPERATION_KIND_REFUSED' }
 if ($isVisual -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_VISUAL_MODE_REFUSED' }
-if ($causalLocal -and $isVisual) { throw 'KODJO_CAUSAL_QUEUE_VISUAL_REFUSED' }
 
 $githubToken = $env:GH_TOKEN
 if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
@@ -49,11 +41,7 @@ if ($isVisual) {
   }
 }
 
-$tempRequest = if ($causalLocal) {
-  [IO.Path]::GetFullPath($LocalRequestFile)
-} else {
-  Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
-}
+$tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 $publishPathspec = Join-Path $env:RUNNER_TEMP ("kodjo-publish-{0}-{1}.nul" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 Remove-Item -LiteralPath $publishPathspec -Force -ErrorAction SilentlyContinue
 $env:KODJO_PUBLISH_PATHSPEC_FILE = $publishPathspec
@@ -62,20 +50,8 @@ $targetBranch = $null
 $targetPr = $null
 $applicationHead = $null
 
-if ($causalLocal) {
-  if (-not (Test-Path -LiteralPath $tempRequest -PathType Leaf)) { throw 'KODJO_CAUSAL_LOCAL_REQUEST_MISSING' }
-  $localRequest = Get-Content -LiteralPath $tempRequest -Raw -Encoding UTF8 | ConvertFrom-Json
-  if ($localRequest.schema_version -ne 'kodjo.protocol.v2.local-implementation.0.6.12') { throw 'KODJO_CAUSAL_LOCAL_REQUEST_SCHEMA_REFUSED' }
-  if ([string]$localRequest.slice_id -ne [string]$queue.slice_id) { throw 'KODJO_CAUSAL_LOCAL_REQUEST_SLICE_MISMATCH' }
-  if ([string]$localRequest.source_head -ne [string]$queue.source_head) { throw 'KODJO_CAUSAL_LOCAL_REQUEST_SOURCE_MISMATCH' }
-  if ([string]$localRequest.prompt_file -ne [string]$queue.prompt_file) { throw 'KODJO_CAUSAL_LOCAL_REQUEST_PROMPT_MISMATCH' }
-  $localScope = @($localRequest.scope_allow | ForEach-Object { [string]$_ } | Sort-Object -Unique)
-  $queueScope = @($queue.scope_allow | ForEach-Object { [string]$_ } | Sort-Object -Unique)
-  if ($localScope.Count -ne $queueScope.Count -or (Compare-Object $localScope $queueScope)) { throw 'KODJO_CAUSAL_LOCAL_REQUEST_SCOPE_MISMATCH' }
-} else {
-  & node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
-  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
-}
+& node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
+if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 
 if ($isVisual) {
   $target = $queue.delivery_target
