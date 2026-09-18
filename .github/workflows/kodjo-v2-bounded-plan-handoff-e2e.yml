@@ -20,6 +20,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Validate production handoff implementation
+        run: |
+          set -euo pipefail
+          node --check scripts/kodjo/materialize-approved-plan-handoff.js
+          node --check scripts/kodjo/generate-approved-plan-lean-request.js
+          node scripts/kodjo/scan-remote-write-capability.js .
+          test ! -e .github/workflows/kodjo-v2-comment-causal-implementation.yml
+          test ! -d .github/orchestration/queue/v2-causal
+          ! grep -R "LocalRequestFile" -n scripts/kodjo/run-queued-request.ps1
+          grep -q "kodjo.protocol.v2.lean-request.0.6.13" scripts/kodjo/generate-approved-plan-lean-request.js
+
       - name: Run bounded E2E-PLAN-HANDOFF
         env:
           GH_TOKEN: ${{ github.token }}
