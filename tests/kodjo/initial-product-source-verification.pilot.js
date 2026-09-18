@@ -113,10 +113,29 @@ test('migration historique: le registre embarqué est borné à l identité exac
   const m = registry.migrations[0];
   assert.equal(m.slice_id, b.slice_id);
   assert.equal(m.baseline_head, b.baseline_head);
-  assert.equal(m.slice_bootstrap_sha256, b.slice_bootstrap_sha256);
+  const productIdentity = I.sha256(I.canonical({ slice_id:b.slice_id, baseline_head:b.baseline_head, product_sources:b.product_sources }));
+  assert.equal(m.product_identity_sha256, productIdentity);
+  assert.equal(m.slice_bootstrap_sha256, undefined);
   assert.equal(m.authority, 'GIT_BLOB');
   assert.equal(m.scope, 'PRODUCT_SOURCE_HASHES_ONLY');
   assert.deepEqual(m.legacy_product_sources, b.product_sources);
+});
+
+test('migration historique: un changement de planning_application_head ne requiert aucune nouvelle migration', () => {
+  const original = JSON.parse(fs.readFileSync(path.join(root, '.github', 'orchestration', 'v2-slices', 'V2-CAT-01', 'slice-bootstrap.json'), 'utf8'));
+  const changed = JSON.parse(JSON.stringify(original));
+  changed.planning_application_head = 'f'.repeat(40);
+  delete changed.slice_bootstrap_sha256;
+  changed.slice_bootstrap_sha256 = I.sha256(I.canonical(changed));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-v2-cat-planning-head-'));
+  const bootstrap = path.join(dir, 'slice-bootstrap.json');
+  const evidence = path.join(dir, 'evidence.txt');
+  fs.writeFileSync(bootstrap, JSON.stringify(changed, null, 2) + '\n', 'utf8');
+  const result = spawnSync(process.execPath, [verifier, bootstrap, root, evidence], { cwd: root, encoding: 'utf8', windowsHide: true, maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /migration=BOUND_LEGACY_BOOTSTRAP/);
+  assert.ok(fs.statSync(evidence).size > 0);
+  fs.rmSync(dir, { recursive:true, force:true });
 });
 
 test('une tranche non attestée ne bénéficie jamais de la migration historique', () => {
