@@ -8,6 +8,7 @@ const { spawnSync } = require('node:child_process');
 const { validateQueueRequest } = require('./lib/queue-contract');
 const { verify: verifyAuthorizations } = require('./verify-authorizations');
 const { DEFAULT_LIMITS } = require('./lib/claude-local');
+const { verifyImplementationMission } = require('./lib/implementation-contract');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const SHA64 = /^[0-9a-f]{64}$/;
@@ -122,6 +123,12 @@ function main() {
   }
 
   const planBody = git(['cat-file', 'blob', planBlob], cwd);
+  const missionBody = git(['show', approvedAt + ':' + missionRel], cwd);
+  try {
+    verifyImplementationMission(missionBody, planBody, planBlob);
+  } catch (error) {
+    fail('HANDOFF_IMPLEMENTATION_CONTRACT_REFUSED', error.message);
+  }
   const impact = taggedJson(planBody, 'KODJO_PLAN_IMPACT_JSON');
   if (String(impact.scan_revision) !== planningApplicationHead) fail('PLAN_APPLICATION_HEAD_MISMATCH');
   if (!Array.isArray(impact.scope_allow) || impact.scope_allow.length < 1) fail('HANDOFF_PLAN_SCOPE_MISSING');
@@ -195,6 +202,7 @@ function main() {
   process.stdout.write('approved_at_commit=' + approvedAt + '\n');
   process.stdout.write('plan_blob_oid=' + planBlob + '\n');
   process.stdout.write('scope_count=' + request.scope_allow.length + '\n');
+  process.stdout.write('implementation_contract=kodjo.ui-implementation-contract.v1\n');
 }
 
 try { main(); }
