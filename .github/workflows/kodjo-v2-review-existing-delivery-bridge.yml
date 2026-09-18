@@ -95,10 +95,17 @@ jobs:
           branch=$(jq -r '.head.ref' <<<"$pr_json")
           jq -e --arg head "$application_head" '.state == "open" and .base.ref == "main" and .head.sha == $head' <<<"$pr_json" >/dev/null
 
-          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$application_head" --jq '.status')
+          commit_json=$(gh api "repos/$GITHUB_REPOSITORY/commits/$application_head")
+          parent_count=$(jq '.parents | length' <<<"$commit_json")
+          [ "$parent_count" -eq 1 ] || { echo 'Existing V2 application HEAD must have exactly one parent' >&2; exit 1; }
+          implementation_base=$(jq -r '.parents[0].sha' <<<"$commit_json")
+          [[ "$implementation_base" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid implementation base' >&2; exit 1; }
+          [ "$implementation_base" = "$protocol_head" ] || { echo 'Implementation base does not match immutable V2 source_head' >&2; exit 1; }
+
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$implementation_base...$application_head" --jq '.status')
           [ "$status" = ahead ]
 
-          printf 'slice=%s\nbase=%s\nprotocol_head=%s\nrequest_id=%s\nsession=%s\ngate_id=%s\nplan=%s\nplan_review=%s\napplication_pr=%s\napplication_head=%s\nbranch=%s\nqueue_path=%s\n'             "$slice" "$base" "$protocol_head" "$request_id" "$session" "$gate_id" "$plan" "$plan_review" "$application_pr" "$application_head" "$branch" "$queue_path" >> "$GITHUB_OUTPUT"
+          printf 'slice=%s\nbase=%s\nprotocol_head=%s\nrequest_id=%s\nsession=%s\ngate_id=%s\nplan=%s\nplan_review=%s\napplication_pr=%s\napplication_head=%s\nbranch=%s\nqueue_path=%s\n'             "$slice" "$implementation_base" "$protocol_head" "$request_id" "$session" "$gate_id" "$plan" "$plan_review" "$application_pr" "$application_head" "$branch" "$queue_path" >> "$GITHUB_OUTPUT"
 
       - name: Publish historical implementation output contract
         id: publish
@@ -140,11 +147,12 @@ jobs:
           } > /tmp/implementation-output.md
 
           comments=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" | jq -s 'add')
-          output_id=$(jq -r --arg head "$APPLICATION_HEAD" --arg request "$REQUEST_ID" '
+          output_id=$(jq -r --arg head "$APPLICATION_HEAD" --arg base "$BASE" --arg request "$REQUEST_ID" '
             [.[] | select(
               .user.login == "github-actions[bot]"
               and (.body | startswith("[KODJO_SLICE] IMPLEMENTATION_OUTPUT\n"))
               and (.body | contains("\nhead=" + $head + "\n"))
+              and (.body | contains("\nbase_head=" + $base + "\n"))
               and (.body | contains("\nv2_request_id=" + $request + "\n"))
             ) | .id] |
             if length == 0 then "" elif length == 1 then .[0] else error("duplicate V2 implementation outputs") end
