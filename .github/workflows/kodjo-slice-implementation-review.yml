@@ -109,7 +109,7 @@ jobs:
             test -f "$v2_queue_path"
             jq -e --arg slice "$slice" --arg base "$base" --arg protocol "$v2_protocol_head" --arg request "$v2_request_id" '
               .slice_id == $slice
-              and .baseline_head == $base
+              and .source_head == $base
               and .source_head == $protocol
               and .request_id == $request
               and .authorized_plan.plan_blob_oid
