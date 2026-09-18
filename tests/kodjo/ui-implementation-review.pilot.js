@@ -64,6 +64,10 @@ function validReview() {
         {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis après revue technique.'},
       ],
     }],
+    boundary_results:[
+      {category:'PRESERVE',target:'Navigation',status:'PASS',evidence:'Aucun fichier de navigation dans le diff.'},
+      {category:'FORBIDDEN',target:'Shell',status:'PASS',evidence:'Aucune modification du shell dans le diff.'},
+    ],
   };
 }
 
@@ -117,6 +121,17 @@ test('implementation review: un défaut fonctionnel impose REVISE', () => {
   const r=run(['validate',plan,changed,review,out],dir);
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+});
+
+test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-review-'));
+  const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), review=path.join(dir,'review.json'), out=path.join(dir,'out.json');
+  const value=validReview();
+  value.boundary_results=value.boundary_results.slice(0,1);
+  fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_BOUNDARY_COVERAGE_INCOMPLETE/);
 });
 
 test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy', () => {
