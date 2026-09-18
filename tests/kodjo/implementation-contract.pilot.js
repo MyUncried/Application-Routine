@@ -12,6 +12,10 @@ const {
   renderImplementationMission,
   verifyImplementationMission,
 } = require('../../scripts/kodjo/lib/implementation-contract');
+const {
+  extractImplementationStopStatus,
+  IMPLEMENTATION_STOP_STATUSES,
+} = require('../../scripts/kodjo/run-local-claude');
 
 function planFixture() {
   const matrix = {
@@ -90,6 +94,21 @@ test('implementation contract: required stop supprimé de la mission est refusé
   assert.throws(
     () => verifyImplementationMission(changed, plan, 'c'.repeat(40)),
     /IMPLEMENTATION_CONTRACT_DRIFT/
+  );
+});
+
+test('implementation contract: taxonomie des barrières reste canonique et exécutable', () => {
+  assert.deepEqual([...IMPLEMENTATION_STOP_STATUSES].sort(), [
+    'CHANGE_REQUEST_REQUIRED',
+    'CLARIFICATION_REQUIRED',
+    'NATIVE_PRIMITIVE_EXCEPTION_REQUIRED',
+    'SCOPE_EXPANSION_REQUIRED',
+  ].sort());
+  assert.equal(extractImplementationStopStatus(JSON.stringify({result:'ok\nKODJO_STOP_STATUS: CHANGE_REQUEST_REQUIRED\n'})), 'CHANGE_REQUEST_REQUIRED');
+  assert.equal(extractImplementationStopStatus(JSON.stringify({result:'ok\nKODJO_STOP_STATUS: NONE\n'})), null);
+  assert.throws(
+    () => extractImplementationStopStatus(JSON.stringify({result:'KODJO_STOP_STATUS: ASSET_REQUIRED\n'})),
+    /IMPLEMENTATION_STOP_STATUS_INVALID/
   );
 });
 
