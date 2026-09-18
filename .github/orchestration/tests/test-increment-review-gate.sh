@@ -125,6 +125,10 @@ require_contains baseline_statuses 'case "$baseline_status" in identical|ahead)'
 require_contains strict_head_descendant '[ "$implementation_status" = ahead ]' "$review_workflow"
 require_contains manifest_sha_bash_validation '[[ "$baseline" =~ ^[0-9a-f]{40}$ ]]' "$review_workflow"
 require_contains manifest_sha_named_diagnostic 'Invalid manifest baseline SHA' "$review_workflow"
+require_contains v2_bridge_marker 'continuity_origin=V2_LEAN_QUEUE' "$review_workflow"
+require_contains v2_authorization_reuse 'verify-authorizations.js' "$review_workflow"
+require_contains v2_single_increment 'LOT_1_OF_1' "$review_workflow"
+require_contains v2_queue_contract '.github/orchestration/queue/v2/*.json' "$review_workflow"
 forbid_contains ruby_cross_language_sha_regex 'baseline.match?' "$review_workflow"
 forbid_contains baseline_equality 'm["baseline_head"]==ENV["base"]' "$review_workflow"
 forbid_contains unauthenticated_local_ancestry 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
@@ -148,6 +152,14 @@ require_contains recovery_typescript 'npx tsc --noEmit' "$recovery_workflow"
 require_contains dispatch_contents_write '  contents: write' "$recovery_workflow"
 require_contains recovery_issues_write '  issues: write' "$recovery_workflow"
 require_contains paginated_recovery_search 'gh api --paginate' "$recovery_workflow"
+
+lean_workflow='.github/workflows/kodjo-v2-lean-queue.yml'
+require_contains v2_review_bridge_metadata 'KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE' "$lean_workflow"
+require_contains v2_review_dispatch_event "event_type = 'kodjo_implementation_ready'" "$lean_workflow"
+supervisor='scripts/kodjo/run-queued-request.ps1'
+require_contains v2_review_output_marker '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' "$supervisor"
+require_contains v2_review_origin 'continuity_origin=V2_LEAN_QUEUE' "$supervisor"
+require_contains v2_review_pending 'IMPLEMENTATION_READY_FOR_REVIEW' "$supervisor"
 require_contains duplicate_output_guard 'duplicate recovered implementation outputs' "$recovery_workflow"
 
 while IFS= read -r dispatch_workflow; do
