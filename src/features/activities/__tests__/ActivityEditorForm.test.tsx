@@ -2,31 +2,65 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
 
-import { createEmptyActivityDefinitionDraft } from "@/domain/activities";
+import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
+  isActivityEditorFormValid,
   type ActivityEditorFormValue,
 } from "@/features/activities/ActivityEditorForm";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+
+function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
+  const draft = createExerciseDraft("draft-id");
+  return {
+    name: draft.name,
+    instruction: draft.instruction,
+    executionMode: draft.executionMode,
+    durationSeconds: draft.durationSeconds,
+    repetitionCount: draft.repetitionCount,
+    seriesCount: draft.seriesCount,
+    pauseSeconds: draft.pauseSeconds,
+    recoverySeconds: draft.recoverySeconds,
+    bodyZoneIds: draft.bodyZoneIds,
+    sideMode: draft.sideMode,
+    ...overrides,
+  };
+}
 
 function Harness({
   initial,
   onChangeSpy,
+  onFinish = jest.fn(),
+  showMediaSection = false,
+  errorMessage = null,
+  isFinishDisabled = false,
 }: {
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
+  onFinish?: () => void;
+  showMediaSection?: boolean;
+  errorMessage?: string | null;
+  isFinishDisabled?: boolean;
 }) {
-  const [value, setValue] = useState<ActivityEditorFormValue>({
-    ...createEmptyActivityDefinitionDraft(),
-    ...initial,
-  });
+  const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
-    <ActivityEditorForm
-      value={value}
-      onChange={(patch) => {
-        onChangeSpy?.(patch);
-        setValue((current) => ({ ...current, ...patch }));
-      }}
-    />
+    <TestSafeAreaProvider>
+      <ActivityEditorForm
+        value={value}
+        onChange={(patch) => {
+          onChangeSpy?.(patch);
+          setValue((current) => ({ ...current, ...patch }));
+        }}
+        showMediaSection={showMediaSection}
+        finishLabel="Terminer"
+        onFinish={onFinish}
+        isFinishDisabled={isFinishDisabled}
+        errorMessage={errorMessage}
+        finishSlotTestID="test-finish-slot"
+        finishActionTestID="test-finish-action"
+        errorTestID="test-save-error"
+      />
+    </TestSafeAreaProvider>
   );
 }
 
@@ -39,35 +73,89 @@ describe("ActivityEditorForm", () => {
   it("reports a name change", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
-    fireEvent.changeText(screen.getByTestId("activity-editor-name-input"), "Fentes");
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes");
     expect(onChangeSpy).toHaveBeenCalledWith({ name: "Fentes" });
   });
 
   it("switches to REPETITIONS mode and shows the repetition field instead of duration", () => {
-    render(<Harness />);
-    expect(screen.getByTestId("activity-editor-duration")).toBeTruthy();
+    render(<Harness initial={{ name: "Squat" }} />);
+    expect(screen.getByTestId("exercise-field-duration")).toBeTruthy();
 
     fireEvent.press(screen.getByText("Répétitions"));
 
-    expect(screen.queryByTestId("activity-editor-duration")).toBeNull();
-    expect(screen.getByTestId("activity-editor-repetitionCount")).toBeTruthy();
+    expect(screen.queryByTestId("exercise-field-duration")).toBeNull();
+    expect(screen.getByTestId("exercise-field-repetitionCount")).toBeTruthy();
   });
 
-  it("toggles a body zone", () => {
+  it("toggles a body zone by deploying its section", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
+    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
     fireEvent.press(screen.getByLabelText("Dos"));
     expect(onChangeSpy).toHaveBeenCalledWith({ bodyZoneIds: ["dos"] });
   });
 
-  it("keeps the Médias section collapsed by default with disabled controls", () => {
+  it("hides the Médias section by default (Composition)", () => {
     render(<Harness />);
-    expect(screen.queryByTestId("activity-editor-media-content")).toBeNull();
+    expect(screen.queryByTestId("activity-editor-section-media")).toBeNull();
+  });
 
-    fireEvent.press(screen.getByTestId("activity-editor-media-header"));
+  it("shows the Médias section, collapsed by default, with disabled controls (Catalogue)", () => {
+    render(<Harness showMediaSection />);
+    expect(screen.getByTestId("activity-editor-section-media")).toBeTruthy();
+    expect(screen.queryByTestId("activity-editor-section-media-content")).toBeNull();
 
-    expect(screen.getByTestId("activity-editor-media-content")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("activity-editor-section-media-header"));
+
+    expect(screen.getByTestId("activity-editor-section-media-content")).toBeTruthy();
     const addMedia = screen.getByTestId("activity-editor-add-media");
     expect(addMedia.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it("bolds only the name inside the summary", () => {
+    render(<Harness initial={{ name: "Squat" }} />);
+    const boldName = screen.getByTestId("exercise-summary-name");
+    expect(boldName.props.children).toBe("Squat");
+  });
+
+  it("disables the finish action while the name is empty, without calling onFinish", () => {
+    const onFinish = jest.fn();
+    render(<Harness initial={{ name: "" }} onFinish={onFinish} />);
+    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(true);
+
+    fireEvent.press(screen.getByTestId("test-finish-action"));
+    expect(onFinish).not.toHaveBeenCalled();
+  });
+
+  it("enables the finish action once the name becomes valid, and calls onFinish when pressed", () => {
+    const onFinish = jest.fn();
+    render(<Harness initial={{ name: "" }} onFinish={onFinish} />);
+
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
+    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(false);
+
+    fireEvent.press(screen.getByTestId("test-finish-action"));
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the provided error message above the finish action without losing the draft", () => {
+    render(<Harness initial={{ name: "Squat" }} errorMessage="Erreur de sauvegarde" />);
+    expect(screen.getByTestId("test-save-error")).toBeTruthy();
+    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
+  });
+
+  it("disables the finish action while an external save is in progress", () => {
+    render(<Harness initial={{ name: "Squat" }} isFinishDisabled />);
+    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(true);
+  });
+});
+
+describe("isActivityEditorFormValid", () => {
+  it("is false for an empty name", () => {
+    expect(isActivityEditorFormValid(baseValue({ name: "" }))).toBe(false);
+  });
+
+  it("is true for a valid DURATION activity", () => {
+    expect(isActivityEditorFormValid(baseValue({ name: "Squat" }))).toBe(true);
   });
 });

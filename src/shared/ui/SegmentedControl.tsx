@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { colors, dimensions, type } from "@/shared/ui/tokens";
 
@@ -19,14 +20,18 @@ export type SegmentedControlProps<T extends string> = {
 };
 
 /**
- * `Controls / Segmented — Source exact` (V2-CAT-01, plan §7 étape 7),
- * extrait comme composant canonique partagé — auparavant deux copies locales
- * divergentes (`ExerciseScreen.tsx`, `CatalogueScreen.tsx`
- * `ContentTypeSelector`). Répartit ses options par Flexbox (largeur égale,
- * dérivée de l'espace disponible — jamais une largeur figée), conserve la
- * géométrie DSF canonique (`dimensions.segmentedControl`) et anime la
- * transition d'état du segment sélectionné (opacité/couleur, RN natif —
- * jamais de saut brutal).
+ * `Controls / Segmented — Source exact` (V2-CAT-01, plan §7 étape 7 ; revue
+ * indépendante 5732014381, obligation 3), extrait comme composant canonique
+ * partagé — auparavant deux copies locales divergentes (`ExerciseScreen.tsx`,
+ * `CatalogueScreen.tsx` `ContentTypeSelector`).
+ *
+ * Répartit ses options par Flexbox (largeur égale, dérivée de l'espace
+ * réellement disponible — mesuré via `onLayout`, jamais une largeur figée),
+ * conserve la géométrie DSF canonique (`dimensions.segmentedControl`) et
+ * anime un CADRE unique qui glisse continûment vers le segment sélectionné
+ * (`Animated.timing`, jamais un saut brutal ni une disparition pendant la
+ * transition) — le fond `colors.selection` n'est donc plus appliqué segment
+ * par segment mais porté par ce seul cadre commun.
  */
 export function SegmentedControl<T extends string>({
   options,
@@ -35,13 +40,73 @@ export function SegmentedControl<T extends string>({
   accessibilityLabel,
   testID,
 }: SegmentedControlProps<T>) {
+  const [containerWidth, setContainerWidth] = useState(0);
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
+  // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
+  // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
+  // rendu (`react-hooks/refs`) — seul l'initialiseur s'exécute une fois.
+  const [indicatorPosition] = useState(() => new Animated.Value(selectedIndex));
+  const hasMeasuredRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasMeasuredRef.current) {
+      // Premier rendu mesuré : positionne le cadre immédiatement sur le
+      // segment déjà sélectionné, sans l'animer depuis l'index `0` (ce
+      // serait un saut visible, pas un glissement continu).
+      indicatorPosition.setValue(selectedIndex);
+      hasMeasuredRef.current = true;
+      return;
+    }
+    Animated.timing(indicatorPosition, {
+      toValue: selectedIndex,
+      duration: 220,
+      useNativeDriver: false,
+    }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex]);
+
+  function handleContainerLayout(event: LayoutChangeEvent) {
+    setContainerWidth(event.nativeEvent.layout.width);
+  }
+
+  const padding = dimensions.segmentedControl.padding;
+  const gap = dimensions.segmentedControl.gap;
+  const innerWidth = Math.max(0, containerWidth - padding * 2);
+  const segmentWidth =
+    options.length > 0 ? Math.max(0, (innerWidth - gap * (options.length - 1)) / options.length) : 0;
+  const step = segmentWidth + gap;
+
+  const translateX = indicatorPosition.interpolate({
+    inputRange: options.map((_, index) => index),
+    outputRange: options.map((_, index) => index * step),
+  });
+
   return (
     <View
       style={styles.container}
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
+      onLayout={handleContainerLayout}
       testID={testID}
     >
+      {containerWidth > 0 ? (
+        <Animated.View
+          pointerEvents="none"
+          testID={testID ? `${testID}-indicator` : undefined}
+          style={[
+            styles.indicator,
+            {
+              left: padding,
+              top: padding,
+              width: segmentWidth,
+              transform: [{ translateX }],
+            },
+          ]}
+        />
+      ) : null}
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -52,7 +117,7 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected, disabled: Boolean(option.disabled) }}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
-            style={[styles.segment, selected ? styles.segmentSelected : null]}
+            style={styles.segment}
             testID={testID ? `${testID}-${option.value}` : undefined}
           >
             <Text
@@ -83,15 +148,18 @@ const styles = StyleSheet.create({
     padding: dimensions.segmentedControl.padding,
     gap: dimensions.segmentedControl.gap,
   },
+  indicator: {
+    position: "absolute",
+    height: dimensions.segmentedControl.segmentHeight,
+    borderRadius: dimensions.segmentedControl.segmentRadius,
+    backgroundColor: colors.selection,
+  },
   segment: {
     flex: 1,
     height: dimensions.segmentedControl.segmentHeight,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: dimensions.segmentedControl.segmentRadius,
-  },
-  segmentSelected: {
-    backgroundColor: colors.selection,
   },
   label: {
     ...type.label,

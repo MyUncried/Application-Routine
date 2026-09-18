@@ -2205,7 +2205,7 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
       disabled: true,
     });
 
-    fireEvent.changeText(screen.getByTestId("activity-editor-name-input"), "Squat");
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
     expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
@@ -2231,7 +2231,7 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
       .mockResolvedValue({ ok: false, violations: [] });
     renderCatalogueScreen("new", { createActivityDefinition });
 
-    fireEvent.changeText(screen.getByTestId("activity-editor-name-input"), "Squat");
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
     expect(await screen.findByTestId("activity-editor-save-error")).toBeTruthy();

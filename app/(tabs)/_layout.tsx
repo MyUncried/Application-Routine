@@ -1,5 +1,13 @@
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
@@ -91,7 +99,10 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: strings.nav.sessions,
+            // V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : libellé
+            // PERMANENT `Catalogues` — distinct de `strings.nav.sessions`
+            // (« Séances »), verrouillé ailleurs par un test hors périmètre.
+            title: strings.screens.sessions.navLabel,
             tabBarIcon: ({ focused }) => (
               <KodjoIcon
                 name={focused ? "navigation-sessions-active" : "navigation-sessions-inactive"}
@@ -137,10 +148,75 @@ export default function TabsLayout() {
   );
 }
 
+/**
+ * Cadre actif de navigation (V2-CAT-01, plan §4.5, revue 5732014381
+ * obligation 1) : « Le cadre actif de navigation reste visible et glisse
+ * continûment entre destinations. » Un unique `Animated.View` mesure la
+ * position/largeur RÉELLE de chaque destination (`onLayout`, jamais une
+ * géométrie supposée) et s'anime vers celle de la destination active à
+ * chaque changement de focus — jamais un saut instantané, jamais masqué
+ * pendant la transition.
+ */
 function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const layoutsRef = useRef<Record<string, { x: number; width: number }>>({});
+  // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
+  // doit rester STABLE entre rendus (identité de référence, jamais recréée),
+  // mais sa lecture dans le JSX (style animé) ne doit jamais passer par un
+  // ref lu pendant le rendu (`react-hooks/refs`) — seul l'initialiseur de
+  // `useState` s'exécute une fois, la valeur retournée n'est pas un ref.
+  const [indicatorX] = useState(() => new Animated.Value(0));
+  const [indicatorWidth] = useState(() => new Animated.Value(0));
+  const [isIndicatorReady, setIsIndicatorReady] = useState(false);
+  const activeRouteKey = state.routes[state.index]?.key;
+
+  useEffect(() => {
+    // N'anime QUE lorsqu'un premier positionnement direct (`handleItemLayout`)
+    // a déjà eu lieu — jamais de `setState` synchrone dans cet effet
+    // (`react-hooks/set-state-in-effect`) : le premier positionnement est
+    // entièrement porté par le gestionnaire d'événement `onLayout`.
+    if (!activeRouteKey || !isIndicatorReady) {
+      return;
+    }
+    const layout = layoutsRef.current[activeRouteKey];
+    if (!layout) {
+      return;
+    }
+    Animated.parallel([
+      Animated.timing(indicatorX, { toValue: layout.x, duration: 250, useNativeDriver: false }),
+      Animated.timing(indicatorWidth, {
+        toValue: layout.width,
+        duration: 250,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [activeRouteKey, isIndicatorReady, indicatorX, indicatorWidth]);
+
+  function handleItemLayout(routeKey: string, event: LayoutChangeEvent) {
+    const { x, width } = event.nativeEvent.layout;
+    layoutsRef.current[routeKey] = { x, width };
+    if (routeKey === activeRouteKey && !isIndicatorReady) {
+      // Premier positionnement connu : place le cadre immédiatement, sans
+      // l'animer depuis l'origine `0` (ce serait un saut visible, pas un
+      // glissement continu).
+      indicatorX.setValue(x);
+      indicatorWidth.setValue(width);
+      setIsIndicatorReady(true);
+    }
+  }
+
   return (
     <View style={styles.navigationRow} testID="navigation-row">
       <View style={styles.tabsGroup} testID="navigation-tabs-group">
+        {isIndicatorReady ? (
+          <Animated.View
+            pointerEvents="none"
+            testID="navigation-active-indicator"
+            style={[
+              styles.activeIndicator,
+              { left: indicatorX, width: indicatorWidth },
+            ]}
+          />
+        ) : null}
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
@@ -161,6 +237,7 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             <Pressable
               key={route.key}
               onPress={onPress}
+              onLayout={(event) => handleItemLayout(route.key, event)}
               accessibilityRole="button"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={label}
@@ -226,6 +303,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
+  },
+  // Cadre actif — repose SOUS les quatre destinations (`zIndex` implicite
+  // par ordre de rendu, premier enfant de `tabsGroup`), teinte pâle
+  // partagée avec les autres surfaces de sélection du DSF
+  // (`colors.selectionSurface`), jamais une nouvelle couleur locale.
+  activeIndicator: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    borderRadius: dimensions.activeDestination.radius,
+    backgroundColor: colors.selectionSurface,
   },
   tabItem: {
     flex: 1,

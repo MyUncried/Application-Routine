@@ -109,7 +109,10 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
     expect(screen.getByTestId("navigation-tab-calendar")).toBeTruthy();
     expect(screen.getByTestId("navigation-tab-history")).toBeTruthy();
     expect(screen.getByTestId("navigation-tab-profile")).toBeTruthy();
-    expect(screen.getByLabelText(strings.nav.sessions)).toBeTruthy();
+    // V2-CAT-01 (plan §4.5) : la destination basse porte désormais le
+    // libellé permanent `Catalogues` (`strings.screens.sessions.navLabel`),
+    // distinct de `strings.nav.sessions` (« Séances »).
+    expect(screen.getByLabelText(strings.screens.sessions.navLabel)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.calendar)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.history)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.profile)).toBeTruthy();
@@ -146,6 +149,37 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
 
     fireEvent.press(screen.getByTestId("navigation-tab-profile"));
     expect(screen.getByText("profile-screen")).toBeTruthy();
+  });
+});
+
+/**
+ * V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : « Le cadre actif de
+ * navigation reste visible et glisse continûment entre destinations. »
+ */
+describe("Navigation basse — cadre actif animé (V2-CAT-01)", () => {
+  it("renders the active frame once destinations are measured, without a hard-coded position", () => {
+    renderTabsLayout();
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+
+    expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
+  });
+
+  it("remains present (never masked) across a destination change", () => {
+    renderTabsLayout();
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+    fireEvent(screen.getByTestId("navigation-tab-calendar"), "layout", {
+      nativeEvent: { layout: { x: 80, y: 0, width: 80, height: 48 } },
+    });
+
+    fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
+
+    expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
   });
 });
 

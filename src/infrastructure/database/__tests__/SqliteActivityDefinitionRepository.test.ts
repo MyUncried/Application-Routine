@@ -129,4 +129,54 @@ describe("SqliteActivityDefinitionRepository", () => {
     expect(sessionCount?.count).toBe(0);
     expect(activityCount?.count).toBe(0);
   });
+
+  /**
+   * Revue indépendante 5732014381, obligation 7 : preuve du rollback de
+   * transaction `ActivityDefinition`/Zones corporelles. `create()`/`update()`
+   * écrivent la ligne principale PUIS ses Zones dans une seule transaction
+   * exclusive (`withExclusiveTransactionAsync`) — un identifiant de Zone
+   * dupliqué viole la clé primaire composite
+   * `(activity_definition_id, body_zone_id)` de `activity_definition_body_zones`
+   * en cours d'écriture : la transaction entière doit alors être annulée,
+   * y compris la ligne `activity_definitions` déjà insérée avant l'échec.
+   */
+  describe("rollback de transaction (revue 5732014381, obligation 7)", () => {
+    it("create(): a body-zone conflict rolls back the whole transaction — no orphan activity_definitions row survives", async () => {
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+
+      await expect(
+        repository.create({ ...baseInput(), bodyZoneIds: ["dos", "dos"] }),
+      ).rejects.toThrow();
+
+      const definitions = await database.getAllAsync<{ id: string }>(
+        "SELECT id FROM activity_definitions",
+      );
+      expect(definitions).toHaveLength(0);
+      const zones = await database.getAllAsync<{ activity_definition_id: string }>(
+        "SELECT activity_definition_id FROM activity_definition_body_zones",
+      );
+      expect(zones).toHaveLength(0);
+    });
+
+    it("update(): a body-zone conflict rolls back the whole transaction — the previous row and its zones are left untouched", async () => {
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+      const created = await repository.create(baseInput());
+
+      await expect(
+        repository.update(created.id, { ...baseInput(), name: "Corrompu", bodyZoneIds: ["dos", "dos"] }),
+      ).rejects.toThrow();
+
+      const reread = await repository.findById(created.id);
+      expect(reread?.name).toBe("Squat");
+      expect(reread?.bodyZoneIds.slice().sort()).toEqual(["cuisses", "genoux"]);
+    });
+  });
 });

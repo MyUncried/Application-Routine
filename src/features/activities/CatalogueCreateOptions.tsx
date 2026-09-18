@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text } from "react-native";
 
 import { strings } from "@/shared/i18n";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
@@ -10,17 +11,25 @@ export type CatalogueCreateOptionsProps = {
   onCancel: () => void;
 };
 
+const APPEAR_DURATION_MS = 180;
+const DISMISS_DURATION_MS = 120;
+
 /**
- * Arbre `Créer` du Catalogue (V2-CAT-01, plan §4.1) — ancré à `Créer`,
- * affiche exactement `Une nouvelle activité`, `Une séance`, `Un circuit`,
- * `Annuler`, dans cet ordre. `Un circuit` est désactivé. `Annuler` ferme sans
- * écriture et restitue exactement le contexte courant — aucun état n'est
- * modifié par cette fermeture, ni par un appui sur le voile.
+ * Arbre `Créer` du Catalogue (V2-CAT-01, plan §4.1 ; revue indépendante
+ * 5732014381, obligation 3) — ancré à `Créer`, affiche exactement `Une
+ * nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`, dans cet ordre.
+ * `Un circuit` est désactivé. `Annuler` ferme sans écriture et restitue
+ * exactement le contexte courant — aucun état n'est modifié par cette
+ * fermeture, ni par un appui sur le voile.
  *
- * Rendu comme un frère absolument positionné de la rangée `Créer / Filtrer /
- * Trier` (jamais un `Modal` plein écran) : la rangée qui l'a ouvert reste
- * visible sous le voile, conformément au plan (« conserve cette rangée sous
- * le scrim »).
+ * L'apparition est PROGRESSIVE ET RAPIDE (fondu + léger agrandissement,
+ * `Animated`, jamais un affichage instantané) ; la disparition l'est
+ * symétriquement, plus brève. Rendu comme un frère absolument positionné de
+ * la rangée `Créer / Filtrer / Trier` (jamais un `Modal` plein écran) : la
+ * rangée qui l'a ouvert reste visible sous le voile — désormais un scrim
+ * COMPLET (couvre l'écran entier de cet écran, arrière-plan/navigation/
+ * retour/listes non interactifs tant qu'il est visible), conformément au
+ * plan (« conserve cette rangée sous le scrim »).
  */
 export function CatalogueCreateOptions({
   visible,
@@ -28,21 +37,70 @@ export function CatalogueCreateOptions({
   onSelectNewSession,
   onCancel,
 }: CatalogueCreateOptionsProps) {
-  if (!visible) {
+  // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
+  // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
+  // rendu (`react-hooks/refs`).
+  const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
+  const [shouldRender, setShouldRender] = useState(visible);
+  // Ajustement d'état PENDANT le rendu (patron officiellement recommandé
+  // pour dériver un état d'un changement de prop, `react.dev/learn/
+  // you-might-not-need-an-effect`) — jamais un `setState` synchrone dans un
+  // effet (`react-hooks/set-state-in-effect`) : `shouldRender` doit devenir
+  // vrai IMMÉDIATEMENT (avant même le premier rendu du fondu), pas après un
+  // aller-retour d'effet.
+  const [previousVisible, setPreviousVisible] = useState(visible);
+  if (visible !== previousVisible) {
+    setPreviousVisible(visible);
+    if (visible) {
+      setShouldRender(true);
+    }
+  }
+
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: APPEAR_DURATION_MS,
+        useNativeDriver: true,
+      }).start();
+      return;
+    }
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: DISMISS_DURATION_MS,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setShouldRender(false);
+      }
+    });
+  }, [visible, progress]);
+
+  if (!shouldRender) {
     return null;
   }
 
   const t = strings.screens.sessions.createTree;
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] });
 
   return (
     <>
-      <Pressable
-        onPress={onCancel}
-        accessible={false}
-        testID="catalogue-create-tree-backdrop"
-        style={styles.backdrop}
-      />
-      <View style={styles.menu} testID="catalogue-create-tree">
+      {/* Scrim COMPLET : couvre tout l'écran, arrière-plan/navigation/retour/listes non interactifs tant que l'arbre est visible. */}
+      <Animated.View
+        pointerEvents={visible ? "auto" : "none"}
+        style={[styles.backdrop, { opacity: progress }]}
+      >
+        <Pressable
+          onPress={onCancel}
+          accessible={false}
+          testID="catalogue-create-tree-backdrop"
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+      <Animated.View
+        style={[styles.menu, { opacity: progress, transform: [{ scale }] }]}
+        testID="catalogue-create-tree"
+      >
         <CreateTreeOption
           label={t.newActivity}
           onPress={onSelectNewActivity}
@@ -60,7 +118,7 @@ export function CatalogueCreateOptions({
           testID="catalogue-create-tree-new-circuit"
         />
         <CreateTreeOption label={t.cancel} onPress={onCancel} testID="catalogue-create-tree-cancel" />
-      </View>
+      </Animated.View>
     </>
   );
 }

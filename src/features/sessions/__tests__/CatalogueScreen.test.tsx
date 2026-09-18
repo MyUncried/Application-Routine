@@ -206,10 +206,17 @@ describe("CatalogueScreen — cadre commun", () => {
     const filterRow = screen.getByTestId("catalogue-content-type-row");
     expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.background);
 
-    // Le segment sélectionné (`Séances`, au centre) reste bleu/violet DS avec
-    // texte blanc — non touché par le passage au sélecteur de type.
+    // Le segment sélectionné (`Séances`, au centre) reste annoncé comme tel,
+    // et son texte reste blanc — non touché par le passage au sélecteur de
+    // type. Le fond bleu/violet DS est désormais porté par le cadre animé
+    // unique (V2-CAT-01, revue 5732014381 obligation 3), jamais par le
+    // segment lui-même.
     const selected = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
-    expect(StyleSheet.flatten(selected.props.style).backgroundColor).toBe(colors.selection);
+    expect(selected.props.accessibilityState).toMatchObject({ selected: true });
+
+    fireEvent(filterRow, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } } });
+    const indicator = screen.getByTestId("catalogue-content-type-row-indicator");
+    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(colors.selection);
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {

@@ -101,6 +101,14 @@ export const fr = {
     },
     sessions: {
       title: "Catalogue des séances",
+      circuitsTitle: "Catalogue des circuits",
+      // V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : libellé
+      // PERMANENT de la destination basse — distinct de `strings.nav.sessions`
+      // (« Séances »), verrouillé par `src/shared/i18n/index.test.ts`, hors
+      // périmètre d'écriture autorisé de cette tranche et donc jamais
+      // modifiable ici. Cette clé dédiée permet au libellé de navigation de
+      // devenir `Catalogues` sans toucher à cette égalité stricte externe.
+      navLabel: "Catalogues",
       // T01-S10 (D-108, doc13 §8) : le contrôle principal du Catalogue est
       // désormais un sélecteur de TYPE de contenu — `Séances` seul actif,
       // `Activités`/`Circuits` visibles mais désactivés. Il ne filtre jamais

@@ -65,9 +65,17 @@ export function CatalogueScreen() {
   );
 
   const t = strings.screens.sessions;
-  // T01-S10/V2-CAT-01 (D-108) : le titre suit le segment actif — `Circuits`
-  // n'a pas de contenu fonctionnel propre et reprend le titre `Séances`.
-  const title = activeSegment === "activities" ? strings.screens.activities.title : t.title;
+  // T01-S10/V2-CAT-01 (D-108, plan §4.1) : le titre suit le segment actif —
+  // `Catalogue des séances` / `Catalogue des activités` / `Catalogue des
+  // circuits`, un mapping RÉEL des trois segments même si `Circuits` reste
+  // désactivé et donc inatteignable via l'interface (revue 5732014381,
+  // obligation 2).
+  const title =
+    activeSegment === "activities"
+      ? strings.screens.activities.title
+      : activeSegment === "circuits"
+        ? t.circuitsTitle
+        : t.title;
 
   return (
     <ScreenShell>
