@@ -48,11 +48,20 @@ Pour chaque critère approuvé :
    - `CHANGE_REQUEST_REQUIRED` si substitution/refonte nécessaire ;
    - `SCOPE_EXPANSION_REQUIRED` si le périmètre doit s’élargir ;
    - `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED` si une primitive native doit être abandonnée ;
-   - `ASSET_REQUIRED` si l’asset canonique requis est indisponible ;
    - `CLARIFICATION_REQUIRED` si la règle normative reste ambiguë ;
 6. ne jamais considérer Jest seul comme preuve visuelle, accessibilité ou device ;
 7. laisser `PENDING_DEVICE` toute preuve device non exécutée ;
 8. démontrer après modification que les éléments `PRESERVE` sont restés inchangés.
+
+## Compatibilité avec la machine à états
+
+0.6.39 ne crée aucun nouvel état protocolaire.
+
+- `CHANGE_REQUEST_REQUIRED`, `SCOPE_EXPANSION_REQUIRED` et `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED` existaient déjà comme barrières d’arrêt canoniques dans `.github/AI_ORCHESTRATION.md`.
+- `CLARIFICATION_REQUIRED` appartient déjà à la machine à états principale.
+- `ASSET_REQUIRED` reste un libellé historique de REWORK07A ; il n’est pas réintroduit comme état. Un asset canonique indisponible utilise `CHANGE_REQUEST_REQUIRED` avec `blocking_reason=CANONICAL_ASSET_UNAVAILABLE`.
+- `PENDING_DEVICE` est uniquement une valeur de `proof_status`, jamais un état protocolaire.
+- Le runtime reconnaît explicitement les quatre barrières autorisées dans la sortie Claude et interdit toute publication lorsqu’une barrière est signalée.
 
 ## Rapport de développement
 
