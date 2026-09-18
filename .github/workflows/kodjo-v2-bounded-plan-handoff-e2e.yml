@@ -1,0 +1,26 @@
+name: KODJO V2 — Bounded PLAN Handoff E2E
+
+on:
+  push:
+    branches:
+      - protocol/v2-initial-handoff-redesign-20260917
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  e2e-plan-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact branch revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run bounded E2E-PLAN-HANDOFF
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tests/kodjo/v2-plan-handoff-bounded-e2e.js
