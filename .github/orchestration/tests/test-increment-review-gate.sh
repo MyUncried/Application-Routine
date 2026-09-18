@@ -129,6 +129,7 @@ require_contains v2_bridge_marker 'continuity_origin=V2_LEAN_QUEUE' "$review_wor
 require_contains v2_authorization_reuse 'verify-authorizations.js' "$review_workflow"
 require_contains v2_single_increment 'LOT_1_OF_1' "$review_workflow"
 require_contains v2_queue_contract '.github/orchestration/queue/v2/*.json' "$review_workflow"
+require_contains v2_base_is_source 'and .source_head == $base' "$review_workflow"
 forbid_contains ruby_cross_language_sha_regex 'baseline.match?' "$review_workflow"
 forbid_contains baseline_equality 'm["baseline_head"]==ENV["base"]' "$review_workflow"
 forbid_contains unauthenticated_local_ancestry 'git merge-base --is-ancestor "$base" "$head"' "$review_workflow"
