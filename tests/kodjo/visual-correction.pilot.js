@@ -96,7 +96,8 @@ test('checkpoint et cible applicative doivent rester strictement cohérents', ()
 });
 
 test('un checkpoint sans attestation reste consommable quand aucune recovery_migration n est rejouee', () => {
-  const queue = visualQueue({ recovery_migration: undefined });
+  const queue = visualQueue();
+  delete queue.recovery_migration;
   queue.delivery_checkpoint = { ...queue.delivery_checkpoint, attestation_blob_oid: '' };
   assert.deepEqual(C.validateQueueRequest(queue), []);
 
