@@ -1,0 +1,138 @@
+name: iOS EAS Preview
+
+run-name: iOS preview — ${{ inputs.target_ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: "Git ref to build (branch, tag, or commit SHA)"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eas-ios-preview-${{ inputs.target_ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build iOS preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - name: Checkout requested ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify EAS preview configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const eas = JSON.parse(fs.readFileSync('eas.json', 'utf8'));
+          const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          if (eas?.build?.preview?.distribution !== 'internal') {
+            throw new Error('EAS_PREVIEW_NOT_INTERNAL');
+          }
+          if (!app?.expo?.extra?.eas?.projectId) {
+            throw new Error('EAS_PROJECT_ID_MISSING');
+          }
+          if (!app?.expo?.ios?.bundleIdentifier) {
+            throw new Error('IOS_BUNDLE_IDENTIFIER_MISSING');
+          }
+          console.log('EAS preview configuration verified');
+          console.log('projectId=' + app.expo.extra.eas.projectId);
+          console.log('bundleIdentifier=' + app.expo.ios.bundleIdentifier);
+          NODE
+
+      - name: Verify Expo authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "::error::Repository secret EXPO_TOKEN is missing."
+            echo "Add an Expo access token as the repository Actions secret EXPO_TOKEN, then rerun this workflow."
+            exit 1
+          fi
+
+      - name: Install EAS CLI
+        shell: bash
+        run: npm install --global eas-cli@21.7.1
+
+      - name: Submit iOS preview build
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build             --platform ios             --profile preview             --non-interactive             --no-wait             --json > eas-build.json
+
+          cat eas-build.json
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const payload = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
+          const first = Array.isArray(payload) ? payload[0] : payload;
+
+          function findUrl(value) {
+            if (!value || typeof value !== 'object') return null;
+            for (const [key, candidate] of Object.entries(value)) {
+              if (typeof candidate === 'string' && /^https:\/\//.test(candidate) && /expo\.dev/.test(candidate)) {
+                if (/url|link|page/i.test(key)) return candidate;
+              }
+            }
+            for (const candidate of Object.values(value)) {
+              const found = findUrl(candidate);
+              if (found) return found;
+            }
+            return null;
+          }
+
+          const buildId = first?.id || first?.buildId || '';
+          const buildUrl =
+            first?.buildDetailsPageUrl ||
+            first?.buildUrl ||
+            first?.url ||
+            findUrl(first) ||
+            '';
+
+          if (!buildUrl) {
+            throw new Error('EAS_BUILD_URL_NOT_FOUND');
+          }
+
+          const output = process.env.GITHUB_OUTPUT;
+          fs.appendFileSync(output, 'build_id=' + String(buildId) + '\n');
+          fs.appendFileSync(output, 'build_url=' + buildUrl + '\n');
+          NODE
+
+      - name: Publish build link
+        shell: bash
+        run: |
+          {
+            echo "### iOS EAS Preview submitted"
+            echo ""
+            echo "- Ref: \`${{ inputs.target_ref }}\`"
+            echo "- Profile: \`preview\`"
+            echo "- Distribution: \`internal\`"
+            if [ -n "${{ steps.build.outputs.build_id }}" ]; then
+              echo "- Build ID: \`${{ steps.build.outputs.build_id }}\`"
+            fi
+            echo "- [Open EAS build / installation page](${{ steps.build.outputs.build_url }})"
+            echo ""
+            echo "The EAS build continues in Expo cloud after this GitHub job finishes."
+          } >> "$GITHUB_STEP_SUMMARY"
