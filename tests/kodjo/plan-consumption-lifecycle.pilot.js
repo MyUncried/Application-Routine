@@ -10,6 +10,19 @@ function workflow(name) {
   return fs.readFileSync(path.join(root, '.github', 'workflows', name), 'utf8');
 }
 
+test('cycle de vie: les deux revues rejouent le contrat UI atomique avant Claude', () => {
+  for (const name of ['kodjo-v2-slice-initial-plan-review.yml','kodjo-v2-slice-plan-review.yml']) {
+    const source=workflow(name);
+    assert.match(source,/verify-ui-plan-criteria\.js/);
+    assert.match(source,/KODJO_UI_PLAN_CONTRACT_REVIEW_JSON/);
+    const contractIndex=source.indexOf('Revalidate UI criteria contract before Claude');
+    const claudeIndex=source.indexOf('Review initial V2 plan with Claude') >= 0
+      ? source.indexOf('Review initial V2 plan with Claude')
+      : source.indexOf('Review V2 plan with Claude');
+    assert.ok(contractIndex >= 0 && claudeIndex > contractIndex, `${name}: UI criteria gate must precede Claude`);
+  }
+});
+
 test('cycle de vie: les deux revues rejouent le contrat versionné avant Claude', () => {
   for (const name of ['kodjo-v2-slice-initial-plan-review.yml','kodjo-v2-slice-plan-review.yml']) {
     const source=workflow(name);
