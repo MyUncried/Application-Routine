@@ -17,6 +17,8 @@ test('0.6.29 — une nouvelle tranche V2 possède une entrée de premier plan sa
   assert.match(workflow, /\[KODJO_V2\] START_INITIAL_PLAN/);
   assert.match(workflow, /!contains\(github\.event\.comment\.body, '\[KODJO_V2\] START_INITIAL_PLAN_REVIEW'\)/);
   assert.match(workflow, /V2_INITIAL_SOURCE_MUST_EQUAL_BASELINE/);
+  assert.match(workflow, /V2_INITIAL_PLANNING_APPLICATION_HEAD_MISSING/);
+  assert.match(workflow, /V2_INITIAL_PLANNING_APPLICATION_HEAD_MUST_EQUAL_BASELINE/);
   assert.match(workflow, /planning_mode=INITIAL/);
   assert.match(workflow, /planning_contract=kodjo\.plan-impact\.v1/);
   assert.match(workflow, /PLAN_READY_FOR_INDEPENDENT_REVIEW/);
@@ -127,7 +129,9 @@ test('0.6.29 — la revue initiale emporte le registre de migration et matérial
   const migration = migrations.migrations[0];
   assert.equal(migration.slice_id, bootstrap.slice_id);
   assert.equal(migration.baseline_head, bootstrap.baseline_head);
-  assert.equal(migration.slice_bootstrap_sha256, bootstrap.slice_bootstrap_sha256);
+  const I = require('../../scripts/kodjo/lib/slice-identity');
+  const productIdentity = I.sha256(I.canonical({ slice_id:bootstrap.slice_id, baseline_head:bootstrap.baseline_head, product_sources:bootstrap.product_sources }));
+  assert.equal(migration.product_identity_sha256, productIdentity);
   assert.deepEqual(migration.legacy_product_sources, bootstrap.product_sources);
 });
 
