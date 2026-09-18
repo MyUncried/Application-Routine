@@ -225,6 +225,12 @@ jobs:
           test -s /tmp/changed-files.txt
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
 
+      - name: Prepare criterion-complete UI review input
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/verify-ui-implementation-review.js prepare             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/ui-implementation-review-input.json
+
       - name: Independent OpenAI review
         shell: bash
         env:
@@ -239,9 +245,18 @@ jobs:
           git diff "$BASE..$HEAD" > /tmp/diff.patch
           {
             echo "You are the independent KODJO implementation reviewer for $SLICE_ID, increment $INCREMENT only."
-            echo "Review exact commit $HEAD only against the requirements explicitly allocated to $INCREMENT in the approved plan, using the implementation output as the authoritative statement of the delivered increment. Requirements allocated to later increments are deferred: their absence MUST NOT be reported as a defect, missing scope, missing wiring, or missing test."
-            echo "Apply the validated S09 criteria only where they are applicable to $INCREMENT: scope, correctness, persistence atomicity, migrations, backward compatibility, tests, Unicode, UI contracts, non-regression, and evidence integrity. The deterministic gate immediately preceding this review has already completed npm test and TypeScript successfully; do not claim those checks were not run. You may report only a demonstrated defect in their actual results or coverage within $INCREMENT."
-            echo "Do not modify files. End with exactly VERDICT: APPROVE or VERDICT: REVISE. If REVISE, list only demonstrated blocking points inside $INCREMENT and a precise REVIEW_FEEDBACK section."
+            echo "Review exact commit $HEAD against the approved plan, the exact criterion-complete UI review input, the changed files, the diff and the deterministic test gate."
+            echo "Every criterion_id in the UI review input must appear exactly once in your structured output. Do not invent or omit criteria."
+            echo "For each proof_required, return exactly one proof_result. FUNCTIONAL_TEST, STATIC_ANALYSIS and ACCESSIBILITY_CHECK are blocking and may be PASS only with evidence from the supplied material."
+            echo "VISUAL_COMPARE and DEVICE_CHECK cannot be certified by this automated review. Return PENDING_DEVICE unless there is a demonstrated FAIL; never return PASS for those two proof types."
+            echo "PRESERVE must be independently checked against the diff. A demonstrated preservation failure is blocking."
+            echo "Requirements allocated to later increments remain deferred and are not defects."
+            echo "The deterministic gate immediately preceding this review has completed npm test and TypeScript successfully."
+            echo "Return verdict=REVISE for any blocking defect. Otherwise return verdict=APPROVE even when device_gate_required=true; APPROVE is technical approval only and never closes the device/human gate."
+            echo "Do not modify files."
+            echo
+            echo "UI REVIEW INPUT:"
+            cat /tmp/ui-implementation-review-input.json
             echo
             echo "IMPLEMENTATION OUTPUT:"
             cat /tmp/implementation-output.md
@@ -255,12 +270,55 @@ jobs:
             echo "DIFF:"
             head -c 700000 /tmp/diff.patch
           } > /tmp/review-prompt.txt
-          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/review-prompt.txt '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"medium"}}' > /tmp/review-request.json
+          REVIEW_SCHEMA=$(jq -nc '{
+            type:"object",
+            additionalProperties:false,
+            required:["schema","verdict","device_gate_required","criteria"],
+            properties:{
+              schema:{type:"string",enum:["kodjo.ui-implementation-review.v1"]},
+              verdict:{type:"string",enum:["APPROVE","REVISE"]},
+              device_gate_required:{type:"boolean"},
+              criteria:{
+                type:"array",
+                items:{
+                  type:"object",
+                  additionalProperties:false,
+                  required:["criterion_id","implementation_status","preserve_status","evidence","proof_results"],
+                  properties:{
+                    criterion_id:{type:"string",minLength:1},
+                    implementation_status:{type:"string",enum:["CONFORME","PARTIELLEMENT_CONFORME","NON_CONFORME","NON_VERIFIABLE"]},
+                    preserve_status:{type:"string",enum:["PASS","FAIL","NON_VERIFIABLE"]},
+                    evidence:{type:"string",minLength:1},
+                    proof_results:{
+                      type:"array",
+                      items:{
+                        type:"object",
+                        additionalProperties:false,
+                        required:["proof_type","status","evidence"],
+                        properties:{
+                          proof_type:{type:"string",enum:["FUNCTIONAL_TEST","STATIC_ANALYSIS","VISUAL_COMPARE","ACCESSIBILITY_CHECK","DEVICE_CHECK"]},
+                          status:{type:"string",enum:["PASS","FAIL","PENDING_DEVICE","NON_VERIFIABLE"]},
+                          evidence:{type:"string",minLength:1}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }')
+          jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/review-prompt.txt --argjson schema "$REVIEW_SCHEMA"             '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:16000,text:{verbosity:"medium",format:{type:"json_schema",name:"kodjo_ui_implementation_review",strict:true,schema:$schema}}}' > /tmp/review-request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/review-request.json -o /tmp/review-response.json
           status=$(jq -r '.status // "missing"' /tmp/review-response.json)
           if [ "$status" != completed ]; then jq -c '{status,incomplete_details,error,usage}' /tmp/review-response.json >&2; exit 1; fi
-          jq -er '[.output[]?|select(.type=="message")|.content[]?|select(.type=="output_text")|.text]|join("\n")|select(length>0)' /tmp/review-response.json > /tmp/review.md
-          grep -Eq '^VERDICT: (APPROVE|REVISE)$' /tmp/review.md
+          jq -er '[.output[]?|select(.type=="message")|.content[]?|select(.type=="output_text")|.text]|join("\n")|select(length>0)' /tmp/review-response.json > /tmp/review-structured.json
+          jq -e '.' /tmp/review-structured.json >/dev/null
+          node scripts/kodjo/verify-ui-implementation-review.js validate             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/review-structured.json             /tmp/review-contract.json
+          {
+            printf 'VERDICT: %s\n' "$(jq -r .verdict /tmp/review-contract.json)"
+            printf 'DEVICE_GATE_REQUIRED: %s\n\n' "$(jq -r .device_gate_required /tmp/review-contract.json)"
+            jq .
+          } < /tmp/review-contract.json > /tmp/review.md
 
       - name: Publish implementation verdict
         shell: bash
@@ -276,6 +334,7 @@ jobs:
         run: |
           set -euo pipefail
           verdict=$(sed -n 's/^VERDICT: //p' /tmp/review.md|tail -n1)
+          device_gate_required=$(jq -r .device_gate_required /tmp/review-contract.json)
           if [ "$verdict" = APPROVE ]; then status=IMPLEMENTATION_REVIEW_APPROVED; else status=IMPLEMENTATION_REVISION_REQUIRED; fi
           {
             echo '[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT'
@@ -288,9 +347,14 @@ jobs:
             echo "source_implementation_comment_id=$SOURCE_COMMENT_ID"
             echo "source_implementation_trigger_comment_id=$IMPLEMENTATION_TRIGGER_COMMENT_ID"
             echo "verdict=$verdict"
+            echo "device_gate_required=$device_gate_required"
             echo "STATUT : $status"
             echo
             cat /tmp/review.md
+            echo
+            echo '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
+            cat /tmp/review-contract.json
+            echo '</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
           } > /tmp/review-comment.md
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/review-comment.md
 
@@ -301,7 +365,10 @@ jobs:
           name: kodjo-slice-implementation-review-${{ github.run_id }}
           path: |
             /tmp/review-response.json
+            /tmp/review-structured.json
             /tmp/review.md
+            /tmp/review-contract.json
+            /tmp/ui-implementation-review-input.json
             /tmp/changed-files.txt
             /tmp/diff-stat.txt
           if-no-files-found: warn
