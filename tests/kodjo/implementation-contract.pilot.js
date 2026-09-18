@@ -90,7 +90,7 @@ test('implementation contract: dérive de matrice après approbation est refusé
 test('implementation contract: required stop supprimé de la mission est refusé', () => {
   const plan = planFixture();
   const { mission } = renderImplementationMission('V2-TEST', plan, 'c'.repeat(40));
-  const changed = mission.replace(',ASSET_REQUIRED', '');
+  const changed = mission.replace(',CLARIFICATION_REQUIRED', '');
   assert.throws(
     () => verifyImplementationMission(changed, plan, 'c'.repeat(40)),
     /IMPLEMENTATION_CONTRACT_DRIFT/
