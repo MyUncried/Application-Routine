@@ -179,12 +179,14 @@ Existing application PR: #$targetPr
 Previous HEAD: $applicationHead
 Delivered HEAD: $newHead
 Protocol HEAD: $($queue.source_head)
-Verdict: IMPLEMENTED_AND_VERIFIED
+Verdict: IMPLEMENTATION_READY_FOR_REVIEW
 
-Human visual review remains required before merge.
+Independent implementation review remains required before human visual review and merge.
 "@
     gh pr comment $targetPr --body $body
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_COMMENT_FAILED' }
+    $deliveredPr = $targetPr
+    $deliveredBranch = $targetBranch
   } else {
     git push --set-upstream origin $branch
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PUSH_FAILED' }
@@ -195,12 +197,154 @@ Automated KODJO V2 delivery.
 Slice: $($queue.slice_id)
 Authorized source: $($queue.source_head)
 Queue request: $QueueFile
-Verdict: IMPLEMENTED_AND_VERIFIED
+Verdict: IMPLEMENTATION_READY_FOR_REVIEW
 
-Human review remains required before merge.
+Independent implementation review remains required before human review and merge.
 "@
-    gh pr create --base main --head $branch --title ("feat({0}): verified implementation" -f $queue.slice_id) --body $body
+    gh pr create --base main --head $branch --title ("feat({0}): implementation candidate" -f $queue.slice_id) --body $body
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PR_FAILED' }
+    $createdPr = gh pr view $branch --json number,headRefOid,headRefName,baseRefName,state | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0 -or $null -eq $createdPr) { throw 'KODJO_QUEUE_CREATED_PR_UNREADABLE' }
+    if ([string]$createdPr.state -ne 'OPEN' -or [string]$createdPr.baseRefName -ne 'main' -or
+        ([string]$createdPr.headRefOid).ToLowerInvariant() -ne $newHead.ToLowerInvariant()) {
+      throw 'KODJO_QUEUE_CREATED_PR_DELIVERY_NOT_OBSERVED'
+    }
+    $deliveredPr = [int]$createdPr.number
+    $deliveredBranch = [string]$createdPr.headRefName
+  }
+
+  # Adaptateur V2 -> contrat de revue historique déjà qualifié.
+  $gateMatch = [regex]::Match([string]$queue.user_gate.gate_ref, '^issue_comment:([0-9]+)
+finally {
+  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
+  if ($isVisual) {
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+    }
+  }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+)
+  if (-not $gateMatch.Success) { throw 'KODJO_IMPLEMENTATION_REVIEW_GATE_REF_INVALID' }
+  $gateCommentId = $gateMatch.Groups[1].Value
+  $gateComment = gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$gateCommentId" | ConvertFrom-Json
+  if ($LASTEXITCODE -ne 0 -or $null -eq $gateComment) { throw 'KODJO_IMPLEMENTATION_REVIEW_GATE_UNREADABLE' }
+  $gateBody = [string]$gateComment.body
+  $planIdMatch = [regex]::Match($gateBody, '(?m)^source_plan_comment_id=([0-9]+)
+finally {
+  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
+  if ($isVisual) {
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+    }
+  }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+)
+  $reviewIdMatch = [regex]::Match($gateBody, '(?m)^source_review_comment_id=([0-9]+)
+finally {
+  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
+  if ($isVisual) {
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+    }
+  }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+)
+  if (-not $planIdMatch.Success -or -not $reviewIdMatch.Success) {
+    throw 'KODJO_IMPLEMENTATION_REVIEW_GATE_BINDING_MISSING'
+  }
+
+  $runDir = & node (Join-Path $runtimeScriptRoot 'resolve-run-directory.js')
+  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$runDir)) {
+    throw 'KODJO_IMPLEMENTATION_REVIEW_RESULT_DIR_UNREADABLE'
+  }
+  $resultPath = Join-Path ([string]$runDir).Trim() 'result.json'
+  if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) { throw 'KODJO_IMPLEMENTATION_REVIEW_RESULT_MISSING' }
+  $result = Get-Content -LiteralPath $resultPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $sessionId = [string]$result.session_id
+  if ($sessionId -notmatch '^[0-9a-fA-F-]{36}
+finally {
+  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
+  if ($isVisual) {
+    $savedPreference = $ErrorActionPreference
+    try {
+      $ErrorActionPreference = 'Continue'
+      git reset --hard | Out-Null
+      git switch --detach $queue.source_head | Out-Null
+    } finally {
+      $ErrorActionPreference = $savedPreference
+    }
+  }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+) { throw 'KODJO_IMPLEMENTATION_REVIEW_SESSION_INVALID' }
+
+  $reviewBody = @"
+[KODJO_SLICE] IMPLEMENTATION_OUTPUT
+slice_id=$($queue.slice_id)
+increment=LOT_1_OF_1
+base_head=$($queue.baseline_head)
+head=$newHead
+session_id=$sessionId
+plan_comment_id=$($planIdMatch.Groups[1].Value)
+plan_review_comment_id=$($reviewIdMatch.Groups[1].Value)
+source_implementation_trigger_comment_id=$gateCommentId
+continuity_origin=V2_LEAN_QUEUE
+v2_queue_path=$QueueFile
+v2_protocol_head=$($queue.source_head)
+v2_request_id=$($queue.request_id)
+application_pr=$deliveredPr
+application_branch=$deliveredBranch
+STATUT : IMPLEMENTATION_READY_FOR_REVIEW
+"@
+  $reviewPayload = @{ body = $reviewBody } | ConvertTo-Json -Depth 4
+  $reviewPayloadPath = Join-Path $env:RUNNER_TEMP ("kodjo-review-output-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
+  [IO.File]::WriteAllText($reviewPayloadPath, $reviewPayload, (New-Object Text.UTF8Encoding($false)))
+  $reviewPosted = gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$($queue.issue_number)/comments" --input $reviewPayloadPath | ConvertFrom-Json
+  if ($LASTEXITCODE -ne 0 -or $null -eq $reviewPosted -or -not $reviewPosted.id) {
+    throw 'KODJO_IMPLEMENTATION_REVIEW_OUTPUT_PUBLICATION_FAILED'
+  }
+
+  $reviewMetadataPath = [string]$env:KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE
+  if (-not [string]::IsNullOrWhiteSpace($reviewMetadataPath)) {
+    $reviewMetadata = [ordered]@{
+      schema_version = 'kodjo.protocol.v2.implementation-review-bridge.0.6.38'
+      issue_number = [int]$queue.issue_number
+      source_comment_id = [string]$reviewPosted.id
+      application_pr = [int]$deliveredPr
+      application_head = [string]$newHead
+      request_id = [string]$queue.request_id
+    }
+    [IO.File]::WriteAllText([IO.Path]::GetFullPath($reviewMetadataPath), ($reviewMetadata | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
   }
 }
 finally {
