@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { canonical, sha256 } = require('./lib/slice-identity');
+const { renderImplementationMission } = require('./lib/implementation-contract');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const ID = /^[1-9][0-9]*$/;
@@ -132,20 +133,8 @@ function main() {
   ].join('\n');
   writeText(path.resolve(cwd, reviewRel), canonicalReview);
 
-  const mission = [
-    '# Mission d’implémentation — ' + sliceId,
-    '',
-    'Exécuter exclusivement le plan approuvé matérialisé dans `technical-plan.md`.',
-    '',
-    '- plan_blob_oid : `' + planBlob + '`',
-    '- scope : la propriété `scope_allow` de la Lean Request est opposable ; aucun élargissement n’est autorisé.',
-    '- contrôles : exécuter uniquement les checks déclarés dans la Lean Request.',
-    '- ambiguïté : arrêter avec `CLARIFICATION_REQUIRED` ; ne jamais inventer.',
-    '',
-    'Cette mission ne crée aucune décision fonctionnelle ou technique nouvelle.',
-    '',
-  ].join('\n');
-  writeText(path.resolve(cwd, missionRel), mission);
+  const renderedMission = renderImplementationMission(sliceId, planBody, planBlob);
+  writeText(path.resolve(cwd, missionRel), renderedMission.mission);
 
   bootstrap.planning_application_head = String(impact.scan_revision);
   const unsigned = JSON.parse(JSON.stringify(bootstrap));
@@ -170,6 +159,9 @@ function main() {
     plan_path: planRel,
     review_path: reviewRel,
     prompt_file: missionRel,
+    implementation_contract: renderedMission.contract.schema,
+    ui_matrix_sha256: renderedMission.contract.ui_matrix_sha256,
+    ui_criterion_count: renderedMission.contract.ui_criterion_count,
     plan_blob_oid_precommit: planBlob,
     supersedes_plan_blob_oid: priorPlanBlob && priorPlanBlob !== planBlob ? priorPlanBlob : null,
     scope_count: impact.scope_allow.length,
