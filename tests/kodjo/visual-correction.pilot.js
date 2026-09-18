@@ -95,6 +95,20 @@ test('checkpoint et cible applicative doivent rester strictement cohérents', ()
   assert.ok(diagnostics(wrongApplication).includes('KODJO_QUEUE_DELIVERY_CHECKPOINT_REFUSED'));
 });
 
+test('un checkpoint sans attestation reste consommable quand aucune recovery_migration n est rejouee', () => {
+  const queue = visualQueue({ recovery_migration: undefined });
+  queue.delivery_checkpoint = { ...queue.delivery_checkpoint, attestation_blob_oid: '' };
+  assert.deepEqual(C.validateQueueRequest(queue), []);
+
+  const withMigration = visualQueue();
+  withMigration.delivery_checkpoint = { ...withMigration.delivery_checkpoint, attestation_blob_oid: '' };
+  assert.ok(diagnostics(withMigration).includes('KODJO_QUEUE_DELIVERY_CHECKPOINT_REFUSED'));
+
+  const mismatched = visualQueue();
+  mismatched.delivery_checkpoint = { ...mismatched.delivery_checkpoint, attestation_blob_oid: '9'.repeat(40) };
+  assert.ok(diagnostics(mismatched).includes('KODJO_QUEUE_DELIVERY_CHECKPOINT_REFUSED'));
+});
+
 test('projection Lean sépare HEAD protocolaire et HEAD applicatif et ne rejoue pas la migration historique', () => {
   const projected = Q.projectQueueRequest(visualQueue());
   assert.equal(projected.source_head, applicationHead);
