@@ -28,6 +28,19 @@ La chaîne était donc conforme jusqu’à `IMPLEMENTATION_REVIEW_APPROVED`, mai
 
 0.6.41 corrige ce raccord dans le workflow de finalisation existant, sans nouveau workflow ni nouveau marqueur.
 
+## Compatibilité VISUAL_CORRECTION
+
+La qualification E2E a identifié une régression introduite par 0.6.40 : la revue structurée critère-complet était activée pour toute Lean Queue V2, y compris `VISUAL_CORRECTION`. Or une correction visuelle doit rester une revue différentielle bornée au delta courant ; exiger tous les `change_targets` du plan initial contre le seul diff correctif rendait ce chemin impossible.
+
+0.6.41 corrige ce point sans changer le contrat historique :
+
+- `IMPLEMENT` utilise la revue critère-complète 0.6.40 ;
+- `VISUAL_CORRECTION` conserve la revue différentielle historique existante ;
+- aucun nouveau statut ni canal n’est créé ;
+- la finalisation V2 accepte les deux modes et les distingue explicitement par `review_mode=CRITERION_COMPLETE|VISUAL_CORRECTION_DELTA`.
+
+Une `VISUAL_CORRECTION` n’invente donc pas rétroactivement un nouveau contrat complet. Sa fermeture repose sur le checkpoint/cible V2 existants, la revue indépendante du delta, les contrôles déterministes, puis le gate humain/device sur le HEAD exact.
+
 ## Gate V2 final
 
 Le même workflow `.github/workflows/kodjo-slice-finalize.yml` accepte désormais deux chemins strictement séparés :
