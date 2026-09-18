@@ -74,12 +74,39 @@ function resolveImpactApplicationHead(bootstrap, planBody) {
   return applicationHead;
 }
 
-/** La migration doit désigner le même code applicatif que le plan approuvé. */
-function verifyAttestedApplicationHead(attestation, applicationHead) {
-  if (attestation.application_pr_head !== applicationHead) {
+/** Résout le HEAD applicatif que l'attestation doit désigner.
+ *
+ * Le plan conserve toujours sa propre révision de scan immuable. Pour une
+ * correction visuelle d'une PR existante, l'attestation doit en revanche
+ * désigner le HEAD applicatif réellement corrigé, pas la révision historique
+ * sur laquelle le plan initial a été scanné.
+ */
+function resolveAttestedApplicationHead(queue, planApplicationHead) {
+  const operationKind = String(queue.operation_kind || 'IMPLEMENT').toUpperCase();
+  if (operationKind !== 'VISUAL_CORRECTION') return planApplicationHead;
+
+  const delivery = queue.delivery_target || {};
+  const deliveryHead = String(delivery.application_head || '').toLowerCase();
+  if (!SHA40.test(deliveryHead)) {
+    fail('VISUAL_CORRECTION_APPLICATION_HEAD_INVALID', deliveryHead || '<absent>');
+  }
+
+  const checkpoint = queue.delivery_checkpoint || {};
+  const checkpointHead = String(checkpoint.application_head || '').toLowerCase();
+  if (!SHA40.test(checkpointHead) || checkpointHead !== deliveryHead) {
+    fail('VISUAL_CORRECTION_CHECKPOINT_HEAD_MISMATCH',
+      'delivery=' + deliveryHead + ', checkpoint=' + (checkpointHead || '<absent>'));
+  }
+
+  return deliveryHead;
+}
+
+/** La migration doit désigner le code applicatif réellement repris. */
+function verifyAttestedApplicationHead(attestation, expectedApplicationHead) {
+  if (String(attestation.application_pr_head || '').toLowerCase() !== expectedApplicationHead) {
     fail('RECOVERY_MIGRATION_APPLICATION_HEAD_MISMATCH',
       'attestation=' + String(attestation.application_pr_head || '<absent>') +
-      ', plan=' + applicationHead);
+      ', expected=' + expectedApplicationHead);
   }
 }
 
@@ -335,7 +362,10 @@ function verify(queueFile, options) {
         attestation.session_id !== queue.session_id) {
       fail('RECOVERY_MIGRATION_PROVENANCE_MISMATCH');
     }
-    if (hasImpactContract) verifyAttestedApplicationHead(attestation, applicationHead);
+    if (hasImpactContract) {
+      const expectedAttestedHead = resolveAttestedApplicationHead(queue, applicationHead);
+      verifyAttestedApplicationHead(attestation, expectedAttestedHead);
+    }
     const binding = attestation.authorization_binding || {};
     const bindingMatches = Boolean(binding.authorized_plan &&
         binding.authorized_plan.plan_path === plan.plan_path &&
@@ -396,5 +426,5 @@ if (require.main === module) {
 
 module.exports = {
   verify, ghClient, checkThumbsUp, issueOfComment, blobContent,
-  resolveImpactApplicationHead, verifyAttestedApplicationHead,
+  resolveImpactApplicationHead, resolveAttestedApplicationHead, verifyAttestedApplicationHead,
 };
