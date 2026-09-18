@@ -16,6 +16,10 @@ Ajouts :
 - validation avant génération de Lean Request ;
 - rejeu de cette validation dans `run-queued-request.ps1` avant Claude.
 
+## Compatibilité des statuts
+
+Aucun nouvel état protocolaire n’est ajouté. Les barrières exécutables sont limitées à `CHANGE_REQUEST_REQUIRED`, `SCOPE_EXPANSION_REQUIRED`, `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED` et `CLARIFICATION_REQUIRED`. `ASSET_REQUIRED` n’est pas réintroduit ; un asset canonique indisponible est un motif de `CHANGE_REQUEST_REQUIRED`. `PENDING_DEVICE` reste une valeur de preuve. Le runner bloque désormais la publication quand Claude émet explicitement l’une des barrières autorisées.
+
 ## Non-régression
 
 Inchangés :
