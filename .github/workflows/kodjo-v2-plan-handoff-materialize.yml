@@ -86,16 +86,23 @@ jobs:
           git add -- "$PLAN_PATH" "$REVIEW_PATH" "$PROMPT_FILE" "$BOOTSTRAP_PATH" .github/orchestration/v2-activation-registry.json
           mapfile -t CHANGED < <(git diff --cached --name-only)
           EXPECTED=("$PLAN_PATH" "$REVIEW_PATH" "$PROMPT_FILE" "$BOOTSTRAP_PATH" ".github/orchestration/v2-activation-registry.json")
-          printf '%s\n' "${CHANGED[@]}" | sort > "${RUNNER_TEMP}/changed.txt"
-          printf '%s\n' "${EXPECTED[@]}" | sort > "${RUNNER_TEMP}/expected.txt"
-          diff -u "${RUNNER_TEMP}/expected.txt" "${RUNNER_TEMP}/changed.txt"
+          for changed in "${CHANGED[@]}"; do
+            allowed=false
+            for expected in "${EXPECTED[@]}"; do
+              if [ "$changed" = "$expected" ]; then allowed=true; break; fi
+            done
+            if [ "$allowed" != true ]; then
+              echo "HANDOFF_UNEXPECTED_MUTATION: $changed" >&2
+              exit 1
+            fi
+          done
           if git diff --cached --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "chore(kodjo): materialize approved plan handoff $SLICE_ID"
-            git push origin HEAD:main
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo 'HANDOFF_ALREADY_MATERIALIZED' >&2
+            exit 1
           fi
+          git commit -m "chore(kodjo): materialize approved plan handoff $SLICE_ID"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
           APPROVED_AT="$(git rev-parse HEAD)"
           echo "approved_at_commit=$APPROVED_AT" >> "$GITHUB_OUTPUT"
 
