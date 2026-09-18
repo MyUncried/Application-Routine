@@ -40,3 +40,10 @@ test('existing delivery bridge compare uniquement le delta applicatif depuis le 
   assert.match(bridge, /base_head=\$BASE/);
   assert.match(bridge, /contains\("\\nbase_head=" \+ \$base \+ "\\n"\)/);
 });
+
+
+test('existing delivery bridge accepte une VISUAL_CORRECTION livrée sur le HEAD applicatif antérieur', () => {
+  assert.match(bridge, /operation_kind=\$\(jq -r '\.operation_kind \/\/ "IMPLEMENT"'/);
+  assert.match(bridge, /delivery_target\.application_head/);
+  assert.match(bridge, /Visual correction base does not match delivery_target\.application_head/);
+});
