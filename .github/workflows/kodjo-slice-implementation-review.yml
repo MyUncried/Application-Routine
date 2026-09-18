@@ -96,50 +96,106 @@ jobs:
           fi
           test -n "$slice" && [[ "$session" =~ ^[0-9a-f-]{36}$ ]] && [[ "$plan" =~ ^[0-9]+$ ]] && [[ "$plan_review" =~ ^[0-9]+$ ]]
           [[ "$head" =~ ^[0-9a-f]{40}$ ]] && [[ "$base" =~ ^[0-9a-f]{40}$ ]]
-          trigger_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$implementation_trigger_comment_id")
-          jq -e --arg issue "$ISSUE_NUMBER" '.user.login == "MyUncried" and (.issue_url | endswith("/issues/" + $issue)) and (.body | type == "string")' <<<"$trigger_json" >/dev/null
-          trigger_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$trigger_json")
-          trigger_marker=$(first_line "$trigger_body")
-          case "$trigger_marker" in
-            '[KODJO_SLICE] START_IMPLEMENTATION'|'[KODJO_SLICE] IMPLEMENTATION_REVISION'|'[KODJO_SLICE] VISUAL_CORRECTION') ;;
-            *) echo 'Invalid source implementation trigger marker' >&2; exit 1 ;;
-          esac
-          trigger_slice=$(extract_exactly_one "$trigger_body" 's/^slice_id=//p' trigger_slice_id)
-          trigger_source=$(extract_exactly_one "$trigger_body" 's/^source_head=//p' trigger_source_head)
-          trigger_plan=$(extract_exactly_one "$trigger_body" 's/^source_plan_comment_id=//p' trigger_plan_comment_id)
-          trigger_review=$(extract_exactly_one "$trigger_body" 's/^source_review_comment_id=//p' trigger_review_comment_id)
-          mapfile -t trigger_sessions < <(sed -n 's/^session_id=//p' <<<"$trigger_body")
-          [ "${#trigger_sessions[@]}" -le 1 ] || { echo 'Duplicate trigger session_id' >&2; exit 1; }
-          trigger_session="${trigger_sessions[0]:-}"
-          mapfile -t trigger_increments < <(sed -n 's/^increment=\(LOT_[1-9][0-9]*_OF_[1-9][0-9]*\)$/\1/p' <<<"$trigger_body")
-          [ "${#trigger_increments[@]}" -eq 1 ] || { echo 'Source trigger must contain exactly one valid increment' >&2; exit 1; }
-          if [ -z "${increment:-}" ]; then increment="${trigger_increments[0]}"; fi
-          [[ "$increment" =~ ^LOT_([1-9][0-9]*)_OF_([1-9][0-9]*)$ ]] && [ "${BASH_REMATCH[1]}" -le "${BASH_REMATCH[2]}" ] || { echo 'Invalid increment bounds' >&2; exit 1; }
-          [ "$increment" = "${trigger_increments[0]}" ] && [ "$trigger_slice" = "$slice" ] && [ "$trigger_source" = "$base" ] && [ "$trigger_plan" = "$plan" ] && [ "$trigger_review" = "$plan_review" ] || { echo 'Implementation trigger causality mismatch' >&2; exit 1; }
-          if [ -n "$trigger_session" ] && [ "$trigger_session" != "$session" ]; then echo 'Implementation session causality mismatch' >&2; exit 1; fi
-          manifest=".github/orchestration/slices/$slice.yml"
-          test -f "$manifest"
-          export ISSUE_NUMBER slice
-          ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;baseline=m["baseline_head"].to_s;branch=m["target_branch"].to_s;abort "baseline" if baseline.empty?;abort "branch" if branch.empty?;puts branch;puts baseline' "$manifest" > /tmp/manifest-gate
-          mapfile -t manifest_gate < /tmp/manifest-gate
-          [ "${#manifest_gate[@]}" -eq 2 ] || { echo 'Invalid manifest gate output' >&2; exit 1; }
-          branch="${manifest_gate[0]}"
-          baseline="${manifest_gate[1]}"
-          [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid manifest baseline SHA' >&2; exit 1; }
-          remote=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha')
-          test "$remote" = "$head"
-          baseline_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$baseline...$base" --jq '.status')
-          case "$baseline_status" in identical|ahead) ;; *) echo 'Implementation base is not descended from manifest baseline' >&2; exit 1 ;; esac
-          implementation_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$head" --jq '.status')
-          [ "$implementation_status" = ahead ] || { echo 'Implementation HEAD is not strictly descended from implementation base' >&2; exit 1; }
-          plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
-          jq -e --arg issue "$ISSUE_NUMBER" '
-            .user.login == "github-actions[bot]"
-            and (.issue_url | endswith("/issues/" + $issue))
-            and (.body | type == "string")
-          ' <<<"$plan_json" >/dev/null
-          plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
-          [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
+          if grep -Fxq 'continuity_origin=V2_LEAN_QUEUE' <<<"$source_body"; then
+            v2_queue_path=$(extract_exactly_one "$source_body" 's/^v2_queue_path=//p' v2_queue_path)
+            v2_protocol_head=$(extract_exactly_one "$source_body" 's/^v2_protocol_head=//p' v2_protocol_head)
+            v2_request_id=$(extract_exactly_one "$source_body" 's/^v2_request_id=//p' v2_request_id)
+            application_pr=$(extract_exactly_one "$source_body" 's/^application_pr=\([1-9][0-9]*\)$/\1/p' application_pr)
+            branch=$(extract_exactly_one "$source_body" 's/^application_branch=//p' application_branch)
+            case "$v2_queue_path" in .github/orchestration/queue/v2/*.json) ;; *) echo 'Invalid V2 queue path' >&2; exit 1 ;; esac
+            [[ "$v2_protocol_head" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 protocol head' >&2; exit 1; }
+            [[ "$v2_request_id" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo 'Invalid V2 request id' >&2; exit 1; }
+            test -f "$v2_queue_path"
+            jq -e --arg slice "$slice" --arg base "$base" --arg protocol "$v2_protocol_head" --arg request "$v2_request_id" '
+              .slice_id == $slice
+              and .baseline_head == $base
+              and .source_head == $protocol
+              and .request_id == $request
+              and .authorized_plan.plan_blob_oid
+              and .independent_review.review_blob_oid
+              and .user_gate.gate_ref
+            ' "$v2_queue_path" >/dev/null
+            KODJO_VERIFY_GITHUB=1 node scripts/kodjo/verify-authorizations.js "$v2_queue_path"
+
+            gate_ref=$(jq -r '.user_gate.gate_ref' "$v2_queue_path")
+            [[ "$gate_ref" =~ ^issue_comment:([1-9][0-9]*)$ ]] || { echo 'Invalid V2 gate ref' >&2; exit 1; }
+            gate_id="${BASH_REMATCH[1]}"
+            [ "$implementation_trigger_comment_id" = "$gate_id" ] || { echo 'V2 gate causality mismatch' >&2; exit 1; }
+            gate_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$gate_id")
+            gate_body=$(jq -r '.body | gsub("\r"; "")' <<<"$gate_json")
+            gate_plan=$(extract_exactly_one "$gate_body" 's/^source_plan_comment_id=//p' gate_plan_comment_id)
+            gate_review=$(extract_exactly_one "$gate_body" 's/^source_review_comment_id=//p' gate_review_comment_id)
+            [ "$gate_plan" = "$plan" ] && [ "$gate_review" = "$plan_review" ] || { echo 'V2 plan/review binding mismatch' >&2; exit 1; }
+
+            [ "$increment" = 'LOT_1_OF_1' ] || { echo 'V2 review must cover LOT_1_OF_1' >&2; exit 1; }
+            baseline="$base"
+            [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 baseline SHA' >&2; exit 1; }
+
+            pr_json=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$application_pr")
+            jq -e --arg head "$head" --arg branch "$branch" '
+              .state == "open" and .base.ref == "main" and .head.sha == $head and .head.ref == $branch
+            ' <<<"$pr_json" >/dev/null
+
+            implementation_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$head" --jq '.status')
+            [ "$implementation_status" = ahead ] || { echo 'V2 implementation HEAD is not strictly descended from baseline' >&2; exit 1; }
+
+            plan_blob=$(jq -r '.authorized_plan.plan_blob_oid' "$v2_queue_path")
+            [[ "$plan_blob" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 plan blob' >&2; exit 1; }
+            plan_body=$(git cat-file -p "$plan_blob")
+            plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
+            jq -e --arg issue "$ISSUE_NUMBER" '
+              .user.login == "github-actions[bot]"
+              and (.issue_url | endswith("/issues/" + $issue))
+              and (.body | type == "string")
+            ' <<<"$plan_json" >/dev/null
+            v2_plan_comment_body=$(jq -r '.body | gsub("\r"; "")' <<<"$plan_json")
+            [ "$(first_line "$v2_plan_comment_body")" = '[KODJO_V2] PLAN_OUTPUT' ] || { echo 'Invalid V2 source plan marker' >&2; exit 1; }
+          else
+            trigger_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$implementation_trigger_comment_id")
+            jq -e --arg issue "$ISSUE_NUMBER" '.user.login == "MyUncried" and (.issue_url | endswith("/issues/" + $issue)) and (.body | type == "string")' <<<"$trigger_json" >/dev/null
+            trigger_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$trigger_json")
+            trigger_marker=$(first_line "$trigger_body")
+            case "$trigger_marker" in
+              '[KODJO_SLICE] START_IMPLEMENTATION'|'[KODJO_SLICE] IMPLEMENTATION_REVISION'|'[KODJO_SLICE] VISUAL_CORRECTION') ;;
+              *) echo 'Invalid source implementation trigger marker' >&2; exit 1 ;;
+            esac
+            trigger_slice=$(extract_exactly_one "$trigger_body" 's/^slice_id=//p' trigger_slice_id)
+            trigger_source=$(extract_exactly_one "$trigger_body" 's/^source_head=//p' trigger_source_head)
+            trigger_plan=$(extract_exactly_one "$trigger_body" 's/^source_plan_comment_id=//p' trigger_plan_comment_id)
+            trigger_review=$(extract_exactly_one "$trigger_body" 's/^source_review_comment_id=//p' trigger_review_comment_id)
+            mapfile -t trigger_sessions < <(sed -n 's/^session_id=//p' <<<"$trigger_body")
+            [ "${#trigger_sessions[@]}" -le 1 ] || { echo 'Duplicate trigger session_id' >&2; exit 1; }
+            trigger_session="${trigger_sessions[0]:-}"
+            mapfile -t trigger_increments < <(sed -n 's/^increment=\(LOT_[1-9][0-9]*_OF_[1-9][0-9]*\)$/\1/p' <<<"$trigger_body")
+            [ "${#trigger_increments[@]}" -eq 1 ] || { echo 'Source trigger must contain exactly one valid increment' >&2; exit 1; }
+            if [ -z "${increment:-}" ]; then increment="${trigger_increments[0]}"; fi
+            [[ "$increment" =~ ^LOT_([1-9][0-9]*)_OF_([1-9][0-9]*)$ ]] && [ "${BASH_REMATCH[1]}" -le "${BASH_REMATCH[2]}" ] || { echo 'Invalid increment bounds' >&2; exit 1; }
+            [ "$increment" = "${trigger_increments[0]}" ] && [ "$trigger_slice" = "$slice" ] && [ "$trigger_source" = "$base" ] && [ "$trigger_plan" = "$plan" ] && [ "$trigger_review" = "$plan_review" ] || { echo 'Implementation trigger causality mismatch' >&2; exit 1; }
+            if [ -n "$trigger_session" ] && [ "$trigger_session" != "$session" ]; then echo 'Implementation session causality mismatch' >&2; exit 1; fi
+            manifest=".github/orchestration/slices/$slice.yml"
+            test -f "$manifest"
+            export ISSUE_NUMBER slice
+            ruby -ryaml -e 'm=YAML.safe_load(File.read(ARGV[0]),aliases:false);abort "identity" unless m["slice_id"]==ENV["slice"]&&m["issue_number"].to_i==ENV["ISSUE_NUMBER"].to_i;baseline=m["baseline_head"].to_s;branch=m["target_branch"].to_s;abort "baseline" if baseline.empty?;abort "branch" if branch.empty?;puts branch;puts baseline' "$manifest" > /tmp/manifest-gate
+            mapfile -t manifest_gate < /tmp/manifest-gate
+            [ "${#manifest_gate[@]}" -eq 2 ] || { echo 'Invalid manifest gate output' >&2; exit 1; }
+            branch="${manifest_gate[0]}"
+            baseline="${manifest_gate[1]}"
+            [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid manifest baseline SHA' >&2; exit 1; }
+            remote=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha')
+            test "$remote" = "$head"
+            baseline_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$baseline...$base" --jq '.status')
+            case "$baseline_status" in identical|ahead) ;; *) echo 'Implementation base is not descended from manifest baseline' >&2; exit 1 ;; esac
+            implementation_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$head" --jq '.status')
+            [ "$implementation_status" = ahead ] || { echo 'Implementation HEAD is not strictly descended from implementation base' >&2; exit 1; }
+            plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
+            jq -e --arg issue "$ISSUE_NUMBER" '
+              .user.login == "github-actions[bot]"
+              and (.issue_url | endswith("/issues/" + $issue))
+              and (.body | type == "string")
+            ' <<<"$plan_json" >/dev/null
+            plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
+            [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
+            fi
           printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
           printf '%s' "$source_body" > /tmp/implementation-output.md
