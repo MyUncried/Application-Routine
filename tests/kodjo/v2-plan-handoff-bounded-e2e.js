@@ -102,7 +102,8 @@ function main() {
     writeJson(registryPath, registry);
 
     fs.writeFileSync(path.join(repo, planPath), planBody.replace(/\\r\\n/g, '\n') + '\n', 'utf8');
-    fs.writeFileSync(path.join(repo, reviewPath), reviewBody.replace(/\\r\\n/g, '\n') + '\n', 'utf8');
+    const canonicalReview = '# Revue indépendante matérialisée — ' + SLICE + '\n\nVerdict: APPROVED\nPlan reviewed: `technical-plan.md`\n\n' + reviewBody.replace(/\\r\\n/g, '\n') + '\n';
+    fs.writeFileSync(path.join(repo, reviewPath), canonicalReview, 'utf8');
 
     const preCommitPlanBlob = git(repo, ['hash-object', planPath]);
     const mission = [
