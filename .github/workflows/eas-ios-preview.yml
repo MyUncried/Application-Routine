@@ -71,6 +71,19 @@ jobs:
             exit 1
           fi
 
+      - name: Align EAS project identity for preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          app.expo.extra = app.expo.extra || {};
+          app.expo.extra.eas = app.expo.extra.eas || {};
+          app.expo.extra.eas.projectId = '0ee44f86-bd22-4b92-8780-e265b72907d9';
+          fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          NODE
+
       - name: Install project dependencies
         shell: bash
         run: npm ci --no-audit --no-fund
