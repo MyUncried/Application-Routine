@@ -2,7 +2,10 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react-n
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
+import type { ActivityDefinition } from "@/domain/activities";
 import type { SessionSummary } from "@/domain/sessions/Session";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import type { SessionService } from "@/features/sessions/SessionService";
@@ -12,19 +15,15 @@ import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors } from "@/shared/ui/tokens";
 
 /**
- * Seul `expo-router` est mocké (frontière de navigation). Le hook réel
- * `useSessionCatalogue` et un `SessionService` fictif contrôlable sont
- * utilisés partout ailleurs : ces tests exercent donc l'intégration réelle
- * écran + hook + service, pas seulement des props injectées.
+ * Seul `expo-router` est mocké (frontière de navigation). Les hooks réels
+ * `useSessionCatalogue`/`useActivityCatalogue` et des services fictifs
+ * contrôlables sont utilisés partout ailleurs : ces tests exercent donc
+ * l'intégration réelle écran + hooks + services, pas seulement des props
+ * injectées.
  *
- * Le mock de `useFocusEffect` capture le callback et sa fonction de
- * nettoyage pour permettre de simuler séparément focus initial, blur et
- * nouveau focus — un mock qui se contenterait d'exécuter immédiatement le
- * callback une seule fois ne permettrait de prouver ni le rechargement au
- * retour sur l'onglet, ni l'invalidation au blur.
- *
- * `useRouter` est mocké (T01-S07) pour exposer un `mockPush` contrôlable —
- * `+ Créer` navigue désormais vers `Composition d'une séance`.
+ * V2-CAT-01 : le segment `Activités` devient fonctionnel — `useActivityCatalogue`
+ * exige désormais un `ActivityDefinitionServiceContext`, fourni ici par un
+ * service fictif contrôlable, au même titre que `SessionServiceContext`.
  */
 const focusEffectHarness: { effect: (() => (() => void) | void) | null } = { effect: null };
 const mockPush = jest.fn();
@@ -69,17 +68,48 @@ function aSummary(id: string): SessionSummary {
   };
 }
 
+function aDefinition(id: string): ActivityDefinition {
+  return {
+    id,
+    name: `Activité ${id}`,
+    description: null,
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 1,
+    pauseSeconds: 0,
+    recoverySeconds: 0,
+    bodyZoneIds: [],
+    sideMode: "UNILATERAL",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  };
+}
+
 function makeFakeService() {
   const listActiveSessions = jest.fn<() => Promise<readonly SessionSummary[]>>();
   const service = { listActiveSessions } as unknown as SessionService;
   return { service, listActiveSessions };
 }
 
-function renderScreen(service: SessionService) {
+function makeFakeActivityService() {
+  const listActivityDefinitions = jest
+    .fn<() => Promise<readonly ActivityDefinition[]>>()
+    .mockResolvedValue([]);
+  const service = { listActivityDefinitions } as unknown as ActivityDefinitionService;
+  return { service, listActivityDefinitions };
+}
+
+function renderScreen(
+  service: SessionService,
+  activityService: ActivityDefinitionService = makeFakeActivityService().service,
+) {
   return render(
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
-        <CatalogueScreen />
+        <ActivityDefinitionServiceContext.Provider value={activityService}>
+          <CatalogueScreen />
+        </ActivityDefinitionServiceContext.Provider>
       </SessionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -98,7 +128,7 @@ beforeEach(() => {
 });
 
 describe("CatalogueScreen — cadre commun", () => {
-  it("displays the title, the full filter selector, and the active Créer action in every state", async () => {
+  it("displays the title, the full segment selector, and the active Créer action in every state", async () => {
     const { service, listActiveSessions } = makeFakeService();
     const pending = deferred<readonly SessionSummary[]>();
     listActiveSessions.mockReturnValue(pending.promise);
@@ -112,9 +142,7 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    expect(
-      screen.getByLabelText(types.activitiesUnavailableAccessibilityLabel),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(types.activities)).toBeTruthy();
     expect(
       screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel),
     ).toBeTruthy();
@@ -132,7 +160,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
   });
 
-  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the filters and Créer (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
+  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the segments and the command row (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -152,7 +180,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
 
     // Bande Context : fond distinct du fond général, contient le sélecteur
-    // de filtres ET l'action Créer (pas seulement l'un des deux).
+    // de segments ET l'action Créer (pas seulement l'un des deux).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
     expect(
@@ -240,18 +268,10 @@ describe("CatalogueScreen — cadre commun", () => {
 
     const body = screen.getByTestId("catalogue-body");
     const flattened = StyleSheet.flatten(body.props.style);
-    // La navigation basse est positionnée en absolu (`app/(tabs)/_layout.tsx`)
-    // et n'est donc jamais comptée dans la hauteur `flex` normale de ce
-    // corps — sans cette réserve, `centeredBody` centrerait son contenu sur
-    // toute la hauteur restante de l'écran, y compris la zone visuellement
-    // recouverte par la barre flottante. Correction `D`/`N-03` (2026-09-03) :
-    // même formule exacte que `_layout.tsx` (`navigationBarTotalHeight()`,
-    // résiduel + contenu — résiduel désormais une constante indépendante de
-    // `insets.bottom`, voir `@/shared/ui/navigationLayout`).
     expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
   });
 
-  it("marks Séances as selected (centre) and Activités/Circuits as disabled with an explicit unavailable label, with no Service call or navigation when pressed (T01-S10, D-108)", async () => {
+  it("marks Séances as selected (centre) at first render, and Circuits as disabled with an explicit unavailable label, with no navigation when pressed (T01-S10/V2-CAT-01, D-108)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -270,22 +290,43 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
 
     const sessionsTab = screen.getByLabelText(types.sessions);
-    const activitiesTab = screen.getByLabelText(types.activitiesUnavailableAccessibilityLabel);
     const circuitsTab = screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel);
 
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
-    expect(activitiesTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
     expect(circuitsTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
 
-    const callsBefore = listActiveSessions.mock.calls.length;
-    fireEvent.press(activitiesTab);
     fireEvent.press(circuitsTab);
 
-    expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
     expect(mockPush).not.toHaveBeenCalled();
+    // Toujours sur Séances : Circuit ne déclenche aucune navigation.
+    expect(screen.getByLabelText(types.sessions).props.accessibilityState).toMatchObject({
+      selected: true,
+    });
   });
 
-  it("navigates to Composition d'une séance exactly once when Créer is pressed (T01-S07)", async () => {
+  it("activates the Activités segment and loads persisted ActivityDefinition (V2-CAT-01)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+    const { service: activityService, listActivityDefinitions } = makeFakeActivityService();
+    listActivityDefinitions.mockResolvedValue([aDefinition("a")]);
+
+    renderScreen(service, activityService);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText(strings.screens.activities.title)).toBeTruthy();
+    expect(screen.getByText("Activité a")).toBeTruthy();
+  });
+
+  it("opens the Créer tree, and navigates to Composition d'une séance when 'Une séance' is selected (T01-S07, V2-CAT-01)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -300,9 +341,32 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(createAction.props.accessibilityState?.disabled).toBeFalsy();
 
     fireEvent.press(createAction);
+    expect(screen.getByTestId("catalogue-create-tree")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("catalogue-create-tree-new-session"));
 
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/composition");
+  });
+
+  it("navigates to the new-activity editor when 'Une nouvelle activité' is selected from the Créer tree", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.press(screen.getByLabelText(strings.screens.sessions.createAction));
+    fireEvent.press(screen.getByTestId("catalogue-create-tree-new-activity"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { catalogueDefinitionId: "new" },
+    });
   });
 
   it("Créer has the exact CE-T01-02 visual frame (90×32, compact-secondary radius), and a real ≥48×48 touch target via hitSlop, not visual enlargement (UI-CAT-001)", async () => {
@@ -327,7 +391,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
   });
 
-  it("pressing Séances (already selected) changes nothing: no re-render effect, no reload, no navigation", async () => {
+  it("pressing Séances (already selected) changes nothing: no reload, no navigation", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -338,29 +402,16 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const all = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
-    expect(all.props.accessibilityState).toMatchObject({ selected: true });
-
-    // Structural proof, not just the declared accessibility state: this
-    // control has no `onPress` at all in the current implementation — the
-    // only way a press could ever trigger a reload, a navigation, or any
-    // other business effect is through such a prop, and it does not exist.
-    expect(all.props.onPress).toBeUndefined();
+    const sessionsTab = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
+    expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
 
     const callsBefore = listActiveSessions.mock.calls.length;
     const emptyMessageBefore = screen.getByText(strings.screens.sessions.empty.message);
 
-    fireEvent.press(all);
+    fireEvent.press(sessionsTab);
 
-    // Behavioural confirmation, not just the structural one above: no new
-    // Service call, the selection state is unchanged, and the displayed
-    // content (still the empty state) is unaffected — nothing was
-    // re-triggered by the press. `all` itself has no `onPress` at all
-    // (asserted above), so there is structurally nothing it could navigate
-    // to, even though `+ Créer` elsewhere on this screen does navigate
-    // since T01-S07.
     expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
-    expect(all.props.accessibilityState).toMatchObject({ selected: true });
+    expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByText(strings.screens.sessions.empty.message)).toBe(emptyMessageBefore);
     expect(mockPush).not.toHaveBeenCalled();
   });

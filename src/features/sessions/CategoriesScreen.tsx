@@ -392,8 +392,10 @@ const styles = StyleSheet.create({
   tagLabelSelected: {
     color: colors.selection,
   },
+  // V2-CAT-01 (plan §4.5) : `Créer une catégorie` est centré horizontalement
+  // — auparavant aligné à gauche.
   createAction: {
-    alignSelf: "flex-start",
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -164,6 +164,14 @@ describe("CategoriesScreen — tags (AC-03, D-107)", () => {
   });
 });
 
+describe("CategoriesScreen — mise en page (V2-CAT-01)", () => {
+  it("centers 'Créer une catégorie' horizontally", () => {
+    renderScreen();
+    const createAction = screen.getByLabelText(t.createAction);
+    expect(StyleSheet.flatten(createAction.props.style).alignSelf).toBe("center");
+  });
+});
+
 describe("CategoriesScreen — création inline (AC-04, D-106, CE-T01-12)", () => {
   it("opens the inline row with the field focused, Annuler closes it without any draft change", async () => {
     renderScreen();

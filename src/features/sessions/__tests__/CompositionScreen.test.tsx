@@ -291,14 +291,42 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
   });
 
-  it("enables '+ Ajouter une activité' while no Exercise exists yet, and navigates to /exercise on press (T01-S08)", () => {
+  it("enables '+ Ajouter une activité' while no Exercise exists yet, and opens the add-activity tree on press (V2-CAT-01)", () => {
     renderScreen();
 
     const addActivity = screen.getByLabelText(composition.addActivity);
     expect(addActivity.props.accessibilityState).toMatchObject({ disabled: false });
 
     fireEvent.press(addActivity);
+    expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
+  });
+
+  it("navigates to /exercise when 'Une nouvelle activité' is selected from the add-activity tree", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
+
     expect(mockPush).toHaveBeenCalledWith("/exercise");
+  });
+
+  it("navigates to /activity-selection when 'Une activité existante' is selected from the add-activity tree", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
+
+    expect(mockPush).toHaveBeenCalledWith("/activity-selection");
+  });
+
+  it("closes the add-activity tree without any navigation on Annuler", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
+
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {

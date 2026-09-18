@@ -155,6 +155,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
     useSessionDraft();
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
+  // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
+  // activité` / `Une activité existante` / `Annuler`.
+  const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
@@ -516,7 +519,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * collection, jamais en remplacement d'une existante.
          */}
         <Pressable
-          onPress={() => router.push("/exercise")}
+          onPress={() => setIsAddActivityTreeOpen(true)}
           accessibilityRole="button"
           accessibilityState={{ disabled: false }}
           accessibilityLabel={composition.addActivity}
@@ -527,11 +530,72 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             right: spacing[8],
           }}
           style={styles.addActivityAction}
+          testID="composition-add-activity-action"
         >
           <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
           <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
         </Pressable>
       </ContextBand>
+
+      {/*
+       * V2-CAT-01 (plan §4.4) : arbre exact `Une nouvelle activité` / `Une
+       * activité existante` / `Annuler`. `Une nouvelle activité` crée une
+       * `SessionActivity` locale (route `/exercise`, comportement préservé à
+       * l'identique) ; `Une activité existante` ouvre la sélection multiple
+       * des définitions persistantes (`/activity-selection`) ; `Annuler`
+       * ferme sans écriture.
+       */}
+      {isAddActivityTreeOpen ? (
+        <>
+          <Pressable
+            onPress={() => setIsAddActivityTreeOpen(false)}
+            accessible={false}
+            testID="composition-add-activity-tree-backdrop"
+            style={styles.backdrop}
+          />
+          <View style={styles.addActivityTree} testID="composition-add-activity-tree">
+            <Pressable
+              onPress={() => {
+                setIsAddActivityTreeOpen(false);
+                router.push("/exercise");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.newActivity}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-new"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.newActivity}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setIsAddActivityTreeOpen(false);
+                router.push("/activity-selection");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.existingActivity}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-existing"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.existingActivity}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setIsAddActivityTreeOpen(false)}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.cancel}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-cancel"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.cancel}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
 
       {/*
        * R4-13 (`Fixed Header + Fixed Context + Scrollable Content + Fixed
@@ -2538,6 +2602,29 @@ const styles = StyleSheet.create({
   addActivityLabel: {
     ...type.button,
     color: colors.primary,
+  },
+  // V2-CAT-01 : arbre `Ajouter une activité` — même géométrie de carte que
+  // `CatalogueCreateOptions` (rayon `standardCard`, liseré `colors.border`).
+  addActivityTree: {
+    position: "absolute",
+    top: dimensions.contextBand.height + spacing[8],
+    left: spacing[24],
+    right: spacing[24],
+    backgroundColor: colors.background,
+    borderRadius: dimensions.standardCard.radius,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+  },
+  addActivityTreeOption: {
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[16],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  addActivityTreeOptionLabel: {
+    ...type.body,
+    color: colors.textPrimary,
   },
   // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer`.
   // A-01 : plus de `marginTop: "auto"` ici — `body` (`flex: 1`, ci-dessus)

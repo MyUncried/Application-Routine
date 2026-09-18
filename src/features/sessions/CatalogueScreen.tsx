@@ -1,15 +1,22 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
+import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
+import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
+import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/** Segment de TYPE de contenu du Catalogue (V2-CAT-01, D-108). Seuls `activities` et `sessions` sont fonctionnels ; `circuits` reste visible mais désactivé. */
+export type CatalogueContentType = "activities" | "sessions" | "circuits";
 
 /**
  * Écran du Catalogue des séances (T01-S06). Seul point d'appel à
@@ -37,26 +44,76 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
  */
 export function CatalogueScreen() {
   const router = useRouter();
-  const { state, reload, cancelPending } = useSessionCatalogue();
+  const sessionCatalogue = useSessionCatalogue();
+  const activityCatalogue = useActivityCatalogue();
+  // T01-S10/V2-CAT-01 (D-108) : `Séances` sélectionné par défaut à
+  // l'ouverture et après relance complète — aucun segment n'est persisté.
+  const [activeSegment, setActiveSegment] = useState<CatalogueContentType>("sessions");
+  const [isCreateTreeOpen, setIsCreateTreeOpen] = useState(false);
 
+  const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
+  const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
   useFocusEffect(
     useCallback(() => {
-      reload();
+      reloadSessions();
+      reloadActivities();
       return () => {
-        cancelPending();
+        cancelPendingSessions();
+        cancelPendingActivities();
       };
-    }, [reload, cancelPending]),
+    }, [reloadSessions, reloadActivities, cancelPendingSessions, cancelPendingActivities]),
   );
+
+  const t = strings.screens.sessions;
+  // T01-S10/V2-CAT-01 (D-108) : le titre suit le segment actif — `Circuits`
+  // n'a pas de contenu fonctionnel propre et reprend le titre `Séances`.
+  const title = activeSegment === "activities" ? strings.screens.activities.title : t.title;
 
   return (
     <ScreenShell>
-      <FixedHeader title={strings.screens.sessions.title} />
+      <FixedHeader title={title} />
       <HeaderSeparator />
 
       <ContextBand>
-        <ContentTypeSelector />
-        <CreateAction onPress={() => router.push("/composition")} />
+        <SegmentedControl
+          options={[
+            { value: "activities", label: t.contentTypes.activities },
+            { value: "sessions", label: t.contentTypes.sessions },
+            {
+              value: "circuits",
+              label: t.contentTypes.circuits,
+              disabled: true,
+              accessibilityLabel: t.contentTypes.circuitsUnavailableAccessibilityLabel,
+            },
+          ]}
+          value={activeSegment}
+          onChange={setActiveSegment}
+          testID="catalogue-content-type-row"
+        />
+        <View style={styles.commandRow} testID="catalogue-command-row">
+          <CommandAction
+            label={t.createAction}
+            icon="action-add"
+            onPress={() => setIsCreateTreeOpen(true)}
+            testID="catalogue-create-action"
+          />
+          <CommandAction label={t.filterAction} disabled testID="catalogue-filter-action" />
+          <CommandAction label={t.sortAction} disabled testID="catalogue-sort-action" />
+        </View>
       </ContextBand>
+
+      <CatalogueCreateOptions
+        visible={isCreateTreeOpen}
+        onSelectNewActivity={() => {
+          setIsCreateTreeOpen(false);
+          router.push({ pathname: "/exercise", params: { catalogueDefinitionId: "new" } });
+        }}
+        onSelectNewSession={() => {
+          setIsCreateTreeOpen(false);
+          router.push("/composition");
+        }}
+        onCancel={() => setIsCreateTreeOpen(false)}
+      />
 
       {/*
        * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
@@ -77,14 +134,29 @@ export function CatalogueScreen() {
         style={[styles.body, { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
-        {state.status === "loading" ? <LoadingBody /> : null}
-        {state.status === "empty" ? <EmptyBody /> : null}
-        {state.status === "error" ? <ErrorBody onRetry={reload} /> : null}
-        {state.status === "ready" ? (
-          <ReadyBody
-            sessions={state.sessions}
-            onOpenSession={(sessionId) =>
-              router.push({ pathname: "/composition", params: { sessionId } })
+        {activeSegment === "sessions" ? (
+          <>
+            {sessionCatalogue.state.status === "loading" ? <LoadingBody /> : null}
+            {sessionCatalogue.state.status === "empty" ? <EmptyBody /> : null}
+            {sessionCatalogue.state.status === "error" ? (
+              <ErrorBody onRetry={sessionCatalogue.reload} />
+            ) : null}
+            {sessionCatalogue.state.status === "ready" ? (
+              <ReadyBody
+                sessions={sessionCatalogue.state.sessions}
+                onOpenSession={(sessionId) =>
+                  router.push({ pathname: "/composition", params: { sessionId } })
+                }
+              />
+            ) : null}
+          </>
+        ) : null}
+        {activeSegment === "activities" ? (
+          <ActivityCatalogueList
+            state={activityCatalogue.state}
+            onRetry={activityCatalogue.reload}
+            onOpenDefinition={(definitionId) =>
+              router.push({ pathname: "/exercise", params: { catalogueDefinitionId: definitionId } })
             }
           />
         ) : null}
@@ -94,56 +166,10 @@ export function CatalogueScreen() {
 }
 
 /**
- * Sélecteur de TYPE de contenu `Activités` / `Séances` / `Circuits`
- * (T01-S10, D-108, doc13 §8). Remplace l'ancien contrôle
- * `Toutes / Planifiées / Archivées` (interdit à cet emplacement) — ce
- * sélecteur ne filtre JAMAIS les Séances : la source de données reste
- * `listActive` et le tri `updatedAt DESC`, quel que soit le segment
- * (aucun `onPress` métier n'existe).
- *
- * Trois segments de largeur égale. `Séances` est sélectionné, au centre, et
- * seul fonctionnel. `Activités` et `Circuits` sont visibles mais
- * `disabled` : aucune requête, aucune navigation ; leur nom accessible
- * annonce explicitement l'indisponibilité MVP.
- */
-function ContentTypeSelector() {
-  const t = strings.screens.sessions.contentTypes;
-  return (
-    <View style={styles.filterRow} accessibilityRole="tablist" testID="catalogue-content-type-row">
-      <Pressable
-        disabled
-        accessibilityRole="tab"
-        accessibilityState={{ disabled: true, selected: false }}
-        accessibilityLabel={t.activitiesUnavailableAccessibilityLabel}
-        style={styles.filterOption}
-      >
-        <Text style={styles.filterLabel}>{t.activities}</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{ selected: true }}
-        accessibilityLabel={t.sessions}
-        style={[styles.filterOption, styles.filterOptionSelected]}
-      >
-        <Text style={[styles.filterLabel, styles.filterLabelSelected]}>{t.sessions}</Text>
-      </Pressable>
-      <Pressable
-        disabled
-        accessibilityRole="tab"
-        accessibilityState={{ disabled: true, selected: false }}
-        accessibilityLabel={t.circuitsUnavailableAccessibilityLabel}
-        style={styles.filterOption}
-      >
-        <Text style={styles.filterLabel}>{t.circuits}</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-/**
- * `+ Créer`. Activé depuis T01-S07 : navigue vers `Composition d'une
- * séance` (`app/(creation)/composition.tsx`), qui n'existait pas avant
- * cette sous-étape (RM-014).
+ * Une commande de la rangée `Créer / Filtrer / Trier` (V2-CAT-01, plan
+ * §4.1) — `Créer` seul actif dans cette tranche ; `Filtrer`/`Trier` restent
+ * visibles mais inertes (recherche, filtre et tri fonctionnels hors
+ * périmètre).
  *
  * Correction UI-CAT-001 (cycle de correction après contre-recette iPhone,
  * 2026-09-03, CE-T01-02) : cadre visuel exact `90 × 32`, rayon du token
@@ -152,25 +178,42 @@ function ContentTypeSelector() {
  * obtenue via `hitSlop`, jamais en agrandissant la boîte visuelle
  * elle-même (doc12 §Dimensions structurantes, doc13 §3.3).
  */
-function CreateAction({ onPress }: { onPress: () => void }) {
+function CommandAction({
+  label,
+  icon,
+  onPress,
+  disabled = false,
+  testID,
+}: {
+  label: string;
+  icon?: "action-add";
+  onPress?: () => void;
+  disabled?: boolean;
+  testID: string;
+}) {
   const horizontalHitSlop = (minTouchTarget - CREATE_ACTION_WIDTH) / 2;
   const verticalHitSlop = (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2;
 
   return (
     <Pressable
+      disabled={disabled}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={strings.screens.sessions.createAction}
+      accessibilityState={{ disabled }}
+      accessibilityLabel={label}
       hitSlop={{
         top: verticalHitSlop,
         bottom: verticalHitSlop,
         left: horizontalHitSlop,
         right: horizontalHitSlop,
       }}
-      style={styles.createAction}
+      style={[styles.createAction, disabled ? styles.createActionDisabled : null]}
+      testID={testID}
     >
-      <KodjoIcon name="action-add" testID="catalogue-create-icon" />
-      <Text style={styles.createActionLabel}>{strings.screens.sessions.createAction}</Text>
+      {icon ? <KodjoIcon name={icon} opacity={disabled ? 0.4 : 1} testID={`${testID}-icon`} /> : null}
+      <Text style={[styles.createActionLabel, disabled ? styles.createActionLabelDisabled : null]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -269,35 +312,15 @@ const styles = StyleSheet.create({
   // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente
   // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
   // FOUNDATION CORRECTION`).
-  // Correction CAT-R01 (contre-recette iPhone, `[ChatGPT]
-  // DEVICE_REVIEW_FAIL`, 2026-09-03) : le conteneur général du contrôle
-  // segmenté doit rester blanc — `colors.surface` (gris très pâle) était
-  // visuellement proche de la bande Context et ne s'en distinguait pas.
-  // Le segment sélectionné (`filterOptionSelected`) et son texte restent
-  // inchangés (déjà conformes : fond `colors.selection`, texte blanc).
-  filterRow: {
+  //
+  // V2-CAT-01 : le sélecteur de segment lui-même est désormais porté par
+  // `@/shared/ui/SegmentedControl` (composant canonique partagé) — cette
+  // rangée ne porte plus que `Créer / Filtrer / Trier` (plan §4.1).
+  commandRow: {
     flexDirection: "row",
-    backgroundColor: colors.background,
-    borderRadius: 24,
-    padding: spacing[4],
-    gap: spacing[4],
-  },
-  filterOption: {
-    flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing[8],
-    borderRadius: 20,
-  },
-  filterOptionSelected: {
-    backgroundColor: colors.selection,
-  },
-  filterLabel: {
-    ...type.label,
-    color: colors.textSecondary,
-  },
-  filterLabelSelected: {
-    color: colors.background,
+    gap: spacing[16],
+    marginTop: spacing[8],
   },
   // Correction CAT-R02 (contre-recette iPhone, `[ChatGPT]
   // DEVICE_REVIEW_FAIL`, 2026-09-03) : aucun fond propre n'était déclaré
@@ -318,9 +341,15 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.background,
   },
+  createActionDisabled: {
+    borderColor: colors.disabled,
+  },
   createActionLabel: {
     ...type.button,
     color: colors.primary,
+  },
+  createActionLabelDisabled: {
+    color: colors.disabled,
   },
   body: {
     flex: 1,

@@ -54,6 +54,7 @@ export default function CreationLayout() {
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
         <Stack.Screen name="categories" />
+        <Stack.Screen name="activity-selection" />
       </Stack>
     </SessionDraftProvider>
   );

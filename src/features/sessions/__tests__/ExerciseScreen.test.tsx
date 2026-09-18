@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { ScrollView, StyleSheet } from "react-native";
 
+import type { ActivityDefinition } from "@/domain/activities";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
@@ -17,7 +20,7 @@ jest.mock("expo-haptics", () => ({
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-exercise-id") }));
 
 const mockBack = jest.fn();
-let mockSearchParams: { exerciseId?: string } = {};
+let mockSearchParams: { exerciseId?: string; catalogueDefinitionId?: string } = {};
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
@@ -2152,5 +2155,86 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     expect(
       within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 4 min 20 s"),
     ).toBeTruthy();
+  });
+});
+
+/**
+ * V2-CAT-01 — adaptateur Catalogue : présent uniquement lorsque la route
+ * porte `catalogueDefinitionId` (jamais `exerciseId`) ; persiste dans une
+ * `ActivityDefinition` via `ActivityDefinitionService`, jamais dans le
+ * brouillon de Séance.
+ */
+describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
+  const A_DEFINITION: ActivityDefinition = {
+    id: "def-1",
+    name: "Squat",
+    description: null,
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 3,
+    pauseSeconds: 10,
+    recoverySeconds: 0,
+    bodyZoneIds: [],
+    sideMode: "UNILATERAL",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  function renderCatalogueScreen(
+    catalogueDefinitionId: string,
+    service: Partial<ActivityDefinitionService>,
+  ) {
+    mockSearchParams = { catalogueDefinitionId };
+    return render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
+          <ExerciseScreen />
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+
+  it("creates a new ActivityDefinition on Terminer, never touching the session draft", async () => {
+    const createActivityDefinition = jest
+      .fn<ActivityDefinitionService["createActivityDefinition"]>()
+      .mockResolvedValue({ ok: true, value: A_DEFINITION });
+    renderCatalogueScreen("new", { createActivityDefinition });
+
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+
+    fireEvent.changeText(screen.getByTestId("activity-editor-name-input"), "Squat");
+    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
+
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    await waitFor(() => expect(mockBack).toHaveBeenCalled());
+    expect(createActivityDefinition).toHaveBeenCalledTimes(1);
+  });
+
+  it("prefills the editor exactly when modifying an existing ActivityDefinition", async () => {
+    const getActivityDefinition = jest
+      .fn<ActivityDefinitionService["getActivityDefinition"]>()
+      .mockResolvedValue(A_DEFINITION);
+    renderCatalogueScreen("def-1", { getActivityDefinition });
+
+    expect(await screen.findByDisplayValue("Squat")).toBeTruthy();
+  });
+
+  it("keeps the draft and shows an error when saving fails, without navigating away", async () => {
+    const createActivityDefinition = jest
+      .fn<ActivityDefinitionService["createActivityDefinition"]>()
+      .mockResolvedValue({ ok: false, violations: [] });
+    renderCatalogueScreen("new", { createActivityDefinition });
+
+    fireEvent.changeText(screen.getByTestId("activity-editor-name-input"), "Squat");
+    fireEvent.press(screen.getByLabelText(t.finishAction));
+
+    expect(await screen.findByTestId("activity-editor-save-error")).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });

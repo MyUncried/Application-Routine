@@ -98,6 +98,9 @@ function renderCreationRouter() {
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/categories": require("../../../../app/(creation)/categories").default,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
+        .default,
     },
     { initialUrl: "/composition", wrapper: SessionServiceTestWrapper },
   );
@@ -108,6 +111,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     expect(screen.getByLabelText(exercise.backAccessibilityLabel)).toBeTruthy();
 
     expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
@@ -136,6 +140,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     const router = renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -179,6 +184,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     const router = renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
 
     act(() => {
@@ -196,6 +202,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -209,6 +216,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 

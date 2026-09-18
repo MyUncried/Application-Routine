@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { activityDefinitionToInput, createEmptyActivityDefinitionDraft } from "@/domain/activities";
 import {
   applyTargetTotalDuration,
   computeTotalDurationSeconds,
@@ -30,6 +31,8 @@ import {
   validateRepetitionCount,
 } from "@/domain/sessions/validation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
+import { ActivityEditorForm, type ActivityEditorFormValue } from "@/features/activities/ActivityEditorForm";
+import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import {
   formatCompactDuration,
@@ -146,7 +149,136 @@ function totalDurationFacts(exercise: SessionDraftExercise): TotalDurationFacts 
  * conservé). Le champ reste ainsi le SEUL nœud nommé « Description de
  * l'activité », sans dégrader son propre libellé.
  */
+/**
+ * Route `Ajouter / Modifier une activité` (T02-S02 ; V2-CAT-01, plan §7
+ * étape 4 — extraction du formulaire commun) : point d'entrée unique de
+ * `app/(creation)/exercise.tsx`. Un paramètre `catalogueDefinitionId` bascule
+ * vers l'adaptateur Catalogue (`CatalogueActivityEditorScreen`, persistance
+ * dans une `ActivityDefinition`) ; son absence préserve intégralement le
+ * flux Composition (`CompositionExerciseEditor`, ci-dessous — code
+ * strictement inchangé, écriture dans le brouillon `SessionActivity`
+ * uniquement). `"new"` signifie une création ; toute autre valeur est
+ * l'identifiant d'une `ActivityDefinition` à modifier.
+ */
 export function ExerciseScreen() {
+  const params = useLocalSearchParams<{ exerciseId?: string; catalogueDefinitionId?: string }>();
+  if (params.catalogueDefinitionId !== undefined) {
+    return (
+      <CatalogueActivityEditorScreen
+        definitionId={params.catalogueDefinitionId === "new" ? null : params.catalogueDefinitionId}
+      />
+    );
+  }
+  return <CompositionExerciseEditor />;
+}
+
+/**
+ * Adaptateur Catalogue (V2-CAT-01) : crée ou modifie une `ActivityDefinition`
+ * persistante via `ActivityDefinitionService` — jamais le brouillon de
+ * Séance. Préremplie exactement en modification (`activityDefinitionToInput`).
+ * Une erreur de sauvegarde conserve le brouillon local et affiche
+ * `saveError`, sans navigation ni modification partielle.
+ */
+function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string | null }) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const activityDefinitionService = useActivityDefinitionService();
+  const isEditingExisting = definitionId !== null;
+  const [value, setValue] = useState<ActivityEditorFormValue>(() =>
+    createEmptyActivityDefinitionDraft(),
+  );
+  const [loadState, setLoadState] = useState<"loading" | "ready">(
+    isEditingExisting ? "loading" : "ready",
+  );
+  const [saveError, setSaveError] = useState(false);
+  const isSavingRef = useRef(false);
+  const t = strings.screens.activities.editor;
+
+  useEffect(() => {
+    if (definitionId === null) {
+      return;
+    }
+    let cancelled = false;
+    activityDefinitionService.getActivityDefinition(definitionId).then((definition) => {
+      if (cancelled || !definition) {
+        return;
+      }
+      setValue(activityDefinitionToInput(definition));
+      setLoadState("ready");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activityDefinitionService, definitionId]);
+
+  function patch(next: Partial<ActivityEditorFormValue>) {
+    setSaveError(false);
+    setValue((current) => ({ ...current, ...next }));
+  }
+
+  async function handleFinish() {
+    if (isSavingRef.current) {
+      return;
+    }
+    isSavingRef.current = true;
+
+    const succeeded =
+      definitionId !== null
+        ? (await activityDefinitionService.updateActivityDefinition(definitionId, value))
+            .status === "UPDATED"
+        : (await activityDefinitionService.createActivityDefinition(value)).ok;
+
+    if (!succeeded) {
+      isSavingRef.current = false;
+      setSaveError(true);
+      return;
+    }
+    router.back();
+  }
+
+  const isValid = value.name.trim().length > 0;
+
+  return (
+    <ScreenShell>
+      <FixedHeader
+        title={isEditingExisting ? t.titleEdit : t.titleAdd}
+        onBack={() => router.back()}
+        backAccessibilityLabel={t.backAccessibilityLabel}
+      />
+      <HeaderSeparator />
+      {loadState === "loading" ? null : <ActivityEditorForm value={value} onChange={patch} />}
+      <View
+        style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]}
+        testID="activity-editor-finish-slot"
+      >
+        {saveError ? (
+          <Text style={styles.saveErrorText} testID="activity-editor-save-error">
+            {t.saveError}
+          </Text>
+        ) : null}
+        <Pressable
+          disabled={!isValid}
+          onPress={handleFinish}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !isValid }}
+          accessibilityLabel={t.finishAction}
+          style={[styles.primaryAction, !isValid ? styles.primaryActionDisabled : null]}
+          testID="activity-editor-finish-action"
+        >
+          <Text style={styles.primaryActionLabel}>{t.finishAction}</Text>
+        </Pressable>
+      </View>
+    </ScreenShell>
+  );
+}
+
+/**
+ * Flux Composition (T02-S02, D-137) — écrit exclusivement dans le brouillon
+ * `SessionActivity` (`SessionDraftContext`), jamais dans une
+ * `ActivityDefinition` persistante : aucune Activité créée directement
+ * depuis la Composition ne crée jamais de définition Catalogue (plan §4.4).
+ */
+function CompositionExerciseEditor() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { draft, updateDraft } = useSessionDraft();
@@ -1371,5 +1503,11 @@ const styles = StyleSheet.create({
   primaryActionLabel: {
     ...type.button,
     color: colors.background,
+  },
+  saveErrorText: {
+    ...type.body,
+    color: colors.danger,
+    textAlign: "center",
+    marginBottom: spacing[8],
   },
 });

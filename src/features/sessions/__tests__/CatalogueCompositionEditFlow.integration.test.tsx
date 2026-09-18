@@ -11,6 +11,9 @@ import type {
   SessionStatus,
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
+import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -144,6 +147,26 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
+/**
+ * V2-CAT-01 : le Catalogue charge désormais aussi le segment `Activités`
+ * (`useActivityCatalogue`, qui exige un `ActivityDefinitionServiceContext`) —
+ * ce parcours ne porte sur aucune Activité, un Repository vide suffit.
+ */
+class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
+  create(): Promise<ActivityDefinition> {
+    return Promise.reject(new Error("not used by this Session-only navigation test"));
+  }
+  findById(): Promise<ActivityDefinition | null> {
+    return Promise.resolve(null);
+  }
+  listAll(): Promise<readonly ActivityDefinition[]> {
+    return Promise.resolve([]);
+  }
+  update(): Promise<ActivityDefinition | null> {
+    return Promise.reject(new Error("not used by this Session-only navigation test"));
+  }
+}
+
 let repository: FakeSessionRepository;
 
 function TestWrapper({ children }: { children: ReactNode }) {
@@ -151,7 +174,11 @@ function TestWrapper({ children }: { children: ReactNode }) {
     <SessionServiceContext.Provider
       value={new SessionService(repository, new NoopCategoryRepository())}
     >
-      {children}
+      <ActivityDefinitionServiceProvider
+        service={new ActivityDefinitionService(new NoopActivityDefinitionRepository())}
+      >
+        {children}
+      </ActivityDefinitionServiceProvider>
     </SessionServiceContext.Provider>
   );
 }

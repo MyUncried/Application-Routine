@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { DATABASE_NAME } from "@/infrastructure/database/constants";
 import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
+import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 
@@ -59,6 +62,13 @@ export type SessionServiceProviderProps = {
 type SessionServiceInitializerProps = {
   /** Remonte l'instance construite ; ne reçoit jamais de forme différente. */
   onServiceReady: (service: SessionService) => void;
+  /**
+   * V2-CAT-01 : remonte `ActivityDefinitionService`, construit à partir de
+   * la MÊME connexion SQLite que `SessionService` (rationale d'injection
+   * SQLite du plan) — aucune seconde connexion, aucun second cycle de
+   * migration.
+   */
+  onActivityDefinitionServiceReady: (service: ActivityDefinitionService) => void;
 };
 
 /**
@@ -67,10 +77,14 @@ type SessionServiceInitializerProps = {
  * ci-dessous : `SQLiteProvider` ne reçoit donc jamais de `children`
  * différent d'un rendu à l'autre, et son bail-out mémoïsé (comparateur qui
  * ignore `children`) n'a alors aucune conséquence observable. Ne rend rien
- * visuellement — son seul rôle est de construire `SessionService` (mémoïsé
- * sur la connexion native stable) et de signaler sa disponibilité.
+ * visuellement — son seul rôle est de construire `SessionService` et
+ * `ActivityDefinitionService` (mémoïsés sur la connexion native stable) et
+ * de signaler leur disponibilité.
  */
-function SessionServiceInitializer({ onServiceReady }: SessionServiceInitializerProps) {
+function SessionServiceInitializer({
+  onServiceReady,
+  onActivityDefinitionServiceReady,
+}: SessionServiceInitializerProps) {
   const nativeDatabase = useSQLiteContext();
 
   const sessionService = useMemo(() => {
@@ -81,9 +95,18 @@ function SessionServiceInitializer({ onServiceReady }: SessionServiceInitializer
     );
   }, [nativeDatabase]);
 
+  const activityDefinitionService = useMemo(() => {
+    const database = new ExpoDatabase(nativeDatabase);
+    return new ActivityDefinitionService(new SqliteActivityDefinitionRepository(database));
+  }, [nativeDatabase]);
+
   useEffect(() => {
     onServiceReady(sessionService);
   }, [sessionService, onServiceReady]);
+
+  useEffect(() => {
+    onActivityDefinitionServiceReady(activityDefinitionService);
+  }, [activityDefinitionService, onActivityDefinitionServiceReady]);
 
   return null;
 }
@@ -98,6 +121,8 @@ function SessionServiceInitializer({ onServiceReady }: SessionServiceInitializer
  */
 export function SessionServiceProvider({ children, onReady }: SessionServiceProviderProps) {
   const [sessionService, setSessionService] = useState<SessionService | null>(null);
+  const [activityDefinitionService, setActivityDefinitionService] =
+    useState<ActivityDefinitionService | null>(null);
 
   const handleServiceReady = useCallback(
     (service: SessionService) => {
@@ -107,13 +132,25 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
     [onReady],
   );
 
+  const handleActivityDefinitionServiceReady = useCallback(
+    (service: ActivityDefinitionService) => {
+      setActivityDefinitionService(service);
+    },
+    [],
+  );
+
   return (
     <>
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={onDatabaseInit}>
-        <SessionServiceInitializer onServiceReady={handleServiceReady} />
+        <SessionServiceInitializer
+          onServiceReady={handleServiceReady}
+          onActivityDefinitionServiceReady={handleActivityDefinitionServiceReady}
+        />
       </SQLiteProvider>
       <SessionServiceContext.Provider value={sessionService}>
-        {children}
+        <ActivityDefinitionServiceProvider service={activityDefinitionService}>
+          {children}
+        </ActivityDefinitionServiceProvider>
       </SessionServiceContext.Provider>
     </>
   );
