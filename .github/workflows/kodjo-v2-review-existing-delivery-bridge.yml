@@ -53,6 +53,7 @@ jobs:
             and .slice_id
             and .baseline_head
             and .source_head
+            and (.operation_kind // "IMPLEMENT") == "IMPLEMENT"
             and .request_id
             and .session_id
             and .authorized_plan.plan_blob_oid
@@ -61,7 +62,7 @@ jobs:
           ' "$queue_path" >/dev/null
 
           slice=$(jq -r '.slice_id' "$queue_path")
-          base=$(jq -r '.baseline_head' "$queue_path")
+          base=$(jq -r '.source_head' "$queue_path")
           protocol_head=$(jq -r '.source_head' "$queue_path")
           request_id=$(jq -r '.request_id' "$queue_path")
           session=$(jq -r '.session_id' "$queue_path")
