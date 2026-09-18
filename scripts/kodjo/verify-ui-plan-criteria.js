@@ -47,10 +47,11 @@ try {
   const impact = extractTaggedJson(markdown, 'KODJO_PLAN_IMPACT_JSON');
   const scope = new Set((impact.scope_allow || []).map((p) => normalizeRepoPath(p, 'scope_allow')));
   const modified = Array.isArray(impact.modified_modules) ? impact.modified_modules : [];
-  const uiPaths = modified
-    .map((entry) => normalizeRepoPath(entry.path, 'modified_module'))
-    .filter(isUiPath)
-    .sort();
+  const rows = Array.isArray(impact.rows) ? impact.rows : [];
+  const uiPaths = [...new Set([
+    ...modified.map((entry) => normalizeRepoPath(entry.path, 'modified_module')),
+    ...rows.filter((row) => row && row.classification === 'MODIFY').map((row) => normalizeRepoPath(row.path, 'matrix.row.path')),
+  ].filter(isUiPath))].sort();
   const uiApplicable = uiPaths.length > 0;
 
   const matrix = extractTaggedJson(markdown, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_PLAN_CRITERIA_MISSING');
