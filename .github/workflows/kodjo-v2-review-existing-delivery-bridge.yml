@@ -1,0 +1,166 @@
+name: KODJO V2 — Review Existing Delivery Bridge
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  bridge:
+    if: github.event.comment.user.login == 'MyUncried' && startsWith(github.event.comment.body, format('[KODJO_V2] REVIEW_EXISTING_DELIVERY{0}', fromJSON('"\n"')))
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      TRIGGER_BODY: ${{ github.event.comment.body }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate certified existing V2 delivery
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          body=$(jq -Rnr --arg body "$TRIGGER_BODY" '$body | gsub("\r"; "")')
+          [ "${body%%$'\n'*}" = '[KODJO_V2] REVIEW_EXISTING_DELIVERY' ]
+
+          extract_one() {
+            local source="$1" expression="$2" label="$3" values=()
+            mapfile -t values < <(sed -n "$expression" <<<"$source")
+            [ "${#values[@]}" -eq 1 ] || { echo "$label must occur exactly once" >&2; return 1; }
+            printf '%s' "${values[0]}"
+          }
+
+          queue_path=$(extract_one "$body" 's/^queue_path=//p' queue_path)
+          checkpoint_ref=$(extract_one "$body" 's/^checkpoint_ref=issue_comment:\([1-9][0-9]*\)$/\1/p' checkpoint_ref)
+          application_pr=$(extract_one "$body" 's/^application_pr=\([1-9][0-9]*\)$/\1/p' application_pr)
+          application_head=$(extract_one "$body" 's/^application_head=\([0-9a-f]\{40\}\)$/\1/p' application_head)
+
+          case "$queue_path" in .github/orchestration/queue/v2/*.json) ;; *) echo 'Invalid V2 queue path' >&2; exit 1 ;; esac
+          test -f "$queue_path"
+
+          jq -e --arg issue "$ISSUE_NUMBER" '
+            (.issue_number|tostring) == $issue
+            and .schema_version == "kodjo.protocol.v2.lean-request.0.6.13"
+            and .slice_id
+            and .baseline_head
+            and .source_head
+            and .request_id
+            and .session_id
+            and .authorized_plan.plan_blob_oid
+            and .independent_review.review_blob_oid
+            and .user_gate.gate_ref
+          ' "$queue_path" >/dev/null
+
+          slice=$(jq -r '.slice_id' "$queue_path")
+          base=$(jq -r '.baseline_head' "$queue_path")
+          protocol_head=$(jq -r '.source_head' "$queue_path")
+          request_id=$(jq -r '.request_id' "$queue_path")
+          session=$(jq -r '.session_id' "$queue_path")
+          gate_ref=$(jq -r '.user_gate.gate_ref' "$queue_path")
+          [[ "$gate_ref" =~ ^issue_comment:([1-9][0-9]*)$ ]]
+          gate_id="${BASH_REMATCH[1]}"
+
+          KODJO_VERIFY_GITHUB=1 node scripts/kodjo/verify-authorizations.js "$queue_path"
+
+          checkpoint_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$checkpoint_ref")
+          jq -e --arg issue "$ISSUE_NUMBER" '.issue_url | endswith("/issues/" + $issue)' <<<"$checkpoint_json" >/dev/null
+          checkpoint_body=$(jq -r '.body | gsub("\r"; "")' <<<"$checkpoint_json")
+          [ "${checkpoint_body%%$'\n'*}" = '[KODJO_V2] APPLICATION_CHECKPOINT' ]
+
+          cp_slice=$(extract_one "$checkpoint_body" 's/^slice_id=//p' checkpoint_slice)
+          cp_pr=$(extract_one "$checkpoint_body" 's/^application_pr=\([1-9][0-9]*\)$/\1/p' checkpoint_pr)
+          cp_head=$(extract_one "$checkpoint_body" 's/^application_head=\([0-9a-f]\{40\}\)$/\1/p' checkpoint_head)
+          plan=$(extract_one "$checkpoint_body" 's/^plan_comment_id=\([1-9][0-9]*\)$/\1/p' plan_comment_id)
+          plan_review=$(extract_one "$checkpoint_body" 's/^review_comment_id=\([1-9][0-9]*\)$/\1/p' review_comment_id)
+          cp_gate=$(extract_one "$checkpoint_body" 's/^gate_comment_id=\([1-9][0-9]*\)$/\1/p' gate_comment_id)
+          cp_delivery=$(extract_one "$checkpoint_body" 's/^delivery_head=\([0-9a-f]\{40\}\)$/\1/p' delivery_head)
+          [ "$cp_slice" = "$slice" ] && [ "$cp_pr" = "$application_pr" ] && [ "$cp_head" = "$application_head" ] && [ "$cp_delivery" = "$application_head" ] && [ "$cp_gate" = "$gate_id" ]
+
+          gate_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$gate_id")
+          gate_body=$(jq -r '.body | gsub("\r"; "")' <<<"$gate_json")
+          gate_plan=$(extract_one "$gate_body" 's/^source_plan_comment_id=\([1-9][0-9]*\)$/\1/p' gate_plan_comment_id)
+          gate_review=$(extract_one "$gate_body" 's/^source_review_comment_id=\([1-9][0-9]*\)$/\1/p' gate_review_comment_id)
+          [ "$gate_plan" = "$plan" ] && [ "$gate_review" = "$plan_review" ]
+
+          pr_json=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$application_pr")
+          branch=$(jq -r '.head.ref' <<<"$pr_json")
+          jq -e --arg head "$application_head" '.state == "open" and .base.ref == "main" and .head.sha == $head' <<<"$pr_json" >/dev/null
+
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$base...$application_head" --jq '.status')
+          [ "$status" = ahead ]
+
+          printf 'slice=%s\nbase=%s\nprotocol_head=%s\nrequest_id=%s\nsession=%s\ngate_id=%s\nplan=%s\nplan_review=%s\napplication_pr=%s\napplication_head=%s\nbranch=%s\nqueue_path=%s\n'             "$slice" "$base" "$protocol_head" "$request_id" "$session" "$gate_id" "$plan" "$plan_review" "$application_pr" "$application_head" "$branch" "$queue_path" >> "$GITHUB_OUTPUT"
+
+      - name: Publish historical implementation output contract
+        id: publish
+        shell: bash
+        env:
+          SLICE: ${{ steps.gate.outputs.slice }}
+          BASE: ${{ steps.gate.outputs.base }}
+          PROTOCOL_HEAD: ${{ steps.gate.outputs.protocol_head }}
+          REQUEST_ID: ${{ steps.gate.outputs.request_id }}
+          SESSION: ${{ steps.gate.outputs.session }}
+          GATE_ID: ${{ steps.gate.outputs.gate_id }}
+          PLAN: ${{ steps.gate.outputs.plan }}
+          PLAN_REVIEW: ${{ steps.gate.outputs.plan_review }}
+          APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
+          APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
+          APPLICATION_BRANCH: ${{ steps.gate.outputs.branch }}
+          QUEUE_PATH: ${{ steps.gate.outputs.queue_path }}
+        run: |
+          set -euo pipefail
+          {
+            echo '[KODJO_SLICE] IMPLEMENTATION_OUTPUT'
+            echo "slice_id=$SLICE"
+            echo 'increment=LOT_1_OF_1'
+            echo "base_head=$BASE"
+            echo "head=$APPLICATION_HEAD"
+            echo "session_id=$SESSION"
+            echo "plan_comment_id=$PLAN"
+            echo "plan_review_comment_id=$PLAN_REVIEW"
+            echo "source_implementation_trigger_comment_id=$GATE_ID"
+            echo 'continuity_origin=V2_LEAN_QUEUE'
+            echo "v2_queue_path=$QUEUE_PATH"
+            echo "v2_protocol_head=$PROTOCOL_HEAD"
+            echo "v2_request_id=$REQUEST_ID"
+            echo "application_pr=$APPLICATION_PR"
+            echo "application_branch=$APPLICATION_BRANCH"
+            echo 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW'
+            echo
+            echo 'Existing certified V2 delivery submitted to the restored historical implementation-review engine. No implementation or AI implementation call was repeated.'
+          } > /tmp/implementation-output.md
+
+          comments=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" | jq -s 'add')
+          output_id=$(jq -r --arg head "$APPLICATION_HEAD" --arg request "$REQUEST_ID" '
+            [.[] | select(
+              .user.login == "github-actions[bot]"
+              and (.body | startswith("[KODJO_SLICE] IMPLEMENTATION_OUTPUT\n"))
+              and (.body | contains("\nhead=" + $head + "\n"))
+              and (.body | contains("\nv2_request_id=" + $request + "\n"))
+            ) | .id] |
+            if length == 0 then "" elif length == 1 then .[0] else error("duplicate V2 implementation outputs") end
+          ' <<<"$comments")
+          if [ -z "$output_id" ]; then
+            jq -n --rawfile body /tmp/implementation-output.md '{body:$body}' > /tmp/comment.json
+            posted=$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --input /tmp/comment.json)
+            output_id=$(jq -er '.id' <<<"$posted")
+          fi
+          echo "source_comment_id=$output_id" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch historical implementation review
+        shell: bash
+        env:
+          SOURCE_COMMENT_ID: ${{ steps.publish.outputs.source_comment_id }}
+        run: |
+          set -euo pipefail
+          jq -n --arg issue "$ISSUE_NUMBER" --arg source "$SOURCE_COMMENT_ID"             '{event_type:"kodjo_implementation_ready",client_payload:{issue_number:$issue,source_comment_id:$source}}' > /tmp/dispatch.json
+          gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" --input /tmp/dispatch.json
