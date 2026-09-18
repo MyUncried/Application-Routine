@@ -109,6 +109,10 @@
     "planning_application_head": {
       "type": "string",
       "pattern": "^[0-9a-f]{40}$"
+    },
+    "planning_documentary_head": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
     }
   }
 }
