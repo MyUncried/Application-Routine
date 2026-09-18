@@ -55,6 +55,7 @@ jobs:
         env:
           HANDOFF_COMMENT_ID: ${{ steps.gate.outputs.handoff_id }}
           LEAN_REQUEST_OUTPUT: ${{ runner.temp }}/kodjo-approved-plan-lean-request.json
+          KODJO_VERIFY_GITHUB: '1'
         run: |
           set -euo pipefail
           node scripts/kodjo/generate-approved-plan-lean-request.js
