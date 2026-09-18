@@ -30,15 +30,12 @@ if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_
 # Une PR applicative peut être basée sur un HEAD antérieur au protocole courant.
 # Le runtime exécutable est donc figé hors checkout AVANT toute bascule vers le
 # HEAD applicatif. Le correctif ne dépend jamais des scripts présents dans la PR.
-$runtimeScriptRoot = $PSScriptRoot
 $runtimeEntryScript = 'start-kodjo-v2' + '.ps1'
-if ($isVisual) {
-  $runtimeScriptRoot = Join-Path $env:RUNNER_TEMP ("kodjo-protocol-runtime-{0}-{1}" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
-  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
-  Copy-Item -LiteralPath $PSScriptRoot -Destination $runtimeScriptRoot -Recurse -Force
-  if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot $runtimeEntryScript) -PathType Leaf)) {
-    throw 'KODJO_QUEUE_PROTOCOL_RUNTIME_COPY_FAILED'
-  }
+$runtimeScriptRoot = Join-Path $env:RUNNER_TEMP ("kodjo-protocol-runtime-{0}-{1}" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
+Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -LiteralPath $PSScriptRoot -Destination $runtimeScriptRoot -Recurse -Force
+if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot $runtimeEntryScript) -PathType Leaf)) {
+  throw 'KODJO_QUEUE_PROTOCOL_RUNTIME_COPY_FAILED'
 }
 
 $tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
@@ -209,10 +206,9 @@ Human review remains required before merge.
 finally {
   git config --local --unset-all http.https://github.com/.extraheader 2>$null
   Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
+  # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
   if ($isVisual) {
-    # Rendre le checkout protocolaire aux étapes `always()` du workflow. La copie
-    # runtime, elle, peut être supprimée : toutes les écritures applicatives sont
-    # déjà durablement observées sur GitHub à ce stade.
     $savedPreference = $ErrorActionPreference
     try {
       $ErrorActionPreference = 'Continue'
@@ -220,7 +216,7 @@ finally {
       git switch --detach $queue.source_head | Out-Null
     } finally {
       $ErrorActionPreference = $savedPreference
-      Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
   }
+  Remove-Item -LiteralPath $runtimeScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
