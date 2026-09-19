@@ -5,6 +5,7 @@ param(
   [Parameter(Mandatory = $true)][string[]]$ScopeAllow,
   [Parameter(Mandatory = $true)][string]$SliceBootstrapFile,
   [ValidateSet('INITIAL', 'RESUME_DELTA')][string]$Mode = 'INITIAL',
+  [string]$RecoveryMigrationFile = '',
   [string]$RetryOfRunId = '',
   [string]$RetryReasonCode = '',
   [string]$RetryReasonDetail = '',
@@ -74,6 +75,19 @@ if ($Mode -eq 'RESUME_DELTA') {
   $request.retry_of_run_id = $RetryOfRunId
   $request.retry_reason = [ordered]@{ code = $RetryReasonCode; detail = $RetryReasonDetail }
 } elseif ($RetryOfRunId -or $RetryReasonCode -or $RetryReasonDetail) { throw 'INITIAL_RETRY_FIELDS_FORBIDDEN' }
+if ($RecoveryMigrationFile) {
+  if ($Mode -ne 'RESUME_DELTA') { throw 'INITIAL_RECOVERY_MIGRATION_FORBIDDEN' }
+  if ($RecoveryMigrationFile -notmatch '^\.github/orchestration/v2-slices/[A-Za-z0-9._-]+/recovery-migration-[A-Za-z0-9._-]+\.json$' -or $RecoveryMigrationFile.Contains('..')) {
+    throw 'RECOVERY_MIGRATION_ATTESTATION_PATH_INVALID'
+  }
+  $migrationOid = (& git rev-parse ($head + ':' + $RecoveryMigrationFile))
+  if ($LASTEXITCODE -ne 0 -or [string]$migrationOid -notmatch '^[0-9a-f]{40}$') { throw 'RECOVERY_MIGRATION_ATTESTATION_NOT_AT_TARGET' }
+  $request.recovery_migration = [ordered]@{
+    attestation_path = $RecoveryMigrationFile
+    attestation_blob_oid = ([string]$migrationOid).Trim()
+    evidence_kind = 'ARTIFACT_HASH'
+  }
+}
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [IO.File]::WriteAllText([IO.Path]::GetFullPath($Output), ($request | ConvertTo-Json -Depth 5), $utf8NoBom)
 Write-Host "KODJO_V2_REQUEST_CREATED=$Output"
