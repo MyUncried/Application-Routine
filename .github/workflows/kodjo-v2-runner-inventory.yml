@@ -183,51 +183,11 @@ jobs:
           SOURCE_RUN_ID: ${{ inputs.source_run_id }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:SOURCE_RUN_ID -notmatch '^[1-9][0-9]*
-        uses: actions/upload-artifact@v4
-        with:
-          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Remove only the temporary inventory report
-        if: always()
-        shell: powershell
-        run: |
-          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
-          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
-          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
-          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
-            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
-          }
-          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
-) { throw 'SOURCE_RUN_ID_INVALID' }
+          if ($env:SOURCE_RUN_ID -notmatch '^[1-9][0-9]*$') { throw 'SOURCE_RUN_ID_INVALID' }
           $base = Join-Path $env:GITHUB_WORKSPACE '_qualification'
           $evidence = Join-Path (Join-Path $base $env:SOURCE_RUN_ID) 'qualification-evidence'
-          $resumeFile = Join-Path $evidence 'qualification-resume-manifest.json'
-          if (!(Test-Path -LiteralPath $resumeFile)) { throw 'RESUME_EVIDENCE_MISSING' }
-          $resume = Get-Content -Raw -Encoding UTF8 -LiteralPath $resumeFile | ConvertFrom-Json
-          if ([string]$resume.github_run_id -ne $env:SOURCE_RUN_ID -or [string]$resume.source_run_id -notmatch '^[1-9][0-9]*
-        uses: actions/upload-artifact@v4
-        with:
-          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Remove only the temporary inventory report
-        if: always()
-        shell: powershell
-        run: |
-          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
-          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
-          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
-          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
-            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
-          }
-          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
-) { throw 'EVIDENCE_RUN_MISMATCH' }
+          $resume = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $evidence 'qualification-resume-manifest.json') | ConvertFrom-Json
+          if ([string]$resume.github_run_id -ne $env:SOURCE_RUN_ID -or [string]$resume.source_run_id -notmatch '^[1-9][0-9]*$') { throw 'EVIDENCE_RUN_MISMATCH' }
           $initial = Join-Path (Join-Path $base ([string]$resume.source_run_id)) 'qualification-evidence'
           foreach ($entry in @(@{label='INITIAL';dir=$initial},@{label='RESUME_DELTA';dir=$evidence})) {
             $records = @()
