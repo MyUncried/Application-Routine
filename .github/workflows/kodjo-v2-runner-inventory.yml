@@ -197,7 +197,7 @@ jobs:
               $item = Get-Item -LiteralPath $file -Force
               if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 16777216) { throw 'EVIDENCE_FILE_AMBIGUOUS' }
               $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
-              $records += @{name=$relative;data=($value | Select-Object schema,schema_version,run_id,github_run_id,request_id,session_id,source_session_id,returned_session_id,source_head,expected_head,state,mode,status,verdict,failure,claude_invoked,modified_files,recovered_files,out_of_scope_files,source_patch_sha256,resume_patch_sha256,patch_sha256,final_delta,check_comparison,checks,cleanup_status,ref,tag_oid)}
+              $records += @{name=$relative;data=($value | Select-Object schema,schema_version,run_id,github_run_id,request_id,session_id,source_session_id,returned_session_id,source_head,expected_head,state,mode,status,verdict,failure,claude_invoked,modified_files,recovered_files,out_of_scope_files,baseline_head,observed_main,recovery_source_head_migration,source_patch_sha256,resume_patch_sha256,patch_sha256,final_delta,check_comparison,checks,cleanup_status,ref,tag_oid)}
             }
             $patchFile = Join-Path $entry.dir 'recovery-package/implementation.patch'
             $patch = $null
