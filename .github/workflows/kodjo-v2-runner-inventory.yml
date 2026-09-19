@@ -112,7 +112,7 @@ jobs:
             $lock = @{ exists = (Test-Path -LiteralPath $lockPath) }
             if ($lock.exists) {
               try {
-                $value = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json
+                $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $lockPath | ConvertFrom-Json
                 $lock.record = $value | Select-Object schema_version,owner_pid,owner_started_at,github_run_id,github_run_attempt,run_id,request_id,acquired_at
                 $lock.readable = $true
               } catch { $lock.readable = $false }
