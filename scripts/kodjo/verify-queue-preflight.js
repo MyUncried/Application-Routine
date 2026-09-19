@@ -15,6 +15,7 @@ const { queueChanges, consumedRegistry, blobOid, QUEUE_DIR } = require('./verify
 const { readRecoveryCandidate } = require('./run-local-claude');
 const { extractTaggedJson } = require('./lib/plan-impact');
 const P = require('./lib/preflight-contract');
+const Source = require('./lib/preflight-source');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 
@@ -224,13 +225,18 @@ function runPreflight(options = {}) {
       promptHash = String(value.sha256 || P.sha256(promptText));
       if (!Number.isInteger(promptBytes)) promptBytes = Buffer.byteLength(promptText,'utf8');
     } else {
-      const taskText = fs.readFileSync(normalized.prompt_file,'utf8');
+      const execHead = String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION'
+        ? String(queue.delivery_target && queue.delivery_target.application_head || '')
+        : String(queue.source_head || '');
+      const taskBuffer = Source.readFileAtHead(String(queue.prompt_file || ''), execHead, cwd);
+      const taskText = taskBuffer.toString('utf8');
       const configDir = options.configDir || path.join(cwd,'.kodjo-preflight-config');
       promptText = buildPrompt(normalized,taskText,configDir);
       promptBytes = Buffer.byteLength(promptText,'utf8');
       promptHash = P.sha256(promptText);
+      promptFileHash = P.sha256(taskBuffer);
     }
-    promptFileHash = P.sha256(fs.readFileSync(normalized.prompt_file));
+    if (!promptFileHash && fs.existsSync(normalized.prompt_file)) promptFileHash = P.sha256(fs.readFileSync(normalized.prompt_file));
     if (promptBytes > normalized.limits.max_prompt_bytes || promptBytes > normalized.limits.max_total_prompt_bytes) {
       throw new Error('PROMPT_BUDGET_EXCEEDED:' + promptBytes);
     }
@@ -343,9 +349,7 @@ function runPreflight(options = {}) {
 
   add('PF-022','run-local-claude.js package lock binding',()=>{
     if (probes.packageLock) return probes.packageLock(cwd, executionHead);
-    const show = command('git',['show',executionHead + ':package-lock.json'],cwd);
-    if (!show.ok) return {package_lock_sha256:null};
-    return {package_lock_sha256:P.sha256(Buffer.from(show.stdout,'utf8'))};
+    return {package_lock_sha256:Source.hashFileAtHead('package-lock.json',executionHead,cwd,{optional:true})};
   },['PF-014']);
   const toolchain = {
     git: byId.get('PF-017') && byId.get('PF-017').status === 'PASS' ? byId.get('PF-017').evidence : null,
