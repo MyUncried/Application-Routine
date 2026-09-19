@@ -11,6 +11,8 @@ const P=require('../../scripts/kodjo/lib/preflight-contract');
 const { projectQueueRequest }=require('../../scripts/kodjo/lib/queue-request');
 const { verifyFile }=require('../../scripts/kodjo/verify-preflight-attestation');
 const { verifyLocalFreshness }=require('../../scripts/kodjo/lib/preflight-freshness');
+const { verifyQueueTarget }=require('../../scripts/kodjo/verify-preflight-live-target');
+const { acquire, release }=require('../../scripts/kodjo/lib/execution-lock');
 
 const root=path.resolve(__dirname,'..','..');
 
@@ -104,27 +106,41 @@ test('lot C: les validations stables sont dédupliquées uniquement sur le chemi
   assert.ok(consumer>=0 && checkout>consumer);
 });
 
-test('lot C: les races LIVE restent des freshness guards après le préflight',()=>{
+test('lot C: VISUAL_CORRECTION refuse une PR fermée, une branche déplacée ou un HEAD déplacé après preflight',()=>{
+  const queue={
+    operation_kind:'VISUAL_CORRECTION',
+    delivery_target:{kind:'EXISTING_PR',application_pr:142,branch:'kodjo/application',application_head:'a'.repeat(40)}
+  };
+  const nominal={state:'open',base:{ref:'main'},head:{ref:'kodjo/application',sha:'a'.repeat(40)}};
+  assert.equal(verifyQueueTarget(queue,nominal).status,'PASS');
+  assert.throws(()=>verifyQueueTarget(queue,{...nominal,state:'closed'}),/KODJO_QUEUE_APPLICATION_PR_NOT_OPEN/);
+  assert.throws(()=>verifyQueueTarget(queue,{...nominal,head:{...nominal.head,ref:'other'}}),/KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH/);
+  assert.throws(()=>verifyQueueTarget(queue,{...nominal,head:{...nominal.head,sha:'b'.repeat(40)}}),/KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
   const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
   const preflight=runner.indexOf('verify-preflight-attestation.js');
-  for(const token of [
-    'KODJO_QUEUE_APPLICATION_PR_NOT_OPEN',
-    'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH',
-    'KODJO_QUEUE_APPLICATION_HEAD_MOVED',
-    'KODJO_QUEUE_EXISTING_PR_REMOTE_HEAD_MISMATCH',
-    'KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY'
-  ]){
-    const pos=runner.indexOf(token);
-    assert.ok(pos>preflight,token+' must remain after preflight as live guard');
-  }
+  const live=runner.indexOf('verify-preflight-live-target.js');
+  const checkout=runner.indexOf('git switch --detach $applicationHead');
+  assert.ok(preflight>=0 && live>preflight && checkout>live);
+  assert.match(runner,/KODJO_QUEUE_EXISTING_PR_REMOTE_HEAD_MISMATCH/);
+  assert.match(runner,/KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY/);
 });
 
-test('lot C: lock reste acquis atomiquement seulement après freshness locale',()=>{
+test('lot C: lock reste acquis atomiquement à la frontière Claude même si le preflight était vert',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-lock-race-'));
+  const lockPath=path.join(dir,'claude-local.lock');
+  const started='2026-09-19T00:00:00.000Z';
+  const inspect=()=>({state:'ALIVE',started_at:started,name:'node',command_line:'test'});
+  const scan=()=>({state:'NONE',evidence:'test'});
+  const first=acquire(lockPath,{run_id:'r1',request_id:'q1',session_id:null},inspect,scan);
+  try{
+    assert.throws(()=>acquire(lockPath,{run_id:'r2',request_id:'q2',session_id:null},inspect,scan),/CLAUDE_EXECUTION_ALREADY_ACTIVE/);
+  }finally{
+    assert.equal(release(first),true);
+  }
   const local=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
   const freshness=local.indexOf('verifyLocalFreshness');
-  const acquire=local.indexOf('acquireExecutionLock');
-  assert.ok(freshness>=0 && acquire>freshness);
-  assert.match(local,/CLAUDE_EXECUTION_ALREADY_ACTIVE|acquireExecutionLock/);
+  const lock=local.indexOf('acquireExecutionLock');
+  assert.ok(freshness>=0 && lock>freshness);
 });
 
 test('lot C: IMPLEMENT, RESUME_DELTA et VISUAL_CORRECTION gardent leurs chemins E2E',()=>{
