@@ -191,7 +191,9 @@ test('le superviseur conserve les protections octet/CRLF et livre sans force sur
   assert.match(supervisor, /core\.autocrlf=false/);
   assert.match(supervisor, /core\.whitespace=cr-at-eol/);
   assert.match(supervisor, /EXISTING_PR/);
-  assert.match(supervisor, /KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
+  assert.match(supervisor, /verify-preflight-live-target\.js/);
+  const liveGuard = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'verify-preflight-live-target.js'), 'utf8');
+  assert.match(liveGuard, /KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
   assert.match(supervisor, /git push origin \$pushRefspec/);
   assert.doesNotMatch(supervisor, /git push[^\n]*--force/);
   assert.match(supervisor, /kodjo-protocol-runtime/);
