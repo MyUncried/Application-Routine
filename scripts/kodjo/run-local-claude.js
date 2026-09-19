@@ -719,6 +719,15 @@ function main() {
   } catch (err) {
     return writeFailure('RECOVERY_REFUSED', err.message);
   }
+  const verifyInitialRestart = (ownedLock) => {
+    if (!request.initial_restart) return null;
+    if (!supervisedQueue || !liveToken || !process.env.KODJO_INITIAL_RESTART_QUEUE) throw new Error('INITIAL_RESTART_SUPERVISED_CONTEXT_REQUIRED');
+    const gate = require('./verify-initial-restart');
+    const queue = gate.read(process.env.KODJO_INITIAL_RESTART_QUEUE);
+    if (require('./lib/preflight-contract').sha256(require('./lib/queue-request').projectQueueRequest(queue)) !== require('./lib/preflight-contract').sha256(rawRequest)) throw new Error('INITIAL_RESTART_PROJECTION_MISMATCH');
+    return gate.verify(process.env.KODJO_INITIAL_RESTART_QUEUE, {cwd:repoRoot, preflightFile, ownedLock, env:{...process.env,GH_TOKEN:liveToken}});
+  };
+  try { verifyInitialRestart(); } catch (err) { return writeFailure('INITIAL_RESTART_REFUSED', err.message); }
   const lockPath = path.join(stateRoot, 'claude-local.lock');
   let lock;
   try {
@@ -760,10 +769,13 @@ function main() {
       return writeFailure('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
     }
     beforeRefs = refs(repoRoot);
+    const restartProof = verifyInitialRestart(lock);
     const intent = {
       schema_version: 'kodjo.protocol.v2.claude-invocation.0.6.11',
       state: 'EXTERNAL_CALL_INTENDED', run_id: runId, slice_id: request.slice_id,
-      request_id: request.request_id,
+      request_id: request.request_id, session_id: request.generated_session_id,
+      initial_restart: request.initial_restart || null, initial_restart_proof: restartProof,
+      execution_environment: {runner_name:process.env.RUNNER_NAME || null, user_home:os.homedir(), state_root:stateRoot, claude_config_root:path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'))},
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
       // KV2-13 : les bornes effectives restent séparées des valeurs par défaut.

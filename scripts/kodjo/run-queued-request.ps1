@@ -46,6 +46,13 @@ if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 }
 
+# A causal INITIAL never inherits admission from a consumed request.
+if ($null -ne $queue.initial_restart) {
+  if (-not $productionQueue -or -not $preflightVerified) { throw 'INITIAL_RESTART_SUPERVISED_CONTEXT_REQUIRED' }
+  & node (Join-Path $PSScriptRoot 'verify-initial-restart.js') $queueAbsolute $preflightAbsolute
+  if ($LASTEXITCODE -ne 0) { throw 'INITIAL_RESTART_REFUSED' }
+}
+
 # D1: durable atomic consumption after validated preflight, before checkout/agent.
 # A lost response or subsequent failure never releases the consumed request_id.
 if ($productionQueue) {
@@ -155,7 +162,8 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 Assert-LiveTarget
 # The trusted Node supervisor consumes this token then deletes it before any
 # child process. Claude never inherits this variable or GH_TOKEN.
-if ($isVisual) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
+if ($isVisual -or $null -ne $queue.initial_restart) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
+if ($null -ne $queue.initial_restart) { $env:KODJO_INITIAL_RESTART_QUEUE = $liveQueueFile }
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
 if ($preflightAbsolute) { $env:KODJO_PREFLIGHT_FILE = $preflightAbsolute }
@@ -164,6 +172,7 @@ try {
   & (Join-Path $runtimeScriptRoot $runtimeEntryScript) -Request $tempRequest
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
+  Remove-Item Env:KODJO_INITIAL_RESTART_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PREFLIGHT_FILE -ErrorAction SilentlyContinue

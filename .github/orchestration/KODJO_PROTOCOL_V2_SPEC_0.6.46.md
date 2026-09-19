@@ -153,3 +153,75 @@ Les références sont créées seulement pour les consommations postérieures à
 Le bloc final déjà exigé par N39 est encodé en JSON entre `<KODJO_IMPLEMENTATION_CONFORMANCE>` et `</KODJO_IMPLEMENTATION_CONFORMANCE>`, avec un tableau `criteria`. Chaque criterion_id du plan apparaît exactement une fois, avec les sept champs existants non vides : implementation_status, files_or_symbols, component_used, tests_run, proof_status, preserve_status, residual_status. Le marqueur final KODJO_STOP_STATUS existant est conservé.
 
 Le runner transporte la sortie réelle et un diagnostic structurel. La revue la compare à la liste exacte du plan. Une absence, duplication, couverture incomplète, identité/hash divergent, troncature ou marqueur absent produit une preuve NON_VERIFIABLE et impose REVISE dans le contrat de revue existant ; aucun nouveau stop runtime n'est inventé. Les anciens rapports sans encodage structuré ne sont pas présentés comme vérifiés automatiquement. La complétude syntaxique n'établit pas la vérité des déclarations : la contre-vérification sémantique indépendante du plan/diff/tests demeure nécessaire.
+
+## Décision normative du 19 septembre 2026 — INITIAL irrécupérable
+
+Un nouvel `IMPLEMENT / INITIAL` causal est admis exclusivement après démonstration
+concordante de toutes les conditions suivantes : ancienne requête déjà consommée
+durablement, invocation liée exactement au run et à la requête en état
+`EXTERNAL_CALL_SENT`, aucun résultat final réutilisable, aucune session Claude
+récupérable, aucun paquet de recovery exploitable, aucune activité ni aucun verrou
+actif ou ambigu, contexte autorisé encore compatible (plan, revue, gate, scope,
+HEADs applicables). Une donnée absente, non lisible ou non liée au bon objet ne
+constitue pas une preuve d'absence. Une ancienne trace sans session liée reste
+non vérifiable ; il est interdit de fabriquer cette provenance rétroactivement.
+
+Le nouveau `request_id` est différent de l'ancien, y compris après normalisation
+de casse. Le reçu durable de l'ancienne requête demeure intact et opposable. La
+nouvelle requête traverse ses propres préflight, autorisations et consommation
+atomique avant toute exécution. Ce cas ne libère et ne rejoue jamais l'ancienne
+requête ; il n'assimile jamais une issue inconnue à une exécution nulle.
+
+Le champ distinct est :
+
+```json
+"initial_restart": {
+  "code": "IRRECOVERABLE_INITIAL_RESTART",
+  "source_run_id": "<run GitHub source>",
+  "source_run_attempt": 1,
+  "source_request_id": "<UUID de la requête source>"
+}
+```
+
+`retry_of_run_id` et `retry_reason` restent exclusivement réservés à
+`RESUME_DELTA`, y compris pour un INITIAL causal. `initial_restart` est interdit
+pour RESUME_DELTA et VISUAL_CORRECTION. Les autres règles, limites, préservations,
+revues, finalization et gates humains demeurent applicables.
+
+Cette décision précise l'interdiction historique des versions 0.6.11, 0.6.12 et
+0.6.16 selon laquelle `EXTERNAL_CALL_SENT` sans résultat bloque tout nouvel appel :
+elle demeure intégralement applicable à l'ancienne requête et à tout cas non
+prouvé. Seul un nouvel INITIAL satisfaisant toutes les conditions ci-dessus peut
+être admis. Aucune formulation historique n'est supprimée.
+
+### Collecte et limites d'exécution
+
+`verify-initial-restart.js` relit le tag de consommation, son objet annoté, le blob
+de queue lié au commit source, l'état du run, ses jobs et son runner ; il confronte
+l'invocation et les fichiers conservés à ces identités. Les autorisations et le
+HEAD courant sont relus. Deux observations concordantes sont exigées ; le
+superviseur renouvelle le contrôle sous son verrou exclusif avant l'appel Claude.
+Les options d'injection d'observations du module servent uniquement aux tests et
+ne sont exposées ni comme entrées de workflow ni comme champs de queue.
+
+L'implémentation courante est conservatrice : elle exige le même contexte de
+queue hormis identifiant, date et lien causal. Un changement de contexte n'est pas
+automatiquement déclaré compatible. Une archive GitHub présente mais non
+inspectée, un stockage de session absent/non lisible, une trace ancienne sans
+identité de stockage ou un inventaire incomplet provoquent un refus. Aucun de ces
+refus n'est un succès E2E. L'invocation conserve désormais son identifiant de
+session généré et son contexte de stockage, sans jeton ni contenu de session.
+
+Les conversations locales Claude sont conservées sous le répertoire `projects`
+du répertoire de configuration ; la recherche reste en lecture seule et refuse
+les liens, données illisibles ou scans incomplets. Référence de stockage :
+[documentation Claude Code — sessions](https://code.claude.com/docs/en/how-claude-code-works#work-with-sessions).
+
+### Tests obligatoires
+
+Refus si résultat/session/recovery disponible ou ambigu ; activité ou verrou
+présent/ambigu ; même request_id ; causalité erronée ; HEAD/plan/revue/gate/scope
+incompatible ; consommation manquante ; blob non lié au commit ; source active ;
+archive non inspectée ; changement entre observations. Admission uniquement avec
+preuves concordantes et nouveau request_id. Les tests UNIT/INTEGRATION avec
+observations injectées ne prouvent pas une invocation Claude réelle.

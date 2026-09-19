@@ -588,3 +588,13 @@ test('une application partielle est refusée, jamais tentée en 3-way', () => {
   // Le dépôt n'a pas été modifié par la tentative.
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'contenu-amont-different\n');
 });
+
+test('INITIAL causal preserves its distinct provenance through the local supervisor contract', () => {
+  const initial_restart = {code:'IRRECOVERABLE_INITIAL_RESTART',source_run_id:'101',source_run_attempt:1,source_request_id:'550e8400-e29b-41d4-a716-446655440099'};
+  const f = fixture({initial_restart});
+  const request = C.normalizeRequest(f.request,f.root);
+  assert.deepEqual(request.initial_restart,initial_restart);
+  assert.equal('retry_reason' in request,false);
+  const repeated = fixture({initial_restart:{...initial_restart,source_request_id:f.request.request_id}});
+  assert.throws(()=>C.normalizeRequest(repeated.request,repeated.root),/INITIAL_RESTART_CAUSALITY_INVALID/);
+});
