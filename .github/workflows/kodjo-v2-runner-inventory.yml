@@ -153,18 +153,19 @@ jobs:
           }
           $records = @()
           foreach ($entry in $sources.GetEnumerator()) {
-            $record = [ordered]@{ kind = $entry.Key; path = $entry.Value; exists = (Test-Path -LiteralPath $entry.Value); files = @(); json = @() }
+            $record = [ordered]@{ kind = $entry.Key; path = $entry.Value; exists = (Test-Path -LiteralPath $entry.Value); files = @(); directories = @(); json = @() }
             if ($record.exists) {
               $root = Get-Item -LiteralPath $entry.Value -Force
               if ($root.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'SOURCE_REPARSE_POINT_REFUSED' }
               $record.files = @(Get-ChildItem -LiteralPath $entry.Value -File -Force | Select-Object Name,Length,LastWriteTimeUtc)
+              $record.directories = @(Get-ChildItem -LiteralPath $entry.Value -Directory -Force | Select-Object Name,Attributes,LastWriteTimeUtc)
               foreach ($name in @('run-context.json','result.json','invocation.json','qualification-manifest.json')) {
                 $file = Join-Path $entry.Value $name
                 if (Test-Path -LiteralPath $file) {
                   $item = Get-Item -LiteralPath $file -Force
                   if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 16777216) { throw 'SOURCE_FILE_AMBIGUOUS' }
                   $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
-                  $record.json += @{ name = $name; sha256 = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash; data = ($value | Select-Object schema_version,run_id,github_run_id,github_run_attempt,request_id,session_id,source_head,created_at,status,claude_invoked,diagnostic,verdict,failure,execution_exit_code,protocol_status,recovery_preserved) }
+                  $record.json += @{ name = $name; sha256 = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash; data = ($value | Select-Object schema_version,run_id,github_run_id,github_run_attempt,request_id,session_id,source_head,created_at,state,started_at,mode,status,claude_invoked,diagnostic,verdict,failure,execution_exit_code,protocol_status,recovery_preserved) }
                 }
               }
             }
