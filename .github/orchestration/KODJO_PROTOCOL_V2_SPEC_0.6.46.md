@@ -115,6 +115,18 @@ Une nouvelle build doit donc être installée une fois pour :
 
 Après ce bootstrap, les livraisons JS/TS/assets compatibles peuvent être reçues via EAS Update sans Metro.
 
+### Livraison historique antérieure au bootstrap
+
+Une livraison applicative exacte peut avoir été produite avant l'introduction de la configuration Routine Dev et d'`expo-updates`. Le sidecar ne doit ni la déclarer OTA-compatible à tort, ni modifier sa PR.
+
+Dans ce seul cas, si le delta applicatif est initialement `OTA_COMPATIBLE` et si les manifests de dépendances sont identiques au contrat courant hors ajout d'`expo-updates`, le sidecar matérialise dans son workspace jetable les cinq fichiers d'environnement versionnés `app.json`, `app.config.js`, `eas.json`, `package.json` et `package-lock.json`. Il conserve séparément :
+
+- `application_head`, identité immuable du code applicatif revu ;
+- `environment_contract_head`, identité du contrat Routine Dev courant ;
+- les empreintes avant/après de chaque fichier superposé.
+
+Cette matérialisation force `NATIVE_REBUILD_REQUIRED` et une nouvelle build interne `review`. Elle ne produit jamais une OTA sur un runtime non bootstrapé, ne pousse aucun commit et ne déplace aucune branche. Toute autre dérive de dépendances est refusée au lieu d'être fusionnée implicitement.
+
 ## 8. Qualification
 
 La qualification 0.6.46 doit démontrer :

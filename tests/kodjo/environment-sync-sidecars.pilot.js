@@ -9,6 +9,7 @@ const root = path.resolve(__dirname,'..','..');
 const { resolve: resolveReview } = require('../../scripts/kodjo/resolve-review-environment-sync');
 const { resolve: resolveStable } = require('../../scripts/kodjo/resolve-stable-environment-sync');
 const { classify } = require('../../scripts/kodjo/classify-environment-update');
+const { materialize, CONTRACT_FILES } = require('../../scripts/kodjo/materialize-review-environment');
 
 function read(rel){return fs.readFileSync(path.join(root,rel),'utf8');}
 function json(rel){return JSON.parse(read(rel));}
@@ -130,6 +131,47 @@ test('environment sync: native-sensitive changes rebuild, JS-only changes use OT
   assert.deepEqual(native.native_sensitive_files,['package-lock.json']);
 });
 
+test('environment sync: historical application HEAD gets a bounded review-environment bootstrap',()=>{
+  const os=require('node:os');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-env-contract-'));
+  const contract=path.join(dir,'contract');
+  const delivery=path.join(dir,'delivery');
+  fs.mkdirSync(contract);fs.mkdirSync(delivery);
+  for(const file of CONTRACT_FILES){
+    fs.copyFileSync(path.join(root,file),path.join(contract,file));
+    if(file!=='app.config.js') fs.copyFileSync(path.join(root,file),path.join(delivery,file));
+  }
+  const oldPkg=json('package.json');delete oldPkg.dependencies['expo-updates'];
+  fs.writeFileSync(path.join(delivery,'package.json'),JSON.stringify(oldPkg,null,2)+'\n');
+  const compat=path.join(dir,'compat.json');
+  const evidence=path.join(dir,'evidence.json');
+  fs.writeFileSync(compat,JSON.stringify({schema:'kodjo.environment.update-compatibility.v1',status:'OTA_COMPATIBLE',changed_files:['src/foo.ts'],native_sensitive_files:[]})+'\n');
+  const result=materialize({contractRoot:contract,deliveryDir:delivery,compatibilityFile:compat,evidenceFile:evidence,protocolHead:'a'.repeat(40),applicationHead:'b'.repeat(40)});
+  assert.equal(result.overlay_applied,true);
+  assert.equal(result.resulting_compatibility,'NATIVE_REBUILD_REQUIRED');
+  assert.equal(JSON.parse(fs.readFileSync(compat,'utf8')).environment_bootstrap_required,true);
+  assert.equal(JSON.parse(fs.readFileSync(evidence,'utf8')).application_head,'b'.repeat(40));
+  for(const file of CONTRACT_FILES) assert.equal(fs.readFileSync(path.join(delivery,file),'utf8'),fs.readFileSync(path.join(contract,file),'utf8'));
+  fs.rmSync(dir,{recursive:true,force:true});
+});
+
+test('environment sync: historical overlay refuses unrelated package drift',()=>{
+  const os=require('node:os');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-env-drift-'));
+  const contract=path.join(dir,'contract');const delivery=path.join(dir,'delivery');
+  fs.mkdirSync(contract);fs.mkdirSync(delivery);
+  for(const file of CONTRACT_FILES){
+    fs.copyFileSync(path.join(root,file),path.join(contract,file));
+    if(file!=='app.config.js') fs.copyFileSync(path.join(root,file),path.join(delivery,file));
+  }
+  const oldPkg=json('package.json');delete oldPkg.dependencies['expo-updates'];oldPkg.dependencies['unexpected-native-package']='1.0.0';
+  fs.writeFileSync(path.join(delivery,'package.json'),JSON.stringify(oldPkg,null,2)+'\n');
+  const compat=path.join(dir,'compat.json');const evidence=path.join(dir,'evidence.json');
+  fs.writeFileSync(compat,JSON.stringify({schema:'kodjo.environment.update-compatibility.v1',status:'OTA_COMPATIBLE',changed_files:['src/foo.ts'],native_sensitive_files:[]})+'\n');
+  assert.throws(()=>materialize({contractRoot:contract,deliveryDir:delivery,compatibilityFile:compat,evidenceFile:evidence,protocolHead:'a'.repeat(40),applicationHead:'b'.repeat(40)}),/ENV_CONTRACT_PACKAGE_DRIFT/);
+  fs.rmSync(dir,{recursive:true,force:true});
+});
+
 test('environment sync: sidecars observe existing milestones without invoking or mutating the primary V2 state',()=>{
   const reviewSync=read('.github/workflows/kodjo-routine-dev-environment-sync.yml');
   const stableSync=read('.github/workflows/kodjo-routine-stable-environment-sync.yml');
@@ -139,6 +181,8 @@ test('environment sync: sidecars observe existing milestones without invoking or
   assert.match(reviewSync,/IMPLEMENTATION_REVIEW_APPROVED/);
   assert.match(reviewSync,/resolve-review-run-environment-sync\.js/);
   assert.match(reviewSync,/--channel review/);
+  assert.match(reviewSync,/materialize-review-environment\.js/);
+  assert.match(reviewSync,/routine-dev-environment-contract\.json/);
   assert.doesNotMatch(reviewSync,/contents:\s*write|issues:\s*write|pull-requests:\s*write|repository_dispatch|gh issue comment|gh pr create/);
 
   assert.match(stableSync,/pull_request:/);
