@@ -4,7 +4,7 @@
 const fs = require('node:fs');
 
 const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
-const SOURCE_PATH = /(?:`|\b)((?:app|src)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
+const SOURCE_PATH = /(?:`|\b)((?:app|src|tests)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
 
 function fail(code, detail) {
   throw new Error(`${code}: ${detail}`);
