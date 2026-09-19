@@ -1,0 +1,470 @@
+{
+  "schema_version": "kodjo.protocol.v2.preflight-architecture-matrix.v1",
+  "architecture_version": "0.6.42",
+  "base_main": "131c7f1f7c044aa6f366a0e3f30684d0729fa8cf",
+  "allowed_phases": [
+    "SELECTION",
+    "PREFLIGHT",
+    "FRESHNESS_GUARD",
+    "EXECUTION_POST"
+  ],
+  "allowed_stability": [
+    "IMMUTABLE",
+    "LIVE",
+    "RUNNER_VOLATILE"
+  ],
+  "operation_kinds": [
+    "IMPLEMENT",
+    "VISUAL_CORRECTION"
+  ],
+  "checks": [
+    {
+      "id": "PF-001",
+      "name": "event_boundary_valid",
+      "phase": "SELECTION",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-queue-admission.js",
+      "authority": "queueChanges",
+      "evidence": "event before/after SHA"
+    },
+    {
+      "id": "PF-002",
+      "name": "single_added_queue",
+      "phase": "SELECTION",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-queue-admission.js",
+      "authority": "admit",
+      "evidence": "exactly one A under queue/v2"
+    },
+    {
+      "id": "PF-003",
+      "name": "anti_rerun_replay_request_id",
+      "phase": "SELECTION",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-queue-admission.js",
+      "authority": "admit",
+      "evidence": "run_attempt + consumed registry + request_id uniqueness"
+    },
+    {
+      "id": "PF-004",
+      "name": "lean_queue_contract",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/queue-contract.js",
+      "authority": "validateQueueRequest",
+      "evidence": "schema/mode/kind/checks/limits/scope/delivery contract"
+    },
+    {
+      "id": "PF-005",
+      "name": "scope_normalization",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/scope-path.js",
+      "authority": "normalizeScopeRule",
+      "evidence": "canonical scope paths"
+    },
+    {
+      "id": "PF-006",
+      "name": "plan_review_user_authorization",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-authorizations.js",
+      "authority": "verify",
+      "evidence": "plan/review blobs + user gate"
+    },
+    {
+      "id": "PF-007",
+      "name": "recovery_migration_attestation",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/recovery-migration.js",
+      "authority": "certifyRecoverySourceMigration",
+      "evidence": "attestation blob/provenance when migration required"
+    },
+    {
+      "id": "PF-008",
+      "name": "visual_checkpoint_binding",
+      "phase": "PREFLIGHT",
+      "stability": "LIVE",
+      "operations": [
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-visual-checkpoint.js",
+      "authority": "verify",
+      "evidence": "checkpoint GitHub comment exact fields"
+    },
+    {
+      "id": "PF-009",
+      "name": "implementation_mission_binding",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-implementation-mission.js",
+      "authority": "verifyImplementationMission",
+      "evidence": "mission ↔ approved plan blob/UI contract"
+    },
+    {
+      "id": "PF-010",
+      "name": "plan_contract_current",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-plan-contract-consistency.js",
+      "authority": "consume",
+      "evidence": "current plan contract replay"
+    },
+    {
+      "id": "PF-011",
+      "name": "local_request_projection",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/project-queued-request.js",
+      "authority": "projection",
+      "evidence": "projected local request"
+    },
+    {
+      "id": "PF-012",
+      "name": "local_request_normalization",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/claude-local.js",
+      "authority": "normalizeRequest",
+      "evidence": "local request schema and effective values"
+    },
+    {
+      "id": "PF-013",
+      "name": "effective_prompt_budget",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/claude-local.js",
+      "authority": "buildPrompt",
+      "evidence": "prompt sha256 and bytes against limits"
+    },
+    {
+      "id": "PF-014",
+      "name": "protocol_source_commit_exists",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-queued-request.ps1",
+      "authority": "git cat-file/rev-list guard",
+      "evidence": "source_head exists and ancestry"
+    },
+    {
+      "id": "PF-015",
+      "name": "application_pr_head_live",
+      "phase": "PREFLIGHT",
+      "stability": "LIVE",
+      "operations": [
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-queued-request.ps1",
+      "authority": "GitHub PR + remote ref guards",
+      "evidence": "open PR/base/main/branch/head"
+    },
+    {
+      "id": "PF-016",
+      "name": "recovery_package_inspectable",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "restoreRecovery/readRecoveryCandidate without apply",
+      "evidence": "recovery manifest/package parse and scope"
+    },
+    {
+      "id": "PF-017",
+      "name": "tool_git_available",
+      "phase": "PREFLIGHT",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-disposable-qualification.ps1",
+      "authority": "toolchain preflight",
+      "evidence": "git executable/version"
+    },
+    {
+      "id": "PF-018",
+      "name": "tool_node_npm_available",
+      "phase": "PREFLIGHT",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-disposable-qualification.ps1",
+      "authority": "toolchain preflight",
+      "evidence": "node/npm available"
+    },
+    {
+      "id": "PF-019",
+      "name": "claude_binary_version",
+      "phase": "PREFLIGHT",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "CLAUDE_CODE_VERSION check",
+      "evidence": "claude --version"
+    },
+    {
+      "id": "PF-020",
+      "name": "claude_auth_readable",
+      "phase": "PREFLIGHT",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "auth status",
+      "evidence": "runner Claude auth/session"
+    },
+    {
+      "id": "PF-021",
+      "name": "github_token_api_readable",
+      "phase": "PREFLIGHT",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "authority": "GH_TOKEN + gh api",
+      "evidence": "authenticated GitHub reads"
+    },
+    {
+      "id": "PF-022",
+      "name": "package_lock_binding",
+      "phase": "PREFLIGHT",
+      "stability": "IMMUTABLE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "package_lock_sha256 evidence",
+      "evidence": "package-lock hash at execution head"
+    },
+    {
+      "id": "PF-023",
+      "name": "target_pr_head_freshness",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "LIVE",
+      "operations": [
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-queued-request.ps1",
+      "authority": "pre-checkout/pre-push PR/ref guard",
+      "evidence": "same PR/branch/head as preflight"
+    },
+    {
+      "id": "PF-024",
+      "name": "queue_blob_freshness",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "TARGET:preflight-consumer",
+      "authority": "queue blob oid recheck",
+      "evidence": "queue blob unchanged"
+    },
+    {
+      "id": "PF-025",
+      "name": "checkout_head_freshness",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "TARGET:preflight-consumer",
+      "authority": "git rev-parse HEAD",
+      "evidence": "execution head unchanged"
+    },
+    {
+      "id": "PF-026",
+      "name": "execution_lock_atomic",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/lib/execution-lock.js",
+      "authority": "acquire",
+      "evidence": "atomic lock acquisition immediately before Claude"
+    },
+    {
+      "id": "PF-027",
+      "name": "claude_auth_freshness",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "RUNNER_VOLATILE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "last-boundary auth check",
+      "evidence": "auth remains valid immediately before invocation"
+    },
+    {
+      "id": "PF-028",
+      "name": "prompt_fingerprint_freshness",
+      "phase": "FRESHNESS_GUARD",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "TARGET:preflight-consumer",
+      "authority": "prompt hash/bytes recheck",
+      "evidence": "prompt exactly matches attestation"
+    },
+    {
+      "id": "PF-029",
+      "name": "post_agent_scope_checks",
+      "phase": "EXECUTION_POST",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/run-local-claude.js",
+      "authority": "changedFiles/checks/fingerprintDrift",
+      "evidence": "scope/checks/delta after Claude"
+    },
+    {
+      "id": "PF-030",
+      "name": "implementation_review_independent",
+      "phase": "EXECUTION_POST",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": ".github/workflows/kodjo-slice-implementation-review.yml",
+      "authority": "independent review",
+      "evidence": "review verdict after implementation"
+    },
+    {
+      "id": "PF-031",
+      "name": "human_device_and_final_verification",
+      "phase": "EXECUTION_POST",
+      "stability": "LIVE",
+      "operations": [
+        "IMPLEMENT",
+        "VISUAL_CORRECTION"
+      ],
+      "source_of_truth": "scripts/kodjo/verify-v2-finalization.js",
+      "authority": "finalization verifier",
+      "evidence": "human/device exact HEAD + READY_TO_CLOSE"
+    }
+  ],
+  "invariants": {
+    "I1": [
+      "PF-001",
+      "PF-002",
+      "PF-003",
+      "PF-004",
+      "PF-006",
+      "PF-009",
+      "PF-010",
+      "PF-011",
+      "PF-012",
+      "PF-013"
+    ],
+    "I2": [
+      "PF-004",
+      "PF-005",
+      "PF-006",
+      "PF-007",
+      "PF-008",
+      "PF-009",
+      "PF-010"
+    ],
+    "I3": [
+      "PF-006",
+      "PF-007",
+      "PF-008",
+      "PF-013",
+      "PF-016",
+      "PF-019",
+      "PF-020",
+      "PF-031"
+    ],
+    "I4": [
+      "PF-029",
+      "PF-030",
+      "PF-031"
+    ],
+    "I5": [
+      "PF-001",
+      "PF-003",
+      "PF-014",
+      "PF-015",
+      "PF-023",
+      "PF-024",
+      "PF-025",
+      "PF-026",
+      "PF-027",
+      "PF-028"
+    ]
+  }
+}
