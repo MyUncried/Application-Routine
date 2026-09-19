@@ -102,7 +102,6 @@ test('preflight architecture: current production chain contains every canonical 
 
 test('preflight architecture: target introduces no new protocol state or transport', () => {
   assert.doesNotMatch(architecture, /repository_dispatch.*preflight/i);
-  assert.doesNotMatch(architecture, /nouvel état protocolaire/i);
   assert.match(architecture, /ne crée aucun nouvel état protocolaire/i);
   assert.match(architecture, /preuve locale structurée/);
 });
