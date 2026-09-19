@@ -1,0 +1,140 @@
+'use strict';
+
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const cp=require('node:child_process');
+const test=require('node:test');
+const assert=require('node:assert/strict');
+
+const P=require('../../scripts/kodjo/lib/preflight-contract');
+const { projectQueueRequest }=require('../../scripts/kodjo/lib/queue-request');
+const { verifyFile }=require('../../scripts/kodjo/verify-preflight-attestation');
+const { verifyLocalFreshness }=require('../../scripts/kodjo/lib/preflight-freshness');
+
+const root=path.resolve(__dirname,'..','..');
+
+function git(cwd,args){return cp.execFileSync('git',args,{cwd,encoding:'utf8'}).trim();}
+function fixture(){
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-preflight-c-'));
+  git(dir,['init','-q']); git(dir,['config','user.email','x@y.z']); git(dir,['config','user.name','KODJO']);
+  fs.mkdirSync(path.join(dir,'.github','orchestration','queue','v2'),{recursive:true});
+  fs.writeFileSync(path.join(dir,'mission.md'),'mission v1\n');
+  fs.writeFileSync(path.join(dir,'package-lock.json'),'{"lockfileVersion":3}\n');
+  git(dir,['add','.']); git(dir,['commit','-qm','base']);
+  const source=git(dir,['rev-parse','HEAD']);
+  const queue={
+    schema_version:'kodjo.protocol.v2.lean-request.0.6.13',
+    request_id:'550e8400-e29b-41d4-a716-446655440001',
+    authorized_plan:{plan_path:'plan.md',plan_blob_oid:'b'.repeat(40),approved_at_commit:'a'.repeat(40),evidence_kind:'ARTIFACT_HASH'},
+    independent_review:{review_path:'review.md',review_blob_oid:'c'.repeat(40),reviewed_plan_blob_oid:'b'.repeat(40),verdict:'APPROVED',evidence_kind:'ARTIFACT_HASH'},
+    user_gate:{gate_ref:'issue_comment:12',gated_reference:'b'.repeat(40),decision:'APPROVED',user_login:'MyUncried',evidence_kind:'ORGANISATIONAL'},
+    slice_id:'QUALIF',issue_number:999,mode:'INITIAL',operation_kind:'IMPLEMENT',session_id:null,
+    source_head:source,baseline_head:'e'.repeat(40),slice_bootstrap_file:'bootstrap.json',slice_bootstrap_sha256:'d'.repeat(64),
+    prompt_file:'mission.md',scope_allow:['src/**'],checks:['jest'],
+    limits:{max_ai_calls:1,max_duration_seconds:600,max_prompt_bytes:32768,max_total_prompt_bytes:32768,max_rollovers:0},
+    created_at:'2026-09-19T00:00:00.000Z'
+  };
+  const rel='.github/orchestration/queue/v2/nominal.json';
+  fs.writeFileSync(path.join(dir,rel),JSON.stringify(queue,null,2)+'\n');
+  git(dir,['add',rel]); git(dir,['commit','-qm','queue']);
+  const queueBlob=git(dir,['hash-object','--',rel]);
+  const projection=projectQueueRequest(queue);
+  const promptAbs=path.join(dir,'mission.md');
+  const normalized={...projection,prompt_file:promptAbs};
+  const att=P.finalize({
+    queue_path:rel,queue_blob_oid:queueBlob,request_id:queue.request_id,
+    event_before:source,event_after:git(dir,['rev-parse','HEAD']),
+    protocol_head:queue.source_head,execution_head:queue.source_head,
+    operation_kind:'IMPLEMENT',mode:'INITIAL',bindings:{},
+    freshness_guards_required:['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'],
+    projection_sha256:P.sha256(projection),
+    prompt_sha256:'f'.repeat(64),
+    prompt_file_sha256:P.sha256(fs.readFileSync(promptAbs)),
+    prompt_bytes:1,
+    package_lock_sha256:P.sha256(fs.readFileSync(path.join(dir,'package-lock.json'))),
+    toolchain:{},
+    checks:[{id:'PF-004',status:'PASS',source:'test',evidence:'ok',diagnostic:null}]
+  });
+  const preflight=path.join(dir,'preflight.json');
+  fs.writeFileSync(preflight,JSON.stringify(att,null,2)+'\n');
+  return {dir,rel,queue,projection,normalized,att,preflight};
+}
+
+test('lot C: consumer matérialise exactement la projection déjà attestée',()=>{
+  const f=fixture();
+  const out=path.join(f.dir,'request.json');
+  const script=path.join(root,'scripts','kodjo','verify-preflight-attestation.js');
+  const r=cp.spawnSync(process.execPath,[script,f.preflight,f.rel,out],{cwd:f.dir,encoding:'utf8'});
+  assert.equal(r.status,0,r.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(out,'utf8')),f.projection);
+});
+
+test('lot C: queue modifiée après préflight est refusée',()=>{
+  const f=fixture();
+  const q=JSON.parse(fs.readFileSync(path.join(f.dir,f.rel),'utf8'));
+  q.checks=['typescript'];
+  fs.writeFileSync(path.join(f.dir,f.rel),JSON.stringify(q,null,2)+'\n');
+  assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_QUEUE_BLOB_MISMATCH/);
+});
+
+test('lot C: prompt modifié après préflight est refusé avant Claude',()=>{
+  const f=fixture();
+  fs.writeFileSync(path.join(f.dir,'mission.md'),'mission v2\n');
+  assert.throws(()=>verifyLocalFreshness({
+    preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
+  }),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+});
+
+test('lot C: package-lock modifié après préflight est refusé avant Claude',()=>{
+  const f=fixture();
+  fs.writeFileSync(path.join(f.dir,'package-lock.json'),'{"lockfileVersion":3,"changed":true}\n');
+  assert.throws(()=>verifyLocalFreshness({
+    preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
+  }),/PREFLIGHT_PACKAGE_LOCK_DRIFT/);
+});
+
+test('lot C: les validations stables sont dédupliquées uniquement sur le chemin attesté',()=>{
+  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  assert.match(runner,/\$preflightVerified = \$true/);
+  assert.match(runner,/else \{[\s\S]*KODJO_QUEUE_SCHEMA_REFUSED[\s\S]*KODJO_QUEUE_SOURCE_NOT_ANCESTOR[\s\S]*project-queued-request\.js/);
+  assert.match(runner,/if \(-not \$preflightVerified\) \{[\s\S]*verify-implementation-mission\.js/);
+  const consumer=runner.indexOf('verify-preflight-attestation.js');
+  const checkout=runner.indexOf('git switch --detach');
+  assert.ok(consumer>=0 && checkout>consumer);
+});
+
+test('lot C: les races LIVE restent des freshness guards après le préflight',()=>{
+  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const preflight=runner.indexOf('verify-preflight-attestation.js');
+  for(const token of [
+    'KODJO_QUEUE_APPLICATION_PR_NOT_OPEN',
+    'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH',
+    'KODJO_QUEUE_APPLICATION_HEAD_MOVED',
+    'KODJO_QUEUE_EXISTING_PR_REMOTE_HEAD_MISMATCH',
+    'KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY'
+  ]){
+    const pos=runner.indexOf(token);
+    assert.ok(pos>preflight,token+' must remain after preflight as live guard');
+  }
+});
+
+test('lot C: lock reste acquis atomiquement seulement après freshness locale',()=>{
+  const local=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
+  const freshness=local.indexOf('verifyLocalFreshness');
+  const acquire=local.indexOf('acquireExecutionLock');
+  assert.ok(freshness>=0 && acquire>freshness);
+  assert.match(local,/CLAUDE_EXECUTION_ALREADY_ACTIVE|acquireExecutionLock/);
+});
+
+test('lot C: IMPLEMENT, RESUME_DELTA et VISUAL_CORRECTION gardent leurs chemins E2E',()=>{
+  const preflight=fs.readFileSync(path.join(root,'scripts','kodjo','verify-queue-preflight.js'),'utf8');
+  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const finalizer=fs.readFileSync(path.join(root,'scripts','kodjo','verify-v2-finalization.js'),'utf8');
+  assert.match(preflight,/VISUAL_CORRECTION/);
+  assert.match(preflight,/RESUME_DELTA/);
+  assert.match(preflight,/verifyVisualCheckpoint/);
+  assert.match(preflight,/recovery_migration/);
+  assert.match(runner,/prepare|start-kodjo-v2/);
+  assert.match(finalizer,/READY_TO_CLOSE/);
+});
