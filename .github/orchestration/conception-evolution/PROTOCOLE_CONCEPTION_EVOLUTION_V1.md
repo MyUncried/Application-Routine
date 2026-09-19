@@ -179,9 +179,45 @@ Définir la structure de haut niveau de la solution.
 
 Un modèle conceptuel de haut niveau et les principes structurants validés.
 
+### Synthèse utilisateur obligatoire
+
+Avant de clôturer l’étape 2 et avant tout passage à la conception détaillée, produire une synthèse de la conception générale en langage simple, orientée **parcours utilisateurs**.
+
+Cette synthèse est obligatoire. Elle doit permettre de comprendre la solution sans lire le registre détaillé des arbitrages.
+
+Elle doit :
+
+- reformuler les concepts métier en termes compréhensibles par un utilisateur ;
+- décrire les principaux parcours utilisateurs de bout en bout ;
+- montrer, pour chaque parcours, ce que l’utilisateur déclenche, voit, décide ou obtient ;
+- couvrir les rôles ou profils significativement différents lorsque leurs parcours diffèrent ;
+- expliciter les interactions essentielles avec les fonctions existantes ;
+- conserver uniquement les comportements déjà validés ou les décisions dérivées certaines ;
+- ne pas introduire de nouvelle règle pendant la synthèse ;
+- signaler explicitement tout point encore `À CLARIFIER` qui empêche de raconter correctement un parcours.
+
+Le format attendu privilégie des sections du type :
+
+```text
+Parcours 1 — <objectif utilisateur>
+<déroulé simple>
+
+Parcours 2 — <objectif utilisateur>
+<déroulé simple>
+```
+
+Un schéma conceptuel simplifié peut compléter les parcours lorsqu’il améliore la compréhension, mais il ne les remplace pas.
+
+Cette synthèse doit être présentée à l’utilisateur avant l’ouverture de l’étape 3. Une correction de compréhension peut être faite à ce moment sans rouvrir artificiellement les arbitrages déjà validés.
+
 ### Clôture
 
-Avant de passer à l’étape 3, vérifier explicitement s’il reste un sujet de conception générale non traité.
+Avant de passer à l’étape 3 :
+
+1. vérifier explicitement s’il reste un sujet de conception générale non traité ;
+2. produire la synthèse utilisateur en parcours ;
+3. faire corriger toute incompréhension ou omission significative détectée dans cette synthèse ;
+4. seulement ensuite déclarer l’étape 2 terminée.
 
 ## 6. Étape 3 — Conception détaillée et arbitrages
 
