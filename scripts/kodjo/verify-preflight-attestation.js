@@ -51,9 +51,12 @@ function verifyFile(preflightFile,queueFile,options={}){
 
 if(require.main===module){
   try{
-    const [preflightFile,queueFile]=process.argv.slice(2);
-    if(!preflightFile||!queueFile) throw new Error('USAGE: verify-preflight-attestation.js <preflight.json> <queue.json>');
+    const [preflightFile,queueFile,projectionFile]=process.argv.slice(2);
+    if(!preflightFile||!queueFile) throw new Error('USAGE: verify-preflight-attestation.js <preflight.json> <queue.json> [request.json]');
     const result=verifyFile(preflightFile,queueFile);
+    if(projectionFile){
+      fs.writeFileSync(path.resolve(projectionFile),JSON.stringify(result.projection,null,2)+'\n','utf8');
+    }
     process.stdout.write('[KODJO_V2] PREFLIGHT_ATTESTATION_ACCEPTED '+result.preflight.preflight_fingerprint.slice(0,12)+'\n');
   }catch(error){
     process.stderr.write(String(error&&error.message?error.message:error)+'\n');
