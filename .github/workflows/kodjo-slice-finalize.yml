@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 concurrency:
   group: kodjo-slice-finalize-${{ github.event.issue.number }}
@@ -38,26 +39,94 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
-          $slice=[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()
-          $manifest=[regex]::Match($env:TRIGGER_BODY,'(?m)^manifest_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()
-          $reviewId=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_review_comment_id=([0-9]+)\s*$').Groups[1].Value
-          $head=[regex]::Match($env:TRIGGER_BODY,'(?m)^head=([0-9a-f]{40})\s*$').Groups[1].Value
-          if(!$slice-or!$manifest-or!$reviewId-or!$head){throw 'Missing finalize inputs'}
-          if($manifest-ne".github/orchestration/slices/$slice.yml"-or!(Test-Path $manifest)){throw 'Manifest mismatch'}
-          $manifestRaw=Get-Content -Raw -LiteralPath $manifest
-          $m=[pscustomobject]@{
-            slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)').Groups[1].Value.Trim()
-            issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)').Groups[1].Value
-            target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)').Groups[1].Value.Trim()
-          }
-          if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+
+          $normalized=$env:TRIGGER_BODY -replace "`r",''
+
+          $slice=[regex]::Match($normalized,'(?m)^slice_id=([^\n]+)
+          $manifest=[regex]::Match($normalized,'(?m)^manifest_path=([^\n]+)$').Groups[1].Value.Trim()
+          $reviewId=[regex]::Match($normalized,'(?m)^source_review_comment_id=([0-9]+)$').Groups[1].Value
+          $head=[regex]::Match($normalized,'(?m)^head=([0-9a-f]{40})$').Groups[1].Value
+          if(!$slice-or!$reviewId-or!$head){throw 'Missing finalize inputs'}
+
           $review=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$reviewId"|ConvertFrom-Json
-          if($review.body-notmatch'(?m)^\[KODJO_SLICE\] IMPLEMENTATION_REVIEW_OUTPUT\s*$'-or$review.body-notmatch'(?m)^verdict=APPROVE\s*$'-or$review.body-notmatch'(?m)^STATUT : IMPLEMENTATION_REVIEW_APPROVED\s*$'){throw 'Technical approval missing'}
-          if($review.body-notmatch"(?m)^head=$head\s*$"){throw 'Visual and technical HEAD mismatch'}
-          $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
-          if(!$remote-or(($remote-split'\s+')[0])-ne$head){throw 'Target branch moved'}
+          if($LASTEXITCODE-ne0-or$null-eq$review){throw 'Implementation review unreadable'}
+
+          $reviewBody=([string]$review.body) -replace "`r",''
+          if($reviewBody-notmatch'(?m)^\[KODJO_SLICE\] IMPLEMENTATION_REVIEW_OUTPUT$'-or$reviewBody-notmatch'(?m)^verdict=APPROVE$'-or$reviewBody-notmatch'(?m)^STATUT : IMPLEMENTATION_REVIEW_APPROVED$'){throw 'Technical approval missing'}
+          if($reviewBody-notmatch"(?m)^head=$head$"){throw 'Visual and technical HEAD mismatch'}
+
+          $sourceImplMatch=[regex]::Match($reviewBody,'(?m)^source_implementation_comment_id=([0-9]+)
+            $queueMatch=[regex]::Match($implementationBody,'(?m)^v2_queue_path=(\.github/orchestration/queue/v2/[^\n]+\.json)$')
+            if(-not$queueMatch.Success){throw 'V2 queue path missing'}
+            $queuePath=$queueMatch.Groups[1].Value.Trim()
+            if(-not(Test-Path -LiteralPath $queuePath -PathType Leaf)){throw 'V2 queue file missing'}
+
+            $reviewFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review.md'
+            $implFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-implementation.md'
+            $visualFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-visual.md'
+            $metaFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-verification.json'
+            [IO.File]::WriteAllText($reviewFile,$reviewBody,(New-Object Text.UTF8Encoding($false)))
+            [IO.File]::WriteAllText($implFile,$implementationBody,(New-Object Text.UTF8Encoding($false)))
+            [IO.File]::WriteAllText($visualFile,$normalized,(New-Object Text.UTF8Encoding($false)))
+
+            node scripts/kodjo/verify-v2-finalization.js $reviewFile $implFile $visualFile $queuePath $env:ISSUE_NUMBER $reviewId '${{ github.event.comment.id }}' $metaFile
+            if($LASTEXITCODE-ne0){throw 'V2 finalization contract refused'}
+            $meta=Get-Content -LiteralPath $metaFile -Raw -Encoding UTF8|ConvertFrom-Json
+
+            $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$($meta.application_pr)"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$pr){throw 'V2 application PR unreadable'}
+            if([string]$pr.state-ne'open'-or[string]$pr.base.ref-ne'main'-or[string]$pr.head.ref-ne[string]$meta.application_branch-or[string]$pr.head.sha-ne$head){throw 'V2 application PR moved'}
+
+            $remote=gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$($meta.application_branch)" --jq '.object.sha'
+            if($LASTEXITCODE-ne0-or([string]$remote).Trim()-ne$head){throw 'V2 target branch moved'}
+
+            $utf8NoBom=New-Object Text.UTF8Encoding($false)
+            $planFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-plan.md'
+            $planRaw=(git cat-file -p $meta.plan_blob_oid) -join [Environment]::NewLine
+            if($LASTEXITCODE-ne0){throw 'V2 approved plan blob unreadable'}
+            [IO.File]::WriteAllText($planFile,$planRaw,$utf8NoBom)
+
+            $changedFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-changed-files.txt'
+            $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$($meta.base_head)...$head"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$compare){throw 'V2 final diff unreadable'}
+            if([string]$compare.status-ne'ahead'){throw 'V2 final HEAD ancestry mismatch'}
+            $changedText=((@($compare.files|ForEach-Object{[string]$_.filename})) -join [Environment]::NewLine)
+            if(-not[string]::IsNullOrWhiteSpace($changedText)){$changedText+=[Environment]::NewLine}
+            [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
+
+            if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
+              $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
+              $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
+              if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
+              [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
+
+              $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
+              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay
+              if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+            } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){
+              throw 'V2 final review mode invalid'
+            }
+
+            "v2_mode=true"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "final_contract=$metaFile"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "target_branch=$($meta.application_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            if(!$manifest){throw 'Missing legacy manifest'}
+            if($manifest-ne".github/orchestration/slices/$slice.yml"-or!(Test-Path $manifest)){throw 'Manifest mismatch'}
+            $manifestRaw=Get-Content -Raw -LiteralPath $manifest
+            $m=[pscustomobject]@{
+              slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)').Groups[1].Value.Trim()
+              issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)').Groups[1].Value
+              target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            }
+            if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+            $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+            if(!$remote-or(($remote-split'\s+')[0])-ne$head){throw 'Target branch moved'}
+            "v2_mode=false"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "target_branch=$($m.target_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
+
           "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "target_branch=$($m.target_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "head=$head"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_id=$reviewId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -78,8 +147,20 @@ jobs:
           if($LASTEXITCODE-ne0){throw 'Jest failed'}
           npx tsc --noEmit
           if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          if('${{ steps.gate.outputs.v2_mode }}'-eq'true'){
+            npm run lint --silent
+            if($LASTEXITCODE-ne0){throw 'Lint failed'}
+          }
           if((git rev-parse HEAD).Trim()-ne'${{ steps.gate.outputs.head }}'){throw 'Final HEAD mismatch'}
           if(-not[string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty final checkout'}
+          if('${{ steps.gate.outputs.v2_mode }}'-eq'true'){
+            $contractPath='${{ steps.gate.outputs.final_contract }}'
+            $final=Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8|ConvertFrom-Json
+            $final|Add-Member -NotePropertyName final_checks -NotePropertyValue ([ordered]@{
+              jest='PASS'; typescript='PASS'; lint='PASS'; head='PASS'; clean='PASS'
+            }) -Force
+            [IO.File]::WriteAllText($contractPath,($final|ConvertTo-Json -Depth 20),(New-Object Text.UTF8Encoding($false)))
+          }
 
       - name: Publish final checkpoint
         env:
@@ -87,8 +168,24 @@ jobs:
           TARGET_BRANCH: ${{ steps.gate.outputs.target_branch }}
           HEAD: ${{ steps.gate.outputs.head }}
           REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+          V2_MODE: ${{ steps.gate.outputs.v2_mode }}
+          FINAL_CONTRACT: ${{ steps.gate.outputs.final_contract }}
         run: |
+          $ErrorActionPreference='Stop'
           $nl=[Environment]::NewLine
-          $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'branch='+$env:TARGET_BRANCH+$nl+'final_head='+$env:HEAD+$nl+'implementation_review_comment_id='+$env:REVIEW_ID+$nl+'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+'STATUT : DONE'
+          if($env:V2_MODE-eq'true'){
+            $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+
+              'slice_id='+$env:SLICE_ID+$nl+
+              'branch='+$env:TARGET_BRANCH+$nl+
+              'final_head='+$env:HEAD+$nl+
+              'implementation_review_comment_id='+$env:REVIEW_ID+$nl+
+              'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+
+              'STATUT : READY_TO_CLOSE'+$nl+$nl+
+              '<KODJO_UI_FINAL_VERIFICATION_JSON>'+$nl+
+              (Get-Content -LiteralPath $env:FINAL_CONTRACT -Raw -Encoding UTF8).Trim()+$nl+
+              '</KODJO_UI_FINAL_VERIFICATION_JSON>'
+          } else {
+            $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'branch='+$env:TARGET_BRANCH+$nl+'final_head='+$env:HEAD+$nl+'implementation_review_comment_id='+$env:REVIEW_ID+$nl+'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+'STATUT : DONE'
+          }
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\final-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\final-comment.md"

@@ -97,6 +97,7 @@ jobs:
           fi
           test -n "$slice" && [[ "$session" =~ ^[0-9a-f-]{36}$ ]] && [[ "$plan" =~ ^[0-9]+$ ]] && [[ "$plan_review" =~ ^[0-9]+$ ]]
           [[ "$head" =~ ^[0-9a-f]{40}$ ]] && [[ "$base" =~ ^[0-9a-f]{40}$ ]]
+          v2_operation_kind=LEGACY
           if grep -Fxq 'continuity_origin=V2_LEAN_QUEUE' <<<"$source_body"; then
             v2_queue_path=$(extract_exactly_one "$source_body" 's/^v2_queue_path=//p' v2_queue_path)
             v2_protocol_head=$(extract_exactly_one "$source_body" 's/^v2_protocol_head=//p' v2_protocol_head)
@@ -107,6 +108,8 @@ jobs:
             [[ "$v2_protocol_head" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 protocol head' >&2; exit 1; }
             [[ "$v2_request_id" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo 'Invalid V2 request id' >&2; exit 1; }
             test -f "$v2_queue_path"
+            v2_operation_kind=$(jq -r '.operation_kind // "IMPLEMENT"' "$v2_queue_path")
+            case "$v2_operation_kind" in IMPLEMENT|VISUAL_CORRECTION) ;; *) echo 'Invalid V2 operation kind' >&2; exit 1 ;; esac
             jq -e --arg slice "$slice" --arg base "$base" --arg protocol "$v2_protocol_head" --arg request "$v2_request_id" '
               .slice_id == $slice
               and .source_head == $protocol
@@ -202,7 +205,7 @@ jobs:
             plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
             [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
             fi
-          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" >> "$GITHUB_OUTPUT"
+          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\nv2_operation_kind=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" "$v2_operation_kind" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
           printf '%s' "$source_body" > /tmp/implementation-output.md
 
@@ -226,7 +229,7 @@ jobs:
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
 
       - name: Prepare criterion-complete UI review input
-        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/')
+        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT' && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
         shell: bash
         run: |
           set -euo pipefail
@@ -337,7 +340,7 @@ jobs:
           } < /tmp/review-contract.json > /tmp/review.md
 
       - name: Independent OpenAI review — legacy path unchanged
-        if: ${{ !startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') }}
+        if: ${{ !startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') || steps.gate.outputs.v2_operation_kind == 'VISUAL_CORRECTION' }}
         shell: bash
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
