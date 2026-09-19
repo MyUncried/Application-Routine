@@ -46,9 +46,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "110c4abe-921e-44b3-aff3-465ee1573efe"
+        "projectId": "0ee44f86-bd22-4b92-8780-e265b72907d9"
       }
     },
-    "owner": "ankushas-team"
+    "owner": "ankushas-team",
+    "updates": {
+      "url": "https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
