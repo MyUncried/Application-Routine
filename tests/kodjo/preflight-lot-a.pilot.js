@@ -127,6 +127,19 @@ test('lot A: shadow preflight produit une attestation PASS sans toucher au runti
   assert.equal(P.verify(result,{queue_path:f.rel,request_id:f.queue.request_id}),result);
 });
 
+test('PF-018 executes the real Node/npm toolchain on the host, including Windows command shims',()=>{
+  const f=fixture();
+  try {
+    const result=runPreflight({cwd:f.dir,queuePath:f.rel,before:f.before,after:f.after,runAttempt:1,
+      probes:probes(f.queue,{nodeNpm:null})});
+    const toolchain=result.checks.find(row=>row.id==='PF-018');
+    assert.equal(toolchain.status,'PASS',toolchain.diagnostic);
+    assert.match(toolchain.evidence.node,/^v\d+\.\d+\.\d+/);
+    assert.match(toolchain.evidence.npm,/^\d+\.\d+\.\d+/);
+    assert.equal(result.status,'PASS');
+  } finally { fs.rmSync(f.dir,{recursive:true,force:true}); }
+});
+
 test('lot A: plusieurs défauts indépendants sont collectés dans le même rapport',()=>{
   const f=fixture();
   const result=runPreflight({
