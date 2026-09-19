@@ -25,6 +25,11 @@ on:
         required: false
         type: string
 
+      recovery_migration_file:
+        description: 'Committed migration attestation path (required when resuming on another HEAD)'
+        required: false
+        type: string
+
 permissions:
   contents: read
   actions: read
@@ -227,6 +232,7 @@ jobs:
         working-directory: _qualification/${{ github.run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
+          KODJO_QUALIFICATION_MIGRATION_FILE: ${{ inputs.recovery_migration_file }}
         run: |
           $env:KODJO_LIVE_GH_TOKEN = $env:GH_TOKEN
           Remove-Item Env:GH_TOKEN
@@ -234,6 +240,7 @@ jobs:
             -ExpectedHead '${{ inputs.expected_head }}' `
             -ExpectedMain '${{ inputs.expected_main }}' `
             -SourceRunId '${{ inputs.source_run_id }}' `
+            -RecoveryMigrationFile $env:KODJO_QUALIFICATION_MIGRATION_FILE `
             -SourceEvidenceDirectory '${{ github.workspace }}\_source-qualification-evidence' `
             -EvidenceDirectory 'qualification-evidence'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
