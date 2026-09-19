@@ -8,7 +8,7 @@ const { spawnSync } = require('node:child_process');
 
 const { validateQueueRequest } = require('./lib/queue-contract');
 const { projectQueueRequest } = require('./lib/queue-request');
-const { normalizeRequest, buildPrompt, CLAUDE_CODE_VERSION } = require('./lib/claude-local');
+const { normalizeRequest, buildPrompt, CLAUDE_CODE_VERSION, resolveClaudeBinary } = require('./lib/claude-local');
 const { verify: verifyAuthorizations } = require('./verify-authorizations');
 const { verify: verifyVisualCheckpoint } = require('./verify-visual-checkpoint');
 const { queueChanges, consumedRegistry, blobOid, QUEUE_DIR } = require('./verify-queue-admission');
@@ -86,6 +86,7 @@ function runPreflight(options = {}) {
   let promptText = null;
   let promptBytes = null;
   let promptHash = null;
+  let promptFileHash = null;
   let planBody = null;
 
   add('PF-001','verify-queue-admission.js',()=>{
@@ -229,6 +230,7 @@ function runPreflight(options = {}) {
       promptBytes = Buffer.byteLength(promptText,'utf8');
       promptHash = P.sha256(promptText);
     }
+    promptFileHash = P.sha256(fs.readFileSync(normalized.prompt_file));
     if (promptBytes > normalized.limits.max_prompt_bytes || promptBytes > normalized.limits.max_total_prompt_bytes) {
       throw new Error('PROMPT_BUDGET_EXCEEDED:' + promptBytes);
     }
@@ -310,7 +312,7 @@ function runPreflight(options = {}) {
       if (version !== CLAUDE_CODE_VERSION) throw new Error('CLAUDE_VERSION_REFUSED:' + version);
       return version;
     }
-    const r = command(process.platform === 'win32' ? 'claude.exe' : 'claude',['--version'],cwd);
+    const r = command(resolveClaudeBinary(process.env, process.platform),['--version'],cwd);
     if (!r.ok) throw new Error('CLAUDE_NOT_AVAILABLE');
     const text = (r.stdout || r.stderr).trim();
     if (!new RegExp('(^|\\s)'+CLAUDE_CODE_VERSION.replace(/\./g,'\\.')+'(\\s|$)').test(text)) throw new Error('CLAUDE_VERSION_REFUSED:' + text);
@@ -320,7 +322,7 @@ function runPreflight(options = {}) {
   add('PF-020','run-local-claude.js Claude auth',()=>{
     if (probes.claudeAuth) return probes.claudeAuth();
     if (process.env.CLAUDE_CODE_OAUTH_TOKEN) return 'TOKEN_PRESENT';
-    const r = command(process.platform === 'win32' ? 'claude.exe' : 'claude',['auth','status'],cwd);
+    const r = command(resolveClaudeBinary(process.env, process.platform),['auth','status'],cwd);
     if (!r.ok) throw new Error('KODJO-V2-CLAUDE-AUTH');
     return 'AUTH_STATUS_OK';
   },['PF-019']);
@@ -333,17 +335,18 @@ function runPreflight(options = {}) {
     return r.stdout.trim();
   });
 
-  add('PF-022','run-local-claude.js package lock binding',()=>{
-    if (probes.packageLock) return probes.packageLock(cwd);
-    const lock = path.join(cwd,'package-lock.json');
-    return fs.existsSync(lock) ? {package_lock_sha256:P.sha256(fs.readFileSync(lock))} : {package_lock_sha256:null};
-  },['PF-014']);
-
   const executionHead = queue
     ? (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION'
       ? String(queue.delivery_target && queue.delivery_target.application_head || '')
       : String(queue.source_head || ''))
     : '';
+
+  add('PF-022','run-local-claude.js package lock binding',()=>{
+    if (probes.packageLock) return probes.packageLock(cwd, executionHead);
+    const show = command('git',['show',executionHead + ':package-lock.json'],cwd);
+    if (!show.ok) return {package_lock_sha256:null};
+    return {package_lock_sha256:P.sha256(Buffer.from(show.stdout,'utf8'))};
+  },['PF-014']);
   const toolchain = {
     git: byId.get('PF-017') && byId.get('PF-017').status === 'PASS' ? byId.get('PF-017').evidence : null,
     node_npm: byId.get('PF-018') && byId.get('PF-018').status === 'PASS' ? byId.get('PF-018').evidence : null,
@@ -377,6 +380,7 @@ function runPreflight(options = {}) {
     freshness_guards_required:['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'],
     projection_sha256:projected ? P.sha256(projected) : null,
     prompt_sha256:promptHash,
+    prompt_file_sha256:promptFileHash,
     prompt_bytes:promptBytes,
     package_lock_sha256:byId.get('PF-022') && byId.get('PF-022').status === 'PASS'
       ? byId.get('PF-022').evidence.package_lock_sha256 : null,
