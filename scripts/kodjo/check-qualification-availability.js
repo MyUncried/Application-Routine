@@ -15,6 +15,7 @@ function localEvidence(run, env = process.env) {
   const snapshot = windowsProcessSnapshot();
   let processScan = 'AMBIGUOUS';
   let currentWorkerExclusive = false;
+  const processEvidence = { snapshot: snapshot.state, workers: [], matches: [], unreadable: [] };
   if (snapshot.state === 'OK' && Array.isArray(snapshot.rows) && snapshot.rows.length > 0) {
     const byPid = new Map(snapshot.rows.map(p => [Number(p.ProcessId), p]));
     const ancestors = new Set();
@@ -23,6 +24,7 @@ function localEvidence(run, env = process.env) {
       ancestors.add(parent); parent = Number(byPid.get(parent)?.ParentProcessId || 0);
     }
     const workers = snapshot.rows.filter(p => /^Runner\.Worker(?:\.exe)?$/i.test(p.Name || ''));
+    processEvidence.workers = workers.map(p => ({ pid: Number(p.ProcessId), ancestor: ancestors.has(Number(p.ProcessId)) }));
     currentWorkerExclusive = workers.length === 1 && ancestors.has(Number(workers[0].ProcessId));
     const ours = (pid) => {
       const seen = new Set();
@@ -33,15 +35,20 @@ function localEvidence(run, env = process.env) {
       return false;
     };
     const others = snapshot.rows.filter(p => !ours(Number(p.ProcessId)));
-    const active = classifyClaudeProcesses(snapshot.rows).length > 0 || others.some(p =>
+    const matches = others.filter(p =>
       /^claude(?:\.exe)?$/i.test(p.Name || '') ||
       /(?:[\\/]_kodjo[\\/]|kodjo-qualif(?:-resume)?-|run-queued-request|invoke-kodjo-v2)/i.test(p.CommandLine || ''));
-    const unreadable = others.some(p => /^(?:node|claude)(?:\.exe)?$/i.test(p.Name || '') && !p.CommandLine);
+    const claudeMatches = classifyClaudeProcesses(snapshot.rows);
+    processEvidence.matches = [...new Map([...matches,...claudeMatches].map(p => [p.ProcessId, {pid:Number(p.ProcessId),name:p.Name}])).values()];
+    const active = processEvidence.matches.length > 0;
+    const unreadableRows = others.filter(p => /^(?:node|claude)(?:\.exe)?$/i.test(p.Name || '') && !p.CommandLine);
+    processEvidence.unreadable = unreadableRows.map(p=>({pid:Number(p.ProcessId),name:p.Name}));
+    const unreadable = unreadableRows.length > 0;
     processScan = active ? 'ACTIVE' : unreadable ? 'AMBIGUOUS' : 'NONE';
   }
   const stateRoot = path.join(env.USERPROFILE, '.kodjo-v2');
   return {
-    platform: process.platform, observedAt: Date.now(), processScan, currentWorkerExclusive,
+    platform: process.platform, observedAt: Date.now(), processScan, currentWorkerExclusive, processEvidence,
     lockAbsent: absent(path.join(stateRoot, 'claude-local.lock')),
     runDirectoryAbsent: absent(path.join(env.GITHUB_WORKSPACE, '_kodjo', String(run.id))),
     runStateAbsent: absent(path.join(stateRoot, 'runs', `github-${run.id}-${run.run_attempt}`)),
@@ -95,7 +102,8 @@ async function checkAvailability({ api, local = localEvidence, env = process.env
     const next = await api(prefix + `/actions/runs/${run.id}/attempts/${run.run_attempt+1}`);
     const proof = { run, attempt, allJobs, latestJobs, nextAttemptStatus: next.status,
       runnerId: own[0].runner_id, local: local(run, env) };
-    residuals.push({ ...classifyResidual(proof, now()), proof });
+    try { residuals.push({ ...classifyResidual(proof, now()), proof }); }
+    catch (error) { error.evidence = {run_id:run.id,runner_id:own[0].runner_id,local:proof.local}; throw error; }
     const reread = await want(`/actions/runs/${run.id}`);
     requireProof(reread.status === run.status && reread.run_attempt === run.run_attempt &&
       reread.updated_at === run.updated_at, 'LEAN_RUN_CHANGED');
@@ -131,5 +139,15 @@ async function main() {
   fs.writeFileSync(process.argv[2], JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify({disposition:result.disposition, residuals:result.residuals.map(r=>({run_id:r.run_id,disposition:r.disposition}))}));
 }
-if (require.main === module) main().catch(e => {console.error(e.message); process.exitCode=1;});
-module.exports = {checkAvailability, localEvidence};
+function failureRecord(error, env = process.env) {
+  return {schema:'kodjo.qualification.availability.1',disposition:'REFUSED',
+    head:env.EXPECTED_HEAD || null,main:env.EXPECTED_MAIN || null,run_id:env.GITHUB_RUN_ID || null,
+    reason:error.message,evidence:error.evidence || null};
+}
+if (require.main === module) main().catch(e => {
+  const record=failureRecord(e);
+  console.error(JSON.stringify(record));
+  if (process.argv[2]) fs.writeFileSync(process.argv[2],JSON.stringify(record,null,2)+'\n');
+  process.exitCode=1;
+});
+module.exports = {checkAvailability, localEvidence, failureRecord};

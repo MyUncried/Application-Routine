@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { classifyResidual } = require('../../scripts/kodjo/lib/qualification-availability');
 const { checkAvailability } = require('../../scripts/kodjo/check-qualification-availability');
+const { failureRecord } = require('../../scripts/kodjo/check-qualification-availability');
 const now = Date.parse('2026-01-02T12:00:00Z');
 const head = 'a'.repeat(40), main = 'b'.repeat(40);
 function fixture() {
@@ -96,6 +97,17 @@ test('Q-ENV-01 API failure cannot become an empty queue',async()=>{
   await assert.rejects(checkAvailability(harness(({url,result})=>{
     if(url.startsWith('/actions/workflows/'))result.status=403;
   })),/GITHUB_EVIDENCE_UNAVAILABLE/);
+});
+test('Q-ENV-01 local refusal retains observations without converting refusal to admission',async()=>{
+  const h=harness();h.local=()=>({...fixture().local,processScan:'AMBIGUOUS'});
+  try { await checkAvailability(h); assert.fail('must refuse'); }
+  catch(error) {
+    const record=failureRecord(error,h.env);
+    assert.equal(record.disposition,'REFUSED');
+    assert.equal(record.evidence.local.processScan,'AMBIGUOUS');
+    assert.equal(record.evidence.run_id,123);
+    assert.equal(record.head,head);
+  }
 });
 test('Q-ENV-01 never joins Lean concurrency or changes exact HEAD/main guards',()=>{
   const root=path.resolve(__dirname,'../..');
