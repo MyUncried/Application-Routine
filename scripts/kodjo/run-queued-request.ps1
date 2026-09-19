@@ -10,35 +10,47 @@ if (-not $repoRoot) { throw 'KODJO_V2_REPOSITORY_NOT_FOUND' }
 
 $queueAbsolute = [IO.Path]::GetFullPath((Join-Path $repoRoot $QueueFile))
 $queue = Get-Content -LiteralPath $queueAbsolute -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($queue.schema_version -ne 'kodjo.protocol.v2.lean-request.0.6.13') { throw 'KODJO_QUEUE_SCHEMA_REFUSED' }
-if ($queue.source_head -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_QUEUE_SOURCE_HEAD_REFUSED' }
-if ($queue.slice_id -notmatch '^[A-Za-z0-9._-]{1,80}$') { throw 'KODJO_QUEUE_SLICE_ID_REFUSED' }
-if (-not $queue.prompt_file -or -not $queue.slice_bootstrap_file -or -not $queue.scope_allow) { throw 'KODJO_QUEUE_INCOMPLETE' }
-
-$operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)) { 'IMPLEMENT' } else { ([string]$queue.operation_kind).ToUpperInvariant() }
-$isVisual = $operationKind -eq 'VISUAL_CORRECTION'
-if ($operationKind -notin @('IMPLEMENT', 'VISUAL_CORRECTION')) { throw 'KODJO_QUEUE_OPERATION_KIND_REFUSED' }
-if ($isVisual -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_VISUAL_MODE_REFUSED' }
 
 $productionQueue = $env:GITHUB_ACTIONS -eq 'true' -and $env:KODJO_VERIFY_GITHUB -eq '1'
 if ($productionQueue -and [string]::IsNullOrWhiteSpace($PreflightFile)) {
   throw 'KODJO_QUEUE_PREFLIGHT_REQUIRED'
 }
+
+$tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-request-{0}.json" -f $env:GITHUB_RUN_ID)
 $preflightAbsolute = $null
+$preflightVerified = $false
 if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
   $preflightAbsolute = [IO.Path]::GetFullPath($PreflightFile)
   if (-not (Test-Path -LiteralPath $preflightAbsolute -PathType Leaf)) { throw 'KODJO_QUEUE_PREFLIGHT_MISSING' }
-  & node (Join-Path $PSScriptRoot 'verify-preflight-attestation.js') $preflightAbsolute $QueueFile
+  & node (Join-Path $PSScriptRoot 'verify-preflight-attestation.js') $preflightAbsolute $QueueFile $tempRequest
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PREFLIGHT_REFUSED' }
+  $preflightVerified = $true
+} else {
+  # Chemin local/historique sans attestation : conserver les validations
+  # structurelles antérieures. Le chemin production supervisé ne peut pas entrer ici.
+  if ($queue.schema_version -ne 'kodjo.protocol.v2.lean-request.0.6.13') { throw 'KODJO_QUEUE_SCHEMA_REFUSED' }
+  if ($queue.source_head -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_QUEUE_SOURCE_HEAD_REFUSED' }
+  if ($queue.slice_id -notmatch '^[A-Za-z0-9._-]{1,80}$') { throw 'KODJO_QUEUE_SLICE_ID_REFUSED' }
+  if (-not $queue.prompt_file -or -not $queue.slice_bootstrap_file -or -not $queue.scope_allow) { throw 'KODJO_QUEUE_INCOMPLETE' }
+
+  $legacyOperationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)) { 'IMPLEMENT' } else { ([string]$queue.operation_kind).ToUpperInvariant() }
+  if ($legacyOperationKind -notin @('IMPLEMENT', 'VISUAL_CORRECTION')) { throw 'KODJO_QUEUE_OPERATION_KIND_REFUSED' }
+  if ($legacyOperationKind -eq 'VISUAL_CORRECTION' -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_VISUAL_MODE_REFUSED' }
+
+  git cat-file -e "$($queue.source_head)^{commit}"
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_SOURCE_NOT_FOUND' }
+  $reachable = @(git rev-list HEAD)
+  if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_ANCESTOR' }
+
+  & node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 }
+
+$operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)) { 'IMPLEMENT' } else { ([string]$queue.operation_kind).ToUpperInvariant() }
+$isVisual = $operationKind -eq 'VISUAL_CORRECTION'
 
 $githubToken = $env:GH_TOKEN
 if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
-
-git cat-file -e "$($queue.source_head)^{commit}"
-if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_SOURCE_NOT_FOUND' }
-$reachable = @(git rev-list HEAD)
-if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_ANCESTOR' }
 
 # Une PR applicative peut être basée sur un HEAD antérieur au protocole courant.
 # Le runtime exécutable est donc figé hors checkout AVANT toute bascule vers le
@@ -51,7 +63,6 @@ if (-not (Test-Path -LiteralPath (Join-Path $runtimeScriptRoot $runtimeEntryScri
   throw 'KODJO_QUEUE_PROTOCOL_RUNTIME_COPY_FAILED'
 }
 
-$tempRequest = Join-Path $env:RUNNER_TEMP ("kodjo-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 $publishPathspec = Join-Path $env:RUNNER_TEMP ("kodjo-publish-{0}-{1}.nul" -f $queue.slice_id, $env:GITHUB_RUN_ID)
 Remove-Item -LiteralPath $publishPathspec -Force -ErrorAction SilentlyContinue
 $env:KODJO_PUBLISH_PATHSPEC_FILE = $publishPathspec
@@ -59,9 +70,6 @@ $branch = "kodjo/v2-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_
 $targetBranch = $null
 $targetPr = $null
 $applicationHead = $null
-
-& node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
-if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 
 if ($isVisual) {
   $target = $queue.delivery_target
@@ -95,17 +103,18 @@ if ($isVisual) {
   git switch -c $branch
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 
-  # Contrat de développement UI : aucune nouvelle interface de transport.
-  # La mission existante doit pointer exactement vers la matrice UI déjà
-  # approuvée dans technical-plan.md et vers son blob autorisé.
-  $planPath = [string]$queue.authorized_plan.plan_path
-  $planBlob = [string]$queue.authorized_plan.plan_blob_oid
-  $missionPath = [string]$queue.prompt_file
-  if ([string]::IsNullOrWhiteSpace($planPath) -or [string]::IsNullOrWhiteSpace($planBlob)) {
-    throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_INPUT_MISSING'
+  if (-not $preflightVerified) {
+    # Compatibilité du chemin local/historique : le contrat est déjà opposé
+    # dans le préflight sur le chemin production supervisé.
+    $planPath = [string]$queue.authorized_plan.plan_path
+    $planBlob = [string]$queue.authorized_plan.plan_blob_oid
+    $missionPath = [string]$queue.prompt_file
+    if ([string]::IsNullOrWhiteSpace($planPath) -or [string]::IsNullOrWhiteSpace($planBlob)) {
+      throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_INPUT_MISSING'
+    }
+    & node (Join-Path $runtimeScriptRoot 'verify-implementation-mission.js') $missionPath $planPath $planBlob
+    if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_REFUSED' }
   }
-  & node (Join-Path $runtimeScriptRoot 'verify-implementation-mission.js') $missionPath $planPath $planBlob
-  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_IMPLEMENTATION_CONTRACT_REFUSED' }
 }
 
 if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType Leaf) {
