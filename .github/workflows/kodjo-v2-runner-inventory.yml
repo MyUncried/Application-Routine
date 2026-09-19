@@ -1,220 +1,54 @@
 name: KODJO V2 runner inventory
-
 on:
   workflow_dispatch:
     inputs:
       source_run_id:
         description: Optional interrupted run to inspect without replay
-        required: false
+        required: true
         type: string
       source_run_attempt:
         description: Interrupted run attempt
         default: '1'
         required: true
         type: string
-
 permissions:
-  contents: read
   actions: read
-
+  contents: read
 jobs:
   inventory:
-    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Inventory persistent KODJO directories without mutation
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          function Convert-ToTsvField([object]$Value) {
-            if ($null -eq $Value) { return '' }
-            return ([string]$Value).Replace("`t", ' ').Replace("`r", ' ').Replace("`n", ' ')
-          }
-
-          $root = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '_kodjo')).TrimEnd('\')
-          $evidenceLeaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
-          $evidence = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $evidenceLeaf)).TrimEnd('\')
-          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
-          if ([IO.Path]::GetDirectoryName($evidence).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($evidence) -ne $evidenceLeaf) {
-            throw ('EVIDENCE_IDENTITY_MISMATCH: ' + $evidence)
-          }
-          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
-
-          $lock = Join-Path (Join-Path $env:USERPROFILE '.kodjo-v2') 'claude-local.lock'
-          $processes = @(Get-CimInstance Win32_Process | Where-Object {
-            $_.CommandLine -and $_.CommandLine.IndexOf($root, [StringComparison]::OrdinalIgnoreCase) -ge 0
-          })
-          $directoryLines = @()
-          $directoryCount = 0
-          $totalBytes = [int64]0
-          if (Test-Path -LiteralPath $root) {
-            $directoryLines = @(Get-ChildItem -LiteralPath $root -Directory -Force | Sort-Object Name | ForEach-Object {
-              $directory = $_
-              $measure = Get-ChildItem -LiteralPath $directory.FullName -File -Force -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
-              $runId = ''
-              if ($directory.Name -match '^\d+$') { $runId = $directory.Name }
-              $size = if ($null -eq $measure.Sum) { [int64]0 } else { [int64]$measure.Sum }
-              $directoryCount++
-              $totalBytes += $size
-              'DIRECTORY' + "`t" + (Convert-ToTsvField $directory.Name) + "`t" + (Convert-ToTsvField $runId) + "`t" + (Convert-ToTsvField $directory.FullName) + "`t" + [int64]$measure.Count + "`t" + $size + "`t" + $directory.CreationTimeUtc.ToString('o') + "`t" + $directory.LastWriteTimeUtc.ToString('o')
-            })
-          }
-
-          $processLines = @($processes | ForEach-Object {
-            'PROCESS' + "`t" + [int64]$_.ProcessId + "`t" + (Convert-ToTsvField $_.Name) + "`t" + (Convert-ToTsvField $_.ExecutablePath)
-          })
-          $observed = (Get-Date).ToUniversalTime().ToString('o')
-          $lines = @(
-            'SCHEMA' + "`t" + 'kodjo.protocol.v2.runner-inventory.0.3',
-            'SUMMARY' + "`t" + (Convert-ToTsvField $root) + "`t" + [bool](Test-Path -LiteralPath $root) + "`t" + [bool](Test-Path -LiteralPath $lock) + "`t" + @($processes).Count + "`t" + $directoryCount + "`t" + $totalBytes + "`t" + $observed,
-            'DIRECTORY_HEADER' + "`t" + 'name' + "`t" + 'run_id' + "`t" + 'full_path' + "`t" + 'file_count' + "`t" + 'size_bytes' + "`t" + 'created_at_utc' + "`t" + 'last_write_at_utc'
-          ) + $directoryLines + @(
-            'PROCESS_HEADER' + "`t" + 'process_id' + "`t" + 'name' + "`t" + 'executable_path'
-          ) + $processLines
-
-          $reportPath = Join-Path $evidence 'runner-inventory.tsv'
-          [IO.File]::WriteAllLines($reportPath, [string[]]$lines, (New-Object Text.UTF8Encoding($false)))
-          $lines | ForEach-Object { Write-Host ('KODJO_INVENTORY`t' + $_) }
-
-      - name: Observe Claude ownership ancestry and activity without mutation
-        shell: powershell
-        run: |
-          $ErrorActionPreference = 'Stop'
-          function Describe-Process($p, $all) {
-            $owner = Invoke-CimMethod -InputObject $p -MethodName GetOwner
-            $parent = @($all | Where-Object { $_.ProcessId -eq $p.ParentProcessId })
-            $parentValid = $parent.Count -eq 1 -and $parent[0].CreationDate -le $p.CreationDate
-            $cmd = [string]$p.CommandLine
-            $sha = [Security.Cryptography.SHA256]::Create()
-            $hash = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($cmd))).Replace('-','').ToLowerInvariant()
-            $sha.Dispose()
-            [ordered]@{
-              pid = [int64]$p.ProcessId; parent_pid = [int64]$p.ParentProcessId
-              name = $p.Name; executable = $p.ExecutablePath
-              created_utc = $p.CreationDate.ToUniversalTime().ToString('o')
-              age_seconds = ((Get-Date) - $p.CreationDate).TotalSeconds
-              owner_return_code = $owner.ReturnValue; owner = ($owner.Domain + '\' + $owner.User)
-              session_id = $p.SessionId; parent_identity_valid = $parentValid
-              command_readable = -not [string]::IsNullOrEmpty($cmd); command_sha256 = $hash
-              command_markers = @([regex]::Matches($cmd, '(?i)(?:--print|--resume|--session-id|--output-format|--input-format|--dangerously-skip-permissions|run-queued-request|invoke-kodjo-v2|@anthropic-ai[\\/]claude-code|_kodjo[\\/]\d+|github-\d+-\d+|kodjo-qualif(?:-resume)?-\d+)') | ForEach-Object { $_.Value })
-              kernel_time = [string]$p.KernelModeTime; user_time = [string]$p.UserModeTime
-              read_bytes = [string]$p.ReadTransferCount; write_bytes = [string]$p.WriteTransferCount
-              handles = $p.HandleCount; threads = $p.ThreadCount
-            }
-          }
-          $samples = @()
-          foreach ($sample in 1..2) {
-            $all = @(Get-CimInstance Win32_Process)
-            $targets = @($all | Where-Object { $_.Name -match '^claude(?:\.exe)?$' -or $_.ExecutablePath -match '@anthropic-ai[\\/]claude-code' })
-            $records = @()
-            foreach ($target in $targets) {
-              $chain = @(); $cursor = $target; $seen = @{}
-              while ($null -ne $cursor -and -not $seen.ContainsKey([string]$cursor.ProcessId)) {
-                $seen[[string]$cursor.ProcessId] = $true
-                $chain += ,(Describe-Process $cursor $all)
-                $parent = @($all | Where-Object { $_.ProcessId -eq $cursor.ParentProcessId -and $_.CreationDate -le $cursor.CreationDate })
-                if ($parent.Count -ne 1) { break }
-                $cursor = $parent[0]
-              }
-              $connections = @(Get-NetTCPConnection -OwningProcess $target.ProcessId -ErrorAction SilentlyContinue | Select-Object State,LocalPort,RemotePort)
-              $records += @{ ancestry = $chain; tcp = $connections }
-            }
-            $lockPath = Join-Path $env:USERPROFILE '.kodjo-v2\claude-local.lock'
-            $lock = @{ exists = (Test-Path -LiteralPath $lockPath) }
-            if ($lock.exists) {
-              try {
-                $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $lockPath | ConvertFrom-Json
-                $lock.record = $value | Select-Object schema_version,owner_pid,owner_started_at,github_run_id,github_run_attempt,run_id,request_id,acquired_at
-                $lock.readable = $true
-              } catch { $lock.readable = $false }
-            }
-            $samples += @{ observed_utc = (Get-Date).ToUniversalTime().ToString('o'); processes = $records; lock = $lock }
-            if ($sample -eq 1) { Start-Sleep -Seconds 10 }
-          }
-          $report = @{ schema = 'kodjo.process-observation.1'; run_id = $env:GITHUB_RUN_ID; head = $env:GITHUB_SHA; samples = $samples } | ConvertTo-Json -Depth 12
-          $dest = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT\process-observation.json"
-          [IO.File]::WriteAllText($dest,$report,(New-Object Text.UTF8Encoding($false)))
-          Write-Host $report
-
-      - name: Inspect retained evidence of an interrupted qualification without replay
-        if: inputs.source_run_id != ''
-        shell: powershell
+      - name: Bind archived evidence to exact F12 run
         env:
           SOURCE_RUN_ID: ${{ inputs.source_run_id }}
           SOURCE_RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
         run: |
-          $ErrorActionPreference = 'Stop'
-          if ($env:SOURCE_RUN_ID -notmatch '^\d+$' -or $env:SOURCE_RUN_ATTEMPT -notmatch '^[1-9]\d*$') { throw 'SOURCE_IDENTITY_INVALID' }
-          $dest = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
-          $runKey = "github-$env:SOURCE_RUN_ID-$env:SOURCE_RUN_ATTEMPT"
-          $sources = [ordered]@{
-            state = (Join-Path $env:USERPROFILE ".kodjo-v2\runs\$runKey")
-            qualification = (Join-Path $env:GITHUB_WORKSPACE "_qualification\$env:SOURCE_RUN_ID\qualification-evidence")
-            temporary = (Join-Path $env:RUNNER_TEMP "kodjo-qualif-$env:SOURCE_RUN_ID-$env:SOURCE_RUN_ATTEMPT")
-          }
-          $records = @()
-          foreach ($entry in $sources.GetEnumerator()) {
-            $record = [ordered]@{ kind = $entry.Key; path = $entry.Value; exists = (Test-Path -LiteralPath $entry.Value); files = @(); directories = @(); json = @() }
-            if ($record.exists) {
-              $root = Get-Item -LiteralPath $entry.Value -Force
-              if ($root.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'SOURCE_REPARSE_POINT_REFUSED' }
-              $record.files = @(Get-ChildItem -LiteralPath $entry.Value -File -Force | Select-Object Name,Length,LastWriteTimeUtc)
-              $record.directories = @(Get-ChildItem -LiteralPath $entry.Value -Directory -Force | Select-Object Name,Attributes,LastWriteTimeUtc)
-              foreach ($name in @('run-context.json','result.json','invocation.json','qualification-manifest.json')) {
-                $file = Join-Path $entry.Value $name
-                if (Test-Path -LiteralPath $file) {
-                  $item = Get-Item -LiteralPath $file -Force
-                  if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 16777216) { throw 'SOURCE_FILE_AMBIGUOUS' }
-                  $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
-                  $record.json += @{ name = $name; sha256 = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash; data = ($value | Select-Object schema_version,run_id,github_run_id,github_run_attempt,request_id,session_id,source_head,created_at,state,started_at,mode,status,claude_invoked,diagnostic,verdict,failure,execution_exit_code,protocol_status,recovery_preserved) }
-                }
-              }
-            }
-            $records += $record
-          }
-          $report = @{ schema = 'kodjo.interrupted-run-observation.1'; source_run_id = $env:SOURCE_RUN_ID; source_attempt = $env:SOURCE_RUN_ATTEMPT; observed_at = (Get-Date).ToUniversalTime().ToString('o'); sources = $records } | ConvertTo-Json -Depth 10
-          [IO.File]::WriteAllText((Join-Path $dest 'interrupted-run-observation.json'),$report,(New-Object Text.UTF8Encoding($false)))
-          Write-Host $report
-
-      - name: Download preserved F12 preflight
+          test "$SOURCE_RUN_ID" = '35464168355'
+          test "$SOURCE_RUN_ATTEMPT" = '1'
+      - name: Download preserved diagnostic
         uses: actions/download-artifact@v4
         with:
-          name: kodjo-v2-preflight-35464168355-1
+          name: kodjo-v2-diagnostic-35464168355-1
           run-id: '35464168355'
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/f12-preflight-source
-
-      - name: Read retained F12 preflight without replay
-        shell: powershell
+          path: ${{ runner.temp }}/f12-diagnostic-source
+      - name: Read only archived result and invocation evidence
         env:
-          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
-          SOURCE_RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
+          EVIDENCE_ROOT: ${{ runner.temp }}/f12-diagnostic-source
         run: |
-          $ErrorActionPreference = 'Stop'
-          if ($env:SOURCE_RUN_ID -ne '35464168355' -or $env:SOURCE_RUN_ATTEMPT -ne '1') { throw 'F12_SOURCE_IDENTITY_MISMATCH' }
-          $file = Join-Path $env:RUNNER_TEMP 'f12-preflight-source/kodjo-preflight-35464168355-1.json'
-          $item = Get-Item -LiteralPath $file -Force
-          if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 1048576) { throw 'F12_EVIDENCE_AMBIGUOUS' }
-          $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
-          Write-Host ('F12_PREFLIGHT_SHA256 ' + (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash)
-          Write-Host ($value | ConvertTo-Json -Depth 15)
-
-      - name: Preserve read-only inventory
-        uses: actions/upload-artifact@v4
-        with:
-          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Remove only the temporary inventory report
-        if: always()
-        shell: powershell
-        run: |
-          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
-          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
-          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
-          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
-            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
-          }
-          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+          python - <<'PY'
+          import os, pathlib, hashlib, json
+          root = pathlib.Path(os.environ['EVIDENCE_ROOT'])
+          for name in ('result.json', 'invocation.json'):
+              p = root / name
+              if not p.exists():
+                  print(name + ': ABSENT')
+                  continue
+              if p.is_symlink() or p.stat().st_size > 1048576:
+                  raise RuntimeError('EVIDENCE_AMBIGUOUS')
+              raw = p.read_bytes()
+              value = json.loads(raw)
+              print(name + ' SHA256 ' + hashlib.sha256(raw).hexdigest())
+              print(json.dumps(value, ensure_ascii=False, indent=2))
+          PY
