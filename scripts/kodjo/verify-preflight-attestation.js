@@ -39,6 +39,7 @@ function verifyFile(preflightFile,queueFile,options={}){
     execution_head:execHead,
   });
   if(preflight.status!=='PASS') throw new Error('PREFLIGHT_ATTESTATION_NOT_PASS');
+  P.verifyApplicability(preflight,queue);
   const projection=projectQueueRequest(queue);
   if(P.sha256(projection)!==preflight.projection_sha256) throw new Error('PREFLIGHT_PROJECTION_DRIFT');
   const lockHash=packageLockHashAt(execHead,cwd);

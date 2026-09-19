@@ -159,3 +159,18 @@ test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le c
   assert.match(wf,/steps\.gate\.outputs\.v2_operation_kind == 'VISUAL_CORRECTION'/);
   assert.doesNotMatch(wf,/kodjo_ui_implementation_review_ready|repository_dispatch.*ui_implementation/i);
 });
+
+test('audit F14: device proof table preserves only PENDING_DEVICE or demonstrated FAIL',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-device-table-'));
+  try{
+    const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+    fs.writeFileSync(plan,fixture());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+    for(const type of ['VISUAL_COMPARE','DEVICE_CHECK']) for(const status of ['PENDING_DEVICE','FAIL','PASS','NON_VERIFIABLE','',null]){
+      const value=validReview();value.criteria[0].proof_results.find(p=>p.proof_type===type).status=status;
+      if(status==='FAIL') value.verdict='REVISE';
+      fs.writeFileSync(review,JSON.stringify(value));const r=run(['validate',plan,changed,review,out],dir);
+      if(['PENDING_DEVICE','FAIL'].includes(status)) assert.equal(r.status,0,r.stderr);
+      else assert.notEqual(r.status,0,type+':'+status);
+    }
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

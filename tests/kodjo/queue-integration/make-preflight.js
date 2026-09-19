@@ -46,11 +46,7 @@ function main(argv){
     prompt_bytes:0,
     package_lock_sha256:null,
     toolchain:{bench:true},
-    checks:[
-      {id:'PF-004',status:'PASS',source:'queue-integration-bench',evidence:'bench-preflight',diagnostic:null},
-      {id:'PF-011',status:'PASS',source:'queue-integration-bench',evidence:'projection-bound',diagnostic:null},
-      {id:'PF-013',status:'PASS',source:'queue-integration-bench',evidence:'prompt-source-bound',diagnostic:null},
-    ],
+    checks:require('../helpers/preflight-checks').checks(queue),
   });
   fs.writeFileSync(path.resolve(outFile),JSON.stringify(att,null,2)+'\n','utf8');
 }

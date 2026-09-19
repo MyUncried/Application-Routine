@@ -48,6 +48,31 @@ function fingerprintInput(attestation) {
     checks: normalizedChecks(attestation.checks),
   };
 }
+const REQUIRED_CHECK_IDS = Array.from({length:22}, (_, i) => 'PF-' + String(i + 1).padStart(3, '0'));
+function completeChecks(checks) {
+  if (!Array.isArray(checks)) return false;
+  const ids = checks.map(row => row && row.id).sort();
+  return JSON.stringify(ids) === JSON.stringify(REQUIRED_CHECK_IDS);
+}
+function derivedStatus(checks) {
+  return completeChecks(checks) && checks.every(row => row.status === 'PASS' || row.status === 'NOT_APPLICABLE') ? 'PASS' : 'FAIL';
+}
+function verifyApplicability(attestation, queue) {
+  const kind = String(queue.operation_kind || 'IMPLEMENT').toUpperCase();
+  if (attestation.operation_kind !== kind || attestation.mode !== String(queue.mode || '').toUpperCase()) {
+    throw new Error('PREFLIGHT_OPERATION_MISMATCH');
+  }
+  const notApplicable = new Set();
+  if (queue.recovery_migration === undefined) notApplicable.add('PF-007');
+  if (kind === 'IMPLEMENT') { notApplicable.add('PF-008'); notApplicable.add('PF-015'); }
+  else if (kind === 'VISUAL_CORRECTION') { notApplicable.add('PF-009'); notApplicable.add('PF-010'); }
+  else throw new Error('PREFLIGHT_OPERATION_MISMATCH');
+  for (const row of attestation.checks) {
+    if ((row.status === 'NOT_APPLICABLE') !== notApplicable.has(row.id)) {
+      throw new Error('PREFLIGHT_CHECK_APPLICABILITY_INVALID: ' + row.id);
+    }
+  }
+}
 function computeFingerprint(attestation) {
   return sha256(fingerprintInput(attestation));
 }
@@ -56,12 +81,11 @@ function finalize(attestation) {
   for (const row of checks) {
     if (!CHECK_STATUSES.has(row.status)) throw new Error('PREFLIGHT_CHECK_STATUS_INVALID: ' + row.id + ':' + row.status);
   }
-  const failed = checks.filter((row)=>row.status === 'FAIL' || row.status === 'BLOCKED');
   const out = {
     ...attestation,
     schema_version: SCHEMA,
     checks,
-    status: failed.length ? 'FAIL' : 'PASS',
+    status: derivedStatus(checks),
   };
   out.preflight_fingerprint = computeFingerprint(out);
   return out;
@@ -69,7 +93,9 @@ function finalize(attestation) {
 function verify(attestation, expected = {}) {
   if (!attestation || attestation.schema_version !== SCHEMA) throw new Error('PREFLIGHT_ATTESTATION_SCHEMA_INVALID');
   if (!['PASS','FAIL'].includes(attestation.status)) throw new Error('PREFLIGHT_ATTESTATION_STATUS_INVALID');
-  for (const row of attestation.checks || []) {
+  if (!completeChecks(attestation.checks)) throw new Error('PREFLIGHT_CHECK_COVERAGE_INVALID');
+  if (attestation.status !== derivedStatus(attestation.checks)) throw new Error('PREFLIGHT_VERDICT_INCONSISTENT');
+  for (const row of attestation.checks) {
     if (!CHECK_STATUSES.has(String(row.status))) throw new Error('PREFLIGHT_CHECK_STATUS_INVALID: ' + String(row.id));
   }
   if (expected.queue_path && attestation.queue_path !== expected.queue_path) throw new Error('PREFLIGHT_QUEUE_PATH_MISMATCH');
@@ -82,4 +108,4 @@ function verify(attestation, expected = {}) {
   return attestation;
 }
 
-module.exports = { SCHEMA, CHECK_STATUSES, canonical, sha256, computeFingerprint, finalize, verify };
+module.exports = { REQUIRED_CHECK_IDS, verifyApplicability, SCHEMA, CHECK_STATUSES, canonical, sha256, computeFingerprint, finalize, verify };

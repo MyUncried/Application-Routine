@@ -40,7 +40,7 @@ jobs:
           set -euo pipefail
           meta="${RUNNER_TEMP}/routine-stable-sync.json"
           node scripts/kodjo/resolve-stable-environment-sync.js             "$GITHUB_REPOSITORY"             "${{ github.event.pull_request.number }}"             "$meta"
-          applicable="$(jq -r '.applicable // true' "$meta")"
+          applicable="$(jq -r 'if (.applicable | type) == "boolean" then .applicable else error("ENV_SYNC_APPLICABILITY_INVALID") end' "$meta")"
           {
             echo "meta=$meta"
             echo "applicable=$applicable"

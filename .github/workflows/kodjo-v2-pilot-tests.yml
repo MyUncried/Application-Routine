@@ -37,6 +37,15 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+      - name: Set up independent workflow syntax parser
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse workflow YAML independently
+        shell: bash
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python scripts/kodjo/validate-workflow-syntax.py
       - name: Classify protocol change
         id: change_class
         shell: bash

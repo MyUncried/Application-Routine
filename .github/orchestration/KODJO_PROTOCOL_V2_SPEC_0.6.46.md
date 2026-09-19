@@ -22,12 +22,15 @@ Elle observe uniquement deux jalons déjà produits par le protocole et déclenc
 ## 2. Synchronisation Routine Dev
 
 Jalon observé :
+- fin réussie du workflow de revue, observée par `workflow_run.completed` (correction audit F05) ;
 - commentaire existant `[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT` ;
 - `verdict=APPROVE` ;
 - `STATUT : IMPLEMENTATION_REVIEW_APPROVED` ;
 - source `IMPLEMENTATION_OUTPUT` V2 Lean Queue ;
 - PR applicative ouverte sur `main` ;
 - branche et HEAD toujours exacts.
+
+Le commentaire reste la preuve métier. Le sidecar le lie au `source_review_run_id` et au `source_review_run_attempt` exacts, vérifie son auteur, son horodatage et tous les contrats ci-dessous. Aucun déclenchement ne repose sur un `issue_comment` produit avec `GITHUB_TOKEN`. Une fin de workflow sans approbation applicable ne publie rien.
 
 Action latérale :
 - si le diff est OTA-compatible : publication EAS Update iOS sur le channel `review` ;
@@ -93,10 +96,12 @@ Les sidecars :
 - n’écrivent pas dans le dépôt ;
 - ne sont invoqués par aucun workflow principal V2.
 
-Les workflows suivants restent inchangés par 0.6.46 :
+À l’introduction de 0.6.46, les workflows suivants étaient inchangés :
 - `kodjo-v2-lean-queue.yml` ;
 - `kodjo-slice-implementation-review.yml` ;
 - `kodjo-slice-finalize.yml`.
+
+La correction bornée de l’audit ajoute au commentaire de review les identifiants techniques du run producteur. Elle ne fait pas appeler les sidecars par les workflows principaux et ne crée aucun nouvel état ou gate protocolaire. Les corrections des défauts préexistants de ces workflows sont tracées séparément dans le rapport de correction.
 
 Une panne Expo/EAS échoue uniquement le workflow de synchronisation d’environnement concerné ; elle ne transforme pas, ne réouvre pas et n’altère pas l’état V2 déjà atteint.
 

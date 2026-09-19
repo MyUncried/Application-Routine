@@ -46,6 +46,15 @@ if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 }
 
+$liveQueueFile = Join-Path $env:RUNNER_TEMP ("kodjo-live-queue-{0}-{1}.json" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
+Copy-Item -LiteralPath $queueAbsolute -Destination $liveQueueFile -Force
+function Assert-LiveTarget {
+  if ($isVisual) {
+    & node (Join-Path $runtimeScriptRoot 'verify-preflight-live-target.js') $liveQueueFile
+    if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_TARGET_FRESHNESS_REFUSED' }
+  }
+}
+
 $operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)) { 'IMPLEMENT' } else { ([string]$queue.operation_kind).ToUpperInvariant() }
 $isVisual = $operationKind -eq 'VISUAL_CORRECTION'
 
@@ -90,6 +99,9 @@ if ($isVisual) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_FETCH_FAILED' }
   git cat-file -e "$applicationHead^{commit}"
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_HEAD_NOT_FOUND' }
+  $fetchedHead = (& git rev-parse "refs/remotes/origin/$targetBranch").Trim()
+  if ($LASTEXITCODE -ne 0 -or $fetchedHead -ne $applicationHead) { throw 'KODJO_QUEUE_APPLICATION_FETCH_HEAD_MOVED' }
+  Assert-LiveTarget
   git switch --detach $applicationHead
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
   $branch = "kodjo/visual-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID
@@ -133,6 +145,10 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
   if ("$afterDeps" -ne "$beforeDeps") { throw 'KODJO_QUEUE_DEPENDENCIES_MUTATED_REPO' }
 }
 
+Assert-LiveTarget
+# The trusted Node supervisor consumes this token then deletes it before any
+# child process. Claude never inherits this variable or GH_TOKEN.
+if ($isVisual) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
 if ($preflightAbsolute) { $env:KODJO_PREFLIGHT_FILE = $preflightAbsolute }
@@ -141,6 +157,7 @@ try {
   & (Join-Path $runtimeScriptRoot $runtimeEntryScript) -Request $tempRequest
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
+  Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PREFLIGHT_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PUBLISH_PATHSPEC_FILE -ErrorAction SilentlyContinue
@@ -154,6 +171,7 @@ try {
   if (-not (Test-Path -LiteralPath $publishPathspec -PathType Leaf)) { throw 'KODJO_QUEUE_PUBLISH_PATHSPEC_MISSING' }
   if ((Get-Item -LiteralPath $publishPathspec).Length -eq 0) { throw 'KODJO_QUEUE_NO_DELIVERY' }
 
+  Assert-LiveTarget
   git reset --quiet
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_INDEX_RESET_FAILED' }
   git -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
@@ -168,12 +186,14 @@ try {
   } else {
     "feat({0}): verified implementation" -f $queue.slice_id
   }
+  Assert-LiveTarget
   git -c user.name='KODJO Windows Supervisor' -c user.email='kodjo-supervisor@users.noreply.github.com' commit -m $commitMessage
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_COMMIT_FAILED' }
   $newHead = (git rev-parse HEAD).Trim()
 
   if ($isVisual) {
     $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
+    Assert-LiveTarget
     git push origin $pushRefspec # kodjo-allow-mention
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_PUSH_FAILED' }
 
@@ -314,6 +334,12 @@ application_pr=$deliveredPr
 application_branch=$deliveredBranch
 STATUT : IMPLEMENTATION_READY_FOR_REVIEW
 "@
+  if (-not $isVisual) {
+    $reportPath = Join-Path ([string]$runDir).Trim() 'implementation-report.json'
+    & node (Join-Path $runtimeScriptRoot 'collect-implementation-report.js') ([string]$runDir).Trim() ([string]$queue.request_id) ([string]$queue.source_head) $reportPath
+    if ($LASTEXITCODE -ne 0) { throw 'KODJO_IMPLEMENTATION_REPORT_IDENTITY_REFUSED' }
+    $reviewBody += "`n`n<KODJO_IMPLEMENTATION_REPORT_JSON>`n" + (Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8).Trim() + "`n</KODJO_IMPLEMENTATION_REPORT_JSON>"
+  }
   $reviewPayload = @{ body = $reviewBody } | ConvertTo-Json -Depth 4
   $reviewPayloadPath = Join-Path $env:RUNNER_TEMP ("kodjo-review-output-{0}-{1}.json" -f $queue.slice_id, $env:GITHUB_RUN_ID)
   [IO.File]::WriteAllText($reviewPayloadPath, $reviewPayload, (New-Object Text.UTF8Encoding($false)))

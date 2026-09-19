@@ -115,7 +115,7 @@ function validateReview(input, review) {
       const status = String(proof.status);
       if (!PROOF_STATUSES.has(status)) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ':' + status);
       if (DEVICE_PROOFS.has(type)) {
-        if (status === 'PASS') fail('UI_IMPLEMENTATION_REVIEW_DEVICE_PROOF_UNSUPPORTED', id + ':' + type + ' ne peut pas etre certifie automatiquement');
+        if (status !== 'PENDING_DEVICE' && status !== 'FAIL') fail('UI_IMPLEMENTATION_REVIEW_DEVICE_PROOF_UNSUPPORTED', id + ':' + type + ' doit rester PENDING_DEVICE sauf defaut demontre');
         if (status === 'FAIL') blocking = true;
       } else if (BLOCKING_PROOFS.has(type)) {
         if (status !== 'PASS') blocking = true;

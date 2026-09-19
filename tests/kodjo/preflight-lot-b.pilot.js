@@ -46,7 +46,7 @@ function fixture(){
     operation_kind:'IMPLEMENT',mode:'INITIAL',bindings:{},
     freshness_guards_required:['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'],
     projection_sha256:P.sha256(projection),prompt_sha256:'f'.repeat(64),prompt_file_sha256:null,prompt_bytes:1,
-    package_lock_sha256:null,toolchain:{},checks:[{id:'PF-004',status:'PASS',source:'test',evidence:'ok',diagnostic:null}]
+    package_lock_sha256:null,toolchain:{},checks:require('./helpers/preflight-checks').checks(queue)
   });
   const preflight=path.join(dir,'preflight.json');
   fs.writeFileSync(preflight,JSON.stringify(att,null,2)+'\n');

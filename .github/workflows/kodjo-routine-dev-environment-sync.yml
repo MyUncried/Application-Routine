@@ -1,23 +1,25 @@
 name: KODJO — Routine Dev environment sync
 
-run-name: Routine Dev sync — review comment ${{ github.event.comment.id }}
+run-name: Routine Dev sync — review run ${{ github.event.workflow_run.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_run:
+    workflows: ["KODJO — Generic Slice Implementation Review"]
+    types: [completed]
 
 permissions:
+  actions: read
   contents: read
   issues: read
   pull-requests: read
 
 concurrency:
-  group: routine-dev-sync-${{ github.event.comment.id }}
+  group: routine-dev-sync-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
   cancel-in-progress: false
 
 jobs:
   sync:
-    if: github.event.comment.user.login == 'github-actions[bot]' && startsWith(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT') && contains(github.event.comment.body, 'verdict=APPROVE') && contains(github.event.comment.body, 'STATUT : IMPLEMENTATION_REVIEW_APPROVED')
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -33,14 +35,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Resolve the exact IMPLEMENTATION_REVIEW_OUTPUT / IMPLEMENTATION_REVIEW_APPROVED milestone.
       - name: Resolve exact V2 application delivery
         id: delivery
         shell: bash
         run: |
           set -euo pipefail
           meta="${RUNNER_TEMP}/routine-dev-sync.json"
-          node scripts/kodjo/resolve-review-environment-sync.js             "$GITHUB_REPOSITORY"             "${{ github.event.comment.id }}"             "$meta"
-          applicable="$(jq -r '.applicable // true' "$meta")"
+          node scripts/kodjo/resolve-review-run-environment-sync.js "$GITHUB_REPOSITORY" "${{ github.event.workflow_run.id }}" "$meta"
+          applicable="$(jq -r 'if (.applicable | type) == "boolean" then .applicable else error("ENV_SYNC_APPLICABILITY_INVALID") end' "$meta")"
           {
             echo "meta=$meta"
             echo "applicable=$applicable"

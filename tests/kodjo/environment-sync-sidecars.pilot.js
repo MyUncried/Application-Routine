@@ -130,13 +130,14 @@ test('environment sync: native-sensitive changes rebuild, JS-only changes use OT
   assert.deepEqual(native.native_sensitive_files,['package-lock.json']);
 });
 
-test('environment sync: sidecars observe existing milestones without modifying primary V2 workflows',()=>{
+test('environment sync: sidecars observe existing milestones without invoking or mutating the primary V2 state',()=>{
   const reviewSync=read('.github/workflows/kodjo-routine-dev-environment-sync.yml');
   const stableSync=read('.github/workflows/kodjo-routine-stable-environment-sync.yml');
-  assert.match(reviewSync,/issue_comment:/);
+  assert.match(reviewSync,/workflow_run:/);
+  assert.doesNotMatch(reviewSync,/issue_comment:/);
   assert.match(reviewSync,/IMPLEMENTATION_REVIEW_OUTPUT/);
   assert.match(reviewSync,/IMPLEMENTATION_REVIEW_APPROVED/);
-  assert.match(reviewSync,/resolve-review-environment-sync\.js/);
+  assert.match(reviewSync,/resolve-review-run-environment-sync\.js/);
   assert.match(reviewSync,/--channel review/);
   assert.doesNotMatch(reviewSync,/contents:\s*write|issues:\s*write|pull-requests:\s*write|repository_dispatch|gh issue comment|gh pr create/);
 
@@ -165,4 +166,37 @@ test('environment sync: existing Routine preview workflow no longer rewrites pro
   const reviewBuild=read('.github/workflows/eas-ios-routine-dev-review.yml');
   assert.match(reviewBuild,/--profile review/);
   assert.match(reviewBuild,/com\.ankusha\.kodjo\.dev/);
+});
+
+test('audit F05: completion binds one bot review to the exact run and attempt',()=>{
+  const {selectReview}=require('../../scripts/kodjo/resolve-review-run-environment-sync');
+  const run={id:200,run_attempt:1,path:'.github/workflows/kodjo-slice-implementation-review.yml',head_repository:{full_name:'o/r'},event:'repository_dispatch',status:'completed',conclusion:'success',run_started_at:'2026-09-19T10:00:00Z',updated_at:'2026-09-19T10:02:00Z'};
+  const comment={id:20,user:{login:'github-actions[bot]'},created_at:'2026-09-19T10:01:00Z',body:'[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT\nsource_review_run_id=200\nsource_review_run_attempt=1\nverdict=APPROVE\nSTATUT : IMPLEMENTATION_REVIEW_APPROVED'};
+  assert.equal(selectReview(run,[comment],'o/r'),comment);
+  for(const patch of [{conclusion:'failure'},{status:'in_progress'}])assert.equal(selectReview({...run,...patch},[comment],'o/r'),null);
+  for(const body of [comment.body.replace('run_id=200','run_id=201'),comment.body.replace('attempt=1','attempt=2'),comment.body.replace('APPROVE','REVISE')])assert.equal(selectReview(run,[{...comment,body}],'o/r'),null);
+  assert.equal(selectReview(run,[{...comment,user:{login:'stranger'}}],'o/r'),null);
+  assert.equal(selectReview(run,[{...comment,created_at:'2026-09-19T09:59:00Z'}],'o/r'),null);
+  assert.throws(()=>selectReview(run,[comment,comment],'o/r'),/AMBIGUOUS/);
+  for(const patch of [{path:'.github/workflows/other.yml'},{head_repository:{full_name:'fork/r'}},{event:'pull_request'}])assert.throws(()=>selectReview({...run,...patch},[comment],'o/r'),/RUN_INVALID/);
+});
+
+test('audit F04: the actual jq expressions preserve false and reject every non-boolean',(t)=>{
+  const {spawnSync}=require('node:child_process');
+  if(process.platform==='win32' && spawnSync('jq',['--version']).status!==0){t.skip('jq unavailable on Windows; real expressions covered by Linux CI');return;}
+  for(const name of ['dev','stable']){
+    const body=read('.github/workflows/kodjo-routine-'+name+'-environment-sync.yml');
+    const match=body.match(/applicable="\$\(jq -r '([^']+)'\s+"\$meta"\)"/);assert.ok(match);
+    for(const value of [true,false,null,'','false','true',0,[],{},undefined]){
+      const result=spawnSync('jq',['-r',match[1]],{input:JSON.stringify(value===undefined?{}:{applicable:value}),encoding:'utf8'});
+      if(typeof value==='boolean'){assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),String(value));}
+      else assert.notEqual(result.status,0,JSON.stringify(value));
+    }
+  }
+});
+
+test('audit F03: structural parser rejects the original colon-space scalar defect',()=>{
+  const {parse}=require('../../scripts/kodjo/lib/yaml');
+  assert.throws(()=>parse("jobs:\n  sync:\n    if: contains(body, 'STATUT : IMPLEMENTATION_REVIEW_APPROVED')\n"),/colon-space/);
+  assert.doesNotThrow(()=>parse("jobs:\n  sync:\n    if: >-\n      contains(body, 'STATUT : IMPLEMENTATION_REVIEW_APPROVED')\n"));
 });
