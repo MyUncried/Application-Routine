@@ -504,6 +504,34 @@ test('la reprise depuis l’artefact restaure exactement le delta', () => {
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'utf8'), 'neuf\n');
 });
 
+for (const autocrlf of ['true', 'input', 'false']) {
+  for (const eol of ['\n', '\r\n']) {
+    test(`recovery preserves exact bytes and patch with autocrlf=${autocrlf}, eol=${JSON.stringify(eol)}`, () => {
+      const g = gitFixture();
+      const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+      const file = path.join(g.root, 'src', 'new.txt');
+      const bytes = Buffer.from('KODJO V2 RESUME QUALIFICATION PASS' + eol);
+      const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-byte-recovery-'));
+      try {
+        fs.writeFileSync(file, bytes);
+        const built = L.writeRecoveryPackage(runDir, g.root, request, ['src/new.txt'], { runId: 'BYTE-1' });
+        fs.unlinkSync(file);
+        g.git(['config', 'core.autocrlf', autocrlf]);
+        const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id };
+        delete resume.generated_session_id;
+        assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume), ['src/new.txt']);
+        assert.deepEqual(fs.readFileSync(file), bytes);
+        assert.equal(L.buildRecoveryPatch(g.root, request, ['src/new.txt']).patch,
+          fs.readFileSync(path.join(built.dir, 'implementation.patch'), 'utf8'));
+        assert.equal(g.git(['config', 'core.autocrlf']), autocrlf);
+      } finally {
+        fs.rmSync(g.root, { recursive: true, force: true });
+        fs.rmSync(runDir, { recursive: true, force: true });
+      }
+    });
+  }
+}
+
 test('un paquet strictement vide permet de reprendre la session sur le HEAD protocolaire corrige', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
