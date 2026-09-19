@@ -85,6 +85,15 @@ function adapterConfigHash() {
   return sha256(canonical(adapterConfig()));
 }
 
+function resolveClaudeBinary(env = process.env, platform = process.platform) {
+  const testMode = env.KODJO_ALLOW_TEST_ADAPTER === '1';
+  if (testMode && env.KODJO_CLAUDE_BIN) return env.KODJO_CLAUDE_BIN;
+  if (!testMode && platform === 'win32') {
+    return path.join(env.APPDATA || '', 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe');
+  }
+  return 'claude';
+}
+
 function normalizeRequest(raw, repoRoot) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('REQUEST_INVALID');
   if (raw.schema_version !== 'kodjo.protocol.v2.local-implementation.0.6.12') {
@@ -326,6 +335,7 @@ module.exports = {
   DISALLOWED_TOOLS,
   adapterConfig,
   adapterConfigHash,
+  resolveClaudeBinary,
   canonical,
   sha256,
   normalizeRequest,

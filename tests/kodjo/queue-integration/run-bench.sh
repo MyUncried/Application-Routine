@@ -98,6 +98,12 @@ run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
   local out
   local claude_bin="$BIN/fakeclaude"
   [ "$WINDOWS_STUBS" -eq 1 ] && claude_bin="$(cygpath -w "$BIN/fakeclaude.exe")"
+  local preflight_arg=()
+  if [ "$qf" = "nominal" ]; then
+    local pf="$TMP/preflight-$RANDOM.json"
+    node "$REPO_ROOT/tests/kodjo/queue-integration/make-preflight.js" "$FIX" ".github/orchestration/queue/v2/$qf.json" "$pf" || exit 1
+    preflight_arg=(-PreflightFile "$pf")
+  fi
   out="$( cd "$FIX" && \
     PATH="$BIN:$PATH" KODJO_BENCH_REAL_NODE="$(command -v node)" \
     KODJO_BENCH_CAPTURE="$CAP" KODJO_BENCH_SCENARIO="$scenario" \
@@ -105,7 +111,7 @@ run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
     KODJO_STATE_ROOT="$STATE" GITHUB_ACTIONS=true GH_TOKEN=stub-token \
     GITHUB_RUN_ID="90000$RANDOM" RUNNER_TEMP="$TMP" HOME="$WORK" LOCALAPPDATA="$LAD" \
     "$PWSH" -NoLogo -NonInteractive -File scripts/kodjo/run-queued-request.ps1 \
-      -QueueFile ".github/orchestration/queue/v2/$qf.json" 2>&1 )"
+      -QueueFile ".github/orchestration/queue/v2/$qf.json" "${preflight_arg[@]}" 2>&1 )"
   echo "$out" | sed 's/\x1b\[[0-9;]*m//g' | sed 's/^/  /' | head -14
   if echo "$out" | grep -q "$expect"; then
     echo "  => ATTENDU TROUVE : $expect"
@@ -119,8 +125,12 @@ run_case() { # $1 libelle  $2 fichier de file  $3 scenario  $4 attendu
   else
     echo "  requete locale : non produite"
   fi
-  [ -f "$CAP/gh-calls.txt" ] && echo "  PR : creee" || echo "  PR : aucune"
-  if [ "$pr_expect" = "none" ] && [ -f "$CAP/gh-calls.txt" ]; then
+  local publication_attempted=0
+  if [ -f "$CAP/gh-calls.txt" ] && grep -Eq 'GH_STUB (pr create|pr comment|api --method POST|api -X POST)' "$CAP/gh-calls.txt"; then
+    publication_attempted=1
+  fi
+  [ "$publication_attempted" -eq 1 ] && echo "  PR : creee" || echo "  PR : aucune"
+  if [ "$pr_expect" = "none" ] && [ "$publication_attempted" -eq 1 ]; then
     echo "  => ECHEC : une publication a ete tentee"; FAILURES=$((FAILURES+1))
   fi
   if [ "$scenario" = "control-drift" ]; then

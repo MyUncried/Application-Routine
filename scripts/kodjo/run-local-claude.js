@@ -7,12 +7,13 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
+const Preflight = require('./lib/preflight-contract');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
 
 const { runCheck } = require('./lib/checks');
 const {
-  CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest,
+  CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest, resolveClaudeBinary,
   buildPrompt, buildArgs, classifyClaudeFailure, sha256, redact, TURN_LIMIT_POLICY,
 } = require('./lib/claude-local');
 
@@ -616,8 +617,10 @@ function main() {
   if (!requestPath) return die('USAGE', 'node scripts/kodjo/run-local-claude.js <request.json>');
   const repoRoot = path.resolve(git(['rev-parse', '--show-toplevel'], process.cwd()));
   let request;
+  let rawRequest;
   try {
-    request = normalizeRequest(JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, '')), repoRoot);
+    rawRequest = JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, ''));
+    request = normalizeRequest(rawRequest, repoRoot);
   } catch (err) {
     return die('REQUEST_REFUSED', err.message);
   }
@@ -645,6 +648,35 @@ function main() {
     return die(diagnostic, message);
   };
 
+  const preflightFile = String(process.env.KODJO_PREFLIGHT_FILE || '').trim();
+  const supervisedQueue = process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true';
+  if (supervisedQueue && !preflightFile) {
+    return writeFailure('PREFLIGHT_ATTESTATION_MISSING', 'supervised queue requires preflight evidence');
+  }
+  if (preflightFile) {
+    let preflight;
+    try {
+      preflight = JSON.parse(fs.readFileSync(path.resolve(preflightFile), 'utf8').replace(/^\uFEFF/, ''));
+      Preflight.verify(preflight, {
+        request_id: request.request_id,
+        protocol_head: request.protocol_source_head,
+        execution_head: request.source_head,
+      });
+      if (preflight.status !== 'PASS') throw new Error('PREFLIGHT_ATTESTATION_NOT_PASS');
+      if (Preflight.sha256(rawRequest) !== preflight.projection_sha256) throw new Error('PREFLIGHT_PROJECTION_DRIFT');
+      const promptSourceHash = Preflight.sha256(fs.readFileSync(request.prompt_file));
+      if (preflight.prompt_file_sha256 && promptSourceHash !== preflight.prompt_file_sha256) {
+        throw new Error('PREFLIGHT_PROMPT_SOURCE_DRIFT');
+      }
+      const lockFile = path.join(repoRoot, 'package-lock.json');
+      const lockHash = fs.existsSync(lockFile) ? Preflight.sha256(fs.readFileSync(lockFile)) : null;
+      if ((preflight.package_lock_sha256 || null) !== lockHash) throw new Error('PREFLIGHT_PACKAGE_LOCK_DRIFT');
+      fs.copyFileSync(path.resolve(preflightFile), path.join(runDir, 'preflight.json'));
+    } catch (err) {
+      return writeFailure('PREFLIGHT_FRESHNESS_REFUSED', err.message);
+    }
+  }
+
   const head = git(['rev-parse', 'HEAD'], repoRoot);
   if (head !== request.source_head) return writeFailure('HEAD_DIVERGED', 'HEAD local != source_head');
   const promptRelative = path.relative(repoRoot, request.prompt_file).replace(/\\/g, '/');
@@ -655,7 +687,6 @@ function main() {
   });
   if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
 
-  const supervisedQueue = process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true';
   const fetch = command('git', ['fetch', '--quiet'], repoRoot, process.env, 120000);
   if (fetch.error || fetch.status !== 0) return writeFailure('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
   if (!supervisedQueue) {
@@ -668,9 +699,7 @@ function main() {
   const token = process.env.CLAUDE_CODE_OAUTH_TOKEN || '';
   if (!token && !supervisedQueue) return writeFailure('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent');
 
-  const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
-  const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') : null;
-  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli || 'claude');
+  const claudeBin = resolveClaudeBinary(process.env, process.platform);
   const claudePrefix = [];
   const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
   if (version.error || version.status !== 0) return writeFailure('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);

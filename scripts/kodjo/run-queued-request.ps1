@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory = $true)][string]$QueueFile
+  [Parameter(Mandatory = $true)][string]$QueueFile,
+  [Parameter(Mandatory = $false)][string]$PreflightFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,6 +19,18 @@ $operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)
 $isVisual = $operationKind -eq 'VISUAL_CORRECTION'
 if ($operationKind -notin @('IMPLEMENT', 'VISUAL_CORRECTION')) { throw 'KODJO_QUEUE_OPERATION_KIND_REFUSED' }
 if ($isVisual -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_VISUAL_MODE_REFUSED' }
+
+$productionQueue = $env:GITHUB_ACTIONS -eq 'true' -and $env:KODJO_VERIFY_GITHUB -eq '1'
+if ($productionQueue -and [string]::IsNullOrWhiteSpace($PreflightFile)) {
+  throw 'KODJO_QUEUE_PREFLIGHT_REQUIRED'
+}
+$preflightAbsolute = $null
+if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
+  $preflightAbsolute = [IO.Path]::GetFullPath($PreflightFile)
+  if (-not (Test-Path -LiteralPath $preflightAbsolute -PathType Leaf)) { throw 'KODJO_QUEUE_PREFLIGHT_MISSING' }
+  & node (Join-Path $PSScriptRoot 'verify-preflight-attestation.js') $preflightAbsolute $QueueFile
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PREFLIGHT_REFUSED' }
+}
 
 $githubToken = $env:GH_TOKEN
 if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
@@ -115,12 +128,14 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
+if ($preflightAbsolute) { $env:KODJO_PREFLIGHT_FILE = $preflightAbsolute }
 try {
   # start-kodjo-v2.ps1 — invocation réelle, après le garde npm ci.
   & (Join-Path $runtimeScriptRoot $runtimeEntryScript) -Request $tempRequest
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
+  Remove-Item Env:KODJO_PREFLIGHT_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PUBLISH_PATHSPEC_FILE -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $tempRequest -Force -ErrorAction SilentlyContinue
 }
