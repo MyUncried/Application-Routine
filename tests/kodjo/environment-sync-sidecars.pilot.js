@@ -157,6 +157,18 @@ test('environment sync: sidecars observe existing milestones without modifying p
   }
 });
 
+test('environment sync: false applicable values are preserved and skip sidecar actions',()=>{
+  for(const workflow of [
+    '.github/workflows/kodjo-routine-dev-environment-sync.yml',
+    '.github/workflows/kodjo-routine-stable-environment-sync.yml'
+  ]){
+    const body=read(workflow);
+    assert.match(body,/if has\("applicable"\) then \.applicable else true end/);
+    assert.doesNotMatch(body,/\.applicable \/\/ true/);
+    assert.match(body,/steps\.delivery\.outputs\.applicable == 'true'/);
+  }
+});
+
 test('environment sync: existing Routine preview workflow no longer rewrites projectId',()=>{
   const preview=read('.github/workflows/eas-ios-preview.yml');
   assert.doesNotMatch(preview,/Align EAS project identity for preview/);
