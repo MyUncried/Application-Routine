@@ -85,6 +85,20 @@ test('native request generator: exact RESUME causality, new ids, missing provena
  const raw=JSON.parse(fs.readFileSync(a.output,'utf8'));const normalized=C.normalizeRequest(raw,f.cwd);
  assert.equal(normalized.retry_of_run_id,'100');assert.deepEqual(normalized.retry_reason,{code:'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',detail:'Resume exact preserved source delta'});
  const b=generate('resume2',['-Mode','RESUME_DELTA','-SessionId',session,...retry]);assert.equal(b.status,0,b.stdout+b.stderr);assert.notEqual(JSON.parse(fs.readFileSync(b.output)).request_id,raw.request_id);
+ const attestationPath='.github/orchestration/v2-slices/SMOKE/recovery-migration-test.json';
+ fs.writeFileSync(path.join(f.cwd,attestationPath),JSON.stringify({status:'NOT_CERTIFIED'}));
+ cp.execFileSync('git',['add',attestationPath],{cwd:f.cwd});cp.execFileSync('git',['commit','-qm','attestation transport fixture'],{cwd:f.cwd});
+ const oid=cp.execFileSync('git',['rev-parse','HEAD:'+attestationPath],{cwd:f.cwd,encoding:'utf8'}).trim();
+ const migrated=generate('migrated',['-Mode','RESUME_DELTA','-SessionId',session,...retry,'-RecoveryMigrationFile',attestationPath]);
+ assert.equal(migrated.status,0,migrated.stdout+migrated.stderr);
+ const migratedRaw=JSON.parse(fs.readFileSync(migrated.output,'utf8'));
+ assert.deepEqual(migratedRaw.recovery_migration,{attestation_path:attestationPath,attestation_blob_oid:oid,evidence_kind:'ARTIFACT_HASH'});
+ assert.deepEqual(C.normalizeRequest(migratedRaw,f.cwd).recovery_migration,migratedRaw.recovery_migration);
+ for(const [name,extra] of [
+  ['initial-migration',['-Mode','INITIAL','-RecoveryMigrationFile',attestationPath]],
+  ['missing-attestation',['-Mode','RESUME_DELTA','-SessionId',session,...retry,'-RecoveryMigrationFile',attestationPath.replace('test.json','absent.json')]],
+  ['traversal',['-Mode','RESUME_DELTA','-SessionId',session,...retry,'-RecoveryMigrationFile','../attestation.json']],
+ ]) {const rejected=generate(name,extra);assert.notEqual(rejected.status,0);assert.equal(fs.existsSync(rejected.output),false);}
  const missing=generate('missing',['-Mode','RESUME_DELTA','-SessionId',session]);assert.notEqual(missing.status,0);assert.equal(fs.existsSync(missing.output),false);
  const wrong=generate('wrong',['-Mode','INITIAL',...retry]);assert.notEqual(wrong.status,0);assert.equal(fs.existsSync(wrong.output),false);
 });
