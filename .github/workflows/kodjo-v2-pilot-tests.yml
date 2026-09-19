@@ -286,7 +286,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 90
     permissions:
-      contents: read
+      contents: write # Durable consumption for the explicitly requested Claude run.
       actions: read
     steps:
       - uses: actions/checkout@v4
@@ -309,6 +309,8 @@ jobs:
             exit 1
           }
       - name: Execute real disposable qualification
+        env:
+          KODJO_LIVE_GH_TOKEN: ${{ github.token }}
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |

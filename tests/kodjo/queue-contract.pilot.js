@@ -178,6 +178,8 @@ test('complétude · toute propriété BEHAVIOUR est transmise au superviseur', 
       retry_of_run_id: '123', retry_reason: { code: 'CHECKS_FAILED', detail: 'jest' },
     })
   )));
+  const restarted = projectQueueRequest(validQueue({ initial_restart: {code:'IRRECOVERABLE_INITIAL_RESTART',source_run_id:'123',source_run_attempt:1,source_request_id:'550e8400-e29b-41d4-a716-446655440099'} }));
+  for (const name of Object.keys(restarted)) produced.add(name);
   const manquants = C.propertiesOfNature('BEHAVIOUR')
     .filter((name) => name !== 'schema_version' && !produced.has(name));
   assert.deepEqual(manquants, [],

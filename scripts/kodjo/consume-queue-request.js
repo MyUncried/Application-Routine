@@ -6,10 +6,10 @@ const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_pro
 const {admit,blobOid}=require('./verify-queue-admission');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SHA=/^[0-9a-f]{40}$/;
-function githubApi(method,endpoint,body){
+function githubApi(method,endpoint,body,env=process.env){
   const args=['api','--include','--method',method,endpoint];
   if(body!==undefined)args.push('--input','-');
-  const r=cp.spawnSync('gh',args,{input:body===undefined?undefined:JSON.stringify(body),encoding:'utf8',windowsHide:true,shell:false});
+  const r=cp.spawnSync('gh',args,{env,input:body===undefined?undefined:JSON.stringify(body),encoding:'utf8',windowsHide:true,shell:false});
   const match=/^HTTP\/\S+\s+(\d+)[^\r\n]*\r?\n[\s\S]*?\r?\n\r?\n([\s\S]*)$/.exec(r.stdout||'');
   if(r.error||!match)throw Error('KODJO_CONSUMPTION_API_UNAVAILABLE');
   const status=Number(match[1]);let data;
@@ -46,7 +46,7 @@ function main(argv,env=process.env){
   const queue=JSON.parse(fs.readFileSync(path.resolve(queueFile),'utf8').replace(/^\uFEFF/,''));
   const receipt=consume({repository:env.GITHUB_REPOSITORY,request_id:selected.request_id,queue_path:queueFile,
     queue_blob_oid:blobOid(queueFile,cwd),queue_commit:env.KODJO_EVENT_AFTER,run_id:env.GITHUB_RUN_ID,run_attempt:env.GITHUB_RUN_ATTEMPT,
-    source_head:queue.source_head,mode:queue.mode,retry_of_run_id:queue.retry_of_run_id||null,retry_reason:queue.retry_reason||null});
+    source_head:queue.source_head,mode:queue.mode,retry_of_run_id:queue.retry_of_run_id||null,retry_reason:queue.retry_reason||null,initial_restart:queue.initial_restart||null});
   process.stdout.write(JSON.stringify(receipt)+'\n');
 }
 if(require.main===module){try{main(process.argv.slice(2));}catch(e){process.stderr.write(e.message+'\n');process.exit(1);}}

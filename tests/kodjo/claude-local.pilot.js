@@ -504,6 +504,34 @@ test('la reprise depuis l’artefact restaure exactement le delta', () => {
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'nouveau.ts'), 'utf8'), 'neuf\n');
 });
 
+for (const autocrlf of ['true', 'input', 'false']) {
+  for (const eol of ['\n', '\r\n']) {
+    test(`recovery preserves exact bytes and patch with autocrlf=${autocrlf}, eol=${JSON.stringify(eol)}`, () => {
+      const g = gitFixture();
+      const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
+      const file = path.join(g.root, 'src', 'new.txt');
+      const bytes = Buffer.from('KODJO V2 RESUME QUALIFICATION PASS' + eol);
+      const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-byte-recovery-'));
+      try {
+        fs.writeFileSync(file, bytes);
+        const built = L.writeRecoveryPackage(runDir, g.root, request, ['src/new.txt'], { runId: 'BYTE-1' });
+        fs.unlinkSync(file);
+        g.git(['config', 'core.autocrlf', autocrlf]);
+        const resume = { ...request, mode: 'RESUME_DELTA', session_id: request.generated_session_id };
+        delete resume.generated_session_id;
+        assert.deepEqual(L.restoreFromPackage(built.dir, g.root, resume), ['src/new.txt']);
+        assert.deepEqual(fs.readFileSync(file), bytes);
+        assert.equal(L.buildRecoveryPatch(g.root, request, ['src/new.txt']).patch,
+          fs.readFileSync(path.join(built.dir, 'implementation.patch'), 'utf8'));
+        assert.equal(g.git(['config', 'core.autocrlf']), autocrlf);
+      } finally {
+        fs.rmSync(g.root, { recursive: true, force: true });
+        fs.rmSync(runDir, { recursive: true, force: true });
+      }
+    });
+  }
+}
+
 test('un paquet strictement vide permet de reprendre la session sur le HEAD protocolaire corrige', () => {
   const g = gitFixture();
   const request = { ...g.request, generated_session_id: '550e8400-e29b-41d4-a716-446655440000' };
@@ -587,4 +615,14 @@ test('une application partielle est refusée, jamais tentée en 3-way', () => {
   assert.throws(() => L.restoreFromPackage(built.dir, g.root, resume), /RECOVERY_PARTIAL_APPLY_REFUSED/);
   // Le dépôt n'a pas été modifié par la tentative.
   assert.equal(fs.readFileSync(path.join(g.root, 'src', 'app.ts'), 'utf8'), 'contenu-amont-different\n');
+});
+
+test('INITIAL causal preserves its distinct provenance through the local supervisor contract', () => {
+  const initial_restart = {code:'IRRECOVERABLE_INITIAL_RESTART',source_run_id:'101',source_run_attempt:1,source_request_id:'550e8400-e29b-41d4-a716-446655440099'};
+  const f = fixture({initial_restart});
+  const request = C.normalizeRequest(f.request,f.root);
+  assert.deepEqual(request.initial_restart,initial_restart);
+  assert.equal('retry_reason' in request,false);
+  const repeated = fixture({initial_restart:{...initial_restart,source_request_id:f.request.request_id}});
+  assert.throws(()=>C.normalizeRequest(repeated.request,repeated.root),/INITIAL_RESTART_CAUSALITY_INVALID/);
 });

@@ -411,7 +411,9 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
     if (migrationEvidence) Object.assign(migrationEvidence, migration);
     return [];
   }
-  const apply = (extra) => command('git', ['apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
+  // Preserve the captured bytes during restoration too: Windows autocrlf
+  // must not turn an LF recovery delta into CRLF before Claude sees it.
+  const apply = (extra) => command('git', ['-c', 'core.autocrlf=false', 'apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
   const patchFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-patch-')), 'implementation.patch');
   fs.writeFileSync(patchFile, patch, 'utf8');
   const numstat = apply(['--numstat', '-z', patchFile]);
@@ -719,6 +721,15 @@ function main() {
   } catch (err) {
     return writeFailure('RECOVERY_REFUSED', err.message);
   }
+  const verifyInitialRestart = (ownedLock) => {
+    if (!request.initial_restart) return null;
+    if (!supervisedQueue || !liveToken || !process.env.KODJO_INITIAL_RESTART_QUEUE) throw new Error('INITIAL_RESTART_SUPERVISED_CONTEXT_REQUIRED');
+    const gate = require('./verify-initial-restart');
+    const queue = gate.read(process.env.KODJO_INITIAL_RESTART_QUEUE);
+    if (require('./lib/preflight-contract').sha256(require('./lib/queue-request').projectQueueRequest(queue)) !== require('./lib/preflight-contract').sha256(rawRequest)) throw new Error('INITIAL_RESTART_PROJECTION_MISMATCH');
+    return gate.verify(process.env.KODJO_INITIAL_RESTART_QUEUE, {cwd:repoRoot, preflightFile, ownedLock, env:{...process.env,GH_TOKEN:liveToken}});
+  };
+  try { verifyInitialRestart(); } catch (err) { return writeFailure('INITIAL_RESTART_REFUSED', err.message); }
   const lockPath = path.join(stateRoot, 'claude-local.lock');
   let lock;
   try {
@@ -760,10 +771,13 @@ function main() {
       return writeFailure('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
     }
     beforeRefs = refs(repoRoot);
+    const restartProof = verifyInitialRestart(lock);
     const intent = {
       schema_version: 'kodjo.protocol.v2.claude-invocation.0.6.11',
       state: 'EXTERNAL_CALL_INTENDED', run_id: runId, slice_id: request.slice_id,
-      request_id: request.request_id,
+      request_id: request.request_id, session_id: request.generated_session_id,
+      initial_restart: request.initial_restart || null, initial_restart_proof: restartProof,
+      execution_environment: {runner_name:process.env.RUNNER_NAME || null, user_home:os.homedir(), state_root:stateRoot, claude_config_root:path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'))},
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
       // KV2-13 : les bornes effectives restent séparées des valeurs par défaut.
@@ -777,6 +791,13 @@ function main() {
         config: adapterConfig(), limits_effective: request.limits,
       })), started_at: new Date().toISOString(),
     };
+    if (process.env.KODJO_DISPOSABLE_EVIDENCE_DIR) {
+      intent.consumption = require('./consume-disposable-request').consumeDisposable({
+        rawRequest, sessionId: request.generated_session_id, head, runDir,
+        evidenceDirectory: process.env.KODJO_DISPOSABLE_EVIDENCE_DIR,
+        env: { ...process.env, GH_TOKEN: liveToken },
+      });
+    }
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const args = buildArgs(request, runDir, prompt);
     intent.state = 'EXTERNAL_CALL_SENT';

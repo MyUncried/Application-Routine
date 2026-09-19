@@ -219,6 +219,11 @@ function normalizeRequest(raw, repoRoot) {
   if (mode === 'RESUME_DELTA' && operationKind !== 'VISUAL_CORRECTION' && raw.recovery_migration !== undefined) {
     request.recovery_migration = { ...raw.recovery_migration };
   }
+  if (Object.prototype.hasOwnProperty.call(raw, 'initial_restart')) {
+    const detail = require('./initial-restart').shape(raw.initial_restart, raw);
+    if (detail) throw new Error('INITIAL_RESTART_CAUSALITY_INVALID: ' + detail);
+    request.initial_restart = {...raw.initial_restart};
+  }
   return request;
 }
 

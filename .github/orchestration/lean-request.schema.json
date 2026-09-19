@@ -146,6 +146,11 @@
       "x-kodjo-nature": "AUTHORIZATION",
       "x-kodjo-diagnostic": "KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED"
     },
+    "initial_restart": {
+      "type": "object",
+      "x-kodjo-nature": "BEHAVIOUR",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_INITIAL_RESTART_INVALID"
+    },
     "retry_of_run_id": {
       "type": "string",
       "x-kodjo-nature": "BEHAVIOUR",

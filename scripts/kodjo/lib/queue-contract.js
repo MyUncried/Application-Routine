@@ -287,6 +287,11 @@ const PROPERTIES = {
     },
     diagnostic: 'KODJO_QUEUE_RECOVERY_MIGRATION_REFUSED',
   },
+  initial_restart: {
+    nature: 'BEHAVIOUR', required: 'optional', type: 'object',
+    validate: (v, q) => require('./initial-restart').shape(v, q),
+    diagnostic: 'KODJO_QUEUE_INITIAL_RESTART_INVALID',
+  },
   retry_of_run_id: {
     nature: 'BEHAVIOUR', required: 'resume_only', type: 'string',
     validate: (v, q) => {

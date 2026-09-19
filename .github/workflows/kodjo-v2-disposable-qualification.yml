@@ -25,12 +25,20 @@ on:
         required: false
         type: string
 
+      recovery_migration_file:
+        description: 'Committed migration attestation path (required when resuming on another HEAD)'
+        required: false
+        type: string
+
 permissions:
   contents: read
   actions: read
 
 jobs:
   qualify:
+    permissions:
+      contents: write # Atomic durable consumption tag; never passed to Claude.
+      actions: read
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 90
     steps:
@@ -53,15 +61,15 @@ jobs:
         working-directory: _qualification/${{ github.run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+          EXPECTED_MAIN: ${{ inputs.expected_main }}
         run: |
-          $uri = 'repos/${{ github.repository }}/actions/workflows/kodjo-v2-lean-queue.yml/runs?per_page=50'
-          $runs = gh api $uri | ConvertFrom-Json
-          $active = @($runs.workflow_runs | Where-Object { $_.status -ne 'completed' })
-          if ($active.Count -ne 0) {
-            $active | ForEach-Object { Write-Error ("Lean Queue active: {0} ({1})" -f $_.id, $_.status) }
-            exit 1
-          }
+          $ErrorActionPreference = 'Stop'
+          $proof = Join-Path $env:RUNNER_TEMP 'qualification-availability-${{ github.run_id }}-${{ github.run_attempt }}.json'
+          & node scripts/kodjo/check-qualification-availability.js $proof
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $main = (gh api 'repos/${{ github.repository }}/git/ref/heads/main' --jq '.object.sha').Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'MAIN_HEAD_READ_FAILED' }
           if ($main -ne '${{ inputs.expected_main }}') { throw "MAIN_HEAD_MISMATCH: $main" }
 
       - name: Validate stage inputs
@@ -147,6 +155,8 @@ jobs:
         if: inputs.stage == 'INITIAL'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
+        env:
+          KODJO_LIVE_GH_TOKEN: ${{ github.token }}
         run: |
           & scripts/kodjo/run-disposable-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
@@ -222,11 +232,15 @@ jobs:
         working-directory: _qualification/${{ github.run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
+          KODJO_QUALIFICATION_MIGRATION_FILE: ${{ inputs.recovery_migration_file }}
         run: |
+          $env:KODJO_LIVE_GH_TOKEN = $env:GH_TOKEN
+          Remove-Item Env:GH_TOKEN
           & scripts/kodjo/run-disposable-resume-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
             -ExpectedMain '${{ inputs.expected_main }}' `
             -SourceRunId '${{ inputs.source_run_id }}' `
+            -RecoveryMigrationFile $env:KODJO_QUALIFICATION_MIGRATION_FILE `
             -SourceEvidenceDirectory '${{ github.workspace }}\_source-qualification-evidence' `
             -EvidenceDirectory 'qualification-evidence'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -237,6 +251,15 @@ jobs:
         with:
           name: kodjo-v2-disposable-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: _qualification/${{ github.run_id }}/qualification-evidence
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Preserve availability proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-qualification-availability-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/qualification-availability-${{ github.run_id }}-${{ github.run_attempt }}.json
           if-no-files-found: error
           retention-days: 90
 

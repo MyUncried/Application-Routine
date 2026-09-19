@@ -49,6 +49,11 @@ function projectQueueRequest(queue) {
     limits: queue.limits,
     request_id: queue.request_id,
   };
+  if (Object.prototype.hasOwnProperty.call(queue, 'initial_restart')) {
+    const detail = require('./initial-restart').shape(queue.initial_restart, queue);
+    if (detail) throw new Error('INITIAL_RESTART_CAUSALITY_INVALID: ' + detail);
+    request.initial_restart = {...queue.initial_restart};
+  }
   if (queue.allow_legacy_recovery_bootstrap !== undefined) {
     request.allow_legacy_recovery_bootstrap = queue.allow_legacy_recovery_bootstrap === true;
   }

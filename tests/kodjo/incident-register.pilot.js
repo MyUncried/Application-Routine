@@ -84,14 +84,19 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
   assert.match(workflow, /kodjo-v2-complete-source-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
 });
 
-test('workflow jetable: dispatch manuel, lecture seule et aucune publication distante', () => {
+test('workflow jetable: dispatch manuel, consommation durable déclarée et aucune publication de code', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-disposable-qualification.yml'), 'utf8')
     .replace(/\r\n/g, '\n');
   const runner = fs.readFileSync(path.join(__dirname, '..', '..', 'scripts', 'kodjo', 'run-disposable-qualification.ps1'), 'utf8');
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /permissions:\n  contents: read\n  actions: read/);
   assert.doesNotMatch(workflow, /pull_request:|\npush:/);
-  assert.doesNotMatch(workflow, /contents: write|pull-requests: write/);
+  assert.doesNotMatch(workflow, /pull-requests: write/);
+  const parsed = require('../../scripts/kodjo/lib/yaml').parse(workflow);
+  assert.equal(parsed.permissions.contents, 'read');
+  assert.equal(parsed.jobs.qualify.permissions.contents, 'write');
+  assert.equal((workflow.match(/contents: write/g) || []).length, 1);
+  assert.match(workflow, /KODJO_LIVE_GH_TOKEN/);
   assert.match(runner, /git' @\('clone', '--mirror'/);
   assert.match(runner, /REMOTE_ORIGIN_FORBIDDEN/);
   assert.doesNotMatch(runner, /gh pr create|refs\/heads\/qualif|git push https/);
