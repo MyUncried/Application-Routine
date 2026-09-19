@@ -161,6 +161,7 @@ function runPreflight(options = {}) {
 
   if (queue && String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'IMPLEMENT') {
     add('PF-010','verify-plan-contract-consistency.js',()=>{
+      if (probes.planContract) return probes.planContract(queue,cwd);
       const planBlob = String(queue.authorized_plan && queue.authorized_plan.plan_blob_oid || '');
       if (!SHA40.test(planBlob)) throw new Error('PREFLIGHT_PLAN_BLOB_INVALID');
       planBody = git(['cat-file','blob',planBlob],cwd);
@@ -181,6 +182,7 @@ function runPreflight(options = {}) {
     },['PF-006']);
 
     add('PF-009','verify-implementation-mission.js',()=>{
+      if (probes.implementationMission) return probes.implementationMission(queue,cwd);
       if (!planBody) {
         const planBlob = String(queue.authorized_plan.plan_blob_oid);
         planBody = git(['cat-file','blob',planBlob],cwd);
@@ -204,21 +206,29 @@ function runPreflight(options = {}) {
   }
 
   add('PF-011','project-queued-request.js',()=>{
-    projected = projectQueueRequest(queue);
+    projected = probes.projectQueueRequest ? probes.projectQueueRequest(queue,cwd) : projectQueueRequest(queue);
     return {projection_sha256:P.sha256(projected),schema_version:projected.schema_version};
   },['PF-004']);
 
   add('PF-012','lib/claude-local.js::normalizeRequest',()=>{
-    normalized = normalizeRequest(projected,cwd);
+    normalized = probes.normalizeRequest ? probes.normalizeRequest(projected,cwd) : normalizeRequest(projected,cwd);
     return {source_head:normalized.source_head,protocol_source_head:normalized.protocol_source_head,scope_count:normalized.scope_allow.length};
   },['PF-011']);
 
   add('PF-013','lib/claude-local.js::buildPrompt',()=>{
-    const taskText = fs.readFileSync(normalized.prompt_file,'utf8');
-    const configDir = options.configDir || path.join(cwd,'.kodjo-preflight-config');
-    promptText = buildPrompt(normalized,taskText,configDir);
-    promptBytes = Buffer.byteLength(promptText,'utf8');
-    promptHash = P.sha256(promptText);
+    if (probes.prompt) {
+      const value = probes.prompt(normalized,cwd);
+      promptText = String(value.text || '');
+      promptBytes = Number(value.bytes);
+      promptHash = String(value.sha256 || P.sha256(promptText));
+      if (!Number.isInteger(promptBytes)) promptBytes = Buffer.byteLength(promptText,'utf8');
+    } else {
+      const taskText = fs.readFileSync(normalized.prompt_file,'utf8');
+      const configDir = options.configDir || path.join(cwd,'.kodjo-preflight-config');
+      promptText = buildPrompt(normalized,taskText,configDir);
+      promptBytes = Buffer.byteLength(promptText,'utf8');
+      promptHash = P.sha256(promptText);
+    }
     if (promptBytes > normalized.limits.max_prompt_bytes || promptBytes > normalized.limits.max_total_prompt_bytes) {
       throw new Error('PROMPT_BUDGET_EXCEEDED:' + promptBytes);
     }
@@ -226,6 +236,7 @@ function runPreflight(options = {}) {
   },['PF-012']);
 
   add('PF-014','run-queued-request.ps1 source HEAD guards',()=>{
+    if (probes.sourceHead) return probes.sourceHead(queue,{cwd,after});
     const source = String(queue.source_head || '');
     git(['cat-file','-e',source+'^{commit}'],cwd);
     const ancestor = command('git',['merge-base','--is-ancestor',source,after],cwd);
@@ -252,6 +263,7 @@ function runPreflight(options = {}) {
   }
 
   add('PF-016','run-local-claude.js recovery read-only inspection',()=>{
+    if (probes.recovery) return probes.recovery(queue,normalized,cwd);
     if (!queue || String(queue.mode || '').toUpperCase() !== 'RESUME_DELTA') return {status:'NOT_REQUIRED'};
     if (String(queue.operation_kind || '').toUpperCase() === 'VISUAL_CORRECTION') return {status:'CHECKPOINT_BASELINE',checkpoint_ref:queue.delivery_checkpoint && queue.delivery_checkpoint.checkpoint_ref};
     const stateRoot = process.env.KODJO_STATE_ROOT ? path.resolve(process.env.KODJO_STATE_ROOT) : path.join(os.homedir(),'.kodjo-v2');
@@ -322,6 +334,7 @@ function runPreflight(options = {}) {
   });
 
   add('PF-022','run-local-claude.js package lock binding',()=>{
+    if (probes.packageLock) return probes.packageLock(cwd);
     const lock = path.join(cwd,'package-lock.json');
     return fs.existsSync(lock) ? {package_lock_sha256:P.sha256(fs.readFileSync(lock))} : {package_lock_sha256:null};
   },['PF-014']);
