@@ -78,3 +78,7 @@ Statuts consolidés : F01–F11 et F13–F14 corrigés/testés dans les limites 
 Le checkout applicatif pouvait réintroduire l'ancien validateur. Le workflow fige désormais avant checkout le seul consommateur et ses trois dépendances, sous RUNNER_TEMP, pour IMPLEMENT uniquement. Un test charge cette copie autonome avec un ancien validateur divergent dans le checkout applicatif et confirme que la preuve absente reste NON_VERIFIABLE. Les appels prepare/validate utilisent exclusivement la copie figée ; finalizer rejoue déjà le validateur avant son checkout applicatif. Aucune extension au chemin legacy/delta.
 
 Suite locale complète du premier complément : **458 tests, 453 PASS, 5 SKIP, 0 FAIL**. Linux GitHub sur `ab9d6a1d…` : **458 tests, 457 PASS, 1 SKIP, 0 FAIL**, avec exécution native du bloc PowerShell F12. Ce raccord supplémentaire ajoute un test ; sa CI est liée au nouveau HEAD dans la description de PR.
+
+### Résultat Windows intermédiaire, non masqué
+
+Le run `35438052576` a échoué dans le nouveau test natif F12, avant l'exécution du bloc : l'extracteur du test supposait LF et ne trouvait pas le bloc dans le checkout CRLF de Windows (`assert.ok(start>=0)`). L'extraction normalise désormais CRLF en LF avant d'exécuter le même bloc réel. Ce correctif concerne le harnais de test, pas le protocole. La qualification Windows doit être réussie sur le HEAD final ; l'échec intermédiaire n'est pas compté comme une réussite.

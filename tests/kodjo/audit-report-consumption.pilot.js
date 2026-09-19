@@ -50,7 +50,7 @@ const ps=process.platform==='win32'?'powershell':'pwsh';
 const native=cp.spawnSync(ps,['-NoProfile','-Command','$PSVersionTable.PSVersion.ToString()']).status===0;
 test('F12: execute the actual runner evidence block with native PowerShell and real collector',{skip:!native?'Native PowerShell required on CI':false},()=>{
   const dir=fixture();try{
-    const runner=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8');
+    const runner=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8').replace(/\r\n/g,'\n');
     const start=runner.indexOf('  if (-not $isVisual) {\n    $reportPath');assert.ok(start>=0);
     const end=runner.indexOf('\n  }',start)+4;assert.ok(end>start);
     const block=runner.slice(start,end);
