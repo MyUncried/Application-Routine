@@ -49,7 +49,9 @@ Le legacy conserve :
 - ses contrôles existants ;
 - `STATUT : DONE`.
 
-Les étapes 1–3 restent inchangées.
+Les contrôles restaurés aux étapes 1–3 restent inchangés pour `operation_kind=IMPLEMENT`.
+
+Une correction de compatibilité est toutefois appliquée dans le workflow de revue : `VISUAL_CORRECTION` conserve explicitement sa revue différentielle historique au lieu d’être forcé à produire le contrat critère-complet réservé à `IMPLEMENT`. Cette correction retire un élargissement involontaire introduit en 0.6.40 ; elle ne supprime aucun contrôle historique de VISUAL_CORRECTION.
 
 ## Qualification attendue
 
