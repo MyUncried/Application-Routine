@@ -173,6 +173,8 @@ test('audit F05: completion binds one bot review to the exact run and attempt',(
   const run={id:200,run_attempt:1,path:'.github/workflows/kodjo-slice-implementation-review.yml',head_repository:{full_name:'o/r'},event:'repository_dispatch',status:'completed',conclusion:'success',run_started_at:'2026-09-19T10:00:00Z',updated_at:'2026-09-19T10:02:00Z'};
   const comment={id:20,user:{login:'github-actions[bot]'},created_at:'2026-09-19T10:01:00Z',body:'[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT\nsource_review_run_id=200\nsource_review_run_attempt=1\nverdict=APPROVE\nSTATUT : IMPLEMENTATION_REVIEW_APPROVED'};
   assert.equal(selectReview(run,[comment],'o/r'),comment);
+  assert.throws(()=>selectReview(run,[comment],'o/r',200,2),/IDENTITY_MISMATCH/);
+  assert.throws(()=>selectReview(run,[comment],'o/r',201,1),/IDENTITY_MISMATCH/);
   for(const patch of [{conclusion:'failure'},{status:'in_progress'}])assert.equal(selectReview({...run,...patch},[comment],'o/r'),null);
   for(const body of [comment.body.replace('run_id=200','run_id=201'),comment.body.replace('attempt=1','attempt=2'),comment.body.replace('APPROVE','REVISE')])assert.equal(selectReview(run,[{...comment,body}],'o/r'),null);
   assert.equal(selectReview(run,[{...comment,user:{login:'stranger'}}],'o/r'),null);

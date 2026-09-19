@@ -42,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           meta="${RUNNER_TEMP}/routine-dev-sync.json"
-          node scripts/kodjo/resolve-review-run-environment-sync.js "$GITHUB_REPOSITORY" "${{ github.event.workflow_run.id }}" "$meta"
+          node scripts/kodjo/resolve-review-run-environment-sync.js "$GITHUB_REPOSITORY" "${{ github.event.workflow_run.id }}" "${{ github.event.workflow_run.run_attempt }}" "$meta"
           applicable="$(jq -r 'if (.applicable | type) == "boolean" then .applicable else error("ENV_SYNC_APPLICABILITY_INVALID") end' "$meta")"
           {
             echo "meta=$meta"

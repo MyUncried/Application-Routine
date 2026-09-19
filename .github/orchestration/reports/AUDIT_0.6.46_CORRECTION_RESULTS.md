@@ -49,6 +49,7 @@ Passe séparée par méthode : repartie des contre-exemples et des sources conso
 
 - Recherches des anciens `applicable // true`, branche review V2 non exclusive, regex finalizer tronquées, attestation à check unique, hiérarchie normative 0.6.21 et traitement non bloquant de NON_VERIFIABLE device.
 - Les fixtures préflight permissives du bench Windows ont été alignées sur la complétude exigée, explicitement étiquetées synthétiques ; elles ne prétendent pas avoir exécuté les 22 probes.
+- Dernière vérification F05 : l’API de run est lue au numéro de tentative porté par l’événement (`runs/<id>/attempts/<attempt>`), pas au dernier attempt du run. Un événement retardé ne peut donc sélectionner une revue d’une tentative ultérieure. Test d’identité explicite ajouté.
 - Le test de sidecar qui attendait issue_comment a été remplacé par la vérification du mécanisme workflow_run et du lien exact au commentaire. Le producteur n’appelle toujours aucun sidecar.
 - La spec 0.6.46 reçoit l’erratum de raccord F05. Les assertions historiques « inchangé lors de l’introduction de 0.6.46 » restent datées, sans nier les corrections actuelles. Les rapports historiques ne sont pas réécrits.
 - Vérification du maintien des branches legacy/V2, INITIAL/RESUME_DELTA, revue complète/delta, états de préservation, absence de force-push et gates humains. Pas de nouvelle politique main==application_head.

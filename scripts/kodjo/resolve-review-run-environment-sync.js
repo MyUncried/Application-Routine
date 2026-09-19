@@ -8,7 +8,8 @@ function gh(repository,suffix,paginate=false){
   if(r.error||r.status!==0)throw Error('ENV_SYNC_GITHUB_READ_FAILED');
   return JSON.parse(r.stdout);
 }
-function selectReview(run,comments,repository){
+function selectReview(run,comments,repository,expectedRunId=run?.id,expectedAttempt=run?.run_attempt){
+  if(String(run?.id)!==String(expectedRunId)||String(run?.run_attempt)!==String(expectedAttempt))throw Error('ENV_SYNC_REVIEW_RUN_IDENTITY_MISMATCH');
   if(!run || run.path!=='.github/workflows/kodjo-slice-implementation-review.yml' ||
      run.head_repository?.full_name!==repository || !['issue_comment','repository_dispatch'].includes(run.event))throw Error('ENV_SYNC_REVIEW_RUN_INVALID');
   if(run.status!=='completed'||run.conclusion!=='success')return null;
@@ -29,11 +30,11 @@ function selectReview(run,comments,repository){
   return review;
 }
 function main(argv){
-  const [repository,runId,outputFile]=argv;
-  if(!/^[\w.-]+\/[\w.-]+$/.test(repository||'')||!/^\d+$/.test(runId||'')||!outputFile)throw Error('ENV_SYNC_REVIEW_RUN_INPUT_INVALID');
-  const run=gh(repository,'actions/runs/'+runId);
+  const [repository,runId,runAttempt,outputFile]=argv;
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repository||'')||!/^\d+$/.test(runId||'')||! /^[1-9]\d*$/.test(runAttempt||'')||!outputFile)throw Error('ENV_SYNC_REVIEW_RUN_INPUT_INVALID');
+  const run=gh(repository,'actions/runs/'+runId+'/attempts/'+runAttempt);
   const pages=gh(repository,'issues/comments?per_page=100&since='+encodeURIComponent(run.run_started_at),true);
-  const review=selectReview(run,pages.flat(),repository);
+  const review=selectReview(run,pages.flat(),repository,runId,runAttempt);
   let result={schema:'kodjo.environment.review-sync.v1',applicable:false,source_review_run_id:runId};
   if(review){
     const implementation=gh(repository,'issues/comments/'+one(review.body,'source_implementation_comment_id'));
