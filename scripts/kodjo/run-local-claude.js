@@ -12,7 +12,7 @@ const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
 
 const { runCheck } = require('./lib/checks');
 const {
-  CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest,
+  CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest, resolveClaudeBinary,
   buildPrompt, buildArgs, classifyClaudeFailure, sha256, redact, TURN_LIMIT_POLICY,
 } = require('./lib/claude-local');
 
@@ -668,9 +668,7 @@ function main() {
   const token = process.env.CLAUDE_CODE_OAUTH_TOKEN || '';
   if (!token && !supervisedQueue) return writeFailure('KODJO-V2-CLAUDE-AUTH', 'jeton OAuth absent');
 
-  const testMode = process.env.KODJO_ALLOW_TEST_ADAPTER === '1';
-  const claudeCli = !testMode && process.platform === 'win32' ? path.join(process.env.APPDATA, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') : null;
-  const claudeBin = testMode && process.env.KODJO_CLAUDE_BIN ? process.env.KODJO_CLAUDE_BIN : (claudeCli || 'claude');
+  const claudeBin = resolveClaudeBinary(process.env, process.platform);
   const claudePrefix = [];
   const version = command(claudeBin, [...claudePrefix, '--version'], repoRoot, process.env, 30000);
   if (version.error || version.status !== 0) return writeFailure('CLAUDE_NOT_AVAILABLE', version.error ? version.error.message : version.stderr);
