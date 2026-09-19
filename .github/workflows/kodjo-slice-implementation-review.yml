@@ -267,6 +267,8 @@ jobs:
             echo "For each criterion require implementation_status, files_or_symbols, component_used, tests_run, proof_status, preserve_status and residual_status in that report. Missing, incomplete or truncated evidence cannot substantiate CONFORME: use NON_VERIFIABLE for the affected criterion and verdict REVISE under the existing review contract."
             echo "The implementation_report assessment is deterministic. If NON_VERIFIABLE, mark every criterion implementation_status NON_VERIFIABLE and verdict REVISE; no unsupported attribution to a particular criterion. A missing stop marker is an evidence gap, not a new runtime stop status."
 
+            echo "For ui_applicable=false, criteria and boundary_results still follow the exact empty UI contract. The report criterion IDs are author labels, not approved machine IDs. Assess their meaning against the complete approved plan."
+            echo "For ui_applicable=false, non_ui_plan_assessment is mandatory: enumerate every functional acceptance requirement from the approved plan with a direct plan locator, status and concrete diff/test evidence. Also assess scope, preservation, test coverage and the truth and completeness of the implementation report. Never use the report as the source of plan requirements. Missing requirements, fabricated claims, unproven checks and code defects require NON_CONFORME or NON_VERIFIABLE and REVISE. The overall assessment must explicitly address completeness against the whole plan, even when the report is empty."
             echo "For each proof_required, return exactly one proof_result. FUNCTIONAL_TEST, STATIC_ANALYSIS and ACCESSIBILITY_CHECK are blocking and may be PASS only with evidence from the supplied material."
             echo "VISUAL_COMPARE and DEVICE_CHECK cannot be certified by this automated review. Return PENDING_DEVICE unless there is a demonstrated FAIL; never return PASS for those two proof types."
             echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results with direct diff evidence. Any FAIL or NON_VERIFIABLE boundary is blocking."
@@ -342,6 +344,23 @@ jobs:
               }
             }
           }')
+          if [ "$(jq -r .ui_applicable /tmp/ui-implementation-review-input.json)" = false ]; then
+            REVIEW_SCHEMA=$(printf '%s' "$REVIEW_SCHEMA" | jq '.required += ["non_ui_plan_assessment"] | .properties.non_ui_plan_assessment = {
+              type:"object",additionalProperties:false,required:["status","evidence","requirements"],
+              properties:{
+                status:{type:"string",enum:["CONFORME","NON_CONFORME","NON_VERIFIABLE"]},
+                evidence:{type:"string",minLength:1},
+                requirements:{type:"array",minItems:1,items:{
+                  type:"object",additionalProperties:false,required:["plan_requirement","status","evidence"],
+                  properties:{
+                    plan_requirement:{type:"string",minLength:1},
+                    status:{type:"string",enum:["CONFORME","NON_CONFORME","NON_VERIFIABLE"]},
+                    evidence:{type:"string",minLength:1}
+                  }
+                }}
+              }
+            }')
+          fi
           jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/review-prompt.txt --argjson schema "$REVIEW_SCHEMA"             '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:16000,text:{verbosity:"medium",format:{type:"json_schema",name:"kodjo_ui_implementation_review",strict:true,schema:$schema}}}' > /tmp/review-request.json
           curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/review-request.json -o /tmp/review-response.json
           status=$(jq -r '.status // "missing"' /tmp/review-response.json)

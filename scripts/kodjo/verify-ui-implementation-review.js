@@ -40,6 +40,7 @@ function buildInput(planBody, changedFiles) {
   const changed = unique(changedFiles, 'UI_IMPLEMENTATION_REVIEW_CHANGED_FILES_INVALID', 'changed_files').sort();
   const changedSet = new Set(changed);
   const uiApplicable = Boolean(planContract.ui_applicable);
+  if (!uiApplicable && criteria.length) fail('NON_UI_PLAN_HAS_UI_CRITERIA', 'contrat non UI contradictoire');
   const normalizedCriteria = criteria.map((criterion) => {
     const id = String(criterion.criterion_id);
     const targets = unique(criterion.change_targets || [], 'UI_IMPLEMENTATION_REVIEW_TARGET_INVALID', id + '.change_targets').sort();
@@ -151,6 +152,28 @@ function validateReview(input, review) {
     }
   }
 
+  // A non-UI plan has no machine-defined functional criterion IDs. Its prose
+  // requirements must be assessed independently, never replaced by report IDs.
+  if (!input.ui_applicable) {
+    const assessment = review.non_ui_plan_assessment;
+    const statuses = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE']);
+    const text = value => typeof value === 'string' && value.trim();
+    if (!assessment || !statuses.has(assessment.status) || !text(assessment.evidence) ||
+        !Array.isArray(assessment.requirements) || !assessment.requirements.length) {
+      fail('NON_UI_PLAN_ASSESSMENT_REQUIRED', 'revue motivee du plan complet requise');
+    }
+    const requirements = new Set();
+    for (const row of assessment.requirements) {
+      if (!row || !text(row.plan_requirement) || requirements.has(row.plan_requirement) ||
+          !statuses.has(row.status) || !text(row.evidence)) {
+        fail('NON_UI_PLAN_ASSESSMENT_INVALID', 'exigence, statut ou preuve absent/duplique');
+      }
+      requirements.add(row.plan_requirement);
+      if (row.status !== 'CONFORME') blocking = true;
+    }
+    if (assessment.status !== 'CONFORME') blocking = true;
+  }
+
   // F12: completeness is mechanically observable; semantic truth remains the
   // independent reviewer's job. Use its existing NON_VERIFIABLE/REVISE states.
   if (input.implementation_report && input.implementation_report.status !== 'COMPLETE') {
@@ -178,7 +201,7 @@ try {
   // validate: its sixth is the same exact file. Legacy unit callers may omit it.
   const evidenceFile = mode === 'prepare' ? outputFile : implementationFile;
   if (evidenceFile) input.implementation_report = inspectImplementation(
-    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.criteria.map(c=>c.criterion_id));
+    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.ui_applicable ? input.criteria.map(c=>c.criterion_id) : undefined);
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
     process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' device=' + input.device_gate_required + '\n');
