@@ -79,12 +79,10 @@ if ($isVisual) {
   $applicationHead = ([string]$target.application_head).ToLowerInvariant()
   if ($applicationHead -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_QUEUE_APPLICATION_HEAD_REFUSED' }
 
-  $pr = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$targetPr" | ConvertFrom-Json
-  if ($LASTEXITCODE -ne 0 -or $null -eq $pr) { throw 'KODJO_QUEUE_APPLICATION_PR_UNREADABLE' }
-  if ([string]$pr.state -ne 'open') { throw 'KODJO_QUEUE_APPLICATION_PR_NOT_OPEN' }
-  if ([string]$pr.base.ref -ne 'main') { throw 'KODJO_QUEUE_APPLICATION_PR_BASE_MISMATCH' }
-  if ([string]$pr.head.ref -ne $targetBranch) { throw 'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH' }
-  if (([string]$pr.head.sha).ToLowerInvariant() -ne $applicationHead) { throw 'KODJO_QUEUE_APPLICATION_HEAD_MOVED' }
+  # Freshness LIVE après attestation : la PR peut avoir bougé entre le préflight
+  # et le checkout. Une seule source de vérité exécutable porte ce contrôle.
+  & node (Join-Path $PSScriptRoot 'verify-preflight-live-target.js') $QueueFile
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_TARGET_FRESHNESS_REFUSED' }
 
   $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
   $fetchRefspec = "refs/heads/{0}:refs/remotes/origin/{0}" -f $targetBranch
