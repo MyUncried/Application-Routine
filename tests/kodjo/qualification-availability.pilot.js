@@ -14,7 +14,7 @@ function fixture() {
     attempt:{id:123,run_attempt:1,head_sha:head,status:'completed',conclusion:'failure'},
     allJobs:[{id:456,run_attempt:1,runner_id:26,status:'completed',conclusion:'failure',completed_at:'2026-01-01T11:59:00Z'}],
     latestJobs:{total_count:0,jobs:[]},nextAttemptStatus:404,runnerId:26,
-    local:{platform:'win32',lockAbsent:true,processScan:'NONE',runDirectoryAbsent:true,runStateAbsent:true,observedAt:now}
+    local:{platform:'win32',currentWorkerExclusive:true,lockAbsent:true,processScan:'NONE',runDirectoryAbsent:true,runStateAbsent:true,observedAt:now}
   };
 }
 test('Q-ENV-01 concordant terminal attempt + absent rerun + live idle runner admits residual',()=>{
@@ -37,6 +37,7 @@ const negatives = {
   'live Claude':p=>p.local.processScan='ACTIVE',
   'ambiguous processes':p=>p.local.processScan='AMBIGUOUS',
   'present lock':p=>p.local.lockAbsent=false,
+  'another worker or unknown parent':p=>p.local.currentWorkerExclusive=false,
   'false string':p=>p.local.lockAbsent='true',
   'missing lock evidence':p=>delete p.local.lockAbsent,
   'persistent run directory':p=>p.local.runDirectoryAbsent=false,
@@ -96,11 +97,12 @@ test('Q-ENV-01 API failure cannot become an empty queue',async()=>{
     if(url.startsWith('/actions/workflows/'))result.status=403;
   })),/GITHUB_EVIDENCE_UNAVAILABLE/);
 });
-test('Q-ENV-01 runtime serializes with Lean Queue and preserves exact HEAD/main guards',()=>{
+test('Q-ENV-01 never joins Lean concurrency or changes exact HEAD/main guards',()=>{
   const root=path.resolve(__dirname,'../..');
   const wf=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-disposable-qualification.yml'),'utf8');
   const lean=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-lean-queue.yml'),'utf8');
-  for(const text of [wf,lean])assert.match(text,/concurrency:\s+group: kodjo-v2-lean-windows\s+cancel-in-progress: false/);
+  assert.match(lean,/concurrency:\s+group: kodjo-v2-lean-windows\s+cancel-in-progress: false/);
+  assert.doesNotMatch(wf,/group: kodjo-v2-lean-windows/);
   assert.match(wf,/HEAD_MISMATCH/);assert.match(wf,/MAIN_HEAD_MISMATCH/);
   assert.match(wf,/if \(\$LASTEXITCODE -ne 0\) \{ exit \$LASTEXITCODE \}/);
   const code=fs.readFileSync(path.join(root,'scripts/kodjo/check-qualification-availability.js'),'utf8');

@@ -27,7 +27,7 @@ function classifyResidual(proof, now = Date.now()) {
     Number.isSafeInteger(runnerId) && runnerId > 0 && allJobs.every(j => j.runner_id === runnerId),
   'LEAN_JOB_HISTORY_OR_RUNNER_AMBIGUOUS');
   requireProof(local && local.platform === 'win32' && local.lockAbsent === true &&
-    local.processScan === 'NONE' && local.runDirectoryAbsent === true &&
+    local.currentWorkerExclusive === true && local.processScan === 'NONE' && local.runDirectoryAbsent === true &&
     local.runStateAbsent === true && Number.isFinite(local.observedAt) &&
     now >= local.observedAt && now - local.observedAt <= 30000,
   'LEAN_LOCAL_ACTIVITY_OR_AMBIGUITY');

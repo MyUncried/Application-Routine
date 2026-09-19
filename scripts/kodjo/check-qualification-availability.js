@@ -6,11 +6,24 @@ const { execFileSync } = require('node:child_process');
 const { classifyResidual, requireProof } = require('./lib/qualification-availability');
 const { windowsProcessSnapshot, classifyClaudeProcesses } = require('./lib/execution-lock');
 
+function absent(file) {
+  try { fs.statSync(file); return false; }
+  catch (error) { if (error.code === 'ENOENT') return true; throw error; }
+}
+
 function localEvidence(run, env = process.env) {
   const snapshot = windowsProcessSnapshot();
   let processScan = 'AMBIGUOUS';
+  let currentWorkerExclusive = false;
   if (snapshot.state === 'OK' && Array.isArray(snapshot.rows) && snapshot.rows.length > 0) {
     const byPid = new Map(snapshot.rows.map(p => [Number(p.ProcessId), p]));
+    const ancestors = new Set();
+    let parent = process.pid;
+    while (parent > 0 && !ancestors.has(parent)) {
+      ancestors.add(parent); parent = Number(byPid.get(parent)?.ParentProcessId || 0);
+    }
+    const workers = snapshot.rows.filter(p => /^Runner\.Worker(?:\.exe)?$/i.test(p.Name || ''));
+    currentWorkerExclusive = workers.length === 1 && ancestors.has(Number(workers[0].ProcessId));
     const ours = (pid) => {
       const seen = new Set();
       while (pid > 0 && !seen.has(pid)) {
@@ -28,10 +41,10 @@ function localEvidence(run, env = process.env) {
   }
   const stateRoot = path.join(env.USERPROFILE, '.kodjo-v2');
   return {
-    platform: process.platform, observedAt: Date.now(), processScan,
-    lockAbsent: !fs.existsSync(path.join(stateRoot, 'claude-local.lock')),
-    runDirectoryAbsent: !fs.existsSync(path.join(env.GITHUB_WORKSPACE, '_kodjo', String(run.id))),
-    runStateAbsent: !fs.existsSync(path.join(stateRoot, 'runs', `github-${run.id}-${run.run_attempt}`)),
+    platform: process.platform, observedAt: Date.now(), processScan, currentWorkerExclusive,
+    lockAbsent: absent(path.join(stateRoot, 'claude-local.lock')),
+    runDirectoryAbsent: absent(path.join(env.GITHUB_WORKSPACE, '_kodjo', String(run.id))),
+    runStateAbsent: absent(path.join(stateRoot, 'runs', `github-${run.id}-${run.run_attempt}`)),
   };
 }
 
@@ -92,7 +105,8 @@ async function checkAvailability({ api, local = localEvidence, env = process.env
     JSON.stringify(second.map(r => [r.id,r.status,r.run_attempt,r.updated_at])), 'LEAN_CONCURRENT_ACTIVITY');
   // Even an empty queue never authorizes activity when a local process/lock exists.
   const finalLocal = local({ id: Number(env.GITHUB_RUN_ID), run_attempt: Number(env.GITHUB_RUN_ATTEMPT) }, env);
-  requireProof(finalLocal.platform === 'win32' && finalLocal.lockAbsent === true && finalLocal.processScan === 'NONE',
+  requireProof(finalLocal.platform === 'win32' && finalLocal.currentWorkerExclusive === true &&
+    finalLocal.lockAbsent === true && finalLocal.processScan === 'NONE',
     'LOCAL_ACTIVITY_OR_AMBIGUITY');
   await main();
   return { schema: 'kodjo.qualification.availability.1', disposition: 'ADMITTED',

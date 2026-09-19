@@ -14,8 +14,9 @@ This is an external GitHub inconsistency exposing an overly coarse harness
 availability check. No execution or protocol success is inferred from it.
 
 Correction scope: disposable workflow, availability collector/classifier and
-their dedicated pilot tests. The qualification workflow shares Lean Queue's
-concurrency group without cancellation. Existing runtime locks remain intact.
+their dedicated pilot tests. The qualification workflow does not join Lean
+Queue's concurrency group: admission must not cancel another pending workflow.
+Existing runtime locks remain intact.
 The inventory workflow and all product/state-transition rules are unchanged.
 
 ## Durable harness rule
@@ -28,16 +29,17 @@ An aggregate queued run may be classified RESIDUAL_NON_EXECUTING only when:
 - no latest jobs exist and the next attempt explicitly returns 404;
 - fresh local observation finds no Claude/KODJO process, no global lock, no
   directory or runtime state for that run;
-- the current qualification job is proven in progress on this runner;
+- the current qualification job is proven in progress on this runner, with
+  exactly one Runner.Worker process proven to be the current process's ancestor;
 - a second queue snapshot and run read show no change, and main remains exact.
 
 Zero jobs alone, an API error, missing data, another runner, a recent queue,
 an active/ambiguous process, a lock or concurrent activity all cause refusal.
 The residual run remains an external incident; ADMITTED applies exclusively to
 the qualification harness's availability, never to a KODJO request or its gates.
-The check contains no run-ID exception. Shared workflow concurrency protects
-against a nominal Lean execution starting after the observations; the runtime
-execution lock continues to protect Claude itself.
+The check contains no run-ID exception. The occupied current runner executes
+one job at a time; a second worker causes refusal. The runtime execution lock
+continues to protect Claude itself, including local invocations outside Actions.
 
 ## Verification plan
 

@@ -29,12 +29,6 @@ permissions:
   contents: read
   actions: read
 
-# Serialize qualification with the nominal Lean Queue. Residual classification
-# never replaces the runtime execution lock or permits concurrent execution.
-concurrency:
-  group: kodjo-v2-lean-windows
-  cancel-in-progress: false
-
 jobs:
   qualify:
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
