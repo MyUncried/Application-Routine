@@ -4,6 +4,7 @@ param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedMain,
   [Parameter(Mandatory = $true)][ValidatePattern('^\d+$')][string]$SourceRunId,
   [Parameter(Mandatory = $true)][string]$SourceEvidenceDirectory,
+  [string]$RecoveryMigrationFile = '',
   [Parameter(Mandatory = $true)][string]$EvidenceDirectory
 )
 
@@ -110,6 +111,9 @@ try {
   }
   $manifest.source_session_id = $sourceResult.session_id
   $manifest.source_head = $sourceResult.source_head
+  if ($sourceResult.source_head -ne $ExpectedHead -and -not $RecoveryMigrationFile) {
+    throw 'RECOVERY_MIGRATION_ATTESTATION_REQUIRED'
+  }
 
   if (Test-Path -LiteralPath $root) { throw ('QUALIFICATION_ROOT_ALREADY_EXISTS: ' + $root) }
   New-Item -ItemType Directory -Force -Path $root | Out-Null
@@ -142,7 +146,7 @@ try {
   $env:KODJO_SOURCE_RECOVERY_DIR = $sourcePackage
   $env:KODJO_DISPOSABLE_EVIDENCE_DIR = $evidence
   $entry = Join-Path $work 'scripts\kodjo\invoke-kodjo-v2.ps1'
-  $execution = Invoke-Native 'powershell.exe' @(
+  $executionArguments = @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $entry,
     '-SliceId', $slice,
     '-PromptFile', $prompt,
@@ -153,7 +157,9 @@ try {
     '-RetryOfRunId', $SourceRunId,
     '-RetryReasonCode', 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',
     '-RetryReasonDetail', ('Resume preserved disposable delta from run ' + $SourceRunId)
-  ) $work -AllowFailure
+  )
+  if ($RecoveryMigrationFile) { $executionArguments += @('-RecoveryMigrationFile', $RecoveryMigrationFile) }
+  $execution = Invoke-Native 'powershell.exe' $executionArguments $work -AllowFailure
   $manifest.execution_exit_code = $execution.Code
   $manifest.execution_output = $execution.Output
 
