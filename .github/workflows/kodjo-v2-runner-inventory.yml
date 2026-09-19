@@ -175,6 +175,80 @@ jobs:
           [IO.File]::WriteAllText((Join-Path $dest 'interrupted-run-observation.json'),$report,(New-Object Text.UTF8Encoding($false)))
           Write-Host $report
 
+
+      - name: Compare preserved disposable patches without mutation
+        if: inputs.source_run_id != ''
+        shell: powershell
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:SOURCE_RUN_ID -notmatch '^[1-9][0-9]*
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove only the temporary inventory report
+        if: always()
+        shell: powershell
+        run: |
+          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
+          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
+            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
+          }
+          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+) { throw 'SOURCE_RUN_ID_INVALID' }
+          $base = Join-Path $env:GITHUB_WORKSPACE '_qualification'
+          $evidence = Join-Path (Join-Path $base $env:SOURCE_RUN_ID) 'qualification-evidence'
+          $resumeFile = Join-Path $evidence 'qualification-resume-manifest.json'
+          if (!(Test-Path -LiteralPath $resumeFile)) { throw 'RESUME_EVIDENCE_MISSING' }
+          $resume = Get-Content -Raw -Encoding UTF8 -LiteralPath $resumeFile | ConvertFrom-Json
+          if ([string]$resume.github_run_id -ne $env:SOURCE_RUN_ID -or [string]$resume.source_run_id -notmatch '^[1-9][0-9]*
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove only the temporary inventory report
+        if: always()
+        shell: powershell
+        run: |
+          $leaf = "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $target = [IO.Path]::GetFullPath((Join-Path $env:RUNNER_TEMP $leaf)).TrimEnd('\')
+          $temp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\')
+          if ([IO.Path]::GetDirectoryName($target).TrimEnd('\') -ne $temp -or [IO.Path]::GetFileName($target) -ne $leaf) {
+            throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
+          }
+          if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+) { throw 'EVIDENCE_RUN_MISMATCH' }
+          $initial = Join-Path (Join-Path $base ([string]$resume.source_run_id)) 'qualification-evidence'
+          foreach ($entry in @(@{label='INITIAL';dir=$initial},@{label='RESUME_DELTA';dir=$evidence})) {
+            $records = @()
+            foreach ($relative in @('qualification-manifest.json','qualification-resume-manifest.json','result.json','invocation.json','consumption.json','controlled-interruption.json','recovery-package/manifest.json')) {
+              $file = Join-Path $entry.dir $relative
+              if (!(Test-Path -LiteralPath $file)) { continue }
+              $item = Get-Item -LiteralPath $file -Force
+              if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 16777216) { throw 'EVIDENCE_FILE_AMBIGUOUS' }
+              $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
+              $records += @{name=$relative;data=($value | Select-Object schema,schema_version,run_id,github_run_id,request_id,session_id,source_session_id,returned_session_id,source_head,expected_head,state,mode,status,verdict,failure,claude_invoked,modified_files,recovered_files,out_of_scope_files,source_patch_sha256,resume_patch_sha256,patch_sha256,final_delta,check_comparison,checks,cleanup_status,ref,tag_oid)}
+            }
+            $patchFile = Join-Path $entry.dir 'recovery-package/implementation.patch'
+            $patch = $null
+            if (Test-Path -LiteralPath $patchFile) {
+              $item=Get-Item -LiteralPath $patchFile -Force
+              if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 1048576) { throw 'PATCH_FILE_AMBIGUOUS' }
+              $patch=@{sha256=(Get-FileHash -LiteralPath $patchFile -Algorithm SHA256).Hash;base64=[Convert]::ToBase64String([IO.File]::ReadAllBytes($patchFile))}
+            }
+            Write-Host ('KODJO_PATCH_PROOF ' + (@{label=$entry.label;records=$records;patch=$patch} | ConvertTo-Json -Depth 15 -Compress))
+          }
+
       - name: Preserve read-only inventory
         uses: actions/upload-artifact@v4
         with:
