@@ -357,7 +357,7 @@ jobs:
           $implementationBody=''
           if($sourceImplMatch.Success){
             $implementationJson=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$($sourceImplMatch.Groups[1].Value)" 2>$null
-            if($LASTEXITCODE-eq0-and-not[string]::IsNullOrWhiteSpace([string]$implementationJson)){
+            if($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace([string]$implementationJson)){
               $implementation=$implementationJson|ConvertFrom-Json
               $implementationBody=([string]$implementation.body) -replace "`r",''
               $isV2=$implementationBody-match'(?m)^continuity_origin=V2_LEAN_QUEUE
