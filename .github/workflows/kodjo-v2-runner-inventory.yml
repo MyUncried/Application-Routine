@@ -65,11 +65,71 @@ jobs:
           [IO.File]::WriteAllLines($reportPath, [string[]]$lines, (New-Object Text.UTF8Encoding($false)))
           $lines | ForEach-Object { Write-Host ('KODJO_INVENTORY`t' + $_) }
 
+      - name: Observe Claude ownership ancestry and activity without mutation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Describe-Process($p, $all) {
+            $owner = Invoke-CimMethod -InputObject $p -MethodName GetOwner
+            $parent = @($all | Where-Object { $_.ProcessId -eq $p.ParentProcessId })
+            $parentValid = $parent.Count -eq 1 -and $parent[0].CreationDate -le $p.CreationDate
+            $cmd = [string]$p.CommandLine
+            $sha = [Security.Cryptography.SHA256]::Create()
+            $hash = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($cmd))).Replace('-','').ToLowerInvariant()
+            $sha.Dispose()
+            [ordered]@{
+              pid = [int64]$p.ProcessId; parent_pid = [int64]$p.ParentProcessId
+              name = $p.Name; executable = $p.ExecutablePath
+              created_utc = $p.CreationDate.ToUniversalTime().ToString('o')
+              age_seconds = ((Get-Date) - $p.CreationDate).TotalSeconds
+              owner_return_code = $owner.ReturnValue; owner = ($owner.Domain + '\' + $owner.User)
+              session_id = $p.SessionId; parent_identity_valid = $parentValid
+              command_readable = -not [string]::IsNullOrEmpty($cmd); command_sha256 = $hash
+              command_markers = @([regex]::Matches($cmd, '(?i)(?:--print|--resume|--session-id|--output-format|--input-format|--dangerously-skip-permissions|run-queued-request|invoke-kodjo-v2|@anthropic-ai[\\/]claude-code|_kodjo[\\/]\d+|github-\d+-\d+|kodjo-qualif(?:-resume)?-\d+)') | ForEach-Object { $_.Value })
+              kernel_time = [string]$p.KernelModeTime; user_time = [string]$p.UserModeTime
+              read_bytes = [string]$p.ReadTransferCount; write_bytes = [string]$p.WriteTransferCount
+              handles = $p.HandleCount; threads = $p.ThreadCount
+            }
+          }
+          $samples = @()
+          foreach ($sample in 1..2) {
+            $all = @(Get-CimInstance Win32_Process)
+            $targets = @($all | Where-Object { $_.Name -match '^claude(?:\.exe)?$' -or $_.ExecutablePath -match '@anthropic-ai[\\/]claude-code' })
+            $records = @()
+            foreach ($target in $targets) {
+              $chain = @(); $cursor = $target; $seen = @{}
+              while ($null -ne $cursor -and -not $seen.ContainsKey([string]$cursor.ProcessId)) {
+                $seen[[string]$cursor.ProcessId] = $true
+                $chain += ,(Describe-Process $cursor $all)
+                $parent = @($all | Where-Object { $_.ProcessId -eq $cursor.ParentProcessId -and $_.CreationDate -le $cursor.CreationDate })
+                if ($parent.Count -ne 1) { break }
+                $cursor = $parent[0]
+              }
+              $connections = @(Get-NetTCPConnection -OwningProcess $target.ProcessId -ErrorAction SilentlyContinue | Select-Object State,LocalPort,RemotePort)
+              $records += @{ ancestry = $chain; tcp = $connections }
+            }
+            $lockPath = Join-Path $env:USERPROFILE '.kodjo-v2\claude-local.lock'
+            $lock = @{ exists = (Test-Path -LiteralPath $lockPath) }
+            if ($lock.exists) {
+              try {
+                $value = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json
+                $lock.record = $value | Select-Object schema_version,owner_pid,owner_started_at,github_run_id,github_run_attempt,run_id,request_id,acquired_at
+                $lock.readable = $true
+              } catch { $lock.readable = $false }
+            }
+            $samples += @{ observed_utc = (Get-Date).ToUniversalTime().ToString('o'); processes = $records; lock = $lock }
+            if ($sample -eq 1) { Start-Sleep -Seconds 10 }
+          }
+          $report = @{ schema = 'kodjo.process-observation.1'; run_id = $env:GITHUB_RUN_ID; head = $env:GITHUB_SHA; samples = $samples } | ConvertTo-Json -Depth 12
+          $dest = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT\process-observation.json"
+          [IO.File]::WriteAllText($dest,$report,(New-Object Text.UTF8Encoding($false)))
+          Write-Host $report
+
       - name: Preserve read-only inventory
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/runner-inventory.tsv
+          path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
           if-no-files-found: error
           retention-days: 30
 
