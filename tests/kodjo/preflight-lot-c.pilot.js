@@ -19,7 +19,7 @@ const root=path.resolve(__dirname,'..','..');
 function git(cwd,args){return cp.execFileSync('git',args,{cwd,encoding:'utf8'}).trim();}
 function fixture(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-preflight-c-'));
-  git(dir,['init','-q']); git(dir,['config','user.email','x@y.z']); git(dir,['config','user.name','KODJO']);
+  git(dir,['init','-q']); git(dir,['config','core.autocrlf','false']); git(dir,['config','user.email','x@y.z']); git(dir,['config','user.name','KODJO']);
   fs.mkdirSync(path.join(dir,'.github','orchestration','queue','v2'),{recursive:true});
   fs.writeFileSync(path.join(dir,'mission.md'),'mission v1\n');
   fs.writeFileSync(path.join(dir,'package-lock.json'),'{"lockfileVersion":3}\n');
@@ -94,6 +94,35 @@ test('lot C: package-lock modifié après préflight est refusé avant Claude',(
   assert.throws(()=>verifyLocalFreshness({
     preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
   }),/PREFLIGHT_PACKAGE_LOCK_DRIFT/);
+});
+
+test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf',()=>{
+  const f=fixture();
+  const clones=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-eol-'));
+  try {
+    const inherited=path.join(clones,'gitconfig');
+    fs.writeFileSync(inherited,'[core]\n\tautocrlf = true\n');
+    const env={...process.env,GIT_CONFIG_GLOBAL:inherited,GIT_CONFIG_NOSYSTEM:'1'};
+    for(const key of Object.keys(env)) if(/^GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+)$/.test(key)) delete env[key];
+    const normal=path.join(clones,'normal');
+    cp.execFileSync('git',['clone','--no-local',f.dir,normal],{env,stdio:'pipe'});
+    const argsFor=dir=>({preflight:f.att,rawRequest:f.projection,
+      request:{...f.normalized,prompt_file:path.join(dir,'mission.md')},repoRoot:dir});
+    assert.match(fs.readFileSync(path.join(normal,'mission.md'),'utf8'),/\r\n/);
+    assert.throws(()=>verifyLocalFreshness(argsFor(normal)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    const fixed=path.join(clones,'fixed');
+    cp.execFileSync('git',['clone','--no-local',f.dir,fixed],{env:{...env,
+      GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'core.autocrlf',GIT_CONFIG_VALUE_0:'false'},stdio:'pipe'});
+    // Persist only in this disposable checkout, before switching to the approved source.
+    git(fixed,['config','--local','core.autocrlf','false']);
+    cp.execFileSync('git',['switch','--detach',f.queue.source_head],{cwd:fixed,env,stdio:'pipe'});
+    assert.equal(P.sha256(fs.readFileSync(path.join(fixed,'mission.md'))),f.att.prompt_file_sha256);
+    assert.equal(P.sha256(fs.readFileSync(path.join(fixed,'package-lock.json'))),f.att.package_lock_sha256);
+    assert.doesNotThrow(()=>verifyLocalFreshness(argsFor(fixed)));
+    fs.writeFileSync(path.join(fixed,'mission.md'),'changed mission\n');
+    assert.throws(()=>verifyLocalFreshness(argsFor(fixed)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    assert.equal(fs.readFileSync(inherited,'utf8'),'[core]\n\tautocrlf = true\n');
+  } finally { fs.rmSync(f.dir,{recursive:true,force:true}); fs.rmSync(clones,{recursive:true,force:true}); }
 });
 
 test('lot C: les validations stables sont dédupliquées uniquement sur le chemin attesté',()=>{
