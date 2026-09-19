@@ -9,7 +9,7 @@ const { canonicalJson, extractTaggedJson, normalizeRepoPath, fail } = require('.
 const CURRENT_CONTRACT_VERSION = 2;
 const CURRENT_SCHEMA = 'kodjo.plan-contract-consistency.v2';
 const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
-const SOURCE_PATH = /(?:`|\b)((?:app|src)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
+const SOURCE_PATH = /(?:`|\b)((?:app|src|tests)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
 
 function isTestPath(value) { return TEST_PATH.test(value); }
 function extractPaths(text) {
