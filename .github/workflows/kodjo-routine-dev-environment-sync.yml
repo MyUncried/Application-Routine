@@ -1,0 +1,161 @@
+name: KODJO — Routine Dev environment sync
+
+run-name: Routine Dev sync — review comment ${{ github.event.comment.id }}
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: routine-dev-sync-${{ github.event.comment.id }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event.comment.user.login == 'github-actions[bot]' && startsWith(github.event.comment.body, '[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      APP_VARIANT: development
+
+    steps:
+      - name: Checkout environment-sync tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve exact V2 application delivery
+        id: delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          meta="${RUNNER_TEMP}/routine-dev-sync.json"
+          node scripts/kodjo/resolve-review-environment-sync.js             "$GITHUB_REPOSITORY"             "${{ github.event.comment.id }}"             "$meta"
+          {
+            echo "meta=$meta"
+            echo "slice_id=$(jq -r .slice_id "$meta")"
+            echo "application_pr=$(jq -r .application_pr "$meta")"
+            echo "application_branch=$(jq -r .application_branch "$meta")"
+            echo "base_head=$(jq -r .base_head "$meta")"
+            echo "application_head=$(jq -r .application_head "$meta")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact application HEAD
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.delivery.outputs.application_head }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: delivery
+
+      - name: Verify exact checkout and classify update compatibility
+        id: compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="${{ steps.delivery.outputs.application_head }}"
+          actual="$(git -C delivery rev-parse HEAD)"
+          test "$actual" = "$expected"
+          compat="${RUNNER_TEMP}/routine-dev-compatibility.json"
+          (
+            cd delivery
+            node ../scripts/kodjo/classify-environment-update.js               "${{ steps.delivery.outputs.base_head }}"               "$expected"               "$compat"
+          )
+          echo "file=$compat" >> "$GITHUB_OUTPUT"
+          echo "status=$(jq -r .status "$compat")" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Expo authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${EXPO_TOKEN:-}" || {
+            echo "::error::Repository secret EXPO_TOKEN is missing."
+            exit 1
+          }
+
+      - name: Install project dependencies
+        working-directory: delivery
+        shell: bash
+        run: npm ci --no-audit --no-fund
+
+      - name: Install EAS CLI
+        shell: bash
+        run: npm install --global eas-cli@21.7.1
+
+      - name: Verify Routine Dev configuration
+        working-directory: delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx expo config --type public --json > "${RUNNER_TEMP}/routine-dev-expo-config.json"
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const c=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/routine-dev-expo-config.json','utf8'));
+          if(c.name!=='Routine Dev') throw new Error('ROUTINE_DEV_NAME_INVALID');
+          if(c.ios?.bundleIdentifier!=='com.ankusha.kodjo.dev') throw new Error('ROUTINE_DEV_BUNDLE_ID_INVALID');
+          if(c.extra?.eas?.projectId!=='0ee44f86-bd22-4b92-8780-e265b72907d9') throw new Error('EAS_PROJECT_ID_INVALID');
+          if(c.updates?.url!=='https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9') throw new Error('EAS_UPDATE_URL_INVALID');
+          if(!c.runtimeVersion) throw new Error('EAS_RUNTIME_VERSION_MISSING');
+          NODE
+
+      - name: Publish exact HEAD to Routine Dev review channel
+        if: steps.compatibility.outputs.status == 'OTA_COMPATIBLE'
+        id: update
+        working-directory: delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas update             --channel review             --platform ios             --environment development             --message "KODJO review ${{ steps.delivery.outputs.slice_id }} ${{ steps.delivery.outputs.application_head }}"             --non-interactive             --json > "${RUNNER_TEMP}/routine-dev-eas-update.json"
+          cat "${RUNNER_TEMP}/routine-dev-eas-update.json"
+
+      - name: Submit new Routine Dev review build when native runtime changed
+        if: steps.compatibility.outputs.status == 'NATIVE_REBUILD_REQUIRED'
+        id: rebuild
+        working-directory: delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build             --platform ios             --profile review             --non-interactive             --no-wait             --json > "${RUNNER_TEMP}/routine-dev-eas-build.json"
+          cat "${RUNNER_TEMP}/routine-dev-eas-build.json"
+
+      - name: Publish environment-sync summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Routine Dev environment synchronization"
+            echo
+            echo "- Slice: \`${{ steps.delivery.outputs.slice_id }}\`"
+            echo "- PR: #${{ steps.delivery.outputs.application_pr }}"
+            echo "- Application HEAD: \`${{ steps.delivery.outputs.application_head }}\`"
+            echo "- Compatibility: \`${{ steps.compatibility.outputs.status }}\`"
+            if [ "${{ steps.compatibility.outputs.status }}" = "OTA_COMPATIBLE" ]; then
+              echo "- Target: EAS Update channel \`review\`"
+            else
+              echo "- Target: new Routine Dev internal review build"
+              echo "- Reason: native-sensitive change requires a new binary before further OTA updates"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve environment-sync evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: routine-dev-sync-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ steps.delivery.outputs.meta }}
+            ${{ steps.compatibility.outputs.file }}
+            ${{ runner.temp }}/routine-dev-expo-config.json
+            ${{ runner.temp }}/routine-dev-eas-update.json
+            ${{ runner.temp }}/routine-dev-eas-build.json
+          if-no-files-found: warn
+          retention-days: 30
