@@ -10,6 +10,7 @@ on:
       - '.github/workflows/kodjo-v2-*.yml'
       - '.github/workflows/kodjo-slice-plan.yml'
       - '.github/workflows/kodjo-slice-plan-review.yml'
+      - '.github/workflows/kodjo-slice-implementation-review.yml'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
   workflow_dispatch:

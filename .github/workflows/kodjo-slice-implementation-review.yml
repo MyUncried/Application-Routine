@@ -246,6 +246,32 @@ jobs:
           set -euo pipefail
           node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js prepare             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/ui-implementation-review-input.json             /tmp/implementation-output.md
 
+      - name: Verify and preserve exact V2 diff and lint evidence
+        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
+        shell: bash
+        env:
+          REVIEW_BASE: ${{ steps.gate.outputs.base }}
+          REVIEW_HEAD: ${{ steps.gate.outputs.head }}
+        run: |
+          set -euo pipefail
+          {
+            printf 'Exact verification base=%s head=%s\n' "$REVIEW_BASE" "$REVIEW_HEAD"
+            test "$(git rev-parse HEAD)" = "$REVIEW_HEAD"
+            git diff --check "$REVIEW_BASE..$REVIEW_HEAD"
+            echo 'git diff --check: PASS (exit 0)'
+            npm run lint
+            echo 'npm run lint: PASS (exit 0)'
+            lint_files=()
+            while IFS= read -r file; do
+              if [[ "$file" =~ \.[cm]?[jt]sx?$ ]] && [[ -f "$file" ]]; then lint_files+=("$file"); fi
+            done < /tmp/changed-files.txt
+            if [ "${#lint_files[@]}" -gt 0 ]; then
+              printf 'Explicit ESLint target: %s\n' "${lint_files[@]}"
+              npx --no-install eslint --max-warnings 0 -- "${lint_files[@]}"
+              echo 'ESLint on changed existing JavaScript/TypeScript paths: PASS (exit 0)'
+            fi
+          } 2>&1 | tee /tmp/v2-verification-evidence.txt
+
       - name: Independent OpenAI review — V2 criterion contract
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
         shell: bash
@@ -277,6 +303,9 @@ jobs:
             echo "Return verdict=REVISE for any blocking defect. Otherwise return verdict=APPROVE even when device_gate_required=true; APPROVE is technical approval only and never closes the device/human gate."
             echo "VISUAL_APPROVED only satisfies human/device evidence explicitly required by this approved plan. It never supplies missing technical, functional, scope or preservation evidence."
             echo "Do not modify files."
+            echo
+            echo "ADDITIONAL DETERMINISTIC VERIFICATION EVIDENCE (executed on this exact application HEAD):"
+            cat /tmp/v2-verification-evidence.txt
             echo
             echo "UI REVIEW INPUT:"
             cat /tmp/ui-implementation-review-input.json
@@ -465,6 +494,7 @@ jobs:
             /tmp/review.md
             /tmp/review-contract.json
             /tmp/ui-implementation-review-input.json
+            /tmp/v2-verification-evidence.txt
             /tmp/changed-files.txt
             /tmp/diff-stat.txt
           if-no-files-found: warn

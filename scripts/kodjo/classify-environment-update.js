@@ -11,9 +11,10 @@ const NATIVE_PREFIX = ['ios/','android/','plugins/','modules/'];
 function classify(files){
   const normalized=[...new Set((files||[]).map(String).map(f=>f.replace(/\\/g,'/')).filter(Boolean))].sort();
   const native=normalized.filter(f=>NATIVE_EXACT.has(f)||NATIVE_PREFIX.some(p=>f.startsWith(p)));
+  const qualificationOnly=normalized.length>0&&normalized.every(f=>f.startsWith('tests/kodjo-prod-qualif/')&&!f.split('/').includes('..'));
   return {
     schema:'kodjo.environment.update-compatibility.v1',
-    status:native.length?'NATIVE_REBUILD_REQUIRED':'OTA_COMPATIBLE',
+    status:qualificationOnly?'NO_ENVIRONMENT_UPDATE':native.length?'NATIVE_REBUILD_REQUIRED':'OTA_COMPATIBLE',
     changed_files:normalized,
     native_sensitive_files:native,
   };

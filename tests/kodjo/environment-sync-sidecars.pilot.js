@@ -202,3 +202,11 @@ test('audit F03: structural parser rejects the original colon-space scalar defec
   assert.throws(()=>parse("jobs:\n  sync:\n    if: contains(body, 'STATUT : IMPLEMENTATION_REVIEW_APPROVED')\n"),/colon-space/);
   assert.doesNotThrow(()=>parse("jobs:\n  sync:\n    if: >-\n      contains(body, 'STATUT : IMPLEMENTATION_REVIEW_APPROVED')\n"));
 });
+
+
+test('qualification-only changes never request an environment update; mixed product changes retain normal classification',()=>{
+  assert.equal(classify(['tests/kodjo-prod-qualif/e2e-sum.ts','tests/kodjo-prod-qualif/e2e-sum.test.ts']).status,'NO_ENVIRONMENT_UPDATE');
+  assert.equal(classify(['tests/kodjo-prod-qualif/e2e-sum.ts','src/foo.ts']).status,'OTA_COMPATIBLE');
+  assert.equal(classify(['tests/kodjo-prod-qualif/e2e-sum.ts','package-lock.json']).status,'NATIVE_REBUILD_REQUIRED');
+  assert.notEqual(classify(['tests/kodjo-prod-qualif/../../src/foo.ts']).status,'NO_ENVIRONMENT_UPDATE');
+});

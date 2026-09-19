@@ -85,7 +85,7 @@ jobs:
           echo "status=$(jq -r .status "$compat")" >> "$GITHUB_OUTPUT"
 
       - name: Verify Expo authentication
-        if: steps.delivery.outputs.applicable == 'true'
+        if: steps.delivery.outputs.applicable == 'true' && (steps.compatibility.outputs.status == 'OTA_COMPATIBLE' || steps.compatibility.outputs.status == 'NATIVE_REBUILD_REQUIRED')
         shell: bash
         run: |
           set -euo pipefail
@@ -95,18 +95,18 @@ jobs:
           }
 
       - name: Install project dependencies
-        if: steps.delivery.outputs.applicable == 'true'
+        if: steps.delivery.outputs.applicable == 'true' && (steps.compatibility.outputs.status == 'OTA_COMPATIBLE' || steps.compatibility.outputs.status == 'NATIVE_REBUILD_REQUIRED')
         working-directory: delivery
         shell: bash
         run: npm ci --no-audit --no-fund
 
       - name: Install EAS CLI
-        if: steps.delivery.outputs.applicable == 'true'
+        if: steps.delivery.outputs.applicable == 'true' && (steps.compatibility.outputs.status == 'OTA_COMPATIBLE' || steps.compatibility.outputs.status == 'NATIVE_REBUILD_REQUIRED')
         shell: bash
         run: npm install --global eas-cli@21.7.1
 
       - name: Verify Routine Dev configuration
-        if: steps.delivery.outputs.applicable == 'true'
+        if: steps.delivery.outputs.applicable == 'true' && (steps.compatibility.outputs.status == 'OTA_COMPATIBLE' || steps.compatibility.outputs.status == 'NATIVE_REBUILD_REQUIRED')
         working-directory: delivery
         shell: bash
         run: |
@@ -164,6 +164,8 @@ jobs:
             echo "- Compatibility: \`${{ steps.compatibility.outputs.status }}\`"
             if [ "${{ steps.compatibility.outputs.status }}" = "OTA_COMPATIBLE" ]; then
               echo "- Target: EAS Update channel \`review\`"
+            elif [ "${{ steps.compatibility.outputs.status }}" = "NO_ENVIRONMENT_UPDATE" ]; then
+              echo "- Qualification-only change: no EAS authentication, installation, update or build performed."
             else
               echo "- Target: new Routine Dev internal review build"
               echo "- Reason: native-sensitive change requires a new binary before further OTA updates"
