@@ -411,7 +411,9 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
     if (migrationEvidence) Object.assign(migrationEvidence, migration);
     return [];
   }
-  const apply = (extra) => command('git', ['apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
+  // Preserve the captured bytes during restoration too: Windows autocrlf
+  // must not turn an LF recovery delta into CRLF before Claude sees it.
+  const apply = (extra) => command('git', ['-c', 'core.autocrlf=false', 'apply', '--binary'].concat(extra), repoRoot, process.env, 120000);
   const patchFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-patch-')), 'implementation.patch');
   fs.writeFileSync(patchFile, patch, 'utf8');
   const numstat = apply(['--numstat', '-z', patchFile]);
