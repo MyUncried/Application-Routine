@@ -175,6 +175,21 @@ jobs:
           [IO.File]::WriteAllText((Join-Path $dest 'interrupted-run-observation.json'),$report,(New-Object Text.UTF8Encoding($false)))
           Write-Host $report
 
+      - name: Read retained F12 preflight without replay
+        shell: powershell
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:SOURCE_RUN_ID -ne '35463087174' -or $env:SOURCE_RUN_ATTEMPT -ne '1') { throw 'F12_SOURCE_IDENTITY_MISMATCH' }
+          $file = Join-Path $env:RUNNER_TEMP 'kodjo-preflight-35463087174-1.json'
+          $item = Get-Item -LiteralPath $file -Force
+          if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 1048576) { throw 'F12_EVIDENCE_AMBIGUOUS' }
+          $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
+          Write-Host ('F12_PREFLIGHT_SHA256 ' + (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash)
+          Write-Host ($value | ConvertTo-Json -Depth 15)
+
       - name: Preserve read-only inventory
         uses: actions/upload-artifact@v4
         with:
