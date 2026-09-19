@@ -40,7 +40,7 @@ jobs:
           set -euo pipefail
           meta="${RUNNER_TEMP}/routine-dev-sync.json"
           node scripts/kodjo/resolve-review-environment-sync.js             "$GITHUB_REPOSITORY"             "${{ github.event.comment.id }}"             "$meta"
-          applicable="$(jq -r '.applicable // true' "$meta")"
+          applicable="$(jq -r 'if has("applicable") then .applicable else true end' "$meta")"
           {
             echo "meta=$meta"
             echo "applicable=$applicable"
