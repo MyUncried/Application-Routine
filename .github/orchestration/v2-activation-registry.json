@@ -43,6 +43,15 @@
       "bootstrap_path": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
       "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
       "planning_application_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476"
+    },
+    {
+      "slice_id": "V2-E2E-20260919",
+      "status": "ACTIVE",
+      "issue_number": 212,
+      "baseline_head": "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
+      "planning_application_head": "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
+      "bootstrap_path": ".github/orchestration/v2-slices/V2-E2E-20260919/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "10d160ed9f1fd15f6aeb0e407ca191cc0c701b4837aaefd83fecfc44c7e2ab29"
     }
   ]
 }
