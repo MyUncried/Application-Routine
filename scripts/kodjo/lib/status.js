@@ -49,7 +49,10 @@ function computeStatus(input) {
   const required = input.requiredChecks || [];
   const reasons = [];
 
-  const failed = checks.filter((c) => c.status === 'FAIL').map((c) => c.check);
+  const failed = checks.filter((c) => c.status !== 'PASS' && c.status !== 'NOT_RUN').map((c) => c.check);
+  if (checks.some((c) => !['PASS', 'FAIL', 'NOT_RUN'].includes(c.status))) {
+    reasons.push('CHECK_STATUS_INVALID: an unrecognized result is never a successful check.');
+  }
   const notRun = checks.filter((c) => c.status === 'NOT_RUN').map((c) => c.check);
   const executed = new Set(checks.map((c) => c.check));
   for (const name of required) {

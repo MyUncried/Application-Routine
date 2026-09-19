@@ -42,7 +42,7 @@ jobs:
 
           $normalized=$env:TRIGGER_BODY -replace "`r",''
 
-          $slice=[regex]::Match($normalized,'(?m)^slice_id=([^\n]+)
+          $slice=[regex]::Match($normalized,'(?m)^slice_id=([^\n]+)$').Groups[1].Value.Trim()
           $manifest=[regex]::Match($normalized,'(?m)^manifest_path=([^\n]+)$').Groups[1].Value.Trim()
           $reviewId=[regex]::Match($normalized,'(?m)^source_review_comment_id=([0-9]+)$').Groups[1].Value
           $head=[regex]::Match($normalized,'(?m)^head=([0-9a-f]{40})$').Groups[1].Value
@@ -55,7 +55,14 @@ jobs:
           if($reviewBody-notmatch'(?m)^\[KODJO_SLICE\] IMPLEMENTATION_REVIEW_OUTPUT$'-or$reviewBody-notmatch'(?m)^verdict=APPROVE$'-or$reviewBody-notmatch'(?m)^STATUT : IMPLEMENTATION_REVIEW_APPROVED$'){throw 'Technical approval missing'}
           if($reviewBody-notmatch"(?m)^head=$head$"){throw 'Visual and technical HEAD mismatch'}
 
-          $sourceImplMatch=[regex]::Match($reviewBody,'(?m)^source_implementation_comment_id=([0-9]+)
+          $sourceImplMatch=[regex]::Match($reviewBody,'(?m)^source_implementation_comment_id=([0-9]+)$')
+          $implementationBody=''
+          if($sourceImplMatch.Success){
+            $implementation=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$($sourceImplMatch.Groups[1].Value)"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$implementation){throw 'Source implementation unreadable'}
+            $implementationBody=([string]$implementation.body) -replace "`r",''
+          }
+          if($implementationBody-match'(?m)^continuity_origin=V2_LEAN_QUEUE$'){
             $queueMatch=[regex]::Match($implementationBody,'(?m)^v2_queue_path=(\.github/orchestration/queue/v2/[^\n]+\.json)$')
             if(-not$queueMatch.Success){throw 'V2 queue path missing'}
             $queuePath=$queueMatch.Groups[1].Value.Trim()
@@ -101,7 +108,7 @@ jobs:
               [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
 
               $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
-              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay
+              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
               if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
             } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){
               throw 'V2 final review mode invalid'
@@ -172,6 +179,13 @@ jobs:
           FINAL_CONTRACT: ${{ steps.gate.outputs.final_contract }}
         run: |
           $ErrorActionPreference='Stop'
+          $remote=gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$env:TARGET_BRANCH" --jq '.object.sha'
+          if($LASTEXITCODE-ne0-or([string]$remote).Trim()-ne$env:HEAD){throw 'Final target branch moved'}
+          if($env:V2_MODE-eq'true'){
+            $final=Get-Content -LiteralPath $env:FINAL_CONTRACT -Raw -Encoding UTF8|ConvertFrom-Json
+            $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$($final.application_pr)"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$pr-or[string]$pr.state-ne'open'-or[string]$pr.base.ref-ne'main'-or[string]$pr.head.ref-ne$env:TARGET_BRANCH-or[string]$pr.head.sha-ne$env:HEAD){throw 'Final application PR moved'}
+          }
           $nl=[Environment]::NewLine
           if($env:V2_MODE-eq'true'){
             $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+

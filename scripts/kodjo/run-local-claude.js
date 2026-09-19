@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
+const { consumeLiveToken, verifyLiveTarget } = require('./verify-preflight-live-target');
 const { verifyLocalFreshness } = require('./lib/preflight-freshness');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
@@ -613,6 +614,9 @@ process.exit(result.error || result.status === null ? 78 : result.status);
 `;
 
 function main() {
+  // Keep the read capability in supervisor memory only, never in child env.
+  const liveToken = consumeLiveToken(process.env);
+
   const requestPath = process.argv[2];
   if (!requestPath) return die('USAGE', 'node scripts/kodjo/run-local-claude.js <request.json>');
   const repoRoot = path.resolve(git(['rev-parse', '--show-toplevel'], process.cwd()));
@@ -648,6 +652,12 @@ function main() {
     return die(diagnostic, message);
   };
 
+  const assertLiveTarget = () => {
+    if (process.env.KODJO_SUPERVISED_QUEUE === '1' && request.operation_kind === 'VISUAL_CORRECTION') {
+      if (!liveToken) throw new Error('KODJO_QUEUE_LIVE_AUTH_MISSING');
+      verifyLiveTarget(request, {env:{...process.env,GH_TOKEN:liveToken}});
+    }
+  };
   const preflightFile = String(process.env.KODJO_PREFLIGHT_FILE || '').trim();
   const supervisedQueue = process.env.KODJO_SUPERVISED_QUEUE === '1' && process.env.GITHUB_ACTIONS === 'true';
   if (supervisedQueue && !preflightFile) {
@@ -700,6 +710,7 @@ function main() {
   let recoveredFiles = [];
   let pendingLegacyBootstrap = null;
   try {
+    assertLiveTarget();
     const restored = restoreRecovery(stateRoot, repoRoot, request);
     recoveredFiles = restored.files;
     request.recovery_paths = exactRecoveryPaths(recoveredFiles);
@@ -775,6 +786,7 @@ function main() {
       ...process.env,
       KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow),
     };
+    assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);

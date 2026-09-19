@@ -102,12 +102,15 @@ function admit(options) {
 
   const queue = readJson(path.resolve(cwd, selected));
   const violations = validateQueueRequest(queue);
-  if (violations.length > 0) {
+  if (!options.selectionOnly && violations.length > 0) {
     throw new Error('KODJO_QUEUE_CONTRACT_REFUSED: ' +
       violations.map((v) => v.diagnostic + '(' + v.property + '): ' + v.detail).join(' | '));
   }
 
   const requestId = String(queue.request_id || '');
+  if (registry.entries.some(entry => entry && String(entry.request_id || '').toLowerCase() === requestId.toLowerCase())) {
+    throw new Error('KODJO_QUEUE_CONSUMED_REFUSED: ' + requestId);
+  }
   if (!UUID.test(requestId)) {
     throw new Error('KODJO_QUEUE_REQUEST_ID_INVALID: ' + (requestId || '<absent>'));
   }
@@ -120,12 +123,16 @@ function admit(options) {
       const candidate = path.join(QUEUE_DIR, name).replace(/\\/g, '/');
       let other;
       try { other = readJson(path.resolve(cwd, candidate)); } catch (_) { continue; }
-      if (String(other.request_id || '') === requestId) duplicates.push(candidate);
+      if (String(other.request_id || '').toLowerCase() === requestId.toLowerCase()) duplicates.push(candidate);
     }
   }
   if (duplicates.length !== 1) {
     throw new Error('KODJO_QUEUE_REQUEST_ID_DUPLICATE: ' + requestId + ' — ' + duplicates.join(', '));
   }
+
+  // Production selection stops here; the aggregate preflight retains all contract,
+  // authorization and checkpoint checks before any runner mutation.
+  if (options.selectionOnly) return { selected, request_id: requestId };
 
   if (String(queue.mode || '').toUpperCase() === 'RESUME_DELTA') {
     if (!queue.retry_of_run_id) throw new Error('KODJO_QUEUE_RETRY_SOURCE_MISSING');
@@ -152,9 +159,10 @@ function admit(options) {
 
 if (require.main === module) {
   try {
-    const [before, after] = process.argv.slice(2);
+    const [before, after, selectionMode] = process.argv.slice(2);
+    if (selectionMode && selectionMode !== '--selection-only') throw new Error('KODJO_QUEUE_SELECTION_MODE_INVALID');
     const result = admit({
-      before, after,
+      before, after, selectionOnly: selectionMode === '--selection-only',
       runAttempt: process.env.GITHUB_RUN_ATTEMPT,
       cwd: process.cwd(),
     });

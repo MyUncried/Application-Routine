@@ -236,3 +236,24 @@ test('E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin l
   assert.match(wf,/v2_mode=false/);
   assert.doesNotMatch(wf,/repository_dispatch|KODJO_V2_FINAL_APPROVED|NEW_FINALIZATION_QUEUE/);
 });
+
+test('D2: VISUAL_APPROVED never replaces technical, functional or preservation evidence',()=>{
+  for(const mutate of [
+    value=>{value.criteria[0].proof_results[0].status='FAIL';},
+    value=>{value.criteria[0].proof_results[0].status='NON_VERIFIABLE';},
+    value=>{value.criteria[0].proof_results[0].status='PENDING_DEVICE';},
+    value=>{value.criteria[0].implementation_status='NON_VERIFIABLE';},
+    value=>{value.criteria[0].preserve_status='FAIL';},
+    value=>{value.boundary_results[0].status='NON_VERIFIABLE';},
+    value=>{value.boundary_results[1].status='FAIL';},
+  ]){
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-d2-'));
+    try{
+      const f=fixture(dir),value=reviewValue();mutate(value);
+      const body=fs.readFileSync(f.reviewFile,'utf8').replace(/<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[\s\S]*?<\/KODJO_UI_IMPLEMENTATION_REVIEW_JSON>/,'<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(value)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>');
+      fs.writeFileSync(f.reviewFile,body);
+      const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',path.join(dir,'out.json')],dir);
+      assert.notEqual(r.status,0);assert.match(r.stderr,/V2_FINAL_(TECHNICAL_PROOF_NOT_PASS|CRITERION_NOT_CLOSED|BOUNDARY_NOT_PASS)/);
+    }finally{fs.rmSync(dir,{recursive:true,force:true});}
+  }
+});

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Minimal YAML subset parser, sufficient for GitHub Actions workflow files.
+ * Minimal YAML subset parser for structural checks (not a full syntax certification).
  *
  * The pilot must validate its workflow structurally (permissions, checkout
  * options, `if: always()`, real script names) without adding a dependency:
@@ -71,6 +71,7 @@ function parseScalar(text) {
     }
     return obj;
   }
+  if (/:\s/.test(s)) throw new YamlError('colon-space in unquoted scalar: ' + s);
   return s;
 }
 

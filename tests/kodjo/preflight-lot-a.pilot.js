@@ -171,3 +171,23 @@ test('lot A: le contrat shadow reste opposable après activation par le lot B',(
   assert.ok(preflight >= 0 && runner > preflight);
   assert.match(workflow,/kodjo-preflight-/);
 });
+
+test('audit F08/F09: selected queue reaches aggregation and failed attestation is written without runner',()=>{
+  const {admit}=require('../../scripts/kodjo/verify-queue-admission');
+  const f=fixture();
+  try{
+    assert.throws(()=>admit({cwd:f.dir,before:f.before,after:f.after,runAttempt:1}));
+    const selected=admit({cwd:f.dir,before:f.before,after:f.after,runAttempt:1,selectionOnly:true});
+    const outputFile=path.join(f.dir,'preflight-failed.json');
+    const result=runPreflight({cwd:f.dir,queuePath:selected.selected,before:f.before,after:f.after,runAttempt:1,outputFile,
+      probes:probes(f.queue,{verifyAuthorizations:()=>{throw Error('AUTH_FAILED');},githubAccess:()=>{throw Error('API_DOWN');}})});
+    assert.equal(result.status,'FAIL');
+    assert.match(result.checks.find(x=>x.id==='PF-006').diagnostic,/AUTH_FAILED/);
+    assert.match(result.checks.find(x=>x.id==='PF-021').diagnostic,/API_DOWN/);
+    assert.deepEqual(JSON.parse(fs.readFileSync(outputFile)),result);
+    const {parse}=require('../../scripts/kodjo/lib/yaml');
+    const wf=parse(fs.readFileSync(path.resolve(__dirname,'../../.github/workflows/kodjo-v2-lean-queue.yml'),'utf8'));
+    const step=Object.values(wf.jobs).flatMap(j=>j.steps).find(x=>x.name==='Preserve preflight attestation including failure');
+    assert.equal(step.if,'always()');assert.equal(step.with.path,'${{ runner.temp }}/kodjo-preflight-${{ github.run_id }}-${{ github.run_attempt }}.json');
+  }finally{fs.rmSync(f.dir,{recursive:true,force:true});}
+});

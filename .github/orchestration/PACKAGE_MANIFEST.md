@@ -1,17 +1,18 @@
-# Manifeste du paquet KODJO V2 0.6.21 — qualification jetable opposable
+# Manifeste du paquet KODJO V2 0.6.46 — sources courantes et preuves historiques
 
 ## Objet
 
-Cette version conserve les invariants 0.6.20, rend le registre réellement canonique, unifie l’admission des chemins et active une tranche jetable sans effet applicatif. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
+Le protocole courant est défini par la spécification 0.6.46 et son héritage additif explicite jusqu’aux versions antérieures. Les contrats UI 0.6.38–0.6.41 et préflight 0.6.42–0.6.45 restent applicables. La qualification jetable introduite en 0.6.21 est conservée ; les runs cités ci-dessous sont historiques, pas une certification du HEAD courant. Claude ne committe pas, ne pousse pas et ne possède aucun droit d’écriture GitHub.
 
 ## Sources normatives
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Spécification normative courante, delta de 0.6.20 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.46.md` | Spécification normative courante, delta de 0.6.45 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Base historique de qualification jetable, conservée sous les addenda ultérieurs |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
-| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, contenu version 3.22.0 |
+| `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, version indiquée par son propre en-tête |
 
 | `.github/orchestration/reports/KODJO_V2_ORDINARY_PATH_CERTIFICATION_REPORT_0.1.md` | Rapport de certification C1–C4, D1–D3 et R1–R6 ; réserves de sortie explicites |
 
@@ -48,14 +49,14 @@ Le même banc possède un mode `PreflightOnly` qui exerce installation, contrôl
 | `KODJO_V2_LOCAL_REQUEST_EXAMPLE.json` | Schéma d’exemple, non exécutable tel quel |
 | `tests/kodjo/claude-local.pilot.js` | Tests des bornes, outils, budgets, périmètres et secrets |
 
-## Composants déjà qualifiés et conservés
+## Composants historiquement qualifiés et conservés
 
 | Élément | État |
 |---|---|
 | Préservation avant contrôles | Qualifiée localement et sur GitHub Actions |
 | Restauration depuis l’artefact | Qualifiée dans un second job |
 | Writer externe | Qualifié le 10 septembre 2026 dans `Application-Routine-KODJO-Evidence` |
-| Dépôt applicatif distant | Lecture seule |
+| Dépôt applicatif distant | Lecture seule pour Claude ; publication autorisée réservée au superviseur Lean Queue |
 | Workflow writer corrigé | Résolution de `${RUNNER_TEMP}` après démarrage du runner |
 
 ## Configuration Claude effective
@@ -72,9 +73,9 @@ Le même banc possède un mode `PreflightOnly` qui exerce installation, contrôl
 
 ## Hiérarchie
 
-En cas d’écart : spécification `0.6.21` complétant `0.6.20`, configuration effective de `claude-local.js`, superviseur, tests, puis rapports.
+En cas d’écart : spécification `0.6.46` complétant `0.6.45`, puis chaîne des addenda explicitement hérités et `.github/AI_ORCHESTRATION.md` pour les principes conservés ; configuration effective de `claude-local.js`, superviseur, tests, puis rapports. Aucun addendum ne supprime silencieusement une règle antérieure. Les corrections bornées de l’audit sont tracées dans `reports/AUDIT_0.6.46_CORRECTION_RESULTS.md`.
 
-## Qualification
+## Qualification historique (HEADs indiqués, sans extrapolation au courant)
 
 La migration 0.6.20 reste démontrée par les runs `34611834316`, `34612786612` et le run pilote complet `34621816482`, tous qualifiés sur Ubuntu et Windows PowerShell 5.1.
 

@@ -56,7 +56,7 @@ function fixture(){
     prompt_bytes:1,
     package_lock_sha256:P.sha256(fs.readFileSync(path.join(dir,'package-lock.json'))),
     toolchain:{},
-    checks:[{id:'PF-004',status:'PASS',source:'test',evidence:'ok',diagnostic:null}]
+    checks:require('./helpers/preflight-checks').checks(queue)
   });
   const preflight=path.join(dir,'preflight.json');
   fs.writeFileSync(preflight,JSON.stringify(att,null,2)+'\n');
@@ -153,4 +153,25 @@ test('lot C: IMPLEMENT, RESUME_DELTA et VISUAL_CORRECTION gardent leurs chemins 
   assert.match(preflight,/recovery_migration/);
   assert.match(runner,/prepare|start-kodjo-v2/);
   assert.match(finalizer,/READY_TO_CLOSE/);
+});
+
+test('audit F06: consumer rejects changed verdict, missing/duplicate checks and false applicability',()=>{
+  const f=fixture();
+  try{
+    const write=att=>fs.writeFileSync(f.preflight,JSON.stringify(att));
+    let bad=P.finalize({...f.att,checks:f.att.checks.map(r=>r.id==='PF-006'?{...r,status:'FAIL'}:r)});
+    const hash=bad.preflight_fingerprint;bad.status='PASS';assert.equal(P.computeFingerprint(bad),hash);
+    write(bad);assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_VERDICT_INCONSISTENT/);
+    for(const checks of [[],f.att.checks.slice(1),[...f.att.checks,f.att.checks[0]]]){
+      bad=P.finalize({...f.att,checks});assert.equal(bad.status,'FAIL');write(bad);
+      assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_CHECK_COVERAGE_INVALID/);
+    }
+    bad=P.finalize({...f.att,checks:f.att.checks.map(r=>({...r,status:'NOT_APPLICABLE'}))});write(bad);
+    assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_CHECK_APPLICABILITY_INVALID/);
+    for(const operation_kind of ['IMPLEMENT','VISUAL_CORRECTION']) for(const recovery_migration of [undefined,{attestation_blob_oid:'a'.repeat(40)}]){
+      const queue={operation_kind,mode:'RESUME_DELTA',recovery_migration};
+      const att=P.finalize({...f.att,operation_kind,mode:queue.mode,checks:require('./helpers/preflight-checks').checks(queue)});
+      assert.doesNotThrow(()=>P.verifyApplicability(att,queue));
+    }
+  }finally{fs.rmSync(f.dir,{recursive:true,force:true});}
 });

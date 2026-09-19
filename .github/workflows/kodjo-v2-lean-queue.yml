@@ -119,13 +119,21 @@ jobs:
           KODJO_VERIFY_GITHUB: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          $selected = & node scripts/kodjo/verify-queue-admission.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER
+          $selected = & node scripts/kodjo/verify-queue-admission.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER --selection-only
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $preflight = Join-Path $env:RUNNER_TEMP ("kodjo-preflight-{0}-{1}.json" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
           & node scripts/kodjo/verify-queue-preflight.js $selected $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER $preflight
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & scripts/kodjo/run-queued-request.ps1 -QueueFile $selected -PreflightFile $preflight
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Preserve preflight attestation including failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-preflight-${{ github.run_id }}-${{ github.run_attempt }}.json
+          if-no-files-found: ignore
 
       - name: Resolve current run diagnostic directory
         if: always()
@@ -148,6 +156,7 @@ jobs:
             ${{ steps.diag.outputs.dir }}/result.json
             ${{ steps.diag.outputs.dir }}/claude-stderr.txt
             ${{ steps.diag.outputs.dir }}/claude-output.json
+            ${{ steps.diag.outputs.dir }}/implementation-report.json
             ${{ steps.diag.outputs.dir }}/invocation.json
           if-no-files-found: warn
           retention-days: 14

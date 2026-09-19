@@ -239,3 +239,12 @@ test('registre · une demande enregistrée obsolète est refusée, par chemin ou
   assert.equal('consumed' in contenu, false);
   assert.equal(V.blobOid(rel, dir), oid, 'octets inchangés');
 });
+
+test('D1: historic registry request_id blocks changed path/content and UUID casing',()=>{
+  const dir=repo();
+  try{
+    const {before,after}=addQueue(dir,'renamed',{request_id:uuid(1).toUpperCase()});
+    fs.writeFileSync(path.join(dir,'.github/orchestration/queue/v2-consumed-registry.json'),JSON.stringify({entries:[{request_id:uuid(1),path:'old.json',blob_oid:'b'.repeat(40)}]}));
+    assert.throws(()=>admit({before,after,cwd:dir,runAttempt:1,selectionOnly:true,...noAuth}),/CONSUMED_REFUSED/);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
