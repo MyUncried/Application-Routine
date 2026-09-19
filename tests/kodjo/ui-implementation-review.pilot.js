@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const { sha256 } = require('../../scripts/kodjo/lib/plan-impact');
 
 const root = path.resolve(__dirname, '..', '..');
@@ -173,4 +174,85 @@ test('audit F14: device proof table preserves only PENDING_DEVICE or demonstrate
       else assert.notEqual(r.status,0,type+':'+status);
     }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+function nonUiFixture(action) {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-non-ui-review-'));
+  try {
+    const matrix={schema:'kodjo.ui-criteria.v1',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}};
+    const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:false,criterion_count:0,matrix_sha256:sha256(matrix)};
+    const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), evidence=path.join(dir,'implementation.md');
+    const input=path.join(dir,'input.json'), reviewFile=path.join(dir,'review.json'), output=path.join(dir,'output.json');
+    fs.writeFileSync(plan,'# Acceptance\n1. Return zero for an empty array.\nOnly function.ts may change.\n'+
+      '<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
+      '<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>');
+    fs.writeFileSync(changed,'function.ts\n');
+    const row={criterion_id:'author-label-empty',implementation_status:'DONE',files_or_symbols:['function.ts'],
+      component_used:'N/A',tests_run:['jest'],proof_status:'PASS',preserve_status:'UNCHANGED',residual_status:'NONE'};
+    function writeReport(rows=[row],override={}) {
+      const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+      const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
+        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),...override};
+      fs.writeFileSync(evidence,'v2_request_id=request\nv2_protocol_head='+ 'a'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
+    }
+    writeReport();
+    const review={schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:false,criteria:[],boundary_results:[],
+      non_ui_plan_assessment:{status:'CONFORME',evidence:'All acceptance requirements, scope and report claims checked against plan, diff and tests.',
+        requirements:[{plan_requirement:'Acceptance 1: empty array returns zero',status:'CONFORME',evidence:'function.ts initializes zero; real empty-array Jest assertion passes.'},
+          {plan_requirement:'Only function.ts may change',status:'CONFORME',evidence:'Exact changed files: function.ts.'}]}};
+    const prepare=()=>{const r=run(['prepare',plan,changed,input,evidence],dir);assert.equal(r.status,0,r.stderr);return JSON.parse(fs.readFileSync(input,'utf8'));};
+    const validate=()=>{fs.writeFileSync(reviewFile,JSON.stringify(review));return run(['validate',plan,changed,reviewFile,output,evidence],dir);};
+    action({row,writeReport,review,prepare,validate});
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+}
+
+test('non-UI report labels do not masquerade as UI IDs; independent full-plan assessment is mandatory',()=>{
+  nonUiFixture(({prepare,review,validate})=>{
+    const input=prepare();
+    assert.equal(input.implementation_report.status,'COMPLETE');
+    assert.equal(input.criterion_count,0);
+    assert.deepEqual(input.implementation_report.criterion_ids,['author-label-empty']);
+    let r=validate();assert.equal(r.status,0,r.stderr);
+    delete review.non_ui_plan_assessment;
+    r=validate();assert.notEqual(r.status,0);assert.match(r.stderr,/NON_UI_PLAN_ASSESSMENT_REQUIRED/);
+  });
+});
+
+test('non-UI integrity, structure, stop and duplicate checks remain blocking',()=>{
+  nonUiFixture(({row,writeReport,prepare,review,validate})=>{
+    for(const [rows,override] of [
+      [[row],{truncated:true}], [[row],{original_text_sha256:'0'.repeat(64)}],
+      [[row],{request_id:'wrong'}], [[row,row],{}], [[{...row,tests_run:[]}],{}],
+      [[row],{report_text:'No structured evidence'}]
+    ]){
+      writeReport(rows,override);
+      assert.equal(prepare().implementation_report.status,'NON_VERIFIABLE');
+      review.verdict='APPROVE';assert.notEqual(validate().status,0);
+      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+    }
+  });
+});
+
+test('non-UI semantic defects and unknown evidence cannot be approved with empty UI criteria',()=>{
+  nonUiFixture(({review,validate})=>{
+    for(const status of ['NON_CONFORME','NON_VERIFIABLE']) {
+      review.non_ui_plan_assessment.requirements[0].status=status;
+      review.verdict='APPROVE';assert.notEqual(validate().status,0);
+      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+    }
+    review.non_ui_plan_assessment.requirements[0].status='CONFORME';
+    review.non_ui_plan_assessment.status='NON_VERIFIABLE';
+    review.verdict='APPROVE';assert.notEqual(validate().status,0);
+    review.verdict='REVISE';assert.equal(validate().status,0);
+  });
+});
+
+test('non-UI assessment refuses empty, duplicate or unsubstantiated requirements',()=>{
+  nonUiFixture(({review,validate})=>{
+    const good=review.non_ui_plan_assessment.requirements;
+    for(const requirements of [[],[good[0],good[0]],[{...good[0],evidence:''}],[{...good[0],status:'PASS'}]]) {
+      review.non_ui_plan_assessment.requirements=requirements;
+      assert.notEqual(validate().status,0);
+    }
+  });
 });
