@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   inventory:
@@ -175,6 +176,14 @@ jobs:
           [IO.File]::WriteAllText((Join-Path $dest 'interrupted-run-observation.json'),$report,(New-Object Text.UTF8Encoding($false)))
           Write-Host $report
 
+      - name: Download preserved F12 preflight
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-preflight-35463087174-1
+          run-id: '35463087174'
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/f12-preflight-source
+
       - name: Read retained F12 preflight without replay
         shell: powershell
         env:
@@ -183,7 +192,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:SOURCE_RUN_ID -ne '35463087174' -or $env:SOURCE_RUN_ATTEMPT -ne '1') { throw 'F12_SOURCE_IDENTITY_MISMATCH' }
-          $file = Join-Path $env:RUNNER_TEMP 'kodjo-preflight-35463087174-1.json'
+          $file = Join-Path $env:RUNNER_TEMP 'f12-preflight-source/kodjo-preflight-35463087174-1.json'
           $item = Get-Item -LiteralPath $file -Force
           if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 1048576) { throw 'F12_EVIDENCE_AMBIGUOUS' }
           $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
