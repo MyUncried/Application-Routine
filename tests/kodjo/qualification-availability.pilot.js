@@ -120,3 +120,45 @@ test('Q-ENV-01 never joins Lean concurrency or changes exact HEAD/main guards',(
   const code=fs.readFileSync(path.join(root,'scripts/kodjo/check-qualification-availability.js'),'utf8');
   assert.doesNotMatch(code,/34748621746/);
 });
+
+function archiveFixture() {
+  const p=fixture();
+  const context={schema_version:'kodjo.protocol.v2.run-context.0.6.17',run_id:'github-123-1',github_run_id:'123',github_run_attempt:'1',created_at:'2026-01-01T11:58:00Z'};
+  p.local.runStateAbsent=false;
+  p.local.runStateEvidence={kind:'INITIALIZATION_RECORDS',files:['result.json','run-context.json'],context,
+    result:{...context,status:'PRE_INVOCATION',claude_invoked:false,diagnostic:'RUN_INITIALIZED'}};
+  return p;
+}
+test('Q-ENV-01 bound retained initialization is admitted only with all inactivity proofs',()=>{
+  assert.equal(classifyResidual(archiveFixture(),now).disposition,'RESIDUAL_NON_EXECUTING');
+});
+for (const [label,mutate] of Object.entries({
+  'Claude invoked':p=>p.local.runStateEvidence.result.claude_invoked=true,
+  'string false':p=>p.local.runStateEvidence.result.claude_invoked='false',
+  'missing invoked':p=>delete p.local.runStateEvidence.result.claude_invoked,
+  'wrong run':p=>p.local.runStateEvidence.result.run_id='github-124-1',
+  'wrong attempt':p=>p.local.runStateEvidence.context.github_run_attempt='2',
+  'unrecognized file':p=>p.local.runStateEvidence.files.push('invocation.json'),
+  'live process with archive':p=>p.local.processScan='ACTIVE',
+  'lock with archive':p=>p.local.lockAbsent=false,
+  'post-completion archive':p=>{p.local.runStateEvidence.context.created_at=p.local.runStateEvidence.result.created_at='2026-01-02T11:00:00Z';},
+})) test('Q-ENV-01 refuses archive '+label,()=>{const p=archiveFixture();mutate(p);assert.throws(()=>classifyResidual(p,now));});
+test('Q-ENV-01 archive inspection preserves files and exposes mutations or unknown files',()=>{
+  const {runStateEvidence}=require('../../scripts/kodjo/check-qualification-availability');
+  const dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'qenv-archive-'));
+  try {
+    const state=archiveFixture().local.runStateEvidence;
+    fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify(state.result));
+    fs.writeFileSync(path.join(dir,'run-context.json'),JSON.stringify(state.context));
+    const first=runStateEvidence(dir);assert.equal(first.kind,'INITIALIZATION_RECORDS');
+    assert.deepEqual(runStateEvidence(dir),first);
+    fs.writeFileSync(path.join(dir,'result.json'),'null');
+    assert.notEqual(runStateEvidence(dir).digest,first.digest);
+    fs.writeFileSync(path.join(dir,'unexpected'),'x');assert.equal(runStateEvidence(dir).kind,'AMBIGUOUS');
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('Q-ENV-01 changing retained state between observations refuses',async()=>{
+  const h=harness();let reads=0;
+  h.local=()=>{const p=archiveFixture();p.local.runStateEvidence.digest=String(++reads);return p.local;};
+  await assert.rejects(checkAvailability(h),/LEAN_LOCAL_STATE_CHANGED/);
+});

@@ -11,6 +11,24 @@ function absent(file) {
   catch (error) { if (error.code === 'ENOENT') return true; throw error; }
 }
 
+// Retained initialization diagnostics are evidence, not a live execution lease.
+// Inspect read-only; unknown files, symlinks and unreadable records remain ambiguous.
+function runStateEvidence(dir) {
+  if (absent(dir)) return {kind:'ABSENT'};
+  try {
+    if (!fs.lstatSync(dir).isDirectory() || fs.lstatSync(dir).isSymbolicLink()) return {kind:'AMBIGUOUS'};
+    const files=fs.readdirSync(dir).sort();
+    if (JSON.stringify(files)!==JSON.stringify(['result.json','run-context.json'])) return {kind:'AMBIGUOUS',files};
+    const raw=files.map(name=>{
+      const file=path.join(dir,name), stat=fs.lstatSync(file);
+      requireProof(stat.isFile() && !stat.isSymbolicLink() && stat.size<=65536,'STATE_FILE_AMBIGUOUS');
+      return fs.readFileSync(file,'utf8');
+    });
+    return {kind:'INITIALIZATION_RECORDS',files,result:JSON.parse(raw[0]),context:JSON.parse(raw[1]),
+      digest:require('node:crypto').createHash('sha256').update(JSON.stringify(raw)).digest('hex')};
+  } catch (_) { return {kind:'AMBIGUOUS'}; }
+}
+
 function localEvidence(run, env = process.env) {
   const snapshot = windowsProcessSnapshot();
   let processScan = 'AMBIGUOUS';
@@ -47,11 +65,12 @@ function localEvidence(run, env = process.env) {
     processScan = active ? 'ACTIVE' : unreadable ? 'AMBIGUOUS' : 'NONE';
   }
   const stateRoot = path.join(env.USERPROFILE, '.kodjo-v2');
+  const state = runStateEvidence(path.join(stateRoot, 'runs', `github-${run.id}-${run.run_attempt}`));
   return {
     platform: process.platform, observedAt: Date.now(), processScan, currentWorkerExclusive, processEvidence,
     lockAbsent: absent(path.join(stateRoot, 'claude-local.lock')),
     runDirectoryAbsent: absent(path.join(env.GITHUB_WORKSPACE, '_kodjo', String(run.id))),
-    runStateAbsent: absent(path.join(stateRoot, 'runs', `github-${run.id}-${run.run_attempt}`)),
+    runStateAbsent: state.kind === 'ABSENT', runStateEvidence: state,
   };
 }
 
@@ -108,6 +127,12 @@ async function checkAvailability({ api, local = localEvidence, env = process.env
     requireProof(reread.status === run.status && reread.run_attempt === run.run_attempt &&
       reread.updated_at === run.updated_at, 'LEAN_RUN_CHANGED');
   }
+  for (const residual of residuals) {
+    const fresh = local(residual.proof.run, env);
+    classifyResidual({...residual.proof,local:fresh},now());
+    requireProof(JSON.stringify(fresh.runStateEvidence) === JSON.stringify(residual.proof.local.runStateEvidence),
+      'LEAN_LOCAL_STATE_CHANGED');
+  }
   const second = await snapshot();
   requireProof(JSON.stringify(first.map(r => [r.id,r.status,r.run_attempt,r.updated_at])) ===
     JSON.stringify(second.map(r => [r.id,r.status,r.run_attempt,r.updated_at])), 'LEAN_CONCURRENT_ACTIVITY');
@@ -150,4 +175,4 @@ if (require.main === module) main().catch(e => {
   if (process.argv[2]) fs.writeFileSync(process.argv[2],JSON.stringify(record,null,2)+'\n');
   process.exitCode=1;
 });
-module.exports = {checkAvailability, localEvidence, failureRecord};
+module.exports = {checkAvailability, localEvidence, failureRecord, runStateEvidence};

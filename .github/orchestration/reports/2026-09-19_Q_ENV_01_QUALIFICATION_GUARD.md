@@ -17,7 +17,7 @@ Correction scope: disposable workflow, availability collector/classifier and
 their dedicated pilot tests. The qualification workflow does not join Lean
 Queue's concurrency group: admission must not cancel another pending workflow.
 Existing runtime locks remain intact.
-The inventory workflow and all product/state-transition rules are unchanged.
+The inventory workflow also provides read-only process ownership, ancestry and two activity samples. All product/state-transition rules are unchanged.
 
 ## Durable harness rule
 
@@ -28,7 +28,7 @@ An aggregate queued run may be classified RESIDUAL_NON_EXECUTING only when:
 - all historical jobs are completed and assigned to the currently observed runner;
 - no latest jobs exist and the next attempt explicitly returns 404;
 - fresh local observation finds no Claude/KODJO process, no global lock, no
-  directory or runtime state for that run;
+  work directory for that run; retained state is either absent or contains only the two bound initialization diagnostics described below;
 - the current qualification job is proven in progress on this runner, with
   exactly one Runner.Worker process proven to be the current process's ancestor;
 - a second queue snapshot and run read show no change, and main remains exact.
@@ -54,3 +54,19 @@ and is not used for this campaign; no residual exception is silently added there
 No new baseline is silently substituted for the initial campaign baseline.
 Correction commits and their real runs must be recorded separately in the
 consolidated qualification report.
+
+## Retained initialization diagnostics
+
+A completed job may retain `run-context.json` and `result.json` created by
+`initialize-run-diagnostic.js`. Their presence alone does not prove execution.
+The guard preserves them and permits this narrow archive shape only when both
+records bind the exact run/attempt, their creation predates job completion, and
+result is strictly PRE_INVOCATION / claude_invoked=false / RUN_INITIALIZED.
+Unknown files, malformed records, changed contents between observations,
+activity, locks, or any missing GitHub proof still cause refusal. No archive
+allows replay of a request or substitutes for the durable consumption ledger.
+
+Process investigation 35443411056 identified a live VS Code extension process;
+it was not killed. After the user closed VS Code, inventory 35443649738 observed
+no Claude process and no lock in both samples. These are Windows observations,
+not E2E qualification.
