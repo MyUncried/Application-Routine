@@ -138,8 +138,8 @@ test('lot C: lock reste acquis atomiquement à la frontière Claude même si le 
     assert.equal(release(first),true);
   }
   const local=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
-  const freshness=local.indexOf('verifyLocalFreshness');
-  const lock=local.indexOf('acquireExecutionLock');
+  const freshness=local.indexOf('verifyLocalFreshness({');
+  const lock=local.indexOf('lock = acquireExecutionLock',freshness);
   assert.ok(freshness>=0 && lock>freshness);
 });
 
