@@ -5,6 +5,9 @@ param(
   [Parameter(Mandatory = $true)][string[]]$ScopeAllow,
   [Parameter(Mandatory = $true)][string]$SliceBootstrapFile,
   [ValidateSet('INITIAL', 'RESUME_DELTA')][string]$Mode = 'INITIAL',
+  [string]$RetryOfRunId = '',
+  [string]$RetryReasonCode = '',
+  [string]$RetryReasonDetail = '',
   [string]$SessionId = '',
   [string[]]$Checks = @('jest', 'typescript', 'lint'),
   [string]$Output = ''
@@ -66,6 +69,11 @@ $request = [ordered]@{
     max_rollovers = 0
   }
 }
+if ($Mode -eq 'RESUME_DELTA') {
+  if ($RetryOfRunId -notmatch '^[1-9][0-9]*$' -or -not $RetryReasonCode -or -not $RetryReasonDetail) { throw 'RESUME_CAUSALITY_REQUIRED' }
+  $request.retry_of_run_id = $RetryOfRunId
+  $request.retry_reason = [ordered]@{ code = $RetryReasonCode; detail = $RetryReasonDetail }
+} elseif ($RetryOfRunId -or $RetryReasonCode -or $RetryReasonDetail) { throw 'INITIAL_RETRY_FIELDS_FORBIDDEN' }
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [IO.File]::WriteAllText([IO.Path]::GetFullPath($Output), ($request | ConvertTo-Json -Depth 5), $utf8NoBom)
 Write-Host "KODJO_V2_REQUEST_CREATED=$Output"

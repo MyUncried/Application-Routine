@@ -159,6 +159,24 @@ function isFixedPlanHandoffWriterOperation(filePath, line, patternId, root) {
   return false;
 }
 
+// D1 extends durable consumption to disposable qualification. This permits
+// only the declared permission of the exact execution job, not a code writer.
+function isDisposableConsumptionPermission(filePath, lines, index, patternId, root) {
+  if (patternId !== 'CONTENTS_WRITE') return false;
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  const declarations = {
+    '.github/workflows/kodjo-v2-disposable-qualification.yml': ['qualify', '      contents: write # Atomic durable consumption tag; never passed to Claude.'],
+    '.github/workflows/kodjo-v2-pilot-tests.yml': ['disposable-qualification', '      contents: write # Durable consumption for the explicitly requested Claude run.'],
+  };
+  const declaration = declarations[rel];
+  if (!declaration || lines[index] !== declaration[1] || lines[index - 1] !== '    permissions:') return false;
+  for (let i = index - 2; i >= 0; i--) {
+    if (/^  [\w-]+:/.test(lines[i])) return lines[i] === '  ' + declaration[0] + ':';
+    if (/^\S/.test(lines[i])) return false;
+  }
+  return false;
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -173,6 +191,7 @@ function main() {
       const code = line.split('#')[0];
       for (const p of PATTERNS) {
         if (!p.re.test(code)) continue;
+        if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;
         if (isFixedPlanHandoffWriterOperation(file, line, p.id, root)) continue;
@@ -202,4 +221,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
+module.exports = { isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };

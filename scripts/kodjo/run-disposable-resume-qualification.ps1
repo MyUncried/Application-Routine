@@ -140,6 +140,7 @@ try {
 
   $env:KODJO_STATE_ROOT = $state
   $env:KODJO_SOURCE_RECOVERY_DIR = $sourcePackage
+  $env:KODJO_DISPOSABLE_EVIDENCE_DIR = $evidence
   $entry = Join-Path $work 'scripts\kodjo\invoke-kodjo-v2.ps1'
   $execution = Invoke-Native 'powershell.exe' @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $entry,
@@ -148,7 +149,10 @@ try {
     '-ScopeAllow', $scope,
     '-SliceBootstrapFile', $bootstrap,
     '-Mode', 'RESUME_DELTA',
-    '-SessionId', $sourceResult.session_id
+    '-SessionId', $sourceResult.session_id,
+    '-RetryOfRunId', $SourceRunId,
+    '-RetryReasonCode', 'CONTROLLED_INTERRUPTION_AFTER_RECOVERY',
+    '-RetryReasonDetail', ('Resume preserved disposable delta from run ' + $SourceRunId)
   ) $work -AllowFailure
   $manifest.execution_exit_code = $execution.Code
   $manifest.execution_output = $execution.Output
@@ -200,7 +204,11 @@ try {
   if ($sourcePatchHash -notmatch '^[0-9a-f]{64}$' -or $resumePatchHash -ne $sourcePatchHash) { throw 'INITIAL_DELTA_LOST_OR_CHANGED' }
   if ($comparisonExecution.Code -ne 0 -or $comparison.verdict -ne 'PASS') { throw 'QUALIFICATION_CHECK_REGRESSION_OR_NON_EXECUTION' }
   if (Test-Path -LiteralPath (Join-Path $state 'claude-local.lock')) { throw 'CLAUDE_LOCK_REMAINS' }
+  $env:GH_TOKEN = $env:KODJO_LIVE_GH_TOKEN
   $main = (gh api ("repos/" + $env:GITHUB_REPOSITORY + "/git/ref/heads/main") --jq '.object.sha').Trim()
+  $mainReadExit = $LASTEXITCODE
+  Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+  if ($mainReadExit -ne 0) { throw 'MAIN_READ_FAILED_DURING_RESUME' }
   if ($main -ne $ExpectedMain) { throw ('MAIN_CHANGED_DURING_RESUME: ' + $main) }
   $manifest.observed_main = $main
   $manifest.workflow_technical_status = 'SUCCESS'
@@ -212,6 +220,7 @@ catch {
   throw
 }
 finally {
+  Remove-Item Env:KODJO_DISPOSABLE_EVIDENCE_DIR -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_STATE_ROOT -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SOURCE_RECOVERY_DIR -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_QUALIFICATION_CHECK_CACHE_DIR -ErrorAction SilentlyContinue

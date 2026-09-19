@@ -177,6 +177,7 @@ try {
     return
   }
 
+  $env:KODJO_DISPOSABLE_EVIDENCE_DIR = $evidence
   $entry = Join-Path $work 'scripts\kodjo\invoke-kodjo-v2.ps1'
   $execution = Invoke-Native 'powershell.exe' @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $entry,
@@ -247,6 +248,7 @@ catch {
   throw
 }
 finally {
+  Remove-Item Env:KODJO_DISPOSABLE_EVIDENCE_DIR -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_QUALIFICATION_CHECK_CACHE_DIR -ErrorAction SilentlyContinue
   $manifest.finished_at = (Get-Date).ToUniversalTime().ToString('o')
   $cleanupMessages = New-Object System.Collections.ArrayList

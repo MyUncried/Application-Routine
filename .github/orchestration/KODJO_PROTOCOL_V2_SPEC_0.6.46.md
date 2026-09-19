@@ -225,3 +225,40 @@ incompatible ; consommation manquante ; blob non lié au commit ; source active 
 archive non inspectée ; changement entre observations. Admission uniquement avec
 preuves concordantes et nouveau request_id. Les tests UNIT/INTEGRATION avec
 observations injectées ne prouvent pas une invocation Claude réelle.
+
+### Qualification jetable : consommation et identité avant l'appel externe
+
+La garantie D1 s'applique aussi aux appels du harnais jetable. Le superviseur
+consomme le nouveau `request_id` sous son verrou d'exécution, avant
+`EXTERNAL_CALL_SENT`, dans le même espace atomique `kodjo-consumed/<request_id>`
+que la Lean Queue. Une erreur de création, de relecture ou de conservation du
+reçu refuse l'appel ; aucun reçu créé n'est libéré, même après un échec.
+
+Le reçu `kodjo.disposable-consumption.v1` contient la requête locale complète,
+son empreinte Git blob calculée sur sa sérialisation JSON, le commit qualifié,
+le run/tentative et la session prévue. `queue_path: null` et
+`evidence_kind: DISPOSABLE_LOCAL_REQUEST` distinguent explicitement cette preuve
+d'une admission Lean Queue : la requête locale n'est pas présentée comme un
+fichier de queue commité. Ce reçu seul ne peut autoriser une reprise INITIAL
+causale de production, dont les preuves de contexte restent requises.
+
+La requête/session et le reçu sont écrits et synchronisés sur disque dans le
+répertoire du run et dans les preuves du harnais avant l'appel. Le jeton GitHub
+reste dans le superviseur et n'est pas transmis au processus Claude. Le mode
+`PreflightOnly` ne consomme aucune requête et n'appelle pas Claude.
+
+Chaque `RESUME_DELTA` jetable possède un nouveau `request_id` et transmet le
+run source exact, avec `retry_reason.code: CONTROLLED_INTERRUPTION_AFTER_RECOVERY`
+uniquement lorsque les preuves existantes d'interruption et de recovery sont
+validées. Cette causalité ne remplace aucun gate de recovery ou de HEAD.
+
+Un appel Claude réel dans ce harnais ne démontre pas à lui seul les étapes
+Lean Queue, livraison GitHub, PR, revue indépendante ou finalization.
+
+La qualification jetable conserve l'interdiction de publier du code ou une PR.
+Pour appliquer D1, son job d'exécution reçoit `contents: write` exclusivement
+pour le registre de consommation ; les permissions globales restent en lecture.
+Cette écriture de preuve déclarée remplace l'ancienne affirmation de lecture
+seule absolue du harnais, sans ouvrir un second chemin de livraison. Le scanner
+borne cette déclaration aux jobs d'exécution nommés des deux workflows jetables
+et continue de refuser les autres permissions et opérations de publication.

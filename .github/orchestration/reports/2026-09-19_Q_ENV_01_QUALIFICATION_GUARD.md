@@ -70,3 +70,43 @@ Process investigation 35443411056 identified a live VS Code extension process;
 it was not killed. After the user closed VS Code, inventory 35443649738 observed
 no Claude process and no lock in both samples. These are Windows observations,
 not E2E qualification.
+
+## Q-HARNESS-DURABILITY — correction après INITIAL interrompu
+
+Évidence : run 35443823432, requête 795e96cd-6a90-4407-8f00-8d598c00957e,
+invocation EXTERNAL_CALL_SENT sans identité de session conservée ; aucun tag de
+consommation GitHub trouvé pour cette requête. Le harnais invoquait directement
+le lanceur local, sans passer par le consommateur Lean Queue. Aucun reçu ni
+session historiques ne sont reconstruits a posteriori. Le run n'est pas rejoué.
+
+Correction minimale : consommation atomique dans le registre commun D1, sous
+verrou et avant l'appel, avec reçu typé jetable et requête/session synchronisées
+sur disque. La session est déjà écrite dans l'intention d'invocation depuis la
+correction précédente. Le jeton GitHub est capturé puis retiré de l'environnement
+avant les commandes Claude. PreflightOnly demeure sans consommation.
+
+Fichiers : consume-disposable-request.js, run-local-claude.js, les deux scripts
+run-disposable*, les workflows disposable-qualification et pilot-tests ; règle
+et exception de preuve déclarées dans le protocole 0.6.46 et le scanner de
+capacités distantes. Aucun second chemin de publication de code n'est ajouté.
+
+Écart connexe du même harnais : le générateur de RESUME_DELTA omettait les champs
+retry exigés par le contrat courant. create-kodjo-v2-request.ps1 et
+invoke-kodjo-v2.ps1 les transmettent explicitement ; le harnais de reprise les
+lie au run source déjà vérifié. Les gates recovery/session/HEAD restent requis.
+
+Tests ajoutés : disposable-consumption.pilot.js, avec processus distincts et
+registre Git réel, concurrence, réponse perdue, lecture incohérente, échec disque,
+identité/contexte refusés, séparation du reçu jetable/queue et permissions
+bornées. Test natif PowerShell du générateur prévu sur Windows CI. Le test
+historique incident-register n'impose plus la lecture seule absolue incompatible
+avec D1, mais conserve l'interdiction de publier du code ou une PR.
+
+Résultats locaux avant publication : 16/16 tests initiaux ciblés ; première
+suite complète 559 tests, 550 passés, 6 ignorés, 3 échecs liés à l'ancienne
+hypothèse de lecture seule. Après adaptation bornée, seconde passe ciblée :
+53 tests, 52 passés, 1 ignoré (PowerShell indisponible), 0 échec. Scanner de
+capacités distantes et syntaxe indépendante des 61 workflows : PASS.
+
+Statut : correction candidate ; Windows et nouvelle exécution GitHub à qualifier.
+Niveaux acquis ici : STATIC, UNIT, INTEGRATION. Aucun REAL_E2E supplémentaire.

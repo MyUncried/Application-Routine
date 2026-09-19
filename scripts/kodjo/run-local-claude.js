@@ -789,6 +789,13 @@ function main() {
         config: adapterConfig(), limits_effective: request.limits,
       })), started_at: new Date().toISOString(),
     };
+    if (process.env.KODJO_DISPOSABLE_EVIDENCE_DIR) {
+      intent.consumption = require('./consume-disposable-request').consumeDisposable({
+        rawRequest, sessionId: request.generated_session_id, head, runDir,
+        evidenceDirectory: process.env.KODJO_DISPOSABLE_EVIDENCE_DIR,
+        env: { ...process.env, GH_TOKEN: liveToken },
+      });
+    }
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const args = buildArgs(request, runDir, prompt);
     intent.state = 'EXTERNAL_CALL_SENT';

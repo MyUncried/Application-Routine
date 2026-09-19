@@ -31,6 +31,9 @@ permissions:
 
 jobs:
   qualify:
+    permissions:
+      contents: write # Atomic durable consumption tag; never passed to Claude.
+      actions: read
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 90
     steps:
@@ -147,6 +150,8 @@ jobs:
         if: inputs.stage == 'INITIAL'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
+        env:
+          KODJO_LIVE_GH_TOKEN: ${{ github.token }}
         run: |
           & scripts/kodjo/run-disposable-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
@@ -223,6 +228,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $env:KODJO_LIVE_GH_TOKEN = $env:GH_TOKEN
+          Remove-Item Env:GH_TOKEN
           & scripts/kodjo/run-disposable-resume-qualification.ps1 `
             -ExpectedHead '${{ inputs.expected_head }}' `
             -ExpectedMain '${{ inputs.expected_main }}' `
