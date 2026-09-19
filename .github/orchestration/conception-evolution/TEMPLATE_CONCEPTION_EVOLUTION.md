@@ -32,6 +32,26 @@
 
 <Concepts, objets, relations, principes structurants.>
 
+## 5.1 Synthèse en parcours utilisateurs
+
+<Reformuler la conception générale en langage simple et décrire les principaux parcours utilisateurs de bout en bout. Couvrir les rôles significativement différents. Ne pas introduire de nouvelle règle : utiliser uniquement les décisions validées et décisions dérivées certaines.>
+
+### Parcours 1 — <objectif utilisateur>
+
+<Déroulé simple : ce que l’utilisateur déclenche, voit, décide et obtient.>
+
+### Parcours 2 — <objectif utilisateur>
+
+<Déroulé simple.>
+
+### Parcours N — <objectif utilisateur>
+
+<Ajouter uniquement les parcours nécessaires à la compréhension de la conception générale.>
+
+## 5.2 Modèle simplifié
+
+<Schéma ou résumé conceptuel simple si utile. Sinon NON NÉCESSAIRE.>
+
 # 6. Règles détaillées
 
 <Règles validées, organisées par thème.>
