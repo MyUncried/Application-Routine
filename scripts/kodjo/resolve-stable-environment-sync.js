@@ -53,6 +53,7 @@ function resolve(pr, issueComments) {
     final_output_comment_id:match.comment_id,
     application_pr:Number(pr.number),
     application_branch:branch,
+    base_head:String(pr.base?.sha||'').toLowerCase(),
     delivered_head:head,
     main_merge_head:mergeHead,
   };
@@ -70,7 +71,19 @@ function main(argv){
     const comments=ghJson(['repos/'+repository+'/issues/'+item.number+'/comments?per_page=100']);
     groups.push({issue_number:item.number,comments});
   }
-  const result=resolve(pr,groups);
+  let result;
+  try {
+    result=resolve(pr,groups);
+  } catch (error) {
+    if (/^ENV_SYNC_FINAL_OUTPUT_MATCH_INVALID: 0$/.test(String(error && error.message ? error.message : error))) {
+      result={schema:'kodjo.environment.stable-sync.v1',applicable:false,application_pr:Number(pr.number)};
+      fs.writeFileSync(path.resolve(outputFile),JSON.stringify(result,null,2)+'\n','utf8');
+      process.stdout.write('[KODJO_ENV] STABLE_SYNC_NOT_APPLICABLE pr='+pr.number+'\n');
+      return;
+    }
+    throw error;
+  }
+  result.applicable=true;
   fs.writeFileSync(path.resolve(outputFile),JSON.stringify(result,null,2)+'\n','utf8');
   process.stdout.write('[KODJO_ENV] STABLE_SYNC_READY slice='+result.slice_id+' main='+result.main_merge_head.slice(0,12)+'\n');
 }
