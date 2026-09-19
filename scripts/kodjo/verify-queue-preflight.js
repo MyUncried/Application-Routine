@@ -307,7 +307,9 @@ function runPreflight(options = {}) {
   add('PF-018','runner toolchain node/npm',()=>{
     if (probes.nodeNpm) return probes.nodeNpm();
     const node = command(process.execPath,['--version'],cwd);
-    const npm = command(process.platform === 'win32' ? 'npm.cmd' : 'npm',['--version'],cwd);
+    const npm = process.platform === 'win32'
+      ? command(process.env.ComSpec || 'cmd.exe',['/d','/s','/c','npm.cmd','--version'],cwd)
+      : command('npm',['--version'],cwd);
     if (!node.ok || !npm.ok) throw new Error('NODE_NPM_NOT_AVAILABLE');
     return {node:node.stdout.trim(),npm:npm.stdout.trim()};
   });
