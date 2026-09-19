@@ -78,7 +78,19 @@ function main(argv) {
   const implBody = String(implementation.body || '').replace(/\r/g,'');
   const applicationPr = one(implBody,'application_pr');
   const pr = ghJson(['repos/'+repository+'/pulls/'+applicationPr]);
-  const result = resolve(review,implementation,pr);
+  let result;
+  try {
+    result = resolve(review,implementation,pr);
+  } catch (error) {
+    if (String(error && error.message ? error.message : error) === 'ENV_SYNC_NOT_V2_DELIVERY') {
+      result={schema:'kodjo.environment.review-sync.v1',applicable:false,implementation_review_comment_id:String(review.id)};
+      fs.writeFileSync(path.resolve(outputFile),JSON.stringify(result,null,2)+'\n','utf8');
+      process.stdout.write('[KODJO_ENV] REVIEW_SYNC_NOT_APPLICABLE comment='+review.id+'\n');
+      return;
+    }
+    throw error;
+  }
+  result.applicable=true;
   fs.writeFileSync(path.resolve(outputFile),JSON.stringify(result,null,2)+'\n','utf8');
   process.stdout.write('[KODJO_ENV] REVIEW_SYNC_READY slice='+result.slice_id+' head='+result.application_head.slice(0,12)+'\n');
 }
