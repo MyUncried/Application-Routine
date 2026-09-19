@@ -110,3 +110,11 @@ capacités distantes et syntaxe indépendante des 61 workflows : PASS.
 
 Statut : correction candidate ; Windows et nouvelle exécution GitHub à qualifier.
 Niveaux acquis ici : STATIC, UNIT, INTEGRATION. Aucun REAL_E2E supplémentaire.
+
+Première CI du harnais corrigé : 35451944214 / Linux 105920515235, 560 tests,
+558 passés, 1 ignoré, 1 échec. Le nouveau test natif PowerShell a détecté un défaut
+antérieur de normalisation de chemin dans create-kodjo-v2-request.ps1 : seul le
+séparateur Windows était retiré. Le bootstrap devenait absolu sous Linux et le
+gate d'identité le refusait. Correction bornée : retirer les deux séparateurs de
+la partie relative, sans changer les gates d'identité. Le même test est conservé
+et rejoué sous Linux et Windows ; aucun skip ajouté pour masquer l'échec.

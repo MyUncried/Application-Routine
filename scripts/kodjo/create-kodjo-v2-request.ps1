@@ -26,7 +26,7 @@ $bootstrapAbsolute = if ([IO.Path]::IsPathRooted($SliceBootstrapFile)) {
 if (-not $bootstrapAbsolute.StartsWith($repoAbsolute + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
   throw 'SLICE_BOOTSTRAP_FILE_MUST_BE_INSIDE_REPOSITORY'
 }
-$bootstrapRelative = $bootstrapAbsolute.Substring($repoAbsolute.TrimEnd('\').Length).TrimStart('\').Replace('\', '/')
+$bootstrapRelative = $bootstrapAbsolute.Substring($repoAbsolute.Length).TrimStart([char[]]'\/').Replace('\', '/')
 $bootstrapHash = (& node (Join-Path $PSScriptRoot 'validate-slice-bootstrap.js') $repoRoot $bootstrapRelative $head).Trim()
 if ($LASTEXITCODE -ne 0 -or $bootstrapHash -notmatch '^[0-9a-f]{64}$') { throw 'KODJO_V2_IDENTITY_REFUSED' }
 $bootstrap = Get-Content -LiteralPath $bootstrapAbsolute -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -39,7 +39,7 @@ $repoAbsolute = [IO.Path]::GetFullPath($repoRoot)
 if (-not $promptAbsolute.StartsWith($repoAbsolute, [StringComparison]::OrdinalIgnoreCase)) {
   throw 'PROMPT_FILE_MUST_BE_INSIDE_REPOSITORY'
 }
-$relativePrompt = $promptAbsolute.Substring($repoAbsolute.TrimEnd('\').Length).TrimStart('\').Replace('\', '/')
+$relativePrompt = $promptAbsolute.Substring($repoAbsolute.Length).TrimStart([char[]]'\/').Replace('\', '/')
 if ($Mode -eq 'INITIAL' -and $SessionId) { throw 'INITIAL_SESSION_MUST_BE_NULL' }
 if ($Mode -eq 'RESUME_DELTA' -and -not $SessionId) { throw 'RESUME_SESSION_ID_REQUIRED' }
 if (-not $Output) {
