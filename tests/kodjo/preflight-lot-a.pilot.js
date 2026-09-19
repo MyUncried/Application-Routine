@@ -163,11 +163,11 @@ test('lot A: queue consommée est refusée avant les contrats aval',()=>{
   assert.match(pf3.diagnostic,/KODJO_QUEUE_CONSUMED_REFUSED/);
 });
 
-test('lot A: moteur shadow n est encore référencé par aucun workflow de production',()=>{
+test('lot A: le contrat shadow reste opposable après activation par le lot B',()=>{
   const root=path.resolve(__dirname,'..','..');
-  const workflows=fs.readdirSync(path.join(root,'.github','workflows')).filter((n)=>n.endsWith('.yml'));
-  for(const name of workflows){
-    const body=fs.readFileSync(path.join(root,'.github','workflows',name),'utf8');
-    assert.doesNotMatch(body,/verify-queue-preflight\.js/,name);
-  }
+  const workflow=fs.readFileSync(path.join(root,'.github','workflows','kodjo-v2-lean-queue.yml'),'utf8');
+  const preflight=workflow.indexOf('verify-queue-preflight.js');
+  const runner=workflow.indexOf('run-queued-request.ps1');
+  assert.ok(preflight >= 0 && runner > preflight);
+  assert.match(workflow,/kodjo-preflight-/);
 });
