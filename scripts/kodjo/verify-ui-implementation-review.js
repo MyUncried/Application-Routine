@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
 
+const {inspectImplementation}=require('./lib/implementation-report');
+
 const INPUT_SCHEMA = 'kodjo.ui-implementation-review-input.v1';
 const REVIEW_SCHEMA = 'kodjo.ui-implementation-review.v1';
 const BLOCKING_PROOFS = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS','ACCESSIBILITY_CHECK']);
@@ -149,6 +151,14 @@ function validateReview(input, review) {
     }
   }
 
+  // F12: completeness is mechanically observable; semantic truth remains the
+  // independent reviewer's job. Use its existing NON_VERIFIABLE/REVISE states.
+  if (input.implementation_report && input.implementation_report.status !== 'COMPLETE') {
+    if (results.some(row => row.implementation_status !== 'NON_VERIFIABLE')) {
+      fail('UI_IMPLEMENTATION_REPORT_UNVERIFIABLE', input.implementation_report.errors.join('; '));
+    }
+    blocking = true;
+  }
   const verdict = String(review.verdict || '');
   if (!['APPROVE','REVISE'].includes(verdict)) fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INVALID', verdict);
   if (blocking && verdict !== 'REVISE') fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT', 'blocking => REVISE');
@@ -157,13 +167,18 @@ function validateReview(input, review) {
 }
 
 try {
-  const [mode, planFile, changedFile, third, outputFile] = process.argv.slice(2);
+  const [mode, planFile, changedFile, third, outputFile, implementationFile] = process.argv.slice(2);
   if (!['prepare','validate'].includes(mode) || !planFile || !changedFile || !third) {
     throw new Error('USAGE: verify-ui-implementation-review.js <prepare|validate> <plan.md> <changed-files.txt> <review.json|output.json> [output.json]');
   }
   const planBody = fs.readFileSync(path.resolve(planFile), 'utf8');
   const changedFiles = fs.readFileSync(path.resolve(changedFile), 'utf8').split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);
   const input = buildInput(planBody, changedFiles);
+  // prepare: its fifth CLI argument is the implementation evidence file;
+  // validate: its sixth is the same exact file. Legacy unit callers may omit it.
+  const evidenceFile = mode === 'prepare' ? outputFile : implementationFile;
+  if (evidenceFile) input.implementation_report = inspectImplementation(
+    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.criteria.map(c=>c.criterion_id));
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
     process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' device=' + input.device_gate_required + '\n');

@@ -108,6 +108,9 @@ function admit(options) {
   }
 
   const requestId = String(queue.request_id || '');
+  if (registry.entries.some(entry => entry && String(entry.request_id || '').toLowerCase() === requestId.toLowerCase())) {
+    throw new Error('KODJO_QUEUE_CONSUMED_REFUSED: ' + requestId);
+  }
   if (!UUID.test(requestId)) {
     throw new Error('KODJO_QUEUE_REQUEST_ID_INVALID: ' + (requestId || '<absent>'));
   }
@@ -120,7 +123,7 @@ function admit(options) {
       const candidate = path.join(QUEUE_DIR, name).replace(/\\/g, '/');
       let other;
       try { other = readJson(path.resolve(cwd, candidate)); } catch (_) { continue; }
-      if (String(other.request_id || '') === requestId) duplicates.push(candidate);
+      if (String(other.request_id || '').toLowerCase() === requestId.toLowerCase()) duplicates.push(candidate);
     }
   }
   if (duplicates.length !== 1) {

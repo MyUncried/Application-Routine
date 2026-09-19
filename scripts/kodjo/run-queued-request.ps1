@@ -46,6 +46,13 @@ if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_REQUEST_PROJECTION_FAILED' }
 }
 
+# D1: durable atomic consumption after validated preflight, before checkout/agent.
+# A lost response or subsequent failure never releases the consumed request_id.
+if ($productionQueue) {
+  & node (Join-Path $PSScriptRoot 'consume-queue-request.js') $QueueFile
+  if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CONSUMPTION_REFUSED' }
+}
+
 $liveQueueFile = Join-Path $env:RUNNER_TEMP ("kodjo-live-queue-{0}-{1}.json" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
 Copy-Item -LiteralPath $queueAbsolute -Destination $liveQueueFile -Force
 function Assert-LiveTarget {

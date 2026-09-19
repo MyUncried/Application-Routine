@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {inspectReport}=require('./lib/implementation-report');
 const {extractClaudeResultText}=require('./run-local-claude');
 // Evidence transport only. The existing independent review decides completeness
 // against every approved criterion; this does not add a runtime protocol gate.
@@ -9,11 +10,12 @@ function collect(runDir,requestId,sourceHead){
   if(result.request_id!==requestId||result.source_head!==sourceHead)throw Error('IMPLEMENTATION_REPORT_IDENTITY_MISMATCH');
   const file=path.join(runDir,'claude-output.json');
   const text=fs.existsSync(file)?extractClaudeResultText(fs.readFileSync(file,'utf8')):'';
+  const assessment=inspectReport(text);
   const evidence={request_id:requestId,source_head:sourceHead,
     report_present:text.includes('KODJO_IMPLEMENTATION_CONFORMANCE'),
     stop_marker_present:/^KODJO_STOP_STATUS:\s*[A-Z_]+\s*$/m.test(text),
     original_text_sha256:crypto.createHash('sha256').update(text).digest('hex'),
-    truncated:false,report_text:text};
+    structural_assessment:{status:assessment.status,errors:assessment.errors.slice(0,20).map(error=>error.slice(0,200)),criterion_count:assessment.criterion_ids.length},truncated:false,report_text:text};
   // Keep the comment under GitHub's size bound without silently claiming that
   // a shortened report is complete. Full stdout remains in diagnostic evidence.
   while(Buffer.byteLength(JSON.stringify(evidence),'utf8')>40000){

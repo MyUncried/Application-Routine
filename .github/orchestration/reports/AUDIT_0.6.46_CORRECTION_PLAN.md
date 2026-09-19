@@ -24,3 +24,16 @@ F10 réservé : la politique de consommation durable entre runs est explicitemen
 Les points NON VÉRIFIABLE et la preuve humaine détaillée (G2) restent hors correction.
 
 Après chaque lot : tests ciblés. À la fin : suite pilote et seconde passe distincte cherchant anciennes formulations, raccords, conditions et fixtures contradictoires. Une preuve locale/simulée n’est pas un E2E distant. La PR restera non fusionnée.
+
+## Complément autorisé — décisions D1/D2 du 19 septembre 2026
+
+Plan établi avant les modifications complémentaires, HEAD distant de départ `cee4a9117ec5b8ecbf05740817453babe5c71bcc`.
+Les réserves F10/G1 et G2 ci-dessus sont historiques et remplacées uniquement par D1/D2 explicites.
+
+| Ordre | Défaut/décision | Fichiers prévus | Correction minimale / invariant | Test de non-régression | Risque |
+|---|---|---|---|---|---|
+| 1 | F10 / D1 | nouveau `scripts/kodjo/consume-queue-request.js`, `run-queued-request.ps1`, `verify-queue-admission.js`, test `audit-consumption.pilot.js` | Création atomique d'une référence Git distante par request_id vers une preuve de consommation, après préflight et avant checkout/exécution. Pas de mise à jour de main ; registre historique conservé. Une consommation n'est jamais libérée, même en cas d'échec. Reprise par nouvel ID causal selon contrat existant. I5 | Deux processus/runs distincts attempt=1 sur même ID : une seule admission à l'exécution ; concurrence, API indisponible/réponse perdue, redémarrage, ID différent, registre historique. | Élevé : fail-closed peut consommer sans exécution si interruption ; reprise explicite obligatoire. Aucune promesse d'exécution réussie exactly-once après crash. |
+| 2 | D2 / F14 | tests `ui-e2e-finalization.pilot.js`, consignes de review et spécification 0.6.46 ; code seulement si écart démontré | VISUAL_APPROVED ne satisfait que les preuves humaines/device requises par le plan courant. Maintien des contrôles techniques, scope et préservation indépendants. I3/I4 | Approbation humaine présente mais technique FAIL/NON_VERIFIABLE/PENDING_DEVICE, critère non conforme, frontière non PASS, mauvais HEAD/review : refus. | Faible si compatibilité confirmée ; aucun changement de canal/gate humain. |
+| 3 | F12 | `lib/implementation-contract.js`, `collect-implementation-report.js`, nouveau validateur de rapport, `verify-ui-implementation-review.js`, workflow de review, tests rapport/runner | Consommer la complétude du rapport par criterion_id et les sept champs exigés ; omissions/duplications/arrêt absent rendent la preuve NON_VERIFIABLE dans la revue existante. Diagnostic sans nouveau stop runtime. Définir un encodage JSON du bloc exigé, ne pas inventer de statut. I1/I4 | Sorties sans bloc, incomplètes, critères absents/dupliqués, marqueur absent, tronquées, mauvaise identité : jamais APPROVE ; cas complet permis mais pas assimilé à une preuve sémantique réelle. | Moyen : anciens rapports non structurés restent explicitement non vérifiables automatiquement, aucun faux succès. |
+
+Après chaque lot : tests ciblés. Puis seconde passe distincte des anciens libellés/branchements/fixtures, suite Linux et Windows sur le HEAD publié. Aucune campagne E2E complète, aucun Claude/EAS/device, aucune fusion. Le jugement réel d'un reviewer sur un développement réel reste NON VÉRIFIABLE si non exécuté ; les tests simulés seront désignés comme tels.

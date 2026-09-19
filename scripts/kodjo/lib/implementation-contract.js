@@ -90,6 +90,7 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     '## Rapport final obligatoire',
     '',
     'Le rapport final doit contenir un bloc `KODJO_IMPLEMENTATION_CONFORMANCE` listant chaque `criterion_id` approuvé avec : `implementation_status`, `files_or_symbols`, `component_used`, `tests_run`, `proof_status`, `preserve_status`, `residual_status`.',
+    'Encodage du bloc : <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[{"criterion_id":"...","implementation_status":"...","files_or_symbols":["..."],"component_used":"...","tests_run":["..."],"proof_status":"...","preserve_status":"...","residual_status":"..."}]}</KODJO_IMPLEMENTATION_CONFORMANCE>. Chaque champ est explicite et non vide ; pour un test non exécuté, indiquer NOT_RUN et sa raison. Cet encodage rend contrôlable le rapport déjà obligatoire, sans nouvel état ni gate runtime.',
     'Aucun critère ne peut disparaître du rapport. Toute preuve visuelle/device non exécutée reste `PENDING_DEVICE` ou `NON_VERIFIABLE`.',
     '',
     '- scope : la propriété `scope_allow` de la Lean Request reste opposable ; aucun élargissement n’est autorisé.',
