@@ -83,11 +83,13 @@ test('lot B: consumer accepte l attestation exacte et refuse queue/fingerprint a
 
 test('lot B: freshness guard Claude compare projection, prompt source et package-lock avant invocation',()=>{
   const body=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
-  const projection=body.indexOf('PREFLIGHT_PROJECTION_DRIFT');
-  const prompt=body.indexOf('PREFLIGHT_PROMPT_SOURCE_DRIFT');
-  const lock=body.indexOf('PREFLIGHT_PACKAGE_LOCK_DRIFT');
+  const freshnessLib=fs.readFileSync(path.join(root,'scripts','kodjo','lib','preflight-freshness.js'),'utf8');
+  const freshnessCall=body.indexOf('verifyLocalFreshness({');
   const version=body.indexOf('CLAUDE_VERSION_REFUSED');
-  assert.ok(projection>=0 && prompt>projection && lock>prompt && version>lock);
+  assert.ok(freshnessCall>=0 && version>freshnessCall);
+  assert.match(freshnessLib,/PREFLIGHT_PROJECTION_DRIFT/);
+  assert.match(freshnessLib,/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+  assert.match(freshnessLib,/PREFLIGHT_PACKAGE_LOCK_DRIFT/);
   assert.match(body,/PREFLIGHT_ATTESTATION_MISSING/);
   assert.match(body,/preflight\.json/);
 });
