@@ -2,6 +2,16 @@ name: KODJO V2 runner inventory
 
 on:
   workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Optional interrupted run to inspect without replay
+        required: false
+        type: string
+      source_run_attempt:
+        description: Interrupted run attempt
+        default: '1'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -123,6 +133,45 @@ jobs:
           $report = @{ schema = 'kodjo.process-observation.1'; run_id = $env:GITHUB_RUN_ID; head = $env:GITHUB_SHA; samples = $samples } | ConvertTo-Json -Depth 12
           $dest = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT\process-observation.json"
           [IO.File]::WriteAllText($dest,$report,(New-Object Text.UTF8Encoding($false)))
+          Write-Host $report
+
+      - name: Inspect retained evidence of an interrupted qualification without replay
+        if: inputs.source_run_id != ''
+        shell: powershell
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:SOURCE_RUN_ID -notmatch '^\d+$' -or $env:SOURCE_RUN_ATTEMPT -notmatch '^[1-9]\d*$') { throw 'SOURCE_IDENTITY_INVALID' }
+          $dest = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $runKey = "github-$env:SOURCE_RUN_ID-$env:SOURCE_RUN_ATTEMPT"
+          $sources = [ordered]@{
+            state = (Join-Path $env:USERPROFILE ".kodjo-v2\runs\$runKey")
+            qualification = (Join-Path $env:GITHUB_WORKSPACE "_qualification\$env:SOURCE_RUN_ID\qualification-evidence")
+            temporary = (Join-Path $env:RUNNER_TEMP "kodjo-qualif-$env:SOURCE_RUN_ID-$env:SOURCE_RUN_ATTEMPT")
+          }
+          $records = @()
+          foreach ($entry in $sources.GetEnumerator()) {
+            $record = [ordered]@{ kind = $entry.Key; path = $entry.Value; exists = (Test-Path -LiteralPath $entry.Value); files = @(); json = @() }
+            if ($record.exists) {
+              $root = Get-Item -LiteralPath $entry.Value -Force
+              if ($root.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'SOURCE_REPARSE_POINT_REFUSED' }
+              $record.files = @(Get-ChildItem -LiteralPath $entry.Value -File -Force | Select-Object Name,Length,LastWriteTimeUtc)
+              foreach ($name in @('run-context.json','result.json','invocation.json','qualification-manifest.json')) {
+                $file = Join-Path $entry.Value $name
+                if (Test-Path -LiteralPath $file) {
+                  $item = Get-Item -LiteralPath $file -Force
+                  if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint -or $item.Length -gt 16777216) { throw 'SOURCE_FILE_AMBIGUOUS' }
+                  $value = Get-Content -Raw -Encoding UTF8 -LiteralPath $file | ConvertFrom-Json
+                  $record.json += @{ name = $name; sha256 = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash; data = ($value | Select-Object schema_version,run_id,github_run_id,github_run_attempt,request_id,session_id,source_head,created_at,status,claude_invoked,diagnostic,verdict,failure,execution_exit_code,protocol_status,recovery_preserved) }
+                }
+              }
+            }
+            $records += $record
+          }
+          $report = @{ schema = 'kodjo.interrupted-run-observation.1'; source_run_id = $env:SOURCE_RUN_ID; source_attempt = $env:SOURCE_RUN_ATTEMPT; observed_at = (Get-Date).ToUniversalTime().ToString('o'); sources = $records } | ConvertTo-Json -Depth 10
+          [IO.File]::WriteAllText((Join-Path $dest 'interrupted-run-observation.json'),$report,(New-Object Text.UTF8Encoding($false)))
           Write-Host $report
 
       - name: Preserve read-only inventory
