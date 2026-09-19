@@ -81,7 +81,16 @@ jobs:
             cd delivery
             node ../scripts/kodjo/classify-environment-update.js               "${{ steps.delivery.outputs.base_head }}"               "$expected"               "$compat"
           )
+          environment_contract="${RUNNER_TEMP}/routine-dev-environment-contract.json"
+          protocol_head="$(git rev-parse HEAD)"
+          node scripts/kodjo/materialize-review-environment.js \
+            delivery \
+            "$compat" \
+            "$environment_contract" \
+            "$protocol_head" \
+            "$expected"
           echo "file=$compat" >> "$GITHUB_OUTPUT"
+          echo "environment_contract=$environment_contract" >> "$GITHUB_OUTPUT"
           echo "status=$(jq -r .status "$compat")" >> "$GITHUB_OUTPUT"
 
       - name: Verify Expo authentication
@@ -180,6 +189,7 @@ jobs:
           path: |
             ${{ steps.delivery.outputs.meta }}
             ${{ steps.compatibility.outputs.file }}
+            ${{ steps.compatibility.outputs.environment_contract }}
             ${{ runner.temp }}/routine-dev-expo-config.json
             ${{ runner.temp }}/routine-dev-eas-update.json
             ${{ runner.temp }}/routine-dev-eas-build.json
