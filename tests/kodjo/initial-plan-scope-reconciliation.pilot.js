@@ -62,3 +62,15 @@ test('multiple prose scope sections are rejected instead of silently normalized'
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /INITIAL_PLAN_SCOPE_RECONCILIATION/);
 });
+
+test('root tests paths already listed do not acquire duplicate test sections', () => {
+  const scope = ['tests/kodjo-prod-qualif/e2e-sum.ts', 'tests/kodjo-prod-qualif/e2e-sum.test.ts'].sort();
+  const matrix = { scope_allow: scope, modified_modules: scope.map(path => ({ path, change: 'CREATE' })), rows: [] };
+  const plan = `# Plan\n\n## Tests\n${scope.map(p => `- \`${p}\``).join('\n')}\n\n<KODJO_MODIFIED_MODULES_JSON>\n[]\n</KODJO_MODIFIED_MODULES_JSON>\n`;
+  const first = run(plan, matrix);
+  assert.equal(first.result.status, 0, first.result.stderr);
+  assert.doesNotMatch(first.out, /Tests — fermeture/);
+  const second = run(first.out, matrix);
+  assert.equal(second.result.status, 0, second.result.stderr);
+  assert.doesNotMatch(second.out, /Tests — fermeture/);
+});
