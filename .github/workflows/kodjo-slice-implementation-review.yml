@@ -209,6 +209,17 @@ jobs:
           printf '%s' "$plan_body" > /tmp/approved-plan.md
           printf '%s' "$source_body" > /tmp/implementation-output.md
 
+      - name: Freeze criterion review validator before application checkout
+        if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime="$RUNNER_TEMP/kodjo-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$runtime/lib"
+          cp scripts/kodjo/verify-ui-implementation-review.js "$runtime/"
+          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js "$runtime/lib/"
+          echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"
+
       - name: Checkout implementation HEAD
         uses: actions/checkout@v6
         with:
@@ -233,7 +244,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/kodjo/verify-ui-implementation-review.js prepare             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/ui-implementation-review-input.json             /tmp/implementation-output.md
+          node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js prepare             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/ui-implementation-review-input.json             /tmp/implementation-output.md
 
       - name: Independent OpenAI review — V2 criterion contract
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
@@ -337,7 +348,7 @@ jobs:
           if [ "$status" != completed ]; then jq -c '{status,incomplete_details,error,usage}' /tmp/review-response.json >&2; exit 1; fi
           jq -er '[.output[]?|select(.type=="message")|.content[]?|select(.type=="output_text")|.text]|join("\n")|select(length>0)' /tmp/review-response.json > /tmp/review-structured.json
           jq -e '.' /tmp/review-structured.json >/dev/null
-          node scripts/kodjo/verify-ui-implementation-review.js validate             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/review-structured.json             /tmp/review-contract.json             /tmp/implementation-output.md
+          node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js validate             /tmp/approved-plan.md             /tmp/changed-files.txt             /tmp/review-structured.json             /tmp/review-contract.json             /tmp/implementation-output.md
           {
             printf 'VERDICT: %s\n' "$(jq -r .verdict /tmp/review-contract.json)"
             printf 'DEVICE_GATE_REQUIRED: %s\n\n' "$(jq -r .device_gate_required /tmp/review-contract.json)"

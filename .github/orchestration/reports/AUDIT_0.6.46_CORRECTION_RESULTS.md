@@ -72,3 +72,9 @@ Les tests temporels F07 utilisent des lecteurs distants simulés ; ils ne prouve
 - Dernière suite locale complète avant le dernier test de registre : 457 tests, 452 PASS, 5 SKIP, 0 FAIL. Les skips natifs ne sont pas annoncés réussis. Syntaxe indépendante : 61 workflows PASS ; validateur structurel et diff whitespace PASS. Les résultats CI du HEAD publié sont consignés dans la description de PR, sans anticiper leur issue.
 
 Statuts consolidés : F01–F11 et F13–F14 corrigés/testés dans les limites des preuves détaillées ci-dessus ; F12 partiellement corrigé avec reliquat explicitement NON VÉRIFIABLE. Aucun E2E complet ni effet réel EAS/device n'est revendiqué. PR non fusionnée.
+
+### Raccord F12 confirmé par seconde passe
+
+Le checkout applicatif pouvait réintroduire l'ancien validateur. Le workflow fige désormais avant checkout le seul consommateur et ses trois dépendances, sous RUNNER_TEMP, pour IMPLEMENT uniquement. Un test charge cette copie autonome avec un ancien validateur divergent dans le checkout applicatif et confirme que la preuve absente reste NON_VERIFIABLE. Les appels prepare/validate utilisent exclusivement la copie figée ; finalizer rejoue déjà le validateur avant son checkout applicatif. Aucune extension au chemin legacy/delta.
+
+Suite locale complète du premier complément : **458 tests, 453 PASS, 5 SKIP, 0 FAIL**. Linux GitHub sur `ab9d6a1d…` : **458 tests, 457 PASS, 1 SKIP, 0 FAIL**, avec exécution native du bloc PowerShell F12. Ce raccord supplémentaire ajoute un test ; sa CI est liée au nouveau HEAD dans la description de PR.

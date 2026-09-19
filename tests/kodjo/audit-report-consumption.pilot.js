@@ -67,3 +67,24 @@ test('F12: execute the actual runner evidence block with native PowerShell and r
     }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('F12: protocol consumer remains effective when application HEAD contains an old validator',()=>{
+  const dir=fixture();try{
+    const wf=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.join(root,'.github/workflows/kodjo-slice-implementation-review.yml'),'utf8'));
+    const steps=wf.jobs.review.steps;
+    const freeze=steps.findIndex(s=>s.name==='Freeze criterion review validator before application checkout');
+    assert.ok(freeze>=0&&freeze<steps.findIndex(s=>s.name==='Checkout implementation HEAD'));
+    const block=steps[freeze].run;
+    const sources=block.match(/scripts\/kodjo\/[a-z/.-]+\.js/g);
+    assert.equal(sources.length,4);
+    const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
+    for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
+    fs.mkdirSync(path.join(dir,'scripts/kodjo'),{recursive:true});
+    fs.writeFileSync(path.join(dir,'scripts/kodjo/verify-ui-implementation-review.js'),"throw Error('OLD_APPLICATION_VALIDATOR')");
+    fs.writeFileSync(path.join(dir,'implementation.md'),'report absent');
+    const r=run(path.join(runtime,'verify-ui-implementation-review.js'),['prepare','plan.md','changed.txt','input.json','implementation.md'],dir);
+    assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'input.json'))).implementation_report.status,'NON_VERIFIABLE');
+    for(const step of steps.filter(s=>s.run&&/verify-ui-implementation-review.js (prepare|validate)/.test(s.run)))assert.match(step.run,/node "\$KODJO_REVIEW_RUNTIME"\/verify-ui-implementation-review.js/);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
