@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { projectQueueRequest } = require('./lib/queue-request');
 const P = require('./lib/preflight-contract');
+const Source = require('./lib/preflight-source');
 
 function git(args,cwd){
   const r=spawnSync('git',args,{cwd,encoding:'utf8',windowsHide:true,shell:false,maxBuffer:64*1024*1024});
@@ -20,9 +21,7 @@ function executionHead(queue){
     : String(queue.source_head||'');
 }
 function packageLockHashAt(head,cwd){
-  const r=spawnSync('git',['show',head+':package-lock.json'],{cwd,encoding:null,windowsHide:true,shell:false,maxBuffer:64*1024*1024});
-  if(r.error||r.status!==0) return null;
-  return P.sha256(r.stdout);
+  return Source.hashFileAtHead('package-lock.json',head,cwd,{optional:true});
 }
 function verifyFile(preflightFile,queueFile,options={}){
   const cwd=path.resolve(options.cwd||process.cwd());
