@@ -46,11 +46,21 @@ jobs:
           [IO.File]::AppendAllText($env:GITHUB_ENV, "KODJO_VOLUME_FREE_BYTES_BEFORE=$free`n", $utf8NoBom)
 
       - uses: actions/checkout@v4
+        # Match Git blob bytes for strict prompt/package-lock attestations.
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
         with:
           fetch-depth: 0
           clean: true
           persist-credentials: false
           path: _kodjo/${{ github.run_id }}
+
+      - name: Preserve blob line endings for subsequent source checkouts
+        run: |
+          git config --local core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Resolve immutable request boundary
         id: boundary
