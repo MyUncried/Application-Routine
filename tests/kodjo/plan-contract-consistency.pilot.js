@@ -40,6 +40,48 @@ function validFixture() {
   return {testPath,scope,modules,rows,prose};
 }
 
+function rootTestsFixture() {
+  const scope = ['tests/kodjo-prod-qualif/e2e-sum.ts', 'tests/kodjo-prod-qualif/e2e-sum.test.ts'].sort();
+  const modules = scope.map(path => ({ path, change: 'CREATE' }));
+  const rows = scope.map(path => ({ path, classification: 'MODIFY' }));
+  const prose = `## scope_allow\n${scope.join('\n')}\n\n## Tests\n${scope.map(p => `- \`${p}\``).join('\n')}\n`;
+  return { scope, modules, rows, prose };
+}
+
+test('root tests paths survive plan production and independent consumption', () => {
+  const fixture = rootTestsFixture();
+  const produced = run(plan(fixture));
+  assert.equal(produced.status, 0, produced.stderr);
+  const contract = JSON.parse(fs.readFileSync(produced.output, 'utf8'));
+  assert.deepEqual(contract.required_test_writes, fixture.scope);
+  const consumed = run(plan({ ...fixture, contract }), 'consume');
+  assert.equal(consumed.status, 0, consumed.stderr);
+});
+
+test('root tests paths cannot add an undeclared test in prose', () => {
+  const fixture = rootTestsFixture();
+  fixture.prose += '- `tests/kodjo-prod-qualif/undeclared.test.ts`\n';
+  const result = run(plan(fixture));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /nouveau test exige sans CREATE autorise/);
+});
+
+test('root tests write scope still rejects contradictory prose', () => {
+  const fixture = rootTestsFixture();
+  fixture.prose = fixture.prose.replace('## scope_allow\n', '## scope_allow\ntests/extra.ts\n');
+  const result = run(plan(fixture));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /scope_allow prose != scope_allow machine/);
+});
+
+test('root tests write scope still requires explicit Tests paths', () => {
+  const fixture = rootTestsFixture();
+  fixture.prose = fixture.prose.split('## Tests')[0];
+  const result = run(plan(fixture));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /test en écriture absent de la section Tests/);
+});
+
 test('contrat: scope prose et scope machine doivent être identiques', () => {
   const result = run(plan({
     scope:['src/a.ts','src/b.ts'],
