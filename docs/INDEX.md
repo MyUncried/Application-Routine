@@ -2,7 +2,9 @@
 
 > Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155.
 >
-> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-186 au registre 07. Le modèle/migration T03 reste précisé dans 09 bis. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
+> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle/migration T03 reste précisé dans 09 bis. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
+>
+> Décision du 21 septembre 2026 — D-187 : dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant ; l’écran/arbre intermédiaire est supprimé. Les anciennes frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques, non comme cible fonctionnelle.
 >
 > Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif selon le contexte fonctionnel, notamment `Archivées` pour Activités. Seuls les panneaux/options ouverts `Filtrer`/`Trier` restent `NON VÉRIFIABLE` / `À CLARIFIER`. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
 
@@ -73,10 +75,10 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 
 Évidences Figma T03 courantes contrôlées le 16 septembre 2026 :
 - `3786:5093` — Catalogue des activités — liste ;
-- `3787:5148` — Catalogue des activités — Créer — arbre d’actions ;
+- `3787:5148` — historique/supersédé — ancien Catalogue des activités — Créer — arbre d’actions ;
 - `1992:9910` — Catalogue des séances — liste par défaut ;
 - `1992:10129` — Recherche globale — Champ déployé ;
-- `3841:8375` — Catalogue des séances — Créer — arbre d’actions ;
+- `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Activité Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Activité — état vide ;
 - `3788:5258` — Composition — Ajouter une activité — arbre ;
