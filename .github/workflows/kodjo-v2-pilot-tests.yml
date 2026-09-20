@@ -7,6 +7,9 @@ on:
       # Une demande immuable n'est pas une modification du protocole : son
       # admission ciblée est effectuée par Lean Queue au lancement.
       - '!.github/orchestration/queue/v2/*.json'
+      # Le backlog d'évolution est explicitement non normatif : une PR qui ne
+      # modifie que ce fichier ne qualifie aucun exécutable du protocole.
+      - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
       - '.github/workflows/kodjo-v2-*.yml'
       - '.github/workflows/kodjo-slice-plan.yml'
       - '.github/workflows/kodjo-slice-plan-review.yml'
@@ -63,7 +66,7 @@ jobs:
             while IFS= read -r -d '' changed; do
               count=$((count + 1))
               case "$changed" in
-                .github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md)
+                .github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md)
                   ;;
                 *)
                   full=true
