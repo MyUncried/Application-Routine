@@ -683,8 +683,9 @@ function main() {
     return writeFailure('PROMPT_PATH_INVALID', promptRelative);
   }
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
-  const promptHashBefore = sha256(promptBuffer);
+  const promptProtocolHash = sha256(promptBuffer);
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
+  const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
   const initialChanges = changedFiles(repoRoot).filter((f) => {
     const normalized = f.replace(/\\/g, '/');
     return (!promptExistsInExecutionTree || normalized !== promptRelative) &&
@@ -837,7 +838,7 @@ function main() {
   const afterRefs = refs(repoRoot);
   const refsMutated = beforeRefs !== afterRefs;
   const promptMutated = promptExistsInExecutionTree
-    ? sha256(fs.readFileSync(request.prompt_file)) !== promptHashBefore
+    ? (!fs.existsSync(request.prompt_file) || sha256(fs.readFileSync(request.prompt_file)) !== promptWorktreeHashBefore)
     : fs.existsSync(request.prompt_file);
   const integrityStatus = refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
   const protocolPath = (f) => {
