@@ -683,7 +683,6 @@ function main() {
     return writeFailure('PROMPT_PATH_INVALID', promptRelative);
   }
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
-  const promptProtocolHash = sha256(promptBuffer);
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
   const initialChanges = changedFiles(repoRoot).filter((f) => {
