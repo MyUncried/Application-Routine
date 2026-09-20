@@ -1,5 +1,7 @@
 'use strict';
 
+const { matrixFingerprint } = require('./ui-criteria-contract');
+
 const { extractTaggedJson, sha256, fail } = require('./plan-impact');
 
 const IMPLEMENTATION_CONTRACT_SCHEMA = 'kodjo.ui-implementation-contract.v1';
@@ -28,7 +30,7 @@ function deriveImplementationContract(planBody, planBlobOid) {
   if (!planContract || planContract.schema !== UI_PLAN_CONTRACT_SCHEMA) {
     fail('IMPLEMENTATION_UI_PLAN_CONTRACT_INVALID', 'schema kodjo.ui-plan-contract.v1 requis');
   }
-  const matrixHash = sha256(matrix);
+  const matrixHash = matrixFingerprint(matrix);
   if (planContract.matrix_sha256 !== matrixHash) {
     fail('IMPLEMENTATION_UI_MATRIX_HASH_MISMATCH', 'matrice != contrat UI approuve');
   }

@@ -1,4 +1,5 @@
 'use strict';
+const { matrixFingerprint } = require('../../scripts/kodjo/lib/ui-criteria-contract');
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -46,7 +47,7 @@ function planFixture() {
     ui_applicable:true,
     ui_paths:['src/features/example/ExampleScreen.tsx'],
     criterion_count:1,
-    matrix_sha256:sha256(matrix),
+    matrix_sha256:matrixFingerprint(matrix),
   };
   return '# Plan\n\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n' +
     '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(uiContract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
@@ -124,4 +125,39 @@ test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', ()
   const contractGate=runner.indexOf('verify-implementation-mission.js');
   const claudeBoundary=runner.indexOf('start-kodjo-v2.ps1');
   assert.ok(contractGate >= 0 && claudeBoundary > contractGate, 'implementation contract gate must precede Claude');
+});
+
+test('real producer -> mission -> review consumer share normalized matrix hash without rewriting the plan', (t) => {
+  const os = require('node:os');
+  const { spawnSync } = require('node:child_process');
+  const { extractTaggedJson } = require('../../scripts/kodjo/lib/plan-impact');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-hash-chain-'));
+  t.after(() => fs.rmSync(dir, { recursive:true, force:true }));
+  const matrix = extractTaggedJson(planFixture(), 'KODJO_UI_CRITERIA_MATRIX_JSON');
+  const target = matrix.criteria[0].change_targets[0];
+  const impact = { scan_revision:'b'.repeat(40), scope_allow:[target], modified_modules:[{path:target}], rows:[] };
+  const draft = '<KODJO_PLAN_IMPACT_JSON>'+JSON.stringify(impact)+'</KODJO_PLAN_IMPACT_JSON>\n'+
+    '<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n';
+  const planFile = path.join(dir,'plan.md'), output = path.join(dir,'contract.json');
+  fs.writeFileSync(planFile,draft);
+  const produced = spawnSync(process.execPath,[path.join(root,'scripts/kodjo/verify-ui-plan-criteria.js'),planFile,impact.scan_revision,root,output,'produce','a'.repeat(40)],{encoding:'utf8',windowsHide:true});
+  assert.equal(produced.status,0,produced.stderr);
+  const contract = JSON.parse(fs.readFileSync(output,'utf8'));
+  assert.notEqual(contract.matrix_sha256,sha256(matrix),'fixture must reproduce raw/normalized mismatch');
+  const approved = draft+'<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+  fs.writeFileSync(planFile,approved);
+  const mission = renderImplementationMission('V2-TEST',approved,'c'.repeat(40));
+  assert.equal(mission.contract.ui_matrix_sha256,contract.matrix_sha256);
+  assert.doesNotThrow(()=>verifyImplementationMission(mission.mission,approved,'c'.repeat(40)));
+  fs.writeFileSync(path.join(dir,'changed.txt'),target+'\n');
+  const review = spawnSync(process.execPath,[path.join(root,'scripts/kodjo/verify-ui-implementation-review.js'),'prepare',planFile,path.join(dir,'changed.txt'),path.join(dir,'review-input.json')],{encoding:'utf8',windowsHide:true});
+  assert.equal(review.status,0,review.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'review-input.json'))).ui_matrix_sha256,contract.matrix_sha256);
+  assert.equal(fs.readFileSync(planFile,'utf8'),approved,'consumers must not rewrite approved bytes');
+  const wrongHash = approved.replace(contract.matrix_sha256,sha256(matrix));
+  assert.throws(()=>renderImplementationMission('V2-TEST',wrongHash,'c'.repeat(40)),/IMPLEMENTATION_UI_MATRIX_HASH_MISMATCH/);
+  const altered = approved.replace('Contrôle exact.','Requirement changed.');
+  fs.writeFileSync(planFile,altered);
+  const refused = spawnSync(process.execPath,[path.join(root,'scripts/kodjo/verify-ui-implementation-review.js'),'prepare',planFile,path.join(dir,'changed.txt'),path.join(dir,'refused.json')],{encoding:'utf8',windowsHide:true});
+  assert.notEqual(refused.status,0); assert.match(refused.stderr,/UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT/);
 });

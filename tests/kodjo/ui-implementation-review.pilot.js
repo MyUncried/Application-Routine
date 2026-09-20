@@ -1,4 +1,5 @@
 'use strict';
+const { matrixFingerprint } = require('../../scripts/kodjo/lib/ui-criteria-contract');
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -44,7 +45,7 @@ function fixture() {
     ui_applicable:true,
     ui_paths:['src/features/example/ExampleScreen.tsx'],
     criterion_count:1,
-    matrix_sha256:sha256(matrix),
+    matrix_sha256:matrixFingerprint(matrix),
   };
   return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
     '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
@@ -180,7 +181,7 @@ function nonUiFixture(action) {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-non-ui-review-'));
   try {
     const matrix={schema:'kodjo.ui-criteria.v1',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}};
-    const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:false,criterion_count:0,matrix_sha256:sha256(matrix)};
+    const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:false,criterion_count:0,matrix_sha256:matrixFingerprint(matrix)};
     const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), evidence=path.join(dir,'implementation.md');
     const input=path.join(dir,'input.json'), reviewFile=path.join(dir,'review.json'), output=path.join(dir,'output.json');
     fs.writeFileSync(plan,'# Acceptance\n1. Return zero for an empty array.\nOnly function.ts may change.\n'+

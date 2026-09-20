@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+const { matrixFingerprint } = require('./lib/ui-criteria-contract');
+
 const fs = require('node:fs');
 const path = require('node:path');
 const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
@@ -29,7 +31,7 @@ function buildInput(planBody, changedFiles) {
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_MISSING');
   if (!matrix || matrix.schema !== 'kodjo.ui-criteria.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
   if (!planContract || planContract.schema !== 'kodjo.ui-plan-contract.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_INVALID', 'schema contrat invalide');
-  if (planContract.matrix_sha256 !== sha256(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
+  if (planContract.matrix_sha256 !== matrixFingerprint(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
 
   const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
   const criterionIds = criteria.map((c) => String(c && c.criterion_id || '')).sort();

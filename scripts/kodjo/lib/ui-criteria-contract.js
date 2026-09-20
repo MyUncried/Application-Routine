@@ -1,5 +1,5 @@
 'use strict';
-const { normalizeRepoPath, fail } = require('./plan-impact');
+const { normalizeRepoPath, sha256, fail } = require('./plan-impact');
 
 const MATRIX_SCHEMA = 'kodjo.ui-criteria.v1';
 const RISK_TYPES = new Set(['FUNCTIONAL','VISUAL','ACCESSIBILITY','DEVICE']);
@@ -172,6 +172,15 @@ function validateMatrix(matrix, context) {
   validateShape(matrix,matrixSchema);
   return normalized;
 }
+// Fingerprint the already-approved matrix with the producer's canonical rules.
+// The target union supplies structural context only; scope authorization remains
+// the responsibility of the plan validator and the immutable Lean Request.
+function matrixFingerprint(matrix) {
+  const targets = Array.isArray(matrix?.criteria)
+    ? matrix.criteria.flatMap((criterion) => Array.isArray(criterion?.change_targets) ? criterion.change_targets : []) : [];
+  const normalizedTargets = targets.map((target) => normalizeRepoPath(target, 'matrix.change_target'));
+  return sha256(validateMatrix(matrix, { scope: new Set(normalizedTargets), uiPaths: [...new Set(normalizedTargets)] }));
+}
 function contractPrompt() {
   // The conditional instructions are generated from the actual executable
   // validator, not maintained as an independent prompt checklist.
@@ -180,4 +189,4 @@ function contractPrompt() {
     'The receiver runs this same code before accepting a generated plan.\n'+
     [requireText, requireArray, uniqueStrings, isUiPath, normalizeRepoPath, normalizeMatrix].map(String).join('\n');
 }
-module.exports = {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text};
+module.exports = {matrixFingerprint, matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text};

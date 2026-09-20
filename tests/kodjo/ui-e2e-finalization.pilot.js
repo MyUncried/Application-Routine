@@ -1,4 +1,5 @@
 'use strict';
+const { matrixFingerprint } = require('../../scripts/kodjo/lib/ui-criteria-contract');
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -44,7 +45,7 @@ function planFixture() {
     ui_applicable:true,
     ui_paths:['src/features/example/ExampleScreen.tsx'],
     criterion_count:1,
-    matrix_sha256:sha256(matrix),
+    matrix_sha256:matrixFingerprint(matrix),
   };
   return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
     '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
