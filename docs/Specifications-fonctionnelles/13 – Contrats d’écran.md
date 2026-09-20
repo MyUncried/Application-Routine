@@ -424,7 +424,6 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 ---
 
 # 6. B2 — CRUD et cycle de vie ActivityDefinition
-# 6. B2 — CRUD et cycle de vie ActivityDefinition
 
 ## CE-T03-04 — Éditeur ActivityDefinition — créer / modifier
 
