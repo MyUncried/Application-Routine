@@ -233,7 +233,7 @@ Aucune Routine n’est créée automatiquement. La transition canonique d’avan
 
 ### Parcours du Catalogue des Activités — MVP T03
 
-Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` au-dessus du catalogue grisé.
+Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Activités, elle ouvre directement la création d’une Activité persistante, sans écran ni arbre intermédiaire.
 
 La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités`, `Filtrer` est fonctionnel au minimum pour `Archivées`; aucune autre option ne doit être inventée. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre Archives, tri implicite et scroll sont conservés pendant l’aller-retour courant, mais perdus au relaunch.
 
@@ -286,7 +286,7 @@ Les écrans principaux du MVP sont :
 Les écrans principaux ajoutés ou activés en T03 sont :
 
 12. `Catalogue des Activités — Liste` ;
-13. `Catalogue — Créer — Arbre d’actions`, sur fond Catalogue des Activités ou Catalogue des Séances ;
+13. supprimé — ancien `Catalogue — Créer — Arbre d’actions`, conservé uniquement comme évidence historique ;
 14. `Composition — Sélectionner plusieurs Activités existantes` ;
 15. `Création / modification d’une Activité persistante`, qui réutilise l’éditeur d’Activité ;
 16. `Exécution directe d’une Activité — Préparation 5 s` ;
@@ -1339,27 +1339,18 @@ Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la
 
 L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans l’état courant et n’est plus une preuve active. Aucun état de remplacement n’est inventé.
 
-### Écran 13 — Catalogue — Créer — Arbre d’actions
+### Écran 13 — Supprimé — ancien arbre `Créer` des Catalogues
 
-L’action `Créer` affiche un arbre au-dessus du Catalogue grisé et non interactif. L’ordre est fixe :
+L’écran/arbre intermédiaire `Une nouvelle activité / Une séance / Un circuit / Annuler` est supprimé par D-187.
 
-1. `Une nouvelle activité` ;
-2. `Une séance` ;
-3. `Un circuit` ;
-4. `Annuler`.
+Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
+- `Catalogue des Activités` → création d’une Activité persistante ;
+- `Catalogue des Séances` → création d’une Séance ;
+- `Catalogue des Circuits` → création d’un Circuit lorsque ce Catalogue devient fonctionnel.
 
-`Une nouvelle activité` et `Une séance` sont actives dans T03. `Un circuit` reste visible mais désactivé tant que le périmètre Circuit n’est pas livré. `Annuler` est obligatoire et restaure exactement l’état précédent. L’arbre possède deux états de référence : frame `3787:5148` sur Catalogue des Activités et frame `3841:8375` sur Catalogue des Séances. Les icônes sont vectorielles : Ajouter DSF pour la nouvelle Activité, liste/séance, chemin Circuit en perspective et Ajouter tourné de `45°` pour Annuler.
+Cette règle n’active pas les Circuits dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
 
-Lorsque l’arbre est ouvert, la rangée `Créer / Filtrer / Trier` reste visible dans l’arrière-plan sous le scrim ; seul `Créer` porte l’arbre, ancré à sa position gauche dans la rangée. `Filtrer` et `Trier` restent visibles mais non interactifs sous le voile.
-
-![[images/ecran-13-catalogue-activites-creer-arbre.png|260]]
-
-*Écran 13 — Catalogue des Activités — Créer — Arbre d’actions — Figma `3787:5148`*
-
-![[images/ecran-13a-catalogue-seances-creer-arbre.png|260]]
-
-*Écran 13a — Catalogue des Séances — Créer — Arbre d’actions — Figma `3841:8375`*
-
+### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
 Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
@@ -1715,7 +1706,7 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 
 ## Évidences Figma T03 — état courant du 16 septembre 2026
 
-Les contrôles d’entrée `Créer / Filtrer / Trier` sont conçus et vérifiables dans Figma. Les références courantes principales sont `3786:5093` (Catalogue Activités), `3787:5148` (arbre Créer Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3841:8375` (arbre Créer Séances), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom).
+Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Seul le détail visuel des panneaux/options **ouverts** `Filtrer` et `Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER`; aucune modale, feuille, popover ou liste locale ne doit être inventée avant arbitrage.
 
@@ -1748,6 +1739,6 @@ Ces points sont consignés sans modification des règles fonctionnelles. Ils son
 
 1. **Modale 2 — Abandonner les modifications d’une Activité.** Le node `3224:4082` cité par ce chapitre n’existe plus dans le Figma courant et aucune frame de remplacement n’a été identifiée. La capture `modale-2-abandon-modifications-activite.png` est conservée telle quelle comme évidence historique ; elle n’est pas déclarée courante.
 2. **Section Médias de l’éditeur d’Activité.** Arbitrage résolu pour V2-CAT-01 : les frames courantes `3542:4656`, `3561:4695` et `3561:7802` font foi pour la présence de la section Médias repliable. La section est visible ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les anciennes formulations « section Médias masquée » sont supersédées par D-185.
-3. **Écran 13 — libellé de la première option de l’arbre `Créer`.** Arbitrage résolu pour V2-CAT-01 : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées dans Figma le 17 septembre 2026 et affichent désormais ce libellé exact. Voir D-186.
+3. **Écran 13 / 13a — ancien arbre `Créer`.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` restent des évidences historiques et ne doivent plus être utilisées comme cible fonctionnelle.
 4. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 5. **Écran 2h — Catalogue après archivage.** La frame `1992:10937` affiche la snackbar `Séance supprimée`, alors que la légende du chapitre décrit un retrait par archivage.
