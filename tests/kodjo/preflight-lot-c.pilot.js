@@ -87,7 +87,7 @@ test('lot C: la mission attestée est relue au HEAD protocolaire immuable',()=>{
     preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
   }));
   const supervisor=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
-  assert.match(supervisor,/Source\\.readFileAtHead\\(promptRelative, request\\.protocol_source_head/);
+  assert.match(supervisor,/Source\.readFileAtHead\(promptRelative, request\.protocol_source_head/);
   assert.match(supervisor,/WORKTREE_NOT_CLEAN/);
 });
 
