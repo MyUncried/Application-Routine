@@ -112,7 +112,7 @@ test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf
     const argsFor=dir=>({preflight:f.att,rawRequest:f.projection,
       request:{...f.normalized,prompt_file:path.join(dir,'mission.md')},repoRoot:dir});
     assert.match(fs.readFileSync(path.join(normal,'mission.md'),'utf8'),/\r\n/);
-    assert.throws(()=>verifyLocalFreshness(argsFor(normal)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    assert.throws(()=>verifyLocalFreshness(argsFor(normal)),/PREFLIGHT_PACKAGE_LOCK_DRIFT/);
     const fixed=path.join(clones,'fixed');
     cp.execFileSync('git',['clone','--no-local',f.dir,fixed],{env:{...env,
       GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'core.autocrlf',GIT_CONFIG_VALUE_0:'false'},stdio:'pipe'});
