@@ -154,6 +154,20 @@ test('lot C: VISUAL_CORRECTION refuse une PR fermée, une branche déplacée ou 
   assert.match(runner,/KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY/);
 });
 
+test('lot C: IMPLEMENT ciblé utilise les mêmes gardes de PR exacte que VISUAL_CORRECTION',()=>{
+  const target={kind:'EXISTING_PR',application_pr:181,branch:'kodjo/application',application_head:'a'.repeat(40)};
+  const nominal={state:'open',base:{ref:'main'},head:{ref:'kodjo/application',sha:'a'.repeat(40)}};
+  assert.equal(verifyQueueTarget({operation_kind:'IMPLEMENT',delivery_target:target},nominal).status,'PASS');
+  assert.throws(()=>verifyQueueTarget(
+    {operation_kind:'IMPLEMENT',delivery_target:target},
+    {...nominal,head:{...nominal.head,sha:'b'.repeat(40)}}
+  ),/KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
+  const queue={operation_kind:'IMPLEMENT',mode:'INITIAL',delivery_target:target};
+  const att=P.finalize({...fixture().att,operation_kind:'IMPLEMENT',mode:'INITIAL',
+    checks:require('./helpers/preflight-checks').checks(queue)});
+  assert.doesNotThrow(()=>P.verifyApplicability(att,queue));
+});
+
 test('lot C: lock reste acquis atomiquement à la frontière Claude même si le preflight était vert',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-lock-race-'));
   const lockPath=path.join(dir,'claude-local.lock');
