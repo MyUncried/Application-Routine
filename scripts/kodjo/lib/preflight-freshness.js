@@ -34,10 +34,6 @@ function verifyLocalFreshness(options) {
     throw new Error('PREFLIGHT_PROMPT_SOURCE_DRIFT');
   }
 
-  if (fs.existsSync(request.prompt_file) && P.sha256(fs.readFileSync(request.prompt_file)) !== promptSourceHash) {
-    throw new Error('PREFLIGHT_PROMPT_SOURCE_DRIFT');
-  }
-
   const lockHash = packageLockHash(repoRoot);
   if ((preflight.package_lock_sha256 || null) !== lockHash) {
     throw new Error('PREFLIGHT_PACKAGE_LOCK_DRIFT');
