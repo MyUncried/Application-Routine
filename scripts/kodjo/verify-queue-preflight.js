@@ -281,7 +281,7 @@ function runPreflight(options = {}) {
     if (String(queue.operation_kind || '').toUpperCase() === 'VISUAL_CORRECTION') return {status:'CHECKPOINT_BASELINE',checkpoint_ref:queue.delivery_checkpoint && queue.delivery_checkpoint.checkpoint_ref};
     if (queue.materialized_recovery !== undefined) {
       const packageDir = String(process.env.KODJO_SOURCE_RECOVERY_DIR || '').trim();
-      return verifyMaterializedRecoveryPackage(projected, { packageDir, cwd });
+      return verifyMaterializedRecoveryPackage(projected, { packageDir, cwd, verifyWorktree: false });
     }
     const stateRoot = process.env.KODJO_STATE_ROOT ? path.resolve(process.env.KODJO_STATE_ROOT) : path.join(os.homedir(),'.kodjo-v2');
     const runsRoot = path.join(stateRoot,'runs');
