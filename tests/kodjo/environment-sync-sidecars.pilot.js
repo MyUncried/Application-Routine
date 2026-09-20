@@ -47,7 +47,9 @@ test('environment sync: EAS profiles separate local development, remote review a
   const eas=json('eas.json');
   assert.equal(eas.build.development.developmentClient,true);
   assert.equal(eas.build.development.env.APP_VARIANT,'development');
+  assert.equal(eas.build.review.developmentClient,false);
   assert.equal(eas.build.review.distribution,'internal');
+  assert.equal(eas.build.review.autoIncrement,true);
   assert.equal(eas.build.review.channel,'review');
   assert.equal(eas.build.review.env.APP_VARIANT,'development');
   assert.equal(eas.build.preview.distribution,'internal');
@@ -183,6 +185,8 @@ test('environment sync: sidecars observe existing milestones without invoking or
   assert.match(reviewSync,/--channel review/);
   assert.match(reviewSync,/materialize-review-environment\.js/);
   assert.match(reviewSync,/routine-dev-environment-contract\.json/);
+  assert.match(reviewSync,/ROUTINE_DEV_STANDALONE_REQUIRED/);
+  assert.match(reviewSync,/ROUTINE_DEV_BUILD_INCREMENT_REQUIRED/);
   assert.doesNotMatch(reviewSync,/contents:\s*write|issues:\s*write|pull-requests:\s*write|repository_dispatch|gh issue comment|gh pr create/);
 
   assert.match(stableSync,/pull_request:/);

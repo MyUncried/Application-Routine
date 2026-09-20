@@ -124,11 +124,14 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const c=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/routine-dev-expo-config.json','utf8'));
+          const eas=JSON.parse(fs.readFileSync('eas.json','utf8'));
           if(c.name!=='Routine Dev') throw new Error('ROUTINE_DEV_NAME_INVALID');
           if(c.ios?.bundleIdentifier!=='com.ankusha.kodjo.dev') throw new Error('ROUTINE_DEV_BUNDLE_ID_INVALID');
           if(c.extra?.eas?.projectId!=='0ee44f86-bd22-4b92-8780-e265b72907d9') throw new Error('EAS_PROJECT_ID_INVALID');
           if(c.updates?.url!=='https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9') throw new Error('EAS_UPDATE_URL_INVALID');
           if(!c.runtimeVersion) throw new Error('EAS_RUNTIME_VERSION_MISSING');
+          if(eas.build?.review?.developmentClient!==false) throw new Error('ROUTINE_DEV_STANDALONE_REQUIRED');
+          if(eas.build?.review?.autoIncrement!==true) throw new Error('ROUTINE_DEV_BUILD_INCREMENT_REQUIRED');
           NODE
 
       - name: Publish exact HEAD to Routine Dev review channel

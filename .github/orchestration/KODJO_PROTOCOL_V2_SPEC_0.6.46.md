@@ -65,7 +65,7 @@ Identités :
 
 Profils :
 - `development` : développement local historique, conservé ;
-- `review` : build interne Routine Dev destinée aux revues distantes, channel `review` ;
+- `review` : build interne autonome Routine Dev destinée aux revues distantes, channel `review`, avec `developmentClient=false` explicite et numéro natif auto-incrémenté afin de remplacer tout ancien client Metro installé ;
 - `preview` : Routine stable/interne, channel `stable`.
 
 ## 5. Compatibilité OTA
