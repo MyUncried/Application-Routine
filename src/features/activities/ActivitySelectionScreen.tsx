@@ -54,6 +54,19 @@ export function ActivitySelectionScreen() {
     state.status === "ready"
       ? selectedIds.filter((id) => state.definitions.some((definition) => definition.id === id))
       : selectedIds;
+  // Revue indépendante 35529973203 (UI-CAT-R-003) : le retrait/recalcul
+  // silencieux ne suffit pas — une information EXPLICITE et VISIBLE doit
+  // accompagner la disparition d'un identifiant obsolète. Compteur DÉRIVÉ
+  // (même principe que `availableSelectedIds`, jamais un état synchronisé
+  // par effet) ; libellé local componentisé (aucune ressource de
+  // localisation déjà approuvée ne couvre ce cas précis).
+  const staleSelectionCount = selectedIds.length - availableSelectedIds.length;
+  const staleSelectionNotice =
+    staleSelectionCount > 0
+      ? staleSelectionCount === 1
+        ? "1 activité sélectionnée n’est plus disponible et a été retirée de la sélection."
+        : `${staleSelectionCount} activités sélectionnées ne sont plus disponibles et ont été retirées de la sélection.`
+      : null;
 
   function toggle(id: string) {
     setSelectedIds((current) =>
@@ -102,6 +115,11 @@ export function ActivitySelectionScreen() {
       <HeaderSeparator />
 
       <View style={styles.body} testID="activity-selection-body">
+        {staleSelectionNotice !== null ? (
+          <View style={styles.staleNotice} testID="activity-selection-stale-notice">
+            <Text style={styles.staleNoticeText}>{staleSelectionNotice}</Text>
+          </View>
+        ) : null}
         {state.status === "loading" ? (
           <View style={styles.centeredBody}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -238,6 +256,22 @@ const styles = StyleSheet.create({
     ...type.body,
     color: colors.textSecondary,
     textAlign: "center",
+  },
+  // V2-CAT-01 (UI-CAT-R-003) : information EXPLICITE et VISIBLE, jamais un
+  // retrait silencieux, lorsque des identifiants sélectionnés deviennent
+  // obsolètes et sont recalculés.
+  staleNotice: {
+    marginBottom: spacing[12],
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[12],
+    borderRadius: dimensions.standardCard.radius,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    backgroundColor: colors.surface,
+  },
+  staleNoticeText: {
+    ...type.body,
+    color: colors.danger,
   },
   list: {
     gap: spacing[8],

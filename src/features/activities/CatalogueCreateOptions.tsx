@@ -76,10 +76,23 @@ export function CatalogueCreateOptions({
       onRequestClose={onCancel}
       testID="catalogue-create-tree-modal"
     >
-      {/* Scrim COMPLET : couvre tout l'écran, arrière-plan/navigation/retour/listes non interactifs tant que l'arbre est visible. */}
-      <View style={styles.backdrop} testID="catalogue-create-tree-scrim">
-        <Pressable
-          onPress={onCancel}
+      {/*
+       * Scrim COMPLET, INERTE (V2-CAT-01, UI-CAT-R-001) : couvre tout
+       * l'écran, arrière-plan/navigation/retour/listes non interactifs tant
+       * que l'arbre est visible — mais un appui SUR le voile lui-même ne
+       * ferme jamais l'arbre ni n'appelle `onCancel`. Seul `Annuler` (ou le
+       * bouton retour matériel Android, `onRequestClose`) ferme
+       * explicitement ce parcours ; `View` (jamais `Pressable`) ne porte
+       * donc aucun gestionnaire d'appui — un simple bloc opaque, qui
+       * continue de capter le toucher (empêchant qu'il n'atteigne quoi que
+       * ce soit derrière lui) sans jamais le traduire en fermeture.
+       */}
+      <View
+        style={styles.backdrop}
+        accessible={false}
+        testID="catalogue-create-tree-scrim"
+      >
+        <View
           accessible={false}
           testID="catalogue-create-tree-backdrop"
           style={StyleSheet.absoluteFill}

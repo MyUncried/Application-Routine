@@ -102,6 +102,33 @@ describe("CatalogueCreateOptions", () => {
     expect(onSelectNewActivity).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * V2-CAT-01 (UI-CAT-R-001, revue indépendante 35529973203) : le voile
+   * sombre reste INERTE — un appui sur lui ne ferme jamais l'arbre ni
+   * n'appelle `onCancel`. Seul `Annuler` (ou le retour matériel Android,
+   * `onRequestClose`) ferme explicitement ce parcours.
+   */
+  it("keeps the dark scrim inert — pressing it never calls onCancel nor closes the menu", () => {
+    const onCancel = jest.fn();
+    render(
+      <TestSafeAreaProvider>
+        <CatalogueCreateOptions
+          visible
+          onSelectNewActivity={jest.fn()}
+          onSelectNewSession={jest.fn()}
+          onCancel={onCancel}
+        />
+      </TestSafeAreaProvider>,
+    );
+
+    const backdrop = screen.getByTestId("catalogue-create-tree-backdrop");
+    expect(backdrop.props.onPress).toBeUndefined();
+    fireEvent.press(backdrop);
+
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByTestId("catalogue-create-tree")).toBeTruthy();
+  });
+
   it("closes without any mutation on Annuler", () => {
     const onCancel = jest.fn();
     render(

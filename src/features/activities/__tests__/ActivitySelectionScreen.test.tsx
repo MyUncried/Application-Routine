@@ -148,12 +148,14 @@ describe("ActivitySelectionScreen", () => {
   });
 
   /**
-   * V2-CAT-01 (UI-CAT-R-003) : retrait et recalcul des identifiants
-   * obsolètes — une définition sélectionnée disparaît d'un rechargement
-   * ultérieur (aller-retour) ; le compteur/CTA se recalcule sans jamais
-   * inclure cet identifiant, et la validation ne peut jamais le transmettre.
+   * V2-CAT-01 (UI-CAT-R-003, revue indépendante 35529973203) : retrait et
+   * recalcul des identifiants obsolètes — une définition sélectionnée
+   * disparaît d'un rechargement ultérieur (aller-retour) ; le compteur/CTA
+   * se recalcule sans jamais inclure cet identifiant, la validation ne peut
+   * jamais le transmettre, ET une information EXPLICITE/VISIBLE l'annonce
+   * (jamais un retrait silencieux).
    */
-  it("prunes a stale selected id once the list refreshes without it, recalculating the counter and CTA", async () => {
+  it("prunes a stale selected id once the list refreshes without it, recalculating the counter/CTA and showing an explicit notice", async () => {
     const listActivityDefinitions = jest
       .fn<ActivityDefinitionService["listActivityDefinitions"]>()
       .mockResolvedValueOnce([makeDefinition("a", "Squat"), makeDefinition("b", "Fentes")])
@@ -172,6 +174,7 @@ describe("ActivitySelectionScreen", () => {
       </TestSafeAreaProvider>,
     );
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    expect(screen.queryByTestId("activity-selection-stale-notice")).toBeNull();
 
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     fireEvent.press(screen.getByTestId("activity-selection-row-b"));
@@ -188,6 +191,12 @@ describe("ActivitySelectionScreen", () => {
       ),
     );
     expect(screen.queryByTestId("activity-selection-row-a")).toBeNull();
+
+    // Information EXPLICITE et VISIBLE — jamais un simple retrait silencieux.
+    expect(screen.getByTestId("activity-selection-stale-notice")).toBeTruthy();
+    expect(
+      screen.getByText("1 activité sélectionnée n’est plus disponible et a été retirée de la sélection."),
+    ).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("activity-selection-add"));
     expect(updateDraft).toHaveBeenCalledTimes(1);
