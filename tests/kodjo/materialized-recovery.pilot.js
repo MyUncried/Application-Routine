@@ -77,6 +77,7 @@ function queue(f, overrides = {}) {
       source_run_id: '35515175109',
       source_artifact_id: '10607297220',
       patch_sha256: f.patchSha,
+      source_application_head: f.base,
       materialized_head: f.head,
       evidence_kind: 'ARTIFACT_HASH',
     },
