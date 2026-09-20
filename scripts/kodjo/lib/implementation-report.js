@@ -35,7 +35,7 @@ function inspectImplementation(body,expectedIds){
     const e=block(body,'KODJO_IMPLEMENTATION_REPORT_JSON');
     const report=inspectReport(e.report_text,expectedIds);
     function field(name){const m=[...String(body).matchAll(new RegExp('^'+name+'=([^\\r\\n]+)$','gm'))];return m.length===1?m[0][1]:null;}
-    if(e.request_id!==field('v2_request_id')||e.source_head!==field('v2_protocol_head'))report.errors.push('REPORT_IDENTITY_MISMATCH');
+    if(e.request_id!==field('v2_request_id')||e.source_head!==field('base_head'))report.errors.push('REPORT_IDENTITY_MISMATCH');
     if(e.truncated!==false)report.errors.push('REPORT_TRUNCATED_OR_UNKNOWN');
     if(typeof e.report_text!=='string'||crypto.createHash('sha256').update(e.report_text||'').digest('hex')!==e.original_text_sha256)report.errors.push('REPORT_TEXT_HASH_MISMATCH');
     report.status=report.errors.length?'NON_VERIFIABLE':'COMPLETE';return report;

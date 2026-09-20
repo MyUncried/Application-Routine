@@ -194,7 +194,7 @@ function nonUiFixture(action) {
       const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
       const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
         original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),...override};
-      fs.writeFileSync(evidence,'v2_request_id=request\nv2_protocol_head='+ 'a'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
+      fs.writeFileSync(evidence,'base_head='+ 'a'.repeat(40)+'\nv2_request_id=request\nv2_protocol_head='+ 'b'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
     }
     writeReport();
     const review={schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:false,criteria:[],boundary_results:[],

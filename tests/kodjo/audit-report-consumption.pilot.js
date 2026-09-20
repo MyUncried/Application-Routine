@@ -26,7 +26,7 @@ test('F12: real collector CLI -> prepared review -> consumer refuses approval fo
       fs.writeFileSync(path.join(dir,'claude-output.json'),JSON.stringify({result:text}));
       const c=run(collector,[dir,'r1','a'.repeat(40),path.join(dir,'report.json')],dir);assert.equal(c.status,0,c.stderr);
       const e=JSON.parse(fs.readFileSync(path.join(dir,'report.json')));
-      fs.writeFileSync(path.join(dir,'implementation.md'),'v2_request_id=r1\nv2_protocol_head='+'a'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(e)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
+      fs.writeFileSync(path.join(dir,'implementation.md'),'base_head='+'a'.repeat(40)+'\nv2_request_id=r1\nv2_protocol_head='+'b'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(e)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
       const p=run(verifier,['prepare','plan.md','changed.txt','input.json','implementation.md'],dir);assert.equal(p.status,0,p.stderr);
       const input=JSON.parse(fs.readFileSync(path.join(dir,'input.json')));
       assert.equal(input.implementation_report.status,name==='complete'?'COMPLETE':'NON_VERIFIABLE',name);
