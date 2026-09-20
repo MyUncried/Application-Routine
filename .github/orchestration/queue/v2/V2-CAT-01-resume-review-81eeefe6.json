@@ -1,0 +1,92 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-CAT-01",
+  "issue_number": 150,
+  "source_head": "26f0d052623c4aeee643dae95013621a24059b40",
+  "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "771d65fd1d44bcb598b420622026d8e27253bf3a89ee586d75f026a66f06c0d0",
+  "mode": "RESUME_DELTA",
+  "operation_kind": "IMPLEMENT",
+  "delivery_target": {
+    "kind": "EXISTING_PR",
+    "application_pr": 181,
+    "branch": "kodjo/v2-v2-cat-01-35333601872",
+    "application_head": "dd683f2118791c536bfee668bc650f360d0d7187"
+  },
+  "materialized_recovery": {
+    "source_run_id": "35520692416",
+    "source_artifact_id": "10608054905",
+    "patch_sha256": "3eafa7b10022b388a09f127ff2830dfed06dafa784fdc1dd0b53df2d8146ea2a",
+    "source_application_head": "e43004df9f04a10aa091ba28cc681592bea759ca",
+    "materialized_head": "dd683f2118791c536bfee668bc650f360d0d7187",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "session_id": "b431f0f6-72d5-4aef-bf6c-37b1f6fafffb",
+  "prompt_file": ".github/orchestration/v2-slices/V2-CAT-01/implementation-mission.md",
+  "scope_allow": [
+    "app/(creation)/_layout.tsx",
+    "app/__tests__/creationLayout.test.tsx",
+    "src/features/activities/ActivityCard.tsx",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ActivitySelectionScreen.tsx",
+    "src/features/activities/CatalogueCreateOptions.tsx",
+    "src/features/activities/__tests__/ActivityCard.test.tsx",
+    "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/CategoriesScreen.tsx",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+    "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/compositionGesture.test.ts",
+    "src/features/sessions/compositionGesture.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "81eeefe6-a3a2-44dd-81f6-2397f70907e5",
+  "created_at": "2026-09-20T16:08:05Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+    "plan_blob_oid": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "approved_at_commit": "26f0d052623c4aeee643dae95013621a24059b40",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+    "review_blob_oid": "efe3b49b6ba35511b8da1cf05dabaa287913a759",
+    "reviewed_plan_blob_oid": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5749822863",
+    "gated_reference": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "retry_of_run_id": "35520692416",
+  "retry_reason": {
+    "code": "CHECKS_FAILED",
+    "detail": "Resume the exact materialized V2-CAT-01 delivery from run 35520692416 at application HEAD dd683f2118791c536bfee668bc650f360d0d7187 in the same PR and Claude session, without replaying the already materialized patch. Review run 35521301800 proved deterministic verification green (63/63 suites, 1241/1241 tests and TypeScript) and then failed before independent review because the approved UI criterion matrix was not fully delivered. Read the exact KODJO_UI_CRITERIA_MATRIX_JSON and complete the approved plan, not merely the first reported failure. R003 is still PARTIAL: complete the approved detailed Activity selection cards, vector checkbox behavior/presentation and stale-identifier removal/recalculation with user information, preserving atomicity/context/scroll. R004 is still PARTIAL: satisfy every approved shared-form invariant, tests and accessibility requirements without replacing native wheel pickers. R005 and R006 are missing: implement the approved deterministic Catalogue context restoration and successful Categories return to Catalogue des séances with segment Séances, right-to-left transition, while preserving save lock, no double transaction/navigation, draft/context/scroll and failure behavior. R007 must fully satisfy its approved contract and include a legitimate minimal pure-calculation change in compositionGesture.ts as planned; keep pendingSwipeRef orchestration in CompositionScreen.tsx and do not make a meaningless touch-only edit. R009 must remain conformant across the approved corrected screens and is expected to be covered by the real R005/R006 screen changes plus existing Composition/Exercise changes. Preserve the already implemented R001, R002, R008 and R010. Every approved change_target required by the matrix must be delivered through a real plan-required change; no no-op edits. Visual/device proofs may remain PENDING_DEVICE as the mission permits; do not stop solely because device proof is unavailable. Do not modify protocol, plan, documentation or product scope. Run the declared Jest, TypeScript and lint checks and publish only if all are green."
+  }
+}
