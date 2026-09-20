@@ -216,7 +216,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 | Tranche | Périmètre |
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances selon les contrats existants. |
-| T03 | Catalogue des Activités : liste, cycle de vie persistant, arbre de création, sélection multiple, copie dans une Séance et Exécution directe complète. |
+| T03 | Catalogue des Activités : liste, cycle de vie persistant, création contextuelle directe, sélection multiple, copie dans une Séance et Exécution directe complète. |
 | T04 | Moteur d’Exécution des Séances, correspondant à l’ancienne T03 et à ses anciens lots 1 et 2. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans changement automatique de périmètre. |
 
