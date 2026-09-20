@@ -255,7 +255,7 @@ function withDeltaFiles(action) {
 
 test('delta review: le diff immédiat affecte uniquement ses critères et hérite les autres',()=>{
   withDeltaFiles(({plan,changed,previous,input})=>{
-    const r=run(['prepare',plan,changed,input,previous],path.dirname(plan));
+    const r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
     assert.equal(r.status,0,r.stderr);
     const value=JSON.parse(fs.readFileSync(input,'utf8'));
     assert.equal(value.review_mode,'DELTA_WITH_INHERITANCE');
@@ -270,7 +270,7 @@ test('delta review: le diff immédiat affecte uniquement ses critères et hérit
 
 test('delta review: un critère hérité ne peut pas être réinterprété',()=>{
   withDeltaFiles(({plan,changed,previous,input,review,output})=>{
-    let r=run(['prepare',plan,changed,input,previous],path.dirname(plan));
+    let r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
     assert.equal(r.status,0,r.stderr);
     const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
     const inherited=prepared.criteria.find(c=>c.criterion_id==='UI-002').inherited_result;
@@ -297,7 +297,7 @@ test('delta review: un critère hérité ne peut pas être réinterprété',()=>
 
 test('delta review: PENDING_DEVICE accessibilité ne bloque pas une approbation technique',()=>{
   withDeltaFiles(({plan,changed,previous,input,review,output})=>{
-    let r=run(['prepare',plan,changed,input,previous],path.dirname(plan));
+    let r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
     assert.equal(r.status,0,r.stderr);
     const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
     const inherited=prepared.criteria.find(c=>c.criterion_id==='UI-002').inherited_result;
