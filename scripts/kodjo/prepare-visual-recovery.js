@@ -125,7 +125,7 @@ function main(argv, env = process.env) {
   if (materialized) {
     materializedEvidence = verifyMaterializedRecoveryPackage(request, {
       packageDir: env.KODJO_SOURCE_RECOVERY_DIR,
-      cwd: process.cwd(),
+      cwd: env.KODJO_REPOSITORY_ROOT || process.cwd(),
     });
   }
 
