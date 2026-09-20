@@ -46,6 +46,9 @@ function writeJson(file, value) {
 
 function main() {
   if (!process.env.GH_TOKEN) throw new Error('GH_TOKEN_REQUIRED');
+  const handoffQueueWorkflow = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'kodjo-v2-plan-handoff-queue.yml'), 'utf8');
+  assert.match(handoffQueueWorkflow, /^\s*pull-requests:\s*read\s*$/m,
+    'le handoff qui relit une PR applicative doit déclarer pull-requests: read');
 
   const planComment = ghComment(PLAN_COMMENT_ID);
   const reviewComment = ghComment(REVIEW_COMMENT_ID);
