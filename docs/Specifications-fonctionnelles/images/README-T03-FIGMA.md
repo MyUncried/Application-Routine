@@ -96,8 +96,8 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 11a | Suivi : Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `402 × 874` | écran | COURANT |
 | Écran 11b | Suivi : Séances — État vide | `2117:190` | `ecran-11b-suivi-vide.png` | `402 × 874` | écran | COURANT |
 | Écran 12 | Catalogue des Activités — Liste | `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `402 × 874` | écran | COURANT |
-| Écran 13 | Catalogue des Activités — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | COURANT |
-| Écran 13a | Catalogue des Séances — Créer — Arbre d’actions | `3841:8375` | `ecran-13a-catalogue-seances-creer-arbre.png` | `402 × 874` | écran | COURANT |
+| Écran 13 | Ancien Catalogue des Activités — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
+| Écran 13a | Ancien Catalogue des Séances — Créer — Arbre d’actions | `3841:8375` | `ecran-13a-catalogue-seances-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
 | Écran 14 | Composition — Sélectionner plusieurs Activités existantes | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `402 × 874` | écran | COURANT |
 | Écran 15 | Créer une Activité persistante | `3879:5947` | `ecran-15-creation-activite-persistante.png` | `402 × 874` | écran | COURANT |
 | Écran 15a | Modifier une Activité persistante | `3879:6079` | `ecran-15a-modification-activite-persistante.png` | `402 × 874` | écran | COURANT |
@@ -161,7 +161,7 @@ Les sept variantes ont été contrôlées visuellement sur l’export `status-ba
 1. **Modale 2 — `modale-2-abandon-modifications-activite.png`.** Le chapitre 06 cite le node `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Ce node **n’existe plus** dans le fichier Figma courant et aucune frame équivalente n’a été trouvée sur les deux pages du fichier. La capture existante est conservée sans remplacement et n’est pas déclarée courante. Statut : `À CLARIFIER`.
 2. **Panneaux/options ouverts `Filtrer` et `Trier`.** Les contrôles d’entrée sont conçus et vérifiables ; le détail des panneaux ouverts reste `NON VÉRIFIABLE` faute de frame dédiée validée. Aucune modale, feuille, popover ou liste d’options ne doit être inventée avant arbitrage.
 3. **Section Médias de l’éditeur d’Activité.** Arbitrage V2-CAT-01 résolu : les frames courantes `3542:4656`, `3561:4695`, `3561:7802`, `3553:4704`, `3553:4768`, `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, `3580:4733`, `3580:4845`, `3580:4957`, `3879:5947` et `3879:6079` constituent l’évidence visuelle de la section Médias repliable. La section est visible dans le MVP, mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est activée. Voir D-185.
-4. **Libellé de la première option de l’arbre `Créer`.** Arbitrage V2-CAT-01 résolu : le libellé fonctionnel exact est `Une nouvelle activité`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées dans Figma le 17 septembre 2026 et affichent désormais ce libellé. Voir D-186.
+4. **Ancien arbre `Créer` des Catalogues.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques/supersédées ; D-186 reste une décision historique.
 5. **Écran 1e — `ecran-1e-profil-parcours-vide.png`.** L’export de la frame `2139:86`, `Profil — Vue d’ensemble — Parcours vide`, est **strictement identique** (même empreinte binaire) à l’export de la frame `1992:684`, `Profil — Vue d’ensemble - Vibration activée`. L’état « parcours vide » n’est pas visuellement distinguable dans le Figma courant. Les deux nodes existent et sont conservés tels quels.
 6. **Écran 2h — `ecran-2h-catalogue-apres-archivage.png`.** La frame `1992:10937`, nommée `Catalogue des séances — Liste sans Renforcement du genou`, affiche la snackbar `Séance supprimée`, alors que la légende du chapitre 06 décrit un retrait par archivage.
 
@@ -177,7 +177,7 @@ Dans la référence Figma `402 pt`, la rangée vérifiée est :
 
 Ces coordonnées sont des **mesures d’évidence Figma pour la recette visuelle**. Elles ne constituent pas des positions absolues à reproduire en React Native. Les cibles tactiles restent ≥ `48 × 48 pt` conformément au contrat responsive/accessibilité.
 
-La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de `Trier` ont été contrôlés visuellement sur `3786:5093`, `1992:9910`, `3787:5148`, `3841:8375` et `1992:10129`.
+La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de `Trier` restent contrôlés visuellement sur les états Catalogue actifs `3786:5093`, `1992:9910` et `1992:10129`. Les frames `3787:5148` et `3841:8375` ne sont plus des cibles fonctionnelles après D-187.
 
 ## 8. Éditeur Activité
 
@@ -204,3 +204,9 @@ En Répétitions et À l’échec, le contrôle visible porte `Durée totale >=`
 - chaque export a été contrôlé visuellement avant intégration.
 
 Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut pas à elle seule preuve qu’une copie binaire documentaire a été physiquement remplacée dans le dépôt : les deux contrôles sont tracés séparément ci-dessus.
+
+
+État du 21 septembre 2026 — décision D-187 :
+- `Créer` devient contextuel à chaque Catalogue et ouvre directement la création de l’objet correspondant ;
+- l’écran/arbre intermédiaire des Catalogues est supprimé ;
+- les frames `3787:5148` et `3841:8375` et leurs captures sont conservées comme historiques/supersédées, sans suppression physique.

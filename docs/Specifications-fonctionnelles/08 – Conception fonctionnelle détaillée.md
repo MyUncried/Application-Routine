@@ -192,9 +192,9 @@ La liste des Activités conserve recherche, filtres, tri et position de défilem
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
-Depuis le Catalogue, `Créer` ouvre l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler`. Le fond reste visible sous un voile bloquant. Dans T03, `Une nouvelle activité` et `Une séance` ouvrent leur parcours ; `Un circuit` reste visible mais désactivé ; `Annuler` restaure le Catalogue sans écriture.
+Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Activités, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Circuits lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
 
-`Une nouvelle activité` réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
+La création d’une Activité depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
 Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persistante et revient au Catalogue. Ouvert depuis une Composition, le même éditeur agit uniquement sur l’Activité de Séance. Le contexte d’ouverture ne doit jamais être déduit de la seule apparence de l’écran.
 

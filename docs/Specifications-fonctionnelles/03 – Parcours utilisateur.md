@@ -336,20 +336,19 @@ L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut s
 2. Consulter la liste des Activités persistantes.
 3. Utiliser la surface d’une carte pour ouvrir l’Activité en consultation ou modification.
 4. Utiliser le bouton Lecture pour lancer directement une Activité valide.
-5. Utiliser `Créer` pour ouvrir l’arbre des types de contenu.
+5. Utiliser `Créer` pour ouvrir directement la création correspondant au Catalogue courant.
 
 La recherche, les filtres et la position de défilement appartiennent à l’état du Catalogue et sont restaurés au retour d’une consultation, d’une modification ou d’une Exécution directe.
 
 ## Créer un contenu depuis le Catalogue
 
-1. Appuyer sur `Créer`.
-2. Choisir exactement l’une des actions proposées, dans cet ordre : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`.
-3. `Une nouvelle activité` ouvre le formulaire d’Activité persistante.
-4. `Une séance` ouvre une nouvelle Composition de Séance.
-5. `Un circuit` reste visible mais désactivé dans le MVP ; son formulaire relève d’une version ultérieure.
-6. `Annuler` ferme l’arbre et restaure le Catalogue dans son état précédent.
+`Créer` est contextuel au Catalogue affiché et ne présente aucun écran ni arbre intermédiaire :
 
-L’arbre est présenté au-dessus du Catalogue grisé, que l’utilisateur se trouve dans la vue Activités ou dans la vue Séances. Le fond n’est pas interactif pendant son affichage.
+1. dans le Catalogue `Activités`, `Créer` ouvre directement le formulaire de création d’une Activité persistante ;
+2. dans le Catalogue `Séances`, `Créer` ouvre directement une nouvelle Composition de Séance ;
+3. dans le Catalogue `Circuits`, le même principe ouvre directement la création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+
+Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
 
 ## Ajouter une Activité depuis une Composition
 

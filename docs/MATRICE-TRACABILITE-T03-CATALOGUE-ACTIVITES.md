@@ -4,7 +4,7 @@ Baseline de consolidation : `main` au commit `7b6415f44a9ea39bd41d7e88ea6d232e07
 
 Branche de consolidation : `docs/consolidate-06-07-t03-20260916`.
 
-Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-186. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
+Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-187. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
 
 ## Matrice
 
@@ -18,7 +18,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Filtrer / Trier — comportement | Filtrer/Trier communs ; Filtrer Activités → `Archivées` ; Trier visible disabled ; aucune option inventée | 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-02/05 | contrôles tous désactivés / contenu implicite | CONFORME | Fonctionnel déterministe. |
 | Filtrer / Trier — panneaux/options ouverts | Aucun détail graphique inventé tant que panneaux/options non dessinés | 06, 07 D-184, PRODUCT, 13, Figma | « représentation Filtrer/Trier non conçue » appliquée indistinctement aux boutons et panneaux | NON VÉRIFIABLE | Seuls les panneaux/options ouverts restent sans design validé. |
 | Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
-| Arbre Créer Catalogue | 3 commandes Catalogue restent visibles sous scrim ; arbre ancré à `Créer` | 06, 07 D-184, PRODUCT, 13 CE-T03-03, Figma `3787:5148`, `3841:8375` | arbre rattaché à ancien bouton centré ; disparition implicite Filtrer/Trier | CONFORME | Ancrage et arrière-plan explicités. |
+| `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
 | Cycle de vie ActivityDefinition | créer, modifier, archiver, restaurer, supprimer depuis archives | 04, 06, 07, 08, 09/09 bis, 10, 11, 13 CE-T03-04/05 | CRUD incomplet | CONFORME | Accès Archives via Filtrer. |
 | Suppression ActivityDefinition | aucune cascade vers SessionActivity / historique | 04, 07, 09–12, 09 bis, 13 CE-T03-05 | cascade implicite | CONFORME | D-169. |
 | Création depuis Composition | nouvelle activité = SessionActivity uniquement ; pas save-to-catalogue | 02–04, 06–13 | action future bibliothèque | CONFORME | D-170. |
@@ -51,10 +51,10 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 ## Évidences Figma contrôlées le 16 septembre 2026
 
 - `3786:5093` Catalogue Activités — liste ;
-- `3787:5148` arbre Créer Activités ;
+- `3787:5148` ancien arbre Créer Activités — historique/supersédé par D-187 ;
 - `1992:9910` Catalogue des séances — liste par défaut ;
 - `1992:10129` Recherche globale — Champ déployé ;
-- `3841:8375` arbre Créer Séances ;
+- `3841:8375` ancien arbre Créer Séances — historique/supersédé par D-187 ;
 - `3561:4695` Création activité — Répétitions / Pause / Séries — avec mode ;
 - `3561:7673` Création activité — Répétitions — roulette compacte ouverte ;
 - `3561:7802` Création activité — À l’échec ;
@@ -76,7 +76,7 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Contrôle | Résultat | Évidence |
 |---|---|---|
 | Corrections UX T03 intégrées dans 06 | CONFORME | Règles UX T03 présentes dans les sections concernées de 06 ; anciennes formulations contradictoires remplacées. |
-| D-167 à D-186 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-108, D-116, D-164, D-166 et RES-NAV-LABEL-01 portent leur supersession explicite. |
+| D-167 à D-187 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-187 supersède explicitement l’ancien arbre `Créer` des Catalogues. |
 | 13 unique | CONFORME | `13 – Contrats d’écran.md` reste l’unique référence des contrats T03. |
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
