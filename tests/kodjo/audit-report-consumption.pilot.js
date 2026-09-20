@@ -55,7 +55,7 @@ test('F12: execute the actual runner evidence block with native PowerShell and r
     const start=runner.indexOf('  if (-not $isVisual) {\n    $reportPath');assert.ok(start>=0);
     const end=runner.indexOf('\n  }',start)+4;assert.ok(end>start);
     const block=runner.slice(start,end);
-    const script="$ErrorActionPreference='Stop'\n$runDir=$args[0]\n$runtimeScriptRoot=$args[1]\n$queue=@{request_id='r1';source_head=('a'*40)}\n$isVisual=$false\n$reviewBody=''\n"+block+"\n[IO.File]::WriteAllText((Join-Path $runDir 'transport.md'),$reviewBody)\n";
+    const script="$ErrorActionPreference='Stop'\n$runDir=$args[0]\n$runtimeScriptRoot=$args[1]\n$queue=@{request_id='r1';source_head=('a'*40)}\n$isVisual=$false\n$usesExistingPr=$false\n$applicationHead=$null\n$reviewBaseHead=[string]$queue.source_head\n$reviewBody=''\n"+block+"\n[IO.File]::WriteAllText((Join-Path $runDir 'transport.md'),$reviewBody)\n";
     fs.writeFileSync(path.join(dir,'block.ps1'),script);
     for(const [name,text] of Object.entries(variants)){
       fs.writeFileSync(path.join(dir,'claude-output.json'),JSON.stringify({result:text}));
