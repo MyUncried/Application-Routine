@@ -56,7 +56,8 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /scan-plan-impact\.js"? scan "\$APPLICATION_HEAD"/);
   assert.match(plan, /verify-plan-impact\.js/);
   assert.match(plan, /planning_contract=kodjo\.plan-impact\.v1/);
-  assert.match(plan, /APPLICATION FILE INVENTORY/);
+  assert.match(plan, /build-planning-context\.js/);
+  assert.match(read('scripts/kodjo/build-planning-context.js'), /'code-files\.txt'/);
   assert.match(plan, /derives scope_allow/);
   assert.match(plan, /full Jest, TypeScript and lint/);
 });
