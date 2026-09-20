@@ -74,6 +74,8 @@ jobs:
           fi
           echo "full_windows_required=$full" >> "$GITHUB_OUTPUT"
           echo "KODJO_CI_CLASSIFICATION_FULL_WINDOWS=$full"
+      - name: Install isolated planning tokenizer
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
       - name: Qualify authenticated private HEAD lookup on Linux
         env:
           GH_TOKEN: ${{ github.token }}
@@ -112,7 +114,7 @@ jobs:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
-          tar --exclude=.git -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
+          tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
           sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
       - name: Preserve complete source snapshot
         uses: actions/upload-artifact@v4
@@ -207,6 +209,12 @@ jobs:
             }
           }
           if ($failed) { exit 1 }
+      - name: Install isolated planning tokenizer on Windows
+        working-directory: _qualification/${{ github.run_id }}
+        shell: powershell
+        run: |
+          npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run complete KODJO pilot suite on Windows
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}

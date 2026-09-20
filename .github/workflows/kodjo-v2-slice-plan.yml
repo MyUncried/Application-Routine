@@ -21,7 +21,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: kodjo-v2-slice-plan-${{ github.event.issue.number || inputs.issue_number }}
+  group: kodjo-openai-planning
   cancel-in-progress: false
 
 jobs:
@@ -105,6 +105,9 @@ jobs:
           REVIEW_OID=$(git rev-parse "$SOURCE_HEAD:$REVIEW_PATH")
           printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\nprotocol_execution_head=%s\napplication_pr=%s\napplication_head=%s\ntarget_branch=%s\nplan_path=%s\nreview_path=%s\nmission_path=%s\nplan_oid=%s\nreview_oid=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$ACTUAL" "$APPLICATION_PR" "$APPLICATION_HEAD" "$target_branch" "$PLAN_PATH" "$REVIEW_PATH" "$MISSION_PATH" "$PLAN_OID" "$REVIEW_OID" >> "$GITHUB_OUTPUT"
 
+      - name: Install isolated planning tokenizer
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+
       - name: Build authoritative V2 planning packet
         shell: bash
         env:
@@ -115,6 +118,8 @@ jobs:
           PLAN_PATH: ${{ steps.gate.outputs.plan_path }}
           REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
+          APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-v2-plan
@@ -141,6 +146,7 @@ jobs:
             cat "/tmp/kodjo-v2-plan/source/$file" >> /tmp/kodjo-v2-plan/product-evidence.txt
           done < /tmp/kodjo-v2-plan/sources.list
           git -C /tmp/kodjo-v2-plan/application ls-files app src > /tmp/kodjo-v2-plan/code-files.txt
+          node scripts/kodjo/build-planning-context.js /tmp/kodjo-v2-plan
           test -z "$(git -C /tmp/kodjo-v2-plan/source status --porcelain --untracked-files=all)"
           test -z "$(git -C /tmp/kodjo-v2-plan/application status --porcelain --untracked-files=all)"
 
@@ -156,7 +162,8 @@ jobs:
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
           You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against immutable product HEAD $SOURCE_HEAD, protocol execution HEAD $PROTOCOL_EXECUTION_HEAD and exact application HEAD $APPLICATION_HEAD. The source-to-execution transition is proven protocol-only. This phase is READ-ONLY: never modify repository files and never implement.
-          The V2 slice bootstrap, planning mission, current product sources, Issue, comments, prior technical plan and prior independent review supplied below are authoritative. Preserve validated product decisions. Do not invent a V1 manifest, reuse a V1 slice contract or extend the functional scope.
+          The V2 slice bootstrap, planning mission, current product sources, Issue, selected base plan and its latest independent review supplied below are authoritative. Preserve validated product decisions. Do not invent a V1 manifest, reuse a V1 slice contract or extend the functional scope.
+          Targeted validation evidence certifies only its delta; never infer global conformity, implementation, merge or closure authorization. Keep all narrative sections in French.
           Declare every application module that the revised implementation would CREATE or MODIFY in exactly one block:
           <KODJO_MODIFIED_MODULES_JSON>
           [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
@@ -164,22 +171,12 @@ jobs:
           Use repository-relative POSIX paths only. This is a draft pending the deterministic direct-import scan.
           Preserve or rebuild exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> block with schema kodjo.ui-criteria.v1. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. The final closure prompt will revalidate this block.
           EOF
-          for file in slice-bootstrap.json planning-mission.md prior-technical-plan.md prior-independent-review.md product-evidence.txt; do
-            printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-plan/draft-prompt.txt
-            cat "/tmp/kodjo-v2-plan/$file" >> /tmp/kodjo-v2-plan/draft-prompt.txt
-          done
-          printf '\n===== APPLICATION FILE INVENTORY =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
-          cat /tmp/kodjo-v2-plan/code-files.txt >> /tmp/kodjo-v2-plan/draft-prompt.txt
           if [ -f "$RUNNER_TEMP/requalification-trigger.txt.proof.json" ]; then
-            printf '\nFULL SLICE REQUALIFICATION REQUIRED. The following proof validates only the targeted delta. Audit every normative requirement; preserve this proof without treating it as global conformity or authorization.\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
-            cat "$RUNNER_TEMP/requalification-trigger.txt.proof.json" >> /tmp/kodjo-v2-plan/draft-prompt.txt
+            echo "FULL SLICE REQUALIFICATION REQUIRED. Audit every normative requirement; the targeted proof is not global approval." >> /tmp/kodjo-v2-plan/draft-prompt.txt
           fi
-          printf '\n===== ISSUE =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
-          jq -r '.body' /tmp/kodjo-v2-plan/issue.json >> /tmp/kodjo-v2-plan/draft-prompt.txt
-          printf '\n===== ISSUE COMMENTS =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
-          jq -r '.[] | "COMMENT_ID="+(.id|tostring)+"\n"+.body+"\n---"' /tmp/kodjo-v2-plan/comments.json >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          cat /tmp/kodjo-v2-plan/canonical-context.txt >> /tmp/kodjo-v2-plan/draft-prompt.txt
           node scripts/kodjo/generate-ui-plan-contract.js request draft /tmp/kodjo-v2-plan/draft-prompt.txt /tmp/kodjo-v2-plan/draft-request.json
-          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-plan/draft-request.json -o /tmp/kodjo-v2-plan/draft-response.json
+          node scripts/kodjo/openai-plan-request.js /tmp/kodjo-v2-plan/draft-request.json /tmp/kodjo-v2-plan/draft-response.json /tmp/kodjo-v2-plan/draft-api-evidence.json /tmp/kodjo-v2-plan/api-pacing.json
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-plan/draft-response.json)" = completed
           node scripts/kodjo/generate-ui-plan-contract.js decode draft /tmp/kodjo-v2-plan/draft-response.json /tmp/kodjo-v2-plan/plan-draft.md
 
@@ -206,8 +203,10 @@ jobs:
           A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If the prose contains a scope_allow section, it must enumerate exactly the complete machine write scope.
           Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint.
           Include exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> JSON block with schema kodjo.ui-criteria.v1. For every UI-adjacent normative requirement in scope, provide an atomic criterion with criterion_id, source {path, locator, requirement}, risk_types, reuse_search, component_decision REUSE|EXTEND|CREATE, selected_component, decision_justification, change_targets, tests and proof_required. Provide preservation {preserve:[], change:[], forbidden:[]}. Do not silently drop prior criteria during revision. A CREATE decision must follow an explicit search for existing components/patterns. For a genuinely non-UI plan, emit criteria:[] and empty preservation arrays.
+          Keep all narrative sections in French. Preserve the supplied current command, including documentary corrections, through final closure.
           End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
           EOF
+            cat /tmp/kodjo-v2-plan/current-command.txt >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
             cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\n===== DETERMINISTIC DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-plan/final-prompt.txt
@@ -215,7 +214,7 @@ jobs:
             printf '\nSCAN_SHA256=' >> /tmp/kodjo-v2-plan/final-prompt.txt
             cat /tmp/kodjo-v2-plan/direct-import-scan.sha256 >> /tmp/kodjo-v2-plan/final-prompt.txt
             node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-plan/final-prompt.txt "/tmp/kodjo-v2-plan/final-request-$iteration.json"
-            curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @"/tmp/kodjo-v2-plan/final-request-$iteration.json" -o "/tmp/kodjo-v2-plan/final-response-$iteration.json"
+            node scripts/kodjo/openai-plan-request.js "/tmp/kodjo-v2-plan/final-request-$iteration.json" "/tmp/kodjo-v2-plan/final-response-$iteration.json" "/tmp/kodjo-v2-plan/final-api-evidence-$iteration.json" /tmp/kodjo-v2-plan/api-pacing.json
             test "$(jq -r '.status // "missing"' "/tmp/kodjo-v2-plan/final-response-$iteration.json")" = completed
             node scripts/kodjo/generate-ui-plan-contract.js decode final "/tmp/kodjo-v2-plan/final-response-$iteration.json" /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json
             node scripts/kodjo/assemble-plan-impact.js close /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/plan-impact-closure.json
@@ -265,6 +264,8 @@ jobs:
             echo "application_head=$APPLICATION_HEAD"
             echo "supersedes_plan_blob_oid=$PLAN_OID"
             echo "prior_review_blob_oid=$REVIEW_OID"
+            echo "planning_context_sha256=$(jq -r .sha256 /tmp/kodjo-v2-plan/context-manifest.json)"
+            jq -r '.selection[] | select(.role == "BASE_PLAN" or .role == "INDEPENDENT_REVIEW" or .role == "RESUMED_COMMAND") | (.role | ascii_downcase) + "_comment_id=" + .id' /tmp/kodjo-v2-plan/context-manifest.json
             echo 'planning_contract=kodjo.plan-impact.v1'
             echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
@@ -283,6 +284,9 @@ jobs:
         with:
           name: kodjo-v2-slice-plan-${{ github.run_id }}
           path: |
+            /tmp/kodjo-v2-plan/*api-evidence*.json
+            /tmp/kodjo-v2-plan/context-manifest.json
+            /tmp/kodjo-v2-plan/context-error.json
             /tmp/kodjo-v2-plan/slice-bootstrap.json
             /tmp/kodjo-v2-plan/planning-mission.md
             /tmp/kodjo-v2-plan/prior-technical-plan.md

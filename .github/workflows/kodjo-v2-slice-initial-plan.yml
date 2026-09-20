@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: kodjo-v2-initial-plan-${{ github.event.issue.number }}
+  group: kodjo-openai-planning
   cancel-in-progress: false
 
 jobs:
@@ -67,6 +67,9 @@ jobs:
           git cat-file -e "$SOURCE_HEAD^{commit}"
           printf 'slice_id=%s\nbootstrap_path=%s\nsource_head=%s\nmission_path=%s\nseed_path=%s\ntarget_branch=%s\n' "$SLICE_ID" "$BOOTSTRAP_PATH" "$SOURCE_HEAD" "$MISSION_PATH" "$SEED_PATH" "$target_branch" >> "$GITHUB_OUTPUT"
 
+      - name: Install isolated planning tokenizer
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+
       - name: Build immutable initial planning packet
         shell: bash
         env:
@@ -74,6 +77,8 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
           SEED_PATH: ${{ steps.gate.outputs.seed_path }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
+          PLANNING_MODE: initial
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-v2-initial
@@ -89,6 +94,7 @@ jobs:
             /tmp/kodjo-v2-initial/source \
             /tmp/kodjo-v2-initial/product-evidence.txt
           git -C /tmp/kodjo-v2-initial/source ls-files app src > /tmp/kodjo-v2-initial/code-files.txt
+          node scripts/kodjo/build-planning-context.js /tmp/kodjo-v2-initial
 
       - name: Draft initial V2 plan
         shell: bash
@@ -104,11 +110,9 @@ jobs:
           Return a complete French technical plan in the structured response field plan_markdown. Separately return modified_modules with every application module that implementation would CREATE or MODIFY, using repository-relative POSIX paths only. Return plan_status=READY_FOR_INDEPENDENT_REVIEW only if no clarification remains; otherwise plan_status=CLARIFICATION_REQUIRED. Do not embed KODJO tags or PLAN_STATUS markers inside plan_markdown; the workflow assembles those mechanically. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If plan_markdown contains a scope_allow section, it must enumerate exactly the complete write scope; the workflow will reconcile that section mechanically with the deterministic direct-impact closure before contract verification.
           Separately return ui_criteria_matrix as an object with schema kodjo.ui-criteria.v1. For UI-adjacent changes, decompose every normative requirement into atomic criteria with criterion_id, source {path, locator, requirement}, risk_types, reuse_search, component_decision REUSE|EXTEND|CREATE, selected_component, decision_justification, change_targets, tests and proof_required. Also provide explicit preservation {preserve:[], change:[], forbidden:[]} entries. Search for existing components/patterns before CREATE; do not silently replace a validated primitive. For a genuinely non-UI plan, return the same object with criteria:[] and empty preservation arrays. Do not embed this machine object or any KODJO tag inside plan_markdown; the workflow assembles it mechanically.
           EOF
-          for file in slice-bootstrap.json planning-mission.md product-evidence.txt code-files.txt issue.json comments.json non-opposable-seed-plan.md; do
-            if test -f "/tmp/kodjo-v2-initial/$file"; then printf '\n===== %s =====\n' "$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; cat "/tmp/kodjo-v2-initial/$file" >> /tmp/kodjo-v2-initial/draft-prompt.txt; fi
-          done
+          cat /tmp/kodjo-v2-initial/canonical-context.txt >> /tmp/kodjo-v2-initial/draft-prompt.txt
           node scripts/kodjo/generate-ui-plan-contract.js request draft /tmp/kodjo-v2-initial/draft-prompt.txt /tmp/kodjo-v2-initial/draft-request.json
-          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-initial/draft-request.json -o /tmp/kodjo-v2-initial/draft-response.json
+          node scripts/kodjo/openai-plan-request.js /tmp/kodjo-v2-initial/draft-request.json /tmp/kodjo-v2-initial/draft-response.json /tmp/kodjo-v2-initial/draft-api-evidence.json /tmp/kodjo-v2-initial/api-pacing.json
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-initial/draft-response.json)" = completed
           # KODJO_MODIFIED_MODULES_JSON and KODJO_UI_CRITERIA_MATRIX_JSON are rendered only after contract acceptance.
           node scripts/kodjo/generate-ui-plan-contract.js decode draft /tmp/kodjo-v2-initial/draft-response.json /tmp/kodjo-v2-initial/plan-draft.md
@@ -133,7 +137,7 @@ jobs:
           cat /tmp/kodjo-v2-initial/scan.json >> /tmp/kodjo-v2-initial/decision-prompt.txt
           DECISION_SCHEMA=$(jq -nc '{type:"object",additionalProperties:false,required:["decisions"],properties:{decisions:{type:"array",items:{type:"object",additionalProperties:false,required:["path","classification","justification"],properties:{path:{type:"string",minLength:1},classification:{type:"string",enum:["MODIFY","TEST_MUST_ADAPT","CONSUMER_UNAFFECTED","TEST_UNAFFECTED","REQUIRES_CLARIFICATION"]},justification:{type:"string",minLength:1}}}}}}')
           jq -n --arg model 'gpt-5.6-luna' --rawfile prompt /tmp/kodjo-v2-initial/decision-prompt.txt --argjson schema "$DECISION_SCHEMA" '{model:$model,input:$prompt,store:false,reasoning:{effort:"high"},max_output_tokens:12000,text:{verbosity:"low",format:{type:"json_schema",name:"kodjo_initial_plan_decisions",strict:true,schema:$schema}}}' > /tmp/kodjo-v2-initial/decision-request.json
-          curl --fail-with-body -sS https://api.openai.com/v1/responses -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' -d @/tmp/kodjo-v2-initial/decision-request.json -o /tmp/kodjo-v2-initial/decision-response.json
+          node scripts/kodjo/openai-plan-request.js /tmp/kodjo-v2-initial/decision-request.json /tmp/kodjo-v2-initial/decision-response.json /tmp/kodjo-v2-initial/decision-api-evidence.json /tmp/kodjo-v2-initial/api-pacing.json
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-initial/decision-response.json)" = completed
           jq -er '[.output[]? | select(.type=="message") | .content[]? | select(.type=="output_text") | .text] | join("\n") | select(length>0)' /tmp/kodjo-v2-initial/decision-response.json > /tmp/kodjo-v2-initial/decision-structured.json
           jq -e '.decisions|type=="array"' /tmp/kodjo-v2-initial/decision-structured.json >/dev/null
@@ -201,6 +205,9 @@ jobs:
         with:
           name: kodjo-v2-initial-plan-${{ github.run_id }}
           path: |
+            /tmp/kodjo-v2-initial/*api-evidence*.json
+            /tmp/kodjo-v2-initial/context-manifest.json
+            /tmp/kodjo-v2-initial/context-error.json
             /tmp/kodjo-v2-initial/technical-plan.md
             /tmp/kodjo-v2-initial/scan.json
             /tmp/kodjo-v2-initial/matrix.json
