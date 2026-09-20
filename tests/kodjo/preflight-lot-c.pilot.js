@@ -80,12 +80,15 @@ test('lot C: queue modifiée après préflight est refusée',()=>{
   assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_QUEUE_BLOB_MISMATCH/);
 });
 
-test('lot C: prompt modifié après préflight est refusé avant Claude',()=>{
+test('lot C: la mission attestée est relue au HEAD protocolaire immuable',()=>{
   const f=fixture();
-  fs.writeFileSync(path.join(f.dir,'mission.md'),'mission v2\n');
-  assert.throws(()=>verifyLocalFreshness({
+  fs.writeFileSync(path.join(f.dir,'mission.md'),'mission v2\\n');
+  assert.doesNotThrow(()=>verifyLocalFreshness({
     preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
-  }),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+  }));
+  const supervisor=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
+  assert.match(supervisor,/Source\\.readFileAtHead\\(promptRelative, request\\.protocol_source_head/);
+  assert.match(supervisor,/WORKTREE_NOT_CLEAN/);
 });
 
 test('lot C: package-lock modifié après préflight est refusé avant Claude',()=>{
