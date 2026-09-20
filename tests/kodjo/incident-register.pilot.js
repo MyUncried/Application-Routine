@@ -139,7 +139,8 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
   assert.ok(pilotWorkflow.includes('id: change_class'));
   assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
-  assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md'));
+  assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'));
+  assert.ok(pilotWorkflow.includes("- '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'"));
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
   assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
