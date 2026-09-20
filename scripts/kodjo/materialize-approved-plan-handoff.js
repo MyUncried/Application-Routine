@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { canonical, sha256 } = require('./lib/slice-identity');
 const { renderImplementationMission } = require('./lib/implementation-contract');
+const { verifyTransition } = require('./verify-plan-review-transition');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const ID = /^[1-9][0-9]*$/;
@@ -50,6 +51,47 @@ function gitBlobAt(cwd, rev, file) {
 function currentBlobIfPresent(cwd, file) {
   const r = spawnSync('git', ['rev-parse', 'HEAD:' + file], { cwd, encoding: 'utf8', windowsHide: true });
   return !r.error && r.status === 0 ? String(r.stdout).trim() : null;
+}
+
+function verifyHandoffFreshness({ cwd, planBody, reviewBody, impact, bootstrap, bootstrapRel, repository, readPullRequest }) {
+  const sourceHead = field(planBody, 'source_head');
+  const reviewHead = field(reviewBody, 'protocol_execution_head');
+  const executionHead = git(['rev-parse', 'HEAD'], cwd);
+  if (!SHA40.test(sourceHead) || field(reviewBody, 'source_head') !== sourceHead || !SHA40.test(reviewHead)) {
+    fail('HANDOFF_PROTOCOL_IDENTITY_MISMATCH');
+  }
+  // Reuse the canonical closed protocol transition: product inputs and policy
+  // provenance remain checked even when a protocol-only fix follows approval.
+  verifyTransition({ cwd, sourceHead: reviewHead, executionHead, bootstrapPath: bootstrapRel });
+  verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath: bootstrapRel });
+
+  const initial = field(planBody, 'planning_mode') === 'INITIAL';
+  if (initial) {
+    if (field(reviewBody, 'planning_mode') !== 'INITIAL' || impact.scan_revision !== sourceHead ||
+        field(planBody, 'application_pr') || field(reviewBody, 'application_pr')) {
+      fail('HANDOFF_INITIAL_IDENTITY_MISMATCH');
+    }
+    const drift = git(['diff', '--name-only', impact.scan_revision, 'HEAD', '--', 'app', 'src'], cwd)
+      .split(/\r?\n/).filter(Boolean);
+    if (drift.length) fail('HANDOFF_APPLICATION_DRIFT', drift.join(', '));
+    return;
+  }
+  const applicationPr = field(planBody, 'application_pr');
+  const applicationHead = field(planBody, 'application_head');
+  if (!ID.test(applicationPr) || !SHA40.test(applicationHead) || applicationHead !== impact.scan_revision ||
+      field(reviewBody, 'application_pr') !== applicationPr || field(reviewBody, 'application_head') !== applicationHead ||
+      field(reviewBody, 'planning_mode') === 'INITIAL') {
+    fail('HANDOFF_APPLICATION_IDENTITY_MISMATCH');
+  }
+  const application = readPullRequest(applicationPr);
+  if (!application || application.number !== Number(applicationPr) || application.state !== 'open' || application.merged !== false ||
+      application.base?.ref !== bootstrap.target_branch || application.base?.repo?.full_name !== repository ||
+      application.head?.repo?.full_name !== repository) {
+    fail('HANDOFF_APPLICATION_PR_MISMATCH');
+  }
+  if (application.head.sha !== applicationHead) {
+    fail('HANDOFF_APPLICATION_DRIFT', 'PR ' + applicationPr + ' expected=' + applicationHead + ' observed=' + application.head.sha);
+  }
 }
 
 function main() {
@@ -108,11 +150,8 @@ function main() {
   if (!SHA40.test(currentPlanningHead)) fail('HANDOFF_PLANNING_APPLICATION_HEAD_MISSING');
   if (String(matches[0].planning_application_head || '') !== currentPlanningHead) fail('HANDOFF_PLANNING_APPLICATION_HEAD_REGISTRY_MISMATCH');
 
-  // No application drift is allowed between the application revision scanned by
-  // the approved plan and the protocol HEAD that materializes it.
-  const drift = git(['diff', '--name-only', String(impact.scan_revision), 'HEAD', '--', 'app', 'src'], cwd)
-    .split(/\r?\n/).filter(Boolean);
-  if (drift.length) fail('HANDOFF_APPLICATION_DRIFT', drift.join(', '));
+  verifyHandoffFreshness({ cwd, planBody, reviewBody, impact, bootstrap, bootstrapRel, repository,
+    readPullRequest: (number) => gh('repos/' + repository + '/pulls/' + number, cwd) });
 
   const sliceDirRel = '.github/orchestration/v2-slices/' + sliceId;
   const planRel = sliceDirRel + '/technical-plan.md';
@@ -171,8 +210,12 @@ function main() {
     ' plan=' + planBlob.slice(0, 12) + ' scope=' + impact.scope_allow.length + '\n');
 }
 
+if (require.main === module) {
 try { main(); }
 catch (error) {
   process.stderr.write(String(error && error.message ? error.message : error) + '\n');
   process.exit(1);
 }
+}
+
+module.exports = { verifyHandoffFreshness };
