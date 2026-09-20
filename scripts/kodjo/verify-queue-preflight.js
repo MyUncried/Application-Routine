@@ -13,6 +13,7 @@ const { verify: verifyAuthorizations } = require('./verify-authorizations');
 const { verify: verifyVisualCheckpoint } = require('./verify-visual-checkpoint');
 const { queueChanges, consumedRegistry, blobOid, QUEUE_DIR } = require('./verify-queue-admission');
 const { readRecoveryCandidate } = require('./run-local-claude');
+const { verifyMaterializedRecoveryPackage } = require('./prepare-visual-recovery');
 const { extractTaggedJson } = require('./lib/plan-impact');
 const P = require('./lib/preflight-contract');
 const Source = require('./lib/preflight-source');
@@ -278,6 +279,10 @@ function runPreflight(options = {}) {
     if (probes.recovery) return probes.recovery(queue,normalized,cwd);
     if (!queue || String(queue.mode || '').toUpperCase() !== 'RESUME_DELTA') return {status:'NOT_REQUIRED'};
     if (String(queue.operation_kind || '').toUpperCase() === 'VISUAL_CORRECTION') return {status:'CHECKPOINT_BASELINE',checkpoint_ref:queue.delivery_checkpoint && queue.delivery_checkpoint.checkpoint_ref};
+    if (queue.materialized_recovery !== undefined) {
+      const packageDir = String(process.env.KODJO_SOURCE_RECOVERY_DIR || '').trim();
+      return verifyMaterializedRecoveryPackage(projected, { packageDir, cwd });
+    }
     const stateRoot = process.env.KODJO_STATE_ROOT ? path.resolve(process.env.KODJO_STATE_ROOT) : path.join(os.homedir(),'.kodjo-v2');
     const runsRoot = path.join(stateRoot,'runs');
     if (fs.existsSync(runsRoot)) {
