@@ -150,8 +150,11 @@ test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non dé
 test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy', () => {
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
   assert.match(wf,/Prepare criterion-complete UI review input/);
-  assert.match(wf,/verify-ui-implementation-review\.js prepare/);
-  assert.match(wf,/verify-ui-implementation-review\.js validate/);
+  assert.match(wf,/review_prepare=\(prepare/);
+  assert.match(wf,/review_validate=\(validate/);
+  assert.match(wf,/cumulative_review_base/);
+  assert.match(wf,/previous_review_comment_id/);
+  assert.match(wf,/review_scope=AFFECTED or INHERITED/);
   assert.match(wf,/KODJO_UI_IMPLEMENTATION_REVIEW_JSON/);
   assert.match(wf,/device_gate_required/);
   assert.match(wf,/legacy path unchanged/);
@@ -175,6 +178,148 @@ test('audit F14: device proof table preserves only PENDING_DEVICE or demonstrate
       else assert.notEqual(r.status,0,type+':'+status);
     }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+
+function deltaFixture() {
+  const criteria = [
+    {
+      criterion_id:'UI-001',
+      source:{path:'docs/ui.md',locator:'R1',requirement:'Modifier A.'},
+      risk_types:['FUNCTIONAL'],
+      reuse_search:['src/shared/ui'],
+      component_decision:'REUSE',
+      selected_component:'A',
+      decision_justification:'Delta A.',
+      change_targets:['src/A.tsx'],
+      tests:['src/A.test.tsx'],
+      proof_required:['FUNCTIONAL_TEST','ACCESSIBILITY_CHECK'],
+    },
+    {
+      criterion_id:'UI-002',
+      source:{path:'docs/ui.md',locator:'R2',requirement:'Préserver B.'},
+      risk_types:['DEVICE'],
+      reuse_search:['src/shared/ui'],
+      component_decision:'REUSE',
+      selected_component:'B',
+      decision_justification:'Composant B.',
+      change_targets:['src/B.tsx'],
+      tests:['src/B.test.tsx'],
+      proof_required:['ACCESSIBILITY_CHECK','DEVICE_CHECK'],
+    },
+  ];
+  const matrix={schema:'kodjo.ui-criteria.v1',criteria,preservation:{preserve:[],change:[{target:'A',justification:'Delta A.'}],forbidden:[]}};
+  const contract={schema:'kodjo.ui-plan-contract.v1',contract_version:1,protocol_commit:'a'.repeat(40),
+    scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/A.tsx','src/B.tsx'],
+    criterion_count:2,matrix_sha256:matrixFingerprint(matrix)};
+  return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+}
+function previousDeltaReview() {
+  return {
+    schema:'kodjo.ui-implementation-review.v1',
+    verdict:'REVISE',
+    device_gate_required:true,
+    criteria:[
+      {
+        criterion_id:'UI-001',implementation_status:'NON_CONFORME',preserve_status:'PASS',
+        evidence:'Ancien défaut A.',
+        proof_results:[
+          {proof_type:'FUNCTIONAL_TEST',status:'FAIL',evidence:'Ancien test A en échec.'},
+          {proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'Device restant.'},
+        ],
+      },
+      {
+        criterion_id:'UI-002',implementation_status:'NON_VERIFIABLE',preserve_status:'PASS',
+        evidence:'B inchangé; seules les preuves appareil restent ouvertes.',
+        proof_results:[
+          {proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'VoiceOver/TalkBack à vérifier.'},
+          {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis.'},
+        ],
+      },
+    ],
+    boundary_results:[],
+  };
+}
+function withDeltaFiles(action) {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-delta-review-'));
+  try {
+    const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),previous=path.join(dir,'previous.md');
+    const input=path.join(dir,'input.json'),review=path.join(dir,'review.json'),output=path.join(dir,'output.json');
+    fs.writeFileSync(plan,deltaFixture());
+    fs.writeFileSync(changed,'src/A.tsx\nsrc/A.test.tsx\n');
+    fs.writeFileSync(previous,JSON.stringify(previousDeltaReview()));
+    action({dir,plan,changed,previous,input,review,output});
+  } finally { fs.rmSync(dir,{recursive:true,force:true}); }
+}
+
+test('delta review: le diff immédiat affecte uniquement ses critères et hérite les autres',()=>{
+  withDeltaFiles(({plan,changed,previous,input})=>{
+    const r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
+    assert.equal(r.status,0,r.stderr);
+    const value=JSON.parse(fs.readFileSync(input,'utf8'));
+    assert.equal(value.review_mode,'DELTA_WITH_INHERITANCE');
+    assert.equal(value.criteria.find(c=>c.criterion_id==='UI-001').review_scope,'AFFECTED');
+    const inherited=value.criteria.find(c=>c.criterion_id==='UI-002');
+    assert.equal(inherited.review_scope,'INHERITED');
+    assert.deepEqual(inherited.affected_paths,[]);
+    assert.equal(inherited.inherited_result.implementation_status,'CONFORME');
+    assert.equal(inherited.inherited_result.proof_results.find(p=>p.proof_type==='ACCESSIBILITY_CHECK').status,'PENDING_DEVICE');
+  });
+});
+
+test('delta review: un critère hérité ne peut pas être réinterprété',()=>{
+  withDeltaFiles(({plan,changed,previous,input,review,output})=>{
+    let r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
+    assert.equal(r.status,0,r.stderr);
+    const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
+    const inherited=prepared.criteria.find(c=>c.criterion_id==='UI-002').inherited_result;
+    const value={
+      schema:'kodjo.ui-implementation-review.v1',verdict:'REVISE',device_gate_required:true,
+      criteria:[
+        {
+          criterion_id:'UI-001',implementation_status:'CONFORME',preserve_status:'PASS',evidence:'A corrigé.',
+          proof_results:[
+            {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test A PASS.'},
+            {proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil restant.'},
+          ],
+        },
+        {...inherited,implementation_status:'NON_CONFORME'},
+      ],
+      boundary_results:[],
+    };
+    fs.writeFileSync(review,JSON.stringify(value));
+    r=run(['validate',plan,changed,review,output,'',previous],path.dirname(plan));
+    assert.notEqual(r.status,0);
+    assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_INHERITED_DRIFT/);
+  });
+});
+
+test('delta review: PENDING_DEVICE accessibilité ne bloque pas une approbation technique',()=>{
+  withDeltaFiles(({plan,changed,previous,input,review,output})=>{
+    let r=run(['prepare',plan,changed,input,'',previous],path.dirname(plan));
+    assert.equal(r.status,0,r.stderr);
+    const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
+    const inherited=prepared.criteria.find(c=>c.criterion_id==='UI-002').inherited_result;
+    const value={
+      schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:true,
+      criteria:[
+        {
+          criterion_id:'UI-001',implementation_status:'CONFORME',preserve_status:'PASS',evidence:'A corrigé et tests techniques verts.',
+          proof_results:[
+            {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test A PASS.'},
+            {proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'VoiceOver/TalkBack restant au gate appareil.'},
+          ],
+        },
+        inherited,
+      ],
+      boundary_results:[],
+    };
+    fs.writeFileSync(review,JSON.stringify(value));
+    r=run(['validate',plan,changed,review,output,'',previous],path.dirname(plan));
+    assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'APPROVE');
+  });
 });
 
 function nonUiFixture(action) {

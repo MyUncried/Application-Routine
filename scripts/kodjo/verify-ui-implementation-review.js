@@ -11,8 +11,9 @@ const {inspectImplementation}=require('./lib/implementation-report');
 
 const INPUT_SCHEMA = 'kodjo.ui-implementation-review-input.v1';
 const REVIEW_SCHEMA = 'kodjo.ui-implementation-review.v1';
-const BLOCKING_PROOFS = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS','ACCESSIBILITY_CHECK']);
+const BLOCKING_PROOFS = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS']);
 const DEVICE_PROOFS = new Set(['VISUAL_COMPARE','DEVICE_CHECK']);
+const DEFERABLE_PROOFS = new Set([...DEVICE_PROOFS,'ACCESSIBILITY_CHECK']);
 const IMPLEMENTATION_STATUSES = new Set(['CONFORME','PARTIELLEMENT_CONFORME','NON_CONFORME','NON_VERIFIABLE']);
 const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']);
 const PRESERVE_STATUSES = new Set(['PASS','FAIL','NON_VERIFIABLE']);
@@ -26,7 +27,38 @@ function unique(values, code, label) {
   if (normalized.some((v) => !v) || new Set(normalized).size !== normalized.length) fail(code, label + ' invalide');
   return normalized;
 }
-function buildInput(planBody, changedFiles) {
+function canonicalCriterionResult(row) {
+  const proofs = Array.isArray(row && row.proof_results) ? row.proof_results.map((proof) => ({
+    proof_type:String(proof && proof.proof_type || ''),
+    status:String(proof && proof.status || ''),
+    evidence:String(proof && proof.evidence || ''),
+  })).sort((a,b)=>a.proof_type.localeCompare(b.proof_type)) : [];
+  return {
+    criterion_id:String(row && row.criterion_id || ''),
+    implementation_status:String(row && row.implementation_status || ''),
+    preserve_status:String(row && row.preserve_status || ''),
+    evidence:String(row && row.evidence || ''),
+    proof_results:proofs,
+  };
+}
+function normalizeInheritedResult(row) {
+  const normalized = canonicalCriterionResult(row);
+  const deviceOnlyGap = normalized.preserve_status === 'PASS' && normalized.proof_results.length > 0 &&
+    normalized.proof_results.every((proof) =>
+      proof.status === 'PASS' || (DEFERABLE_PROOFS.has(proof.proof_type) && proof.status === 'PENDING_DEVICE'));
+  if (normalized.implementation_status === 'NON_VERIFIABLE' && deviceOnlyGap) {
+    normalized.implementation_status = 'CONFORME';
+  }
+  return normalized;
+}
+function readPreviousReview(file) {
+  if (!file) return null;
+  const body = fs.readFileSync(path.resolve(file), 'utf8').trim();
+  if (!body) return null;
+  if (body.startsWith('{')) return JSON.parse(body);
+  return extractTaggedJson(body, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON', 'UI_IMPLEMENTATION_PREVIOUS_REVIEW_MISSING');
+}
+function buildInput(planBody, changedFiles, previousReview) {
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_MISSING');
   if (!matrix || matrix.schema !== 'kodjo.ui-criteria.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
@@ -43,24 +75,45 @@ function buildInput(planBody, changedFiles) {
   const changedSet = new Set(changed);
   const uiApplicable = Boolean(planContract.ui_applicable);
   if (!uiApplicable && criteria.length) fail('NON_UI_PLAN_HAS_UI_CRITERIA', 'contrat non UI contradictoire');
+
+  let previousById = null;
+  if (previousReview) {
+    if (previousReview.schema !== REVIEW_SCHEMA || !Array.isArray(previousReview.criteria)) {
+      fail('UI_IMPLEMENTATION_PREVIOUS_REVIEW_INVALID', 'ancienne revue invalide');
+    }
+    previousById = new Map(previousReview.criteria.map((row) => [String(row && row.criterion_id || ''), row]));
+    const previousIds = [...previousById.keys()].sort();
+    if (previousIds.some((id) => !id) || previousById.size !== previousReview.criteria.length ||
+        JSON.stringify(previousIds) !== JSON.stringify(criterionIds)) {
+      fail('UI_IMPLEMENTATION_PREVIOUS_REVIEW_COVERAGE_MISMATCH', 'ancienne revue != critères approuvés');
+    }
+  }
+
   const normalizedCriteria = criteria.map((criterion) => {
     const id = String(criterion.criterion_id);
     const targets = unique(criterion.change_targets || [], 'UI_IMPLEMENTATION_REVIEW_TARGET_INVALID', id + '.change_targets').sort();
     const missingTargets = targets.filter((target) => !changedSet.has(target));
-    if (uiApplicable && missingTargets.length) {
+    const tests = Array.isArray(criterion.tests) ? [...criterion.tests].map(String).sort() : [];
+    const affectedPaths = [...new Set([...targets, ...tests].filter((target) => changedSet.has(target)))].sort();
+    const reviewScope = previousById && affectedPaths.length === 0 ? 'INHERITED' : 'AFFECTED';
+    if (!previousById && uiApplicable && missingTargets.length) {
       fail('UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED', id + ': ' + missingTargets.join(','));
     }
     const proofs = unique(criterion.proof_required || [], 'UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_required').sort();
-    return {
+    const normalized = {
       criterion_id: id,
       source: criterion.source,
       component_decision: criterion.component_decision,
       selected_component: criterion.selected_component,
       change_targets: targets,
-      tests: Array.isArray(criterion.tests) ? [...criterion.tests].map(String).sort() : [],
+      tests,
       proof_required: proofs,
-      device_proof_required: proofs.some((p) => DEVICE_PROOFS.has(p)),
+      device_proof_required: proofs.some((p) => DEFERABLE_PROOFS.has(p)),
+      review_scope: reviewScope,
+      affected_paths: affectedPaths,
     };
+    if (reviewScope === 'INHERITED') normalized.inherited_result = normalizeInheritedResult(previousById.get(id));
+    return normalized;
   }).sort((a,b) => a.criterion_id.localeCompare(b.criterion_id));
 
   const preservation = matrix.preservation || { preserve:[], change:[], forbidden:[] };
@@ -68,6 +121,7 @@ function buildInput(planBody, changedFiles) {
 
   return {
     schema: INPUT_SCHEMA,
+    review_mode: previousById ? 'DELTA_WITH_INHERITANCE' : 'FULL',
     ui_applicable: uiApplicable,
     ui_matrix_sha256: planContract.matrix_sha256,
     criterion_count: normalizedCriteria.length,
@@ -107,7 +161,16 @@ function validateReview(input, review) {
     if (!PRESERVE_STATUSES.has(String(row.preserve_status))) {
       fail('UI_IMPLEMENTATION_REVIEW_STATUS_INVALID', id + '.preserve_status');
     }
-    if (String(row.implementation_status) !== 'CONFORME' || String(row.preserve_status) !== 'PASS') blocking = true;
+    const reviewScope = expected.review_scope || 'AFFECTED';
+    if (reviewScope === 'INHERITED') {
+      const observed = canonicalCriterionResult(row);
+      const inherited = canonicalCriterionResult(expected.inherited_result);
+      if (JSON.stringify(observed) !== JSON.stringify(inherited)) {
+        fail('UI_IMPLEMENTATION_REVIEW_INHERITED_DRIFT', id + ': critère non affecté réévalué');
+      }
+    }
+    if (String(row.preserve_status) !== 'PASS') blocking = true;
+    if (['PARTIELLEMENT_CONFORME','NON_CONFORME'].includes(String(row.implementation_status))) blocking = true;
     const proofs = Array.isArray(row.proof_results) ? row.proof_results : null;
     if (!proofs) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_results absent');
     const expectedProofs = expected.proof_required.slice().sort();
@@ -122,6 +185,11 @@ function validateReview(input, review) {
       if (DEVICE_PROOFS.has(type)) {
         if (status !== 'PENDING_DEVICE' && status !== 'FAIL') fail('UI_IMPLEMENTATION_REVIEW_DEVICE_PROOF_UNSUPPORTED', id + ':' + type + ' doit rester PENDING_DEVICE sauf defaut demontre');
         if (status === 'FAIL') blocking = true;
+      } else if (type === 'ACCESSIBILITY_CHECK') {
+        if (!['PASS','PENDING_DEVICE','FAIL'].includes(status)) {
+          fail('UI_IMPLEMENTATION_REVIEW_ACCESSIBILITY_PROOF_UNSUPPORTED', id + ':' + type + ':' + status);
+        }
+        if (status === 'FAIL') blocking = true;
       } else if (BLOCKING_PROOFS.has(type)) {
         if (status !== 'PASS') blocking = true;
       }
@@ -129,6 +197,12 @@ function validateReview(input, review) {
       if (typeof proof.evidence !== 'string' || !proof.evidence.trim()) {
         fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ': evidence absente');
       }
+    }
+    if (String(row.implementation_status) === 'NON_VERIFIABLE') {
+      const deviceOnlyGap = proofs.length > 0 && proofs.every((proof) =>
+        String(proof.status) === 'PASS' ||
+        (DEFERABLE_PROOFS.has(String(proof.proof_type)) && String(proof.status) === 'PENDING_DEVICE'));
+      if (!deviceOnlyGap) blocking = true;
     }
     if (typeof row.evidence !== 'string' || !row.evidence.trim()) {
       fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', id + ': evidence absente');
@@ -179,7 +253,8 @@ function validateReview(input, review) {
   // F12: completeness is mechanically observable; semantic truth remains the
   // independent reviewer's job. Use its existing NON_VERIFIABLE/REVISE states.
   if (input.implementation_report && input.implementation_report.status !== 'COMPLETE') {
-    if (results.some(row => row.implementation_status !== 'NON_VERIFIABLE')) {
+    const affected = results.filter((row) => (byId.get(String(row.criterion_id)).review_scope || 'AFFECTED') === 'AFFECTED');
+    if (affected.some(row => row.implementation_status !== 'NON_VERIFIABLE')) {
       fail('UI_IMPLEMENTATION_REPORT_UNVERIFIABLE', input.implementation_report.errors.join('; '));
     }
     blocking = true;
@@ -192,27 +267,28 @@ function validateReview(input, review) {
 }
 
 try {
-  const [mode, planFile, changedFile, third, outputFile, implementationFile] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const mode = args[0], planFile = args[1], changedFile = args[2], third = args[3];
   if (!['prepare','validate'].includes(mode) || !planFile || !changedFile || !third) {
-    throw new Error('USAGE: verify-ui-implementation-review.js <prepare|validate> <plan.md> <changed-files.txt> <review.json|output.json> [output.json]');
+    throw new Error('USAGE: verify-ui-implementation-review.js <prepare|validate> <plan.md> <changed-files.txt> <review.json|output.json> [output.json|implementation.md] [implementation.md|previous-review.md] [previous-review.md]');
   }
   const planBody = fs.readFileSync(path.resolve(planFile), 'utf8');
   const changedFiles = fs.readFileSync(path.resolve(changedFile), 'utf8').split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);
-  const input = buildInput(planBody, changedFiles);
-  // prepare: its fifth CLI argument is the implementation evidence file;
-  // validate: its sixth is the same exact file. Legacy unit callers may omit it.
-  const evidenceFile = mode === 'prepare' ? outputFile : implementationFile;
+  const outputFile = mode === 'validate' ? args[4] : null;
+  const evidenceFile = mode === 'prepare' ? args[4] : args[5];
+  const previousFile = mode === 'prepare' ? args[5] : args[6];
+  const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
   if (evidenceFile) input.implementation_report = inspectImplementation(
     fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.ui_applicable ? input.criteria.map(c=>c.criterion_id) : undefined);
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
-    process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' device=' + input.device_gate_required + '\n');
+    process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' device=' + input.device_gate_required + ' mode=' + input.review_mode + '\n');
   } else {
     if (!outputFile) throw new Error('validate requiert output.json');
     const review = readJson(third);
     validateReview(input, review);
     fs.writeFileSync(path.resolve(outputFile), JSON.stringify(review, null, 2) + '\n', 'utf8');
-    process.stdout.write('[KODJO_V2] UI implementation review verified — verdict=' + review.verdict + ' device=' + review.device_gate_required + '\n');
+    process.stdout.write('[KODJO_V2] UI implementation review verified — verdict=' + review.verdict + ' device=' + review.device_gate_required + ' mode=' + input.review_mode + '\n');
   }
 } catch (error) {
   process.stderr.write(String(error && error.message ? error.message : error) + '\n');
