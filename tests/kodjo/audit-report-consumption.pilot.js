@@ -1,4 +1,5 @@
 'use strict';
+const { matrixFingerprint } = require('../../scripts/kodjo/lib/ui-criteria-contract');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
 const {sha256}=require('../../scripts/kodjo/lib/plan-impact');
 const {inspectReport}=require('../../scripts/kodjo/lib/implementation-report');
@@ -9,8 +10,8 @@ function row(id){return {criterion_id:id,implementation_status:'CONFORME',files_
 function report(rows=[row('UI-1'),row('UI-2')],stop='KODJO_STOP_STATUS: NONE'){return '<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\n'+stop;}
 function fixture(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-report-consumer-'));
-  const matrix={schema:'kodjo.ui-criteria.v1',criteria:['UI-1','UI-2'].map(criterion_id=>({criterion_id,change_targets:['src/x.ts'],proof_required:['FUNCTIONAL_TEST','DEVICE_CHECK']})),preservation:{preserve:[],forbidden:[],change:[]}};
-  const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:true,matrix_sha256:sha256(matrix)};
+  const matrix={schema:'kodjo.ui-criteria.v1',criteria:['UI-1','UI-2'].map(criterion_id=>({criterion_id,source:{path:'docs/product.md',locator:'UI',requirement:'Preserve functional and device checks'},risk_types:['FUNCTIONAL','DEVICE'],reuse_search:['Existing'],component_decision:'REUSE',selected_component:'Existing',decision_justification:'Approved existing component',tests:['tests/example.test.js'],change_targets:['src/x.ts'],proof_required:['FUNCTIONAL_TEST','DEVICE_CHECK']})),preservation:{preserve:[],forbidden:[],change:[{target:'src/x.ts',justification:'Approved change'}]}};
+  const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:true,matrix_sha256:matrixFingerprint(matrix)};
   fs.writeFileSync(path.join(dir,'plan.md'),'<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>');
   fs.writeFileSync(path.join(dir,'changed.txt'),'src/x.ts\n');
   fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({request_id:'r1',source_head:'a'.repeat(40)}));
@@ -76,7 +77,7 @@ test('F12: protocol consumer remains effective when application HEAD contains an
     assert.ok(freeze>=0&&freeze<steps.findIndex(s=>s.name==='Checkout implementation HEAD'));
     const block=steps[freeze].run;
     const sources=block.match(/scripts\/kodjo\/[a-z/.-]+\.js/g);
-    assert.equal(sources.length,4);
+    assert.equal(sources.length,5);
     const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
     for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
     fs.mkdirSync(path.join(dir,'scripts/kodjo'),{recursive:true});

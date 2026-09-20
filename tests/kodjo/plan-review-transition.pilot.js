@@ -177,3 +177,16 @@ test('cycle réel ef0bf111→8a091134: les seuls changements intermédiaires son
     fs.rmSync(worktreeRoot, { recursive: true, force: true });
   }
 });
+
+test('canonical implementation-review workflow dependency is protocol-only, without a wildcard extension', () => {
+  const value = fixture();
+  const file = '.github/workflows/kodjo-slice-implementation-review.yml';
+  write(value.root, file, 'name: freeze protocol review dependencies\n');
+  const executionHead = commit(value.root, 'review runtime dependency');
+  assert.equal(verifyTransition({cwd:value.root,sourceHead:value.sourceHead,executionHead,bootstrapPath:value.bootstrapPath}).status,'PASS');
+  const { isClosedProtocolPath } = require('../../scripts/kodjo/verify-plan-review-transition');
+  for (const unknown of ['.github/workflows/kodjo-slice-implementation.yml','.github/workflows/kodjo-slice-implementation-review-other.yml','.github/workflows/unrelated.yml']) assert.equal(isClosedProtocolPath(unknown),false);
+  write(value.root, 'src/application.ts', 'application change');
+  const mixedHead = commit(value.root, 'mixed change');
+  expectRefusal({cwd:value.root,sourceHead:value.sourceHead,executionHead:mixedHead,bootstrapPath:value.bootstrapPath},'PLAN_REVIEW_NON_PROTOCOL_CHANGE');
+});

@@ -44,6 +44,7 @@ function blobOid(cwd, head, file) {
 
 function isClosedProtocolPath(file) {
   return file.startsWith('.github/workflows/kodjo-v2-') && file.endsWith('.yml') ||
+    file === '.github/workflows/kodjo-slice-implementation-review.yml' ||
     file.startsWith('.github/orchestration/tests/') ||
     file.startsWith('scripts/kodjo/') ||
     file.startsWith('tests/kodjo/') ||
