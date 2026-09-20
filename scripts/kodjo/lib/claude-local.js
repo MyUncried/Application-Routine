@@ -152,7 +152,7 @@ function normalizeRequest(raw, repoRoot) {
   }
 
   let deliveryTarget = null;
-  if (operationKind === 'VISUAL_CORRECTION') {
+  if (raw.delivery_target !== null && raw.delivery_target !== undefined) {
     const target = raw.delivery_target;
     if (!target || typeof target !== 'object' || Array.isArray(target) || target.kind !== 'EXISTING_PR' ||
         !Number.isInteger(target.application_pr) || target.application_pr < 1 ||
@@ -160,7 +160,7 @@ function normalizeRequest(raw, repoRoot) {
         String(target.application_head) !== String(raw.source_head) ||
         !/^[A-Za-z0-9._/-]{1,200}$/.test(String(target.branch || '')) ||
         String(target.branch).includes('..') || String(target.branch).includes('//')) {
-      throw new Error('VISUAL_DELIVERY_TARGET_INVALID');
+      throw new Error('DELIVERY_TARGET_INVALID');
     }
     deliveryTarget = {
       kind: 'EXISTING_PR',
@@ -168,6 +168,9 @@ function normalizeRequest(raw, repoRoot) {
       application_head: String(target.application_head),
       branch: String(target.branch),
     };
+  }
+  if (operationKind === 'VISUAL_CORRECTION' && !deliveryTarget) {
+    throw new Error('VISUAL_DELIVERY_TARGET_INVALID');
   }
 
   const retryReasonPresent = Object.prototype.hasOwnProperty.call(raw, 'retry_reason');
