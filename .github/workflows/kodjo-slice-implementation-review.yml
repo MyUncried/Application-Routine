@@ -139,8 +139,15 @@ jobs:
 
             [ "$increment" = 'LOT_1_OF_1' ] || { echo 'V2 review must cover LOT_1_OF_1' >&2; exit 1; }
             baseline="$base"
+            review_base="$base"
             manifest="$v2_queue_path"
             [[ "$baseline" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 baseline SHA' >&2; exit 1; }
+            if jq -e '.materialized_recovery != null' "$v2_queue_path" >/dev/null; then
+              review_base=$(jq -r '.materialized_recovery.source_application_head' "$v2_queue_path")
+              [[ "$review_base" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 cumulative review base SHA' >&2; exit 1; }
+              cumulative_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$review_base...$base" --jq '.status')
+              case "$cumulative_status" in identical|ahead) ;; *) echo 'V2 implementation base is not descended from cumulative review base' >&2; exit 1 ;; esac
+            fi
 
             pr_json=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$application_pr")
             jq -e --arg head "$head" --arg branch "$branch" '
@@ -207,7 +214,8 @@ jobs:
             plan_body=$(jq -r '.body | gsub("\\r"; "")' <<<"$plan_json")
             [ "$(first_line "$plan_body")" = '[KODJO_SLICE] PLAN_OUTPUT' ] || { echo 'Invalid source plan marker' >&2; exit 1; }
             fi
-          printf 'slice_id=%s\nhead=%s\nbase=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\nv2_operation_kind=%s\n' "$slice" "$head" "$base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" "$v2_operation_kind" >> "$GITHUB_OUTPUT"
+          if [ -z "${review_base:-}" ]; then review_base="$base"; fi
+          printf 'slice_id=%s\nhead=%s\nbase=%s\nreview_base=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\nv2_operation_kind=%s\n' "$slice" "$head" "$base" "$review_base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" "$v2_operation_kind" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
           printf '%s' "$source_body" > /tmp/implementation-output.md
 
@@ -237,7 +245,7 @@ jobs:
           npm ci
           npm test -- --runInBand
           npx tsc --noEmit
-          git diff --name-only "${{ steps.gate.outputs.base }}..${{ steps.gate.outputs.head }}" > /tmp/changed-files.txt
+          git diff --name-only "${{ steps.gate.outputs.review_base }}..${{ steps.gate.outputs.head }}" > /tmp/changed-files.txt
           test -s /tmp/changed-files.txt
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
 
@@ -252,7 +260,7 @@ jobs:
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
         shell: bash
         env:
-          REVIEW_BASE: ${{ steps.gate.outputs.base }}
+          REVIEW_BASE: ${{ steps.gate.outputs.review_base }}
           REVIEW_HEAD: ${{ steps.gate.outputs.head }}
         run: |
           set -euo pipefail
@@ -280,7 +288,7 @@ jobs:
         env:
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           HEAD: ${{ steps.gate.outputs.head }}
-          BASE: ${{ steps.gate.outputs.base }}
+          BASE: ${{ steps.gate.outputs.review_base }}
           INCREMENT: ${{ steps.gate.outputs.increment }}
         run: |
           set -euo pipefail
