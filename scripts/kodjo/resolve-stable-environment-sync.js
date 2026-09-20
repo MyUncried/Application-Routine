@@ -40,7 +40,11 @@ function resolve(pr, issueComments) {
       if(String(meta.head||'').toLowerCase()!==head) continue;
       if(String(meta.application_branch||'')!==branch) continue;
       if(String(meta.final_status||'')!=='READY_TO_CLOSE') continue;
+      if(meta.review_mode === 'VISUAL_CORRECTION_DELTA' || meta.validation_scope === 'DELTA' || meta.global_approval === false) continue;
       if(String(meta.slice_id||'')==='') continue;
+      if ((group.comments||[]).some(c=>c.user?.login==='github-actions[bot]' && String(c.body||'').startsWith('[KODJO_V2] TARGETED_VALIDATION_OUTPUT\n'))) {
+        require('./verify-global-requalification-state').verify(meta,group.comments);
+      }
       matches.push({issue_number:Number(group.issue_number),comment_id:String(comment.id),meta});
     }
   }

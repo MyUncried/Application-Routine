@@ -1,9 +1,19 @@
 name: KODJO V2 — Slice Plan Revision
-run-name: KODJO V2 / PLAN / ${{ github.event.comment.id }}
+run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.targeted_validation_comment_id }}
 
 on:
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue carrying the scoped validation evidence
+        required: true
+        type: string
+      targeted_validation_comment_id:
+        description: Immutable targeted checkpoint to replay before full requalification
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -11,18 +21,18 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: kodjo-v2-slice-plan-${{ github.event.issue.number }}
+  group: kodjo-v2-slice-plan-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
 
 jobs:
   plan:
-    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVISION')
+    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVISION')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       TRIGGER_BODY: ${{ github.event.comment.body }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout protocol
         uses: actions/checkout@v6
@@ -30,6 +40,20 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Replay targeted validation before full requalification
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          TARGETED_CHECKPOINT: ${{ inputs.targeted_validation_comment_id }}
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/targeted-requalification.js resolve "$GITHUB_REPOSITORY" "$ISSUE_NUMBER" "$TARGETED_CHECKPOINT" "$RUNNER_TEMP/requalification-trigger.txt"
+          {
+            echo 'TRIGGER_BODY<<KODJO_REQUALIFICATION_EVENT'
+            cat "$RUNNER_TEMP/requalification-trigger.txt"
+            echo KODJO_REQUALIFICATION_EVENT
+          } >> "$GITHUB_ENV"
 
       - name: Validate immutable V2 planning gate
         id: gate
@@ -146,6 +170,10 @@ jobs:
           done
           printf '\n===== APPLICATION FILE INVENTORY =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
           cat /tmp/kodjo-v2-plan/code-files.txt >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          if [ -f "$RUNNER_TEMP/requalification-trigger.txt.proof.json" ]; then
+            printf '\nFULL SLICE REQUALIFICATION REQUIRED. The following proof validates only the targeted delta. Audit every normative requirement; preserve this proof without treating it as global conformity or authorization.\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
+            cat "$RUNNER_TEMP/requalification-trigger.txt.proof.json" >> /tmp/kodjo-v2-plan/draft-prompt.txt
+          fi
           printf '\n===== ISSUE =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt
           jq -r '.body' /tmp/kodjo-v2-plan/issue.json >> /tmp/kodjo-v2-plan/draft-prompt.txt
           printf '\n===== ISSUE COMMENTS =====\n' >> /tmp/kodjo-v2-plan/draft-prompt.txt

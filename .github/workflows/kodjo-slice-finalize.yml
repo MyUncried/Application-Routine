@@ -79,6 +79,14 @@ jobs:
             node scripts/kodjo/verify-v2-finalization.js $reviewFile $implFile $visualFile $queuePath $env:ISSUE_NUMBER $reviewId '${{ github.event.comment.id }}' $metaFile
             if($LASTEXITCODE-ne0){throw 'V2 finalization contract refused'}
             $meta=Get-Content -LiteralPath $metaFile -Raw -Encoding UTF8|ConvertFrom-Json
+            if($meta.final_status-ne'READY_TO_CLOSE'-or$meta.review_mode-ne'CRITERION_COMPLETE'){throw 'Global finalization requires complete review'}
+            $stateFile=Join-Path $env:RUNNER_TEMP 'kodjo-global-requalification-state.json'
+            $stateJson=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'Requalification state unreadable'}
+            [IO.File]::WriteAllText($stateFile,($stateJson -join "`n"),(New-Object Text.UTF8Encoding($false)))
+            node scripts/kodjo/verify-global-requalification-state.js $metaFile $stateFile
+            if($LASTEXITCODE-ne0){throw 'Global requalification remains open'}
+            Copy-Item -LiteralPath scripts/kodjo/verify-global-requalification-state.js -Destination (Join-Path $env:RUNNER_TEMP 'kodjo-global-state-verifier.js')
 
             $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$($meta.application_pr)"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$pr){throw 'V2 application PR unreadable'}
@@ -183,6 +191,12 @@ jobs:
           if($LASTEXITCODE-ne0-or([string]$remote).Trim()-ne$env:HEAD){throw 'Final target branch moved'}
           if($env:V2_MODE-eq'true'){
             $final=Get-Content -LiteralPath $env:FINAL_CONTRACT -Raw -Encoding UTF8|ConvertFrom-Json
+            $stateFile=Join-Path $env:RUNNER_TEMP 'kodjo-global-requalification-state-final.json'
+            $stateJson=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'Final requalification state unreadable'}
+            [IO.File]::WriteAllText($stateFile,($stateJson -join "`n"),(New-Object Text.UTF8Encoding($false)))
+            node (Join-Path $env:RUNNER_TEMP 'kodjo-global-state-verifier.js') $env:FINAL_CONTRACT $stateFile
+            if($LASTEXITCODE-ne0){throw 'Requalification opened during final checks'}
             $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$($final.application_pr)"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$pr-or[string]$pr.state-ne'open'-or[string]$pr.base.ref-ne'main'-or[string]$pr.head.ref-ne$env:TARGET_BRANCH-or[string]$pr.head.sha-ne$env:HEAD){throw 'Final application PR moved'}
           }
