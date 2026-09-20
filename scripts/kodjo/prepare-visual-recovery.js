@@ -62,6 +62,7 @@ function verifyMaterializedRecoveryPackage(request, options = {}) {
       String(manifest.slice_id) !== String(request.slice_id) ||
       String(manifest.session_id) !== String(request.session_id) ||
       String(manifest.baseline_head) !== String(request.baseline_head) ||
+      String(manifest.source_head) !== String(proof.source_application_head) ||
       String(manifest.patch_sha256) !== patchDigest ||
       String(proof.patch_sha256) !== patchDigest ||
       String(manifest.integrity_status) !== 'INTACT') {
