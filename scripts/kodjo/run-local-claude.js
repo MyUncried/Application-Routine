@@ -685,11 +685,8 @@ function main() {
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
-  const initialChanges = changedFiles(repoRoot).filter((f) => {
-    const normalized = f.replace(/\\/g, '/');
-    return (!promptExistsInExecutionTree || normalized !== promptRelative) &&
-      path.resolve(f) !== path.resolve(requestPath);
-  });
+  const initialChanges = changedFiles(repoRoot).filter((f) =>
+    path.resolve(f) !== path.resolve(requestPath));
   if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
 
   const fetch = command('git', ['fetch', '--quiet'], repoRoot, process.env, 120000);
@@ -840,11 +837,8 @@ function main() {
     ? (!fs.existsSync(request.prompt_file) || sha256(fs.readFileSync(request.prompt_file)) !== promptWorktreeHashBefore)
     : fs.existsSync(request.prompt_file);
   const integrityStatus = refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
-  const protocolPath = (f) => {
-    const normalized = f.replace(/\\/g, '/');
-    return (!promptExistsInExecutionTree || normalized !== promptRelative) &&
-      path.resolve(repoRoot, f) !== path.resolve(requestPath);
-  };
+  const protocolPath = (f) =>
+    path.resolve(repoRoot, f) !== path.resolve(requestPath);
   const files = changedFiles(repoRoot).filter(protocolPath);
   const postClaudeFingerprint = deltaFingerprint(repoRoot,
     [...new Set([...restoredDeltaFiles, ...files])]);
