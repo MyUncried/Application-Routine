@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -34,14 +34,11 @@ import { applyTourSideModeTransition, type SideMode } from "@/domain/sessions/si
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
-  classifyMovement,
-  isCompletedHorizontalSwipe,
   isTap,
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
   type ActivityRowLayout,
   type CompositionDragLayout,
-  type GestureKind,
 } from "@/features/sessions/compositionGesture";
 import {
   formatActivityRecoveryLabel,
@@ -1178,6 +1175,24 @@ type CompositionActivityRowProps = {
 };
 
 /**
+ * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : décalage horizontal MAXIMAL de la
+ * carte lorsqu'elle est entièrement ouverte — la largeur du groupe d'actions
+ * (`compositionSwipeActions.groupWidth`) PLUS la marge canonique carte/cadre
+ * Tour (`compositionTourSection.inset`), pour que cette même marge sépare
+ * visuellement la carte ouverte du groupe d'actions et laisse voir le fond
+ * du Tour, comme prescrit par le plan (« le gap entre carte et actions égale
+ * la marge carte/cadre Tour »). Aucune valeur locale : dérivée des deux
+ * tokens DSF déjà canoniques, jamais un littéral.
+ */
+const SWIPE_REVEAL_OFFSET =
+  dimensions.compositionSwipeActions.groupWidth + dimensions.compositionTourSection.inset;
+
+/** Borne `x` à `[-SWIPE_REVEAL_OFFSET, 0]` — la carte ne peut jamais se translater au-delà de sa position ouverte, ni en-deçà de sa position fermée. */
+function clampSwipeTranslateX(x: number): number {
+  return Math.min(0, Math.max(-SWIPE_REVEAL_OFFSET, x));
+}
+
+/**
  * `Composition / Activity Row` (`2588:2679`, D-128) et ses deux états T02 —
  * actions glissées (`2028:11808`) et carte soulevée (`3518:4621`, D-129).
  *
@@ -1228,14 +1243,15 @@ type CompositionActivityRowProps = {
  * affichée dans son slot `28 × 28` comme AFFORDANCE — elle n'est pas une
  * cible tactile propre : le reconnaisseur couvre tout le bloc.
  *
- * **Actions glissées (D-128)** : le groupe est SUPERPOSÉ à la partie droite
- * du bloc, qui ne se déplace pas (`position: "absolute"`, jamais une
- * translation de la carte).
+ * **Actions glissées (D-128, V2-CAT-01 UI-CAT-R-007/010)** : le groupe est
+ * SUPERPOSÉ à la partie droite du bloc, DERRIÈRE la carte principale — c'est
+ * la carte qui se translate horizontalement (`translateX`) pour le
+ * découvrir, jamais l'inverse.
  *
  * ---
  *
- * **T02-S02 — bloc Activité + Récupération (D-095/D-128/D-138, CE-T01-09,
- * CE-T02-01/CE-T02-02).**
+ * **T02-S02, révisé par V2-CAT-01 (D-095/D-128/D-138, CE-T01-09,
+ * CE-T02-01/CE-T02-02, CE-T03-08).**
  *
  * 1. **Sous-carte attachée.** Lorsque `recoverySeconds > 0`, une sous-carte
  *    `Récupération X min Y s` de `24` points est attachée sous la carte
@@ -1251,14 +1267,25 @@ type CompositionActivityRowProps = {
  *    et `362 × 64` sans elle. `362 × 88`
  *    sans Récupération est donc structurellement impossible, jamais interdit
  *    par une simple convention de relecture.
- * 3. **Balayage ACHEVÉ, sans suivi progressif.** Le sens du balayage est
- *    mémorisé pendant le geste mais n'est APPLIQUÉ qu'à la relâche : un
- *    balayage gauche achevé révèle `Dupliquer`/`Supprimer`, un balayage
- *    droit les masque. Rien ne suit le doigt — ni translation partielle du
- *    bloc, ni apparition proportionnelle des actions. Ceci révise T02-S01,
- *    qui révélait les actions dès le franchissement du seuil, au fil du
- *    mouvement.
- * 4. **Appui long, seul déclencheur du déplacement.** Inchangé : `Pressable`
+ * 3. **Balayage PROGRESSIF (V2-CAT-01, CE-T03-08 §§7-20, D-175/D-176).** La
+ *    carte SUIT le doigt en temps réel (`swipeTranslateX`, même technique
+ *    déjà éprouvée que `dragTranslationY` pour le déplacement vertical —
+ *    aucune bibliothèque de geste supplémentaire) ; les actions se révèlent
+ *    PROPORTIONNELLEMENT, jamais en tout ou rien. À la relâche, la position
+ *    ATTEINTE (pas la distance depuis l'origine) décide de l'aboutissement :
+ *    au-delà de la moitié de la course, la carte s'aligne en position
+ *    OUVERTE ; en deçà, elle revient en position FERMÉE. Un balayage droit ne
+ *    peut jamais faire progresser la carte au-delà de sa position fermée
+ *    (`0`), et un balayage gauche jamais au-delà de sa position ouverte
+ *    (`-SWIPE_REVEAL_OFFSET`) : la fermeture n'aboutit donc JAMAIS sauf
+ *    engagée depuis une carte déjà ouverte, et l'ouverture jamais depuis une
+ *    carte déjà fermée par un balayage droit isolé — révise le modèle
+ *    « achevé sans suivi » d'un cycle antérieur, désormais explicitement
+ *    contredit par le contrat d'écran de cette tranche.
+ * 4. **Appui court sur une carte ouverte : NEUTRE.** Un tap sur la carte
+ *    encore visible (« hors action ») ne ferme NI n'ouvre rien — seul un
+ *    balayage droit véritable, engagé sur la carte ouverte, la referme.
+ * 5. **Appui long, seul déclencheur du déplacement.** Inchangé : `Pressable`
  *    n'appelle jamais `onPress` après `onLongPress`, et un balayage capte le
  *    responder en phase de CAPTURE, ce qui annule l'appui en cours. Aucun
  *    autre chemin n'appelle `onDragStart`.
@@ -1283,11 +1310,14 @@ function CompositionActivityRow({
   const translationYRef = useRef(0);
   const isDraggingRef = useRef(false);
   /**
-   * T02-S02 : dernier sens de balayage ACHEVÉ pendant le geste courant —
-   * mémorisé, jamais appliqué au fil du mouvement. `handleTouchEnd` seul le
-   * consomme, ce qui réalise le « balayage achevé, sans suivi progressif ».
+   * `true` dès qu'un balayage horizontal est engagé pendant le geste
+   * courant (V2-CAT-01, CE-T03-08) — tant qu'il l'est, le responder n'est
+   * jamais cédé (`handleResponderTerminationRequest`) et le toucher n'est
+   * pas un appui (`handlePress` reste inerte à la relâche).
    */
-  const pendingSwipeRef = useRef<GestureKind | null>(null);
+  const isSwipingRef = useRef(false);
+  /** Position de départ (`0` fermée / `-SWIPE_REVEAL_OFFSET` ouverte) capturée à `handleTouchStart`, à laquelle `dx` s'ajoute pendant le geste. */
+  const swipeBaseRef = useRef(0);
   /**
    * Décalage vertical visuel de la carte soulevée, pour qu'elle SUIVE le
    * doigt pendant le déplacement (CE-T02-02, « état transitoire avant et
@@ -1296,19 +1326,45 @@ function CompositionActivityRow({
    * sinon toutes les autres cartes, la structure Tour et la synthèse.
    */
   const [dragTranslationY, setDragTranslationY] = useState(0);
+  /**
+   * Décalage horizontal visuel de la carte (V2-CAT-01, CE-T03-08) — même
+   * technique locale que `dragTranslationY` ci-dessus, étendue au balayage :
+   * `0` carte fermée, `-SWIPE_REVEAL_OFFSET` entièrement ouverte, toute
+   * valeur intermédiaire pendant le geste (révélation PROPORTIONNELLE).
+   */
+  const [swipeTranslateX, setSwipeTranslateX] = useState(
+    areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0,
+  );
 
   /**
-   * Enregistre l'origine du toucher. `onTouchStart` (et son pendant
-   * `onTouchEnd`) est dispatché indépendamment du responder system : il
-   * reste donc reçu que le geste finisse en appui, en glissement ou en
-   * déplacement, sans avoir à revendiquer le responder par anticipation —
-   * ce qui priverait le `Pressable` interne de ses appuis.
+   * Resynchronise la position de repos lorsque l'état RÉVÉLÉ change pour une
+   * cause EXTÉRIEURE au geste courant de cette carte (une autre carte
+   * s'ouvre, `Dupliquer`/`Supprimer` referme celle-ci) — jamais pendant le
+   * balayage lui-même, qui pilote déjà `swipeTranslateX` en temps réel.
    */
-  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
-    originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
-    translationYRef.current = 0;
-    pendingSwipeRef.current = null;
-  }, []);
+  useEffect(() => {
+    if (!isSwipingRef.current) {
+      setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
+    }
+  }, [areActionsRevealed]);
+
+  /**
+   * Enregistre l'origine du toucher ET la position de repos courante — c'est
+   * à partir de cette dernière que `dx` sera appliqué pendant tout le geste
+   * (`onTouchStart`/`onTouchEnd` sont dispatchés indépendamment du responder
+   * system : reçus quelle que soit l'issue du geste, sans avoir à le
+   * revendiquer par anticipation, ce qui priverait le `Pressable` interne de
+   * ses appuis).
+   */
+  const handleTouchStart = useCallback(
+    (event: GestureResponderEvent) => {
+      originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
+      translationYRef.current = 0;
+      isSwipingRef.current = false;
+      swipeBaseRef.current = areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0;
+    },
+    [areActionsRevealed],
+  );
 
   const trackMovement = useCallback((event: GestureResponderEvent) => {
     const start = originRef.current;
@@ -1321,16 +1377,20 @@ function CompositionActivityRow({
     return { dx, dy };
   }, []);
 
+  /** Applique `dx` à la position de repos, borné à `[-SWIPE_REVEAL_OFFSET, 0]` — la fermeture ne peut donc jamais progresser au-delà de `0`, ni l'ouverture au-delà de `-SWIPE_REVEAL_OFFSET`. */
+  const applySwipeMovement = useCallback((dx: number) => {
+    isSwipingRef.current = true;
+    setSwipeTranslateX(clampSwipeTranslateX(swipeBaseRef.current + dx));
+  }, []);
+
   /**
    * Arbitrage du geste, en phase de CAPTURE — donc avant le `Pressable`
    * interne, dont l'appui est alors annulé (`onPress` ne se déclenche
    * jamais) :
    *
    * - un déplacement déjà engagé par appui long capte tout mouvement ;
-   * - un balayage franchement horizontal AYANT ATTEINT LE SEUIL est capté,
-   *   dans l'un ou l'autre sens, et son sens est MÉMORISÉ — rien n'est
-   *   révélé ni masqué à cet instant (T02-S02 : le balayage n'agit qu'une
-   *   fois ACHEVÉ, voir `handleTouchEnd`) ;
+   * - un mouvement franchement horizontal, au-delà de la tolérance d'appui,
+   *   capte le responder et fait immédiatement SUIVRE la carte (V2-CAT-01) ;
    * - tout le reste est laissé au `Pressable` (appui court/long) et, pour un
    *   geste vertical, au `ScrollView` parent, qui reste seul maître du
    *   défilement de la liste.
@@ -1341,49 +1401,33 @@ function CompositionActivityRow({
       if (isDraggingRef.current) {
         return true;
       }
-      if (isTap(dx, dy)) {
+      if (isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
         return false;
       }
-      const kind = classifyMovement(dx, dy);
-      if (!isCompletedHorizontalSwipe(kind)) {
-        return false;
-      }
-      pendingSwipeRef.current = kind;
+      applySwipeMovement(dx);
       return true;
     },
-    [trackMovement],
+    [applySwipeMovement, trackMovement],
   );
 
   /**
-   * **T02-S02 (seconde recette visuelle, point 3)** — mémorisation du
-   * balayage INDÉPENDANTE du responder.
-   *
-   * `onTouchMove`, comme `onTouchStart`/`onTouchEnd`, est dispatché à la vue
-   * touchée ET à tous ses ancêtres, que le responder soit ou non détenu par
-   * cette carte. C'est la seule voie qui reste vraie dans le cas resté
-   * défaillant : lorsque les actions sont révélées, le balayage droit
-   * commence SUR le groupe d'actions superposé, dont les `Pressable`
-   * (`Dupliquer`/`Supprimer`) revendiquent le responder dès le contact. Les
-   * deux enregistrements précédents — `onMoveShouldSetResponderCapture` et
-   * `onResponderMove` — dépendent l'un et l'autre de l'obtention du
-   * responder par le conteneur : le sens du balayage n'était alors jamais
-   * mémorisé, et `onTouchEnd` n'avait rien à appliquer.
-   *
-   * Le dernier sens franchi l'emporte : l'utilisateur peut revenir sur son
-   * geste avant de relâcher.
+   * Suivi du balayage INDÉPENDANT du responder (V2-CAT-01, hérité de
+   * T02-S02) — `onTouchMove`, comme `onTouchStart`/`onTouchEnd`, est
+   * dispatché à la vue touchée ET à tous ses ancêtres, que le responder soit
+   * ou non détenu par cette carte. C'est la seule voie qui reste vraie une
+   * fois les actions révélées : le balayage droit de fermeture commence
+   * alors SUR le groupe d'actions superposé, dont les `Pressable`
+   * (`Dupliquer`/`Supprimer`) revendiquent le responder dès le contact.
    */
   const handleTouchMove = useCallback(
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
-      if (isDraggingRef.current) {
+      if (isDraggingRef.current || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
         return;
       }
-      const kind = classifyMovement(dx, dy);
-      if (isCompletedHorizontalSwipe(kind)) {
-        pendingSwipeRef.current = kind;
-      }
+      applySwipeMovement(dx);
     },
-    [trackMovement],
+    [applySwipeMovement, trackMovement],
   );
 
   const handleResponderMove = useCallback(
@@ -1393,20 +1437,20 @@ function CompositionActivityRow({
         setDragTranslationY(dy);
         return;
       }
-      const kind = classifyMovement(dx, dy);
-      if (isCompletedHorizontalSwipe(kind)) {
-        pendingSwipeRef.current = kind;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        applySwipeMovement(dx);
       }
     },
-    [trackMovement],
+    [applySwipeMovement, trackMovement],
   );
 
   /**
    * Fin du toucher — reçue quel que soit le porteur du responder.
    *
    * - une dépose après appui long applique le déplacement ;
-   * - sinon, un balayage ACHEVÉ est appliqué ici, et seulement ici : gauche
-   *   révèle `Dupliquer`/`Supprimer`, droit les masque (T02-S02) ;
+   * - sinon, un balayage engagé s'aligne sur la position atteinte : ouverte
+   *   au-delà de la moitié de la course, fermée en deçà (V2-CAT-01,
+   *   CE-T03-08) ;
    * - tout autre relâchement laisse le brouillon rigoureusement inchangé
    *   (CE-T02-02 : « l'entrée dans cet état ne persiste rien »).
    */
@@ -1415,36 +1459,30 @@ function CompositionActivityRow({
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      pendingSwipeRef.current = null;
+      isSwipingRef.current = false;
       onDragEnd(translationYRef.current);
       return;
     }
-    const swipe = pendingSwipeRef.current;
-    pendingSwipeRef.current = null;
-    if (swipe === "SWIPE_LEFT") {
+    if (!isSwipingRef.current) {
+      return;
+    }
+    isSwipingRef.current = false;
+    const shouldReveal = swipeTranslateX <= -SWIPE_REVEAL_OFFSET / 2;
+    setSwipeTranslateX(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
+    if (shouldReveal && !areActionsRevealed) {
       onRevealActions();
-    } else if (swipe === "SWIPE_RIGHT") {
+    } else if (!shouldReveal && areActionsRevealed) {
       onHideActions();
     }
-  }, [onDragEnd, onHideActions, onRevealActions]);
+  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, swipeTranslateX]);
 
   /**
-   * **T02-S02 (continuation après recette visuelle)** — le balayage droit ne
-   * refermait PAS les actions sur appareil.
-   *
-   * Cause : `handleTouchEnd` était le seul consommateur du balayage mémorisé,
-   * et `onResponderTerminationRequest` retournait `true` hors déplacement —
-   * le `ScrollView` parent pouvait donc réclamer et obtenir le responder au
-   * milieu d'un balayage horizontal. `onResponderTerminate` effaçait alors
-   * `pendingSwipeRef` avant toute relâche, et le geste était perdu. Deux
-   * verrous complémentaires ferment ce défaut :
-   *
-   * 1. `onResponderTerminationRequest` refuse désormais aussi de céder le
-   *    responder tant qu'un balayage horizontal est engagé (ci-dessous) ;
-   * 2. la relâche du responder applique le balayage au même titre que la fin
-   *    de toucher. `pendingSwipeRef` étant consommé (remis à `null`) par le
-   *    premier des deux qui survient, l'opération reste IDEMPOTENTE — jamais
-   *    appliquée deux fois si les deux événements arrivent.
+   * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
+   * responder est repris entre-temps : la relâche du responder applique le
+   * geste au même titre que la fin de toucher. `isSwipingRef` étant consommé
+   * (remis à `false`) par le premier des deux qui survient, l'opération
+   * reste IDEMPOTENTE — jamais appliquée deux fois si les deux événements
+   * arrivent.
    */
   const handleResponderRelease = useCallback(() => {
     handleTouchEnd();
@@ -1457,17 +1495,17 @@ function CompositionActivityRow({
    * pourtant mené à son terme.
    */
   const handleResponderTerminationRequest = useCallback(
-    () => !isDraggingRef.current && pendingSwipeRef.current === null,
+    () => !isDraggingRef.current && !isSwipingRef.current,
     [],
   );
 
   /**
    * Le responder est repris par une autre vue (typiquement le `ScrollView`
    * parent). Le DÉPLACEMENT est annulé — aucun changement d'ordre
-   * (CE-T02-02) — mais le balayage mémorisé est **CONSERVÉ** : le toucher,
-   * lui, n'est pas terminé, et `onTouchEnd` (dispatché indépendamment du
-   * responder) l'appliquera. L'effacer ici perdait un balayage que
-   * l'utilisateur avait pourtant mené à son terme.
+   * (CE-T02-02) — mais le balayage en cours est **CONSERVÉ** : le toucher,
+   * lui, n'est pas terminé, et `onTouchMove`/`onTouchEnd` (dispatchés
+   * indépendamment du responder) continuent de le piloter. L'effacer ici
+   * perdrait un balayage que l'utilisateur mène pourtant à son terme.
    */
   const handleResponderTerminate = useCallback(() => {
     setDragTranslationY(0);
@@ -1479,27 +1517,31 @@ function CompositionActivityRow({
 
   /**
    * Le TOUCHER lui-même est annulé (appel entrant, geste système…) : là, plus
-   * aucun `onTouchEnd` ne suivra — tout est remis à zéro, balayage compris.
+   * aucun `onTouchEnd` ne suivra — tout est remis à zéro, balayage compris,
+   * et la carte revient à sa position de repos courante (aucun balayage
+   * n'est appliqué par une annulation).
    */
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
-    pendingSwipeRef.current = null;
+    isSwipingRef.current = false;
+    setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
     handleResponderTerminate();
-  }, [handleResponderTerminate]);
+  }, [areActionsRevealed, handleResponderTerminate]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
-   * ses actions glissées sont révélées, auquel cas il les referme d'abord.
+   * ses actions glissées sont révélées, auquel cas il reste NEUTRE (« un tap
+   * hors action ne ferme pas le contexte », V2-CAT-01/CE-T03-08) : seul un
+   * véritable balayage droit referme une carte ouverte (`handleTouchEnd`).
    * `Pressable` n'appelle jamais `onPress` après un `onLongPress` : un appui
    * long n'ouvre donc structurellement jamais la modification (AC-02).
    */
   const handlePress = useCallback(() => {
     if (areActionsRevealed) {
-      onHideActions();
       return;
     }
     onEdit();
-  }, [areActionsRevealed, onEdit, onHideActions]);
+  }, [areActionsRevealed, onEdit]);
 
   /** Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. */
   const handleLongPress = useCallback(() => {
@@ -1539,6 +1581,53 @@ function CompositionActivityRow({
       onResponderTerminationRequest={handleResponderTerminationRequest}
       testID={`composition-activity-${activity.id}`}
     >
+      {/*
+       * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : le groupe d'actions est
+       * désormais un frère PRÉCÉDENT la carte (donc DERRIÈRE elle, un
+       * conteneur relatif peignant ses enfants dans l'ordre de déclaration)
+       * — c'est la carte qui se translate pour le découvrir PROGRESSIVEMENT,
+       * jamais l'inverse. Rendu dès qu'une translation existe (pas
+       * seulement une fois l'ouverture ACHEVÉE) : la révélation proportionnelle
+       * pendant le geste est elle-même observable, pas seulement son
+       * aboutissement.
+       */}
+      {swipeTranslateX < 0 ? (
+        <View
+          style={[styles.activityRowActions, { height: blockHeight }]}
+          accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
+          testID={`composition-activity-actions-${activity.id}`}
+        >
+          <Pressable
+            onPress={onDuplicate}
+            accessibilityRole="button"
+            accessibilityLabel={composition.activityActions.duplicate}
+            style={[
+              styles.activityRowAction,
+              styles.activityRowDuplicateAction,
+              { height: blockHeight },
+            ]}
+            testID={`composition-activity-duplicate-${activity.id}`}
+          >
+            <Text style={styles.activityRowDuplicateLabel}>
+              {composition.activityActions.duplicate}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            accessibilityRole="button"
+            accessibilityLabel={composition.activityActions.delete}
+            style={[
+              styles.activityRowAction,
+              styles.activityRowDeleteAction,
+              { height: blockHeight },
+            ]}
+            testID={`composition-activity-delete-${activity.id}`}
+          >
+            <Text style={styles.activityRowDeleteLabel}>{composition.activityActions.delete}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <Pressable
         onPress={handlePress}
         onLongPress={handleLongPress}
@@ -1553,9 +1642,11 @@ function CompositionActivityRow({
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
           { height: blockHeight },
-          // Le bloc soulevé suit le doigt ; au repos, aucune transformation
-          // n'est appliquée.
-          isDragged ? { transform: [{ translateY: dragTranslationY }] } : null,
+          // La carte SUIT le doigt horizontalement (balayage) et
+          // verticalement (déplacement soulevé) — les deux restent
+          // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
+          // transformation est toujours appliquée pour rester continue.
+          { transform: [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }] },
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
@@ -1634,43 +1725,6 @@ function CompositionActivityRow({
           </View>
         ) : null}
       </Pressable>
-
-      {areActionsRevealed ? (
-        <View
-          style={[styles.activityRowActions, { height: blockHeight }]}
-          accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
-          testID={`composition-activity-actions-${activity.id}`}
-        >
-          <Pressable
-            onPress={onDuplicate}
-            accessibilityRole="button"
-            accessibilityLabel={composition.activityActions.duplicate}
-            style={[
-              styles.activityRowAction,
-              styles.activityRowDuplicateAction,
-              { height: blockHeight },
-            ]}
-            testID={`composition-activity-duplicate-${activity.id}`}
-          >
-            <Text style={styles.activityRowDuplicateLabel}>
-              {composition.activityActions.duplicate}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={onDelete}
-            accessibilityRole="button"
-            accessibilityLabel={composition.activityActions.delete}
-            style={[
-              styles.activityRowAction,
-              styles.activityRowDeleteAction,
-              { height: blockHeight },
-            ]}
-            testID={`composition-activity-delete-${activity.id}`}
-          >
-            <Text style={styles.activityRowDeleteLabel}>{composition.activityActions.delete}</Text>
-          </Pressable>
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -2240,12 +2294,17 @@ const styles = StyleSheet.create({
   exerciseList: {
     gap: COMPOSITION_ROW_GAP,
   },
-  // T02-S01 : conteneur de position d'une carte d'Activité — support du
-  // groupe d'actions glissées, SUPERPOSÉ à la partie droite de la carte
-  // (`position: "absolute"`, D-128) plutôt qu'obtenu en translatant la
-  // carte, qui « ne se déplace pas » lors du glissement.
+  // T02-S01, révisé V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : conteneur de
+  // position d'une carte d'Activité — support du groupe d'actions glissées,
+  // DERRIÈRE la carte principale (`position: "absolute"`, D-128), que la
+  // carte découvre en se translatant PROGRESSIVEMENT. Le fond
+  // `colors.tourSurface` du conteneur lui-même EST le gap visible entre la
+  // carte ouverte et les actions — égal par construction à la marge
+  // `compositionTourSection.inset` (`SWIPE_REVEAL_OFFSET` ci-dessus), jamais
+  // une valeur locale.
   activityRowContainer: {
     position: "relative",
+    backgroundColor: colors.tourSurface,
   },
   // La carte soulevée passe au-dessus de ses voisines pendant le
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
@@ -2404,20 +2463,23 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderTopColor: colors.compositionDraggedCardBorder,
   },
-  // D-128 : groupe superposé à droite, deux actions `72 × H` aux libellés
-  // centrés horizontalement et verticalement, `H` valant la hauteur du BLOC
-  // (`60` sans Récupération, `84` avec) — « `Dupliquer` et `Supprimer`
-  // couvrent toute la hauteur du bloc ». La hauteur est appliquée par
-  // l'écran (`blockHeightFor`), pas ici. Les coins droits suivent le rayon
-  // du bloc, jamais un rayon local inventé.
+  // D-128, révisé V2-CAT-01 (UI-CAT-R-007/010) : groupe superposé à droite
+  // (DERRIÈRE la carte, découvert par sa translation), deux actions `72 × H`
+  // aux libellés centrés horizontalement et verticalement, `H` valant la
+  // hauteur du BLOC (`60` sans Récupération, `84` avec) — « `Dupliquer` et
+  // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
+  // appliquée par l'écran (`blockHeightFor`), pas ici. Les coins HAUT-GAUCHE
+  // et BAS-GAUCHE — ceux qui font face au gap ouvert vers la carte — sont
+  // arrondis au même rayon que le bloc ; les coins droits, flush avec le
+  // bord de l'écran, restent carrés (jamais un rayon local inventé).
   activityRowActions: {
     position: "absolute",
     top: 0,
     right: 0,
     width: dimensions.compositionSwipeActions.groupWidth,
     flexDirection: "row",
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
     overflow: "hidden",
   },
   activityRowAction: {

@@ -328,6 +328,17 @@ describe("CatalogueScreen — cadre commun", () => {
     await act(async () => {
       await Promise.resolve();
     });
+    // V2-CAT-01 (retour indépendant, minuteurs Jest) : ce changement de
+    // segment démarre l'indicateur animé de `SegmentedControl`
+    // (`Animated.timing`, 220 ms, minuteurs RÉELS — hors périmètre de
+    // modification de ce composant). Laisser ce minuteur s'achever avant la
+    // fin du test évite qu'il ne se déclenche après le démontage de
+    // l'environnement Jest de ce fichier (avertissement `act()`
+    // asynchrone, voire erreur d'environnement démonté sur certains
+    // runners CI, notamment Linux).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
 
     expect(screen.getByText(strings.screens.activities.title)).toBeTruthy();
     expect(screen.getByText("Activité a")).toBeTruthy();

@@ -38,6 +38,7 @@ import {
 import { strings } from "@/shared/i18n";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -372,27 +373,24 @@ export function ActivityEditorForm({
           onToggle={() => toggleSection("executionMode")}
         >
           <View style={styles.executionModeGroup} testID="exercise-execution-mode-group">
-            <View
-              style={styles.segmentedControl}
-              accessibilityRole="tablist"
+            {/*
+             * V2-CAT-01 (UI-CAT-R-004) : primitive `SegmentedControl`
+             * partagée (`@/shared/ui/SegmentedControl`) — remplace le
+             * segment local `SegmentButton`/`styles.segment*`, sans toucher
+             * aux règles métier de changement de mode (`handleExecutionModeChange`,
+             * inchangée).
+             */}
+            <SegmentedControl
+              options={[
+                { value: "DURATION", label: t.executionMode.duration },
+                { value: "REPETITIONS", label: t.executionMode.repetitions },
+                { value: "TO_FAILURE", label: t.executionMode.toFailure },
+              ]}
+              value={value.executionMode}
+              onChange={handleExecutionModeChange}
               accessibilityLabel={t.executionMode.label}
-            >
-              <SegmentButton
-                label={t.executionMode.duration}
-                selected={value.executionMode === "DURATION"}
-                onPress={() => handleExecutionModeChange("DURATION")}
-              />
-              <SegmentButton
-                label={t.executionMode.repetitions}
-                selected={value.executionMode === "REPETITIONS"}
-                onPress={() => handleExecutionModeChange("REPETITIONS")}
-              />
-              <SegmentButton
-                label={t.executionMode.toFailure}
-                selected={value.executionMode === "TO_FAILURE"}
-                onPress={() => handleExecutionModeChange("TO_FAILURE")}
-              />
-            </View>
+              testID="exercise-execution-mode-segmented-control"
+            />
 
             <View style={styles.parameterCard} testID="exercise-parameter-card">
               <View style={styles.parameterRow} testID="exercise-parameter-row">
@@ -829,43 +827,6 @@ function StaticParameterField({
   );
 }
 
-function SegmentButton({
-  label,
-  selected,
-  disabled,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  disabled?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="tab"
-      accessibilityState={{ selected, disabled: Boolean(disabled) }}
-      accessibilityLabel={label}
-      style={[
-        styles.segment,
-        selected ? styles.segmentSelected : null,
-        disabled ? styles.segmentDisabled : null,
-      ]}
-    >
-      <Text
-        style={[
-          styles.segmentLabel,
-          selected ? styles.segmentLabelSelected : null,
-          disabled ? styles.segmentLabelDisabled : null,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   body: {
     flex: 1,
@@ -916,40 +877,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[12],
     minHeight: 120,
     textAlignVertical: "top",
-  },
-  segmentedControl: {
-    flexDirection: "row",
-    width: "100%",
-    height: dimensions.segmentedControl.height,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: dimensions.segmentedControl.containerRadius,
-    padding: dimensions.segmentedControl.padding,
-    gap: dimensions.segmentedControl.gap,
-  },
-  segment: {
-    flex: 1,
-    height: dimensions.segmentedControl.segmentHeight,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: dimensions.segmentedControl.segmentRadius,
-  },
-  segmentSelected: {
-    backgroundColor: colors.selection,
-  },
-  segmentLabel: {
-    ...type.label,
-    color: colors.textSecondary,
-  },
-  segmentLabelSelected: {
-    color: colors.background,
-  },
-  segmentDisabled: {
-    opacity: 0.5,
-  },
-  segmentLabelDisabled: {
-    color: colors.disabled,
   },
   parameterCard: {
     width: dimensions.exerciseParameterRow.cardWidth,

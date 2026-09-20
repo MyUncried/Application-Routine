@@ -558,19 +558,30 @@ describe("ExerciseScreen — segment Mode d'exécution (Controls / Segmented)", 
     expect(within(section).getByLabelText(t.executionMode.toFailure)).toBeTruthy();
   });
 
-  it("colours the selected segment with color.selection (#5F60EE) and white text, the unselected one transparent with color.textSecondary text", () => {
+  /**
+   * V2-CAT-01 (UI-CAT-R-004) : `ActivityEditorForm` réutilise désormais la
+   * primitive partagée `SegmentedControl` — le fond bleu/violet DS est porté
+   * par le cadre animé unique (`-indicator`), jamais par le segment
+   * lui-même (même convention déjà établie pour `catalogue-content-type-row`,
+   * `CatalogueScreen.tsx`).
+   */
+  it("colours the selected segment with color.selection (#5F60EE) via the shared animated indicator, and white text — the unselected segment carries no background", () => {
     renderScreen(null);
 
     const durationTab = screen.getByLabelText(t.executionMode.duration);
     const durationLabel = within(durationTab).getByText(t.executionMode.duration);
-    expect(StyleSheet.flatten(durationTab.props.style).backgroundColor).toBe(colors.selection);
-    expect(StyleSheet.flatten(durationTab.props.style).backgroundColor).toBe("#5F60EE");
     expect(StyleSheet.flatten(durationLabel.props.style).color).toBe(colors.background);
+    expect(StyleSheet.flatten(durationTab.props.style).backgroundColor).toBeUndefined();
 
     const repetitionsTab = screen.getByLabelText(t.executionMode.repetitions);
-    expect(StyleSheet.flatten(repetitionsTab.props.style).backgroundColor).not.toBe(
-      colors.selection,
-    );
+    expect(StyleSheet.flatten(repetitionsTab.props.style).backgroundColor).toBeUndefined();
+
+    fireEvent(screen.getByTestId("exercise-execution-mode-segmented-control"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } },
+    });
+    const indicator = screen.getByTestId("exercise-execution-mode-segmented-control-indicator");
+    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(colors.selection);
+    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe("#5F60EE");
   });
 
   it("gives every segment a strictly equal width via flex:1 inside the 354×42 container", () => {
@@ -2236,5 +2247,35 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
 
     expect(await screen.findByTestId("activity-editor-save-error")).toBeTruthy();
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  /**
+   * V2-CAT-01 (UI-CAT-R-008) : une définition ABSENTE (identifiant obsolète,
+   * suppression concurrente…) doit produire une erreur explicite — jamais un
+   * chargement indéfini ni les valeurs par défaut d'une création.
+   */
+  it("shows an explicit error — never an endless loading state — when the definition is absent", async () => {
+    const getActivityDefinition = jest
+      .fn<ActivityDefinitionService["getActivityDefinition"]>()
+      .mockResolvedValue(null);
+    renderCatalogueScreen("def-missing", { getActivityDefinition });
+
+    expect(await screen.findByTestId("activity-editor-load-error")).toBeTruthy();
+    expect(screen.queryByTestId("exercise-name-input")).toBeNull();
+  });
+
+  it("shows the same explicit error on a technical load failure, and Réessayer retries the load", async () => {
+    const getActivityDefinition = jest
+      .fn<ActivityDefinitionService["getActivityDefinition"]>()
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce(A_DEFINITION);
+    renderCatalogueScreen("def-1", { getActivityDefinition });
+
+    expect(await screen.findByTestId("activity-editor-load-error")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("activity-editor-load-retry"));
+
+    expect(await screen.findByDisplayValue("Squat")).toBeTruthy();
+    expect(getActivityDefinition).toHaveBeenCalledTimes(2);
   });
 });

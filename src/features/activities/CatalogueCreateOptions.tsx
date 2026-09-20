@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { strings } from "@/shared/i18n";
@@ -19,25 +18,29 @@ export type CatalogueCreateOptionsProps = {
   onCancel: () => void;
 };
 
-const APPEAR_DURATION_MS = 180;
-const DISMISS_DURATION_MS = 120;
-
 /**
- * Arbre `Créer` du Catalogue (V2-CAT-01, plan §4.1 ; revue indépendante
- * 5732014381, obligation 3) — ancré à `Créer`, affiche exactement `Une
- * nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`, dans cet ordre.
- * `Un circuit` est désactivé. `Annuler` ferme sans écriture et restitue
- * exactement le contexte courant — aucun état n'est modifié par cette
- * fermeture, ni par un appui sur le voile.
+ * Arbre `Créer` du Catalogue (V2-CAT-01, plan §4.1/UI-CAT-R-001) — ancré à
+ * `Créer`, affiche exactement `Une nouvelle activité`, `Une séance`, `Un
+ * circuit`, `Annuler`, dans cet ordre. `Un circuit` est désactivé. `Annuler`
+ * ferme sans écriture et restitue exactement le contexte courant — aucun
+ * état n'est modifié par cette fermeture, ni par un appui sur le voile.
  *
- * L'apparition est PROGRESSIVE ET RAPIDE (fondu + léger agrandissement,
- * `Animated`, jamais un affichage instantané) ; la disparition l'est
- * symétriquement, plus brève. Rendu comme un frère absolument positionné de
- * la rangée `Créer / Filtrer / Trier` (jamais un `Modal` plein écran) : la
- * rangée qui l'a ouvert reste visible sous le voile — désormais un scrim
- * COMPLET (couvre l'écran entier de cet écran, arrière-plan/navigation/
- * retour/listes non interactifs tant qu'il est visible), conformément au
- * plan (« conserve cette rangée sous le scrim »).
+ * **`Modal` natif transparent (V2-CAT-01, plan §5)** : seule primitive de
+ * couche capable de couvrir le SHELL de cet écran ET la barre d'onglets
+ * SŒUR du contenu — rendue par le navigateur `Tabs` (`app/(tabs)/_layout
+ * .tsx`), donc hors de l'arbre React de cet écran : un simple `View` placé
+ * dans `CatalogueScreen` ne peut structurellement pas la recouvrir. La
+ * rangée `Créer / Filtrer / Trier` qui l'ouvre reste néanmoins visible SOUS
+ * le voile — Modal se superpose au-dessus de tout, mais ne démonte rien
+ * derrière lui.
+ *
+ * `animationType="fade"` : apparition/disparition PROGRESSIVE et RAPIDE,
+ * confiée à la présentation NATIVE du système (UIKit/Android), jamais à un
+ * `Animated.Value` piloté par pont JS sur une vue fraîchement montée — cause
+ * exacte d'un défaut antérieur (vue créée simultanément au démarrage d'une
+ * animation à pilotage natif, échouant à produire tout changement visuel
+ * sur appareil réel malgré des tests JS passants). `onRequestClose` couvre
+ * le bouton retour matériel Android au même titre qu'`Annuler`.
  */
 export function CatalogueCreateOptions({
   visible,
@@ -62,61 +65,27 @@ export function CatalogueCreateOptions({
     HEADER_SEPARATOR_HEIGHT +
     dimensions.contextBand.height +
     spacing[8];
-  // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
-  // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
-  // rendu (`react-hooks/refs`).
-  const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
-
-  // Correction VISUAL_CORRECTION (revue iPhone du HEAD `fa4d803`, issue
-  // #150 commentaire 5736165618) : la mécanique précédente démontait
-  // entièrement ce sous-arbre (`shouldRender` → `return null`) tant que
-  // `visible` était faux, puis le RECRÉAIT (nouvelles vues natives) au
-  // moment même où l'animation pilotée nativement (`useNativeDriver: true`)
-  // démarrait — une course entre la création de la vue native et son
-  // rattachement à l'`Animated.Value`, qui pouvait laisser la vue bloquée à
-  // son opacité de départ (0) sur appareil réel sans jamais produire le
-  // moindre changement visuel, alors que les mêmes assertions passaient en
-  // test (environnement JS, sans ce rattachement natif à reproduire). Ce
-  // sous-arbre reste désormais TOUJOURS monté — le rendu/positionnement
-  // déjà validés (`menuTop`, styles) ne changent pas — seules la visibilité
-  // et l'interactivité restent pilotées par `opacity`/`pointerEvents`,
-  // jamais par un montage/démontage conditionnel.
-  useEffect(() => {
-    Animated.timing(progress, {
-      toValue: visible ? 1 : 0,
-      duration: visible ? APPEAR_DURATION_MS : DISMISS_DURATION_MS,
-      useNativeDriver: true,
-    }).start();
-  }, [visible, progress]);
 
   const t = strings.screens.sessions.createTree;
-  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] });
 
   return (
-    <>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+      testID="catalogue-create-tree-modal"
+    >
       {/* Scrim COMPLET : couvre tout l'écran, arrière-plan/navigation/retour/listes non interactifs tant que l'arbre est visible. */}
-      <Animated.View
-        pointerEvents={visible ? "auto" : "none"}
-        style={[styles.backdrop, { opacity: progress }]}
-        testID="catalogue-create-tree-scrim"
-      >
+      <View style={styles.backdrop} testID="catalogue-create-tree-scrim">
         <Pressable
           onPress={onCancel}
           accessible={false}
           testID="catalogue-create-tree-backdrop"
           style={StyleSheet.absoluteFill}
         />
-      </Animated.View>
-      {/*
-       * Toujours monté (voir commentaire ci-dessus) — `pointerEvents`
-       * désormais explicite ici aussi : sans lui, les options resteraient
-       * tactiles même invisibles (opacité 0) tant que l'arbre reste monté.
-       */}
-      <Animated.View
-        pointerEvents={visible ? "auto" : "none"}
-        style={[styles.menu, { top: menuTop, opacity: progress, transform: [{ scale }] }]}
-        testID="catalogue-create-tree"
-      >
+      </View>
+      <View style={[styles.menu, { top: menuTop }]} testID="catalogue-create-tree">
         <CreateTreeOption
           label={t.newActivity}
           onPress={onSelectNewActivity}
@@ -134,8 +103,8 @@ export function CatalogueCreateOptions({
           testID="catalogue-create-tree-new-circuit"
         />
         <CreateTreeOption label={t.cancel} onPress={onCancel} testID="catalogue-create-tree-cancel" />
-      </Animated.View>
-    </>
+      </View>
+    </Modal>
   );
 }
 

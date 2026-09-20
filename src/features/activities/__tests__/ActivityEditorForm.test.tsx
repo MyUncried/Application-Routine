@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
 
@@ -77,11 +77,23 @@ describe("ActivityEditorForm", () => {
     expect(onChangeSpy).toHaveBeenCalledWith({ name: "Fentes" });
   });
 
-  it("switches to REPETITIONS mode and shows the repetition field instead of duration", () => {
+  it("switches to REPETITIONS mode and shows the repetition field instead of duration", async () => {
     render(<Harness initial={{ name: "Squat" }} />);
     expect(screen.getByTestId("exercise-field-duration")).toBeTruthy();
 
     fireEvent.press(screen.getByText("Répétitions"));
+
+    // V2-CAT-01 (retour indépendant, minuteurs Jest) : ce changement de
+    // segment démarre l'indicateur animé de `SegmentedControl`
+    // (`Animated.timing`, 220 ms, minuteurs RÉELS — hors périmètre de
+    // modification de ce composant). Laisser ce minuteur s'achever avant la
+    // fin du test évite qu'il ne se déclenche après le démontage de
+    // l'environnement Jest de ce fichier (avertissement `act()`
+    // asynchrone, voire erreur d'environnement démonté sur certains
+    // runners CI).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
 
     expect(screen.queryByTestId("exercise-field-duration")).toBeNull();
     expect(screen.getByTestId("exercise-field-repetitionCount")).toBeTruthy();

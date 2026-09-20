@@ -66,6 +66,11 @@ export function ActivitySelectionScreen() {
   }
 
   const canAdd = state.status === "ready" && selectedIds.length > 0;
+  // V2-CAT-01 (UI-CAT-R-003) : CTA dynamique — le libellé de base
+  // (`t.addAction`, seule chaîne traduite existante) porte désormais le
+  // compteur de la sélection courante entre parenthèses dès qu'elle n'est
+  // pas vide ; aucune nouvelle chaîne traduite n'est ajoutée.
+  const addLabel = selectedIds.length > 0 ? `${t.addAction} (${selectedIds.length})` : t.addAction;
 
   return (
     <ScreenShell>
@@ -127,11 +132,13 @@ export function ActivitySelectionScreen() {
           onPress={handleAdd}
           accessibilityRole="button"
           accessibilityState={{ disabled: !canAdd }}
-          accessibilityLabel={t.addAction}
+          accessibilityLabel={addLabel}
           style={[styles.addAction, !canAdd ? styles.addActionDisabled : null]}
           testID="activity-selection-add"
         >
-          <Text style={styles.addLabel}>{t.addAction}</Text>
+          <Text style={styles.addLabel} testID="activity-selection-add-label">
+            {addLabel}
+          </Text>
         </Pressable>
       </View>
     </ScreenShell>

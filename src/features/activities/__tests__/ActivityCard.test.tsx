@@ -49,4 +49,33 @@ describe("ActivityCard", () => {
     const disclosure = screen.getByLabelText("Déployer l’activité");
     expect(disclosure.props.accessibilityState?.disabled ?? disclosure.props.disabled).toBeTruthy();
   });
+
+  /**
+   * V2-CAT-01 (UI-CAT-R-002) : chaque carte affiche une marque de couleur,
+   * les Zones corporelles, le mode/la cible, les Séries, la Pause et la
+   * Récupération — jamais seulement le nom.
+   */
+  it("shows a fixed color mark, the body zones, the mode/target/series/pause summary and the Recovery", () => {
+    render(
+      <ActivityCard
+        definition={{
+          ...DEFINITION,
+          bodyZoneIds: ["dos"],
+          recoverySeconds: 90,
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId(`activity-card-color-bar-${DEFINITION.id}`)).toBeTruthy();
+    expect(screen.getByTestId(`activity-card-body-zones-${DEFINITION.id}`)).toBeTruthy();
+    expect(screen.getByText(/série/u)).toBeTruthy();
+    expect(screen.getByTestId(`activity-card-recovery-${DEFINITION.id}`)).toBeTruthy();
+  });
+
+  it("omits the body zones and Recovery lines when absent, without an empty line", () => {
+    render(<ActivityCard definition={DEFINITION} />);
+
+    expect(screen.queryByTestId(`activity-card-body-zones-${DEFINITION.id}`)).toBeNull();
+    expect(screen.queryByTestId(`activity-card-recovery-${DEFINITION.id}`)).toBeNull();
+  });
 });

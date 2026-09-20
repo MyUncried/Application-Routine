@@ -1769,16 +1769,17 @@ function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, h
 }
 
 /**
- * Balayage horizontal ACHEVÉ sur le conteneur d'une carte (T02-S02) :
- * `touchStart`, franchissement du seuil, PUIS relâche. La relâche est
- * indispensable — c'est elle, et elle seule, qui applique le balayage
- * (« balayage gauche achevé … puis balayage droit les masquant »).
+ * Balayage horizontal PROGRESSIF sur le conteneur d'une carte (V2-CAT-01,
+ * CE-T03-08) : `touchStart`, mouvement au-delà de la moitié de la course
+ * (`SWIPE_REVEAL_OFFSET / 2`), PUIS relâche — c'est la relâche qui aligne la
+ * carte sur la position ATTEINTE (ouverte au-delà de la moitié, fermée en
+ * deçà).
  *
- * **Seconde recette (point 3)** : le mouvement est joué par `touchMove`,
- * PAS par `responderMove`. C'est le cas réel du défaut — un balayage dont le
- * conteneur n'obtient jamais le responder, parce qu'un `Pressable` interne
- * (les actions révélées) le détient. `touchMove` est dispatché à la vue
- * touchée et à tous ses ancêtres, indépendamment du responder.
+ * Le mouvement est joué par `touchMove`, indépendant du responder — le cas
+ * réel où un balayage droit de fermeture commence SUR le groupe d'actions
+ * déjà révélé, dont les `Pressable` internes (`Dupliquer`/`Supprimer`)
+ * revendiquent le responder dès le contact. `touchMove` est dispatché à la
+ * vue touchée et à tous ses ancêtres, indépendamment du responder.
  */
 function fireSwipe(activityId: string, deltaX: number) {
   const container = () => screen.getByTestId(`composition-activity-${activityId}`);
@@ -1790,12 +1791,12 @@ function fireSwipe(activityId: string, deltaX: number) {
   fireEvent(container(), "touchEnd", { nativeEvent: { pageX: startX + deltaX, pageY: 100 } });
 }
 
-/** Balayage GAUCHE achevé — révèle `Dupliquer`/`Supprimer`. */
+/** Balayage GAUCHE, au-delà de la moitié de la course — révèle `Dupliquer`/`Supprimer`. */
 function fireSwipeLeft(activityId: string) {
   fireSwipe(activityId, -80);
 }
 
-/** Balayage DROIT achevé — masque les actions révélées. */
+/** Balayage DROIT, au-delà de la moitié de la course — masque les actions révélées. */
 function fireSwipeRight(activityId: string) {
   fireSwipe(activityId, 80);
 }
@@ -2068,12 +2069,9 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     ]);
   }
 
-  it("reveals exactly Dupliquer and Supprimer on a left swipe, without moving the card", () => {
+  it("reveals exactly Dupliquer and Supprimer on a left swipe, MOVING the card to expose them", () => {
     renderTwo();
 
-    const cardBefore = StyleSheet.flatten(
-      screen.getByTestId("composition-exercise-row-ex-1").props.style,
-    );
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
 
     fireSwipeLeft("ex-1");
@@ -2082,15 +2080,25 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(within(actions).getByText(composition.activityActions.duplicate)).toBeTruthy();
     expect(within(actions).getByText(composition.activityActions.delete)).toBeTruthy();
 
-    // D-128 : groupe `144 × 69` SUPERPOSÉ à droite (deux actions `72`), la
-    // carte ne se déplace pas (aucune translation, style inchangé).
+    // D-128, révisé UI-CAT-R-007/010 : groupe `144 × 69` SUPERPOSÉ à droite
+    // (deux actions `72`), DERRIÈRE la carte — c'est la carte qui se
+    // translate pour le découvrir entièrement (`-SWIPE_REVEAL_OFFSET`).
     const actionsStyle = StyleSheet.flatten(actions.props.style);
     expect(actionsStyle.position).toBe("absolute");
     expect(actionsStyle.right).toBe(0);
     expect(actionsStyle.width).toBe(144);
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style),
-    ).toEqual(cardBefore);
+    // Coins HAUT-GAUCHE/BAS-GAUCHE arrondis (face au gap), coins droits carrés.
+    expect(actionsStyle.borderTopLeftRadius).toBe(12);
+    expect(actionsStyle.borderBottomLeftRadius).toBe(12);
+    expect(actionsStyle.borderTopRightRadius).toBeUndefined();
+    expect(actionsStyle.borderBottomRightRadius).toBeUndefined();
+    const cardStyle = StyleSheet.flatten(
+      screen.getByTestId("composition-exercise-row-ex-1").props.style,
+    );
+    // La carte est entièrement ouverte : translatée de la largeur du groupe
+    // PLUS la marge carte/cadre Tour (`144 + 10`), qui reste visible comme
+    // gap (fond `colors.tourSurface` du conteneur).
+    expect(cardStyle.transform).toEqual([{ translateX: -154 }, { translateY: 0 }]);
     expect(
       StyleSheet.flatten(
         within(actions).getByTestId("composition-activity-duplicate-ex-1").props.style,
@@ -2099,31 +2107,47 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   });
 
   /**
-   * T02-S02 — « balayage gauche achevé affichant Dupliquer/Supprimer SANS
-   * SUIVI PROGRESSIF, puis balayage droit les masquant ». Le franchissement
-   * du seuil ne montre rien : seule la relâche applique le balayage.
+   * V2-CAT-01 (CE-T03-08, UI-CAT-R-007) — « le swipe suit le doigt, révèle
+   * progressivement les actions ». Le mouvement lui-même, PENDANT que le
+   * doigt reste posé, révèle déjà proportionnellement le groupe d'actions —
+   * ceci révise le modèle antérieur, où seule la relâche appliquait quoi que
+   * ce soit.
    */
-  it("reveals NOTHING while the finger is still down, even past the threshold — the swipe is applied on release only", () => {
+  it("follows the finger and reveals the actions PROPORTIONALLY while the touch is still down", () => {
     renderTwo();
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
-    // Seuil largement franchi, doigt encore posé : aucune action visible.
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    // `dx = -80` : la carte a déjà suivi le doigt, actions déjà exposées.
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
+        .transform,
+    ).toEqual([{ translateX: -80 }, { translateY: 0 }]);
+
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 120, pageY: 100 } });
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    // `dx = -180`, borné à `-SWIPE_REVEAL_OFFSET` (`-154`) : la carte ne
+    // dépasse jamais sa position pleinement ouverte.
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
+        .transform,
+    ).toEqual([{ translateX: -154 }, { translateY: 0 }]);
 
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 120, pageY: 100 } });
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
   });
 
-  it("never applies a swipe that never reached the threshold, nor a vertically dominant one (it belongs to the list)", () => {
+  it("springs back to closed on release before crossing half of the reveal course, and ignores a vertically dominant movement (it belongs to the list)", () => {
     renderTwo();
 
-    // Horizontal mais en deçà du seuil (`SWIPE_REVEAL_DISTANCE = 40`).
+    // Horizontal mais en deçà de la moitié de la course (`SWIPE_REVEAL_OFFSET / 2 = 77`).
     fireSwipe("ex-1", -20);
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
+        .transform,
+    ).toEqual([{ translateX: 0 }, { translateY: 0 }]);
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
@@ -2340,13 +2364,18 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getByText("Squats")).toBeTruthy();
   });
 
-  it("a short press on a card with revealed actions closes them instead of opening the modification", () => {
+  /**
+   * V2-CAT-01 (CE-T03-08, UI-CAT-R-007) — « un tap hors action ne ferme pas
+   * le contexte » : seul un véritable balayage droit referme une carte
+   * ouverte, jamais un simple appui. Révise le comportement antérieur.
+   */
+  it("a short press on a card with revealed actions is NEUTRAL — it neither closes them nor opens the modification", () => {
     renderTwo();
     fireSwipeLeft("ex-1");
 
     fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
 
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
   });
 

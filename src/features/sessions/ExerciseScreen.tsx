@@ -1,6 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
   activityDefinitionToInput,
@@ -19,6 +20,7 @@ import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfir
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Route `Ajouter / Modifier une activité` (T02-S02 ; V2-CAT-01, revue
@@ -80,42 +82,80 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
       sideMode: draft.sideMode ?? DEFAULT_SIDE_MODE,
     };
   });
-  const [loadState, setLoadState] = useState<"loading" | "ready">(
+  // V2-CAT-01 (UI-CAT-R-008) : `"error"` couvre à la fois une définition
+  // ABSENTE (`getActivityDefinition` résolu à `null` — supprimée ou
+  // identifiant invalide) et un échec TECHNIQUE de chargement (promesse
+  // rejetée) — dans les deux cas, l'écran ne doit jamais rester bloqué en
+  // chargement indéfini ; `Réessayer` relance exactement le même chargement.
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     isEditingExisting ? "loading" : "ready",
   );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const isSavingRef = useRef(false);
   const t = strings.screens.activities.editor;
+  const loadErrorStrings = strings.screens.activities.error;
 
-  useEffect(() => {
-    if (definitionId === null) {
-      return;
-    }
-    let cancelled = false;
-    activityDefinitionService.getActivityDefinition(definitionId).then((definition) => {
-      if (cancelled || !definition) {
+  /**
+   * N'appelle JAMAIS `setLoadState("loading")` elle-même — l'appelant en
+   * décide : l'effet de montage part déjà de `"loading"` (initialiseur de
+   * `useState` ci-dessus), et `handleRetryLoad` la redemande explicitement
+   * avant d'invoquer cette fonction, pour rester hors d'un corps d'effet
+   * (`react-hooks/set-state-in-effect`).
+   */
+  const fetchDefinition = useCallback(
+    (isCancelled: () => boolean) => {
+      if (definitionId === null) {
         return;
       }
-      const input = activityDefinitionToInput(definition);
-      setValue({
-        name: input.name,
-        instruction: input.description,
-        executionMode: input.executionMode,
-        durationSeconds: input.durationSeconds,
-        repetitionCount: input.repetitionCount,
-        seriesCount: input.seriesCount,
-        pauseSeconds: input.pauseSeconds,
-        recoverySeconds: input.recoverySeconds,
-        bodyZoneIds: input.bodyZoneIds,
-        sideMode: input.sideMode ?? DEFAULT_SIDE_MODE,
-      });
-      setLoadState("ready");
-    });
+      activityDefinitionService
+        .getActivityDefinition(definitionId)
+        .then((definition) => {
+          if (isCancelled()) {
+            return;
+          }
+          if (!definition) {
+            setLoadState("error");
+            return;
+          }
+          const input = activityDefinitionToInput(definition);
+          setValue({
+            name: input.name,
+            instruction: input.description,
+            executionMode: input.executionMode,
+            durationSeconds: input.durationSeconds,
+            repetitionCount: input.repetitionCount,
+            seriesCount: input.seriesCount,
+            pauseSeconds: input.pauseSeconds,
+            recoverySeconds: input.recoverySeconds,
+            bodyZoneIds: input.bodyZoneIds,
+            sideMode: input.sideMode ?? DEFAULT_SIDE_MODE,
+          });
+          setLoadState("ready");
+        })
+        .catch((error: unknown) => {
+          if (isCancelled()) {
+            return;
+          }
+          console.error("L'activité n'a pas pu être chargée.", error);
+          setLoadState("error");
+        });
+    },
+    [activityDefinitionService, definitionId],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchDefinition(() => cancelled);
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService, definitionId]);
+  }, [fetchDefinition]);
+
+  const handleRetryLoad = useCallback(() => {
+    setLoadState("loading");
+    fetchDefinition(() => false);
+  }, [fetchDefinition]);
 
   function patch(next: Partial<ActivityEditorFormValue>) {
     setSaveError(false);
@@ -178,7 +218,22 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
       <HeaderSeparator />
-      {loadState === "loading" ? null : (
+      {loadState === "loading" ? null : null}
+      {loadState === "error" ? (
+        <View style={styles.loadErrorBody} testID="activity-editor-load-error">
+          <Text style={styles.loadErrorMessage}>{loadErrorStrings.message}</Text>
+          <Pressable
+            onPress={handleRetryLoad}
+            accessibilityRole="button"
+            accessibilityLabel={loadErrorStrings.retry}
+            style={styles.loadErrorRetry}
+            testID="activity-editor-load-retry"
+          >
+            <Text style={styles.loadErrorRetryLabel}>{loadErrorStrings.retry}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {loadState === "ready" ? (
         <ActivityEditorForm
           value={value}
           onChange={patch}
@@ -191,10 +246,38 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           finishActionTestID="activity-editor-finish-action"
           errorTestID="activity-editor-save-error"
         />
-      )}
+      ) : null}
     </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  // V2-CAT-01 (UI-CAT-R-008) : définition absente ou échec de chargement —
+  // jamais un chargement indéfini. `Réessayer` relance le même chargement ;
+  // `Retour` (en-tête, toujours visible) reste la sortie garantie.
+  loadErrorBody: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing[24],
+    gap: spacing[16],
+  },
+  loadErrorMessage: {
+    ...type.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  loadErrorRetry: {
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[12],
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+  },
+  loadErrorRetryLabel: {
+    ...type.button,
+    color: colors.background,
+  },
+});
 
 /**
  * Flux Composition (T02-S02, D-137) — écrit exclusivement dans le brouillon

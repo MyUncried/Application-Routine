@@ -107,6 +107,20 @@ describe("ActivitySelectionScreen", () => {
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
+  /** V2-CAT-01 (UI-CAT-R-003) : le libellé du CTA porte le compteur de la sélection courante. */
+  it("shows a dynamic CTA label reflecting the current selection count", async () => {
+    renderScreen([makeDefinition("a", "Squat"), makeDefinition("b", "Fentes")]);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter");
+
+    fireEvent.press(screen.getByTestId("activity-selection-row-a"));
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter (1)");
+
+    fireEvent.press(screen.getByTestId("activity-selection-row-b"));
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter (2)");
+  });
+
   it("inserts copies atomically in list order, independent of touch order", async () => {
     const { updateDraft } = renderScreen([
       makeDefinition("a", "Squat"),
