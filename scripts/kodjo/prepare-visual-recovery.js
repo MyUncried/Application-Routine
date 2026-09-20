@@ -74,19 +74,21 @@ function verifyMaterializedRecoveryPackage(request, options = {}) {
     throw new Error('MATERIALIZED_RECOVERY_SCOPE_REFUSED');
   }
 
-  const cwd = path.resolve(options.cwd || process.cwd());
-  const head = spawnSync('git', ['rev-parse', 'HEAD'], {
-    cwd, encoding: 'utf8', windowsHide: true, shell: false,
-  });
-  if (head.error || head.status !== 0 || String(head.stdout).trim() !== request.source_head) {
-    throw new Error('MATERIALIZED_RECOVERY_HEAD_MISMATCH');
-  }
-  const reverse = spawnSync('git', ['apply', '--check', '--reverse', '--binary', patchPath], {
-    cwd, encoding: 'utf8', windowsHide: true, shell: false, maxBuffer: 64 * 1024 * 1024,
-  });
-  if (reverse.error || reverse.status !== 0) {
-    throw new Error('MATERIALIZED_RECOVERY_NOT_PRESENT: ' +
-      (reverse.error ? reverse.error.message : String(reverse.stderr || '').trim()));
+  if (options.verifyWorktree !== false) {
+    const cwd = path.resolve(options.cwd || process.cwd());
+    const head = spawnSync('git', ['rev-parse', 'HEAD'], {
+      cwd, encoding: 'utf8', windowsHide: true, shell: false,
+    });
+    if (head.error || head.status !== 0 || String(head.stdout).trim() !== request.source_head) {
+      throw new Error('MATERIALIZED_RECOVERY_HEAD_MISMATCH');
+    }
+    const reverse = spawnSync('git', ['apply', '--check', '--reverse', '--binary', patchPath], {
+      cwd, encoding: 'utf8', windowsHide: true, shell: false, maxBuffer: 64 * 1024 * 1024,
+    });
+    if (reverse.error || reverse.status !== 0) {
+      throw new Error('MATERIALIZED_RECOVERY_NOT_PRESENT: ' +
+        (reverse.error ? reverse.error.message : String(reverse.stderr || '').trim()));
+    }
   }
   return {
     status: 'MATERIALIZED_RECOVERY_VERIFIED',
