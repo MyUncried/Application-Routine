@@ -198,7 +198,7 @@ function deltaFixture() {
     {
       criterion_id:'UI-002',
       source:{path:'docs/ui.md',locator:'R2',requirement:'Préserver B.'},
-      risk_types:['FUNCTIONAL','DEVICE'],
+      risk_types:['DEVICE'],
       reuse_search:['src/shared/ui'],
       component_decision:'REUSE',
       selected_component:'B',
