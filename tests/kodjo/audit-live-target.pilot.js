@@ -20,10 +20,13 @@ test('audit F07: a fresh read at each boundary refuses changes after initial PAS
     assert.equal(effects,0,mutation);
   }
 });
-test('audit F07: unchanged target can pass repeatedly; IMPLEMENT does not acquire a new remote-main gate',()=>{
+test('audit F07: unchanged target can pass repeatedly; IMPLEMENT is guarded only when it targets an existing PR',()=>{
   const options={repository:'o/r',fetchPullRequest:()=>target(),fetchRemoteHead:()=>head};
   for(let i=0;i<4;i++)assert.equal(verifyLiveTarget(queue,options).status,'PASS');
   assert.equal(verifyLiveTarget({operation_kind:'IMPLEMENT'},{}).status,'NOT_APPLICABLE');
+  const targeted={operation_kind:'IMPLEMENT',delivery_target:{kind:'EXISTING_PR',application_pr:142,branch:'kodjo/existing',application_head:head}};
+  assert.equal(verifyLiveTarget(targeted,options).status,'PASS');
+  assert.throws(()=>verifyLiveTarget(targeted,{...options,fetchRemoteHead:()=>other}),/KODJO_QUEUE_REMOTE_HEAD_MOVED/);
 });
 test('audit F07: guards are wired immediately before mutable boundaries and agent gets no supervisor token',()=>{
   const ps=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8');
