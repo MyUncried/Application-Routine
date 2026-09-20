@@ -11,6 +11,7 @@ const root = path.resolve(__dirname, '..', '..');
 const C = require('../../scripts/kodjo/lib/queue-contract');
 const Q = require('../../scripts/kodjo/lib/queue-request');
 const R = require('../../scripts/kodjo/prepare-visual-recovery');
+const A = require('../../scripts/kodjo/verify-authorizations');
 const L = require('../../scripts/kodjo/run-local-claude');
 const { sha256 } = require('../../scripts/kodjo/lib/claude-local');
 
@@ -134,6 +135,27 @@ test('projection conserve la preuve et sépare HEAD protocolaire et HEAD applica
     assert.equal(request.source_head, f.head);
     assert.equal(request.protocol_source_head, 'a'.repeat(40));
     assert.deepEqual(request.materialized_recovery, queue(f).materialized_recovery);
+  } finally {
+    fs.rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test('le plan reste lié au HEAD source quand la livraison matérialisée cible un HEAD plus récent', () => {
+  const f = repositoryFixture();
+  try {
+    const q = queue(f);
+    assert.notEqual(q.delivery_target.application_head, q.materialized_recovery.source_application_head);
+    assert.equal(
+      A.resolveDeclaredPlanApplicationHead(q, q.delivery_target.application_head),
+      q.materialized_recovery.source_application_head
+    );
+
+    const plain = { ...q };
+    delete plain.materialized_recovery;
+    assert.equal(
+      A.resolveDeclaredPlanApplicationHead(plain, f.base),
+      f.base
+    );
   } finally {
     fs.rmSync(f.dir, { recursive: true, force: true });
   }

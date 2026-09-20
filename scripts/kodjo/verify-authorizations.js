@@ -112,6 +112,16 @@ function resolveAttestedApplicationHead(queue, planApplicationHead) {
   return deliveryHead;
 }
 
+/** Le HEAD déclaré dans le plan reste lié à la révision de scan historique.
+ * Une reprise matérialisée déplace uniquement la cible de livraison live.
+ */
+function resolveDeclaredPlanApplicationHead(queue, targetApplicationHead) {
+  const materialized = queue && queue.materialized_recovery;
+  return materialized === undefined
+    ? String(targetApplicationHead || '').toLowerCase()
+    : String(materialized.source_application_head || '').toLowerCase();
+}
+
 /** La migration doit désigner le code applicatif réellement repris. */
 function verifyAttestedApplicationHead(attestation, expectedApplicationHead) {
   if (String(attestation.application_pr_head || '').toLowerCase() !== expectedApplicationHead) {
@@ -295,7 +305,8 @@ function verify(queueFile, options) {
       if (declaredPr && Number(declaredPr[1]) !== Number(target.application_pr)) {
         fail('PLAN_APPLICATION_PR_MISMATCH');
       }
-      if (declaredHead && declaredHead[1].toLowerCase() !== String(target.application_head).toLowerCase()) {
+      const expectedDeclaredHead = resolveDeclaredPlanApplicationHead(queue, target.application_head);
+      if (declaredHead && declaredHead[1].toLowerCase() !== expectedDeclaredHead) {
         fail('PLAN_APPLICATION_HEAD_MISMATCH');
       }
     }
@@ -477,5 +488,6 @@ if (require.main === module) {
 
 module.exports = {
   verify, ghClient, checkThumbsUp, issueOfComment, blobContent,
-  resolveImpactApplicationHead, resolveAttestedApplicationHead, verifyAttestedApplicationHead,
+  resolveImpactApplicationHead, resolveAttestedApplicationHead, resolveDeclaredPlanApplicationHead,
+  verifyAttestedApplicationHead,
 };
