@@ -1,0 +1,92 @@
+{
+  "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+  "slice_id": "V2-CAT-01",
+  "issue_number": 150,
+  "source_head": "e05ea9bd0518aac2f463187e6001f94de8e6cbf8",
+  "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "771d65fd1d44bcb598b420622026d8e27253bf3a89ee586d75f026a66f06c0d0",
+  "mode": "RESUME_DELTA",
+  "operation_kind": "IMPLEMENT",
+  "delivery_target": {
+    "kind": "EXISTING_PR",
+    "application_pr": 181,
+    "branch": "kodjo/v2-v2-cat-01-35333601872",
+    "application_head": "70583ddf68955e675fe71e21ce465be0cff542e4"
+  },
+  "materialized_recovery": {
+    "source_run_id": "35522630224",
+    "source_artifact_id": "10609885204",
+    "patch_sha256": "a541df102fa1ac292c8ba872c7a4cf76b4d9b4f29f4c2dd724b55331c14aeddd",
+    "source_application_head": "e43004df9f04a10aa091ba28cc681592bea759ca",
+    "materialized_head": "70583ddf68955e675fe71e21ce465be0cff542e4",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "session_id": "b431f0f6-72d5-4aef-bf6c-37b1f6fafffb",
+  "prompt_file": ".github/orchestration/v2-slices/V2-CAT-01/implementation-mission.md",
+  "scope_allow": [
+    "app/(creation)/_layout.tsx",
+    "app/__tests__/creationLayout.test.tsx",
+    "src/features/activities/ActivityCard.tsx",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ActivitySelectionScreen.tsx",
+    "src/features/activities/CatalogueCreateOptions.tsx",
+    "src/features/activities/__tests__/ActivityCard.test.tsx",
+    "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/CategoriesScreen.tsx",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+    "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/compositionGesture.test.ts",
+    "src/features/sessions/compositionGesture.ts"
+  ],
+  "checks": [
+    "jest",
+    "typescript",
+    "lint"
+  ],
+  "limits": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "request_id": "8d2f9c4a-5b71-4e68-a3d6-1f0b2c947e55",
+  "created_at": "2026-09-20T19:22:00Z",
+  "authorized_plan": {
+    "plan_path": ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+    "plan_blob_oid": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "approved_at_commit": "26f0d052623c4aeee643dae95013621a24059b40",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "independent_review": {
+    "review_path": ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+    "review_blob_oid": "efe3b49b6ba35511b8da1cf05dabaa287913a759",
+    "reviewed_plan_blob_oid": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "verdict": "APPROVED",
+    "evidence_kind": "ARTIFACT_HASH"
+  },
+  "user_gate": {
+    "gate_ref": "issue_comment:5749822863",
+    "gated_reference": "40f476b2c47047718cae31a694da55938c0bb62a",
+    "decision": "APPROVED",
+    "user_login": "MyUncried",
+    "evidence_kind": "ORGANISATIONAL"
+  },
+  "retry_of_run_id": "35522630224",
+  "retry_reason": {
+    "code": "CHECKS_FAILED",
+    "detail": "Resume V2-CAT-01 on existing PR #181 from exact application HEAD 70583ddf68955e675fe71e21ce465be0cff542e4 after independent implementation review run 35529973203 / comment 5751858928 returned REVISE. Use the latest durable application recovery package from run 35522630224 only as the chained materialized proof dd683f2118791c536bfee668bc650f360d0d7187 -> 70583ddf68955e675fe71e21ce465be0cff542e4 while preserving e43004df9f04a10aa091ba28cc681592bea759ca as the cumulative plan/review application root. Fix ONLY UI-CAT-R-001 and UI-CAT-R-003. Actual application writes MUST be limited to src/features/activities/CatalogueCreateOptions.tsx, src/features/activities/ActivitySelectionScreen.tsx, src/features/activities/__tests__/CatalogueCreateOptions.test.tsx, and src/features/activities/__tests__/ActivitySelectionScreen.test.tsx; the broader approved scope_allow is only the cumulative immutable-plan contract and is not authorization to alter other files. R001: keep the Modal/fade, explicit Annuler closure, exact option order, disabled Un circuit and accessibility behavior, but make the dark scrim inert so touching it never calls onCancel or closes the menu; add/adjust a focused test. R003: when selected activity identifiers become stale and are removed/recalculated, show explicit user-visible information while preserving detailed cards, vector checkbox, counter, dynamic CTA, empty-selection invalidity, ordering, atomicity, Composition context/draft/scroll and all business calculations; use existing component-local wording unless an already-approved localization resource is strictly required. Do not change search/filter, CompositionScreen, gesture/swipe logic, navigation geometry, Tour spacing, protocol, plan or documentation. Preserve R002/R004/R005/R006/R007/R008/R009/R010 unchanged; R007 is already CONFORME and the cancelled Tour-margin request remains ignored. Run full Jest, TypeScript and lint. Publish a complete implementation report only if all checks are green."
+  }
+}
