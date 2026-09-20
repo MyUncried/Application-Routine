@@ -25,3 +25,9 @@ test('bounded validation never dispatches Lean Queue', () => {
   const segment = workflow.slice(validate, queue);
   assert.doesNotMatch(segment, /gh workflow run kodjo-v2-lean-queue\.yml/);
 });
+
+test('approved-plan queue grants the minimum private PR read permission used by its generator', () => {
+  assert.match(workflow, /^  pull-requests: read$/m);
+  assert.doesNotMatch(workflow, /^  pull-requests: write$/m);
+  assert.match(workflow, /node scripts\/kodjo\/generate-approved-plan-lean-request\.js/);
+});
