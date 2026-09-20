@@ -141,6 +141,7 @@ function ghClient() {
   return {
     comment: (repository, id) => call('repos/' + repository + '/issues/comments/' + id),
     reactions: (repository, id) => call('repos/' + repository + '/issues/comments/' + id + '/reactions'),
+    artifact: (repository, id) => call('repos/' + repository + '/actions/artifacts/' + id),
   };
 }
 
@@ -338,6 +339,20 @@ function verify(queueFile, options) {
     fail('GATE_REFERENCE_ABSENT', 'le corps du commentaire ne porte pas ' + reference);
   }
   checkThumbsUp(api, bootstrap.repository, gateRef[1], gate.user_login);
+
+  // ---- recovery matérialisé : artefact durable exact ----------------------
+  if (queue.materialized_recovery !== undefined) {
+    const proof = queue.materialized_recovery;
+    if (!api.artifact) fail('MATERIALIZED_RECOVERY_ARTIFACT_UNREADABLE');
+    const artifact = api.artifact(bootstrap.repository, proof.source_artifact_id);
+    const sourceRun = String(artifact && artifact.workflow_run && artifact.workflow_run.id || '');
+    const expectedName = 'kodjo-v2-recovery-' + proof.source_run_id + '-1';
+    if (!artifact || String(artifact.id) !== String(proof.source_artifact_id) ||
+        sourceRun !== String(proof.source_run_id) || artifact.name !== expectedName ||
+        artifact.expired === true) {
+      fail('MATERIALIZED_RECOVERY_ARTIFACT_MISMATCH');
+    }
+  }
 
   // ---- migration de paquet : attestation versionnee et liee --------------
   // Une reprise sur un HEAD plus recent ne peut pas transformer une racine
