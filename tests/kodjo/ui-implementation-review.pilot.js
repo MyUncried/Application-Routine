@@ -150,8 +150,11 @@ test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non dé
 test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy', () => {
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
   assert.match(wf,/Prepare criterion-complete UI review input/);
-  assert.match(wf,/verify-ui-implementation-review\.js prepare/);
-  assert.match(wf,/verify-ui-implementation-review\.js validate/);
+  assert.match(wf,/review_prepare=\(prepare/);
+  assert.match(wf,/review_validate=\(validate/);
+  assert.match(wf,/cumulative_review_base/);
+  assert.match(wf,/previous_review_comment_id/);
+  assert.match(wf,/review_scope=AFFECTED or INHERITED/);
   assert.match(wf,/KODJO_UI_IMPLEMENTATION_REVIEW_JSON/);
   assert.match(wf,/device_gate_required/);
   assert.match(wf,/legacy path unchanged/);
@@ -205,7 +208,7 @@ function deltaFixture() {
       proof_required:['ACCESSIBILITY_CHECK','DEVICE_CHECK'],
     },
   ];
-  const matrix={schema:'kodjo.ui-criteria.v1',criteria,preservation:{preserve:[],change:[],forbidden:[]}};
+  const matrix={schema:'kodjo.ui-criteria.v1',criteria,preservation:{preserve:[],change:[{target:'A',justification:'Delta A.'}],forbidden:[]}};
   const contract={schema:'kodjo.ui-plan-contract.v1',contract_version:1,protocol_commit:'a'.repeat(40),
     scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/A.tsx','src/B.tsx'],
     criterion_count:2,matrix_sha256:matrixFingerprint(matrix)};
