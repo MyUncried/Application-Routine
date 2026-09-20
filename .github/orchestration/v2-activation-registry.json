@@ -41,8 +41,8 @@
       "issue_number": 150,
       "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "789645c67dcc5ce626894a14d5a8301d1258262718fbdc4a7b2904dde2682fa6",
-      "planning_application_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476"
+      "slice_bootstrap_sha256": "771d65fd1d44bcb598b420622026d8e27253bf3a89ee586d75f026a66f06c0d0",
+      "planning_application_head": "e43004df9f04a10aa091ba28cc681592bea759ca"
     },
     {
       "slice_id": "V2-E2E-20260919",

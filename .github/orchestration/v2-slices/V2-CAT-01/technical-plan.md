@@ -1,930 +1,332 @@
 [KODJO_V2] PLAN_OUTPUT
 slice_id=V2-CAT-01
 bootstrap_path=.github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json
-source_head=63a3c26ed492f7c0925cfb57419f3dc2dcc5e476
-planning_mode=INITIAL
+source_head=b2d5db7bde4127bf85d60a7f4107e7b4ebd96265
+protocol_execution_head=b2d5db7bde4127bf85d60a7f4107e7b4ebd96265
+application_pr=181
+application_head=e43004df9f04a10aa091ba28cc681592bea759ca
+supersedes_plan_blob_oid=77955eb471b42ccaaab1dc42c5313c941e43cf3e
+prior_review_blob_oid=845d920fe0e5dd1baf0d88d625f7da3d67d94670
+planning_context_sha256=4b4b66d880afc02e642eb17b1a3fddb4d74696f020038d722757f09a4c9afafb
+base_plan_comment_id=5749116249
+independent_review_comment_id=5749145345
+resumed_command_comment_id=5749154649
 planning_contract=kodjo.plan-impact.v1
+ui_planning_contract=kodjo.ui-plan-criteria.v1
 STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 
-# Plan technique — V2-CAT-01
-
-## 1. Identité, état et bornage
-
-- **Baseline immuable :** `63a3c26ed492f7c0925cfb57419f3dc2dcc5e476`.
-- **Issue :** #150.
-- **Mode :** PLAN_ONLY ; aucune implémentation autorisée.
-- **Objectif :** rendre le segment `Activités` consultable dans le Catalogue, persister les `ActivityDefinition`, permettre leur création et modification, créer une `SessionActivity` locale depuis la Composition et copier des Activités existantes dans une Séance.
-- **Corrections incluses :** navigation basse, contrôles segmentés, swipe de Composition, position de l’icône `Côté`, centrage de `Créer une catégorie`, transition Catégories → Catalogue.
-- **Préparation d’exécution :** les contrôles prévus par les écrans inclus sont visibles mais désactivés, sans handler fonctionnel. Aucun moteur, plan, résultat, historique ou exécution réelle.
-
-Le libellé exact de la première option de l’arbre Catalogue est `Une nouvelle activité`, conformément à l’arbitrage utilisateur intégré à la mission. La section `Médias` est visible et repliable ; son contrôle, son placeholder et `Ajouter un média` restent désactivés. Aucune fonction média réelle n’est incluse.
-
-Restent hors périmètre : exécution directe, origine `ACTIVITY`, Suivi, archivage, restauration, suppression, recherche, filtre fonctionnel, tri fonctionnel, médias réels, Circuits fonctionnels, composant applicatif `Status / Badge`, calculs de bilatéralité et tout moteur d’exécution.
-
-## 2. Constat de l’existant
-
-### 2.1 Catalogue et navigation
-
-`src/features/sessions/CatalogueScreen.tsx` porte le Catalogue actuel, charge les Séances via `useSessionCatalogue()` et rend `SessionCard`. Le sélecteur `Activités / Séances / Circuits` existe visuellement, mais seul le parcours Séances est alimenté.
-
-La navigation basse est portée par `app/(tabs)/_layout.tsx`, avec `src/shared/ui/navigationLayout.ts`, `src/shared/ui/ScreenShell.tsx` et les tokens partagés. Le libellé permanent attendu est `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`.
-
-Le Catalogue devra également afficher la rangée commune `Créer / Filtrer / Trier`. Dans cette tranche, `Créer` est actif ; `Filtrer` et `Trier` restent visibles mais inertes, car la recherche, le filtre fonctionnel, l’archivage et le tri fonctionnel sont explicitement hors périmètre. L’arbre `Créer` est ancré à `Créer` et conserve cette rangée sous le scrim.
-
-### 2.2 Domaine Séance et Composition
-
-Les Activités actuelles sont des copies rattachées à une Séance dans :
-
-- `src/domain/sessions/SessionDraft.ts` ;
-- `src/domain/sessions/composition.ts` ;
-- `src/features/sessions/SessionDraftContext.tsx` ;
-- `src/features/sessions/SessionDraftProvider.tsx` ;
-- `src/features/sessions/CompositionScreen.tsx`.
-
-`src/domain/sessions/Session.ts`, `src/domain/sessions/calculations.ts` et `src/domain/sessions/sideMode.ts` sont gelés : aucun changement concret indispensable n’est démontré et les calculs de bilatéralité restent hors écriture.
-
-Le contexte et le provider de brouillon sont concernés uniquement par la conservation du brouillon et l’insertion atomique des copies lors du retour de la sélection. `src/features/sessions/SessionService.ts` et `src/features/sessions/__tests__/SessionService.test.ts` restent non affectés : leur contrat consommé ne change pas.
-
-### 2.3 Éditeur d’Activité
-
-`src/features/sessions/ExerciseScreen.tsx` couvre déjà le nom, la description, les Zones corporelles, les modes Durée/Répétitions/À l’échec, les Séries, la Pause, la Récupération, `sideMode`, les roulettes, la synthèse et la garde de sortie. Son enregistrement est couplé au brouillon de Séance.
-
-Le plan extrait un formulaire commun avec deux adaptateurs :
-
-1. Composition : écriture dans le brouillon `SessionActivity` uniquement ;
-2. Catalogue : création ou modification d’une `ActivityDefinition` persistante.
-
-La valeur `Renforcement du genou` reste une donnée de démonstration Figma et ne doit pas être codée en dur. Le nom doit être en gras uniquement dans la synthèse de l’éditeur.
-
-### 2.4 Persistance et injection SQLite
-
-La persistance SQLite est organisée dans `src/infrastructure/database/`, avec migrations `001` à `005`, `migrateDatabase.ts`, `constants.ts`, `DatabaseRows.ts` et des repositories existants. La version courante est 5.
-
-La connexion SQLite est initialisée par la composition existante autour de `SessionServiceProvider`. L’implémentation devra y intégrer le nouveau service d’Activités, afin que `ActivityDefinitionService` utilise exactement la même instance SQLite et le même cycle de migration. Aucun second `SQLiteProvider`, aucune seconde connexion et aucun cycle parallèle de migration ne sont autorisés.
-
-Une migration additive `006` est nécessaire pour `ActivityDefinition` et ses associations aux Zones corporelles. Elle ne convertit aucune `SessionActivity` historique et n’introduit aucune donnée d’exécution, d’archivage, de suppression ou de média fonctionnel.
-
-### 2.5 Gestes, catégories et état temporaire
-
-Le swipe de Composition et ses callbacks `Dupliquer`/`Supprimer` existent dans `compositionGesture.ts` et `compositionPresentation.ts`. Ils doivent être corrigés sans changer leur sémantique métier.
-
-`CategoriesScreen.tsx` porte le parcours existant. Seuls le centrage de `Créer une catégorie` et la transition canonique après succès sont concernés.
-
-`SessionDraftContext.tsx` et `SessionDraftProvider.tsx` conservent le brouillon pendant l’aller-retour vers la sélection et exposent l’opération d’insertion groupée des copies. Aucun changement n’est requis dans le service de Séances.
-
-## 3. Matrice périmètre → état → écart
-
-| Sous-périmètre | État au HEAD | Écart à traiter |
-|---|---|---|
-| `Séances` | Fonctionnel | Préserver et maintenir le segment par défaut. |
-| `Activités` | Visible mais non fonctionnel | Activer le segment et charger des définitions persistantes. |
-| `Circuits` | Visible et désactivé | Préserver sans route ni logique fonctionnelle. |
-| Titres Catalogue | Titre Séances fixe | Rendre le titre dépendant du segment actif. |
-| Rangée Catalogue | Absente ou incomplète | Afficher `Créer / Filtrer / Trier`; seul `Créer` est actif dans cette tranche. |
-| Catalogue Activités | Absent comme source autonome | Créer liste, cartes et ouverture en modification. |
-| Création Catalogue | Accès direct à Composition | Ajouter l’arbre exact de création. |
-| Modification Catalogue | Absente | Ouvrir l’éditeur prérempli et persister la modification. |
-| Persistance | Pas d’`ActivityDefinition` | Ajouter migration 006, repository et service create/read/list/update. |
-| Création depuis Composition | Existante pour une Activité de Séance | Préserver le caractère local, sans définition Catalogue. |
-| Sélection d’une Activité existante | Absente | Ajouter sélection multiple et copie indépendante. |
-| Médias | Pas de fonctionnalité réelle | Afficher la section repliable et les contrôles désactivés. |
-| Navigation basse | Primitive existante à mettre à niveau | `Catalogues`, marges, espace, Recherche, cadre actif et animation. |
-| Contrôles segmentés | Présentation statique | Indicateur centré et déplacement continu, sans refonte visuelle DSF. |
-| Swipe Composition | Révélation non conforme | Translation réelle, révélation progressive, fermeture par vrai swipe droit. |
-| Icône `Côté` | Présente | Corriger uniquement son placement visuel. |
-| Catégories | Parcours existant | Centrer le bouton et appliquer la transition droite→gauche après succès. |
-| Préparation d’exécution | Aucun moteur | Conserver ou afficher les contrôles prévus, désactivés et sans handler. |
-| Fonctions exclues | Non présentes ou incomplètes | Ne créer aucune API, route ou persistance correspondante. |
-
-## 4. Comportements déterministes
-
-### 4.1 Catalogue
-
-- `Séances` est sélectionné par défaut à l’ouverture et après relance complète.
-- `Activités` est actif et affiche les `ActivityDefinition` persistantes.
-- `Circuits` est visible mais désactivé et ne déclenche aucune navigation.
-- Le titre suit le segment : `Catalogue des séances`, `Catalogue des activités`, `Catalogue des circuits`.
-- `Créer`, `Filtrer` et `Trier` restent visibles. `Filtrer` et `Trier` ne produisent aucun effet fonctionnel dans cette tranche.
-- L’arbre `Créer` est ancré à `Créer`, conserve la rangée sous scrim et affiche exactement : `Une nouvelle activité`, `Une séance`, `Un circuit`, `Annuler`.
-- `Un circuit` est désactivé. `Annuler` ferme l’arbre sans écriture et restitue exactement le contexte courant.
-- L’apparition de l’arbre est progressive et rapide.
-- La surface principale d’une carte d’Activité ouvre l’édition.
-- Le contrôle `Déployer` est présent sur chaque carte d’Activité, visible mais désactivé, avec la même zone réservée sur toutes les cartes.
-- Le bouton `Lecture` est présent sur chaque carte d’Activité ; il est désactivé et sans handler fonctionnel dans cette tranche.
-- Les cartes d’Activité n’ont ni poignée, ni swipe, ni action d’archivage ou de suppression.
-- La liste est triée par `updatedAt DESC`, c’est-à-dire par dernière modification décroissante. Ce tri implicite n’est pas un tri utilisateur et n’est pas persisté comme préférence.
-
-L’état de segment, de recherche déjà existante et de scroll est restauré pendant l’aller-retour courant. Aucun état Catalogue n’est persisté après relance complète. Après l’enregistrement depuis Catégories, la destination est toujours `Catalogue des séances`, segment `Séances`.
-
-### 4.2 ActivityDefinition
-
-Une `ActivityDefinition` persistante peut être créée, lue et modifiée. La suppression, l’archivage, la restauration, la recherche et le filtrage ne sont pas exposés.
-
-L’éditeur est prérempli en modification. `Terminer` persiste uniquement dans le contexte Catalogue. Une erreur de sauvegarde conserve le brouillon et ne laisse pas de modification partielle.
-
-Les champs persistés sont ceux nécessaires à la réouverture exacte : nom, description, mode et cible applicable, Séries, Pause, Récupération, `sideMode`, Zones corporelles, dates de création et de modification.
-
-### 4.3 Médias
-
-La section `Médias` est visible et repliable. `Déployer / Condenser`, `Ajouter un média` et le placeholder sont visibles conformément au contrat mais désactivés. Aucun sélecteur de fichier, import, lecture, association ou stockage média n’est ajouté.
-
-### 4.4 Ajout depuis Composition
-
-`Ajouter une activité` ouvre exactement :
-
-1. `Une nouvelle activité` ;
-2. `Une activité existante` ;
-3. `Annuler`.
-
-`Une nouvelle activité` crée une `SessionActivity` propre à la Séance. `Une activité existante` ouvre la sélection multiple des définitions persistantes.
-
-La validation sans sélection est invalide : elle reste désactivée ou refusée, ne crée aucune donnée et ne modifie ni le brouillon ni le Catalogue.
-
-Lors d’une sélection valide, les copies sont insérées selon l’ordre courant de présentation de la liste au moment de la validation, indépendamment de l’ordre des touchers. Chaque copie possède un nouvel identifiant et copie toutes les propriétés métier applicables, notamment description, mode/cible, Séries, Pause, Récupération, Zones et `sideMode`. L’opération est atomique : toutes les copies ou aucune.
-
-Une activité créée directement depuis Composition ne crée jamais d’`ActivityDefinition` et aucun bouton d’enregistrement vers le Catalogue n’est ajouté.
-
-### 4.5 Navigation, segments et gestes
-
-- La destination basse porte le libellé `Catalogues`.
-- Les icônes restent vectorielles, avec dessin de référence centré dans sa boîte optique et cible tactile conforme.
-- Le cadre actif de navigation reste visible et glisse continûment entre destinations.
-- Le contrôle segmenté répartit ses options avec Flexbox, conserve la traduction visuelle DSF canonique et anime le cadre sélectionné sans le faire disparaître.
-- Dans la Composition, un swipe gauche fait suivre la carte au doigt et révèle progressivement `Dupliquer`/`Supprimer` derrière elle.
-- Seul un véritable swipe droit commencé sur la carte ouverte la referme. Un tap sur le fond, un swipe droit ailleurs ou un tap hors action ne ferme pas le contexte.
-- L’appui court, l’appui long et le déplacement restent distincts du swipe.
-- Le Compte à rebours initial et la Fin de séance restent non déplaçables.
-- L’icône `Côté` est décalée vers la droite selon la marge prescrite, sans changement de domaine.
-- `Créer une catégorie` est centré horizontalement.
-- Après succès de l’enregistrement Catégories, la cible entre depuis la droite et l’écran courant sort vers la gauche.
-
-## 5. Périmètre technique exact
-
-La liste suivante est normative. Chaque chemin est une application à créer ou modifier et possède le même statut que dans `modified_modules`.
-
-### À créer
-
-- `app/(creation)/activity-selection.tsx`
-- `src/domain/activities/ActivityDefinition.ts`
-- `src/domain/activities/ActivityDefinitionRepository.ts`
-- `src/domain/activities/__tests__/ActivityDefinition.test.ts`
-- `src/domain/activities/index.ts`
-- `src/features/activities/ActivityCard.tsx`
-- `src/features/activities/ActivityCatalogueList.tsx`
-- `src/features/activities/ActivityDefinitionService.ts`
-- `src/features/activities/ActivityDefinitionServiceContext.tsx`
-- `src/features/activities/ActivityDefinitionServiceProvider.tsx`
-- `src/features/activities/ActivityEditorForm.tsx`
-- `src/features/activities/ActivitySelectionScreen.tsx`
-- `src/features/activities/CatalogueCreateOptions.tsx`
-- `src/features/activities/__tests__/ActivityCard.test.tsx`
-- `src/features/activities/__tests__/ActivityCatalogueList.test.tsx`
-- `src/features/activities/__tests__/ActivityDefinitionService.test.ts`
-- `src/features/activities/__tests__/ActivityEditorForm.test.tsx`
-- `src/features/activities/__tests__/ActivitySelectionScreen.test.tsx`
-- `src/features/activities/__tests__/CatalogueCreateOptions.test.tsx`
-- `src/features/activities/__tests__/useActivityCatalogue.test.ts`
-- `src/features/activities/useActivityCatalogue.ts`
-- `src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts`
-- `src/infrastructure/database/migrations/migration006.ts`
-- `src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts`
-- `src/shared/ui/SegmentedControl.tsx`
-- `src/shared/ui/__tests__/SegmentedControl.test.tsx`
-
-### À modifier
-
-- `app/(creation)/_layout.tsx`
-- `app/(creation)/exercise.tsx`
-- `app/(tabs)/_layout.tsx`
-- `app/__tests__/creationLayout.test.tsx`
-- `app/__tests__/rootLayoutGesture.test.tsx`
-- `app/_layout.tsx`
-- `src/domain/sessions/SessionDraft.ts`
-- `src/domain/sessions/__tests__/SessionDraft.test.ts`
-- `src/domain/sessions/__tests__/composition.test.ts`
-- `src/domain/sessions/composition.ts`
-- `src/features/sessions/CatalogueScreen.tsx`
-- `src/features/sessions/CategoriesScreen.tsx`
-- `src/features/sessions/CompositionScreen.tsx`
-- `src/features/sessions/ExerciseScreen.tsx`
-- `src/features/sessions/SessionDraftContext.tsx`
-- `src/features/sessions/SessionDraftProvider.tsx`
-- `src/features/sessions/SessionServiceProvider.tsx`
-- `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CatalogueScreen.test.tsx`
-- `src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CategoriesScreen.test.tsx`
-- `src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx`
-- `src/features/sessions/__tests__/CompositionScreen.test.tsx`
-- `src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx`
-- `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
-- `src/features/sessions/__tests__/SessionDraftContext.test.tsx`
-- `src/features/sessions/__tests__/SessionDraftProvider.test.tsx`
-- `src/features/sessions/__tests__/SessionServiceProvider.test.tsx`
-- `src/features/sessions/__tests__/compositionGesture.test.ts`
-- `src/features/sessions/__tests__/compositionPresentation.test.ts`
-- `src/features/sessions/compositionGesture.ts`
-- `src/features/sessions/compositionPresentation.ts`
-- `src/infrastructure/database/__tests__/initializeDatabase.test.ts`
-- `src/infrastructure/database/__tests__/migrateDatabase.test.ts`
-- `src/infrastructure/database/constants.ts`
-- `src/infrastructure/database/migrateDatabase.ts`
-- `src/infrastructure/database/types/DatabaseRows.ts`
-- `src/shared/i18n/resources/fr.ts`
-- `src/shared/ui/ScreenShell.tsx`
-- `src/shared/ui/__tests__/ScreenShell.test.tsx`
-- `src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx`
-- `src/shared/ui/__tests__/navigationLayout.test.ts`
-- `src/shared/ui/navigationLayout.ts`
-
-### Modules explicitement non affectés ou gelés
-
-- `src/domain/sessions/Session.ts` : aucun changement concret nécessaire ; les champs communs sont consommés depuis les types existants.
-- `src/domain/sessions/calculations.ts` : calculs de bilatéralité gelés.
-- `src/domain/sessions/sideMode.ts` : contrat réutilisé inchangé.
-- `src/features/sessions/SessionService.ts` : `CONSUMER_UNAFFECTED` ; il consomme `SessionDraft`, `toCreateSessionInput` et `toUpdateSessionInput`, dont le contrat consommé ne change pas pour cette tranche.
-- `src/features/sessions/__tests__/SessionService.test.ts` : `TEST_UNAFFECTED` ; aucun contrat couvert ne change.
-- `src/features/sessions/SessionCard.tsx` et `src/features/sessions/__tests__/SessionCard.test.tsx` : gelés ; aucun changement de contrat démontré.
-- `app/(creation)/composition.tsx`, `app/(creation)/categories.tsx`, `app/(tabs)/index.tsx` : wrappers de routes inchangés ; les écrans conservent leur contrat de montage.
-
-### Rationale d’injection SQLite
-
-`src/features/sessions/SessionServiceProvider.tsx` est le seul module autorisé à compléter la composition des services autour de l’instance SQLite existante. Il doit créer `ActivityDefinitionService` avec la même connexion que `SessionService`, puis exposer le provider d’Activités aux enfants applicatifs. `SessionService.ts`, `SessionServiceContext.tsx` et `SessionService.test.ts` ne changent pas de contrat.
-
-`app/_layout.tsx` conserve une seule composition SQLite et branche le provider existant ; aucune seconde connexion ne doit être créée.
-
-### Scope d’écriture complet
-
-Les chemins d’écriture complets sont exactement ceux des listes `À créer` et `À modifier` ci-dessus, sans chemin supplémentaire. Les tests nouveaux sont explicitement des créations ; les tests existants nécessaires à l’adaptation sont explicitement des modifications. Aucun importeur classé non affecté n’est autorisé en écriture.
-
-## 6. Données, persistance et compatibilité
-
-### 6.1 Séparation des objets
-
-`ActivityDefinition` est une racine persistante autonome et ne porte aucune position de Composition. `SessionActivity` reste rattachée à une Séance et porte sa position structurelle.
-
-L’insertion est une copie ponctuelle. Les modifications ultérieures de la définition et de la copie sont indépendantes. La Durée totale dérivée et le pilote temporaire Séries/Durée totale ne sont pas persistés comme données canoniques supplémentaires.
-
-### 6.2 Migration
-
-`migration006` est additive, idempotente et testée depuis une base neuve et depuis la version 5. Les migrations 001 à 005 restent inchangées. Aucune promotion historique ni écriture implicite n’est effectuée.
-
-### 6.3 Bilatéralité gelée
-
-`sideMode` est seulement copié et relu. Aucun changement n’est prévu dans `Session.ts`, `calculations.ts`, `sideMode.ts` ou les règles de résolution effective. Les suites existantes de bilatéralité restent des tests de régression non modifiés.
-
-## 7. Plan séquencé
-
-### Étape 1 — Contrat de domaine
-
-Définir `ActivityDefinition`, ses entrées create/update, le contrat repository et la conversion vers une copie de Composition.
-
-**Résultat vérifiable :** domaine indépendant de React et SQLite, aucune API hors périmètre.
-
-### Étape 2 — Migration et repository
-
-Ajouter migration 006, lignes SQLite, relation Zones et opérations create/read/list/update. La liste du repository applique explicitement `ORDER BY updatedAt DESC`.
-
-**Résultat vérifiable :** base neuve et montée depuis v5, rollback, données existantes conservées, aucune promotion, ordre de liste déterministe.
-
-### Étape 3 — Service et injection
-
-Modifier `SessionServiceProvider.tsx` pour créer le service d’Activités à partir de la même instance SQLite que le service Séances, puis exposer `ActivityDefinitionServiceProvider` aux enfants applicatifs. Ne pas modifier le contrat de `SessionService` ni de `SessionServiceContext`.
-
-**Résultat vérifiable :** une seule connexion SQLite, aucune UI n’accède directement à SQLite, aucune migration concurrente.
-
-### Étape 4 — Extraction du formulaire
-
-Extraire le formulaire commun, préserver le flux Composition, ajouter l’adaptateur Catalogue et intégrer Médias visible/inactif et nom en gras.
-
-**Résultat vérifiable :** deux cibles de sauvegarde distinctes, règles de validation et de calcul non dupliquées.
-
-### Étape 5 — Catalogue et arbre de création
-
-Activer Activités, titres contextuels, rangée de commandes, liste triée par `updatedAt DESC`, cartes et arbre exact.
-
-**Résultat vérifiable :** création/modification persistantes ; Circuit, Filtrer, Trier, Lecture et Déployer restent inertes conformément au périmètre.
-
-### Étape 6 — Sélection depuis Composition
-
-Ajouter le choix nouvelle/existante/Annuler, l’écran de sélection et la copie atomique ordonnée.
-
-**Résultat vérifiable :** copies indépendantes, nouvel identifiant, ordre de liste, validation sans sélection sans écriture, aucune définition créée par le parcours local.
-
-### Étape 7 — Navigation et segments
-
-Mettre à niveau navigation basse, `Catalogues`, indicateur animé, rangée Catalogue et `SegmentedControl`.
-
-**Résultat vérifiable :** centrage, animation continue, états disabled accessibles sur 360/402/440 points, rendu DSF préservé.
-
-### Étape 8 — Swipe et corrections Composition
-
-Corriger translation, révélation, fermeture, coins, espace du bloc et icône `Côté`.
-
-**Résultat vérifiable :** gestes conformes sans régression des callbacks existants.
-
-### Étape 9 — Catégories
-
-Centrer le bouton et configurer la transition après succès uniquement.
-
-**Résultat vérifiable :** destination `Catalogue des séances`, segment `Séances`, et aucune navigation en cas d’erreur.
-
-### Étape 10 — Contrôle de bornage
-
-Auditer les écrans préparatoires et vérifier l’absence de moteur, route fonctionnelle, persistance d’exécution et fonctions exclues.
-
-### Étape 11 — Validation finale
-
-Exécuter TypeScript, lint, tests ciblés et complets, migrations SQLite, tests UI/gestes/navigation, contrôles responsive/accessibilité, puis vérifier le diff et le périmètre exact.
-
-## 8. Tests
-
-### 8.1 Tests à créer
-
-- `src/domain/activities/__tests__/ActivityDefinition.test.ts` : invariants, validations et conversion en copie ;
-- `src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts` : create/read/list/update, ordre `updatedAt DESC`, Zones et rollback ;
-- `src/features/activities/__tests__/ActivityDefinitionService.test.ts` ;
-- `src/features/activities/__tests__/ActivityEditorForm.test.tsx` ;
+# Plan technique final — V2-CAT-01
+
+## 1. Statut, reprise et bornage
+
+Ce document est un plan de planification en lecture seule. Aucun fichier ne doit être modifié, aucune implémentation ne doit être lancée, aucune fusion ni clôture n’est autorisée avant l’approbation utilisateur et la revue indépendante finale.
+
+La commande de reprise courante est conservée : reprise après intégration de KPB-002, qualification Linux et Windows acquise, chemins protégés inchangés et évolution limitée au protocole. Le paquet canonique et son budget doivent être vérifiés avant appel. Cette opération n’est pas un rerun du prompt historique.
+
+Le plan validé précédemment est conservé avec ses décisions produit, ses corrections documentaires A/B/C2 et ses exigences. Les quatre observations résiduelles sont désormais fermées :
+
+1. `CompositionNavigationGuard.integration.test.tsx` est exclu du périmètre d’écriture et des tests à modifier. Il reste une régression inchangée, exécutée par Jest complet. Les scénarios d’abandon et de conservation du brouillon sont préservés.
+2. `pendingSwipeRef` est documenté dans `CompositionScreen.tsx`. `compositionGesture.ts` reste limité aux calculs purs du geste.
+3. Le contrat Catégories explicite la préservation du verrou existant, du bouton désactivé pendant sauvegarde, de l’absence de double enregistrement et de l’absence de double navigation.
+4. Le contrat de sélection explicite la restauration du contexte et du scroll de Composition après annulation ou ajout, sans élargissement fonctionnel.
+
+Le checkpoint ciblé acquis ne valide que l’ouverture visible du menu `Créer`. La tranche reste `NON_CONFORME / REQUALIFICATION_REQUIRED` jusqu’à la validation complète. Aucun code applicatif, aucune fusion et aucune clôture ne sont autorisés à ce stade.
+
+Le périmètre reste limité aux corrections de présentation, navigation, sélection et Composition couvertes par les contrats T03. Il n’introduit ni manifeste V1, ni contrat de tranche V1, ni moteur d’exécution, ni recherche, ni filtrage fonctionnel, ni archivage, ni suppression, ni média réel, ni Circuit fonctionnel.
+
+## 2. Décisions produit et techniques préservées
+
+Les décisions suivantes restent inchangées :
+
+- ouverture visible du menu `Créer` ;
+- ordre exact `Une nouvelle activité / Une séance / Un circuit / Annuler` ;
+- rangée Catalogue `Créer / Filtrer / Trier`, géométrie `108 × 32 pt`, gap `8 pt` et centrage ;
+- titres contextuels des Catalogues et libellé permanent de navigation basse `Catalogues` ;
+- formulaire partagé `ActivityEditorForm` et roulettes natives existantes ;
+- calculs de durée, règles de bilatéralité, `sideMode`, bornes et séparation `ActivityDefinition` / `SessionActivity` ;
+- verrou de sauvegarde existant, `isSavingRef`, chemin `catch` et réactivation après erreur ;
+- centrage existant de `Créer une catégorie` ;
+- cartes structurelles Compte à rebours initial et Fin de séance, non déplaçables ;
+- duplication, suppression, appui court, appui long, réorganisation et règles de bilatéralité ;
+- `compositionPresentation.ts` et son test ;
+- `Session.ts`, `calculations.ts`, `sideMode.ts`, `SessionCard`, `SessionService` et autres modules gelés ou non affectés ;
+- scénarios d’abandon et de conservation du brouillon de Composition ;
+- absence de double sauvegarde et de double navigation dans Catégories.
+
+Aucun changement métier ni remplacement du mécanisme de verrou existant n’est autorisé.
+
+## 3. Constat et écarts à traiter
+
+| Sous-périmètre | Existant | Écart à traiter | Preuve attendue |
+|---|---|---|---|
+| Arbre `Créer` | Le composant existe et l’ouverture est visible | Confirmer couverture de fenêtre, scrim inerte, vecteurs, ordre et isolation d’accessibilité | Tests fonctionnels, comparaison visuelle, iOS/Android |
+| Carte Activité | `ActivityCard.tsx` existe mais son rendu est incomplet | Afficher les données dynamiques, la barre bleue, `Lecture` et `Déployer` visibles mais désactivés | Test de composant, comparaison visuelle, accessibilité |
+| Sélection multiple | `ActivitySelectionScreen.tsx` existe | Ajouter compteur, CTA dynamique, invalidité de la sélection vide, gestion des identifiants obsolètes, ordre et atomicité | Tests composant/intégration, comparaison visuelle, appareil |
+| Éditeur Activité | `ActivityEditorForm.tsx` est partagé | Réutiliser `SegmentedControl` et confirmer les invariants d’affichage, de synthèse, de Media et de libellés | Tests formulaire/adaptateurs, comparaison visuelle, accessibilité |
+| Garde Catalogue | Retour direct et chargement d’une définition absente insuffisamment explicites | Préserver le brouillon, afficher l’erreur, libérer le verrou et permettre la reprise | Tests unitaires et d’intégration |
+| Contexte Catalogue | Segment local conservé | Restaurer le contexte pendant l’aller-retour et revenir sur `Séances` après relance | Tests Catalogue/navigation, contrôle appareil |
+| Catégories | Destination générique | Cibler Catalogue des séances / `Séances`, appliquer la transition canonique et préserver le verrou | Tests layout, écran et intégration |
+| Swipe Composition | Calculs purs disponibles mais translation progressive incomplète | Faire suivre la carte au doigt, révéler progressivement les actions et limiter la fermeture au vrai swipe droit | Tests purs, rendu et appareil |
+| Orchestration du swipe | `pendingSwipeRef` appartient à l’écran | Maintenir sa responsabilité dans `CompositionScreen.tsx` et séparer les calculs purs | Analyse statique, tests écran et gestes |
+| Bloc d’actions | Coins et gap non conformes | Arrondir haut-gauche/bas-gauche, conserver le gap canonique et rendre `tourSurface` visible | Comparaison visuelle, appareil |
+| Icône `Côté` | Position non conforme | Appliquer la marge droite prescrite sans modifier le domaine | Test rendu, comparaison visuelle |
+| Garde Composition | Contrat déjà préservé | Ne pas modifier `CompositionNavigationGuard.integration.test.tsx` | Jest complet et preuve de contrat inchangé |
+
+## 4. Périmètre applicatif autorisé
+
+Les modules de production à modifier sont exactement les suivants :
+
+- `app/(creation)/_layout.tsx` ;
+- `src/features/activities/ActivityCard.tsx` ;
+- `src/features/activities/ActivityEditorForm.tsx` ;
+- `src/features/activities/ActivitySelectionScreen.tsx` ;
+- `src/features/activities/CatalogueCreateOptions.tsx` ;
+- `src/features/sessions/CatalogueScreen.tsx` ;
+- `src/features/sessions/CategoriesScreen.tsx` ;
+- `src/features/sessions/CompositionScreen.tsx` ;
+- `src/features/sessions/ExerciseScreen.tsx` ;
+- `src/features/sessions/compositionGesture.ts`.
+
+Les tests à modifier sont exactement les suivants :
+
+- `app/__tests__/creationLayout.test.tsx` ;
 - `src/features/activities/__tests__/ActivityCard.test.tsx` ;
-- `src/features/activities/__tests__/ActivityCatalogueList.test.tsx` ;
+- `src/features/activities/__tests__/ActivityEditorForm.test.tsx` ;
 - `src/features/activities/__tests__/ActivitySelectionScreen.test.tsx` ;
 - `src/features/activities/__tests__/CatalogueCreateOptions.test.tsx` ;
-- `src/features/activities/__tests__/useActivityCatalogue.test.ts` ;
-- `src/shared/ui/__tests__/SegmentedControl.test.tsx`.
+- `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx` ;
+- `src/features/sessions/__tests__/CatalogueScreen.test.tsx` ;
+- `src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx` ;
+- `src/features/sessions/__tests__/CategoriesScreen.test.tsx` ;
+- `src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx` ;
+- `src/features/sessions/__tests__/CompositionScreen.test.tsx` ;
+- `src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx` ;
+- `src/features/sessions/__tests__/ExerciseScreen.test.tsx` ;
+- `src/features/sessions/__tests__/compositionGesture.test.ts`.
 
-### 8.2 Tests à adapter
+Aucun nouveau fichier de test n’est requis par le plan. `src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx` est explicitement exclu des écritures et des tests à modifier. Il reste un test de régression inchangé, exécuté par Jest complet, avec conservation des scénarios d’abandon et de brouillon.
 
-Les tests directement concernés sont adaptés explicitement dans les fichiers listés au périmètre, notamment : routes et layouts, `SessionDraft`, Composition, Catalogue, éditeur, catégories, contextes de brouillon, gestes, migrations, provider SQLite, `ScreenShell` et navigation.
+Aucun composant métier ou Design System n’est créé. Les six consommateurs détectés par le scan direct-import restent hors du périmètre d’écriture et conservent leur contrat d’importation.
 
-`SessionService.test.ts` n’est pas adapté : son contrat reste inchangé et le fichier est `TEST_UNAFFECTED`. `SessionCard.tsx`, son test, `calculations.ts`, `sideMode.ts` et leurs tests de bilatéralité restent gelés.
+## 5. Réutilisation et décisions de composants
 
-### 8.3 Axes de recette
+Les composants et primitives existants sont réutilisés :
 
-- migration 5→6 et base neuve ;
-- création/modification persistantes et relecture ;
-- préremplissage exact ;
-- séparation ActivityDefinition/SessionActivity ;
-- liste triée par dernière modification décroissante ;
-- sélection vide invalide sans écriture ;
-- insertion atomique et ordre indépendant des touchers ;
-- arbre exact et Annuler sans mutation ;
-- titres contextuels et rangée Catalogue ;
-- `Lecture` et `Déployer` visibles et disabled ;
-- Médias visible, repliable, sans accès fichier ;
-- navigation basse, segments et accessibilité ;
-- swipe Composition ;
-- catégories et transition ;
-- largeurs 360/402/440, clavier, Safe Areas et texte agrandi ;
-- absence de recherche, filtre fonctionnel, tri fonctionnel, archivage, suppression, exécution et moteur.
+- `KodjoIcon` et les vecteurs existants ;
+- `SegmentedControl` ;
+- `ScreenShell` ;
+- `DurationWheelPicker`, `NumberWheelPicker`, `WheelPickerOverlay` et `WheelSelectionOverlay` ;
+- `ExerciseExitConfirmModal` et `useCompositionExitGuard` ;
+- `dimensions.compositionTourSection.inset` et `colors.tourSurface` ;
+- conventions existantes de cartes et de navigation.
 
-## 9. Critères d’acceptation
+Les composants existants sont étendus en place. `React Native Modal` est utilisé uniquement comme primitive de couche native pour l’arbre `Créer`, afin de couvrir le shell et la barre d’onglets sœur du contenu.
 
-| Exigence | Preuve attendue |
-|---|---|
-| `Activités` est actif | Test Catalogue et recette UI |
-| Titres contextuels corrects | Test des trois segments, Circuit sans navigation |
-| Définitions persistantes | Tests repository/service et relecture après remontage |
-| Liste dans l’ordre `updatedAt DESC` | Test repository, service et Catalogue |
-| Création/modification | Parcours UI complet avec préremplissage |
-| Arbre exact | Ordre, libellés, ancrage, apparition et Annuler testés |
-| `Une nouvelle activité` | Assertion de texte et accessibilité |
-| Copie indépendante | Nouvel ID, champs, Zones, `sideMode`, modifications isolées |
-| Création Composition locale | Absence de nouvelle ligne `ActivityDefinition` |
-| Validation sans sélection | Action inactive ou rejetée, aucune écriture et Composition inchangée |
-| Médias | Section visible/repliable, contrôles désactivés, aucun fichier manipulé |
-| Carte Activité | Surface d’édition ; Lecture et Déployer disabled ; aucun swipe Catalogue |
-| Navigation basse | `Catalogues`, icônes, marges, séparation et cadre animé |
-| Contrôles segmentés | Indicateur centré et translation continue avec rendu DSF préservé |
-| Swipe Composition | Translation progressive, fermeture par vrai swipe droit, callbacks préservés |
-| Catégories | Bouton centré, destination Séances et transition après succès |
-| Injection SQLite | Une seule connexion et un seul cycle de migration vérifiés |
-| Préparation d’exécution | Contrôles disabled et absence de handler/moteur |
-| Bilatéralité | Aucun changement des modules et tests gelés |
-| Bornage | Revue des routes, handlers, migrations, repositories et tests |
+La recherche de composants existants a été effectuée avant toute décision de création : aucun besoin ne justifie un nouveau composant métier ou Design System.
 
-## 10. Risques et questions
+La séparation du geste est obligatoire :
 
-### Risques
+- `compositionGesture.ts` contient uniquement translation, direction, seuils et décision de fermeture ;
+- `CompositionScreen.tsx` contient l’orchestration visuelle, `pendingSwipeRef`, l’état de carte ouverte et le rendu progressif ;
+- aucune attribution de `pendingSwipeRef` à `compositionGesture.ts` ne doit subsister.
 
-1. **Couplage de l’éditeur à `SessionDraftContext`** : extraction d’un formulaire commun et adaptateurs séparés.
-2. **Migration trop large** : limiter 006 aux définitions et Zones nécessaires.
-3. **Régression des gestes** : modifier uniquement les modules de geste/présentation et conserver les callbacks testés.
-4. **Régression de navigation** : centraliser la géométrie dans `navigationLayout.ts` et vérifier les consommateurs existants.
-5. **Connexion SQLite multiple** : toute création de service passe par `SessionServiceProvider`; aucun second provider SQLite ni second appel de migration n’est autorisé.
-6. **Confusion préparation/exécution** : interdire toute table, route, service, plan, timer métier ou résultat d’exécution.
-7. **Écart documentaire sur Médias et fonctionnalités T03 générales** : appliquer les corrections et exclusions impératives de la mission verrouillée sans étendre le périmètre.
+## 6. Plan séquencé
 
-### Clarifications restantes
+### Étape 1 — Vérification préalable et scan direct-import
 
-Aucune clarification ne reste nécessaire pour ce plan :
+- Rejouer le scan déterministe sur l’arbre applicatif exact avant toute écriture.
+- Confirmer que `CompositionNavigationGuard.integration.test.tsx` reste `TEST_UNAFFECTED`.
+- Confirmer que les six importeurs restent `CONSUMER_UNAFFECTED`.
+- Vérifier qu’aucun fichier créé ou modifié par confort n’est ajouté.
+- Vérifier l’alignement entre le périmètre d’écriture, les modules listés et la matrice UI.
 
-- le libellé `Une nouvelle activité` est fixé par la mission et l’arbitrage utilisateur fourni ;
-- la visibilité et le repli de Médias sont fixés par la correction impérative de mission ;
-- la rangée Catalogue est visible, tandis que Filtrer et Trier restent inertes car leurs fonctions sont hors tranche ;
-- les titres contextuels et l’ancrage de l’arbre sont déterminés par D-167/D-184 ;
-- `Lecture` et `Déployer` sont présents et désactivés, sans handler ;
-- la validation sans sélection est invalide et sans écriture ;
-- l’état Catalogue est restauré pendant l’aller-retour courant et le segment revient à `Séances` après relance ;
-- les calculs et modules de bilatéralité sont explicitement gelés ;
-- `SessionService` et son test sont non affectés ;
-- `SessionCard` et son test sont gelés ;
-- l’injection du nouveau service utilise la connexion SQLite existante via `SessionServiceProvider`.
+Résultat attendu : le périmètre machine et la prose sont identiques, sans ajout tacite.
 
-## 11. Verdict
+### Étape 2 — Arbre `Créer`
 
-Le plan est suffisamment déterminé pour la revue indépendante. Il n’autorise aucune implémentation. La liste de périmètre en prose, le `scope_allow` machine et `modified_modules` sont identiques ; les nouveaux tests sont explicitement déclarés comme créations ; les calculs de bilatéralité et les composants gelés restent hors écriture.
+- Préserver le déclencheur et l’ancrage déjà validés.
+- Utiliser une couche native couvrant le shell et la barre d’onglets sœur.
+- Afficher les quatre options dans l’ordre contractuel.
+- Conserver `Un circuit` désactivé.
+- Conserver `Annuler` sans fermeture implicite par le scrim.
+- Isoler le focus et le hit-testing de l’arrière-plan.
 
-### Scope d’écriture exact
+Résultat attendu : l’ouverture déjà validée est conservée et le contrat complet est vérifiable.
 
-```text
-app/(creation)/_layout.tsx
-app/(creation)/activity-selection.tsx
-app/(creation)/exercise.tsx
-app/(tabs)/_layout.tsx
-app/__tests__/creationLayout.test.tsx
-app/__tests__/rootLayoutGesture.test.tsx
-app/_layout.tsx
-src/domain/activities/ActivityDefinition.ts
-src/domain/activities/ActivityDefinitionRepository.ts
-src/domain/activities/__tests__/ActivityDefinition.test.ts
-src/domain/activities/index.ts
-src/domain/sessions/SessionDraft.ts
-src/domain/sessions/__tests__/SessionDraft.test.ts
-src/domain/sessions/__tests__/composition.test.ts
-src/domain/sessions/composition.ts
-src/features/activities/ActivityCard.tsx
-src/features/activities/ActivityCatalogueList.tsx
-src/features/activities/ActivityDefinitionService.ts
-src/features/activities/ActivityDefinitionServiceContext.tsx
-src/features/activities/ActivityDefinitionServiceProvider.tsx
-src/features/activities/ActivityEditorForm.tsx
-src/features/activities/ActivitySelectionScreen.tsx
-src/features/activities/CatalogueCreateOptions.tsx
-src/features/activities/__tests__/ActivityCard.test.tsx
-src/features/activities/__tests__/ActivityCatalogueList.test.tsx
-src/features/activities/__tests__/ActivityDefinitionService.test.ts
-src/features/activities/__tests__/ActivityEditorForm.test.tsx
-src/features/activities/__tests__/ActivitySelectionScreen.test.tsx
-src/features/activities/__tests__/CatalogueCreateOptions.test.tsx
-src/features/activities/__tests__/useActivityCatalogue.test.ts
-src/features/activities/useActivityCatalogue.ts
-src/features/sessions/CatalogueScreen.tsx
-src/features/sessions/CategoriesScreen.tsx
-src/features/sessions/CompositionScreen.tsx
-src/features/sessions/ExerciseScreen.tsx
-src/features/sessions/SessionDraftContext.tsx
-src/features/sessions/SessionDraftProvider.tsx
-src/features/sessions/SessionServiceProvider.tsx
-src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx
-src/features/sessions/__tests__/CatalogueScreen.test.tsx
-src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx
-src/features/sessions/__tests__/CategoriesScreen.test.tsx
-src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx
-src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx
-src/features/sessions/__tests__/CompositionScreen.test.tsx
-src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx
-src/features/sessions/__tests__/ExerciseScreen.test.tsx
-src/features/sessions/__tests__/SessionDraftContext.test.tsx
-src/features/sessions/__tests__/SessionDraftProvider.test.tsx
-src/features/sessions/__tests__/SessionServiceProvider.test.tsx
-src/features/sessions/__tests__/compositionGesture.test.ts
-src/features/sessions/__tests__/compositionPresentation.test.ts
-src/features/sessions/compositionGesture.ts
-src/features/sessions/compositionPresentation.ts
-src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts
-src/infrastructure/database/__tests__/initializeDatabase.test.ts
-src/infrastructure/database/__tests__/migrateDatabase.test.ts
-src/infrastructure/database/constants.ts
-src/infrastructure/database/migrateDatabase.ts
-src/infrastructure/database/migrations/migration006.ts
-src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts
-src/infrastructure/database/types/DatabaseRows.ts
-src/shared/i18n/resources/fr.ts
-src/shared/ui/ScreenShell.tsx
-src/shared/ui/SegmentedControl.tsx
-src/shared/ui/__tests__/ScreenShell.test.tsx
-src/shared/ui/__tests__/SegmentedControl.test.tsx
-src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx
-src/shared/ui/__tests__/navigationLayout.test.ts
-src/shared/ui/navigationLayout.ts
-```
+### Étape 3 — Carte Activité et sélection multiple
 
-Aucun autre chemin applicatif ou test n’est requis par ce plan.
+- Compléter `ActivityCard` avec des données dynamiques uniquement.
+- Garder `Lecture` et `Déployer` visibles mais désactivés, sans handler fonctionnel.
+- Ajouter compteur, checkbox vectorielle, CTA dynamique et verrou de soumission.
+- Rendre une sélection vide invalide : aucune donnée créée, aucun brouillon modifié, aucun Catalogue modifié.
+- Retirer ou signaler les identifiants obsolètes avant la copie.
+- Insérer les copies selon l’ordre visible filtré, jamais selon l’ordre des touchers.
+- Restaurer explicitement le brouillon, le contexte et le scroll de Composition après annulation ou ajout.
 
+Résultat attendu : sélection atomique, copies indépendantes, restauration du contexte et absence d’écriture pour une validation vide.
 
+### Étape 4 — Éditeur et garde Catalogue
 
-### scope_allow machine
+- Remplacer le segment local par `SegmentedControl` sans modifier les règles métier.
+- Préserver `Durée totale`, `Durée totale >=`, la synthèse `Durée totale : ≥ ...`, le nom dynamique, le nom en gras uniquement dans la synthèse et la section Médias visible mais inactive.
+- Maintenir le contrôle `Côté` à `74 × 42 pt` et l’ordre `Côté / Récupération / Durée totale`.
+- Traiter explicitement une définition absente.
+- En cas d’échec, conserver le brouillon, libérer `isSavingRef`, réactiver `Terminer` et permettre une nouvelle tentative.
+- Conserver la garde d’abandon existante sans modifier `CompositionNavigationGuard.integration.test.tsx`.
 
-```text
-app/(creation)/_layout.tsx
-app/(creation)/activity-selection.tsx
-app/(creation)/exercise.tsx
-app/(tabs)/_layout.tsx
-app/__tests__/creationLayout.test.tsx
-app/__tests__/rootLayoutGesture.test.tsx
-app/_layout.tsx
-src/domain/activities/ActivityDefinition.ts
-src/domain/activities/ActivityDefinitionRepository.ts
-src/domain/activities/__tests__/ActivityDefinition.test.ts
-src/domain/activities/index.ts
-src/domain/sessions/SessionDraft.ts
-src/domain/sessions/__tests__/SessionDraft.test.ts
-src/domain/sessions/__tests__/composition.test.ts
-src/domain/sessions/composition.ts
-src/features/activities/ActivityCard.tsx
-src/features/activities/ActivityCatalogueList.tsx
-src/features/activities/ActivityDefinitionService.ts
-src/features/activities/ActivityDefinitionServiceContext.tsx
-src/features/activities/ActivityDefinitionServiceProvider.tsx
-src/features/activities/ActivityEditorForm.tsx
-src/features/activities/ActivitySelectionScreen.tsx
-src/features/activities/CatalogueCreateOptions.tsx
-src/features/activities/__tests__/ActivityCard.test.tsx
-src/features/activities/__tests__/ActivityCatalogueList.test.tsx
-src/features/activities/__tests__/ActivityDefinitionService.test.ts
-src/features/activities/__tests__/ActivityEditorForm.test.tsx
-src/features/activities/__tests__/ActivitySelectionScreen.test.tsx
-src/features/activities/__tests__/CatalogueCreateOptions.test.tsx
-src/features/activities/__tests__/useActivityCatalogue.test.ts
-src/features/activities/useActivityCatalogue.ts
-src/features/sessions/CatalogueScreen.tsx
-src/features/sessions/CategoriesScreen.tsx
-src/features/sessions/CompositionScreen.tsx
-src/features/sessions/ExerciseScreen.tsx
-src/features/sessions/SessionDraftContext.tsx
-src/features/sessions/SessionDraftProvider.tsx
-src/features/sessions/SessionServiceProvider.tsx
-src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx
-src/features/sessions/__tests__/CatalogueScreen.test.tsx
-src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx
-src/features/sessions/__tests__/CategoriesScreen.test.tsx
-src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx
-src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx
-src/features/sessions/__tests__/CompositionScreen.test.tsx
-src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx
-src/features/sessions/__tests__/ExerciseScreen.test.tsx
-src/features/sessions/__tests__/SessionDraftContext.test.tsx
-src/features/sessions/__tests__/SessionDraftProvider.test.tsx
-src/features/sessions/__tests__/SessionServiceProvider.test.tsx
-src/features/sessions/__tests__/compositionGesture.test.ts
-src/features/sessions/__tests__/compositionPresentation.test.ts
-src/features/sessions/compositionGesture.ts
-src/features/sessions/compositionPresentation.ts
-src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts
-src/infrastructure/database/__tests__/initializeDatabase.test.ts
-src/infrastructure/database/__tests__/migrateDatabase.test.ts
-src/infrastructure/database/constants.ts
-src/infrastructure/database/migrateDatabase.ts
-src/infrastructure/database/migrations/migration006.ts
-src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts
-src/infrastructure/database/types/DatabaseRows.ts
-src/shared/i18n/resources/fr.ts
-src/shared/ui/ScreenShell.tsx
-src/shared/ui/SegmentedControl.tsx
-src/shared/ui/__tests__/ScreenShell.test.tsx
-src/shared/ui/__tests__/SegmentedControl.test.tsx
-src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx
-src/shared/ui/__tests__/navigationLayout.test.ts
-src/shared/ui/navigationLayout.ts
-```
+Résultat attendu : aucun blocage permanent, aucune donnée codée en dur et aucune propagation entre définition persistante et copie de Séance.
 
+### Étape 5 — Catégories et navigation
 
-## Tests — fermeture d’impact machine
+- Cibler explicitement `Catalogue des séances` et le segment `Séances` après sauvegarde.
+- Utiliser la transition canonique : cible entrant depuis la droite, écran courant sortant vers la gauche.
+- Préserver le verrou existant : bouton désactivé pendant sauvegarde, aucune double transaction, aucun double enregistrement et aucune double navigation.
+- En cas d’erreur, rester sur Catégories, conserver le brouillon et réactiver l’action.
 
-Les tests suivants sont ouverts en écriture par la fermeture déterministe d’impact et font partie du contrat de plan :
+Résultat attendu : une seule sauvegarde et une seule navigation réussie, ou aucune navigation en cas d’échec.
 
-- `app/__tests__/creationLayout.test.tsx`
-- `app/__tests__/rootLayoutGesture.test.tsx`
-- `src/domain/sessions/__tests__/SessionDraft.test.ts`
-- `src/domain/sessions/__tests__/composition.test.ts`
-- `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CatalogueScreen.test.tsx`
-- `src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CategoriesScreen.test.tsx`
-- `src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx`
-- `src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx`
-- `src/features/sessions/__tests__/CompositionScreen.test.tsx`
-- `src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx`
-- `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
-- `src/features/sessions/__tests__/SessionDraftContext.test.tsx`
-- `src/features/sessions/__tests__/SessionDraftProvider.test.tsx`
-- `src/features/sessions/__tests__/SessionServiceProvider.test.tsx`
-- `src/features/sessions/__tests__/compositionGesture.test.ts`
-- `src/features/sessions/__tests__/compositionPresentation.test.ts`
-- `src/infrastructure/database/__tests__/initializeDatabase.test.ts`
-- `src/infrastructure/database/__tests__/migrateDatabase.test.ts`
-- `src/shared/ui/__tests__/ScreenShell.test.tsx`
-- `src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx`
-- `src/shared/ui/__tests__/navigationLayout.test.ts`
+### Étape 6 — Swipe, gap, coins et icône `Côté`
 
-<KODJO_MODIFIED_MODULES_JSON>
-[
-  {
-    "path": "app/(creation)/_layout.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "app/(creation)/activity-selection.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "app/(creation)/exercise.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "app/(tabs)/_layout.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "app/__tests__/creationLayout.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "app/__tests__/rootLayoutGesture.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "app/_layout.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/domain/activities/ActivityDefinition.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/domain/activities/ActivityDefinitionRepository.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/domain/activities/index.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/domain/sessions/SessionDraft.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/domain/sessions/__tests__/composition.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/domain/sessions/composition.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/activities/ActivityCard.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivityCatalogueList.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivityDefinitionService.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivityEditorForm.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/ActivitySelectionScreen.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/CatalogueCreateOptions.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/activities/useActivityCatalogue.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/features/sessions/CatalogueScreen.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/CategoriesScreen.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/CompositionScreen.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/ExerciseScreen.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/SessionDraftContext.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/SessionDraftProvider.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/SessionServiceProvider.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/compositionGesture.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/compositionGesture.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/features/sessions/compositionPresentation.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/infrastructure/database/constants.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/infrastructure/database/migrateDatabase.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/infrastructure/database/migrations/migration006.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/infrastructure/database/types/DatabaseRows.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/i18n/resources/fr.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/ui/ScreenShell.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/ui/SegmentedControl.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-    "change": "CREATE"
-  },
-  {
-    "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/ui/__tests__/navigationLayout.test.ts",
-    "change": "MODIFY"
-  },
-  {
-    "path": "src/shared/ui/navigationLayout.ts",
-    "change": "MODIFY"
-  }
-]
-</KODJO_MODIFIED_MODULES_JSON>
-PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
+- Faire suivre la carte au déplacement horizontal réel.
+- Révéler progressivement le bloc d’actions pendant le geste.
+- N’autoriser la fermeture que par un vrai swipe droit commencé sur la carte ouverte.
+- Conserver duplication, suppression, appui long, réorganisation et cartes structurelles.
+- Arrondir explicitement les coins haut-gauche et bas-gauche du bloc d’actions.
+- Utiliser la marge existante carte/cadre Tour et `colors.tourSurface` pour le gap visible, y compris pendant la translation.
+- Corriger la marge droite de l’icône `Côté` sans modifier les calculs ni les énumérations de bilatéralité.
+
+Résultat attendu : gestes intermédiaires vérifiables, rendu progressif et conformité visuelle aux frames et contrats concernés.
+
+### Étape 7 — Vérifications finales
+
+- Exécuter Jest complet, y compris les tests de régression inchangés.
+- Exécuter TypeScript et lint.
+- Effectuer les comparaisons visuelles Figma.
+- Vérifier les largeurs 360, 402 et 440 points, les Safe Areas et le texte agrandi.
+- Vérifier VoiceOver/TalkBack, le focus modal, les états désactivés et les cibles tactiles.
+- Tester sur iOS et Android les couches natives, transitions, scroll et gestes.
+
+Aucune preuve ciblée ne vaut conformité globale par inférence.
+
+## 7. Données, persistance et compatibilité
+
+Aucune migration, table, énumération ou modification de domaine n’est planifiée.
+
+Les règles suivantes restent contractuelles :
+
+- `ActivityDefinition` persistante et `SessionActivity` de Composition restent distinctes ;
+- une activité créée depuis Composition reste propre à la Séance ;
+- la sélection multiple crée des copies indépendantes en opération atomique ;
+- une sélection vide ne crée aucune donnée ;
+- `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` restent inchangés ;
+- les calculs de durée et de bilatéralité ne sont pas rouverts ;
+- aucune exécution directe, aucun instantané `ACTIVITY`, aucun `SESSION_END` et aucun moteur ne sont ajoutés ;
+- recherche, filtre, tri implicite et scroll restent temporaires et limités à l’aller-retour courant selon les contrats existants.
+
+## 8. Navigation et conservation du contexte
+
+- Le menu `Créer` ne se ferme pas par toucher implicite du scrim.
+- `Annuler` restitue exactement le segment, la requête, le filtre, le tri implicite, le scroll et le brouillon précédents.
+- L’annulation de la sélection multiple ne modifie pas Composition.
+- L’ajout réussi restaure Composition enrichie ainsi que son contexte et son scroll.
+- La sauvegarde Catégories cible toujours `Catalogue des séances` / `Séances`, indépendamment du dernier segment utilisé avant l’ouverture du parcours.
+- Une relance complète revient sur `Séances` et ne restaure pas le segment Activités.
+- Les transitions d’avancement suivent la convention droite-vers-gauche ; aucune animation locale concurrente n’est introduite.
+
+## 9. Tests et preuves
+
+### Tests à modifier
+
+Les assertions des fichiers suivants sont adaptées aux changements planifiés :
+
+- `app/__tests__/creationLayout.test.tsx` : transition, destination et comportement de pile ;
+- `src/features/activities/__tests__/ActivityCard.test.tsx` : données dynamiques, actions visibles et désactivées ;
+- `src/features/activities/__tests__/ActivityEditorForm.test.tsx` : `SegmentedControl`, synthèse, libellés et états ;
+- `src/features/activities/__tests__/ActivitySelectionScreen.test.tsx` : compteur, CTA, sélection vide, identifiants obsolètes et soumission atomique ;
+- `src/features/activities/__tests__/CatalogueCreateOptions.test.tsx` : ordre, scrim, désactivation, couverture et accessibilité ;
+- `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx` : garde Catalogue, brouillon et reprise ;
+- `src/features/sessions/__tests__/CatalogueScreen.test.tsx` : contexte, segment, titres et restauration ;
+- `src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx` : sauvegarde unique, absence de double navigation et destination `Séances` ;
+- `src/features/sessions/__tests__/CategoriesScreen.test.tsx` : centrage, verrou, erreur et destination ;
+- `src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx` : annulation, ajout, restauration du contexte et du scroll ;
+- `src/features/sessions/__tests__/CompositionScreen.test.tsx` : orchestration, translation, gap, coins, actions et icône `Côté` ;
+- `src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx` : garde Catalogue et conservation du brouillon ;
+- `src/features/sessions/__tests__/ExerciseScreen.test.tsx` : définition absente, erreur, reprise et invariants du formulaire ;
+- `src/features/sessions/__tests__/compositionGesture.test.ts` : calculs purs, seuils, directions et fermeture autorisée.
+
+### Régression inchangée
+
+`src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx` n’est pas modifié et n’est pas ajouté au périmètre d’écriture. Il est exécuté par `npm test -- --runInBand` comme régression inchangée. Les scénarios d’abandon et de conservation du brouillon restent des invariants de préservation.
+
+### Commandes obligatoires
+
+- `npm test -- --runInBand` ;
+- `npx tsc --noEmit` ;
+- `npm run lint`.
+
+### Comparaisons visuelles
+
+Comparer les états affectés avec :
+
+- `3787:5148` et `3841:8375` pour l’arbre `Créer` ;
+- `3786:5093` pour le Catalogue Activités ;
+- `3789:5349` et `3789:5405` pour la sélection ;
+- `3879:5947` et `3879:6079` pour l’éditeur ;
+- `2028:11808` pour les actions glissées ;
+- `2028:11204` pour Catégories ;
+- `2537:214` pour la navigation basse ;
+- `2537:1033` pour `Déployer`.
+
+### Accessibilité et appareils
+
+- VoiceOver et TalkBack pour scrim, focus, disabled, compteur et CTA ;
+- iOS et Android pour couverture native du menu, hit-testing, transitions et swipe ;
+- largeurs 360, 402 et 440 ;
+- Safe Areas, clavier et tailles de texte 100 %, 135 % et proches de 200 % ;
+- cibles tactiles d’au moins `48 × 48 pt` lorsque le contrôle visuel est compact.
+
+## 10. Critères d’acceptation
+
+1. Le menu `Créer` s’ouvre visiblement, couvre la fenêtre utile, conserve l’arrière-plan non interactif et respecte l’ordre exact des options.
+2. Chaque carte Activité affiche uniquement des données dynamiques et conserve `Lecture` et `Déployer` visibles mais désactivés.
+3. La sélection vide est invalide et n’écrit rien ; une sélection valide copie atomiquement selon l’ordre de présentation.
+4. Une annulation ou un ajout depuis Composition restaure le contexte, le brouillon et le scroll attendus.
+5. L’éditeur conserve ses règles, roulettes, libellés, calculs et séparations de contexte.
+6. Une définition absente ou une sauvegarde échouée laisse un brouillon récupérable et réactive l’action.
+7. La sauvegarde Catégories conserve le bouton désactivé pendant sauvegarde, interdit tout double enregistrement et toute double navigation ; le succès cible `Séances` avec la transition canonique.
+8. Le swipe suit le doigt, révèle progressivement les actions et ne se ferme que par un swipe droit valide depuis la carte ouverte.
+9. Le bloc d’actions possède les coins haut-gauche et bas-gauche arrondis ; le gap est égal à la marge carte/cadre Tour et montre `tourSurface`.
+10. L’icône `Côté` est déplacée selon la marge prescrite sans modification métier.
+11. Les modules gelés et les tests de régression inchangés ne sont pas rouverts.
+12. Les preuves fonctionnelles, statiques, visuelles, d’accessibilité et d’appareil sont produites séparément.
+
+## 11. Risques résiduels et absence de clarification
+
+Aucune clarification produit ou technique ne reste ouverte.
+
+Les risques à contrôler pendant l’implémentation, sans élargir le périmètre, sont :
+
+- couverture réelle de la barre d’onglets sœur par `Modal` natif ;
+- différences iOS/Android de hit-testing et d’accessibilité ;
+- stabilité du geste et de la révélation progressive sur appareils réels ;
+- conservation du scroll lors des retours de modale et de sélection ;
+- non-double-sauvegarde Catégories sous latence ;
+- maintien des six consommateurs hors périmètre d’écriture après tout replay du scan.
+
+Si un futur scan déterministe révèle un contrat importé différent, le plan devra être requalifié avant toute écriture. Aucune modification ne doit être ajoutée tacitement.
+
+## 12. Verdict de planification
+
+Le plan est prêt pour une dernière revue indépendante. Ce statut n’autorise ni implémentation, ni fusion, ni clôture. La validation ciblée reste limitée à l’ouverture du menu et ne certifie pas la conformité globale.
 
 
 <KODJO_PLAN_IMPACT_JSON>
 {
   "schema": "kodjo.plan-impact.v1",
-  "scan_revision": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
-  "scan_sha256": "38427d297cc454eb365de48acd986449a69548111914790d62488c24da210ab7",
+  "scan_revision": "e43004df9f04a10aa091ba28cc681592bea759ca",
   "modified_modules": [
     {
       "path": "app/(creation)/_layout.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "app/(creation)/activity-selection.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "app/(creation)/exercise.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "app/(tabs)/_layout.tsx",
       "change": "MODIFY"
     },
     {
@@ -932,108 +334,36 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "change": "MODIFY"
     },
     {
-      "path": "app/__tests__/rootLayoutGesture.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "app/_layout.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/domain/activities/ActivityDefinition.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/domain/activities/index.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/domain/sessions/SessionDraft.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/domain/sessions/__tests__/composition.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/domain/sessions/composition.ts",
-      "change": "MODIFY"
-    },
-    {
       "path": "src/features/activities/ActivityCard.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/ActivityCatalogueList.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionService.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/ActivityEditorForm.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/ActivitySelectionScreen.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/CatalogueCreateOptions.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/features/activities/useActivityCatalogue.ts",
-      "change": "CREATE"
+      "change": "MODIFY"
     },
     {
       "path": "src/features/sessions/CatalogueScreen.tsx",
@@ -1049,18 +379,6 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
     },
     {
       "path": "src/features/sessions/ExerciseScreen.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/SessionDraftContext.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/SessionDraftProvider.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/SessionServiceProvider.tsx",
       "change": "MODIFY"
     },
     {
@@ -1084,10 +402,6 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "change": "MODIFY"
     },
     {
-      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
-      "change": "MODIFY"
-    },
-    {
       "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
       "change": "MODIFY"
     },
@@ -1100,98 +414,15 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "change": "MODIFY"
     },
     {
-      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
-      "change": "MODIFY"
-    },
-    {
       "path": "src/features/sessions/__tests__/compositionGesture.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
       "change": "MODIFY"
     },
     {
       "path": "src/features/sessions/compositionGesture.ts",
       "change": "MODIFY"
-    },
-    {
-      "path": "src/features/sessions/compositionPresentation.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/infrastructure/database/constants.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/infrastructure/database/migrateDatabase.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/infrastructure/database/migrations/migration006.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/infrastructure/database/types/DatabaseRows.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/i18n/resources/fr.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/ui/ScreenShell.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/ui/SegmentedControl.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-      "change": "CREATE"
-    },
-    {
-      "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/ui/__tests__/navigationLayout.test.ts",
-      "change": "MODIFY"
-    },
-    {
-      "path": "src/shared/ui/navigationLayout.ts",
-      "change": "MODIFY"
     }
   ],
+  "scan_sha256": "4ab8aac0b0ceecacd592007d220ca4f7d3c80b2817fe14c199780e7bcb76cbf2",
   "rows": [
     {
       "path": "app/(creation)/_layout.tsx",
@@ -1199,31 +430,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "app/(creation)/activity-selection.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "app/(creation)/exercise.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "app/(tabs)/_layout.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "app/__tests__/creationLayout.test.tsx",
@@ -1231,87 +438,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "app/__tests__/rootLayoutGesture.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "app/_layout.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/activities/ActivityDefinition.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/activities/index.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/sessions/SessionDraft.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/sessions/__tests__/composition.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/domain/sessions/composition.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/ActivityCard.tsx",
@@ -1319,39 +446,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/ActivityCatalogueList.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionService.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/ActivityEditorForm.tsx",
@@ -1359,7 +454,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/ActivitySelectionScreen.tsx",
@@ -1367,7 +462,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/CatalogueCreateOptions.tsx",
@@ -1375,7 +470,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
@@ -1383,23 +478,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
@@ -1407,7 +486,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
@@ -1415,7 +494,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
@@ -1423,23 +502,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/activities/useActivityCatalogue.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/CatalogueScreen.tsx",
@@ -1447,7 +510,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/CategoriesScreen.tsx",
@@ -1455,7 +518,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/CompositionScreen.tsx",
@@ -1463,7 +526,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/ExerciseScreen.tsx",
@@ -1471,31 +534,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/SessionDraftContext.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/SessionDraftProvider.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/SessionServiceProvider.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
@@ -1503,7 +542,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
@@ -1511,7 +550,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
@@ -1519,7 +558,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
@@ -1527,7 +566,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
@@ -1535,15 +574,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
@@ -1551,7 +582,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
@@ -1559,7 +590,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
@@ -1567,31 +598,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/__tests__/compositionGesture.test.ts",
@@ -1599,15 +606,7 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
       "path": "src/features/sessions/compositionGesture.ts",
@@ -1615,174 +614,17 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       "triggered_by": [],
       "risk_score": 0,
       "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
     },
     {
-      "path": "src/features/sessions/compositionPresentation.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/constants.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/migrateDatabase.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/migrations/migration006.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/types/DatabaseRows.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/i18n/resources/fr.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/ScreenShell.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/SegmentedControl.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/__tests__/navigationLayout.test.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/shared/ui/navigationLayout.ts",
-      "candidate_kind": "MODIFIED_MODULE",
-      "triggered_by": [],
-      "risk_score": 0,
-      "classification": "MODIFY",
-      "justification": "Module explicitement déclaré par le plan initial."
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-      "candidate_kind": "TEST",
+      "path": "app/(creation)/activity-selection.tsx",
+      "candidate_kind": "CONSUMER",
       "triggered_by": [
-        "src/infrastructure/database/migrateDatabase.ts",
-        "src/infrastructure/database/types/DatabaseRows.ts"
+        "src/features/activities/ActivitySelectionScreen.tsx"
       ],
-      "risk_score": 150,
-      "classification": "TEST_UNAFFECTED",
-      "justification": "La migration 006 et l’ajout de lignes de données sont additifs ; le contrat du repository de Séances couvert par ce test ne change pas."
-    },
-    {
-      "path": "src/features/sessions/__tests__/SessionService.test.ts",
-      "candidate_kind": "TEST",
-      "triggered_by": [
-        "src/domain/sessions/SessionDraft.ts"
-      ],
-      "risk_score": 148,
-      "classification": "TEST_UNAFFECTED",
-      "justification": "Classification explicitement fixée par le plan : aucun contrat couvert par ce test ne change dans V2-CAT-01."
-    },
-    {
-      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
-      "candidate_kind": "TEST",
-      "triggered_by": [
-        "src/infrastructure/database/migrateDatabase.ts"
-      ],
-      "risk_score": 128,
-      "classification": "TEST_UNAFFECTED",
-      "justification": "La migration additive et l’extension des types de lignes ne modifient pas le contrat du repository de Catégories."
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le scan direct-import l’identifie comme consommateur direct d’ActivitySelectionScreen.tsx sans risque détecté ; la frontière de route et le contrat d’importation restent inchangés."
     },
     {
       "path": "app/(creation)/categories.tsx",
@@ -1792,18 +634,27 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       ],
       "risk_score": 0,
       "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Wrapper de route explicitement déclaré inchangé ; le contrat de montage de CategoriesScreen est conservé."
+      "justification": "Le scan direct-import l’identifie comme consommateur direct de CategoriesScreen.tsx sans risque détecté ; le changement de destination et de transition reste encapsulé dans l’écran et le layout."
     },
     {
       "path": "app/(creation)/composition.tsx",
       "candidate_kind": "CONSUMER",
       "triggered_by": [
-        "src/features/sessions/CompositionScreen.tsx",
-        "src/features/sessions/SessionDraftContext.tsx"
+        "src/features/sessions/CompositionScreen.tsx"
       ],
       "risk_score": 0,
       "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Wrapper de route explicitement déclaré inchangé ; les adaptations restent dans l’écran et le contexte de Composition."
+      "justification": "Le scan direct-import l’identifie comme consommateur direct de CompositionScreen.tsx sans risque détecté ; l’orchestration du swipe évolue derrière une interface de route inchangée."
+    },
+    {
+      "path": "app/(creation)/exercise.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/sessions/ExerciseScreen.tsx"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le scan direct-import l’identifie comme consommateur direct d’ExerciseScreen.tsx sans risque détecté ; les corrections de garde et de reprise ne modifient pas le contrat de la route."
     },
     {
       "path": "app/(tabs)/index.tsx",
@@ -1813,279 +664,860 @@ PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
       ],
       "risk_score": 0,
       "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Wrapper de route explicitement déclaré inchangé ; CatalogueScreen conserve son contrat de montage."
+      "justification": "Le scan direct-import l’identifie comme consommateur direct de CatalogueScreen.tsx sans risque détecté ; la restauration de contexte ne change pas l’interface consommée par l’onglet."
     },
     {
-      "path": "src/domain/sessions/index.ts",
+      "path": "src/features/activities/ActivityCatalogueList.tsx",
       "candidate_kind": "CONSUMER",
       "triggered_by": [
-        "src/domain/sessions/SessionDraft.ts",
-        "src/domain/sessions/composition.ts"
+        "src/features/activities/ActivityCard.tsx"
       ],
       "risk_score": 0,
       "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le barrel consomme des modules de session dont les changements restent compatibles et n’exige aucune modification de ses exports."
-    },
-    {
-      "path": "src/features/sessions/SessionService.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/domain/sessions/SessionDraft.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Classification explicitement fixée : le service ne consomme que SessionDraft, toCreateSessionInput et toUpdateSessionInput, sans changement de contrat consommé."
-    },
-    {
-      "path": "src/infrastructure/database/ExpoDatabase.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/infrastructure/database/constants.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "L’évolution des constantes de base reste compatible ; aucune modification de la connexion SQLite ou de son contrat n’est requise."
-    },
-    {
-      "path": "src/infrastructure/database/initializeDatabase.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/infrastructure/database/constants.ts",
-        "src/infrastructure/database/migrateDatabase.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "L’initialisation conserve son contrat et utilise le cycle de migration existant, complété sans changement d’API consommée."
-    },
-    {
-      "path": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/infrastructure/database/migrateDatabase.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le contrôle d’intégration consomme le migrateur sans changement de contrat ; la migration 006 est additive."
-    },
-    {
-      "path": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/infrastructure/database/types/DatabaseRows.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "L’extension additive de DatabaseRows ne change pas le contrat ni les opérations du repository de Catégories."
-    },
-    {
-      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/infrastructure/database/constants.ts",
-        "src/infrastructure/database/types/DatabaseRows.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Les types et constantes évoluent de façon additive ; le repository de Séances ne nécessite aucune adaptation."
-    },
-    {
-      "path": "src/shared/i18n/index.ts",
-      "candidate_kind": "CONSUMER",
-      "triggered_by": [
-        "src/shared/i18n/resources/fr.ts"
-      ],
-      "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "Le barrel i18n continue d’exposer la même ressource avec des traductions ajoutées ; aucun changement de contrat consommé n’est démontré."
+      "justification": "Le scan direct-import l’identifie comme consommateur direct d’ActivityCard.tsx sans risque détecté ; la carte conserve son contrat d’utilisation et la liste ne nécessite aucune adaptation."
     }
   ],
   "scope_allow": [
     "app/(creation)/_layout.tsx",
-    "app/(creation)/activity-selection.tsx",
-    "app/(creation)/exercise.tsx",
-    "app/(tabs)/_layout.tsx",
     "app/__tests__/creationLayout.test.tsx",
-    "app/__tests__/rootLayoutGesture.test.tsx",
-    "app/_layout.tsx",
-    "src/domain/activities/ActivityDefinition.ts",
-    "src/domain/activities/ActivityDefinitionRepository.ts",
-    "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-    "src/domain/activities/index.ts",
-    "src/domain/sessions/SessionDraft.ts",
-    "src/domain/sessions/__tests__/SessionDraft.test.ts",
-    "src/domain/sessions/__tests__/composition.test.ts",
-    "src/domain/sessions/composition.ts",
     "src/features/activities/ActivityCard.tsx",
-    "src/features/activities/ActivityCatalogueList.tsx",
-    "src/features/activities/ActivityDefinitionService.ts",
-    "src/features/activities/ActivityDefinitionServiceContext.tsx",
-    "src/features/activities/ActivityDefinitionServiceProvider.tsx",
     "src/features/activities/ActivityEditorForm.tsx",
     "src/features/activities/ActivitySelectionScreen.tsx",
     "src/features/activities/CatalogueCreateOptions.tsx",
     "src/features/activities/__tests__/ActivityCard.test.tsx",
-    "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-    "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
     "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
     "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
     "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
-    "src/features/activities/__tests__/useActivityCatalogue.test.ts",
-    "src/features/activities/useActivityCatalogue.ts",
     "src/features/sessions/CatalogueScreen.tsx",
     "src/features/sessions/CategoriesScreen.tsx",
     "src/features/sessions/CompositionScreen.tsx",
     "src/features/sessions/ExerciseScreen.tsx",
-    "src/features/sessions/SessionDraftContext.tsx",
-    "src/features/sessions/SessionDraftProvider.tsx",
-    "src/features/sessions/SessionServiceProvider.tsx",
     "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
-    "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/CompositionScreen.test.tsx",
     "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
     "src/features/sessions/__tests__/compositionGesture.test.ts",
-    "src/features/sessions/__tests__/compositionPresentation.test.ts",
-    "src/features/sessions/compositionGesture.ts",
-    "src/features/sessions/compositionPresentation.ts",
-    "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-    "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-    "src/infrastructure/database/constants.ts",
-    "src/infrastructure/database/migrateDatabase.ts",
-    "src/infrastructure/database/migrations/migration006.ts",
-    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-    "src/infrastructure/database/types/DatabaseRows.ts",
-    "src/shared/i18n/resources/fr.ts",
-    "src/shared/ui/ScreenShell.tsx",
-    "src/shared/ui/SegmentedControl.tsx",
-    "src/shared/ui/__tests__/ScreenShell.test.tsx",
-    "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-    "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-    "src/shared/ui/__tests__/navigationLayout.test.ts",
-    "src/shared/ui/navigationLayout.ts"
+    "src/features/sessions/compositionGesture.ts"
   ]
 }
 </KODJO_PLAN_IMPACT_JSON>
+
+<KODJO_UI_CRITERIA_MATRIX_JSON>
+{
+  "schema": "kodjo.ui-criteria.v1",
+  "criteria": [
+    {
+      "criterion_id": "UI-CAT-R-001",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-03 §§7-13,18-20",
+        "requirement": "L’arbre Créer conserve son ouverture visible déjà validée, affiche les quatre options dans l’ordre exact, utilise les vecteurs contractuels, garde Circuit désactivé, couvre le contenu et la navigation basse, bloque l’arrière-plan et ne se ferme pas par toucher implicite du scrim. L’ouverture ciblée est PASS, mais la conformité globale du contrat reste à requalifier."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/activities/CatalogueCreateOptions.tsx : composant existant et déclencheur inspectés",
+        "src/shared/ui/KodjoIcon.tsx : vecteurs existants inspectés",
+        "React Native Modal : primitive de couche native inspectée"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/activities/CatalogueCreateOptions.tsx",
+      "decision_justification": "Étendre l’arbre existant en conservant son ouverture validée, tout en ajoutant la couverture native, les vecteurs, l’ordre contractuel et l’isolation du scrim, sans créer de composant métier.",
+      "change_targets": [
+        "src/features/activities/CatalogueCreateOptions.tsx"
+      ],
+      "tests": [
+        "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-002",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-02 §§5-9,12,18-20",
+        "requirement": "Chaque carte d’Activité affiche une marque bleue, un nom dynamique, les Zones, le mode et la cible, les Séries, la Pause, la Récupération, ainsi que Lecture et Déployer visibles mais désactivés, sans swipe ni action de gestion. L’état actuel reste à requalifier."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "ACCESSIBILITY"
+      ],
+      "reuse_search": [
+        "src/features/activities/ActivityCard.tsx : carte existante inspectée",
+        "src/shared/ui/KodjoIcon.tsx : vecteurs existants inspectés",
+        "src/features/sessions/SessionCard.tsx : convention consultée, composant gelé"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/activities/ActivityCard.tsx",
+      "decision_justification": "Compléter la carte existante avec les données contractuelles sans activer Lecture, Déployer, swipe, archivage, suppression ou autre gestion exclue.",
+      "change_targets": [
+        "src/features/activities/ActivityCard.tsx"
+      ],
+      "tests": [
+        "src/features/activities/__tests__/ActivityCard.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-003",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-07 §§7-20; CE-T03-07 §16; docs/Specifications-fonctionnelles/09 bis – Modèle et migration T03 Catalogue.md §Sélection multiple",
+        "requirement": "La sélection multiple reprend la présentation contractuelle, les cartes détaillées, la checkbox vectorielle, le compteur, le CTA dynamique, l’invalidité d’une sélection vide, le retrait et le recalcul des identifiants obsolètes avec information utilisateur, l’ordre de présentation et l’atomicité. Après annulation ou ajout, le contexte, le brouillon et le scroll de Composition sont restaurés sans élargissement fonctionnel."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/activities/ActivitySelectionScreen.tsx : écran existant inspecté",
+        "src/shared/ui/ScreenShell.tsx : shell existant inspecté",
+        "src/shared/ui/KodjoIcon.tsx : vecteurs de sélection inspectés",
+        "src/features/sessions/CompositionScreen.tsx : restauration du contexte et du scroll inspectée",
+        "app/(creation)/activity-selection.tsx : frontière de route inspectée"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/activities/ActivitySelectionScreen.tsx",
+      "decision_justification": "Compléter l’écran et son verrou de soumission, puis préserver explicitement la restauration du brouillon, du contexte et du scroll de Composition après annulation ou insertion, sans ajouter recherche ni filtre fonctionnel.",
+      "change_targets": [
+        "src/features/activities/ActivitySelectionScreen.tsx",
+        "src/features/sessions/CompositionScreen.tsx"
+      ],
+      "tests": [
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-004",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-04 §§7-18; D-137; D-181; D-182; D-185",
+        "requirement": "Le formulaire partagé conserve les roulettes natives, les validations, la synthèse calculée, Durée totale/Durée totale >=, la synthèse Durée totale : ≥, l’ordre Côté/Récupération/borne, Côté 74×42, le placeholder dynamique, le nom non codé en dur, le nom en gras uniquement dans la synthèse et la section Médias visible mais inactive."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/activities/ActivityEditorForm.tsx : formulaire déjà partagé inspecté",
+        "src/features/sessions/ExerciseScreen.tsx : adaptateurs Catalogue et Composition inspectés",
+        "src/features/sessions/DurationWheelPicker.tsx : primitive native inspectée",
+        "src/features/sessions/NumberWheelPicker.tsx : primitive native inspectée",
+        "src/features/sessions/WheelPickerOverlay.tsx : primitive native inspectée",
+        "src/shared/ui/SegmentedControl.tsx : composant partagé inspecté"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/activities/ActivityEditorForm.tsx",
+      "decision_justification": "Corriger les invariants du formulaire déjà partagé et remplacer seulement le segment local par la primitive commune, sans refaire l’extraction ni les roulettes.",
+      "change_targets": [
+        "src/features/activities/ActivityEditorForm.tsx",
+        "src/features/sessions/ExerciseScreen.tsx"
+      ],
+      "tests": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-005",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-01/02 §§4-5,15-20; D-167; D-168; D-184",
+        "requirement": "Les titres, l’ordre updatedAt DESC, la rangée Catalogue et la restauration du contexte courant sont déterministes. Après le parcours Catégories, la cible est Catalogue des séances / segment Séances. Le contexte et le scroll de Composition sont aussi préservés lors des retours d’ajout ou d’annulation."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/sessions/CatalogueScreen.tsx : écran et état local inspectés",
+        "src/features/sessions/CategoriesScreen.tsx : retour et destination inspectés",
+        "src/features/sessions/__tests__/CatalogueScreen.test.tsx : couverture existante inspectée"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/sessions/CatalogueScreen.tsx",
+      "decision_justification": "Préserver les titres et la rangée déjà conformes, puis compléter la restauration du contexte Catalogue et les retours déterministes sans ajouter de fonction Catalogue.",
+      "change_targets": [
+        "src/features/sessions/CatalogueScreen.tsx",
+        "src/features/sessions/CategoriesScreen.tsx"
+      ],
+      "tests": [
+        "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+        "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+        "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-006",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+        "locator": "Écran 6 – Catégories de la séance; D-178; CE-T03-16 §§12,14,19",
+        "requirement": "Créer une catégorie reste centré. Une sauvegarde réussie entre dans Catalogue des séances, sélectionne Séances et utilise la transition droite-vers-gauche ; une erreur ne navigue pas. Le verrou existant est préservé : bouton désactivé pendant la sauvegarde, aucune double transaction, aucun double enregistrement et aucune double navigation. Aucun mécanisme métier existant n’est remplacé."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/sessions/CategoriesScreen.tsx : centrage, verrou et sauvegarde inspectés",
+        "app/(creation)/_layout.tsx : pile et transition inspectées",
+        "app/__tests__/creationLayout.test.tsx : tests de layout inspectés"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "app/(creation)/_layout.tsx",
+      "decision_justification": "Compléter la transition de la pile et le ciblage explicite vers Séances en conservant le centrage, `isSavingRef`, le bouton désactivé pendant sauvegarde et la protection contre tout double enregistrement ou double navigation.",
+      "change_targets": [
+        "app/(creation)/_layout.tsx",
+        "src/features/sessions/CategoriesScreen.tsx"
+      ],
+      "tests": [
+        "app/__tests__/creationLayout.test.tsx",
+        "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/CategoriesScreen.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-007",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-08 §§7-20; D-175; D-176; Issue #150 points 8-9",
+        "requirement": "Le swipe suit le doigt, révèle progressivement les actions, ne se ferme que par un véritable swipe droit commencé sur la carte ouverte, conserve Duplication/Suppression, l’appui long, la réorganisation et les cartes structurelles. Le bloc d’actions possède des coins haut-gauche et bas-gauche arrondis, et le gap entre carte et actions égale la marge carte/cadre Tour avec le fond du Tour visible. La référence pendingSwipeRef relève de CompositionScreen.tsx ; compositionGesture.ts conserve uniquement les calculs purs."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "VISUAL",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/sessions/CompositionScreen.tsx : orchestration, pendingSwipeRef, rendu des cartes et actions inspectés",
+        "src/features/sessions/compositionGesture.ts : calculs purs, seuils et directions inspectés",
+        "src/features/sessions/__tests__/compositionGesture.test.ts : tests de calcul importés inspectés",
+        "src/shared/ui/tokens.ts : marge et couleur de surface Tour inspectées"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/sessions/CompositionScreen.tsx",
+      "decision_justification": "Corriger l’orchestration visuelle et la géométrie dans CompositionScreen.tsx, tout en limitant compositionGesture.ts aux fonctions pures de geste et en préservant les comportements validés.",
+      "change_targets": [
+        "src/features/sessions/CompositionScreen.tsx",
+        "src/features/sessions/compositionGesture.ts"
+      ],
+      "tests": [
+        "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/features/sessions/__tests__/compositionGesture.test.ts"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-008",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-04 §17; CE-T03-04 §16; CE-T03-04 §18",
+        "requirement": "Une définition absente ou une sauvegarde échouée produit une erreur explicite, conserve le brouillon, libère le verrou, réactive Terminer et applique la garde d’abandon Catalogue. Les scénarios d’abandon et de conservation du brouillon de Composition restent inchangés."
+      },
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "reuse_search": [
+        "src/features/sessions/ExerciseScreen.tsx : adaptateur Catalogue, chargement, catch et isSavingRef inspectés",
+        "src/features/sessions/ExerciseExitConfirmModal.tsx : dialogue existant inspecté",
+        "src/features/sessions/useCompositionExitGuard.ts : mécanisme de garde inspecté",
+        "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx : régression inchangée identifiée"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/sessions/ExerciseScreen.tsx",
+      "decision_justification": "Compléter le chargement, la définition absente et la garde Catalogue en conservant le catch, le verrou de sauvegarde, la conservation du brouillon et les scénarios de garde de Composition sans modifier leur suite de régression.",
+      "change_targets": [
+        "src/features/sessions/ExerciseScreen.tsx"
+      ],
+      "tests": [
+        "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-009",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+        "locator": "Contrat d’affichage commun; Écran 3; Écran 4; CE-T03-01/02/04",
+        "requirement": "Les zones bleues, boutons d’action, Safe Areas, cibles tactiles, responsive 360/402/440, bouton Côté et surfaces d’arrière-plan restent conformes dans les écrans corrigés, sans refonte de shell ou de navigation."
+      },
+      "risk_types": [
+        "VISUAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/shared/ui/ScreenShell.tsx : shell et Safe Areas inspectés",
+        "src/features/sessions/CatalogueScreen.tsx : zones Catalogue inspectées",
+        "src/features/sessions/ExerciseScreen.tsx : bandeau et CTA inspectés",
+        "src/features/sessions/CompositionScreen.tsx : shell Composition et Côté inspectés",
+        "src/features/sessions/CategoriesScreen.tsx : bouton centré inspecté"
+      ],
+      "component_decision": "REUSE",
+      "selected_component": "src/shared/ui/ScreenShell.tsx",
+      "decision_justification": "Réutiliser les primitives existantes et contrôler leurs consommateurs ; aucune refonte de shell, de navigation basse ou de géométrie déjà validée n’est autorisée.",
+      "change_targets": [
+        "src/features/sessions/CatalogueScreen.tsx",
+        "src/features/sessions/CategoriesScreen.tsx",
+        "src/features/sessions/CompositionScreen.tsx",
+        "src/features/sessions/ExerciseScreen.tsx"
+      ],
+      "tests": [
+        "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+        "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proof_required": [
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ]
+    },
+    {
+      "criterion_id": "UI-CAT-R-010",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "locator": "CE-T03-08 §§8-9,19-20; D-176; Issue #150 points 8-9",
+        "requirement": "Le bloc d’actions du swipe possède des coins haut-gauche et bas-gauche arrondis. L’espace entre la carte déplacée et les actions est égal à la marge entre carte et cadre Tour, laisse voir le fond du Tour et reste présent pendant la translation progressive."
+      },
+      "risk_types": [
+        "VISUAL",
+        "DEVICE"
+      ],
+      "reuse_search": [
+        "src/features/sessions/CompositionScreen.tsx : styles activityRowActions et layout de carte inspectés",
+        "src/shared/ui/tokens.ts : inset compositionTourSection et colors.tourSurface inspectés",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx : rendu existant inspecté"
+      ],
+      "component_decision": "EXTEND",
+      "selected_component": "src/features/sessions/CompositionScreen.tsx",
+      "decision_justification": "Corriger uniquement la géométrie et la présentation du bloc existant en réutilisant la marge et la couleur Tour canoniques, sans créer de composant d’action ni de valeur arbitraire.",
+      "change_targets": [
+        "src/features/sessions/CompositionScreen.tsx"
+      ],
+      "tests": [
+        "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx"
+      ],
+      "proof_required": [
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ]
+    }
+  ],
+  "preservation": {
+    "preserve": [
+      {
+        "target": "Ouverture visible actuelle du menu Créer",
+        "justification": "Le checkpoint ciblé l’a validée ; toute correction doit conserver le cycle d’ouverture déjà observable."
+      },
+      {
+        "target": "Rangée Créer/Filtrer/Trier et géométrie 108×32 avec gap 8",
+        "justification": "La rangée est une décision Figma et documentaire déjà validée ; elle ne doit pas être régressée."
+      },
+      {
+        "target": "Titres déterministes des Catalogues et libellé permanent Catalogues",
+        "justification": "Ces décisions sont validées par D-167 et les contrats T03 ; aucune modification de libellé n’est requise."
+      },
+      {
+        "target": "Formulaire ActivityEditorForm partagé entre Catalogue et Composition",
+        "justification": "Le formulaire partagé est une décision d’architecture et de présentation validée ; seuls ses invariants sont contrôlés."
+      },
+      {
+        "target": "Roulettes natives, calculs, validations et séparation ActivityDefinition/SessionActivity",
+        "justification": "Ces contrats sont validés et hors réouverture ; aucune réimplémentation métier n’est planifiée."
+      },
+      {
+        "target": "Catch de sauvegarde, isSavingRef et bouton désactivé pendant sauvegarde",
+        "justification": "Le mécanisme existant protège contre toute double sauvegarde et double navigation ; il doit être préservé, pas remplacé."
+      },
+      {
+        "target": "Scénarios de garde Composition et conservation du brouillon",
+        "justification": "Aucun changement nécessaire n’est démontré dans CompositionNavigationGuard.integration.test.tsx ; la suite reste inchangée et exécutée en régression."
+      },
+      {
+        "target": "Centrage de Créer une catégorie",
+        "justification": "Le centrage est déjà conforme ; la révision porte seulement sur la destination et la transition."
+      },
+      {
+        "target": "Navigation basse, SegmentedControl, Safe Areas et cartes structurelles",
+        "justification": "Les primitives et décisions correspondantes sont validées ; les consommateurs doivent les préserver."
+      }
+    ],
+    "change": [
+      {
+        "target": "Couches, vecteurs et interaction de l’arbre Créer",
+        "justification": "La conformité complète du scrim, de la couverture native, des vecteurs et de l’accessibilité doit être requalifiée malgré l’ouverture déjà validée."
+      },
+      {
+        "target": "Carte Activité et sélection multiple",
+        "justification": "Le rendu contractuel, la sélection vide, l’atomicité, l’ordre et la restauration du contexte restent à compléter."
+      },
+      {
+        "target": "Configuration segmentée et invariants de ActivityEditorForm",
+        "justification": "Le formulaire existe déjà mais doit réutiliser le contrôle segmenté partagé et expliciter ses états contractuels."
+      },
+      {
+        "target": "Chargement, garde Catalogue et reprise d’erreur de l’éditeur",
+        "justification": "Une définition absente ou une sauvegarde échouée doit laisser un brouillon récupérable et permettre une nouvelle tentative."
+      },
+      {
+        "target": "Destination Catégories et transition canonique",
+        "justification": "Le retour doit cibler explicitement Catalogue des séances / Séances, avec une seule navigation après une sauvegarde réussie."
+      },
+      {
+        "target": "Swipe horizontal, orchestration pendingSwipeRef, bloc d’actions, gap, coins et icône Côté",
+        "justification": "Les écarts visuels et gestuels sont localisés dans CompositionScreen.tsx et compositionGesture.ts ; les calculs métier restent inchangés."
+      }
+    ],
+    "forbidden": [
+      {
+        "target": "Moteur, route ou exécution réelle",
+        "justification": "Hors périmètre impératif de V2-CAT-01 et explicitement exclu par la frontière T03/T04."
+      },
+      {
+        "target": "Recherche, filtre fonctionnel, tri utilisateur, archivage, restauration et suppression",
+        "justification": "Exclus par le périmètre de la tranche révisée."
+      },
+      {
+        "target": "Médias réels, Circuits fonctionnels et Status / Badge applicatif",
+        "justification": "Seuls les états visuels désactivés prévus par les contrats sont concernés."
+      },
+      {
+        "target": "Modification de Session.ts, calculations.ts, sideMode.ts, SessionCard, SessionService, compositionPresentation.ts et CompositionNavigationGuard.integration.test.tsx",
+        "justification": "Ces modules sont gelés, non affectés ou couverts par une régression inchangée ; aucune écriture de confort n’est autorisée."
+      }
+    ]
+  }
+}
+</KODJO_UI_CRITERIA_MATRIX_JSON>
+
+PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW
+
+<KODJO_UI_PLAN_CONTRACT_JSON>
+{
+  "schema": "kodjo.ui-plan-contract.v1",
+  "contract_version": 1,
+  "protocol_commit": "b2d5db7bde4127bf85d60a7f4107e7b4ebd96265",
+  "scan_revision": "e43004df9f04a10aa091ba28cc681592bea759ca",
+  "ui_applicable": true,
+  "ui_paths": [
+    "app/(creation)/_layout.tsx",
+    "src/features/activities/ActivityCard.tsx",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ActivitySelectionScreen.tsx",
+    "src/features/activities/CatalogueCreateOptions.tsx",
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/CategoriesScreen.tsx",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/compositionGesture.ts"
+  ],
+  "criterion_count": 10,
+  "matrix_sha256": "a3c2aa8e052960900e752bab8e41faaceea004da8fa409d5cea5ce5eaed6e2fb"
+}
+</KODJO_UI_PLAN_CONTRACT_JSON>
 
 <KODJO_PLAN_CONTRACT_JSON>
 {
   "schema": "kodjo.plan-contract-consistency.v2",
   "contract_version": 2,
-  "protocol_commit": "bed140fac4dd5507d9d3a1f2eca821008e26efb8",
-  "scan_revision": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+  "protocol_commit": "b2d5db7bde4127bf85d60a7f4107e7b4ebd96265",
+  "scan_revision": "e43004df9f04a10aa091ba28cc681592bea759ca",
   "write_scope": [
     "app/(creation)/_layout.tsx",
-    "app/(creation)/activity-selection.tsx",
-    "app/(creation)/exercise.tsx",
-    "app/(tabs)/_layout.tsx",
     "app/__tests__/creationLayout.test.tsx",
-    "app/__tests__/rootLayoutGesture.test.tsx",
-    "app/_layout.tsx",
-    "src/domain/activities/ActivityDefinition.ts",
-    "src/domain/activities/ActivityDefinitionRepository.ts",
-    "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-    "src/domain/activities/index.ts",
-    "src/domain/sessions/SessionDraft.ts",
-    "src/domain/sessions/__tests__/SessionDraft.test.ts",
-    "src/domain/sessions/__tests__/composition.test.ts",
-    "src/domain/sessions/composition.ts",
     "src/features/activities/ActivityCard.tsx",
-    "src/features/activities/ActivityCatalogueList.tsx",
-    "src/features/activities/ActivityDefinitionService.ts",
-    "src/features/activities/ActivityDefinitionServiceContext.tsx",
-    "src/features/activities/ActivityDefinitionServiceProvider.tsx",
     "src/features/activities/ActivityEditorForm.tsx",
     "src/features/activities/ActivitySelectionScreen.tsx",
     "src/features/activities/CatalogueCreateOptions.tsx",
     "src/features/activities/__tests__/ActivityCard.test.tsx",
-    "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-    "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
     "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
     "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
     "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
-    "src/features/activities/__tests__/useActivityCatalogue.test.ts",
-    "src/features/activities/useActivityCatalogue.ts",
     "src/features/sessions/CatalogueScreen.tsx",
     "src/features/sessions/CategoriesScreen.tsx",
     "src/features/sessions/CompositionScreen.tsx",
     "src/features/sessions/ExerciseScreen.tsx",
-    "src/features/sessions/SessionDraftContext.tsx",
-    "src/features/sessions/SessionDraftProvider.tsx",
-    "src/features/sessions/SessionServiceProvider.tsx",
     "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
-    "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/CompositionScreen.test.tsx",
     "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
     "src/features/sessions/__tests__/compositionGesture.test.ts",
-    "src/features/sessions/__tests__/compositionPresentation.test.ts",
-    "src/features/sessions/compositionGesture.ts",
-    "src/features/sessions/compositionPresentation.ts",
-    "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-    "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-    "src/infrastructure/database/constants.ts",
-    "src/infrastructure/database/migrateDatabase.ts",
-    "src/infrastructure/database/migrations/migration006.ts",
-    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-    "src/infrastructure/database/types/DatabaseRows.ts",
-    "src/shared/i18n/resources/fr.ts",
-    "src/shared/ui/ScreenShell.tsx",
-    "src/shared/ui/SegmentedControl.tsx",
-    "src/shared/ui/__tests__/ScreenShell.test.tsx",
-    "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-    "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-    "src/shared/ui/__tests__/navigationLayout.test.ts",
-    "src/shared/ui/navigationLayout.ts"
+    "src/features/sessions/compositionGesture.ts"
   ],
   "required_test_writes": [
     "app/__tests__/creationLayout.test.tsx",
-    "app/__tests__/rootLayoutGesture.test.tsx",
-    "src/domain/activities/__tests__/ActivityDefinition.test.ts",
-    "src/domain/sessions/__tests__/SessionDraft.test.ts",
-    "src/domain/sessions/__tests__/composition.test.ts",
     "src/features/activities/__tests__/ActivityCard.test.tsx",
-    "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
-    "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
     "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
     "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
     "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
-    "src/features/activities/__tests__/useActivityCatalogue.test.ts",
     "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
-    "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/CompositionScreen.test.tsx",
     "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
-    "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
-    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
-    "src/features/sessions/__tests__/compositionGesture.test.ts",
-    "src/features/sessions/__tests__/compositionPresentation.test.ts",
-    "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-    "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
-    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-    "src/shared/ui/__tests__/ScreenShell.test.tsx",
-    "src/shared/ui/__tests__/SegmentedControl.test.tsx",
-    "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
-    "src/shared/ui/__tests__/navigationLayout.test.ts"
+    "src/features/sessions/__tests__/compositionGesture.test.ts"
   ]
 }
 </KODJO_PLAN_CONTRACT_JSON>
+
+<KODJO_PLAN_TRANSITION_JSON>
+{
+  "schema_version": "kodjo.protocol.v2.plan-review-transition.0.6.25",
+  "source_head": "b2d5db7bde4127bf85d60a7f4107e7b4ebd96265",
+  "protocol_execution_head": "b2d5db7bde4127bf85d60a7f4107e7b4ebd96265",
+  "bootstrap_path": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+  "status": "PASS",
+  "reason": null,
+  "protected_paths": [
+    ".github/orchestration/v2-activation-registry.json",
+    ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+    ".github/orchestration/v2-slices/V2-CAT-01/planning-mission.md",
+    ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+    ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+    "docs/INDEX.md",
+    "docs/MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md",
+    "docs/PRODUCT.md",
+    "docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md",
+    "docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md",
+    "docs/Specifications-fonctionnelles/05 – Versions du produit.md",
+    "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+    "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+    "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+    "docs/Specifications-fonctionnelles/09 bis – Modèle et migration T03 Catalogue.md",
+    "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+    "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+    "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md",
+    "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+    "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+    "docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md"
+  ],
+  "changed_paths": [],
+  "protocol_changes": [],
+  "protected_blobs": [
+    {
+      "path": ".github/orchestration/v2-activation-registry.json",
+      "source_oid": "7a5241f9333cbd128c1f0f2e1bcddf3c46ab20eb",
+      "execution_oid": "7a5241f9333cbd128c1f0f2e1bcddf3c46ab20eb"
+    },
+    {
+      "path": ".github/orchestration/v2-slices/V2-CAT-01/independent-review.md",
+      "source_oid": "845d920fe0e5dd1baf0d88d625f7da3d67d94670",
+      "execution_oid": "845d920fe0e5dd1baf0d88d625f7da3d67d94670"
+    },
+    {
+      "path": ".github/orchestration/v2-slices/V2-CAT-01/planning-mission.md",
+      "source_oid": "11e54c5bf7efe7367e825c042fd6b9303e16756b",
+      "execution_oid": "11e54c5bf7efe7367e825c042fd6b9303e16756b"
+    },
+    {
+      "path": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+      "source_oid": "d94b0df4af5e8e0bbefb1c494a3d1134cd85124c",
+      "execution_oid": "d94b0df4af5e8e0bbefb1c494a3d1134cd85124c"
+    },
+    {
+      "path": ".github/orchestration/v2-slices/V2-CAT-01/technical-plan.md",
+      "source_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e",
+      "execution_oid": "77955eb471b42ccaaab1dc42c5313c941e43cf3e"
+    },
+    {
+      "path": "docs/INDEX.md",
+      "source_oid": "2b3546868ffdbf7170f0c74c23210aea4daef559",
+      "execution_oid": "2b3546868ffdbf7170f0c74c23210aea4daef559"
+    },
+    {
+      "path": "docs/MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md",
+      "source_oid": "3f906269888ab779f840fa6e08a76a7df1af5dd5",
+      "execution_oid": "3f906269888ab779f840fa6e08a76a7df1af5dd5"
+    },
+    {
+      "path": "docs/PRODUCT.md",
+      "source_oid": "70b1cd4443795bdbcdbb897fe82f3376399dcefb",
+      "execution_oid": "70b1cd4443795bdbcdbb897fe82f3376399dcefb"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md",
+      "source_oid": "b260059a7a3de61e404967a81c02efebe959417e",
+      "execution_oid": "b260059a7a3de61e404967a81c02efebe959417e"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md",
+      "source_oid": "2af376b78b4f638c2868861331fbc86a34b628a6",
+      "execution_oid": "2af376b78b4f638c2868861331fbc86a34b628a6"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/05 – Versions du produit.md",
+      "source_oid": "327b0e9969202c8912789611bf624e2f8fc64e4e",
+      "execution_oid": "327b0e9969202c8912789611bf624e2f8fc64e4e"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "source_oid": "8b298db3b0cd3ecb2f025fe4c8ec16c062c2beef",
+      "execution_oid": "8b298db3b0cd3ecb2f025fe4c8ec16c062c2beef"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "source_oid": "c3dedcefd1023eb619ada51fc9c0f7f5a840af2e",
+      "execution_oid": "c3dedcefd1023eb619ada51fc9c0f7f5a840af2e"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "source_oid": "c5acf766b1c6e986bf98244f6208076d9d033aca",
+      "execution_oid": "c5acf766b1c6e986bf98244f6208076d9d033aca"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 bis – Modèle et migration T03 Catalogue.md",
+      "source_oid": "c2c319a0075ecbd042d50559212a810dff265315",
+      "execution_oid": "c2c319a0075ecbd042d50559212a810dff265315"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+      "source_oid": "bc80fe71bef7fe3c5c63171ff0e80a52a6ef769e",
+      "execution_oid": "bc80fe71bef7fe3c5c63171ff0e80a52a6ef769e"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "source_oid": "770f8a8c02285f5e7bd454c44d7725b162090a47",
+      "execution_oid": "770f8a8c02285f5e7bd454c44d7725b162090a47"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md",
+      "source_oid": "ea5c33e3c3f8d446478a7e96a69aa6562d497caa",
+      "execution_oid": "ea5c33e3c3f8d446478a7e96a69aa6562d497caa"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "source_oid": "876f104f183114dd96410ddd1f2a6dae82c9a21d",
+      "execution_oid": "876f104f183114dd96410ddd1f2a6dae82c9a21d"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "source_oid": "5d4da4a64b677761a9070b1cfd8e8888659b7b8d",
+      "execution_oid": "5d4da4a64b677761a9070b1cfd8e8888659b7b8d"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md",
+      "source_oid": "506528425028003e278b2e6aded6cb86b1057ec7",
+      "execution_oid": "506528425028003e278b2e6aded6cb86b1057ec7"
+    }
+  ],
+  "product_source_evidence": [
+    {
+      "path": "docs/PRODUCT.md",
+      "declared_sha256": "e7b541ac38aa7cdafa84adb8791b2936c6a2515ddc0d750a9887fc739f67cc33",
+      "source_sha256": "c1bdf3e7ac30e1ebdf586b1cde0b66a2885c355d9340075a6287c0146aacc73d",
+      "execution_sha256": "c1bdf3e7ac30e1ebdf586b1cde0b66a2885c355d9340075a6287c0146aacc73d",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/INDEX.md",
+      "declared_sha256": "9a06be0f88a4933fc7d226b3d6fb71b39f9f7eeb91edfc7ae1c1334cfce68d88",
+      "source_sha256": "c0a144c67c1fc94cf0619c3081bdc5652928344353e6bb8cebf033876569501a",
+      "execution_sha256": "c0a144c67c1fc94cf0619c3081bdc5652928344353e6bb8cebf033876569501a",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md",
+      "declared_sha256": "18dbd018d6bd5f320130f576dfd2f35f1c780ca21e03fff843985ed2de169cc6",
+      "source_sha256": "18dbd018d6bd5f320130f576dfd2f35f1c780ca21e03fff843985ed2de169cc6",
+      "execution_sha256": "18dbd018d6bd5f320130f576dfd2f35f1c780ca21e03fff843985ed2de169cc6",
+      "declared_hash_matches_source": true,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md",
+      "declared_sha256": "261694d498d4f4eb772f42535b2e03806a4f191db95a3c436b386e8f28b383b0",
+      "source_sha256": "261694d498d4f4eb772f42535b2e03806a4f191db95a3c436b386e8f28b383b0",
+      "execution_sha256": "261694d498d4f4eb772f42535b2e03806a4f191db95a3c436b386e8f28b383b0",
+      "declared_hash_matches_source": true,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/05 – Versions du produit.md",
+      "declared_sha256": "a5d59c17a20c75d475507dbecbd9991a7badd54640eb70e1196fab60b23164ce",
+      "source_sha256": "c96ab94dca83a2e868de5b691c257484c9654a0978f08df8e1d26751e84a25e9",
+      "execution_sha256": "c96ab94dca83a2e868de5b691c257484c9654a0978f08df8e1d26751e84a25e9",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "declared_sha256": "e6d11c07be3f5f7735bd518e13d25b107028d223b599e5e543e7eab50802263c",
+      "source_sha256": "3fb103d67ab21f36c354d89625e90e77a83c45a3b4fd8f2dac97c4472158d4a9",
+      "execution_sha256": "3fb103d67ab21f36c354d89625e90e77a83c45a3b4fd8f2dac97c4472158d4a9",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "declared_sha256": "1e9db752cbde1382747733fa976921f8c745c5b91e59a1c100ee97db1ff7976f",
+      "source_sha256": "5685e61185e916b726427b11dfeededd2f1a38ec51d444d714a6d6fe81624698",
+      "execution_sha256": "5685e61185e916b726427b11dfeededd2f1a38ec51d444d714a6d6fe81624698",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "declared_sha256": "19c3f09580f30c59c83ae1bb03f478598fa81414c5a427abc34cef2492b99b58",
+      "source_sha256": "51ed514a7e4b5219ee4366efe4577cf8b721671b99a27f8df58bab54ae12eca5",
+      "execution_sha256": "51ed514a7e4b5219ee4366efe4577cf8b721671b99a27f8df58bab54ae12eca5",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+      "declared_sha256": "f2c79ad1e4d4e6a8a78b17570dac136a4ba675e470d8d3fd28dec54437c0161b",
+      "source_sha256": "fea3cec46e94fb2eafef00414c34826bfd42d516861ac8c31b11d4f69fbdf7a1",
+      "execution_sha256": "fea3cec46e94fb2eafef00414c34826bfd42d516861ac8c31b11d4f69fbdf7a1",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 bis – Modèle et migration T03 Catalogue.md",
+      "declared_sha256": "775d55ed3804425563c3d072b4ef0d5fc3fc5f3a8b0b8e99d01a99a8ae0cef84",
+      "source_sha256": "599cf0bda959be4a5cf397eaf99a255c0c002c42f007a814cd516a565f530f4c",
+      "execution_sha256": "599cf0bda959be4a5cf397eaf99a255c0c002c42f007a814cd516a565f530f4c",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "declared_sha256": "233fcac8e351152e443bf1054594bcd358bb65ca8b776ace3717bb78b4f003bb",
+      "source_sha256": "2742fd91b1fff691d80cd1a93ebc9ce0637b0c8e3fafd311e4f8c46b428ab984",
+      "execution_sha256": "2742fd91b1fff691d80cd1a93ebc9ce0637b0c8e3fafd311e4f8c46b428ab984",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/11 – API fonctionnelles.md",
+      "declared_sha256": "349c24d7d88e9c9989d065c92fec386e02b8e8d1dd0eb03ea38e5746ad26d3a5",
+      "source_sha256": "2ef5b59f5623da5ac1ca891cd8137396c1b6959c3670b1036ddc9d0f8c4d222a",
+      "execution_sha256": "2ef5b59f5623da5ac1ca891cd8137396c1b6959c3670b1036ddc9d0f8c4d222a",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "declared_sha256": "2154f66cc21a349dbf926785abc002f4737c7fd225b9976dccb1fc8774902a41",
+      "source_sha256": "6eb228565adc229ba355e696714461be0d128ad563006b4a693f2392a1a18b56",
+      "execution_sha256": "6eb228565adc229ba355e696714461be0d128ad563006b4a693f2392a1a18b56",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "declared_sha256": "b288655be2d0392363bee3b39f6d96c9a333e60209b95de0dcdf9fa375b9293f",
+      "source_sha256": "eba8b139f9fc8c3a76af138c65ab015e2a3630b202eaba6bf6ab389025f36a3c",
+      "execution_sha256": "eba8b139f9fc8c3a76af138c65ab015e2a3630b202eaba6bf6ab389025f36a3c",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md",
+      "declared_sha256": "cdbea10df53d81cdde02c367b5fc8ec4063eb939ee2356c7076ad4b7090cf373",
+      "source_sha256": "752d5284f8a65177d81aea6fe2a7f8f3d671a5e29fda5d117a9c91334a207143",
+      "execution_sha256": "752d5284f8a65177d81aea6fe2a7f8f3d671a5e29fda5d117a9c91334a207143",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md",
+      "declared_sha256": "e5b1d2c275ada45f5ca6fc058ddfed5e0ac7ca8d2415ee0be919873050329653",
+      "source_sha256": "2e4b9e1d86d50d80d806258ab2dcb2eba0d1849d092ff5012d779891b69b0d96",
+      "execution_sha256": "2e4b9e1d86d50d80d806258ab2dcb2eba0d1849d092ff5012d779891b69b0d96",
+      "declared_hash_matches_source": false,
+      "transition_matches": true
+    }
+  ],
+  "policy": {
+    "classifier_sha256": "a954d5be623a9d8e0481821957af30ff5ab61d85a047fc90396aa9bd6581f852",
+    "blobs": [
+      {
+        "path": "scripts/kodjo/verify-plan-review-transition.js",
+        "source_oid": "ff40f12f7f4d5c03d849d70e1f498039621098e4",
+        "execution_oid": "ff40f12f7f4d5c03d849d70e1f498039621098e4"
+      },
+      {
+        "path": ".github/workflows/kodjo-v2-slice-plan.yml",
+        "source_oid": "9136f43182ed6dcd51482626c29655c3edc3bd64",
+        "execution_oid": "9136f43182ed6dcd51482626c29655c3edc3bd64"
+      },
+      {
+        "path": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+        "source_oid": "9e63fc578bcf269eeb8fec120d90db4f4ce147be",
+        "execution_oid": "9e63fc578bcf269eeb8fec120d90db4f4ce147be"
+      }
+    ]
+  }
+}
+</KODJO_PLAN_TRANSITION_JSON>
