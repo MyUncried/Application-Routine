@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: read
 
 concurrency:
   group: kodjo-v2-plan-handoff-materialize-${{ github.event.issue.number }}
