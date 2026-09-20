@@ -59,6 +59,51 @@ function repositoryFixture() {
   return { dir, base, head, packageDir, patchSha };
 }
 
+
+function chainedRepositoryFixture() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-materialized-chain-'));
+  git(dir, ['init', '-q']);
+  git(dir, ['config', 'core.autocrlf', 'false']);
+  git(dir, ['config', 'user.email', 'x@y.z']);
+  git(dir, ['config', 'user.name', 'KODJO']);
+  fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'src', 'a.ts'), 'export const value = 1;\n');
+  git(dir, ['add', '.']);
+  git(dir, ['commit', '-qm', 'cumulative base']);
+  const base = git(dir, ['rev-parse', 'HEAD']);
+
+  fs.writeFileSync(path.join(dir, 'src', 'a.ts'), 'export const value = 2;\n');
+  git(dir, ['add', '.']);
+  git(dir, ['commit', '-qm', 'first delivered delta']);
+  const packageSource = git(dir, ['rev-parse', 'HEAD']);
+
+  fs.writeFileSync(path.join(dir, 'src', 'a.ts'), 'export const value = 3;\n');
+  const patch = cp.execFileSync('git', ['diff', '--binary', '--full-index', '--no-renames', packageSource], {
+    cwd: dir, encoding: 'utf8',
+  });
+  git(dir, ['add', '.']);
+  git(dir, ['commit', '-qm', 'second delivered delta']);
+  const head = git(dir, ['rev-parse', 'HEAD']);
+
+  const packageDir = path.join(dir, 'package');
+  fs.mkdirSync(packageDir);
+  const patchSha = sha256(patch);
+  fs.writeFileSync(path.join(packageDir, 'implementation.patch'), patch);
+  fs.writeFileSync(path.join(packageDir, 'manifest.json'), JSON.stringify({
+    schema_version: R.PACKAGE_SCHEMA,
+    slice_id: 'V2-MATERIALIZED',
+    session_id: session,
+    source_head: packageSource,
+    baseline_head: 'b'.repeat(40),
+    github_run_id: '35515175109',
+    request_id: '550e8400-e29b-41d4-a716-446655440070',
+    integrity_status: 'INTACT',
+    paths: ['src/a.ts'],
+    patch_sha256: patchSha,
+  }, null, 2) + '\n');
+  return { dir, base, packageSource, head, packageDir, patchSha };
+}
+
 function queue(f, overrides = {}) {
   return {
     schema_version: C.LEAN_REQUEST_SCHEMA,
@@ -189,6 +234,41 @@ test('le bridge accepte uniquement le patch intact déjà présent sur le HEAD e
     assert.throws(() => R.verifyMaterializedRecoveryPackage(request, {
       packageDir: f.packageDir, cwd: f.dir,
     }), /MATERIALIZED_RECOVERY_NOT_PRESENT/);
+  } finally {
+    fs.rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+
+test('le bridge accepte un paquet récent chaîné tout en conservant la racine cumulative', () => {
+  const f = chainedRepositoryFixture();
+  try {
+    const request = Q.projectQueueRequest(queue(f));
+    assert.notEqual(f.base, f.packageSource);
+    assert.equal(request.materialized_recovery.source_application_head, f.base);
+    const evidence = R.verifyMaterializedRecoveryPackage(request, {
+      packageDir: f.packageDir, cwd: f.dir,
+    });
+    assert.equal(evidence.status, 'MATERIALIZED_RECOVERY_VERIFIED');
+    assert.equal(evidence.source_head, f.packageSource);
+    assert.equal(evidence.cumulative_source_head, f.base);
+    assert.equal(evidence.materialized_head, f.head);
+  } finally {
+    fs.rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test('un paquet chaîné hors de la racine cumulative est refusé avant Claude', () => {
+  const f = chainedRepositoryFixture();
+  try {
+    const request = Q.projectQueueRequest(queue(f));
+    request.materialized_recovery = {
+      ...request.materialized_recovery,
+      source_application_head: f.head,
+    };
+    assert.throws(() => R.verifyMaterializedRecoveryPackage(request, {
+      packageDir: f.packageDir, cwd: f.dir,
+    }), /MATERIALIZED_RECOVERY_SOURCE_CHAIN_MISMATCH/);
   } finally {
     fs.rmSync(f.dir, { recursive: true, force: true });
   }
