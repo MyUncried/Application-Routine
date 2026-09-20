@@ -34,9 +34,11 @@ import { applyTourSideModeTransition, type SideMode } from "@/domain/sessions/si
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
+  clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
+  shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
 } from "@/features/sessions/compositionGesture";
@@ -1187,11 +1189,6 @@ type CompositionActivityRowProps = {
 const SWIPE_REVEAL_OFFSET =
   dimensions.compositionSwipeActions.groupWidth + dimensions.compositionTourSection.inset;
 
-/** Borne `x` à `[-SWIPE_REVEAL_OFFSET, 0]` — la carte ne peut jamais se translater au-delà de sa position ouverte, ni en-deçà de sa position fermée. */
-function clampSwipeTranslateX(x: number): number {
-  return Math.min(0, Math.max(-SWIPE_REVEAL_OFFSET, x));
-}
-
 /**
  * `Composition / Activity Row` (`2588:2679`, D-128) et ses deux états T02 —
  * actions glissées (`2028:11808`) et carte soulevée (`3518:4621`, D-129).
@@ -1380,7 +1377,7 @@ function CompositionActivityRow({
   /** Applique `dx` à la position de repos, borné à `[-SWIPE_REVEAL_OFFSET, 0]` — la fermeture ne peut donc jamais progresser au-delà de `0`, ni l'ouverture au-delà de `-SWIPE_REVEAL_OFFSET`. */
   const applySwipeMovement = useCallback((dx: number) => {
     isSwipingRef.current = true;
-    setSwipeTranslateX(clampSwipeTranslateX(swipeBaseRef.current + dx));
+    setSwipeTranslateX(clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET));
   }, []);
 
   /**
@@ -1467,7 +1464,7 @@ function CompositionActivityRow({
       return;
     }
     isSwipingRef.current = false;
-    const shouldReveal = swipeTranslateX <= -SWIPE_REVEAL_OFFSET / 2;
+    const shouldReveal = shouldRevealAfterSwipe(swipeTranslateX, SWIPE_REVEAL_OFFSET);
     setSwipeTranslateX(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
     if (shouldReveal && !areActionsRevealed) {
       onRevealActions();

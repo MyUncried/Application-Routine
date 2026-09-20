@@ -319,7 +319,15 @@ describe("CategoriesScreen — enregistrement (AC-05..AC-08, D-107)", () => {
 
     expect(createSession).toHaveBeenCalledTimes(1);
     expect(mockResetDraft).toHaveBeenCalledTimes(1);
-    expect(mockDismissTo).toHaveBeenCalledWith("/");
+    // V2-CAT-01 (UI-CAT-R-005/006) : la cible reste `Catalogue des séances`
+    // (`pathname: "/"`), désormais accompagnée du signal PONCTUEL
+    // `catalogueSegment: "sessions"` — consommé une seule fois par
+    // `CatalogueScreen`, il force le retour déterministe sur `Séances`
+    // indépendamment du segment actif avant l'ouverture du parcours.
+    expect(mockDismissTo).toHaveBeenCalledWith({
+      pathname: "/",
+      params: { catalogueSegment: "sessions" },
+    });
   });
 
   it("shows the exact failure message, keeps the draft and re-enables the action on a technical error — no reset, no navigation", async () => {

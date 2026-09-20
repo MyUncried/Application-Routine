@@ -23,7 +23,17 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  *
  * `categories` ajoutée en T01-S09 (CE-T01-11), même patron — `Enregistrer
  * la séance` réinitialise le brouillon partagé (`resetDraft`) puis quitte
- * ce `Stack` entièrement (`router.dismissTo("/")`) vers le Catalogue.
+ * ce `Stack` entièrement (`router.dismissTo(...)`) vers le Catalogue,
+ * segment `Séances` (UI-CAT-R-005/006, signal `catalogueSegment` consommé
+ * par `CatalogueScreen`).
+ *
+ * **`animation: "slide_from_left"` sur `categories` (V2-CAT-01,
+ * UI-CAT-R-006)** : après un enregistrement réussi, la sortie de ce
+ * parcours doit se lire comme un aboutissement — l'écran quitté glisse vers
+ * la GAUCHE plutôt que de rejouer, en sens inverse, l'entrée standard
+ * (`slide_from_right`, glissement vers la droite d'un retour ordinaire).
+ * Seule `categories` porte cette option : `composition`/`exercise`
+ * conservent la transition standard de la pile pour tout `Retour` normal.
  *
  * `gestureEnabled: false` (correctif T02, 2026-09-08, point 3 ; **étendu à
  * TOUT le parcours par T02-S02, continuation après recette visuelle**) — le
@@ -53,7 +63,7 @@ export default function CreationLayout() {
       <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
-        <Stack.Screen name="categories" />
+        <Stack.Screen name="categories" options={{ animation: "slide_from_left" }} />
         <Stack.Screen name="activity-selection" />
       </Stack>
     </SessionDraftProvider>

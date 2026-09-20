@@ -57,12 +57,17 @@ export type GestureKind = "TAP" | "SWIPE_LEFT" | "SWIPE_RIGHT" | "VERTICAL" | "N
  * - `TAP` n'est jamais renvoyé ici : un appui est reconnu à la RELÂCHE, en
  *   l'absence de tout mouvement significatif (`isTap`).
  *
- * **T02-S02 — balayage ACHEVÉ, sans suivi progressif.** Cette classification
- * ne décrit qu'un état instantané ; c'est l'appelant qui décide QUAND agir.
- * `CompositionScreen.tsx` n'applique plus le résultat au fil du mouvement :
- * il mémorise le dernier sens franchi et n'affiche/masque les actions qu'à
- * la RELÂCHE. Rien ne suit donc le doigt — ni translation partielle de la
- * carte, ni apparition proportionnelle des actions.
+ * Cette classification ne décrit qu'un état instantané, à un instant `(dx,
+ * dy)` donné ; c'est l'appelant qui décide QUAND et COMMENT l'utiliser.
+ *
+ * **V2-CAT-01 (UI-CAT-R-007, CE-T03-08)** : `CompositionScreen.tsx` suit
+ * désormais le doigt EN CONTINU pendant le geste (translation et révélation
+ * progressives des actions, via `clampSwipeTranslateX` ci-dessous) — cette
+ * fonction reste néanmoins utile telle quelle pour distinguer un mouvement
+ * horizontal engagé (capture du responder) d'un mouvement vertical (laissé
+ * au défilement de la liste) ou d'un appui encore possible (`isTap`). Ceci
+ * révise le modèle antérieur (« balayage achevé, sans suivi progressif »)
+ * explicitement contredit par le contrat d'écran de cette tranche.
  */
 export function classifyMovement(dx: number, dy: number): GestureKind {
   if (Math.abs(dx) <= TOUCH_SLOP && Math.abs(dy) <= TOUCH_SLOP) {
@@ -93,6 +98,38 @@ export function isCompletedHorizontalSwipe(kind: GestureKind): boolean {
 /** `true` tant que le geste n'a pas dépassé la tolérance d'appui (D-127 : l'appui court reste possible). */
 export function isTap(dx: number, dy: number): boolean {
   return Math.abs(dx) <= TOUCH_SLOP && Math.abs(dy) <= TOUCH_SLOP;
+}
+
+/**
+ * Borne la translation horizontale d'une carte de Composition à
+ * `[-revealOffset, 0]` (V2-CAT-01, UI-CAT-R-007/010) — `0` carte fermée,
+ * `-revealOffset` entièrement ouverte. `revealOffset` reste un paramètre,
+ * jamais une constante locale à ce module : sa valeur (largeur du groupe
+ * d'actions plus la marge carte/cadre Tour) dépend de tokens DSF
+ * (`@/shared/ui/tokens`), hors du périmètre volontairement dépourvu de toute
+ * dépendance de présentation de ce module.
+ *
+ * Appliquée à une position de repos (`0` ou `-revealOffset`) additionnée du
+ * déplacement `dx` courant, cette seule borne garantit par construction
+ * qu'un balayage droit ne peut jamais faire progresser la carte au-delà de
+ * sa position fermée, ni un balayage gauche au-delà de sa position ouverte —
+ * la fermeture n'aboutit donc jamais sauf engagée depuis une carte déjà
+ * ouverte, et réciproquement pour l'ouverture.
+ */
+export function clampSwipeTranslateX(x: number, revealOffset: number): number {
+  return Math.min(0, Math.max(-revealOffset, x));
+}
+
+/**
+ * Décide, à la relâche d'un balayage engagé, si la carte doit s'aligner en
+ * position OUVERTE ou FERMÉE (V2-CAT-01, UI-CAT-R-007) — au-delà de la
+ * MOITIÉ de la course atteignable, la position atteinte l'emporte, jamais la
+ * distance parcourue depuis l'origine du geste (une carte déjà largement
+ * ouverte qu'on referme partiellement reste ouverte si elle n'a pas
+ * repassé la moitié).
+ */
+export function shouldRevealAfterSwipe(translateX: number, revealOffset: number): boolean {
+  return translateX <= -revealOffset / 2;
 }
 
 /** Géométrie mesurée d'une carte d'Activité, dans le repère du contenu défilant. */

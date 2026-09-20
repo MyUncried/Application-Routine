@@ -8,6 +8,10 @@ import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/do
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
+import {
+  formatExerciseBodyZones,
+  formatExerciseRowSummary,
+} from "@/features/sessions/compositionPresentation";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -38,6 +42,19 @@ export function ActivitySelectionScreen() {
     }, [reload, cancelPending]),
   );
 
+  // V2-CAT-01 (UI-CAT-R-003) : retrait et recalcul des identifiants
+  // OBSOLÈTES — une définition sélectionnée peut disparaître (suppression
+  // concurrente hors périmètre de suppression de cette tranche, mais déjà
+  // possible via une autre session) entre l'ouverture de cet écran et sa
+  // validation. Valeur DÉRIVÉE (jamais un état séparé synchronisé par effet,
+  // `react-hooks/set-state-in-effect`) : le compteur et le CTA dynamique
+  // restent exacts pendant toute la durée de l'écran, pas seulement à
+  // l'instant de l'appui sur `Ajouter`, dès que la liste actualisée arrive.
+  const availableSelectedIds =
+    state.status === "ready"
+      ? selectedIds.filter((id) => state.definitions.some((definition) => definition.id === id))
+      : selectedIds;
+
   function toggle(id: string) {
     setSelectedIds((current) =>
       current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id],
@@ -45,13 +62,14 @@ export function ActivitySelectionScreen() {
   }
 
   function handleAdd() {
-    if (state.status !== "ready" || selectedIds.length === 0) {
+    if (state.status !== "ready" || availableSelectedIds.length === 0) {
       return;
     }
     // Ordre de la liste au moment de la validation — jamais l'ordre des
-    // touchers (`selectedIds`).
+    // touchers (`availableSelectedIds`, déjà purgée des identifiants
+    // obsolètes).
     const orderedSelection = state.definitions.filter((definition) =>
-      selectedIds.includes(definition.id),
+      availableSelectedIds.includes(definition.id),
     );
     const tourSideMode = draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE;
     let nextExercises = draft.exercises;
@@ -65,12 +83,14 @@ export function ActivitySelectionScreen() {
     router.back();
   }
 
-  const canAdd = state.status === "ready" && selectedIds.length > 0;
+  const canAdd = state.status === "ready" && availableSelectedIds.length > 0;
   // V2-CAT-01 (UI-CAT-R-003) : CTA dynamique — le libellé de base
   // (`t.addAction`, seule chaîne traduite existante) porte désormais le
-  // compteur de la sélection courante entre parenthèses dès qu'elle n'est
-  // pas vide ; aucune nouvelle chaîne traduite n'est ajoutée.
-  const addLabel = selectedIds.length > 0 ? `${t.addAction} (${selectedIds.length})` : t.addAction;
+  // compteur de la sélection courante (purgée des identifiants obsolètes)
+  // entre parenthèses dès qu'elle n'est pas vide ; aucune nouvelle chaîne
+  // traduite n'est ajoutée.
+  const addLabel =
+    availableSelectedIds.length > 0 ? `${t.addAction} (${availableSelectedIds.length})` : t.addAction;
 
   return (
     <ScreenShell>
@@ -145,6 +165,14 @@ export function ActivitySelectionScreen() {
   );
 }
 
+/**
+ * V2-CAT-01 (UI-CAT-R-003) : carte DÉTAILLÉE — nom, Zones corporelles, mode
+ * et cible, Séries et Pause (mêmes fonctions de présentation déjà éprouvées
+ * par `ActivityCard.tsx`/`compositionPresentation.ts`, jamais reformulées
+ * localement) — jamais seulement le nom. La checkbox reste un cadre
+ * vectoriel TOUJOURS visible (coché/décoché), jamais une icône apparaissant
+ * seulement à la sélection.
+ */
 function SelectionRow({
   definition,
   selected,
@@ -154,6 +182,9 @@ function SelectionRow({
   selected: boolean;
   onToggle: () => void;
 }) {
+  const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);
+  const summary = formatExerciseRowSummary(definition);
+
   return (
     <Pressable
       onPress={onToggle}
@@ -163,12 +194,31 @@ function SelectionRow({
       style={styles.row}
       testID={`activity-selection-row-${definition.id}`}
     >
-      <Text style={styles.rowLabel} numberOfLines={1}>
-        {definition.name}
-      </Text>
-      {selected ? (
-        <KodjoIcon name="state-selected" size={20} testID={`activity-selection-row-checked-${definition.id}`} />
-      ) : null}
+      <View style={styles.rowContent}>
+        <Text style={styles.rowLabel} numberOfLines={1}>
+          {definition.name}
+        </Text>
+        {bodyZones !== null ? (
+          <Text
+            style={styles.rowSecondaryLine}
+            numberOfLines={1}
+            testID={`activity-selection-row-body-zones-${definition.id}`}
+          >
+            {bodyZones}
+          </Text>
+        ) : null}
+        <Text style={styles.rowSecondaryLine} numberOfLines={1}>
+          {summary}
+        </Text>
+      </View>
+      <View
+        style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
+        testID={`activity-selection-row-checkbox-${definition.id}`}
+      >
+        {selected ? (
+          <KodjoIcon name="state-selected" size={20} testID={`activity-selection-row-checked-${definition.id}`} />
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -197,6 +247,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing[12],
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[12],
     borderRadius: dimensions.standardCard.radius,
@@ -205,10 +256,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     minHeight: minTouchTarget,
   },
+  rowContent: {
+    flex: 1,
+    gap: spacing[4],
+  },
   rowLabel: {
     ...type.cardTitle,
     color: colors.textPrimary,
-    flex: 1,
+  },
+  // Même hiérarchie typographique que `Boundary Activity`
+  // (`boundaryRowSecondaryLine`, `CompositionScreen.tsx`) — réutilisée,
+  // jamais redéfinie localement.
+  rowSecondaryLine: {
+    ...type.caption,
+    color: colors.textSecondary,
+  },
+  // V2-CAT-01 (UI-CAT-R-003) : cadre vectoriel TOUJOURS visible — coché
+  // (icône `state-selected`) ou décoché (cadre vide) — jamais une icône
+  // apparaissant seulement à la sélection.
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxSelected: {
+    borderColor: colors.primary,
   },
   bottomAction: {
     flexDirection: "row",

@@ -199,7 +199,12 @@ export function CategoriesScreen() {
         return;
       }
       resetDraft();
-      router.dismissTo("/");
+      // V2-CAT-01 (UI-CAT-R-005/006) : la cible est déterministement
+      // `Catalogue des séances` / segment `Séances`, indépendamment du
+      // segment qui était actif avant l'ouverture du parcours de création —
+      // `catalogueSegment` est un signal PONCTUEL, consommé une seule fois
+      // par `CatalogueScreen` (`useFocusEffect`), jamais persisté.
+      router.dismissTo({ pathname: "/", params: { catalogueSegment: "sessions" } });
     } catch (error) {
       console.error("La séance n'a pas pu être enregistrée.", error);
       isSavingRef.current = false;

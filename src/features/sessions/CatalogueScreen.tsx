@@ -1,4 +1,4 @@
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState, type ReactNode } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -44,6 +44,14 @@ export type CatalogueContentType = "activities" | "sessions" | "circuits";
  */
 export function CatalogueScreen() {
   const router = useRouter();
+  // V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL, jamais persistant,
+  // envoyé exclusivement par `CategoriesScreen.handleSave` (`dismissTo`)
+  // après un enregistrement réussi — force le retour déterministe sur
+  // `Séances`, indépendamment du segment actif avant l'ouverture du
+  // parcours de création. Absent de tout autre appelant : la restauration
+  // normale du segment pendant l'aller-retour courant (édition d'une
+  // Activité, sélection multiple…) n'est jamais affectée.
+  const params = useLocalSearchParams<{ catalogueSegment?: string }>();
   const sessionCatalogue = useSessionCatalogue();
   const activityCatalogue = useActivityCatalogue();
   // T01-S10/V2-CAT-01 (D-108) : `Séances` sélectionné par défaut à
@@ -53,15 +61,30 @@ export function CatalogueScreen() {
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
+  const catalogueSegmentParam = params.catalogueSegment;
   useFocusEffect(
     useCallback(() => {
       reloadSessions();
       reloadActivities();
+      // Consommé une seule fois : `setParams` l'efface immédiatement, pour
+      // qu'un focus ultérieur SANS nouveau signal (retour d'édition d'une
+      // Activité, par exemple) ne réapplique jamais ce forçage.
+      if (catalogueSegmentParam === "sessions") {
+        setActiveSegment("sessions");
+        router.setParams({ catalogueSegment: undefined });
+      }
       return () => {
         cancelPendingSessions();
         cancelPendingActivities();
       };
-    }, [reloadSessions, reloadActivities, cancelPendingSessions, cancelPendingActivities]),
+    }, [
+      reloadSessions,
+      reloadActivities,
+      cancelPendingSessions,
+      cancelPendingActivities,
+      catalogueSegmentParam,
+      router,
+    ]),
   );
 
   const t = strings.screens.sessions;

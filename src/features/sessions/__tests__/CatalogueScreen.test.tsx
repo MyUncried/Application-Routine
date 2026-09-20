@@ -27,6 +27,17 @@ import { colors } from "@/shared/ui/tokens";
  */
 const focusEffectHarness: { effect: (() => (() => void) | void) | null } = { effect: null };
 const mockPush = jest.fn();
+/**
+ * V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL `catalogueSegment`, tel que
+ * transmis par `CategoriesScreen.handleSave` (`dismissTo`) — `{}` par défaut
+ * (aucun test existant n'en a besoin), réglé explicitement par les tests qui
+ * l'exercent, puis réinitialisé par `beforeEach`.
+ */
+let mockSearchParams: { catalogueSegment?: string } = {};
+/** Reproduit fidèlement le comportement réel de `router.setParams` : applique le correctif à l'état de route observé par `useLocalSearchParams`. */
+const mockSetParams = jest.fn((patch: Record<string, string | undefined>) => {
+  mockSearchParams = { ...mockSearchParams, ...patch };
+});
 
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
@@ -35,7 +46,8 @@ jest.mock("expo-router", () => {
     useFocusEffect: (effect: () => (() => void) | void) => {
       focusEffectHarness.effect = effect;
     },
-    useRouter: () => ({ push: mockPush }),
+    useRouter: () => ({ push: mockPush, setParams: mockSetParams }),
+    useLocalSearchParams: () => mockSearchParams,
   };
 });
 
@@ -104,15 +116,21 @@ function renderScreen(
   service: SessionService,
   activityService: ActivityDefinitionService = makeFakeActivityService().service,
 ) {
-  return render(
+  const element = (
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
         <ActivityDefinitionServiceContext.Provider value={activityService}>
           <CatalogueScreen />
         </ActivityDefinitionServiceContext.Provider>
       </SessionServiceContext.Provider>
-    </TestSafeAreaProvider>,
+    </TestSafeAreaProvider>
   );
+  const result = render(element);
+  // V2-CAT-01 (UI-CAT-R-005/006) : `rerender` SANS argument — reconstruit le
+  // MÊME arbre pour forcer un nouveau rendu qui relit `useLocalSearchParams`
+  // (mocké via une variable externe, non réactive par elle-même) ; nécessaire
+  // pour observer un changement de `mockSearchParams` entre deux focus.
+  return { ...result, rerender: () => result.rerender(element) };
 }
 
 /** Simule un focus réel : invoque le callback capturé, capture son nettoyage. */
@@ -125,6 +143,8 @@ function simulateFocus(): (() => void) | void {
 
 beforeEach(() => {
   mockPush.mockClear();
+  mockSetParams.mockClear();
+  mockSearchParams = {};
 });
 
 describe("CatalogueScreen — cadre commun", () => {
@@ -342,6 +362,74 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.getByText(strings.screens.activities.title)).toBeTruthy();
     expect(screen.getByText("Activité a")).toBeTruthy();
+  });
+
+  /**
+   * V2-CAT-01 (UI-CAT-R-005/006) : le signal PONCTUEL `catalogueSegment`,
+   * transmis par `CategoriesScreen.handleSave` via `dismissTo`, force le
+   * retour déterministe sur `Séances` — INDÉPENDAMMENT du segment actif
+   * avant l'ouverture du parcours de création — puis est consommé
+   * exactement une fois (`router.setParams` l'efface).
+   */
+  it("forces the Séances segment on focus when the catalogueSegment signal is present, then consumes it exactly once", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+    const { service: activityService, listActivityDefinitions } = makeFakeActivityService();
+    listActivityDefinitions.mockResolvedValue([]);
+
+    renderScreen(service, activityService);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Le segment actif avant l'ouverture du parcours de création était
+    // `Activités` — jamais `Séances`. Le signal `catalogueSegment` est déjà
+    // présent (représentatif de `dismissTo`) au moment de ce changement de
+    // segment : sa seule présence ne suffit pas à agir — seul le FOCUS
+    // suivant le consomme (voir plus bas), preuve qu'aucun effet de bord
+    // n'a lieu avant le focus réel.
+    mockSearchParams = { catalogueSegment: "sessions" };
+    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+    expect(
+      screen.getByLabelText(strings.screens.sessions.contentTypes.activities).props
+        .accessibilityState,
+    ).toMatchObject({ selected: true });
+
+    // Le focus suivant consomme le signal et force `Séances`.
+    await act(async () => {
+      simulateFocus();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+
+    expect(
+      screen.getByLabelText(strings.screens.sessions.contentTypes.sessions).props
+        .accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(mockSetParams).toHaveBeenCalledWith({ catalogueSegment: undefined });
+
+    // Un focus ultérieur SANS nouveau signal (retour normal, par exemple
+    // après l'édition d'une Activité) ne réapplique jamais ce forçage :
+    // basculer à nouveau sur `Activités` puis refocaliser doit préserver
+    // `Activités`, jamais revenir sur `Séances`.
+    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+    mockSetParams.mockClear();
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+    });
+    expect(
+      screen.getByLabelText(strings.screens.sessions.contentTypes.activities).props
+        .accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(mockSetParams).not.toHaveBeenCalled();
   });
 
   it("opens the Créer tree, and navigates to Composition d'une séance when 'Une séance' is selected (T01-S07, V2-CAT-01)", async () => {
