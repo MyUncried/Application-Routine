@@ -197,7 +197,7 @@ test('E2E UI: la finalisation refuse un faux PASS device avant gate humain', () 
   assert.match(r.stderr,/V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID/);
 });
 
-test('E2E UI: VISUAL_CORRECTION conserve la revue différentielle historique et reste finalisable', () => {
+function deltaFixture() {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-e2e-'));
   const f=fixture(dir);
   const queue=JSON.parse(fs.readFileSync(f.queuePath,'utf8'));
@@ -214,15 +214,59 @@ test('E2E UI: VISUAL_CORRECTION conserve la revue différentielle historique et 
     .replace(/\n\{[\s\S]*$/,'\nREVIEW_FEEDBACK: Aucun blocage démontré sur le delta visuel.\n');
   fs.writeFileSync(f.reviewFile,delta);
 
+  return {dir,f};
+}
+function targetedBody(f) {
+  return '[KODJO_SLICE] TARGETED_VISUAL_APPROVED_REQUALIFY\n'+
+    'slice_id='+f.slice+'\nsource_review_comment_id=104\nhead='+f.head+'\n'+
+    'validation_scope=DELTA\ntargeted_result=PASS\nglobal_conformance=NON_CONFORME\nrequalification_scope=FULL_SLICE\n'+
+    'source_head='+'a'.repeat(40)+'\nbootstrap_path=.github/orchestration/v2-slices/'+f.slice+'/slice-bootstrap.json\n'+
+    'targeted_requirement=Créer ouvre visiblement le menu\n';
+}
+test('delta/global: legacy VISUAL_APPROVED cannot close a differential correction',()=>{
+  const {dir,f}=deltaFixture();
   const out=path.join(dir,'final.json');
+  const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/V2_FINAL_GLOBAL_REQUALIFICATION_REQUIRED/);
+  assert.equal(fs.existsSync(out),false);
+});
+test('delta/global: targeted success is retained while the entire slice requires requalification',()=>{
+  const {dir,f}=deltaFixture();
+  fs.writeFileSync(f.visualFile,targetedBody(f));
+  const out=path.join(dir,'targeted.json');
   const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
   assert.equal(r.status,0,r.stderr);
   const result=JSON.parse(fs.readFileSync(out,'utf8'));
-  assert.equal(result.operation_kind,'VISUAL_CORRECTION');
-  assert.equal(result.review_mode,'VISUAL_CORRECTION_DELTA');
-  assert.equal(result.criterion_count,null);
-  assert.equal(result.device_gate_required,true);
-  assert.equal(result.final_status,'READY_TO_CLOSE');
+  assert.equal(result.targeted_result,'PASS');
+  assert.equal(result.targeted_device_evidence_satisfied,true);
+  assert.equal(result.global_conformance,'NON_CONFORME');
+  assert.equal(result.final_status,'REQUALIFICATION_REQUIRED');
+  for(const key of ['global_approval','merge_authorized','close_authorized','device_evidence_satisfied']) assert.equal(result[key],false);
+  assert.equal(result.human_device_approval_comment_id,'105');
+  assert.equal(result.head,f.head);
+  assert.match(result.replan_trigger,/START_PLAN_REVISION/);
+  const {checkpointBody}=require('../../scripts/kodjo/targeted-requalification');
+  const checkpoint=checkpointBody(result);
+  assert.ok(checkpoint.includes('Créer ouvre visiblement le menu'));
+  assert.ok(!checkpoint.includes('READY_TO_CLOSE'));
+});
+for(const [label,mutate] of [
+  ['scope',s=>s.replace('validation_scope=DELTA','validation_scope=GLOBAL')],
+  ['global conformity',s=>s.replace('global_conformance=NON_CONFORME','global_conformance=CONFORME')],
+  ['partial requalification',s=>s.replace('requalification_scope=FULL_SLICE','requalification_scope=DELTA')],
+  ['head',s=>s.replace('head='+'c'.repeat(40),'head='+'f'.repeat(40))],
+  ['review',s=>s.replace('source_review_comment_id=104','source_review_comment_id=999')],
+  ['duplicate scope',s=>s+'validation_scope=DELTA\n'],
+  ['missing target',s=>s.replace(/^targeted_requirement=.*\n/m,'')],
+]) test('delta/global: rejects invalid '+label,()=>{
+  const {dir,f}=deltaFixture();
+  let body=targetedBody(f);
+  if(label==='head') body=body.replace('head='+f.head,'head='+'f'.repeat(40)); else body=mutate(body);
+  fs.writeFileSync(f.visualFile,body);
+  const out=path.join(dir,'invalid.json');
+  const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
+  assert.notEqual(r.status,0);assert.equal(fs.existsSync(out),false);
 });
 
 test('E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin legacy', () => {
@@ -256,4 +300,72 @@ test('D2: VISUAL_APPROVED never replaces technical, functional or preservation e
       assert.notEqual(r.status,0);assert.match(r.stderr,/V2_FINAL_(TECHNICAL_PROOF_NOT_PASS|CRITERION_NOT_CLOSED|BOUNDARY_NOT_PASS)/);
     }finally{fs.rmSync(dir,{recursive:true,force:true});}
   }
+});
+
+test('delta/global: record, idempotent replay and canonical planning entry require no queue mutation',()=>{
+  const {dir,f}=deltaFixture();
+  const {main}=require('../../scripts/kodjo/targeted-requalification');
+  const repo='MyUncried/Application-Routine';
+  const issueUrl='https://api.github.com/repos/'+repo+'/issues/'+f.issue;
+  const comments={
+    105:{id:105,issue_url:issueUrl,user:{login:'MyUncried'},body:targetedBody(f)},
+    104:{id:104,issue_url:issueUrl,user:{login:'github-actions[bot]'},body:fs.readFileSync(f.reviewFile,'utf8')},
+    103:{id:103,issue_url:issueUrl,user:{login:'github-actions[bot]'},body:fs.readFileSync(f.implFile,'utf8')},
+  };
+  let writes=0;
+  const transport=(args,input)=>{
+    const endpoint=args.find(x=>x.startsWith('repos/'));
+    if(args.includes('POST')) {
+      assert.equal(endpoint,'repos/'+repo+'/issues/'+f.issue+'/comments');
+      writes++;comments[106]={id:106,issue_url:issueUrl,user:{login:'github-actions[bot]'},body:JSON.parse(input).body};
+      return JSON.stringify(comments[106]);
+    }
+    if(endpoint.includes('/issues/comments/')) return JSON.stringify(comments[endpoint.split('/').pop()]);
+    if(endpoint.includes('/comments?')) return JSON.stringify([Object.values(comments)]);
+    if(endpoint.includes('/pulls/')) return JSON.stringify({state:'open',base:{ref:'main'},head:{sha:f.head,ref:'kodjo/v2-e2e-ui'}});
+    if(endpoint.includes('/git/ref/')) return JSON.stringify({object:{sha:f.head}});
+    throw new Error('Unexpected API: '+endpoint);
+  };
+  const queueBefore=fs.readFileSync(f.queuePath,'utf8');
+  const cwd=process.cwd();
+  try {
+    process.chdir(dir);
+    const idFile=path.join(dir,'checkpoint-id');
+    main(['record',repo,String(f.issue),'105',idFile],transport);
+    main(['record',repo,String(f.issue),'105',idFile],transport);
+    assert.equal(writes,1);
+    assert.equal(fs.readFileSync(idFile,'utf8'),'106\n');
+    const trigger=path.join(dir,'trigger');
+    main(['resolve',repo,String(f.issue),'106',trigger],transport);
+    assert.match(fs.readFileSync(trigger,'utf8'),/START_PLAN_REVISION/);
+    assert.equal(JSON.parse(fs.readFileSync(trigger+'.proof.json','utf8')).targeted_result,'PASS');
+    assert.equal(fs.readFileSync(f.queuePath,'utf8'),queueBefore);
+    comments[106].body+='tampered';
+    assert.throws(()=>main(['resolve',repo,String(f.issue),'106',trigger],transport),/CHECKPOINT_DRIFT/);
+    comments[105].user.login='someone-else';
+    assert.throws(()=>main(['record',repo,String(f.issue),'105',idFile],transport),/AUTHORITY_INVALID/);
+  } finally {process.chdir(cwd);}
+});
+test('delta/global: canonical entry replays evidence before generating a plan',()=>{
+  const wf=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-slice-plan.yml'),'utf8');
+  assert.ok(wf.indexOf('targeted-requalification.js resolve')<wf.indexOf('generate-ui-plan-contract.js request'));
+  assert.ok(wf.includes('FULL SLICE REQUALIFICATION REQUIRED'));
+  const entry=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-targeted-requalification.yml'),'utf8');
+  assert.ok(entry.includes('targeted-requalification.js record'));
+  assert.ok(entry.includes('gh workflow run kodjo-v2-slice-plan.yml'));
+  assert.ok(!entry.includes('lean-queue'));
+});
+
+test('delta/global: old complete reviews cannot bypass a recorded global requalification',()=>{
+  const {verify}=require('../../scripts/kodjo/verify-global-requalification-state');
+  const proof={slice_id:'V2-CAT-01',application_pr:181,plan_blob_oid:'a'.repeat(40)};
+  const comments=[{id:106,user:{login:'github-actions[bot]'},body:'[KODJO_V2] TARGETED_VALIDATION_OUTPUT\n<KODJO_TARGETED_VALIDATION_JSON>\n'+JSON.stringify(proof)+'\n</KODJO_TARGETED_VALIDATION_JSON>'}];
+  const final={...proof,final_status:'READY_TO_CLOSE',review_mode:'CRITERION_COMPLETE',implementation_review_comment_id:'104',human_device_approval_comment_id:'105'};
+  assert.throws(()=>verify(final,comments),/NEW_PLAN_AND_APPROVAL_REQUIRED/);
+  final.plan_blob_oid='b'.repeat(40);
+  assert.throws(()=>verify(final,comments),/NEW_PLAN_AND_APPROVAL_REQUIRED/);
+  final.implementation_review_comment_id='110';final.human_device_approval_comment_id='111';
+  assert.equal(verify(final,comments),true);
+  final.review_mode='VISUAL_CORRECTION_DELTA';
+  assert.throws(()=>verify(final,comments),/FULL_REVIEW_REQUIRED/);
 });
