@@ -118,7 +118,8 @@ jobs:
               and .independent_review.review_blob_oid
               and .user_gate.gate_ref
               and (
-                ((.operation_kind // "IMPLEMENT") == "IMPLEMENT" and .source_head == $base)
+                ((.operation_kind // "IMPLEMENT") == "IMPLEMENT"
+                  and ((.delivery_target.application_head // .source_head) == $base))
                 or
                 (.operation_kind == "VISUAL_CORRECTION" and .delivery_target.application_head == $base)
               )
