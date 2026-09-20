@@ -6,10 +6,11 @@
  *
  * VISUAL_CORRECTION uses a certified delivery checkpoint. IMPLEMENT may use the
  * stricter materialized_recovery proof: the exact durable source package is
- * downloaded, hash/provenance checked, and its patch must reverse-apply cleanly
- * on the exact targeted application HEAD. Only then is an empty local recovery
- * record created so the existing Claude session can correct that delivered HEAD
- * without replaying the already committed patch.
+ * downloaded, hash/provenance checked, its package source must belong to the
+ * exact cumulative source -> package source -> target ancestry chain, and its
+ * patch must reverse-apply cleanly on the exact targeted application HEAD.
+ * Only then is an empty local recovery record created so the existing Claude
+ * session can correct that delivered HEAD without replaying committed patches.
  */
 
 const fs = require('node:fs');
@@ -62,7 +63,7 @@ function verifyMaterializedRecoveryPackage(request, options = {}) {
       String(manifest.slice_id) !== String(request.slice_id) ||
       String(manifest.session_id) !== String(request.session_id) ||
       String(manifest.baseline_head) !== String(request.baseline_head) ||
-      String(manifest.source_head) !== String(proof.source_application_head) ||
+      !/^[0-9a-f]{40}$/.test(String(manifest.source_head || '')) ||
       String(manifest.patch_sha256) !== patchDigest ||
       String(proof.patch_sha256) !== patchDigest ||
       String(manifest.integrity_status) !== 'INTACT') {
@@ -83,6 +84,19 @@ function verifyMaterializedRecoveryPackage(request, options = {}) {
     if (head.error || head.status !== 0 || String(head.stdout).trim() !== request.source_head) {
       throw new Error('MATERIALIZED_RECOVERY_HEAD_MISMATCH');
     }
+    const cumulativeSource = String(proof.source_application_head || '');
+    const packageSource = String(manifest.source_head || '');
+    for (const [ancestor, descendant] of [
+      [cumulativeSource, packageSource],
+      [packageSource, request.source_head],
+    ]) {
+      const chain = spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+        cwd, encoding: 'utf8', windowsHide: true, shell: false,
+      });
+      if (chain.error || chain.status !== 0) {
+        throw new Error('MATERIALIZED_RECOVERY_SOURCE_CHAIN_MISMATCH');
+      }
+    }
     const reverse = spawnSync('git', ['apply', '--check', '--reverse', '--binary', patchPath], {
       cwd, encoding: 'utf8', windowsHide: true, shell: false, maxBuffer: 64 * 1024 * 1024,
     });
@@ -98,6 +112,7 @@ function verifyMaterializedRecoveryPackage(request, options = {}) {
     patch_sha256: patchDigest,
     materialized_head: request.source_head,
     source_head: String(manifest.source_head || ''),
+    cumulative_source_head: String(proof.source_application_head || ''),
     paths,
   };
 }
