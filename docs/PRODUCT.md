@@ -102,7 +102,7 @@ La rangée de commandes Catalogue est commune aux écrans représentés `Séance
 
 `Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Les **contrôles d’entrée** sont désormais conçus dans Figma ; seul le détail visuel de leurs **panneaux/options ouverts** reste à définir.
 
-Lorsque l’arbre `Créer` est ouvert, `Créer`, `Filtrer` et `Trier` restent visibles sous le scrim ; l’arbre est ancré au bouton `Créer`. L’état `Recherche globale — Champ déployé` conserve également cette rangée dans le Catalogue visible en arrière-plan.
+`Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
 Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
 
@@ -307,7 +307,7 @@ Les principaux écrans du MVP sont :
 - Profil ;
 - Catalogue des séances ;
 - Catalogue des activités ;
-- arbre de création depuis le Catalogue ;
+- création contextuelle directe depuis le Catalogue ;
 - sélection multiple d’Activités existantes ;
 - création du nom et de la couleur d’une Séance ;
 - Composition d’une Séance ;
@@ -379,7 +379,7 @@ Une Activité de Catalogue est une référence persistante `ActivityDefinition`.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Depuis `Créer`, l’arbre propose dans cet ordre `Une nouvelle activité`, `Une séance`, `Un circuit` et `Annuler`. Activité et Séance sont actives ; Circuit reste désactivé. Dans l’état arbre ouvert, la rangée `Créer / Filtrer / Trier` reste visible sous le scrim et l’arbre est ancré à `Créer`. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix restent `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
 
@@ -412,7 +412,7 @@ Un Circuit reste conceptualisé et préparé dans le modèle/architecture, mais 
 | Tranche | Périmètre de référence |
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances. |
-| T03 | Catalogue des activités : persistance et cycle de vie, liste, accès aux archives, arbre de création, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
+| T03 | Catalogue des activités : persistance et cycle de vie, liste, accès aux archives, création contextuelle directe, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
 | T04 | Moteur d’Exécution complet des Séances ; ancienne T03, lots 1 et 2. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans modification implicite de contenu. |
 
@@ -434,7 +434,7 @@ En cas de contradiction, l’ordre de référence est :
 
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
-- `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-186 ;
+- `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-187 ;
 - `09 bis – Modèle et migration T03 Catalogue.md` ;
 - `13 – Contrats d’écran.md`, unique référence des contrats d’écran T03 ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;
