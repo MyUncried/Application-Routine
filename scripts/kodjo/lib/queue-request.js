@@ -1,6 +1,6 @@
 'use strict';
 
-const { validateRetryReason, operationKind } = require('./queue-contract');
+const { validateRetryReason, validateMaterializedRecovery, operationKind } = require('./queue-contract');
 
 const LOCAL_REQUEST_SCHEMA = 'kodjo.protocol.v2.local-implementation.0.6.12';
 
@@ -61,6 +61,11 @@ function projectQueueRequest(queue) {
   }
   if (queue.retry_of_run_id !== undefined) {
     request.retry_of_run_id = String(queue.retry_of_run_id);
+  }
+  if (queue.materialized_recovery !== undefined) {
+    const detail = validateMaterializedRecovery(queue.materialized_recovery, queue);
+    if (detail) throw new Error('KODJO_QUEUE_MATERIALIZED_RECOVERY_REFUSED: ' + detail);
+    request.materialized_recovery = { ...queue.materialized_recovery };
   }
   if (mode === 'RESUME_DELTA') {
     request.retry_reason = {

@@ -78,6 +78,11 @@
       "x-kodjo-nature": "BEHAVIOUR",
       "x-kodjo-diagnostic": "KODJO_QUEUE_DELIVERY_TARGET_REFUSED"
     },
+    "materialized_recovery": {
+      "type": "object",
+      "x-kodjo-nature": "AUTHORIZATION",
+      "x-kodjo-diagnostic": "KODJO_QUEUE_MATERIALIZED_RECOVERY_REFUSED"
+    },
     "session_id": {
       "type": [
         "string",

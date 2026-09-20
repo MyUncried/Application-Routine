@@ -83,12 +83,23 @@ function resolveImpactApplicationHead(bootstrap, planBody) {
  */
 function resolveAttestedApplicationHead(queue, planApplicationHead) {
   const operationKind = String(queue.operation_kind || 'IMPLEMENT').toUpperCase();
-  if (operationKind !== 'VISUAL_CORRECTION') return planApplicationHead;
+  const materialized = queue.materialized_recovery;
+  if (operationKind !== 'VISUAL_CORRECTION' && materialized === undefined) return planApplicationHead;
 
   const delivery = queue.delivery_target || {};
   const deliveryHead = String(delivery.application_head || '').toLowerCase();
   if (!SHA40.test(deliveryHead)) {
     fail('VISUAL_CORRECTION_APPLICATION_HEAD_INVALID', deliveryHead || '<absent>');
+  }
+
+  if (materialized !== undefined) {
+    const sourceHead = String(materialized.source_application_head || '').toLowerCase();
+    const materializedHead = String(materialized.materialized_head || '').toLowerCase();
+    if (operationKind !== 'IMPLEMENT' || String(queue.mode).toUpperCase() !== 'RESUME_DELTA' ||
+        sourceHead !== String(planApplicationHead).toLowerCase() || materializedHead !== deliveryHead) {
+      fail('MATERIALIZED_RECOVERY_APPLICATION_HEAD_MISMATCH');
+    }
+    return deliveryHead;
   }
 
   const checkpoint = queue.delivery_checkpoint || {};
@@ -130,6 +141,7 @@ function ghClient() {
   return {
     comment: (repository, id) => call('repos/' + repository + '/issues/comments/' + id),
     reactions: (repository, id) => call('repos/' + repository + '/issues/comments/' + id + '/reactions'),
+    artifact: (repository, id) => call('repos/' + repository + '/actions/artifacts/' + id),
   };
 }
 
@@ -266,9 +278,17 @@ function verify(queueFile, options) {
     applicationHead = resolveImpactApplicationHead(bootstrap, planBody);
     if (queue.delivery_target !== undefined) {
       const target = queue.delivery_target || {};
+      const materialized = queue.materialized_recovery;
+      const expectedTargetHead = materialized === undefined
+        ? String(applicationHead).toLowerCase()
+        : String(materialized.materialized_head || '').toLowerCase();
       if (target.kind !== 'EXISTING_PR' ||
-          String(target.application_head || '').toLowerCase() !== String(applicationHead).toLowerCase()) {
+          String(target.application_head || '').toLowerCase() !== expectedTargetHead) {
         fail('PLAN_APPLICATION_TARGET_MISMATCH');
+      }
+      if (materialized !== undefined &&
+          String(materialized.source_application_head || '').toLowerCase() !== String(applicationHead).toLowerCase()) {
+        fail('MATERIALIZED_RECOVERY_SOURCE_HEAD_MISMATCH');
       }
       const declaredPr = /^application_pr=([1-9][0-9]*)\s*$/m.exec(planBody);
       const declaredHead = /^application_head=([0-9a-f]{40})\s*$/m.exec(planBody);
@@ -319,6 +339,20 @@ function verify(queueFile, options) {
     fail('GATE_REFERENCE_ABSENT', 'le corps du commentaire ne porte pas ' + reference);
   }
   checkThumbsUp(api, bootstrap.repository, gateRef[1], gate.user_login);
+
+  // ---- recovery matérialisé : artefact durable exact ----------------------
+  if (queue.materialized_recovery !== undefined) {
+    const proof = queue.materialized_recovery;
+    if (!api.artifact) fail('MATERIALIZED_RECOVERY_ARTIFACT_UNREADABLE');
+    const artifact = api.artifact(bootstrap.repository, proof.source_artifact_id);
+    const sourceRun = String(artifact && artifact.workflow_run && artifact.workflow_run.id || '');
+    const expectedName = 'kodjo-v2-recovery-' + proof.source_run_id + '-1';
+    if (!artifact || String(artifact.id) !== String(proof.source_artifact_id) ||
+        sourceRun !== String(proof.source_run_id) || artifact.name !== expectedName ||
+        artifact.expired === true) {
+      fail('MATERIALIZED_RECOVERY_ARTIFACT_MISMATCH');
+    }
+  }
 
   // ---- migration de paquet : attestation versionnee et liee --------------
   // Une reprise sur un HEAD plus recent ne peut pas transformer une racine
@@ -420,6 +454,8 @@ function verify(queueFile, options) {
       authorized_plan: plan.evidence_kind,
       independent_review: review.evidence_kind,
       user_gate: gate.evidence_kind,
+      materialized_recovery: queue.materialized_recovery
+        ? queue.materialized_recovery.evidence_kind : null,
     },
     notes,
     plan_impact_sha256: impact ? impact.scan_sha256 : null,
