@@ -194,7 +194,7 @@ L’utilisateur doit pouvoir :
 - ouvrir le Catalogue des Activités depuis le sélecteur de type ;
 - créer, consulter et modifier une Activité persistante ;
 - distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
-- ouvrir l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` depuis `Créer` ;
+- utiliser `Créer` comme action contextuelle : dans chaque Catalogue, ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire ;
 - depuis une Composition, choisir entre une nouvelle Activité, une ou plusieurs Activités existantes et l’annulation ;
 - lancer une Activité persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - renseigner le Ressenti obligatoire dans la Synthèse ;
