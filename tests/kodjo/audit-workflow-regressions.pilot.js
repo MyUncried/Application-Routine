@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),crypto=require('node:crypto');
 const {parse}=require('../../scripts/kodjo/lib/yaml');
 const root=path.resolve(__dirname,'../..');
 function workflow(name){return parse(fs.readFileSync(path.join(root,'.github/workflows',name),'utf8'));}
@@ -66,4 +66,44 @@ test('CRLF-safe diff check accepts Windows line endings but still rejects real t
   }finally{
     fs.rmSync(dir,{recursive:true,force:true});
   }
+});
+
+
+test('implementation report identity binds application source to base_head, not protocol head',()=>{
+  const {inspectImplementation}=require('../../scripts/kodjo/lib/implementation-report');
+  const source='1'.repeat(40);
+  const protocol='2'.repeat(40);
+  const reportText=[
+    '<KODJO_IMPLEMENTATION_CONFORMANCE>',
+    JSON.stringify({criteria:[{
+      criterion_id:'UI-CAT-R-001',
+      implementation_status:'IMPLEMENTED',
+      files_or_symbols:['a.ts'],
+      component_used:'existing component',
+      tests_run:['a.test.ts'],
+      proof_status:'FUNCTIONAL_TEST=PASS',
+      preserve_status:'PASS',
+      residual_status:'NONE'
+    }]}),
+    '</KODJO_IMPLEMENTATION_CONFORMANCE>',
+    'KODJO_STOP_STATUS: NONE'
+  ].join('\n');
+  const envelope={
+    request_id:'req-1',
+    source_head:source,
+    truncated:false,
+    original_text_sha256:crypto.createHash('sha256').update(reportText).digest('hex'),
+    report_text:reportText
+  };
+  const body=[
+    'base_head='+source,
+    'v2_protocol_head='+protocol,
+    'v2_request_id=req-1',
+    '<KODJO_IMPLEMENTATION_REPORT_JSON>',
+    JSON.stringify(envelope),
+    '</KODJO_IMPLEMENTATION_REPORT_JSON>'
+  ].join('\n');
+  const result=inspectImplementation(body,['UI-CAT-R-001']);
+  assert.equal(result.status,'COMPLETE',JSON.stringify(result.errors));
+  assert.ok(!result.errors.includes('REPORT_IDENTITY_MISMATCH'));
 });
