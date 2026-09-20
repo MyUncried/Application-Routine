@@ -52,13 +52,16 @@ test('0.6.29 — les activations futures hachent le blob Git du HEAD et non les 
 
 test('0.6.29 — les sorties génératives du plan initial sont structurées puis assemblées mécaniquement', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
-  assert.equal((workflow.match(/type:\"json_schema\"/g) || []).length, 2);
-  assert.match(workflow, /name:\"kodjo_initial_plan\"/);
-  assert.match(workflow, /name:\"kodjo_initial_plan_decisions\"/);
-  assert.match(workflow, /jq '\.modified_modules' \/tmp\/kodjo-v2-initial\/draft-structured\.json/);
-  assert.match(workflow, /printf '<\/KODJO_MODIFIED_MODULES_JSON>\\n<KODJO_UI_CRITERIA_MATRIX_JSON>\\n'/);
-  assert.match(workflow, /cat \/tmp\/kodjo-v2-initial\/ui-criteria-matrix\.json/);
-  assert.match(workflow, /<\/KODJO_UI_CRITERIA_MATRIX_JSON>\\nPLAN_STATUS: %s/);
+  // Draft schema/rendering now come from the shared executable contract.
+  assert.match(workflow, /generate-ui-plan-contract\.js request draft/);
+  assert.match(workflow, /generate-ui-plan-contract\.js decode draft/);
+  assert.equal((workflow.match(/type:"json_schema"/g) || []).length, 1);
+  assert.match(workflow, /name:"kodjo_initial_plan_decisions"/);
+  const {request}=require('../../scripts/kodjo/generate-ui-plan-contract');
+  const format=request('draft','mission').text.format;
+  assert.equal(format.type,'json_schema');
+  assert.equal(format.strict,true);
+  assert.equal(format.schema.properties.ui_criteria_matrix.type,'object');
   assert.match(workflow, /JSON\.parse\(fs\.readFileSync\('\/tmp\/kodjo-v2-initial\/decisions\.json'/);
   assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
 });
