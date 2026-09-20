@@ -9,6 +9,7 @@ const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
 const { consumeLiveToken, verifyLiveTarget } = require('./verify-preflight-live-target');
 const { verifyLocalFreshness } = require('./lib/preflight-freshness');
+const Source = require('./lib/preflight-source');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
 
@@ -655,7 +656,7 @@ function main() {
   };
 
   const assertLiveTarget = () => {
-    if (process.env.KODJO_SUPERVISED_QUEUE === '1' && request.operation_kind === 'VISUAL_CORRECTION') {
+    if (process.env.KODJO_SUPERVISED_QUEUE === '1' && request.delivery_target) {
       if (!liveToken) throw new Error('KODJO_QUEUE_LIVE_AUTH_MISSING');
       verifyLiveTarget(request, {env:{...process.env,GH_TOKEN:liveToken}});
     }
@@ -678,10 +679,16 @@ function main() {
   const head = git(['rev-parse', 'HEAD'], repoRoot);
   if (head !== request.source_head) return writeFailure('HEAD_DIVERGED', 'HEAD local != source_head');
   const promptRelative = path.relative(repoRoot, request.prompt_file).replace(/\\/g, '/');
-  const promptHashBefore = sha256(fs.readFileSync(request.prompt_file));
+  if (!promptRelative || promptRelative.startsWith('../') || path.isAbsolute(promptRelative)) {
+    return writeFailure('PROMPT_PATH_INVALID', promptRelative);
+  }
+  const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
+  const promptHashBefore = sha256(promptBuffer);
+  const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const initialChanges = changedFiles(repoRoot).filter((f) => {
     const normalized = f.replace(/\\/g, '/');
-    return normalized !== promptRelative && path.resolve(f) !== path.resolve(requestPath);
+    return (!promptExistsInExecutionTree || normalized !== promptRelative) &&
+      path.resolve(f) !== path.resolve(requestPath);
   });
   if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
 
@@ -764,7 +771,7 @@ function main() {
     fs.chmodSync(path.join(runDir, 'scope-path.js'), 0o400);
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
     fs.writeFileSync(path.join(runDir, 'settings.json'), '{"disableAllHooks":true}\n', 'utf8');
-    const taskText = fs.readFileSync(request.prompt_file, 'utf8');
+    const taskText = promptBuffer.toString('utf8');
     const prompt = buildPrompt(request, taskText, runDir);
     promptBytes = Buffer.byteLength(prompt, 'utf8');
     if (promptBytes > request.limits.max_prompt_bytes || promptBytes > request.limits.max_total_prompt_bytes) {
@@ -829,11 +836,14 @@ function main() {
   // source de reprise. On ne detruit plus le travail pour sanctionner l'etat.
   const afterRefs = refs(repoRoot);
   const refsMutated = beforeRefs !== afterRefs;
-  const promptMutated = sha256(fs.readFileSync(request.prompt_file)) !== promptHashBefore;
+  const promptMutated = promptExistsInExecutionTree
+    ? sha256(fs.readFileSync(request.prompt_file)) !== promptHashBefore
+    : fs.existsSync(request.prompt_file);
   const integrityStatus = refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
   const protocolPath = (f) => {
     const normalized = f.replace(/\\/g, '/');
-    return normalized !== promptRelative && path.resolve(repoRoot, f) !== path.resolve(requestPath);
+    return (!promptExistsInExecutionTree || normalized !== promptRelative) &&
+      path.resolve(repoRoot, f) !== path.resolve(requestPath);
   };
   const files = changedFiles(repoRoot).filter(protocolPath);
   const postClaudeFingerprint = deltaFingerprint(repoRoot,
