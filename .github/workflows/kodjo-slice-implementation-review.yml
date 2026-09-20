@@ -267,7 +267,7 @@ jobs:
           {
             printf 'Exact verification base=%s head=%s\n' "$REVIEW_BASE" "$REVIEW_HEAD"
             test "$(git rev-parse HEAD)" = "$REVIEW_HEAD"
-            git diff --check "$REVIEW_BASE..$REVIEW_HEAD"
+            git -c core.whitespace=cr-at-eol diff --check "$REVIEW_BASE..$REVIEW_HEAD"
             echo 'git diff --check: PASS (exit 0)'
             npm run lint
             echo 'npm run lint: PASS (exit 0)'

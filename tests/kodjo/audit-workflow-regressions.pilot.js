@@ -39,3 +39,31 @@ test('audit F01: native parser accepts every finalizer PowerShell run block',{sk
     assert.ok(count>=3);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+
+test('CRLF-safe diff check accepts Windows line endings but still rejects real trailing spaces',()=>{
+  const review=fs.readFileSync(path.join(root,'.github/workflows/kodjo-slice-implementation-review.yml'),'utf8');
+  assert.ok(review.includes('git -c core.whitespace=cr-at-eol diff --check "$REVIEW_BASE..$REVIEW_HEAD"'));
+
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-crlf-check-'));
+  const run=(args)=>cp.spawnSync('git',args,{cwd:dir,encoding:'utf8'});
+  try{
+    assert.equal(run(['init']).status,0);
+    assert.equal(run(['config','user.email','kodjo@example.invalid']).status,0);
+    assert.equal(run(['config','user.name','KODJO Test']).status,0);
+    fs.writeFileSync(path.join(dir,'sample.txt'),'base\r\n');
+    assert.equal(run(['add','sample.txt']).status,0);
+    assert.equal(run(['commit','-m','base']).status,0);
+
+    fs.writeFileSync(path.join(dir,'sample.txt'),'clean\r\n');
+    const clean=run(['-c','core.whitespace=cr-at-eol','diff','--check','HEAD']);
+    assert.equal(clean.status,0,clean.stdout+clean.stderr);
+
+    fs.writeFileSync(path.join(dir,'sample.txt'),'dirty \r\n');
+    const dirty=run(['-c','core.whitespace=cr-at-eol','diff','--check','HEAD']);
+    assert.notEqual(dirty.status,0);
+    assert.match(dirty.stdout+dirty.stderr,/trailing whitespace/i);
+  }finally{
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
+});
