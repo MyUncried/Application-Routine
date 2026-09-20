@@ -104,7 +104,7 @@ Pour T03 / `Activités` :
 - aucune préférence de tri n’est persistée ;
 - aucun critère non arbitré n’est inventé.
 
-En état arbre `Créer` ouvert, les trois commandes restent visibles dans l’arrière-plan sous scrim ; seul `Créer` porte l’arbre et celui-ci reste ancré sur la position de `Créer` dans la rangée commune. Dans `1992:10129 — Recherche globale — Champ déployé`, la même rangée reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
+`Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Dans `1992:10129 — Recherche globale — Champ déployé`, la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
 
 Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le détail graphique des **panneaux/options ouverts** `Filtrer` et `Trier` n’existe pas encore : conformité visuelle détaillée `NON VÉRIFIABLE` / `À CLARIFIER` pour ces panneaux uniquement.
 
@@ -137,13 +137,13 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 | Bloc | B1 |
 | États | S01 + état vide/liste + retour Catégories + recherche globale déployée |
 | T03-E | E01, E02, E04, E05, E06, E19, E67, E68, E69 |
-| Frames | `2117:86`, `1992:9910`, `1992:10129`, `3841:8375` |
+| Frames | `2117:86`, `1992:9910`, `1992:10129` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
 | Nature | Écran existant modifié |
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled, rangée déterministe `Créer / Filtrer / Trier` et nouvel arbre `Créer`.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
 
 ### 3. Contexte d’entrée
 
@@ -154,7 +154,7 @@ Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour 
 - segment Activités → `CE-T03-02` ;
 - segment Séances → reste ;
 - Circuits → aucune navigation ;
-- Créer → `CE-T03-03` ;
+- Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
 - carte Séance → parcours existant T01/T02 ;
 - Recherche → expérience de Recherche globale existante ;
 - navigation basse → destination choisie.
@@ -185,11 +185,11 @@ Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrolla
 
 ### 11. États de l’écran
 
-Vide réel ; liste ; recherche globale déployée ; retour Catégories ; arbre Créer ouvert ; retour d’un sous-parcours ; relaunch sur Séances.
+Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour d’un sous-parcours ; relaunch sur Séances.
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Circuits disabled ; Créer ouvre arbre. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Activités navigue ; Séances maintient ; Circuits disabled ; `Créer` initialise directement le parcours de création d’une Séance. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -201,7 +201,7 @@ Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent a
 
 ### 15. Brouillon et persistance
 
-Aucun état de segment persisté au relaunch. Aucun brouillon créé tant qu’une option de `Créer` n’est pas choisie. État Recherche suit §4.4.
+Aucun état de segment persisté au relaunch. Le brouillon de création de Séance n’est initialisé qu’après tap sur `Créer`. État Recherche suit §4.4.
 
 ### 16. Navigation et conservation d’état
 
@@ -221,11 +221,11 @@ Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bot
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, Créer/Annuler, arbre avec trois commandes visibles sous scrim, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : `Créer` seul centré, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
 
 ### 21. Traçabilité
 
-E01–E06 → D-167/D-179/D-184 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `1992:10129`, `3841:8375`; API Séance existantes.
+E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `1992:10129`; l’ancienne frame d’arbre `3841:8375` est historique/supersédée.
 
 ---
 
@@ -255,7 +255,7 @@ Segment Activités depuis Catalogue ; retour éditeur ; retour Exécution direct
 
 ### 4. Contexte de sortie / destinations
 
-Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; Créer → `CE-T03-03`; Filtrer>Archivées → `CE-T03-05`; segment Séances → `CE-T03-01`.
+Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle contextuelle `CE-T03-03` puis création directe `CE-T03-04`; Filtrer>Archivées → `CE-T03-05`; segment Séances → `CE-T03-01`.
 
 ### 5. Données affichées et source de vérité
 
@@ -287,7 +287,7 @@ Liste active ; vide ; recherche ; Filtrer ouvert lorsque son panneau sera défin
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. Créer = arbre.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
 
 ### 13. Gestes
 
@@ -331,98 +331,99 @@ E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → 
 
 ---
 
-## CE-T03-03 — Catalogue — arbre `Créer`
+## CE-T03-03 — Catalogue — action `Créer` contextuelle
 
 ### 1. Identification
 
-Bloc B1 ; états S13–S17 ; T03-E E19–E21, E71, E72 ; frames `3787:5148` Activités et `3841:8375` Séances ; état contextuel partagé.
+Bloc B1 ; T03-E E19–E21, E72 ; action contextuelle partagée entre Catalogues. Les anciennes frames `3787:5148` et `3841:8375` décrivent l’écran intermédiaire supprimé et sont conservées uniquement comme évidences historiques.
 
 ### 2. Finalité fonctionnelle
 
-Choisir le type de contenu à créer sans mutation préalable du Catalogue.
+Ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire.
 
 ### 3. Contexte d’entrée
 
-Tap `Créer` depuis Catalogue activités ou séances. Conserver en mémoire segment, recherche, filtres, tri et scroll.
+Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermine la destination.
 
 ### 4. Contexte de sortie / destinations
 
-`Une nouvelle activité` → `CE-T03-04` création ; `Une séance` → parcours création Séance ; `Un circuit` → aucune sortie ; `Annuler` → contexte initial exact.
+- Catalogue `Activités` → `CE-T03-04` en création ;
+- Catalogue `Séances` → parcours de création d’une Séance ;
+- Catalogue `Circuits` → parcours de création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+
+Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
 
 ### 5. Données affichées et source de vérité
 
-Aucune donnée métier créée. Fond = état réel du Catalogue d’origine.
+Aucun écran intermédiaire et aucune donnée métier intermédiaire. La destination est dérivée du type de Catalogue courant.
 
 ### 6. Classification des valeurs Figma
 
-Les quatre libellés de l’arbre et `Créer / Filtrer / Trier` = statiques obligatoires. Cartes/fond = dynamiques/démonstration.
+`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
 
 ### 7. Structure de l’écran
 
-Catalogue en arrière-plan sous scrim avec rangée `Créer / Filtrer / Trier` conservée + arbre contextuel à quatre options porté par `Créer`.
+Aucune structure d’écran supplémentaire : le tap sur `Créer` déclenche directement la navigation vers le parcours de création correspondant.
 
 ### 8. Éléments obligatoires
 
-Ordre exact : Nouvelle activité ; Séance ; Circuit ; Annuler. Circuit disabled. Annuler = icône Ajouter tournée 45°, pas X texte. Vecteurs DSF uniquement. Les trois commandes Catalogue restent visibles sous scrim ; seul `Créer` porte l’arbre.
+Le bouton `Créer` reste dans la rangée commune `Créer / Filtrer / Trier`. Aucun scrim, aucune liste d’options et aucun bouton `Annuler` intermédiaire ne sont affichés.
 
 ### 9. Layout déterministe
 
-Rangée d’arrière-plan conforme §4.5. L’arbre est ancré à la nouvelle position de `Créer` dans cette rangée et reste dans la zone sûre. `Filtrer` et `Trier` ne sont ni déplacés hors rangée ni masqués par une variante locale. Cibles interactives ≥48 malgré le dessin 32 pt de haut.
+La géométrie de la rangée Catalogue reste celle de §4.5. La suppression de l’écran intermédiaire ne modifie pas les dimensions ni l’alignement du bouton `Créer`.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; libellés complets ; placement de l’arbre peut s’adapter sans réduire cibles ni casser l’ancrage logique à `Créer`. Aucun clavier.
+Appliquer les règles du Catalogue courant. Aucun layout responsive propre à un écran intermédiaire n’existe.
 
 ### 11. États de l’écran
 
-Ouvert sur fond Activités ; ouvert sur fond Séances ; Circuit disabled ; Annuler ; navigation vers option active.
+Action disponible depuis les Catalogues actifs. Dans T03 : `Activités` et `Séances` ; `Circuits` reste disabled.
 
 ### 12. Contrôles et interactions
 
-Trois actions actives dans l’arbre : Nouvelle activité, Séance, Annuler. Circuit ne reçoit aucun événement fonctionnel. Les commandes `Filtrer` et `Trier` visibles sous le scrim ne deviennent pas des actions de l’arbre ; le scrim bloque leur interaction conformément au pattern modal.
+Un tap sur `Créer` produit une navigation directe. Aucun second choix utilisateur n’est demandé avant d’entrer dans le parcours de création.
 
 ### 13. Gestes
 
-Tap uniquement sur les actions de l’arbre. Le fond/scrim n’est pas une fermeture implicite si non prévu par DSF.
+Tap simple sur `Créer`. Aucun geste ou scrim intermédiaire.
 
 ### 14. Validation
 
-Pas de validation métier à l’ouverture. Initialisation de brouillon uniquement après sélection d’une option active.
+Aucune validation métier avant l’entrée dans le parcours de création. Les validations propres à l’objet créé restent dans son écran de création.
 
 ### 15. Brouillon et persistance
 
-Aucune écriture avant choix. Annuler = zéro mutation.
+Le brouillon du nouvel objet peut être initialisé au déclenchement du parcours de création. Aucune donnée persistée n’est créée par le seul tap sur `Créer`.
 
 ### 16. Navigation et conservation d’état
 
-Annuler restitue exactement segment, query, filtre, tri, scroll. Transition suivant = §4.9.
+Le retour depuis le parcours de création suit le contrat du Catalogue d’origine et restaure son contexte lorsque ce comportement est prévu. Aucun état d’arbre intermédiaire n’est conservé.
 
 ### 17. Erreurs et cas limites
 
-Échec d’initialisation d’un sous-parcours : aucune donnée partielle, Catalogue restauré.
+Si le parcours cible ne peut pas être initialisé, aucune donnée partielle n’est persistée et le Catalogue d’origine reste utilisable.
 
 ### 18. Accessibilité
 
-Ordre focus = ordre visuel de l’arbre ; Circuit annoncé disabled ; Annuler explicitement nommé ; éléments d’arrière-plan sous scrim non focusables.
+`Créer` expose son rôle de bouton et un libellé accessible. La navigation directe supprime tout ordre de focus propre à l’ancien arbre.
 
 ### 19. Invariants
 
-Ordre exact ; Circuit non fonctionnel ; Annuler sans mutation ; pas de glyphes système ; rangée Catalogue toujours présente sous scrim ; arbre attaché à `Créer`.
+Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Circuits non activés par cette règle en T03.
 
 ### 20. Recette déterministe
 
-Deux contextes d’origine ; quatre options ; Circuit disabled ; rangée `Créer / Filtrer / Trier` visible sous scrim ; arbre ancré à `Créer`; Annuler exact ; 360/402/440. Négatifs : ordre différent, X texte, disparition Filtrer/Trier, arbre ancré à Filtrer/Trier, Circuit fonctionnel, perte de contexte.
+Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un circuit / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Circuits.
 
 ### 21. Traçabilité
 
-E19–E21/E72 → D-167/D-168/D-183/D-184 ; Figma `3787:5148`, `3841:8375`; aucune API d’écriture à l’ouverture.
-
-![Arbre Créer](./images/ecran-13-catalogue-activites-creer-arbre.png)
-
-*Export du 16 septembre 2026, node `3787:5148`, 402 × 874 px.*
+E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:8375` = historiques/supersédées ; aucune API d’écriture supplémentaire.
 
 ---
 
+# 6. B2 — CRUD et cycle de vie ActivityDefinition
 # 6. B2 — CRUD et cycle de vie ActivityDefinition
 
 ## CE-T03-04 — Éditeur ActivityDefinition — créer / modifier
@@ -1713,9 +1714,9 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E16 | Restaurer ActivityDefinition |
 | E17 | Supprimer définitivement depuis archives |
 | E18 | Aucune cascade vers copies/historique |
-| E19 | Arbre Créer Catalogue |
-| E20 | Circuit disabled dans arbre |
-| E21 | Annuler restaure état exact |
+| E19 | Créer contextuel Catalogue |
+| E20 | Activités → création directe ActivityDefinition |
+| E21 | Séances → création directe Séance |
 | E22 | Arbre Ajouter depuis Composition |
 | E23 | Nouvelle activité depuis Composition = SessionActivity |
 | E24 | Pas Enregistrer dans Catalogue T03 |
@@ -1830,7 +1831,7 @@ Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE
 Les fichiers historiques suivants restent physiquement présents dans le dépôt mais ne sont plus embarqués comme preuve courante ; leur statut est détaillé dans `images/README-T03-FIGMA.md` :
 
 - `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-12-catalogue-activites-liste.png`, réexporté le 16 septembre 2026 depuis `3786:5093`.
-- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-13-catalogue-activites-creer-arbre.png`, réexporté le 16 septembre 2026 depuis `3787:5148`.
+- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg` et `./images/ecran-13-catalogue-activites-creer-arbre.png` — **historiques/superseded** : ils documentent l’ancien écran intermédiaire supprimé par D-187.
 - `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg` — **historique uniquement**, le node source `3787:5209` n’existe plus dans le Figma courant.
 
 Les preuves suivantes ont été réexportées depuis le Figma courant le 16 septembre 2026, au format documentaire `402 × 874 px` :
@@ -1845,7 +1846,7 @@ Les preuves suivantes ont été réexportées depuis le Figma courant le 16 sept
 - `./images/ecran-11-suivi-condense.png` — `1992:8843`, binaire modifié.
 - `./images/ecran-11a-suivi-deploye.png` — `1992:8996`, binaire modifié.
 
-Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `3787:5148`, `1992:9910`, `1992:10129`, `3841:8375`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`.
+Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `1992:9910`, `1992:10129`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`. Les frames `3787:5148` et `3841:8375` restent conservées comme évidences historiques de l’ancien arbre `Créer`, supersédé fonctionnellement par D-187.
 
 Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
 
