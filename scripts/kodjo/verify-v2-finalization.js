@@ -124,10 +124,14 @@ function verify(args) {
   if (!Number.isInteger(applicationPr) || applicationPr < 1 || !applicationBranch || applicationBranch.includes('..')) {
     fail('V2_FINAL_APPLICATION_TARGET_INVALID');
   }
-  if (operationKind === 'VISUAL_CORRECTION') {
-    if (Number(queue.delivery_target.application_pr) !== applicationPr ||
-        String(queue.delivery_target.branch || '') !== applicationBranch) {
-      fail('V2_FINAL_VISUAL_DELIVERY_TARGET_MISMATCH');
+  if (queue.delivery_target) {
+    if (queue.delivery_target.kind !== 'EXISTING_PR' ||
+        Number(queue.delivery_target.application_pr) !== applicationPr ||
+        String(queue.delivery_target.branch || '') !== applicationBranch ||
+        String(queue.delivery_target.application_head || '') !== baseHead) {
+      fail(operationKind === 'VISUAL_CORRECTION'
+        ? 'V2_FINAL_VISUAL_DELIVERY_TARGET_MISMATCH'
+        : 'V2_FINAL_IMPLEMENT_DELIVERY_TARGET_MISMATCH');
     }
   }
 
