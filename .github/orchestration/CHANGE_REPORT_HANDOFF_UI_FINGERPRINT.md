@@ -56,3 +56,14 @@ sur normalizedMatrix. Aucun changement applicatif, produit, Figma, bootstrap,
 registre, plan, revue, gate humain ou queue. Hors périmètre : évolutions niveau 2/3.
 La qualification réelle du handoff reste à obtenir après intégration ; aucun succès
 de tests n'est présenté comme une publication effective du commentaire utilisateur.
+
+## Dépendance de transition contrôlée avant relance
+
+La liste fermée historique ne reconnaissait que les workflows kodjo-v2-* et
+omettait le workflow canonique de revue d'implémentation, dont le runtime figé
+requiert maintenant la dépendance ci-dessus. Son chemin exact est ajouté ; aucun
+wildcard kodjo-slice-* n'est introduit. Un test de vraie transition Git accepte
+ce seul chemin et refuse un delta mixte applicatif ainsi que les chemins voisins
+et inconnus. Les sources protégées et l'ascendance restent contrôlées. Cette
+propagation nécessaire évite un refus artificiel postérieur sans requalifier un
+changement produit comme protocolaire.
