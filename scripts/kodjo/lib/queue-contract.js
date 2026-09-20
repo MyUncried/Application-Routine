@@ -92,7 +92,7 @@ function validateDeliveryTarget(value, queue) {
 function validateMaterializedRecovery(value, queue) {
   const kind = operationKind(queue);
   if (!isObject(value)) return 'objet structure attendu';
-  const expected = ['evidence_kind', 'materialized_head', 'patch_sha256', 'source_artifact_id', 'source_run_id'];
+  const expected = ['evidence_kind', 'materialized_head', 'patch_sha256', 'source_application_head', 'source_artifact_id', 'source_run_id'];
   const keys = Object.keys(value).sort();
   if (keys.length !== expected.length || expected.some((key) => !keys.includes(key))) {
     return 'proprietes exactes attendues: ' + expected.join(', ');
@@ -106,6 +106,7 @@ function validateMaterializedRecovery(value, queue) {
   if (!/^[1-9][0-9]*$/.test(String(value.source_run_id))) return 'source_run_id numerique attendu';
   if (!/^[1-9][0-9]*$/.test(String(value.source_artifact_id))) return 'source_artifact_id numerique attendu';
   if (!SHA64.test(String(value.patch_sha256 || ''))) return 'patch_sha256 SHA-256 attendu';
+  if (!SHA40.test(String(value.source_application_head || ''))) return 'source_application_head SHA-40 attendu';
   if (!SHA40.test(String(value.materialized_head || ''))) return 'materialized_head SHA-40 attendu';
   if (value.evidence_kind !== 'ARTIFACT_HASH') return 'evidence_kind doit valoir ARTIFACT_HASH';
   if (String(value.source_run_id) !== String(queue.retry_of_run_id || '')) {
