@@ -80,12 +80,15 @@ test('lot C: queue modifiée après préflight est refusée',()=>{
   assert.throws(()=>verifyFile(f.preflight,f.rel,{cwd:f.dir}),/PREFLIGHT_QUEUE_BLOB_MISMATCH/);
 });
 
-test('lot C: prompt modifié après préflight est refusé avant Claude',()=>{
+test('lot C: la mission attestée est relue au HEAD protocolaire immuable',()=>{
   const f=fixture();
-  fs.writeFileSync(path.join(f.dir,'mission.md'),'mission v2\n');
-  assert.throws(()=>verifyLocalFreshness({
+  fs.writeFileSync(path.join(f.dir,'mission.md'),'mission v2\\n');
+  assert.doesNotThrow(()=>verifyLocalFreshness({
     preflight:f.att,rawRequest:f.projection,request:f.normalized,repoRoot:f.dir
-  }),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+  }));
+  const supervisor=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
+  assert.match(supervisor,/Source\.readFileAtHead\(promptRelative, request\.protocol_source_head/);
+  assert.match(supervisor,/WORKTREE_NOT_CLEAN/);
 });
 
 test('lot C: package-lock modifié après préflight est refusé avant Claude',()=>{
@@ -109,7 +112,7 @@ test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf
     const argsFor=dir=>({preflight:f.att,rawRequest:f.projection,
       request:{...f.normalized,prompt_file:path.join(dir,'mission.md')},repoRoot:dir});
     assert.match(fs.readFileSync(path.join(normal,'mission.md'),'utf8'),/\r\n/);
-    assert.throws(()=>verifyLocalFreshness(argsFor(normal)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    assert.throws(()=>verifyLocalFreshness(argsFor(normal)),/PREFLIGHT_PACKAGE_LOCK_DRIFT/);
     const fixed=path.join(clones,'fixed');
     cp.execFileSync('git',['clone','--no-local',f.dir,fixed],{env:{...env,
       GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'core.autocrlf',GIT_CONFIG_VALUE_0:'false'},stdio:'pipe'});
@@ -120,7 +123,7 @@ test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf
     assert.equal(P.sha256(fs.readFileSync(path.join(fixed,'package-lock.json'))),f.att.package_lock_sha256);
     assert.doesNotThrow(()=>verifyLocalFreshness(argsFor(fixed)));
     fs.writeFileSync(path.join(fixed,'mission.md'),'changed mission\n');
-    assert.throws(()=>verifyLocalFreshness(argsFor(fixed)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    assert.doesNotThrow(()=>verifyLocalFreshness(argsFor(fixed)));
     assert.equal(fs.readFileSync(inherited,'utf8'),'[core]\n\tautocrlf = true\n');
   } finally { fs.rmSync(f.dir,{recursive:true,force:true}); fs.rmSync(clones,{recursive:true,force:true}); }
 });
@@ -152,6 +155,20 @@ test('lot C: VISUAL_CORRECTION refuse une PR fermée, une branche déplacée ou 
   assert.ok(preflight>=0 && live>preflight && checkout>live);
   assert.match(runner,/KODJO_QUEUE_EXISTING_PR_REMOTE_HEAD_MISMATCH/);
   assert.match(runner,/KODJO_QUEUE_APPLICATION_PR_CLOSED_DURING_DELIVERY/);
+});
+
+test('lot C: IMPLEMENT ciblé utilise les mêmes gardes de PR exacte que VISUAL_CORRECTION',()=>{
+  const target={kind:'EXISTING_PR',application_pr:181,branch:'kodjo/application',application_head:'a'.repeat(40)};
+  const nominal={state:'open',base:{ref:'main'},head:{ref:'kodjo/application',sha:'a'.repeat(40)}};
+  assert.equal(verifyQueueTarget({operation_kind:'IMPLEMENT',delivery_target:target},nominal).status,'PASS');
+  assert.throws(()=>verifyQueueTarget(
+    {operation_kind:'IMPLEMENT',delivery_target:target},
+    {...nominal,head:{...nominal.head,sha:'b'.repeat(40)}}
+  ),/KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
+  const queue={operation_kind:'IMPLEMENT',mode:'INITIAL',delivery_target:target};
+  const att=P.finalize({...fixture().att,operation_kind:'IMPLEMENT',mode:'INITIAL',
+    checks:require('./helpers/preflight-checks').checks(queue)});
+  assert.doesNotThrow(()=>P.verifyApplicability(att,queue));
 });
 
 test('lot C: lock reste acquis atomiquement à la frontière Claude même si le preflight était vert',()=>{

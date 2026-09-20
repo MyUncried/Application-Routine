@@ -130,3 +130,25 @@ test('la référence immuable de migration traverse la projection sans élargiss
   assert.equal(actual.result.status, 0, actual.result.stderr);
   assert.deepEqual(actual.output.recovery_migration, migration);
 });
+
+
+test('IMPLEMENT ciblé conserve le HEAD protocolaire mais exécute sur le HEAD applicatif de la PR existante', () => {
+  const applicationHead = 'd'.repeat(40);
+  const actual = project(queue({
+    mode: 'INITIAL',
+    session_id: null,
+    retry_of_run_id: undefined,
+    retry_reason: undefined,
+    operation_kind: 'IMPLEMENT',
+    delivery_target: {
+      kind: 'EXISTING_PR',
+      application_pr: 181,
+      branch: 'kodjo/application',
+      application_head: applicationHead,
+    },
+  }));
+  assert.equal(actual.result.status, 0, actual.result.stderr);
+  assert.equal(actual.output.source_head, applicationHead);
+  assert.equal(actual.output.protocol_source_head, 'a'.repeat(40));
+  assert.equal(actual.output.delivery_target.application_pr, 181);
+});

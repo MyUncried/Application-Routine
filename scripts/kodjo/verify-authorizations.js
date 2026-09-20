@@ -264,6 +264,21 @@ function verify(queueFile, options) {
   let applicationHead = null;
   if (hasImpactContract) {
     applicationHead = resolveImpactApplicationHead(bootstrap, planBody);
+    if (queue.delivery_target !== undefined) {
+      const target = queue.delivery_target || {};
+      if (target.kind !== 'EXISTING_PR' ||
+          String(target.application_head || '').toLowerCase() !== String(applicationHead).toLowerCase()) {
+        fail('PLAN_APPLICATION_TARGET_MISMATCH');
+      }
+      const declaredPr = /^application_pr=([1-9][0-9]*)\s*$/m.exec(planBody);
+      const declaredHead = /^application_head=([0-9a-f]{40})\s*$/m.exec(planBody);
+      if (declaredPr && Number(declaredPr[1]) !== Number(target.application_pr)) {
+        fail('PLAN_APPLICATION_PR_MISMATCH');
+      }
+      if (declaredHead && declaredHead[1].toLowerCase() !== String(target.application_head).toLowerCase()) {
+        fail('PLAN_APPLICATION_HEAD_MISMATCH');
+      }
+    }
     impact = verifyPlanAtRevision({
       cwd,
       sourceHead: applicationHead,

@@ -19,6 +19,12 @@ const Source = require('./lib/preflight-source');
 
 const SHA40 = /^[0-9a-f]{40}$/;
 
+function executionHeadOf(queue) {
+  return queue && queue.delivery_target && queue.delivery_target.application_head
+    ? String(queue.delivery_target.application_head)
+    : String(queue && queue.source_head || '');
+}
+
 function command(bin, args, cwd, env = process.env, timeout = 60000) {
   const result = spawnSync(bin, args, {
     cwd, env, encoding:'utf8', windowsHide:true, shell:false, timeout,
@@ -225,10 +231,8 @@ function runPreflight(options = {}) {
       promptHash = String(value.sha256 || P.sha256(promptText));
       if (!Number.isInteger(promptBytes)) promptBytes = Buffer.byteLength(promptText,'utf8');
     } else {
-      const execHead = String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION'
-        ? String(queue.delivery_target && queue.delivery_target.application_head || '')
-        : String(queue.source_head || '');
-      const taskBuffer = Source.readFileAtHead(String(queue.prompt_file || ''), execHead, cwd);
+      const promptHead = String(queue.source_head || '');
+      const taskBuffer = Source.readFileAtHead(String(queue.prompt_file || ''), promptHead, cwd);
       const taskText = taskBuffer.toString('utf8');
       const configDir = options.configDir || path.join(cwd,'.kodjo-preflight-config');
       promptText = buildPrompt(normalized,taskText,configDir);
@@ -252,7 +256,7 @@ function runPreflight(options = {}) {
     return {source_head:source};
   },['PF-004']);
 
-  if (queue && String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION') {
+  if (queue && queue.delivery_target) {
     add('PF-015','run-queued-request.ps1 PR/ref guards',()=>{
       if (probes.applicationTarget) return probes.applicationTarget(queue);
       const repo = process.env.GITHUB_REPOSITORY;
@@ -267,7 +271,7 @@ function runPreflight(options = {}) {
       return {application_pr:target.application_pr,branch:target.branch,application_head:target.application_head};
     },['PF-008']);
   } else {
-    na('PF-015','run-queued-request.ps1 PR/ref guards','IMPLEMENT creates a new PR after delivery');
+    na('PF-015','run-queued-request.ps1 PR/ref guards','no existing PR delivery target');
   }
 
   add('PF-016','run-local-claude.js recovery read-only inspection',()=>{
@@ -343,11 +347,7 @@ function runPreflight(options = {}) {
     return r.stdout.trim();
   });
 
-  const executionHead = queue
-    ? (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'VISUAL_CORRECTION'
-      ? String(queue.delivery_target && queue.delivery_target.application_head || '')
-      : String(queue.source_head || ''))
-    : '';
+  const executionHead = queue ? executionHeadOf(queue) : '';
 
   add('PF-022','run-local-claude.js package lock binding',()=>{
     if (probes.packageLock) return probes.packageLock(cwd, executionHead);

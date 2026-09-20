@@ -3,7 +3,8 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadAndValidate } = require('./slice-identity');
+const { loadAndValidate, validateBootstrap, validateRegistry } = require('./slice-identity');
+const ProtocolSource = require('./preflight-source');
 const { validateRetryReason } = require('./queue-contract');
 
 const CLAUDE_CODE_VERSION = '2.1.263';
@@ -120,7 +121,20 @@ function normalizeRequest(raw, repoRoot) {
   }
 
   const bootstrapFile = String(raw.slice_bootstrap_file || '');
-  const identity = loadAndValidate(repoRoot, bootstrapFile);
+  let identity;
+  if (protocolSourceHead !== String(raw.source_head)) {
+    const bootstrapRaw = JSON.parse(
+      ProtocolSource.readFileAtHead(bootstrapFile, protocolSourceHead, repoRoot).toString('utf8')
+    );
+    identity = validateBootstrap(bootstrapRaw);
+    const registryPath = String(identity.bootstrap.activation_registry || '.github/orchestration/v2-activation-registry.json');
+    const registryRaw = JSON.parse(
+      ProtocolSource.readFileAtHead(registryPath, protocolSourceHead, repoRoot).toString('utf8')
+    );
+    validateRegistry(registryRaw, identity.bootstrap);
+  } else {
+    identity = loadAndValidate(repoRoot, bootstrapFile);
+  }
   if (identity.bootstrap.slice_id !== String(raw.slice_id)) throw new Error('SLICE_BOOTSTRAP_SLICE_MISMATCH');
   if (identity.bootstrap.baseline_head !== String(raw.baseline_head || '')) throw new Error('SLICE_BOOTSTRAP_BASELINE_MISMATCH');
   if (identity.hash !== String(raw.slice_bootstrap_sha256 || '')) throw new Error('SLICE_BOOTSTRAP_REQUEST_HASH_MISMATCH');
@@ -152,7 +166,7 @@ function normalizeRequest(raw, repoRoot) {
   }
 
   let deliveryTarget = null;
-  if (operationKind === 'VISUAL_CORRECTION') {
+  if (raw.delivery_target !== null && raw.delivery_target !== undefined) {
     const target = raw.delivery_target;
     if (!target || typeof target !== 'object' || Array.isArray(target) || target.kind !== 'EXISTING_PR' ||
         !Number.isInteger(target.application_pr) || target.application_pr < 1 ||
@@ -160,7 +174,7 @@ function normalizeRequest(raw, repoRoot) {
         String(target.application_head) !== String(raw.source_head) ||
         !/^[A-Za-z0-9._/-]{1,200}$/.test(String(target.branch || '')) ||
         String(target.branch).includes('..') || String(target.branch).includes('//')) {
-      throw new Error('VISUAL_DELIVERY_TARGET_INVALID');
+      throw new Error('DELIVERY_TARGET_INVALID');
     }
     deliveryTarget = {
       kind: 'EXISTING_PR',
@@ -168,6 +182,9 @@ function normalizeRequest(raw, repoRoot) {
       application_head: String(target.application_head),
       branch: String(target.branch),
     };
+  }
+  if (operationKind === 'VISUAL_CORRECTION' && !deliveryTarget) {
+    throw new Error('VISUAL_DELIVERY_TARGET_INVALID');
   }
 
   const retryReasonPresent = Object.prototype.hasOwnProperty.call(raw, 'retry_reason');

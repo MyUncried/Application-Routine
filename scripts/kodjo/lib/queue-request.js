@@ -23,7 +23,9 @@ function projectQueueRequest(queue) {
   }
 
   const visual = kind === 'VISUAL_CORRECTION';
-  if (visual && (!queue.delivery_target || !queue.delivery_target.application_head)) {
+  const existingTarget = Boolean(queue.delivery_target && queue.delivery_target.kind === 'EXISTING_PR' &&
+    queue.delivery_target.application_head);
+  if (visual && !existingTarget) {
     throw new Error('KODJO_QUEUE_DELIVERY_TARGET_REFUSED');
   }
 
@@ -34,7 +36,7 @@ function projectQueueRequest(queue) {
     // Le superviseur local doit travailler sur le HEAD applicatif lorsqu'il
     // corrige une PR existante, tout en conservant le HEAD protocolaire pour
     // la traçabilité et les autorisations.
-    source_head: visual ? queue.delivery_target.application_head : queue.source_head,
+    source_head: existingTarget ? queue.delivery_target.application_head : queue.source_head,
     protocol_source_head: queue.source_head,
     baseline_head: queue.baseline_head,
     slice_bootstrap_file: queue.slice_bootstrap_file,

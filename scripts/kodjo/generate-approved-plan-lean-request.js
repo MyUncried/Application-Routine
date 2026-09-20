@@ -123,6 +123,29 @@ function main() {
   }
 
   const planBody = git(['cat-file', 'blob', planBlob], cwd);
+  const declaredApplicationPr = field(planBody, 'application_pr');
+  const declaredApplicationHead = field(planBody, 'application_head');
+  let deliveryTarget = null;
+  if (declaredApplicationPr || declaredApplicationHead) {
+    if (!ID.test(declaredApplicationPr) || !SHA40.test(declaredApplicationHead)) {
+      fail('HANDOFF_APPLICATION_TARGET_IDENTITY_INVALID');
+    }
+    if (declaredApplicationHead !== planningApplicationHead) {
+      fail('HANDOFF_APPLICATION_TARGET_HEAD_MISMATCH');
+    }
+    const applicationPr = gh('repos/' + repository + '/pulls/' + declaredApplicationPr, cwd);
+    if (!applicationPr || applicationPr.state !== 'open' || !applicationPr.base || applicationPr.base.ref !== 'main' ||
+        !applicationPr.head || String(applicationPr.head.sha || '').toLowerCase() !== planningApplicationHead ||
+        !applicationPr.head.ref) {
+      fail('HANDOFF_APPLICATION_TARGET_DRIFT');
+    }
+    deliveryTarget = {
+      kind: 'EXISTING_PR',
+      application_pr: Number(declaredApplicationPr),
+      branch: String(applicationPr.head.ref),
+      application_head: planningApplicationHead,
+    };
+  }
   const missionBody = git(['show', approvedAt + ':' + missionRel], cwd);
   try {
     verifyImplementationMission(missionBody, planBody, planBlob);
@@ -144,6 +167,7 @@ function main() {
     slice_bootstrap_sha256: bootstrapSha,
     mode: 'INITIAL',
     operation_kind: 'IMPLEMENT',
+    ...(deliveryTarget ? { delivery_target: deliveryTarget } : {}),
     session_id: null,
     prompt_file: missionRel,
     scope_allow: [...impact.scope_allow],

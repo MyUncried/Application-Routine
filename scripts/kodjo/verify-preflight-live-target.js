@@ -26,8 +26,8 @@ function fetchPullRequest(repository, number, env = process.env) {
 }
 function verifyQueueTarget(queue, pr) {
   const kind = String((queue && queue.operation_kind) || 'IMPLEMENT').toUpperCase();
-  if (kind !== 'VISUAL_CORRECTION') return { status: 'NOT_APPLICABLE' };
-  const target = queue.delivery_target;
+  const target = queue && queue.delivery_target;
+  if (!target) return { status: 'NOT_APPLICABLE' };
   if (!target || target.kind !== 'EXISTING_PR') fail('KODJO_QUEUE_DELIVERY_TARGET_REFUSED');
   if (!pr || typeof pr !== 'object') fail('KODJO_QUEUE_APPLICATION_PR_UNREADABLE');
   if (String(pr.state) !== 'open') fail('KODJO_QUEUE_APPLICATION_PR_NOT_OPEN');
@@ -52,7 +52,7 @@ function fetchRemoteHead(repository, branch, env = process.env) {
   catch (_) { fail('KODJO_QUEUE_REMOTE_REF_UNREADABLE'); }
 }
 function verifyLiveTarget(queue, options = {}) {
-  if (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() !== 'VISUAL_CORRECTION') return {status:'NOT_APPLICABLE'};
+  if (!queue || !queue.delivery_target) return {status:'NOT_APPLICABLE'};
   const repository = options.repository || process.env.GITHUB_REPOSITORY;
   if (!repository) fail('KODJO_QUEUE_REPOSITORY_MISSING');
   const target = queue.delivery_target;
@@ -66,9 +66,7 @@ function verifyLiveTarget(queue, options = {}) {
 function verifyFile(queueFile, options = {}) {
   const cwd = options.cwd || process.cwd();
   const queue = readJson(path.resolve(cwd, queueFile));
-  if (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() !== 'VISUAL_CORRECTION') {
-    return { status: 'NOT_APPLICABLE' };
-  }
+  if (!queue.delivery_target) return { status: 'NOT_APPLICABLE' };
   if (options.pr) return verifyQueueTarget(queue, options.pr);
   return verifyLiveTarget(queue, options);
 }

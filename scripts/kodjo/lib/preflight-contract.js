@@ -64,7 +64,10 @@ function verifyApplicability(attestation, queue) {
   }
   const notApplicable = new Set();
   if (queue.recovery_migration === undefined) notApplicable.add('PF-007');
-  if (kind === 'IMPLEMENT') { notApplicable.add('PF-008'); notApplicable.add('PF-015'); }
+  if (kind === 'IMPLEMENT') {
+    notApplicable.add('PF-008');
+    if (!queue.delivery_target) notApplicable.add('PF-015');
+  }
   else if (kind === 'VISUAL_CORRECTION') { notApplicable.add('PF-009'); notApplicable.add('PF-010'); }
   else throw new Error('PREFLIGHT_OPERATION_MISMATCH');
   for (const row of attestation.checks) {

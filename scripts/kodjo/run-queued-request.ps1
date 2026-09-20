@@ -63,7 +63,7 @@ if ($productionQueue) {
 $liveQueueFile = Join-Path $env:RUNNER_TEMP ("kodjo-live-queue-{0}-{1}.json" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
 Copy-Item -LiteralPath $queueAbsolute -Destination $liveQueueFile -Force
 function Assert-LiveTarget {
-  if ($isVisual) {
+  if ($usesExistingPr) {
     & node (Join-Path $runtimeScriptRoot 'verify-preflight-live-target.js') $liveQueueFile
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_TARGET_FRESHNESS_REFUSED' }
   }
@@ -71,6 +71,7 @@ function Assert-LiveTarget {
 
 $operationKind = if ([string]::IsNullOrWhiteSpace([string]$queue.operation_kind)) { 'IMPLEMENT' } else { ([string]$queue.operation_kind).ToUpperInvariant() }
 $isVisual = $operationKind -eq 'VISUAL_CORRECTION'
+$usesExistingPr = $null -ne $queue.delivery_target
 
 $githubToken = $env:GH_TOKEN
 if ([string]::IsNullOrWhiteSpace($githubToken)) { throw 'KODJO_QUEUE_GITHUB_TOKEN_MISSING' }
@@ -94,7 +95,7 @@ $targetBranch = $null
 $targetPr = $null
 $applicationHead = $null
 
-if ($isVisual) {
+if ($usesExistingPr) {
   $target = $queue.delivery_target
   if ($null -eq $target -or [string]$target.kind -ne 'EXISTING_PR') { throw 'KODJO_QUEUE_DELIVERY_TARGET_REFUSED' }
   $targetPr = [int]$target.application_pr
@@ -118,7 +119,8 @@ if ($isVisual) {
   Assert-LiveTarget
   git switch --detach $applicationHead
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
-  $branch = "kodjo/visual-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID
+  if ($isVisual) { $branch = "kodjo/visual-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID }
+  else { $branch = "kodjo/v2-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID }
   git switch -c $branch
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 } else {
@@ -162,7 +164,7 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 Assert-LiveTarget
 # The trusted Node supervisor consumes this token then deletes it before any
 # child process. Claude never inherits this variable or GH_TOKEN.
-if ($isVisual -or $null -ne $queue.initial_restart) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
+if ($usesExistingPr -or $null -ne $queue.initial_restart) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
 if ($null -ne $queue.initial_restart) { $env:KODJO_INITIAL_RESTART_QUEUE = $liveQueueFile }
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
@@ -207,7 +209,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_COMMIT_FAILED' }
   $newHead = (git rev-parse HEAD).Trim()
 
-  if ($isVisual) {
+  if ($usesExistingPr) {
     $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
     Assert-LiveTarget
     git push origin $pushRefspec # kodjo-allow-mention
@@ -246,7 +248,7 @@ try {
     if ([string]$prAfter.head.ref -ne $targetBranch) { throw 'KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH' }
 
     $metadataPath = [string]$env:KODJO_VISUAL_DELIVERY_METADATA_FILE
-    if (-not [string]::IsNullOrWhiteSpace($metadataPath)) {
+    if ($isVisual -and -not [string]::IsNullOrWhiteSpace($metadataPath)) {
       $metadata = [ordered]@{
         schema_version = 'kodjo.protocol.v2.visual-delivery.0.6.28'
         slice_id = [string]$queue.slice_id
@@ -269,7 +271,7 @@ try {
     }
 
     $body = @"
-Automated KODJO V2 visual correction delivery.
+Automated KODJO V2 existing application delivery.
 
 Slice: $($queue.slice_id)
 Existing application PR: #$targetPr
@@ -329,7 +331,7 @@ Independent implementation review remains required before human review and merge
   $sessionId = [string]$result.session_id
   if ($sessionId -notmatch '^[0-9a-fA-F-]{36}$') { throw 'KODJO_IMPLEMENTATION_REVIEW_SESSION_INVALID' }
 
-  $reviewBaseHead = if ($isVisual) { $applicationHead } else { [string]$queue.source_head }
+  $reviewBaseHead = if ($usesExistingPr) { $applicationHead } else { [string]$queue.source_head }
   if ($reviewBaseHead -notmatch '^[0-9a-f]{40}$') { throw 'KODJO_IMPLEMENTATION_REVIEW_BASE_HEAD_INVALID' }
 
   $reviewBody = @"
@@ -352,7 +354,7 @@ STATUT : IMPLEMENTATION_READY_FOR_REVIEW
 "@
   if (-not $isVisual) {
     $reportPath = Join-Path ([string]$runDir).Trim() 'implementation-report.json'
-    & node (Join-Path $runtimeScriptRoot 'collect-implementation-report.js') ([string]$runDir).Trim() ([string]$queue.request_id) ([string]$queue.source_head) $reportPath
+    & node (Join-Path $runtimeScriptRoot 'collect-implementation-report.js') ([string]$runDir).Trim() ([string]$queue.request_id) ([string]$reviewBaseHead) $reportPath
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_IMPLEMENTATION_REPORT_IDENTITY_REFUSED' }
     $reviewBody += "`n`n<KODJO_IMPLEMENTATION_REPORT_JSON>`n" + (Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8).Trim() + "`n</KODJO_IMPLEMENTATION_REPORT_JSON>"
   }
@@ -380,7 +382,7 @@ finally {
   Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
   # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
   # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
-  if ($isVisual) {
+  if ($usesExistingPr) {
     $savedPreference = $ErrorActionPreference
     try {
       $ErrorActionPreference = 'Continue'

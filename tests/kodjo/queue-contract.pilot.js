@@ -67,6 +67,25 @@ test('le contrat accepte une demande conforme', () => {
   assert.deepEqual(C.validateQueueRequest(validQueue()), []);
 });
 
+
+
+test('IMPLEMENT peut cibler une PR applicative existante sans modifier le schéma Lean', () => {
+  const target = {
+    kind: 'EXISTING_PR',
+    application_pr: 181,
+    branch: 'kodjo/application',
+    application_head: 'd'.repeat(40),
+  };
+  assert.deepEqual(C.validateQueueRequest(validQueue({
+    operation_kind: 'IMPLEMENT',
+    delivery_target: target,
+  })), []);
+  assert.ok(diagnostics(validQueue({
+    operation_kind: 'IMPLEMENT',
+    delivery_target: { ...target, application_head: 'bad' },
+  })).includes('KODJO_QUEUE_DELIVERY_TARGET_REFUSED'));
+});
+
 test('la référence de migration est structurée, bornée et optionnelle', () => {
   const migration = {
     attestation_path: '.github/orchestration/v2-slices/QUALIF/recovery-migration.json',

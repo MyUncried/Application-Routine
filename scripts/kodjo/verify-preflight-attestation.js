@@ -16,9 +16,9 @@ function git(args,cwd){
 function readJson(file){return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));}
 function blobOid(file,cwd){return git(['hash-object','--',file],cwd).trim();}
 function executionHead(queue){
-  return String(queue.operation_kind||'IMPLEMENT').toUpperCase()==='VISUAL_CORRECTION'
-    ? String(queue.delivery_target&&queue.delivery_target.application_head||'')
-    : String(queue.source_head||'');
+  return queue && queue.delivery_target && queue.delivery_target.application_head
+    ? String(queue.delivery_target.application_head)
+    : String(queue&&queue.source_head||'');
 }
 function packageLockHashAt(head,cwd){
   return Source.hashFileAtHead('package-lock.json',head,cwd,{optional:true});

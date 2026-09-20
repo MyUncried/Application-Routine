@@ -8,7 +8,7 @@ Le protocole courant est défini par la spécification 0.6.46 et son héritage a
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.46.md` | Spécification normative courante, delta de 0.6.45 |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.47.md` | Spécification normative courante, delta de 0.6.46 |
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Base historique de qualification jetable, conservée sous les addenda ultérieurs |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
 | `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport de canonicalisation et qualification jetable |
