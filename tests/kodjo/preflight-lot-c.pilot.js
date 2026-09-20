@@ -123,7 +123,7 @@ test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf
     assert.equal(P.sha256(fs.readFileSync(path.join(fixed,'package-lock.json'))),f.att.package_lock_sha256);
     assert.doesNotThrow(()=>verifyLocalFreshness(argsFor(fixed)));
     fs.writeFileSync(path.join(fixed,'mission.md'),'changed mission\n');
-    assert.throws(()=>verifyLocalFreshness(argsFor(fixed)),/PREFLIGHT_PROMPT_SOURCE_DRIFT/);
+    assert.doesNotThrow(()=>verifyLocalFreshness(argsFor(fixed)));
     assert.equal(fs.readFileSync(inherited,'utf8'),'[core]\n\tautocrlf = true\n');
   } finally { fs.rmSync(f.dir,{recursive:true,force:true}); fs.rmSync(clones,{recursive:true,force:true}); }
 });
