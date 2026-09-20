@@ -70,7 +70,8 @@ function verify(args) {
   if (one(implementation, 'continuity_origin') !== 'V2_LEAN_QUEUE') fail('V2_FINAL_NOT_V2');
   if (!/^STATUT : IMPLEMENTATION_READY_FOR_REVIEW$/m.test(implementation)) fail('V2_FINAL_IMPLEMENTATION_STATUS_INVALID');
 
-  if (firstLine(visual) !== '[KODJO_SLICE] VISUAL_APPROVED') fail('V2_FINAL_VISUAL_MARKER_INVALID');
+  const targeted = firstLine(visual) === '[KODJO_SLICE] TARGETED_VISUAL_APPROVED_REQUALIFY';
+  if (!targeted && firstLine(visual) !== '[KODJO_SLICE] VISUAL_APPROVED') fail('V2_FINAL_VISUAL_MARKER_INVALID');
 
   const slice = one(review, 'slice_id');
   const implSlice = one(implementation, 'slice_id');
@@ -104,6 +105,8 @@ function verify(args) {
   }
   const operationKind = String(queue.operation_kind || 'IMPLEMENT');
   if (!['IMPLEMENT','VISUAL_CORRECTION'].includes(operationKind)) fail('V2_FINAL_OPERATION_KIND_INVALID');
+  if (operationKind === 'VISUAL_CORRECTION' && !targeted) fail('V2_FINAL_GLOBAL_REQUALIFICATION_REQUIRED', 'une revue du delta ne peut approuver la tranche');
+  if (targeted && operationKind !== 'VISUAL_CORRECTION') fail('V2_TARGETED_OPERATION_INVALID');
   if (operationKind === 'VISUAL_CORRECTION') {
     if (queue.mode !== 'RESUME_DELTA') fail('V2_FINAL_VISUAL_MODE_INVALID');
     if (!queue.delivery_target || queue.delivery_target.kind !== 'EXISTING_PR' ||
@@ -196,10 +199,36 @@ function verify(args) {
     device_evidence_satisfied: true,
     final_status: 'READY_TO_CLOSE',
   };
+  if (targeted) {
+    if (one(visual,'validation_scope') !== 'DELTA' || one(visual,'targeted_result') !== 'PASS' ||
+        one(visual,'global_conformance') !== 'NON_CONFORME' || one(visual,'requalification_scope') !== 'FULL_SLICE') fail('V2_TARGETED_SCOPE_INVALID');
+    const sourceHead=one(visual,'source_head');
+    if (!SHA40.test(sourceHead)) fail('V2_TARGETED_SOURCE_INVALID');
+    if (one(visual,'bootstrap_path') !== '.github/orchestration/v2-slices/'+slice+'/slice-bootstrap.json') fail('V2_TARGETED_BOOTSTRAP_INVALID');
+    result.schema='kodjo.targeted-validation.v1';
+    result.validation_scope='DELTA';
+    result.targeted_result='PASS';
+    result.targeted_requirement=one(visual,'targeted_requirement');
+    result.global_conformance='NON_CONFORME';
+    result.final_status='REQUALIFICATION_REQUIRED';
+    result.device_evidence_satisfied=false;
+    result.targeted_device_evidence_satisfied=true;
+    result.global_approval=false;
+    result.merge_authorized=false;
+    result.close_authorized=false;
+    result.requalification_scope='FULL_SLICE';
+    result.source_head=sourceHead;
+    result.bootstrap_path=one(visual,'bootstrap_path');
+    result.human_evidence_sha256=sha256(visual);
+    result.replan_trigger='[KODJO_V2] START_PLAN_REVISION\n'+
+      'slice_id='+slice+'\nbootstrap_path='+result.bootstrap_path+'\nsource_head='+sourceHead+
+      '\napplication_pr='+applicationPr+'\napplication_head='+head+'\n';
+  }
   fs.writeFileSync(path.resolve(outputFile), JSON.stringify(result, null, 2) + '\n', 'utf8');
   return result;
 }
 
+if (require.main === module) {
 try {
   const result = verify(process.argv.slice(2));
   process.stdout.write('[KODJO_V2] finalization verified — slice=' + result.slice_id +
@@ -209,4 +238,5 @@ try {
   process.exit(1);
 }
 
+}
 module.exports = { verify };
