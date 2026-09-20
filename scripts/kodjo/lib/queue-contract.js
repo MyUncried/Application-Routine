@@ -89,6 +89,35 @@ function validateDeliveryTarget(value, queue) {
   return null;
 }
 
+function validateMaterializedRecovery(value, queue) {
+  const kind = operationKind(queue);
+  if (!isObject(value)) return 'objet structure attendu';
+  const expected = ['evidence_kind', 'materialized_head', 'patch_sha256', 'source_artifact_id', 'source_run_id'];
+  const keys = Object.keys(value).sort();
+  if (keys.length !== expected.length || expected.some((key) => !keys.includes(key))) {
+    return 'proprietes exactes attendues: ' + expected.join(', ');
+  }
+  if (String(queue.mode).toUpperCase() !== 'RESUME_DELTA' || kind !== 'IMPLEMENT') {
+    return 'reserve a IMPLEMENT RESUME_DELTA';
+  }
+  if (!queue.delivery_target || queue.delivery_target.kind !== 'EXISTING_PR') {
+    return 'cible EXISTING_PR requise';
+  }
+  if (!/^[1-9][0-9]*$/.test(String(value.source_run_id))) return 'source_run_id numerique attendu';
+  if (!/^[1-9][0-9]*$/.test(String(value.source_artifact_id))) return 'source_artifact_id numerique attendu';
+  if (!SHA64.test(String(value.patch_sha256 || ''))) return 'patch_sha256 SHA-256 attendu';
+  if (!SHA40.test(String(value.materialized_head || ''))) return 'materialized_head SHA-40 attendu';
+  if (value.evidence_kind !== 'ARTIFACT_HASH') return 'evidence_kind doit valoir ARTIFACT_HASH';
+  if (String(value.source_run_id) !== String(queue.retry_of_run_id || '')) {
+    return 'source_run_id doit etre egal a retry_of_run_id';
+  }
+  if (String(value.materialized_head).toLowerCase() !==
+      String(queue.delivery_target.application_head || '').toLowerCase()) {
+    return 'materialized_head doit etre egal au HEAD applicatif cible';
+  }
+  return null;
+}
+
 function validateDeliveryCheckpoint(value, queue) {
   const kind = operationKind(queue);
   if (value === undefined) return kind === 'VISUAL_CORRECTION' ? 'checkpoint certifie requis en VISUAL_CORRECTION' : null;
@@ -196,6 +225,11 @@ const PROPERTIES = {
     nature: 'BEHAVIOUR', required: 'optional', type: ['object', 'null'],
     validate: validateDeliveryTarget,
     diagnostic: 'KODJO_QUEUE_DELIVERY_TARGET_REFUSED',
+  },
+  materialized_recovery: {
+    nature: 'AUTHORIZATION', required: 'optional', type: 'object',
+    validate: (v, q) => (v === undefined ? null : validateMaterializedRecovery(v, q)),
+    diagnostic: 'KODJO_QUEUE_MATERIALIZED_RECOVERY_REFUSED',
   },
   session_id: {
     nature: 'BEHAVIOUR', required: 'always', type: ['string', 'null'],
@@ -350,6 +384,6 @@ function validateQueueRequest(queue) {
 module.exports = {
   PROPERTIES, LEAN_REQUEST_SCHEMA, CHECKS, MODES, OPERATION_KINDS, RETRY_CODES, LIMIT_KEYS,
   MAX_RETRY_REASON_DETAIL_BYTES, RETRY_REASON_KEYS,
-  operationKind, validateDeliveryTarget, validateDeliveryCheckpoint,
+  operationKind, validateDeliveryTarget, validateMaterializedRecovery, validateDeliveryCheckpoint,
   propertiesOfNature, validateRetryReason, validateQueueRequest,
 };
