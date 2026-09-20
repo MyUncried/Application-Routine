@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const P = require('./preflight-contract');
+const Source = require('./preflight-source');
 
 function packageLockHash(repoRoot) {
   const file = path.join(repoRoot, 'package-lock.json');
@@ -22,7 +23,13 @@ function verifyLocalFreshness(options) {
     throw new Error('PREFLIGHT_PROJECTION_DRIFT');
   }
 
-  const promptSourceHash = P.sha256(fs.readFileSync(request.prompt_file));
+  const promptRelative = path.relative(repoRoot, request.prompt_file).replace(/\\/g, '/');
+  if (!promptRelative || promptRelative.startsWith('../') || path.isAbsolute(promptRelative)) {
+    throw new Error('PREFLIGHT_PROMPT_PATH_INVALID');
+  }
+  const promptSourceHash = P.sha256(
+    Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot)
+  );
   if (preflight.prompt_file_sha256 && promptSourceHash !== preflight.prompt_file_sha256) {
     throw new Error('PREFLIGHT_PROMPT_SOURCE_DRIFT');
   }
