@@ -102,7 +102,127 @@ jobs:
             [IO.File]::WriteAllText($planFile,$planRaw,$utf8NoBom)
 
             $changedFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-changed-files.txt'
-            $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$($meta.base_head)...$head"|ConvertFrom-Json
+            $reviewBase=[string]$meta.base_head
+            $queue=Get-Content -LiteralPath $queuePath -Raw -Encoding UTF8|ConvertFrom-Json
+            if($null-ne$queue.materialized_recovery){
+              $reviewBase=[string]$queue.materialized_recovery.source_application_head
+              if($reviewBase-notmatch'^[0-9a-f]{40}
+            if($LASTEXITCODE-ne0-or$null-eq$compare){throw 'V2 final diff unreadable'}
+            if([string]$compare.status-ne'ahead'){throw 'V2 final HEAD ancestry mismatch'}
+            $changedText=((@($compare.files|ForEach-Object{[string]$_.filename})) -join [Environment]::NewLine)
+            if(-not[string]::IsNullOrWhiteSpace($changedText)){$changedText+=[Environment]::NewLine}
+            [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
+
+            if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
+              $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
+              $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
+              if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
+              [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
+
+              $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
+              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
+              if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+            } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){
+              throw 'V2 final review mode invalid'
+            }
+
+            "v2_mode=true"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "final_contract=$metaFile"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "target_branch=$($meta.application_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            if(!$manifest){throw 'Missing legacy manifest'}
+            if($manifest-ne".github/orchestration/slices/$slice.yml"-or!(Test-Path $manifest)){throw 'Manifest mismatch'}
+            $manifestRaw=Get-Content -Raw -LiteralPath $manifest
+            $m=[pscustomobject]@{
+              slice_id=[regex]::Match($manifestRaw,'(?m)^slice_id:\s*([^\r\n]+)').Groups[1].Value.Trim()
+              issue_number=[regex]::Match($manifestRaw,'(?m)^issue_number:\s*([0-9]+)').Groups[1].Value
+              target_branch=[regex]::Match($manifestRaw,'(?m)^target_branch:\s*([^\r\n]+)').Groups[1].Value.Trim()
+            }
+            if($m.slice_id-ne$slice-or[int]$m.issue_number-ne[int]$env:ISSUE_NUMBER){throw 'Manifest identity mismatch'}
+            $remote=git ls-remote origin "refs/heads/$($m.target_branch)"
+            if(!$remote-or(($remote-split'\s+')[0])-ne$head){throw 'Target branch moved'}
+            "v2_mode=false"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "target_branch=$($m.target_branch)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
+
+          "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "head=$head"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "review_id=$reviewId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Checkout final HEAD
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.gate.outputs.head }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Final deterministic checks
+        run: |
+          $ErrorActionPreference='Stop'
+          npm ci
+          if($LASTEXITCODE-ne0){throw 'npm ci failed'}
+          npm test -- --runInBand
+          if($LASTEXITCODE-ne0){throw 'Jest failed'}
+          npx tsc --noEmit
+          if($LASTEXITCODE-ne0){throw 'TypeScript failed'}
+          if('${{ steps.gate.outputs.v2_mode }}'-eq'true'){
+            npm run lint --silent
+            if($LASTEXITCODE-ne0){throw 'Lint failed'}
+          }
+          if((git rev-parse HEAD).Trim()-ne'${{ steps.gate.outputs.head }}'){throw 'Final HEAD mismatch'}
+          if(-not[string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Dirty final checkout'}
+          if('${{ steps.gate.outputs.v2_mode }}'-eq'true'){
+            $contractPath='${{ steps.gate.outputs.final_contract }}'
+            $final=Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8|ConvertFrom-Json
+            $final|Add-Member -NotePropertyName final_checks -NotePropertyValue ([ordered]@{
+              jest='PASS'; typescript='PASS'; lint='PASS'; head='PASS'; clean='PASS'
+            }) -Force
+            [IO.File]::WriteAllText($contractPath,($final|ConvertTo-Json -Depth 20),(New-Object Text.UTF8Encoding($false)))
+          }
+
+      - name: Publish final checkpoint
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          TARGET_BRANCH: ${{ steps.gate.outputs.target_branch }}
+          HEAD: ${{ steps.gate.outputs.head }}
+          REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+          V2_MODE: ${{ steps.gate.outputs.v2_mode }}
+          FINAL_CONTRACT: ${{ steps.gate.outputs.final_contract }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $remote=gh api "repos/$env:GITHUB_REPOSITORY/git/ref/heads/$env:TARGET_BRANCH" --jq '.object.sha'
+          if($LASTEXITCODE-ne0-or([string]$remote).Trim()-ne$env:HEAD){throw 'Final target branch moved'}
+          if($env:V2_MODE-eq'true'){
+            $final=Get-Content -LiteralPath $env:FINAL_CONTRACT -Raw -Encoding UTF8|ConvertFrom-Json
+            $stateFile=Join-Path $env:RUNNER_TEMP 'kodjo-global-requalification-state-final.json'
+            $stateJson=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'Final requalification state unreadable'}
+            [IO.File]::WriteAllText($stateFile,($stateJson -join "`n"),(New-Object Text.UTF8Encoding($false)))
+            node (Join-Path $env:RUNNER_TEMP 'kodjo-global-state-verifier.js') $env:FINAL_CONTRACT $stateFile
+            if($LASTEXITCODE-ne0){throw 'Requalification opened during final checks'}
+            $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$($final.application_pr)"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$pr-or[string]$pr.state-ne'open'-or[string]$pr.base.ref-ne'main'-or[string]$pr.head.ref-ne$env:TARGET_BRANCH-or[string]$pr.head.sha-ne$env:HEAD){throw 'Final application PR moved'}
+          }
+          $nl=[Environment]::NewLine
+          if($env:V2_MODE-eq'true'){
+            $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+
+              'slice_id='+$env:SLICE_ID+$nl+
+              'branch='+$env:TARGET_BRANCH+$nl+
+              'final_head='+$env:HEAD+$nl+
+              'implementation_review_comment_id='+$env:REVIEW_ID+$nl+
+              'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+
+              'STATUT : READY_TO_CLOSE'+$nl+$nl+
+              '<KODJO_UI_FINAL_VERIFICATION_JSON>'+$nl+
+              (Get-Content -LiteralPath $env:FINAL_CONTRACT -Raw -Encoding UTF8).Trim()+$nl+
+              '</KODJO_UI_FINAL_VERIFICATION_JSON>'
+          } else {
+            $body='[KODJO_SLICE] FINAL_OUTPUT'+$nl+'slice_id='+$env:SLICE_ID+$nl+'branch='+$env:TARGET_BRANCH+$nl+'final_head='+$env:HEAD+$nl+'implementation_review_comment_id='+$env:REVIEW_ID+$nl+'visual_approval_comment_id=${{ github.event.comment.id }}'+$nl+'STATUT : DONE'
+          }
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\final-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\final-comment.md"){throw 'V2 cumulative review base invalid'}
+            }
+            $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$reviewBase...$head"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$compare){throw 'V2 final diff unreadable'}
             if([string]$compare.status-ne'ahead'){throw 'V2 final HEAD ancestry mismatch'}
             $changedText=((@($compare.files|ForEach-Object{[string]$_.filename})) -join [Environment]::NewLine)
