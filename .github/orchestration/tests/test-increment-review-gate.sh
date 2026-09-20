@@ -129,7 +129,8 @@ require_contains v2_bridge_marker 'continuity_origin=V2_LEAN_QUEUE' "$review_wor
 require_contains v2_authorization_reuse 'verify-authorizations.js' "$review_workflow"
 require_contains v2_single_increment 'LOT_1_OF_1' "$review_workflow"
 require_contains v2_queue_contract '.github/orchestration/queue/v2/*.json' "$review_workflow"
-require_contains v2_implement_review_base '(.operation_kind // "IMPLEMENT") == "IMPLEMENT" and .source_head == $base' "$review_workflow"
+require_contains v2_implement_review_base '(.operation_kind // "IMPLEMENT") == "IMPLEMENT"' "$review_workflow"
+require_contains v2_implement_existing_pr_base '((.delivery_target.application_head // .source_head) == $base)' "$review_workflow"
 require_contains v2_visual_review_base '.operation_kind == "VISUAL_CORRECTION" and .delivery_target.application_head == $base' "$review_workflow"
 forbid_contains ruby_cross_language_sha_regex 'baseline.match?' "$review_workflow"
 forbid_contains baseline_equality 'm["baseline_head"]==ENV["base"]' "$review_workflow"
@@ -162,7 +163,7 @@ supervisor='scripts/kodjo/run-queued-request.ps1'
 require_contains v2_review_output_marker '[KODJO_SLICE] IMPLEMENTATION_OUTPUT' "$supervisor"
 require_contains v2_review_origin 'continuity_origin=V2_LEAN_QUEUE' "$supervisor"
 require_contains v2_review_pending 'IMPLEMENTATION_READY_FOR_REVIEW' "$supervisor"
-require_contains v2_review_base_selector '$reviewBaseHead = if ($isVisual) { $applicationHead } else { [string]$queue.source_head }' "$supervisor"
+require_contains v2_review_base_selector '$reviewBaseHead = if ($usesExistingPr) { $applicationHead } else { [string]$queue.source_head }' "$supervisor"
 require_contains v2_review_base_output 'base_head=$reviewBaseHead' "$supervisor"
 require_contains duplicate_output_guard 'duplicate recovered implementation outputs' "$recovery_workflow"
 
