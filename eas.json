@@ -22,7 +22,9 @@
       "autoIncrement": true
     },
     "review": {
+      "developmentClient": false,
       "distribution": "internal",
+      "autoIncrement": true,
       "channel": "review",
       "env": {
         "APP_VARIANT": "development"
