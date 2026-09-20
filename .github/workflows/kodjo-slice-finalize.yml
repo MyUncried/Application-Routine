@@ -102,7 +102,13 @@ jobs:
             [IO.File]::WriteAllText($planFile,$planRaw,$utf8NoBom)
 
             $changedFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-changed-files.txt'
-            $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$($meta.base_head)...$head"|ConvertFrom-Json
+            $reviewBase=[string]$meta.base_head
+            $queue=Get-Content -LiteralPath $queuePath -Raw -Encoding UTF8|ConvertFrom-Json
+            if($null-ne$queue.materialized_recovery){
+              $reviewBase=[string]$queue.materialized_recovery.source_application_head
+              if($reviewBase-notmatch'^[0-9a-f]{40}$'){throw 'V2 cumulative review base invalid'}
+            }
+            $compare=gh api "repos/$env:GITHUB_REPOSITORY/compare/$reviewBase...$head"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$compare){throw 'V2 final diff unreadable'}
             if([string]$compare.status-ne'ahead'){throw 'V2 final HEAD ancestry mismatch'}
             $changedText=((@($compare.files|ForEach-Object{[string]$_.filename})) -join [Environment]::NewLine)
