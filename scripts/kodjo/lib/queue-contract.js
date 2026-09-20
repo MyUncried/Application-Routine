@@ -72,7 +72,7 @@ function authorizationShape(fields, kinds) {
 function validateDeliveryTarget(value, queue) {
   const kind = operationKind(queue);
   if (value === undefined) return kind === 'VISUAL_CORRECTION' ? 'cible EXISTING_PR requise en VISUAL_CORRECTION' : null;
-  if (kind !== 'VISUAL_CORRECTION') return 'reserve a VISUAL_CORRECTION';
+  if (!['IMPLEMENT', 'VISUAL_CORRECTION'].includes(kind)) return 'operation incompatible avec delivery_target';
   if (!isObject(value)) return 'objet structure attendu';
   const keys = Object.keys(value).sort();
   const expected = ['application_head', 'application_pr', 'branch', 'kind'];
