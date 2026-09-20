@@ -17,10 +17,10 @@ function main(argv){
   const queue=JSON.parse(fs.readFileSync(path.join(repo,queueRel),'utf8'));
   const queueBlob=git(repo,['hash-object','--',queueRel]);
   const projection=projectQueueRequest(queue);
-  const executionHead=String(queue.operation_kind||'IMPLEMENT').toUpperCase()==='VISUAL_CORRECTION'
+  const executionHead=queue.delivery_target&&queue.delivery_target.application_head
     ? String(queue.delivery_target.application_head)
     : String(queue.source_head);
-  const promptBuffer=execFileSync('git',['show',executionHead+':'+queue.prompt_file],{cwd:repo,encoding:null});
+  const promptBuffer=execFileSync('git',['show',String(queue.source_head)+':'+queue.prompt_file],{cwd:repo,encoding:null});
   const promptFileSha=P.sha256(promptBuffer);
   const att=P.finalize({
     queue_path:queueRel.replace(/\\/g,'/'),
