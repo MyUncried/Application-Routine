@@ -13,6 +13,7 @@ const {
   renderImplementationMission,
   verifyImplementationMission,
 } = require('../../scripts/kodjo/lib/implementation-contract');
+const { inspectReport } = require('../../scripts/kodjo/lib/implementation-report');
 const {
   extractImplementationStopStatus,
   IMPLEMENTATION_STOP_STATUSES,
@@ -168,6 +169,21 @@ test('implementation contract: taxonomie des barrières reste canonique et exéc
     () => extractImplementationStopStatus(JSON.stringify({result:'KODJO_STOP_STATUS: ASSET_REQUIRED\n'})),
     /IMPLEMENTATION_STOP_STATUS_INVALID/
   );
+});
+
+
+test('implementation report v2: couvre exactement chaque assertion', () => {
+  const expected=[{criterion_id:'UI-001',assertions:[{assertion_id:'UI-001-A01'},{assertion_id:'UI-001-A02'}]}];
+  const base={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:['src/x.tsx'],component_used:'Existing',tests_run:['jest'],proof_status:'PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE',
+    assertion_results:[
+      {assertion_id:'UI-001-A01',implementation_status:'IMPLEMENTED',evidence:'Contenu livré.'},
+      {assertion_id:'UI-001-A02',implementation_status:'PENDING_DEVICE',evidence:'Géométrie à contrôler sur appareil.'},
+    ]};
+  const report='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[base]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  assert.equal(inspectReport(report,expected).status,'COMPLETE');
+  const missing={...base,assertion_results:base.assertion_results.slice(0,1)};
+  const bad='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[missing]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  assert.equal(inspectReport(bad,expected).status,'NON_VERIFIABLE');
 });
 
 test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', () => {
