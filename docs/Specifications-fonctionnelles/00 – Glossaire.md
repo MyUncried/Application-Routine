@@ -23,7 +23,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Récupération** | Durée facultative appartenant à une Activité. Elle est exécutée une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle ne constitue ni une Activité autonome ni une Pause entre les Séries. Une valeur de `0 s` signifie qu’aucune phase de Récupération n’est créée. | Récupération de 30 s après l’Exercice |
 | **Tour** | Conteneur ordonné d’Activités appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
 | **Cycle** | Structure technique unique qui enveloppe les Activités placées avant le Tour, le Tour et les Activités placées après le Tour. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
-| **Routine** | Planification d’une Séance. Elle est unique ou périodique et possède zéro ou un rappel. | Mobilité chaque lundi à 8 h |
+| **Routine** | Terme métier interne désignant la planification d’une Séance. Dans l’interface utilisateur, le terme affiché est `planification`. Une Routine est unique ou périodique et possède zéro ou un rappel. | Mobilité chaque lundi à 8 h |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Séance prévue mardi à 18 h |
 | **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Activité. | Exécution démarrée à 18 h 03 |
 | **Résultat d’Activité** | Résultat enregistré pour une occurrence d’Activité effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
@@ -95,9 +95,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Catalogue des activités** | Destination MVP livrée en T03 du Catalogue multi-type. Elle liste les Activités persistantes, permet de les créer, consulter, modifier, archiver/restaurer, sélectionner pour une Séance ou exécuter directement. |
 | **Catalogue des circuits** | État du Catalogue associé au segment `Circuits`, visible mais désactivé dans T03. |
 | **Catalogues** | Libellé permanent de la destination correspondante dans la navigation basse, indépendamment du segment Catalogue actif. |
-| **Toutes** | Valeur du filtre de Catalogue affichant les Séances non archivées. |
-| **Planifiées** | Valeur du filtre de Catalogue affichant les Séances possédant au moins une Routine. |
-| **Archivées** | Valeur du filtre de Catalogue donnant accès aux éléments archivés et aux actions de restauration ou suppression définitive applicables. |
+| **Archivées** | Unique option fonctionnelle du panneau `Filtrer` des Catalogues Séances et Activités dans le MVP. Sa sélection affiche uniquement les éléments archivés ; sa désélection revient aux éléments actifs/non archivés. |
 | **Profil** | Espace relatif à l’identité locale de l’utilisateur et à ses Préférences. |
 | **Safe Area** | Zone d’affichage utilisable fournie par le système, hors encoche, barre d’état, indicateur d’accueil et autres éléments système. |
 
@@ -134,7 +132,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Étape de Circuit** | Occurrence ordonnée d’une Séance dans un Circuit ; elle ne possède pas de nombre de répétitions. |
 | **Exécution de Circuit** | Exécution globale d’un Circuit, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
 
-`Toutes`, `Planifiées`, `Non planifiées` et `Archivées` désignent des valeurs du filtre de Catalogue, jamais les segments de sélection du type de contenu.
+Dans le MVP, `Archivées` est l’unique option fonctionnelle du panneau `Filtrer` des Catalogues Séances et Activités. `Toutes`, `Planifiées` et `Non planifiées` ne sont pas des options d’interface du MVP.
 
 ## 10. Bilatéralité
 
