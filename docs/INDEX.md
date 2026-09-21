@@ -83,8 +83,7 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Activité Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Activité — état vide ;
-- `3788:5258` — historique/supersédé — ancien arbre Composition à trois options ;
-- `3933:5780` — Composition — Ajouter une activité — arbre courant avec `Un point d’arrêt` ;
+- `3788:5258` et `3933:5780` — Composition — Ajouter une activité — arbres courants synchronisés avec `Un point d’arrêt` ;
 - `3789:5349` et `3789:5405` — sélection multiple d’Activités existantes ;
 - `3879:5947` / `3879:6079` — création/modification d’une Activité persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ; `2028:11808` matérialise aussi le Point d’arrêt dans le Tour ;
