@@ -236,13 +236,15 @@ Les exécutions déjà réalisées sont conservées.
 # Parcours complémentaire 3 — Archiver puis supprimer une Séance
 
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
-2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
-3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
-4. Depuis les archives, l’utilisateur peut choisir `Restaurer` ; la Séance revient alors dans le Catalogue actif sans recréer les Routines supprimées lors de l’archivage.
-5. Pour supprimer définitivement, glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
-6. Choisir `Supprimer`, puis confirmer dans la modale. La confirmation conserve visuellement sous son voile la carte déplacée et l’action `Supprimer` qui l’a déclenchée. `Annuler` revient à la liste `Archivées`.
+2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans cette vue.
+3. Si aucune Routine n’est associée, l’archivage est immédiat. Si au moins une Routine est associée, afficher la confirmation `Archiver cette séance ?` avec le message `Les planifications associées à cette séance seront supprimées. Les séances déjà effectuées resteront dans votre historique.` et les actions `Annuler` / `Archiver`. `Annuler` n’écrit rien ; `Archiver` archive la Séance et supprime atomiquement toutes ses Routines associées.
+4. Après archivage, revenir au Catalogue des Séances actives. La Séance disparaît de cette liste ; un feedback informatif `Séance archivée` peut être affiché, sans action `Annuler`.
+5. Pour retrouver la Séance, ouvrir `Filtrer` et toucher l’unique option `Archivées` ; le filtre s’applique immédiatement et le panneau se ferme.
+6. Dans `Archivées`, l’utilisateur peut choisir `Restaurer` ; la Séance revient alors dans le Catalogue actif sans recréer les Routines supprimées lors de l’archivage.
+7. Pour supprimer définitivement, glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
+8. Choisir `Supprimer`, puis confirmer dans la modale. La confirmation conserve visuellement sous son voile la carte déplacée et l’action `Supprimer` qui l’a déclenchée. `Annuler` revient à la liste `Archivées`.
 
-Les Exécutions historiques restent conservées après suppression.
+Les Exécutions historiques restent conservées après archivage, restauration ou suppression définitive.
 ## Points d'attention
 
 - Une routine ne modifie jamais le contenu d'une séance.
