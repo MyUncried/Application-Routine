@@ -114,7 +114,11 @@ Roulette ouverte : scrim bloquant arrière-plan et scroll ; CTA principal fixe r
 
 ### 4.7 Swipe contextuel
 
-Swipe gauche : la carte suit le doigt et révèle progressivement les actions derrière. Une seule carte peut exposer ses actions. Les autres contrôles restent actifs, mais un autre swipe gauche n’ouvre pas un second contexte. Tap fond = aucun effet. Tap surface de carte ouverte hors actions = aucun effet. Seul un swipe droit commencé sur la carte ouverte referme.
+Swipe gauche : la carte suit le doigt et révèle progressivement les actions derrière tandis que le bloc d’actions reste fixe. Une seule carte peut exposer ses actions. Les autres contrôles restent actifs, mais un autre swipe gauche n’ouvre pas un second contexte. Tap fond = aucun effet. Tap surface de carte ouverte hors actions = aucun effet. Seul un swipe droit commencé sur la carte ouverte referme.
+
+État ouvert de référence : `10 pt` entre le bord droit de la carte déplacée et le bord gauche du bloc d’actions, et `10 pt` entre le bord droit du bloc d’actions et le bord droit du conteneur. Le premier bouton du groupe porte les rayons haut-gauche et bas-gauche ; le dernier porte les rayons haut-droit et bas-droit. Si une seule action est affichée, ses quatre coins sont arrondis.
+
+Cette règle s’applique aux états représentés de Composition, Calendrier Semaine et Catalogues. Pour une confirmation destructive déclenchée depuis une action de swipe, le voile modal conserve l’état ouvert sous-jacent : carte déplacée et action déclenchante visibles jusqu’à décision. Références Figma courantes : `2028:11808`, `1992:5962`, `2094:86`, `1992:10518`, `1992:10628`, `2234:88` et `2234:189`.
 
 ### 4.8 Cartes structurelles Composition
 
