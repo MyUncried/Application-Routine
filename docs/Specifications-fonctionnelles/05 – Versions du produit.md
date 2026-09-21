@@ -14,7 +14,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
   - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
+  - une Récupération éventuelle exécutée après tous les côtés de l’Activité ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
 - ordonner les activités d’un Tour ;
@@ -181,6 +181,8 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 
 ### V1 (MVP)
+
+Pour cette version, la bilatéralité au niveau du Tour n’est pas activée : `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`; seule la bilatéralité propre aux Activités est configurable.
 - Gestion des séances actives et archivées.
 - Gestion des routines de planification.
 
