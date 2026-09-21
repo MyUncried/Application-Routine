@@ -110,6 +110,6 @@ test('KPB-001 non-UI and FUNCTIONAL static-analysis alternative stay supported',
   const value=payload({schema:'kodjo.ui-criteria.v2',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
   value.modified_modules=[{path:'scripts/example.js',change:'MODIFY'}];
   assert.doesNotThrow(()=>decode('draft',response(value)));
-  const m=validMatrix();m.criteria[0].proof_required[0]='STATIC_ANALYSIS';
+  const m=validMatrix();m.criteria[0].proof_required[0]='STATIC_ANALYSIS';m.criteria[0].assertions[0].proof_required[0]='STATIC_ANALYSIS';
   assert.doesNotThrow(()=>validate(m));
 });
