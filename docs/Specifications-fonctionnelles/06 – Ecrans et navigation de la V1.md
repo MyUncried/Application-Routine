@@ -1731,7 +1731,7 @@ L’ancienne référence `3787:5209 — Catalogue — action contextuelle direct
 
 La preuve visuelle canonique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
 
-![[images/status-badge-composant.png|700]]
+![Status Badge — composant](./images/status-badge-composant.png)
 
 *Composant — `Status / Badge — Source exact` — Figma `3959:5970` — export PNG ×2*
 
