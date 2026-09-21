@@ -44,7 +44,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Série** | Exécution d’une Activité selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour une Activité bilatérale autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient `C` fois si la Récupération vaut `0`, y compris après la dernière Série, ou `C − 1` fois si la Récupération est positive et remplace alors la dernière Pause. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Pause entre les Séries** | Durée facultative rattachée aux Séries d’un même côté. Pour `C` Séries, elle est exécutée `C` fois lorsque la Récupération vaut `0`, y compris après la dernière Série ; lorsqu’une Récupération positive existe, elle est exécutée `C − 1` fois et la Récupération remplace la dernière Pause. Elle reste distincte de la Récupération. `Pause après Série` peut être conservé comme libellé historique. |
-| **Phase de Récupération** | Étape chronométrée calculée lorsque la Récupération de l’Activité est supérieure à `0 s`. Pour une Activité autonome, elle s’exécute une fois après tous les côtés ; dans un Tour bilatéral, elle s’exécute une fois à la fin de chaque passage de côté. Elle n’est pas comptée comme une Activité. |
+| **Phase de Récupération** | Étape chronométrée calculée lorsque la Récupération de l’Activité est supérieure à `0 s`. Elle s’exécute une fois après tous les côtés de l’Activité et n’est pas comptée comme une Activité. |
 | **Durée totale de l’Activité** | Durée calculée globale d’une occurrence d’Activité autonome en mode Durée : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, `L = 1` en unilatéral et `L = 2` en bilatéral. Elle n’est pas une seconde donnée canonique indépendante du nombre de Séries. En Répétitions et À l’échec, le libellé `Durée totale` reste visible sous forme de borne minimale `≥` calculée à partir des temps connus. |
 | **Activité avant le Tour** | Activité exécutée une seule fois avant la première répétition du Tour. |
 | **Activité dans le Tour** | Activité exécutée à chaque répétition du Tour. |
@@ -56,8 +56,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 Dans la version actuelle, le Tour ne porte aucune direction configurable pour l’utilisateur : `tour.sideMode` reste techniquement présent mais est figé à `UNILATERAL`. Les directions `RIGHT_LEFT` et `LEFT_RIGHT` du Tour sont une capacité technique dormante. La direction fonctionnelle active est donc la direction propre de l’Activité.
 
 - La **direction propre** est persistée sur l’Activité : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
-- La **direction héritée** provient d’un Tour bilatéral. Le Tour porte et affiche seul la direction ; l’Activité conserve un réglage propre `UNILATERAL`, visible mais désactivé, et sa carte comme la synthèse de l’éditeur ne répètent pas la direction héritée.
-- Hors Tour bilatéral, une Activité proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse de l’écran Ajouter/Modifier une Activité développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
+- Dans la version actuelle, aucune direction n’est héritée du Tour : `tour.sideMode` est techniquement conservé mais figé à `UNILATERAL`.
+- Une Activité proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte, y compris dans le Tour ; seul le texte de la Synthèse de l’écran Ajouter/Modifier une Activité développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
 
 ## 4. Concepts de planification
 
@@ -140,11 +140,11 @@ Dans le MVP, `Archivées` est l’unique option fonctionnelle du panneau `Filtre
 
 | Terme | Définition canonique |
 |---|---|
-| **Réglage de côté** | État d’une Activité ou d’un Tour parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Les états bilatéraux affichent `D→G` et `G→D`. En `UNILATERAL`, le contrôle d’Activité reste sans texte court et le contrôle du Tour affiche un tiret `–` centré. |
+| **Réglage de côté** | État fonctionnel d’une Activité parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Les états bilatéraux affichent `D→G` et `G→D`. Le Tour conserve techniquement le même domaine, mais sa valeur est figée à `UNILATERAL` dans la version actuelle et aucun contrôle Tour n’est affiché. |
 | **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Il provient du Tour lorsqu’il est bilatéral ; sinon de l’Activité. Une Activité n’est jamais doublée simultanément par les deux niveaux. |
 | **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Activité par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté. |
-| **Tour bilatéral** | À chaque répétition du Tour, toutes ses Activités sont exécutées pour le premier côté, puis toutes pour le second. Le Tour impose la direction effective à toutes ses Activités, sans notion d’Activité « latéralisable ». |
+| **Tour bilatéral** | Capacité technique historique du moteur correspondant à un `tour.sideMode` bilatéral. Elle n’est pas activée fonctionnellement dans la version actuelle : le produit courant conserve le Tour à `UNILATERAL` et n’expose aucun contrôle permettant de changer cette valeur. |
 
 ## 11. Concepts d’exécution directe — MVP T03
 
