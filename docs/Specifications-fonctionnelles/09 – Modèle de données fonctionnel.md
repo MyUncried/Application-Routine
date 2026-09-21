@@ -1014,8 +1014,9 @@ La restauration d'une Séance :
 - nécessite la création de nouvelles Routines si l'utilisateur souhaite la planifier de nouveau.
 ### Suppression d'une séance
 
-- Supprime la séance et les routines qui la référencent.
-- Ne supprime jamais les exécutions de séance ni leurs instantanés.
+- La suppression définitive est autorisée uniquement pour une Séance déjà archivée et après confirmation explicite.
+- Elle supprime la Séance persistante ; les Routines qui la référençaient ont déjà été supprimées lors de l’archivage.
+- Elle ne supprime jamais les Exécutions de séance ni leurs Instantanés.
 
 ## Historique
 
@@ -1035,7 +1036,9 @@ Ce chapitre décrit les différents états que peuvent traverser les principales
 Création → Édition → Active
                  ├─ Modifier
                  ├─ Dupliquer → Nouvelle séance
-                 ├─ Archiver → Séance archivée → Restaurer
+                 └─ Archiver → Séance archivée
+                               ├─ Restaurer → Active
+                               └─ Supprimer définitivement → Supprimée
 ```
 
 ### Règles métier
