@@ -943,17 +943,25 @@ Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération
 
 Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
-## Catégories de la séance
+## Catégories de la séance — modale
 
 ### Éléments affichés
 
 | Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraintes | Source | Action | Remarques |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bouton Retour | Bouton | Toujours | Oui | Visible | Revient à la composition | Système | Retour | |
-| Titre de l’écran | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | En-tête fixe |
+| Voile modal | Overlay | Toujours | Oui | Visible | Bloque les interactions avec la Composition sous-jacente | DSF/Figma | Aucune | La Composition reste visible mais inactive |
+| Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | Statique | Annuler | Cible `48 × 53 pt`, fond circulaire `38 × 38 pt` dans la référence Figma |
+| Titre de la modale | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
+| Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | Statique | Valider | Remplace l’ancien CTA inférieur `Enregistrer la séance` |
 | Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; une sélection ne change pas l’ordre |
-| Bouton Créer une catégorie | Bouton | Toujours | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Ajoute une catégorie personnalisée ; si le nom normalisé existe déjà, sélectionne l’existante |
-| Bouton Enregistrer la séance | Bouton | Toujours | Oui | Actif | La séance doit être valide | Statique | Enregistrer | Retourne à Catalogue de séances |
+| Bouton Créer une catégorie | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Remplacé dans l’état inline par la saisie et ses actions |
+| Saisie inline | Champ + actions | État création | Non | « Nom de la catégorie » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la catégorie temporaire | Brouillon | Annuler / Ajouter | Frame `2028:11248` |
+
+### Layout de référence
+
+- frame standard `2028:11204` : modale `x=12`, `y=38`, `378 × 313 pt`, en-tête `60 pt`, contenu `253 pt` ;
+- frame création inline `2028:11248` : modale `x=12`, `y=38`, `378 × 369 pt`, en-tête `60 pt`, contenu `309 pt` ;
+- aucun CTA inférieur `Enregistrer la séance` n’est affiché dans l’état courant.
 
 ### Règles fonctionnelles
 
@@ -961,12 +969,12 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | --- | --- |
 | Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
 | Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
-| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant l’enregistrement final. |
+| Création d’une catégorie | La saisie est intégrée dans la modale avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant la validation finale. |
 | Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
-| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant la navigation Catégories ↔ Composition. |
-| Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
-| Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances. |
-| Échec d’enregistrement | Reste sur l’écran, conserve le brouillon complet, réactive l’action et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
+| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant les ouvertures de la modale. |
+| Annuler la modale | Ferme la modale et restitue la Composition avec son brouillon ; aucune persistance finale n’est effectuée. |
+| Valider la modale | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances, segment `Séances`. |
+| Échec d’enregistrement | Reste dans la modale, conserve le brouillon complet, réactive `Valider` et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
 | Réorganisation | Aucune réorganisation manuelle des Catégories dans le MVP. |
 
 
