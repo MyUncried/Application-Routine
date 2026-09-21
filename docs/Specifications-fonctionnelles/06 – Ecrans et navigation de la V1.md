@@ -520,7 +520,7 @@ Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord êtr
 
 Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sans refermer le contexte de swipe : l’arrière-plan conserve la carte déplacée et l’action `Supprimer` visible sous le voile modal jusqu’à `Annuler` ou `Confirmer`.
 
-La suppression demande toujours une confirmation explicite. Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
+La suppression demande toujours une confirmation explicite. À ce stade, aucune Routine associée ne subsiste : elles ont déjà été supprimées lors de l’archivage conformément au cycle de vie de la Séance.
 
 Après confirmation :
 
