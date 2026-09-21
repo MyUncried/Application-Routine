@@ -284,7 +284,7 @@ Le moteur gère ensuite :
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
 - l’insertion d’une étape `SERIES_PAUSE` après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- l’insertion d’une étape `RECOVERY` après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral lorsque sa durée est positive ;
+- l’insertion d’une étape `RECOVERY` après tous les côtés de l’Activité lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -1287,13 +1287,13 @@ Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; auc
 
 ## Architecture de la bilatéralité
 
-Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants ajoutent `side_mode` à l’Activité de catalogue, à l’occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut. Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Activité de catalogue, l’occurrence de Séance et le Tour, avec `UNILATERAL` non nul par défaut. **D-200 : dans la version actuelle, `tour.sideMode` est une capacité technique dormante et la valeur produite/persistée par le produit courant est toujours `UNILATERAL`; aucun écran ni service fonctionnel exposé ne permet de la modifier.** Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
 
-Le générateur de Plan est l’unique composant autorisé à développer les passages. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+Le générateur de Plan reste capable de traiter techniquement les trois valeurs de `tour.sideMode` afin de préserver la compatibilité du moteur existant. Dans la version actuelle, cette branche n’est pas atteinte par le produit : le Tour reste `UNILATERAL`, de sorte que la direction effective provient de l’Activité. Les mécanismes historiques de priorité du Tour, de transition atomique et de remise des enfants à `UNILATERAL` sont conservés dans le code comme capacité dormante, sans contrat produit actif. La migration conserve `UNILATERAL` et `NONE` pour les données historiques sans créer de duplicata.
 
 Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Activité/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 
-Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `Indicator / Sides — Source exact` (`3706:5020`) reste `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
+Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est placé ligne 2, colonne 1 sous `Séries` et reste le seul contrôle de côté actif dans la version actuelle. `Controls / Tour Sides — Source exact` (`3705:5021`) est conservé comme composant historique/capacité technique mais ne doit plus être instancié dans les écrans actifs. `Indicator / Sides — Source exact` (`3706:5020`) reste `42 × 20 pt` dans les informations secondaires de carte.
 
 Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
