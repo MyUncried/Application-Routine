@@ -2,7 +2,7 @@
 
 > Rectification Bilatéralité du 13 septembre 2026 : contrôle Activité `74 × 42 pt` en grille, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. **Décision D-200 du 21 septembre 2026 : la bilatéralité du Tour n’est pas activée dans la version actuelle ; `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`, sans contrôle utilisateur.** Les anciennes règles et évidences de contrôle Tour restent historiques.
 >
-> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle/migration T03 reste précisé dans 09 bis. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
+> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-200 au registre 07. Le modèle/migration T03 reste précisé dans 09 bis. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
 >
 > Décision du 21 septembre 2026 — D-187 : dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant ; l’écran/arbre intermédiaire est supprimé. Les anciennes frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques, non comme cible fonctionnelle.
 >
@@ -10,7 +10,7 @@
 >
 > Décision du 21 septembre 2026 — D-190 : `Catégories de la séance` est une modale ouverte au-dessus de la Composition, et non un écran autonome. Les frames courantes sont `2028:11204` et `2028:11248`; l’action d’en-tête Annuler revient à la Composition avec le brouillon intact, l’action Valider remplace l’ancien CTA inférieur `Enregistrer la séance` et déclenche la persistance finale. Les sources DSF exactes sont `Icon / Modal Action — Source exact` (`4155:6201`), `Modal / Header Action — Source exact` (`4151:6197`) et `Action / Categories — Source exact` (`4152:6189`).
 >
-> Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif selon le contexte fonctionnel, notamment `Archivées` pour Activités. Seuls les panneaux/options ouverts `Filtrer`/`Trier` restent `NON VÉRIFIABLE` / `À CLARIFIER`. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif sur Séances et Activités avec l’unique option MVP `Archivées`. Le panneau ouvert `Filtrer` est désormais déterministe via D-197 et Figma `4170:6608`, `4170:11315`, `4170:11443` ; seul `Trier` reste sans panneau MVP. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
 
 ## 1. Objet
 
@@ -61,7 +61,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
 | 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
-| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 17 contrats complets à 21 sections, couverture E01–E73, rangée Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 unique |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Référentiel produit des contrats d’écran, couverture partielle publiée en section 17 ; 17 contrats actifs à 22 rubriques, identifiants produit + alias T03. | Référence normative des contrats actifs |
 
 ## 4. Images et maquettes
 
@@ -100,7 +100,7 @@ La rangée Catalogue `Créer / Filtrer / Trier` est conçue et vérifiée : chac
 
 Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances ; il reste visible mais fonctionnellement désactivé en T03. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
 
-Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont donc vérifiables. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est fixé dans D-184 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes.
+Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont vérifiables. Le panneau `Filtrer` est défini par `Overlay / Catalogue Filter — Source exact` (`4170:6608`), variantes `4170:6570` / `4170:6589`, références `4170:11315` / `4170:11443`. Son unique option fonctionnelle MVP est `Archivées`, commune aux Catalogues Séances et Activités ; l’application/désactivation est immédiate et ferme le panneau. `Trier` reste visible disabled et aucun panneau de tri MVP n’est défini.
 
 Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points restés `À CLARIFIER`.
 
@@ -188,7 +188,7 @@ L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTI
 
 Les cartes du Catalogue des activités séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est visible mais désactivé, utilise le même composant DSF `2537:1033` que le Catalogue des séances et occupe la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est présente.
 
-`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. En T03 sur `Activités`, `Filtrer` est fonctionnel au minimum pour accéder à `Archivées`; aucune autre option n’est définie. `Trier` est visible mais désactivé ; le tri par défaut reste la dernière modification décroissante. Les contrôles d’entrée sont conçus ; seul le détail visuel des panneaux/options ouverts reste non défini et ne doit pas être inventé.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. Dans le MVP, `Filtrer` propose uniquement `Archivées` sur les Catalogues Séances et Activités ; l’option est appliquée/désappliquée immédiatement au tap et le panneau se ferme. `Trier` est visible mais désactivé ; le tri par défaut reste la dernière modification décroissante.
 
 La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
 
