@@ -6,7 +6,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 
 ### Fonctionnalités
 
-- créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
+- créer, modifier, dupliquer et archiver une Séance ; consulter les archives, restaurer une Séance archivée et la supprimer définitivement uniquement depuis les archives ;
 - créer des Activités sans sélection de type ;
 - définir pour chaque exercice :
   - un nom ;
