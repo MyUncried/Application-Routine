@@ -80,7 +80,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 
 ## Contrôle de cohérence final
 
-`docs/PRODUCT.md` reprend désormais la synthèse des états, de l’ordre des passages, des Pauses, des Récupérations, des calculs, de la priorité du Tour, de l’Exécution, des Résultats par côté et du découpage Configuration puis T03 révisée. Les manifestes historiques de tranches clôturées ont été exclus du périmètre d’écriture et restent inchangés.
+`docs/PRODUCT.md` reprend désormais la synthèse des états, de l’ordre des passages, des Pauses, des Récupérations, des calculs, de l’Exécution et des Résultats par côté. La priorité du Tour n’est plus un comportement produit actif dans la version courante ; elle subsiste uniquement comme capacité moteur dormante selon D-200. Les manifestes historiques de tranches clôturées restent inchangés.
 
 ## Formules canoniques
 
