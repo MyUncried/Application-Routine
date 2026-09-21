@@ -30,7 +30,7 @@ function fixture(matrix, embeddedContract = null) {
 }
 function validMatrix() {
   return {
-    schema:'kodjo.ui-criteria.v1',
+    schema:'kodjo.ui-criteria.v2',
     criteria:[{
       criterion_id:'UI-001',
       source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X',requirement:'Afficher le contrôle canonique.'},
@@ -42,6 +42,10 @@ function validMatrix() {
       change_targets:['src/features/example/ExampleScreen.tsx'],
       tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
       proof_required:['FUNCTIONAL_TEST','VISUAL_COMPARE','DEVICE_CHECK'],
+      assertions:[
+        {assertion_id:'UI-001-A01',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/content'},property_type:'CONTENT',expected:'Contrôle canonique présent.',proof_required:['FUNCTIONAL_TEST']},
+        {assertion_id:'UI-001-A02',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/geometry'},property_type:'GEOMETRY',expected:'Géométrie conforme.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
+      ],
     }],
     preservation:{
       preserve:[{target:'Navigation existante',justification:'Hors changement demandé.'}],
@@ -59,8 +63,24 @@ test('UI plan: matrice atomique valide produit un contrat versionne', () => {
   assert.equal(result.status,0,result.stderr);
   const contract=JSON.parse(fs.readFileSync(out,'utf8'));
   assert.equal(contract.schema,'kodjo.ui-plan-contract.v1');
+  assert.equal(contract.contract_version,2);
   assert.equal(contract.ui_applicable,true);
   assert.equal(contract.criterion_count,1);
+  assert.equal(contract.assertion_count,2);
+});
+
+
+test('UI plan: consume conserve la compatibilite des plans historiques v1', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-plan-v1-'));
+  const matrix=validMatrix();
+  matrix.schema='kodjo.ui-criteria.v1';
+  for(const criterion of matrix.criteria) delete criterion.assertions;
+  const plan=path.join(dir,'plan.md');
+  const out=path.join(dir,'out.json');
+  const embedded={schema:'kodjo.ui-plan-contract.v1',contract_version:1,protocol_commit:protocolCommit,scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],criterion_count:1,matrix_sha256:require('../../scripts/kodjo/lib/ui-criteria-contract').matrixFingerprint(matrix)};
+  fs.writeFileSync(plan,fixture(matrix,embedded));
+  const result=run([plan,'b'.repeat(40),dir,out,'consume',protocolCommit],dir);
+  assert.equal(result.status,0,result.stderr);
 });
 
 test('UI plan: tout module UI modifie doit etre couvert par un critere', () => {
