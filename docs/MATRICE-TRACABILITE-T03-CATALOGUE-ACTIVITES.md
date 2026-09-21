@@ -59,10 +59,11 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 - `3561:7673` Création activité — Répétitions — roulette compacte ouverte ;
 - `3561:7802` Création activité — À l’échec ;
 - `3943:6064` Création activité — Durée / Pause / Séries — Vide ;
-- `3788:5258` Ajouter activité depuis Composition ;
+- `3788:5258` ancien Ajouter activité depuis Composition — supersédé ;
+- `3933:5780` Ajouter activité depuis Composition — arbre courant avec Point d’arrêt ;
 - `3789:5349`, `3789:5405` multi-sélection ;
 - `3879:5947`, `3879:6079` créer/modifier référence persistante ;
-- `2028:11700`, `2028:11808` Composition / actions glissées ;
+- `2028:11700`, `2028:11808` Composition / actions glissées ; `2028:11808` inclut le Point d’arrêt courant ;
 - `2028:11204` Catégories ;
 - `2537:1033` Déployer ;
 - `2537:214` Navigation Bottom.
