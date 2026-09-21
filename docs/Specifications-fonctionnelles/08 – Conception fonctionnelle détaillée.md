@@ -950,12 +950,12 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraintes | Source | Action | Remarques |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Voile modal | Overlay | Toujours | Oui | Visible | Bloque les interactions avec la Composition sous-jacente | DSF/Figma | Aucune | La Composition reste visible mais inactive |
-| Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | Statique | Annuler | Cible `48 × 53 pt`, fond circulaire `38 × 38 pt` dans la référence Figma |
+| Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | DSF | Annuler | `Modal / Header Action — Source exact` `Type=Cancel` (`4151:6191`) ; icône `Icon / Modal Action — Source exact` `Type=Cancel` (`4155:6197`) ; cible `48 × 53 pt`, fond circulaire `38 × 38 pt` |
 | Titre de la modale | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
-| Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | Statique | Valider | Remplace l’ancien CTA inférieur `Enregistrer la séance` |
-| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; une sélection ne change pas l’ordre |
-| Bouton Créer une catégorie | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Remplacé dans l’état inline par la saisie et ses actions |
-| Saisie inline | Champ + actions | État création | Non | « Nom de la catégorie » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la catégorie temporaire | Brouillon | Annuler / Ajouter | Frame `2028:11248` |
+| Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | DSF | Valider | `Modal / Header Action — Source exact` `Type=Validate` (`4151:6196`) ; icône `Icon / Modal Action — Source exact` `Type=Validate` (`4155:6200`) ; remplace l’ancien CTA inférieur |
+| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie / DSF | Sélectionner / Désélectionner | `Selection / Category Tag` (`3302:4166`) ; prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante |
+| Bouton Créer une catégorie | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | DSF | Créer | `Action / Categories — Source exact` `Type=Create` (`4152:6182`) |
+| Saisie inline | Champ + actions | État création | Non | « Nom de la catégorie » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la catégorie temporaire | Brouillon / DSF | Annuler / Ajouter | Frame `2028:11248` ; actions `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) de `Action / Categories — Source exact` (`4152:6189`) |
 
 ### Layout de référence
 
