@@ -61,7 +61,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-034 | Une Activité porte une Pause entre Séries d’un même côté et une durée de Récupération positionnée selon sa direction effective ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
 | RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
 | RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries, une Pause éventuelle est insérée `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`; une Série n’est pas une entité métier autonome. |
-| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
+| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés de l’Activité. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
 | RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
 | RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
@@ -198,14 +198,14 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-120 | Activités, Séances et Circuits peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
 | RM-143 | Le réglage de côté cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`; `UNILATERAL` est le défaut et la valeur de migration. |
 | RM-144 | Une Activité autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
-| RM-145 | Un Tour bilatéral exécute à chaque répétition tout son contenu du premier côté puis du second. Chaque Récupération est exécutée une fois par passage de côté. |
-| RM-146 | Un Tour bilatéral impose sa direction à toutes ses Activités. Leur réglage propre est `UNILATERAL`, visible et désactivé ; aucune capacité « latéralisable » n’existe. |
-| RM-147 | Activer un Tour bilatéral demande confirmation uniquement si au moins une Activité contenue possède un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans Activité concernée, la direction est appliquée directement. Avec confirmation, `Annuler` ne modifie rien et `Confirmer` applique atomiquement la direction au Tour puis remet les seules Activités concernées à `UNILATERAL`. Désactiver le Tour ne restaure aucun réglage antérieur. |
+| RM-145 | La mécanique historique de Tour bilatéral est conservée techniquement mais n’est pas activée dans la version actuelle ; `tour.sideMode` reste figé à `UNILATERAL`. |
+| RM-146 | Dans la version actuelle, le Tour n’impose aucune direction fonctionnelle à ses Activités. Chaque Activité conserve son `sideMode` propre, y compris dans le Tour. |
+| RM-147 | Aucune activation bilatérale du Tour n’est proposée dans la version actuelle ; aucune confirmation spécifique au Tour n’existe. |
 | RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Activité, sans compteur de côté. La progression `Activité X/Y` ne change pas de rang entre les deux passages. |
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
-| RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
-| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL` et en héritage du Tour. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
+| RM-151 | Dans la Composition, une carte affiche sa direction propre bilatérale `D→G` ou `G→D` dans ses informations secondaires quelle que soit sa position structurelle ; aucune indication en `UNILATERAL`. |
+| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL`. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
 | RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
 
 ## 12. Règles métier — Exécution directe d’une Activité — MVP T03
