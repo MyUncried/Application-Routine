@@ -68,7 +68,7 @@ Les API fonctionnelles respectent les principes suivants :
 |---|---|---|---|---|---|
 |API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, mode d’exécution, durée ou répétitions éventuelles, nombre de Séries, Pause, Récupération, zones corporelles|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; valeur obligatoire uniquement selon le mode ; nombre de Séries entier de 1 à 99 ; Pause et Récupération ≥ 0 ; aucun média fonctionnel dans le MVP|Activité|
 |API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, Récupération `R`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée totale réalisable|Avec `L = 1` ou `2` et `P(C,R) = C` si `R = 0`, sinon `C − 1`, pilote Séries : `D = L × [C × A + P(C,R) × B] + R`. Pilote Durée totale : `Cth = D/[L × (A+B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B)/(A + B)`, arrondi au plus proche avec `.5` vers le haut, minimum `1`, puis recalcul de `D`|Activité, calcul sans entité supplémentaire|
-|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|`C` Pauses par côté si `R = 0`, y compris après la dernière Série, sinon `C − 1`; Récupération positive remplaçant la dernière Pause et exécutée une fois après tous les côtés d’une Activité autonome ou une fois par passage de Tour bilatéral|Activité|
+|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|`C` Pauses par côté si `R = 0`, y compris après la dernière Série, sinon `C − 1`; Récupération positive remplaçant la dernière Pause et exécutée une fois après tous les côtés de l’Activité|Activité|
 |API-ACT-04|Associer un média|—|—|Hors MVP ; V2 autorise `0..n` associations ordonnées par Activité|—|
 |API-ACT-05|Associer des zones corporelles|ID Activité, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel prédéfini|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Activité, nombre de Séries|Activité mise à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Activité|
@@ -270,11 +270,11 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 | ID | Commande | Entrée | Effet et garanties |
 |---|---|---|---|
-| `API-SIDE-01` | Modifier le côté d’une Activité | ID, `sideMode` | Valide les trois valeurs ; recalcule les durées et synthèses ; interdit l’action si l’Activité appartient à un Tour bilatéral. |
-| `API-SIDE-02` | Modifier le côté d’un Tour | ID, `sideMode`, confirmation seulement si requise | Au passage de `UNILATERAL` à un mode bilatéral, recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Liste vide : applique directement. Liste non vide : `Annuler` n’écrit rien ; `Confirmer` met à jour atomiquement le Tour et remet les seules Activités concernées à `UNILATERAL`. Aucune propriété « latéralisable ». |
-| `API-SIDE-03` | Dupliquer | ID Activité ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
+| `API-SIDE-01` | Modifier le côté d’une Activité | ID, `sideMode` | Valide les trois valeurs et recalcule les durées et synthèses. L’opération reste disponible quelle que soit la position structurelle de l’Activité. |
+| `API-SIDE-02` | Modifier le côté d’un Tour | — | **Non exposée dans la version actuelle.** Le moteur conserve cette capacité technique pour compatibilité, mais le produit courant maintient `tour.sideMode = UNILATERAL` et aucune commande utilisateur ne peut appeler cette opération. |
+| `API-SIDE-03` | Dupliquer | ID Activité ou Tour | Une Activité dupliquée conserve fidèlement son `sideMode`. Un Tour dupliqué reste `UNILATERAL` dans la version actuelle. |
 | `API-SIDE-04` | Insérer une Activité persistante | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
-| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
+| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. Dans la version actuelle, `tour.sideMode` étant figé à `UNILATERAL`, la direction effective est celle de l’Activité ; la résolution générique historique est conservée dans le moteur. |
 | `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
 | `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Activité logique suivante. |
