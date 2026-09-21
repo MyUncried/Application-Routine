@@ -13,6 +13,7 @@ Le MVP permet à l'utilisateur :
 - de gérer ses catégories de séances et de sélectionner les zones corporelles du référentiel applicatif ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
+- d’archiver une Séance, de consulter les archives, de la restaurer ou de la supprimer définitivement depuis les archives ;
 - de planifier une séance au moyen d'une routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
@@ -237,8 +238,9 @@ Les exécutions déjà réalisées sont conservées.
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
 3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
-4. Glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
-5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
+4. Depuis les archives, l’utilisateur peut choisir `Restaurer` ; la Séance revient alors dans le Catalogue actif sans recréer les Routines supprimées lors de l’archivage.
+5. Pour supprimer définitivement, glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
+6. Choisir `Supprimer`, puis confirmer dans la modale. La confirmation conserve visuellement sous son voile la carte déplacée et l’action `Supprimer` qui l’a déclenchée. `Annuler` revient à la liste `Archivées`.
 
 Les Exécutions historiques restent conservées après suppression.
 ## Points d'attention
