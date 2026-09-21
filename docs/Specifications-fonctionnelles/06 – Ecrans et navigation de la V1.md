@@ -612,7 +612,7 @@ Le modèle conserve un Cycle technique unique dont le nombre de répétitions va
 
 ### Point d’arrêt
 
-L’action `+ Ajouter une activité` ouvre l’arbre contextuel courant Figma `3933:5780`. Il propose, dans l’ordre : `Une nouvelle activité`, `Une activité existante`, `Un point d’arrêt`, puis `Annuler`. L’ancienne frame `3788:5258`, limitée à trois options, est historique/supersédée.
+L’action `+ Ajouter une activité` ouvre l’arbre contextuel courant, représenté par les frames Figma synchronisées `3788:5258` et `3933:5780`. Il propose, dans l’ordre : `Une nouvelle activité`, `Une activité existante`, `Un point d’arrêt`, puis `Annuler`.
 
 Lorsqu’il est ajouté, le Point d’arrêt est placé par défaut après la dernière Activité créée, puis peut être déplacé indépendamment dans la Composition vers toute transition valide. Visuellement, il est matérialisé comme un séparateur compact et non comme une carte d’Activité. Dans la frame courante `2028:11808`, il est représenté dans le Tour par un petit repère central avec icône pause orange, ligne et liseré blancs et ombre légère. L’espace au-dessus et au-dessous du repère est identique à l’espace standard entre deux cartes du Tour ; dans cette frame Figma, cet espace vaut `6 pt`. Cette valeur est une preuve de rendu Figma, pas une règle métier.
 
