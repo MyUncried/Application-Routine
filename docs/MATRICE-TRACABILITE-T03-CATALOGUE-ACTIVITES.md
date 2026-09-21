@@ -48,7 +48,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Captures Figma physiques | copies embarquées doivent refléter les écrans modifiés du 16/09 avant d’être dites courantes | images README + preuves chapitre 13 | export du 15/09 interprété comme courant | PARTIELLEMENT CONFORME | Les nodes courants ont été contrôlés ; les anciens binaires restent explicitement à réexporter/historiques. |
 | Contrats d’écran | 17 contrats × 21 sections ; E01–E73 ; frontière T03/T04 ; tests négatifs | `13 – Contrats d’écran.md` | ancienne version du chapitre 13 | CONFORME | `13` est la seule référence contractuelle active. |
 
-## Évidences Figma contrôlées le 16 septembre 2026
+## Évidences Figma contrôlées le 21 septembre 2026
 
 - `3786:5093` Catalogue Activités — liste ;
 - `3787:5148` ancien arbre Créer Activités — historique/supersédé par D-187 ;
