@@ -461,7 +461,7 @@ Nom → Ajouter média disabled → sections/accordéons → paramètres Séries
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
+Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté Activité `74 × 42 pt` quelle que soit sa position structurelle ; aucun contrôle Côté du Tour dans la version actuelle ; roulettes Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -805,7 +805,7 @@ Tap Activity → éditeur ; long press Activity → déplacement ; swipe → act
 
 ### 5. Données affichées et source de vérité
 
-Draft Session. Direction propre hors Tour bilatéral : D→G/G→D ; rien en UNILATERAL ; dans Tour bilatéral, aucune répétition direction sur carte.
+Draft Session. Direction propre de l’Activité : `D→G`/`G→D`; rien en `UNILATERAL`. Le Tour reste techniquement `UNILATERAL` et n’introduit aucune direction héritée dans la version actuelle.
 
 ### 6. Classification des valeurs Figma
 
@@ -817,7 +817,7 @@ CR initial → activités avant Tour → Tour → activités après Tour → Fin
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court ; contrôle Tour selon décisions bilatérales existantes.
+CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court sur l’Activité ; aucun contrôle de côté du Tour dans la version actuelle (D-200).
 
 ### 9. Layout déterministe
 
