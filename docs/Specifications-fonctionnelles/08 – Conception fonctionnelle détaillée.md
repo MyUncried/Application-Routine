@@ -744,7 +744,8 @@ La planification repose sur les principes suivants :
 - une routine référence toujours une séance existante ;
 - plusieurs routines peuvent utiliser la même séance ;
 - les occurrences ne sont pas modifiables individuellement dans le MVP ;
-- l'archivage d'une Séance supprime les Routines qui lui sont associées ;
+- l'archivage d'une Séance supprime toutes les Routines qui lui sont associées ; sans Routine, l'archivage est immédiat ; avec au moins une Routine, il exige la confirmation `Archiver cette séance ?` avant toute écriture ;
+- après archivage, aucune action d'annulation immédiate n'est proposée ; la récupération passe par `Filtrer > Archivées` puis `Restaurer` ;
 - la restauration d'une Séance archivée ne recrée ni ne restaure ses anciennes Routines ;
 - la suppression d'une routine ne supprime jamais la séance ;
 - la suppression d'une séance entraîne la suppression des routines qui lui sont associées ;
