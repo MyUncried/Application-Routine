@@ -115,6 +115,10 @@ La structure affichée comprend, dans l’ordre :
 4. zéro, une ou plusieurs Activités après le Tour ;
 5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
+La Composition peut contenir zéro ou plusieurs **Points d’arrêt** entre deux unités exécutables successives. Un Point d’arrêt est un élément structurel positionnable : ce n’est ni une Activité, ni une Pause chronométrée, ni un écran d’Exécution. Il ne peut être placé ni en première ni en dernière position, deux Points d’arrêt ne peuvent pas être consécutifs, et un Point d’arrêt situé dans un Tour est rencontré à chaque répétition de ce Tour. Lors de son ajout, il est positionné par défaut après la dernière Activité créée, puis peut être déplacé indépendamment dans la Composition vers toute transition valide.
+
+Pendant l’Exécution de Séance T04, lorsqu’un Point d’arrêt est rencontré après l’achèvement de l’unité courante, l’écran normal de l’unité suivante est affiché mais cette unité ne démarre pas automatiquement. Aucun écran intermédiaire propre au Point d’arrêt n’est affiché ; la reprise utilise le comportement normal de démarrage de l’unité suivante.
+
 Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
