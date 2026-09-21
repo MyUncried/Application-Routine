@@ -224,7 +224,7 @@ Pour cette version, la bilatéralité au niveau du Tour n’est pas activée : `
 
 ## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau des Activités, la copie et la duplication, les calculs et les synthèses. La capacité technique historique du Tour est conservée mais non activée : `tour.sideMode` reste figé à `UNILATERAL`, sans contrôle ni confirmation utilisateur. Elle n’exécute encore aucun passage.
 
 T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
 
