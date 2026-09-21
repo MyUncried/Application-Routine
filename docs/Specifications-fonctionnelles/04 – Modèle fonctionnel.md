@@ -85,7 +85,7 @@ Chaque Activité possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative régie par D-156 ;
-- une Récupération facultative exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, `0 s` signifiant absence de phase ;
+- une Récupération facultative exécutée après tous les côtés de l’Activité, `0 s` signifiant absence de phase ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives ;
@@ -308,9 +308,9 @@ Le Circuit est une racine persistante préparée pour une version post-MVP, poss
 
 ## Modèle fonctionnel de bilatéralité
 
-Une Activité persistante, son occurrence copiée dans une Séance et un Tour portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
+Une Activité persistante et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
 
-La direction effective est résolue une seule fois : celle du Tour si celui-ci est bilatéral, sinon celle de l’Activité. L’activation bilatérale d’un Tour recherche d’abord les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, après confirmation, le Tour prend la direction choisie et les seules Activités concernées sont remises à `UNILATERAL` dans une opération atomique ; `Annuler` ne modifie aucune donnée. Sous un Tour bilatéral, les contrôles enfants restent visibles, propres `UNILATERAL` et désactivés. La désactivation ultérieure du Tour ne restaure aucune ancienne valeur.
+Le Tour conserve techniquement le même champ `sideMode` pour compatibilité avec le modèle et le moteur existants, mais cette capacité n’est pas activée dans la version actuelle : la valeur produite/persistée par le produit courant est figée à `UNILATERAL` et aucune interaction utilisateur ne peut la modifier. La direction fonctionnelle effective d’une Activité est donc sa direction propre. Les mécanismes techniques capables de traiter un Tour `RIGHT_LEFT` ou `LEFT_RIGHT` restent dormants et ne constituent pas une règle produit active.
 
 Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Activité concernée.
 
