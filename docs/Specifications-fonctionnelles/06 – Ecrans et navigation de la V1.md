@@ -351,7 +351,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Routine` : planification d’une Séance ;
 - `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et Récupération facultatives ;
 - `Exercice` : Activité physique ;
-- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral ;
+- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés de cette Activité ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Activités exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Activités placées avant le Tour, le Tour et les Activités placées après le Tour ;
@@ -1100,7 +1100,7 @@ T04 développe toutes les Séries, les répétitions de Tour et les passages de 
 
 ### Récupération
 
-Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés d’une Activité autonome, ou après chaque passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
+Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés de l’Activité. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
 
 La zone `À suivre` permet de préparer l’Activité suivante ou la Fin de séance. `Activité suivante` avant zéro demande confirmation ; l’Exercice reste `Terminé`, tandis que `recoveryElapsedSeconds` conserve le temps partiel de Récupération.
 
@@ -1708,13 +1708,13 @@ La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cad
 
 ## Mise à jour Bilatéralité — rectifiée le 13 septembre 2026
 
-Le contrôle Activité porte le libellé singulier `Côté` et cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. Il est déjà placé dans le cadre bleu `354 × 156 pt`, ligne 2 colonne 1, directement sous `Séries`. Il mesure `74 × 42 pt`. La grille utilise deux lignes séparées de `10 pt`, trois colonnes de `74 / 124 / 124 pt` et deux gouttières de `8 pt`. Les états affichent : rien pour `UNILATERAL`, `D→G`, `G→D`. Sous un Tour bilatéral, le contrôle reste visible, propre `UNILATERAL` et désactivé.
+Le contrôle Activité porte le libellé singulier `Côté` et cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. Il est placé dans le cadre bleu `354 × 156 pt`, ligne 2 colonne 1, directement sous `Séries`. Il mesure `74 × 42 pt`. La grille utilise deux lignes séparées de `10 pt`, trois colonnes de `74 / 124 / 124 pt` et deux gouttières de `8 pt`. Les états affichent : rien pour `UNILATERAL`, `D→G`, `G→D`. Dans la version actuelle, ce contrôle reste actif quelle que soit la position structurelle de l’Activité, y compris dans le Tour.
 
-Dans la Composition `2028:11700`, le contrôle du Tour est enfant de l’en-tête `2028:11743` (`354 × 34 pt`). Le cadre numérique `2028:11752` est à `x=237`, `y=0`, en `66 × 34 pt`; la direction est immédiatement à droite à `x=311`, `y=0`, en `42 × 34 pt`, avec `8 pt` d’espace. Les bords haut/bas et centres verticaux coïncident. Aucun titre visible `Côté` ou `Côtés`. `UNILATERAL` est vide ; les états bilatéraux affichent uniquement `D→G` ou `G→D`. Références : composant `3705:5021`, frames `3722:5061` et `3722:5207`.
+Dans la version actuelle, aucun contrôle de côté n’est affiché dans l’en-tête du Tour. Le Tour conserve techniquement `sideMode`, mais cette valeur est figée à `UNILATERAL` et n’est pas modifiable par l’utilisateur. Le composant historique `Controls / Tour Sides — Source exact` (`3705:5021`) et les anciennes frames associées ne constituent plus une cible d’écran active.
 
-Une confirmation n’est affichée au passage vers un Tour bilatéral que si au moins une Activité contenue possède déjà une direction propre bilatérale. Tour vide ou enfants tous propres `UNILATERAL` : application directe. Sinon, `Annuler` ne modifie rien et `Confirmer` applique la direction au Tour puis remet atomiquement les seules Activités concernées à `UNILATERAL`. Aucune propriété « latéralisable » n’est introduite.
+Aucune confirmation d’activation bilatérale du Tour n’est présentée dans la version actuelle, puisque le Tour reste figé à `UNILATERAL`.
 
-Dans une carte `354 × 69 pt`, l’indicateur propre appartient aux informations secondaires à droite : `x=311`, `y=24,5`, `42 × 20 pt`. Il affiche `D→G` ou `G→D` seulement hors Tour bilatéral ; il est absent pour `UNILATERAL` et sous un Tour bilatéral. La synthèse propre place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Elle omet cette clause pour une direction héritée. Références : `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`.
+Dans une carte `354 × 69 pt`, l’indicateur propre appartient aux informations secondaires à droite : `x=311`, `y=24,5`, `42 × 20 pt`. Il affiche `D→G` ou `G→D` lorsque la direction propre de l’Activité est bilatérale et reste absent pour `UNILATERAL`, y compris lorsque l’Activité appartient au Tour. La synthèse propre place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Références : `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`.
 
 Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
