@@ -1605,7 +1605,7 @@ Catégories est une modale, jamais un écran autonome ; aucune action finale inf
 
 ### 20. Recette déterministe
 
-Vérifier `2028:11204` et `2028:11248` ; voile bloquant ; géométrie standard/inline ; Annuler d’en-tête ; Valider ; création inline Annuler/Ajouter ; save ; double tap ; erreur ; destination/animation ; dernier segment Activités préalable ; 360/402/440 et clavier. Négatifs : écran plein autonome, CTA inférieur `Enregistrer la séance`, interaction avec Composition sous voile, Annuler inline fermant toute la modale, retour Activités après save.
+Vérifier `2028:11204` et `2028:11248` ; voile bloquant ; géométrie standard/inline ; Annuler d’en-tête ; Valider ; création inline Annuler/Ajouter ; vérifier que les actions d’en-tête ont pour `mainComponent` `4151:6191` / `4151:6196`, que leurs icônes proviennent de `4155:6197` / `4155:6200`, et que les actions texte utilisent `4152:6182` / `4152:6185` / `4152:6188` ; save ; double tap ; erreur ; destination/animation ; dernier segment Activités préalable ; 360/402/440 et clavier. Négatifs : écran plein autonome, CTA inférieur `Enregistrer la séance`, contrôle local non instancié, interaction avec Composition sous voile, Annuler inline fermant toute la modale, retour Activités après save.
 
 ### 21. Traçabilité
 
