@@ -116,7 +116,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | Service | Responsabilité |
 |---|---|
 | `SessionService` | Création, lecture, modification, duplication, archivage et restauration des Séances |
-| `CompositionService` | Gestion des Cycles, Tours, Activités et de leur ordre |
+| `CompositionService` | Gestion des Cycles, Tours, Activités, Points d’arrêt et de leur ordre |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
@@ -289,15 +289,16 @@ Le moteur gère ensuite :
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
+- les marqueurs de Point d’arrêt issus de la Composition : après l’unité précédente, préparer et afficher l’unité suivante tout en suspendant son auto-démarrage ;
 - la pause et la reprise ;
 - la réinitialisation de l’Activité, de la Série ou de la Récupération courante ;
 - le passage à l’étape suivante ;
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Les Points d’arrêt doivent être conservés dans la représentation ordonnée du Plan comme marqueurs de transition sans durée ni Résultat propre ; leur encodage technique exact peut rester distinct des types de phase chronométrée. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
-La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
+La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement. La capacité à suspendre l’auto-enchaînement sur un Point d’arrêt fait partie du contrat du moteur avant la finalisation de T04 ; elle ne doit pas être ajoutée a posteriori comme exception d’interface.
 
 ## 12.10 Gestion du temps
 
