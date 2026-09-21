@@ -604,9 +604,19 @@ Elle comprend dans le MVP :
 - zéro, une ou plusieurs Activités placées après le Tour ;
 - une `Fin de séance`.
 
+La Composition peut également contenir zéro ou plusieurs `Points d’arrêt`, positionnés uniquement entre deux unités exécutables. Un Point d’arrêt peut être placé entre deux Activités, à l’intérieur ou à l’extérieur du Tour, ou immédiatement de part et d’autre du Tour lorsqu’une unité exécutable existe de chaque côté. Il n’est ni une Activité ni une Pause chronométrée. Plusieurs Points d’arrêt sont autorisés, mais jamais en première ou dernière position et jamais consécutivement.
+
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
 Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
+
+### Point d’arrêt
+
+L’action `+ Ajouter une activité` ouvre l’arbre contextuel courant Figma `3933:5780`. Il propose, dans l’ordre : `Une nouvelle activité`, `Une activité existante`, `Un point d’arrêt`, puis `Annuler`. L’ancienne frame `3788:5258`, limitée à trois options, est historique/supersédée.
+
+Lorsqu’il est ajouté, le Point d’arrêt est placé par défaut après la dernière Activité créée, puis peut être déplacé indépendamment dans la Composition vers toute transition valide. Visuellement, il est matérialisé comme un séparateur compact et non comme une carte d’Activité. Dans la frame courante `2028:11808`, il est représenté dans le Tour par un petit repère central avec icône pause orange, ligne et liseré blancs et ombre légère. L’espace au-dessus et au-dessous du repère est identique à l’espace standard entre deux cartes du Tour ; dans cette frame Figma, cet espace vaut `6 pt`. Cette valeur est une preuve de rendu Figma, pas une règle métier.
+
+Un Point d’arrêt placé dans le Tour est rencontré à chaque répétition du Tour. À l’Exécution, aucun écran spécifique n’est créé : l’écran normal de l’unité suivante est affiché, mais son démarrage automatique est suspendu jusqu’à l’action normale de l’utilisateur.
 
 ### En-tête
 
@@ -679,7 +689,7 @@ Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries 
 
 Un appui court sur une carte Activité ouvre directement son parcours de modification. Un appui long sur l’ensemble du bloc Activité–Récupération déclenche sa réorganisation sans ouvrir la modification. Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée une Activité de Séance indépendante avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucune Activité dans le catalogue. `Supprimer` retire le bloc du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
-Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le geste. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Tour. Aucun overlay immobile ne remplace ce mouvement réel.
+Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le geste. Cet état matérialise également le Point d’arrêt compact dans le Tour. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Tour. Aucun overlay immobile ne remplace ce mouvement réel.
 
 ### Réorganisation
 
