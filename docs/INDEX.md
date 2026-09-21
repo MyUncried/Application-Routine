@@ -8,6 +8,8 @@
 >
 > Décisions du 21 septembre 2026 — D-188/D-189 : archivage, restauration et suppression définitive des Séances depuis les archives sont inclus dans le MVP. Le pattern de swipe est commun à Composition, Calendrier Semaine et Catalogues : carte déplacée, actions fixes, marges symétriques de `10 pt`, rayons extérieurs sur le groupe d’actions et conservation de l’état ouvert sous une confirmation destructive.
 >
+> Décision du 21 septembre 2026 — D-190 : `Catégories de la séance` est une modale ouverte au-dessus de la Composition, et non un écran autonome. Les frames courantes sont `2028:11204` et `2028:11248`; l’action d’en-tête Annuler revient à la Composition avec le brouillon intact, l’action Valider remplace l’ancien CTA inférieur `Enregistrer la séance` et déclenche la persistance finale.
+>
 > Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif selon le contexte fonctionnel, notamment `Archivées` pour Activités. Seuls les panneaux/options ouverts `Filtrer`/`Trier` restent `NON VÉRIFIABLE` / `À CLARIFIER`. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
 
 ## 1. Objet
