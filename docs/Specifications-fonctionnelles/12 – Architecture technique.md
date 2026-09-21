@@ -791,6 +791,8 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Icône d’action de modale Catégories | `Icon / Modal Action — Source exact` (`4155:6201`) | `Type=Cancel` (`4155:6197`) / `Type=Validate` (`4155:6200`) ; pictogrammes vectoriels canoniques |
 | Action d’en-tête modale Catégories | `Modal / Header Action — Source exact` (`4151:6197`) | `Type=Cancel` (`4151:6191`) / `Type=Validate` (`4151:6196`) ; chaque variante consomme l’icône canonique correspondante |
 | Actions texte Catégories | `Action / Categories — Source exact` (`4152:6189`) | `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`), `Type=Add` (`4152:6188`) |
+| Actions Catalogue | `Action / Catalogue — Source exact` (`2605:3849`) | `Type=Filter` (`2605:3844`), `Type=Sort` (`2605:3848`), `Type=Create` (`4168:6201`) ; source canonique de la rangée Catalogue, dont `Créer` utilise le pictogramme vectoriel `icon/ajouter` (`4168:6198`) |
+| Filtre Catalogue | `Overlay / Catalogue Filter — Source exact` (`4170:6608`) | `State=Default` (`4170:6570`) / `State=Selected` (`4170:6589`) ; une seule option MVP `Archivées`, application immédiate au tap, fermeture du panneau sans CTA de validation |
 | Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
 | Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
 | Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
@@ -798,7 +800,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Segmented | `Controls / Segmented` (`2586:2759`) | nombre d’items et position sélectionnée ; trois options égales pour `Durée / Répétitions / À l’échec` |
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
-| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
+| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte ; leurs actions `Annuler` / `Confirmer` sont exclusivement des instances de `Modal / Header Action — Source exact` (`4151:6197`) et réutilisent les tokens `component/wheel/action-*` |
 | Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
 | Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
@@ -814,6 +816,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
 | Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
+| Statut | `Status / Badge — Source exact` (`3959:5970`) | `Status=Catalogue/Planifiée/Exécutée/Archivée/Partielle/Terminée/Interrompue` ; pastille `h=24`, rayon `12`, `Inter Semi Bold 11`, padding `12/5`, largeur au contenu ; quatorze couleurs liées aux variables sémantiques `color/status/*` ; utilisée par le Suivi et par les résultats de Recherche globale |
 | Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
 | Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
@@ -835,11 +838,32 @@ Le contrôle `Controls / Disclosure — Source exact` est la référence normati
 
 ### Design tokens canoniques
 
-Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 4 septembre 2026, elles contiennent respectivement `59`, `62` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 21 septembre 2026, elles contiennent respectivement `90`, `111` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
 
 Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
 
 Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La table de correspondance doit rester bijective ; deux tokens de code ne peuvent pas représenter silencieusement une même variable Figma.
+
+#### Couleurs de statut
+
+Introduites avec le composant `Status / Badge — Source exact`. Les nœuds se lient aux variables sémantiques `color/status/*`, jamais directement aux primitives. Valeurs vérifiées dans Figma le 21 septembre 2026 (D-195/D-196).
+
+| Sémantique | Valeur |
+| --- | --- |
+| `color/status/catalogue-surface` | `#E5F0FF` |
+| `color/status/catalogue-text` | `#2159ED` |
+| `color/status/planned-surface` | `#EDEDFF` |
+| `color/status/planned-text` | `#5F5FC7` |
+| `color/status/positive-surface` | `#E8F7F0` |
+| `color/status/positive-text` | `#1F804F` |
+| `color/status/archived-surface` | `#E0E3E8` |
+| `color/status/archived-text` | `#595E66` |
+| `color/status/partial-surface` | `#FFF2E0` |
+| `color/status/partial-text` | `#B1540F` |
+| `color/status/interrupted-surface` | `#FFF1F0` |
+| `color/status/interrupted-text` | `#C2293B` |
+
+Contrastes mesurés pour le texte `11 pt` : Interrompue `5,21`, Archivée `5,07`, Catalogue `4,89`, Planifiée `4,62`, Partielle `4,61`, Exécutée/Terminée `4,50`. Le seuil opposable est WCAG AA `4,50`.
 
 #### Couleurs
 
