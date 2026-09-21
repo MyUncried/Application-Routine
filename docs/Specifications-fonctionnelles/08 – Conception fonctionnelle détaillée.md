@@ -224,7 +224,7 @@ Dans le MVP, la section Médias est visible et repliable. Le contrôle `Déploye
 
 `sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Une Activité de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
 
-Une Activité autonome exécute toutes les Séries du premier côté puis toutes celles du second. Dans un Tour bilatéral, le Tour porte seul la direction effective et les cartes enfants ne la répètent pas. Les résultats restent séparés par côté.
+Une Activité bilatérale exécute toutes les Séries du premier côté puis toutes celles du second, quelle que soit sa position structurelle. Dans la version actuelle, le Tour ne porte aucune direction fonctionnelle configurable : `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`. Les résultats restent séparés par côté.
 
 ## 2 bis.7 Limite Circuit
 
@@ -266,7 +266,7 @@ Une activité possède notamment :
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
+- une **Récupération** facultative, exécutée une fois après tous les côtés de l’Activité ;
 - une Description et des Zones corporelles d’exécution facultatives ;
 - des Médias dans le périmètre cible post-MVP. Dans le MVP, la section Médias est affichée et repliable mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est active.
 
