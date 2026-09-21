@@ -60,7 +60,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité porte un mode d’exécution et une durée de Récupération facultative. | Prérequis T04 |
-| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté. La Récupération est une durée distincte, exécutée après tous les côtés d’une Activité autonome ou après chaque passage d’un Tour bilatéral ; aucune Activité technique n’est créée pour l’une ou l’autre. | Prérequis T04 |
+| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté. La Récupération est une durée distincte, exécutée après tous les côtés de l’Activité ; aucune Activité technique n’est créée pour l’une ou l’autre. | Prérequis T04 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -1079,8 +1079,8 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 | Donnée | Type et règle |
 |---|---|
 | `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Activité persistante et sur son occurrence de Séance. |
-| `tour.sideMode` | Même domaine et même défaut. Une valeur bilatérale impose la direction effective à tout le contenu du Tour. |
-| `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis le Tour bilatéral ou, à défaut, depuis l’Activité. |
+| `tour.sideMode` | Champ technique conservé avec le même domaine pour compatibilité ; dans la version actuelle, la valeur fonctionnelle produite/persistée est figée à `UNILATERAL` et n’est pas exposée à l’utilisateur. Les valeurs bilatérales du Tour restent une capacité technique dormante. |
+| `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané. Dans la version actuelle, elle correspond à `activity.sideMode` puisque `tour.sideMode` est toujours `UNILATERAL`; le moteur conserve sa logique générique historique pour compatibilité. |
 | `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
 | `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Activité, le Tour et la Série. |
 
