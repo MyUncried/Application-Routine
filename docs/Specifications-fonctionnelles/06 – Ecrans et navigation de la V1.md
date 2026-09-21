@@ -821,17 +821,17 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
 
-## Modale 6 – Catégories de la séance
+## Modale — Catégories de la séance
 
 ![[images/ecran-6-categories-seance.png|260]]
 
-*Modale 6 — Catégories de la séance — Figma `2028:11204`*
+*Modale — Catégories de la séance — Figma `2028:11204`*
 
 L’état de création intégrée d’une nouvelle Catégorie est illustré par :
 
 ![[images/ecran-6a-categories-nouvelle-inline.png|260]]
 
-*Modale 6a — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
+*Modale — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
 
 ### Objectif
 
