@@ -49,6 +49,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Routine | Planification d'une séance | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
+| Point d’arrêt | Marqueur structurel ordonné suspendant l’auto-enchaînement entre deux unités exécutables | Structure interne de séance |
 | Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
 | Catégorie | Classement des séances | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
@@ -75,6 +76,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T04 ; D-156 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T04 ; D-156 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T04 |
+| DM-017 | Un Point d’arrêt est un élément structurel persisté dans l’ordre de Composition. Il ne porte ni durée, ni Résultat, ni paramètres d’Activité. Il ne peut exister qu’entre deux unités exécutables ; plusieurs Points d’arrêt sont autorisés mais jamais consécutifs. Lorsqu’il appartient à la séquence d’un Tour, il est rencontré à chaque répétition de ce Tour. | Prérequis T04 ; D-188 |
 
 ## Relations principales
 
@@ -172,6 +174,7 @@ Une séance possède directement :
 - un cycle ;
 - un Tour contenu dans le cycle ;
 - les activités contenues dans le Tour ;
+- les Points d’arrêt éventuellement positionnés dans l’ordre de Composition ;
 - une fin de séance ;
 - le paramètre de répétition de son Tour ; le Cycle vaut toujours 1 dans le MVP.
 
@@ -216,6 +219,8 @@ La structure d’une séance est composée, dans l’ordre, de :
 5. zéro, une ou plusieurs Activités placées après le Tour ;
 6. une Fin de séance obligatoire, exécutée une seule fois après la dernière Activité.
 
+Des Points d’arrêt peuvent être intercalés entre les unités exécutables de cette structure. Leur position est persistée avec la Composition ; ils ne créent aucune occurrence d’Activité et aucun Résultat propre.
+
 Dans le MVP, le Cycle contient :
 - son identifiant ;
 - sa position, égale à 1 ;
@@ -250,6 +255,7 @@ Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas
 | Position              | Position du Tour dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
 | Nombre de répétitions | Nombre d’exécutions successives du Tour   | Obligatoire | Entier de **1 à 99** ; valeur par défaut **1**                |
 | Activités             | Collection ordonnée des Activités du Tour | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
+| Points d’arrêt          | Marqueurs structurels ordonnés entre unités du Tour | Facultatif | Zéro ou plusieurs ; jamais en début/fin de séquence ni consécutifs |
 ### Évolutivité de la structure
 
 Dans le MVP :
@@ -273,7 +279,8 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Une séance contient un cycle unique.
 - Le Cycle contient un Tour unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
 - Le Cycle peut contenir zéro, une ou plusieurs Activités avant le Tour et zéro, une ou plusieurs Activités après le Tour.
-- Le Tour contient zéro, une ou plusieurs Activités pendant l’édition.
+- Le Tour contient zéro, une ou plusieurs Activités pendant l’édition et peut contenir des Points d’arrêt entre ses unités exécutables.
+- La Composition peut contenir des Points d’arrêt hors Tour sur toute transition valide.
 - Une séance exécutable contient au moins une Activité.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
 
