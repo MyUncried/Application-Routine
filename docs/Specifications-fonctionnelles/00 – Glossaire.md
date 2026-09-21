@@ -20,7 +20,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Activités, un Tour unique, un Cycle technique et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
 | **Activité** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec et peut porter une Pause entre les Séries ainsi qu’une Récupération après l’ensemble des Séries. Dans le MVP T03, elle existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance ; l’ajout depuis le Catalogue crée une copie indépendante. | 3 Séries de 12 squats, puis 30 s de récupération |
 | **Exercice** | Synonyme fonctionnel de l’Activité exécutée. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
-| **Récupération** | Durée facultative appartenant à une Activité. Elle est exécutée une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle ne constitue ni une Activité autonome ni une Pause entre les Séries. Une valeur de `0 s` signifie qu’aucune phase de Récupération n’est créée. | Récupération de 30 s après l’Exercice |
+| **Récupération** | Durée facultative appartenant à une Activité. Elle est exécutée une fois après tous les côtés de cette Activité. Elle ne constitue ni une Activité autonome ni une Pause entre les Séries. Une valeur de `0 s` signifie qu’aucune phase de Récupération n’est créée. | Récupération de 30 s après l’Exercice |
 | **Tour** | Conteneur ordonné d’Activités appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
 | **Cycle** | Structure technique unique qui enveloppe les Activités placées avant le Tour, le Tour et les Activités placées après le Tour. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
 | **Routine** | Terme métier interne désignant la planification d’une Séance. Dans l’interface utilisateur, le terme affiché est `planification`. Une Routine est unique ou périodique et possède zéro ou un rappel. | Mobilité chaque lundi à 8 h |
@@ -51,7 +51,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
 | **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases de Récupération et répétitions du Tour. |
 
-### Direction propre et direction héritée
+### Direction propre et capacité technique du Tour
+
+Dans la version actuelle, le Tour ne porte aucune direction configurable pour l’utilisateur : `tour.sideMode` reste techniquement présent mais est figé à `UNILATERAL`. Les directions `RIGHT_LEFT` et `LEFT_RIGHT` du Tour sont une capacité technique dormante. La direction fonctionnelle active est donc la direction propre de l’Activité.
 
 - La **direction propre** est persistée sur l’Activité : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
 - La **direction héritée** provient d’un Tour bilatéral. Le Tour porte et affiche seul la direction ; l’Activité conserve un réglage propre `UNILATERAL`, visible mais désactivé, et sa carte comme la synthèse de l’éditeur ne répètent pas la direction héritée.
