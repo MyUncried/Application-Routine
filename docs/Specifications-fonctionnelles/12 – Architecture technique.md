@@ -787,7 +787,10 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Navigation | `Navigation / Bottom — Source exact` | destination active : Sessions, Calendar, History, Profile ou Search |
 | En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
 | Retour | `Action / Back` (`2624:3105`) | cible `48 × 48` liée à `size/touch-target-min`, cercle `38 × 38` (`2624:3106`) lié à `component/action/circular-visual-box`, cadre d’icône `24 × 24` (`3089:61`) lié à `component/action/circular-icon` |
-| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
+| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé ; ne s’applique pas à la modale Catégories qui utilise ses sources dédiées ci-dessous |
+| Icône d’action de modale Catégories | `Icon / Modal Action — Source exact` (`4155:6201`) | `Type=Cancel` (`4155:6197`) / `Type=Validate` (`4155:6200`) ; pictogrammes vectoriels canoniques |
+| Action d’en-tête modale Catégories | `Modal / Header Action — Source exact` (`4151:6197`) | `Type=Cancel` (`4151:6191`) / `Type=Validate` (`4151:6196`) ; chaque variante consomme l’icône canonique correspondante |
+| Actions texte Catégories | `Action / Categories — Source exact` (`4152:6189`) | `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`), `Type=Add` (`4152:6188`) |
 | Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
 | Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
 | Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
@@ -815,7 +818,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
 
-Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant. Pour la modale Catégories, les sources `4155:6201`, `4151:6197` et `4152:6189` sont dérivées des contrôles validés de `2028:11204` / `2028:11248`, puis réinstanciées dans ces mêmes écrans afin d’éliminer les copies graphiques locales.
 
 Le contrôle `Controls / Disclosure — Source exact` est la référence normative de tout bouton de déploiement ou de repli utilisant cette famille. Chaque occurrence est une instance de la variante appropriée, sans copie graphique locale : cible tactile `48 × 48`, cadre visible centré `28 × 28`, rayon `6`, fond `#FBFCFF` et chevron `8 × 4` tracé en violet sur `2` points. La variante `State=Collapsed` (`2537:1033`) utilise une bordure grise `#D6D9E3` sur `1` point et un chevron bas `#8282F2`. La variante `State=Expanded` (`2537:1038`) utilise une bordure violette `#8283F2` sur `2` points et un chevron haut de même couleur. Les destinations et réactions de prototype restent définies par l’écran hôte ; elles ne sont pas héritées comme comportement métier du composant.
 
