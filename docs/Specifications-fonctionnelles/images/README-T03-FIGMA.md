@@ -43,7 +43,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 2h | Catalogue après archivage | `1992:10937` | `ecran-2h-catalogue-apres-archivage.png` | `402 × 874` | écran | COURANT |
 | Écran 2i | Catalogue des séances — État vide | `2117:86` | `ecran-2i-catalogue-vide.png` | `402 × 874` | écran | COURANT |
 | Écran 3 | Composition d’une séance | `2028:11700` | `ecran-3-composition-seance.png` | `402 × 874` | écran | COURANT |
-| Écran 3a | Composition — Actions glissées | `2028:11808` | `ecran-3a-composition-actions-glissees.png` | `402 × 874` | écran | COURANT |
+| Écran 3a | Composition — Actions glissées + Point d’arrêt | `2028:11808` | `ecran-3a-composition-actions-glissees.png` | `402 × 874` | écran | COURANT — réexporté 21/09/2026 après ajout du Point d’arrêt |
 | Écran 3b | Composition initiale | `2028:11137` | `ecran-3b-composition-etat-initial.png` | `402 × 874` | écran | COURANT |
 | Écran 3c | Nom renseigné | `2028:12003` | `ecran-3c-composition-nom-renseigne.png` | `402 × 874` | écran | COURANT |
 | Écran 3d | Palette de couleurs ouverte | `2028:11921` | `ecran-3d-composition-couleur-ouverte.png` | `402 × 874` | écran | COURANT |
@@ -98,6 +98,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 12 | Catalogue des Activités — Liste | `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `402 × 874` | écran | COURANT |
 | Écran 13 | Ancien Catalogue des Activités — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
 | Écran 13a | Ancien Catalogue des Séances — Créer — Arbre d’actions | `3841:8375` | `ecran-13a-catalogue-seances-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
+| Écran 3i | Composition — Ajouter une activité — arbre avec Point d’arrêt | `3933:5780` | `ecran-3i-composition-ajouter-activite-point-arret.png` | `402 × 874` | écran | COURANT |
 | Écran 14 | Composition — Sélectionner plusieurs Activités existantes | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `402 × 874` | écran | COURANT |
 | Écran 15 | Créer une Activité persistante | `3879:5947` | `ecran-15-creation-activite-persistante.png` | `402 × 874` | écran | COURANT |
 | Écran 15a | Modifier une Activité persistante | `3879:6079` | `ecran-15a-modification-activite-persistante.png` | `402 × 874` | écran | COURANT |
