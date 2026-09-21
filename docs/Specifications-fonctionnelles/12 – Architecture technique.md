@@ -115,7 +115,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 
 | Service | Responsabilité |
 |---|---|
-| `SessionService` | Création, lecture, modification, duplication, archivage et restauration des Séances |
+| `SessionService` | Création, lecture, modification, duplication, archivage, restauration et suppression définitive des Séances archivées |
 | `CompositionService` | Gestion des Cycles, Tours, Activités et de leur ordre |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
@@ -423,6 +423,8 @@ Les opérations modifiant plusieurs objets liés doivent être atomiques lorsque
 Exemples :
 - création d’une Séance et de sa structure initiale ;
 - archivage d’une Séance et suppression de ses Routines ;
+- restauration d’une Séance archivée ;
+- suppression définitive d’une Séance archivée, avec conservation des Exécutions et Instantanés historiques ;
 - à partir du MVP bis, suppression d’une Catégorie et retrait de ses associations ;
 - création d’une Exécution et de son Instantané.
 
