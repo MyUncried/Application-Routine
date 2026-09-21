@@ -1,6 +1,6 @@
 # INDEX — Documentation du projet Routine
 
-> Rectification Bilatéralité du 13 septembre 2026 : contrôle Tour `42 × 34 pt` sans titre visible, contrôle Activité `74 × 42 pt` en grille, confirmation d’activation conditionnelle, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. Voir D-146 et D-152 à D-155.
+> Rectification Bilatéralité du 13 septembre 2026 : contrôle Activité `74 × 42 pt` en grille, direction propre sur les cartes et synthèses, libellé `Durée totale` harmonisé. **Décision D-200 du 21 septembre 2026 : la bilatéralité du Tour n’est pas activée dans la version actuelle ; `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`, sans contrôle utilisateur.** Les anciennes règles et évidences de contrôle Tour restent historiques.
 >
 > Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des activités entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle/migration T03 reste précisé dans 09 bis. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
 >
@@ -54,7 +54,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 04 | [Modèle fonctionnel](./Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) | Définit les concepts et leurs relations. | Baseline MVP T03 |
 | 05 | [Versions du produit](./Specifications-fonctionnelles/05%20%E2%80%93%20Versions%20du%20produit.md) | Répartit les fonctionnalités entre MVP et versions futures. | Baseline MVP T03 |
 | 06 | [Écrans et navigation de la V1](./Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) | Décrit les écrans, modales, contenus, navigation et corrections UX T03. | Référence T03 consolidée |
-| 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées, dont D-167 à D-186. | Référence décisionnelle T03 |
+| 07 | [Registre des décisions de conception](./Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Enregistre les décisions validées, dont D-167 à D-200. | Référence décisionnelle T03 |
 | 08 | [Conception fonctionnelle détaillée](./Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) | Décrit le fonctionnement détaillé, l’exécution et les calculs. | Baseline MVP T03 |
 | 09 | [Modèle de données fonctionnel](./Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) | Définit entités, relations et cycles de vie. | Baseline MVP T03 |
 | 09 bis | [Modèle et migration T03 Catalogue](./Specifications-fonctionnelles/09%20bis%20%E2%80%93%20Mod%C3%A8le%20et%20migration%20T03%20Catalogue.md) | Précise ActivityDefinition/SessionActivity, cycle de vie et migration T03. | Référence T03 |
@@ -176,7 +176,7 @@ Les chapitres 00 à 13, le complément 09 bis et les matrices transverses consti
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les règles bilatérales validées restent inchangées et sont réutilisées par l’Exécution directe T03.
+La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité. Le Tour conserve le même domaine uniquement comme capacité technique dormante ; dans la version actuelle, `tour.sideMode` est figé à `UNILATERAL`. Les règles bilatérales actives sont portées par l’Activité et sont réutilisées par l’Exécution directe T03.
 
 ## 10. MVP T03 — Catalogue des activités
 
