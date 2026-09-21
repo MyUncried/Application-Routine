@@ -607,11 +607,11 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/A
 
 ### 1. Identification
 
-Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame `3788:5258`.
+Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame courante `3933:5780`. L’ancienne frame `3788:5258` est supersédée.
 
 ### 2. Finalité fonctionnelle
 
-Choisir entre création Session-only et insertion depuis Catalogue, sans mutation préalable de la Composition.
+Choisir entre création Session-only, insertion depuis Catalogue ou ajout d’un Point d’arrêt structurel, sans autre mutation préalable de la Composition.
 
 ### 3. Contexte d’entrée
 
@@ -619,27 +619,27 @@ Tap `+ Ajouter une activité` dans Composition.
 
 ### 4. Contexte de sortie / destinations
 
-Nouvelle activité → éditeur SessionActivity ; activité existante → CE-T03-07 ; Annuler → Composition inchangée.
+Nouvelle activité → éditeur SessionActivity ; activité existante → CE-T03-07 ; `Un point d’arrêt` → insertion dans le draft Composition puis retour à la Composition ; Annuler → Composition inchangée.
 
 ### 5. Données affichées et source de vérité
 
-Aucune donnée métier créée à l’ouverture. Fond = draft Composition réel.
+Aucune donnée persistante n’est créée à l’ouverture. Fond = draft Composition réel. L’ajout d’un Point d’arrêt modifie uniquement le draft jusqu’à l’enregistrement de la Séance.
 
 ### 6. Classification des valeurs Figma
 
-Trois libellés = statiques ; contenu Composition = dynamique/démonstration.
+Quatre libellés = statiques ; contenu Composition = dynamique/démonstration.
 
 ### 7. Structure de l’écran
 
-Fond Composition + arbre contextuel à trois options.
+Fond Composition + arbre contextuel à quatre options.
 
 ### 8. Éléments obligatoires
 
-`Une nouvelle activité`, `Une activité existante`, `Annuler`; Annuler gris ; vecteurs DSF uniquement.
+`Une nouvelle activité`, `Une activité existante`, `Un point d’arrêt`, `Annuler`, dans cet ordre. `Un point d’arrêt` utilise l’icône pause orange validée ; Annuler reste gris ; pictogrammes vectoriels uniquement.
 
 ### 9. Layout déterministe
 
-Conforme frame ; les deux actions principales utilisent la disposition représentée ; arbre dans Safe Area.
+Conforme frame `3933:5780` ; les options gardent la relation hiérarchique représentée et l’arbre reste dans la Safe Area.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -647,47 +647,47 @@ Conforme frame ; les deux actions principales utilisent la disposition représen
 
 ### 11. États de l’écran
 
-Ouvert ; Annuler ; navigation nouvelle ; navigation existante.
+Ouvert ; Annuler ; navigation nouvelle ; navigation existante ; insertion Point d’arrêt.
 
 ### 12. Contrôles et interactions
 
-Chaque ligne active ouvre son sous-parcours ; Annuler ferme. Aucun tap fond ne modifie draft.
+Chaque ligne active exécute son sous-parcours ou son ajout structurel ; Annuler ferme. Aucun tap fond ne modifie le draft. Un Point d’arrêt nouvellement ajouté est positionné par défaut après la dernière Activité créée puis devient déplaçable vers toute transition valide.
 
 ### 13. Gestes
 
-Tap uniquement.
+Tap uniquement dans l’arbre. Le déplacement du Point d’arrêt se fait ensuite dans la Composition.
 
 ### 14. Validation
 
-Aucune validation métier avant choix. Sous-parcours fait sa propre validation.
+Nouvelle/Existante délèguent leur validation. Pour le Point d’arrêt, la Composition garantit une position entre deux unités exécutables ; aucune première/dernière position ni juxtaposition de deux Points d’arrêt.
 
 ### 15. Brouillon et persistance
 
-Nouvelle activité crée seulement un brouillon SessionActivity. Aucun ActivityDefinition, aucune action Enregistrer dans Catalogue T03.
+Nouvelle activité crée seulement un brouillon SessionActivity. Point d’arrêt crée un élément structurel du brouillon. Aucun ActivityDefinition, aucune action Enregistrer dans Catalogue T03.
 
 ### 16. Navigation et conservation d’état
 
-Retour sous-parcours restitue Composition et scroll. Annuler exact.
+Retour sous-parcours restitue Composition et scroll. Ajout Point d’arrêt retourne à la Composition. Annuler exact.
 
 ### 17. Erreurs et cas limites
 
-Échec ouverture sous-parcours → Composition inchangée.
+Échec ouverture sous-parcours → Composition inchangée. Si aucune position valide n’existe pour un Point d’arrêt, aucune insertion invalide n’est persistée.
 
 ### 18. Accessibilité
 
-Ordre focus visuel ; Annuler explicite ; aucune option cachée.
+Ordre focus visuel ; libellé `Un point d’arrêt` explicite ; Annuler explicite ; aucune option cachée.
 
 ### 19. Invariants
 
-Nouvelle = Session-only ; Existante = copie depuis références ; aucun save-to-catalogue.
+Nouvelle = Session-only ; Existante = copie depuis références ; Point d’arrêt = structure sans durée/résultat ; aucun save-to-catalogue.
 
 ### 20. Recette déterministe
 
-Tester trois choix, abandon, retour, draft intact. Négatif : création ActivityDefinition depuis Nouvelle activité.
+Tester quatre choix, abandon, retour, draft intact, insertion et repositionnement du Point d’arrêt. Négatifs : création ActivityDefinition depuis Nouvelle activité, Point d’arrêt en première/dernière position, deux Points d’arrêt consécutifs.
 
 ### 21. Traçabilité
 
-E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
+E22–E24 → D-170/D-188 ; Figma `3933:5780`; API-COM-03 / API-COM-09 / API-COMP-SEL.
 
 ---
 
@@ -789,7 +789,7 @@ Bloc B3/B9 ; états S37–S46 ; T03-E E31, E53, E58–E66 ; frames `2028:11700`,
 
 ### 2. Finalité fonctionnelle
 
-Afficher les copies insérées et appliquer directions courtes, swipe réel, gap Dupliquer et non-déplaçabilité des cartes structurelles.
+Afficher les copies insérées, les Points d’arrêt positionnés et appliquer directions courtes, swipe réel, gap Dupliquer et non-déplaçabilité des cartes structurelles.
 
 ### 3. Contexte d’entrée
 
@@ -809,15 +809,15 @@ Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de ca
 
 ### 7. Structure de l’écran
 
-CR initial → activités avant Tour → Tour → activités après Tour → Fin séance. Actions contextualisées derrière Activity.
+CR initial → activités et Points d’arrêt avant Tour → Tour contenant activités et éventuels Points d’arrêt → activités et Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court ; contrôle Tour selon décisions bilatérales existantes.
+CR/Fin sans poignée ; Point d’arrêt compact positionnable ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court ; contrôle Tour selon décisions bilatérales existantes.
 
 ### 9. Layout déterministe
 
-Frame `2028:11808` pour swipe : portion visible de carte, gap, action Dupliquer. Aucun overlay immobile. Activity+Recovery = bloc cohérent.
+Frame `2028:11808` pour swipe et Point d’arrêt : portion visible de carte, gap, action Dupliquer, puis séparateur compact Point d’arrêt dans le Tour. Aucun overlay immobile. Activity+Recovery = bloc cohérent. Dans la référence courante, l’espace carte→Point d’arrêt et Point d’arrêt→bord du Tour reprend le gap inter-cartes de `6 pt`.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -829,7 +829,7 @@ Normal ; D→G ; G→D ; swipe progressif ; swipe ouvert ; drag Activity ; roue 
 
 ### 12. Contrôles et interactions
 
-Activity tap/long press/swipe. CR/Fin : réglage uniquement, jamais déplacement. Roulettes §4.6.
+Activity tap/long press/swipe. Point d’arrêt : déplacement structurel, sans écran d’édition propre. CR/Fin : réglage uniquement, jamais déplacement. Roulettes §4.6.
 
 ### 13. Gestes
 
@@ -857,11 +857,11 @@ CR/Fin n’exposent pas Déplacer ; direction accessible développée ; actions 
 
 ### 19. Invariants
 
-CR/Fin non déplaçables ; une seule carte swipe ouverte ; pas de texte développé direction dans carte ; gap Tour visible.
+CR/Fin non déplaçables ; Point d’arrêt déplaçable seulement entre deux unités exécutables, jamais en début/fin ni consécutif ; une seule carte swipe ouverte ; pas de texte développé direction dans carte ; gap Tour visible.
 
 ### 20. Recette déterministe
 
-Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap fond sans effet ; Dupliquer gap/rayon ; directions ; roues ; responsive. Négatifs : poignée structurelle, overlay immobile, tap fond ferme contexte.
+Drag Activity oui ; Point d’arrêt déplaçable sur positions valides ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap fond sans effet ; Dupliquer gap/rayon ; directions ; roues ; responsive. Négatifs : poignée structurelle, overlay immobile, tap fond ferme contexte.
 
 ### 21. Traçabilité
 
