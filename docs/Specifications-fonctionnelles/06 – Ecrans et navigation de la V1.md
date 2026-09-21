@@ -510,13 +510,15 @@ Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur 
 
 Sur une Séance active, un glissement gauche déplace visiblement la carte et révèle progressivement `Planifier`, `Dupliquer` et `Archiver` placés derrière. Au seuil d’ouverture, la carte se stabilise. Une seule carte peut exposer ses actions à la fois ; un glissement droit ne referme le contexte que s’il commence sur la carte ouverte.
 
+Dans tous les états de swipe représentés en Composition, Calendrier Semaine et Catalogues, le bloc d’actions reste fixe à droite pendant que la carte se déplace. À l’état ouvert de référence, l’espace entre le bord droit de la carte déplacée et le bord gauche du bloc d’actions est de `10 pt`, identique à l’espace entre le bord droit du bloc d’actions et le bord droit du conteneur de carte. Le premier bouton du bloc porte les rayons haut-gauche et bas-gauche ; le dernier porte les rayons haut-droit et bas-droit. Lorsqu’une seule action est affichée, ses quatre coins sont arrondis.
+
 Depuis le résultat du filtre `Archivées`, `Restaurer` affiche un snackbar `Séance restaurée` avec l’action `Annuler`.
 
 ### Suppression d’une Séance
 
 Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord être archivée.
 
-Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sur le fond de la liste archivée.
+Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sans refermer le contexte de swipe : l’arrière-plan conserve la carte déplacée et l’action `Supprimer` visible sous le voile modal jusqu’à `Annuler` ou `Confirmer`.
 
 La suppression demande toujours une confirmation explicite. Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
 
@@ -1489,13 +1491,13 @@ La référence de production est la frame Figma `3224:4082`, `Modal — Abandonn
 
 *Modale 3 — Séance archivée — Action Supprimer révélée — Figma `2234:88`*
 
-L’action `Supprimer` est révélée par glissement gauche : la carte se déplace avec le geste et révèle l’action placée derrière.
+L’action `Supprimer` est révélée par glissement gauche : la carte se déplace avec le geste et révèle l’action placée derrière. À l’état ouvert, les marges carte→action et action→bord droit valent chacune `10 pt` ; l’action étant seule, ses quatre coins sont arrondis.
 
 ![[images/modale-3a-confirmer-suppression-seance-archivee.png|260]]
 
 *Modale 3a — Confirmer la suppression d’une séance archivée — Figma `2234:189`*
 
-Le dialogue flottant centré demande une confirmation explicite. `Annuler` ferme le dialogue et revient au résultat du filtre `Archivées`.
+Le dialogue flottant centré demande une confirmation explicite. Le voile modal ne réinitialise pas l’état sous-jacent : la carte reste déplacée et `Supprimer` reste visible en arrière-plan. `Annuler` ferme le dialogue et revient au résultat du filtre `Archivées` avec ce contexte visuel conservé.
 
 Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
