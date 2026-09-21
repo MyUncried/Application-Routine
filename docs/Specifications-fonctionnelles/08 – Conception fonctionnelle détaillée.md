@@ -882,10 +882,7 @@ Le suivi repose sur les principes suivants :
 | --- | --- | --- | --- | --- |
 | Bouton Ajouter (+) | Bouton | Toujours | Visible | Créer une Séance |
 | Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |
-| Filtre `Toutes` | Filtre | Toujours | Affiche toutes les Séances actives, planifiées ou non ; exclut les archivées | Filtrer |
-| Filtre `Planifiées` | Filtre | Toujours | Séances ayant au moins une Routine | Filtrer |
-| Filtre `Non planifiées` | Filtre | Toujours | Séances actives ne possédant aucune Routine | Filtrer |
-| Filtre `Archivées` | Filtre | Toujours | Séances archivées uniquement | Filtrer |
+| Filtre `Archivées` | Filtre | Toujours | Unique option fonctionnelle ; tap = bascule immédiate actif/archives puis fermeture du panneau | Filtrer |
 | Carte Séance | Carte | 1 par Séance | Condensée ou déployée | Zone principale : ouvrir la Séance en modification |
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
@@ -903,17 +900,15 @@ Le suivi repose sur les principes suivants :
 | --- | --- |
 | Chargement | Les Séances sont affichées dès l’ouverture de l’écran. |
 | Recherche globale | Deux états, saisie puis résultats ; une Séance peut apparaître comme Catalogue, Planifiée, Exécutée ou Archivée. Retour est contextuel à l’écran d’origine. |
-| `Toutes` | Affiche toutes les Séances non archivées. |
-| `Planifiées` | Affiche les Séances disposant d’au moins une Routine. |
-| `Archivées` | Affiche uniquement les Séances archivées. |
+| `Filtrer > Archivées` | `Archivées` est l’unique option fonctionnelle du panneau Filtrer. Sa sélection s’applique immédiatement, ferme le panneau et affiche uniquement les Séances archivées ; sa désélection revient aux Séances actives/non archivées. |
 | Zone principale de la carte | Ouvre directement la Séance en mode modification. |
 | Métadonnées | Sous le nom, affiche les Catégories associées puis, si présentes, les Zones corporelles dédupliquées de tous les Exercices ; séparateur ` : ` seulement lorsque les deux groupes existent ; une seule ligne tronquée si nécessaire. |
 | Chevron | Sert exclusivement au déploiement / repli de la carte. |
 | Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
 | Modifier | Toucher la zone principale ouvre la Composition préremplie. |
-| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
-| Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. |
+| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées et aucune Routine n’est supprimée à cette étape. |
+| Archivage | Retire la Séance de la liste active et la rend accessible via `Filtrer > Archivées`. S’il existe au moins une Routine, affiche la confirmation validée puis supprime atomiquement toutes les Routines associées ; sinon l’archivage est immédiat. Après succès, aucun undo n’est proposé. |
 
 ## Composition d’une séance — création et modification
 
