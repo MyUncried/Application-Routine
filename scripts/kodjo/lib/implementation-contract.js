@@ -1,10 +1,10 @@
 'use strict';
 
-const { matrixFingerprint } = require('./ui-criteria-contract');
-
+const { matrixFingerprint, MATRIX_SCHEMA_V1, MATRIX_SCHEMA_V2 } = require('./ui-criteria-contract');
 const { extractTaggedJson, sha256, fail } = require('./plan-impact');
 
-const IMPLEMENTATION_CONTRACT_SCHEMA = 'kodjo.ui-implementation-contract.v1';
+const IMPLEMENTATION_CONTRACT_SCHEMA_V1 = 'kodjo.ui-implementation-contract.v1';
+const IMPLEMENTATION_CONTRACT_SCHEMA_V2 = 'kodjo.ui-implementation-contract.v2';
 const UI_PLAN_CONTRACT_SCHEMA = 'kodjo.ui-plan-contract.v1';
 const REQUIRED_STOPS = Object.freeze([
   'CHANGE_REQUEST_REQUIRED',
@@ -17,6 +17,13 @@ function lineField(text, name) {
   const m = new RegExp('^' + name + '=([^\\r\\n]+)\\s*$', 'm').exec(String(text || ''));
   return m ? m[1].trim() : '';
 }
+function assertionIdsOf(criteria) {
+  return criteria.flatMap((criterion) =>
+    Array.isArray(criterion && criterion.assertions)
+      ? criterion.assertions.map((assertion) => String(assertion && assertion.assertion_id || ''))
+      : []
+  ).sort();
+}
 
 function deriveImplementationContract(planBody, planBlobOid) {
   if (!/^[0-9a-f]{40}$/i.test(String(planBlobOid || ''))) {
@@ -24,8 +31,8 @@ function deriveImplementationContract(planBody, planBlobOid) {
   }
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'IMPLEMENTATION_UI_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'IMPLEMENTATION_UI_PLAN_CONTRACT_MISSING');
-  if (!matrix || matrix.schema !== 'kodjo.ui-criteria.v1') {
-    fail('IMPLEMENTATION_UI_MATRIX_INVALID', 'schema kodjo.ui-criteria.v1 requis');
+  if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2].includes(matrix.schema)) {
+    fail('IMPLEMENTATION_UI_MATRIX_INVALID', 'schema UI inconnu');
   }
   if (!planContract || planContract.schema !== UI_PLAN_CONTRACT_SCHEMA) {
     fail('IMPLEMENTATION_UI_PLAN_CONTRACT_INVALID', 'schema kodjo.ui-plan-contract.v1 requis');
@@ -39,6 +46,18 @@ function deriveImplementationContract(planBody, planBlobOid) {
   if (ids.some((id) => !id) || new Set(ids).size !== ids.length) {
     fail('IMPLEMENTATION_UI_CRITERIA_INVALID', 'criterion_id absent ou duplique');
   }
+  const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
+  const assertionIds = assertionIdsOf(criteria);
+  if (assertionMode) {
+    if (assertionIds.some((id) => !id) || new Set(assertionIds).size !== assertionIds.length) {
+      fail('IMPLEMENTATION_UI_ASSERTIONS_INVALID', 'assertion_id absent ou duplique');
+    }
+    if (Number(planContract.contract_version) < 2 ||
+        Number(planContract.assertion_count) !== assertionIds.length ||
+        planContract.assertion_ids_sha256 !== sha256(assertionIds)) {
+      fail('IMPLEMENTATION_UI_ASSERTION_CONTRACT_MISMATCH', 'assertions != contrat UI approuve');
+    }
+  }
   const preservation = matrix.preservation;
   if (!preservation || typeof preservation !== 'object' || Array.isArray(preservation)) {
     fail('IMPLEMENTATION_PRESERVATION_INVALID', 'PRESERVE/CHANGE/FORBIDDEN absent');
@@ -47,14 +66,19 @@ function deriveImplementationContract(planBody, planBlobOid) {
     if (!Array.isArray(preservation[key])) fail('IMPLEMENTATION_PRESERVATION_INVALID', key + ' absent');
   }
   return {
-    schema: IMPLEMENTATION_CONTRACT_SCHEMA,
+    schema: assertionMode ? IMPLEMENTATION_CONTRACT_SCHEMA_V2 : IMPLEMENTATION_CONTRACT_SCHEMA_V1,
     plan_blob_oid: String(planBlobOid).toLowerCase(),
     ui_plan_contract_schema: planContract.schema,
     ui_matrix_sha256: matrixHash,
     ui_criterion_count: ids.length,
     ui_criterion_ids_sha256: sha256(ids),
+    ...(assertionMode ? {
+      ui_assertion_count: assertionIds.length,
+      ui_assertion_ids_sha256: sha256(assertionIds),
+    } : {}),
     ui_preservation_sha256: sha256(preservation),
     ui_applicable: Boolean(planContract.ui_applicable),
+    assertion_mode: assertionMode,
     required_stops: [...REQUIRED_STOPS],
   };
 }
@@ -72,6 +96,10 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     'ui_matrix_sha256=' + contract.ui_matrix_sha256,
     'ui_criterion_count=' + contract.ui_criterion_count,
     'ui_criterion_ids_sha256=' + contract.ui_criterion_ids_sha256,
+    ...(contract.assertion_mode ? [
+      'ui_assertion_count=' + contract.ui_assertion_count,
+      'ui_assertion_ids_sha256=' + contract.ui_assertion_ids_sha256,
+    ] : []),
     'ui_preservation_sha256=' + contract.ui_preservation_sha256,
     'required_stops=' + contract.required_stops.join(','),
     '',
@@ -79,6 +107,11 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     '',
     '- Lire avant tout code le bloc exact `KODJO_UI_CRITERIA_MATRIX_JSON` de `technical-plan.md`. Cette matrice approuvée est la seule source du contrat UI de cette implémentation ; ne pas la recopier, réencoder ni reconstruire depuis la mémoire.',
     '- Appliquer chaque `criterion_id` sans omission et respecter sa décision `REUSE | EXTEND | CREATE`, ses `change_targets`, ses tests et ses `proof_required`.',
+    ...(contract.assertion_mode ? [
+      '- Pour chaque critère, appliquer chaque `assertion_id` exactement une fois. Une assertion représente un invariant observable indépendamment falsifiable ; aucune assertion ne peut être fusionnée, omise ou reformulée en verdict global.',
+      '- Respecter pour chaque assertion sa source exacte, son `property_type`, son `expected` et ses `proof_required`. Une valeur géométrique ou stylistique absente des sources normatives ne doit jamais être inventée : arrêter avec `CLARIFICATION_REQUIRED`.',
+      '- Les relations, alignements, gaps, layering, responsive et états sont des invariants autonomes lorsqu’ils sont explicitement normés ; une conformité fonctionnelle n’autorise jamais à les considérer implicitement conformes.',
+    ] : []),
     '- Respecter intégralement `PRESERVE / CHANGE / FORBIDDEN`. Tout élément `PRESERVE` doit rester inchangé ; tout élément `FORBIDDEN` interdit la modification correspondante.',
     '- Une décision `REUSE` ou `EXTEND` interdit de créer silencieusement un équivalent local. Une décision `CREATE` ne permet pas de substituer une primitive, un composant canonique ou un asset déjà imposé par le plan.',
     '- Si une substitution, une refonte, un changement de primitive/composant/architecture ou un élargissement de périmètre devient nécessaire, arrêter avant le code concerné avec le statut approprié : `CHANGE_REQUEST_REQUIRED`, `SCOPE_EXPANSION_REQUIRED` ou `NATIVE_PRIMITIVE_EXCEPTION_REQUIRED`. Si un asset canonique requis est indisponible, utiliser `CHANGE_REQUEST_REQUIRED` avec le motif `CANONICAL_ASSET_UNAVAILABLE` ; `ASSET_REQUIRED` reste un libellé historique et n’est pas réintroduit comme état protocolaire.',
@@ -92,7 +125,13 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     '## Rapport final obligatoire',
     '',
     'Le rapport final doit contenir un bloc `KODJO_IMPLEMENTATION_CONFORMANCE` listant chaque `criterion_id` approuvé avec : `implementation_status`, `files_or_symbols`, `component_used`, `tests_run`, `proof_status`, `preserve_status`, `residual_status`.',
-    'Encodage du bloc : <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[{"criterion_id":"...","implementation_status":"...","files_or_symbols":["..."],"component_used":"...","tests_run":["..."],"proof_status":"...","preserve_status":"...","residual_status":"..."}]}</KODJO_IMPLEMENTATION_CONFORMANCE>. Chaque champ est explicite et non vide ; pour un test non exécuté, indiquer NOT_RUN et sa raison. Cet encodage rend contrôlable le rapport déjà obligatoire, sans nouvel état ni gate runtime.',
+    ...(contract.assertion_mode ? [
+      'Pour un plan atomique v2, chaque ligne de critère contient aussi `assertion_results` avec exactement tous les `assertion_id` approuvés du critère. Chaque résultat comporte `assertion_id`, `implementation_status` et `evidence`. Les statuts autorisés sont `IMPLEMENTED`, `NOT_IMPLEMENTED`, `PENDING_DEVICE` et `NON_VERIFIABLE`.',
+      'Encodage v2 : <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[{"criterion_id":"...","implementation_status":"...","files_or_symbols":["..."],"component_used":"...","tests_run":["..."],"proof_status":"...","preserve_status":"...","residual_status":"...","assertion_results":[{"assertion_id":"...-A01","implementation_status":"IMPLEMENTED","evidence":"..."}]}]}</KODJO_IMPLEMENTATION_CONFORMANCE>.',
+    ] : [
+      'Encodage du bloc : <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[{"criterion_id":"...","implementation_status":"...","files_or_symbols":["..."],"component_used":"...","tests_run":["..."],"proof_status":"...","preserve_status":"...","residual_status":"..."}]}</KODJO_IMPLEMENTATION_CONFORMANCE>.',
+    ]),
+    'Chaque champ est explicite et non vide ; pour un test non exécuté, indiquer NOT_RUN et sa raison. Cet encodage rend contrôlable le rapport déjà obligatoire, sans nouvel état ni gate runtime.',
     'Aucun critère ne peut disparaître du rapport. Toute preuve visuelle/device non exécutée reste `PENDING_DEVICE` ou `NON_VERIFIABLE`.',
     '',
     '- scope : la propriété `scope_allow` de la Lean Request reste opposable ; aucun élargissement n’est autorisé.',
@@ -113,6 +152,8 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
     ui_matrix_sha256: lineField(missionText, 'ui_matrix_sha256'),
     ui_criterion_count: Number(lineField(missionText, 'ui_criterion_count')),
     ui_criterion_ids_sha256: lineField(missionText, 'ui_criterion_ids_sha256'),
+    ui_assertion_count: derived.assertion_mode ? Number(lineField(missionText, 'ui_assertion_count')) : undefined,
+    ui_assertion_ids_sha256: derived.assertion_mode ? lineField(missionText, 'ui_assertion_ids_sha256') : undefined,
     ui_preservation_sha256: lineField(missionText, 'ui_preservation_sha256'),
     required_stops: lineField(missionText, 'required_stops').split(',').filter(Boolean),
   };
@@ -122,6 +163,8 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
       observed.ui_matrix_sha256 !== derived.ui_matrix_sha256 ||
       observed.ui_criterion_count !== derived.ui_criterion_count ||
       observed.ui_criterion_ids_sha256 !== derived.ui_criterion_ids_sha256 ||
+      (derived.assertion_mode && (observed.ui_assertion_count !== derived.ui_assertion_count ||
+        observed.ui_assertion_ids_sha256 !== derived.ui_assertion_ids_sha256)) ||
       observed.ui_preservation_sha256 !== derived.ui_preservation_sha256 ||
       JSON.stringify(observed.required_stops) !== JSON.stringify(derived.required_stops)) {
     fail('IMPLEMENTATION_CONTRACT_DRIFT', 'mission != plan UI approuve');
@@ -132,6 +175,7 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
     'PENDING_DEVICE',
     'KODJO_IMPLEMENTATION_CONFORMANCE',
     'Une suite Jest verte ne constitue jamais à elle seule',
+    ...(derived.assertion_mode ? ['assertion_results','assertion_id'] : []),
   ];
   for (const fragment of requiredFragments) {
     if (!String(missionText).includes(fragment)) fail('IMPLEMENTATION_CONTRACT_INCOMPLETE', fragment);
@@ -140,7 +184,9 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
 }
 
 module.exports = {
-  IMPLEMENTATION_CONTRACT_SCHEMA,
+  IMPLEMENTATION_CONTRACT_SCHEMA: IMPLEMENTATION_CONTRACT_SCHEMA_V1,
+  IMPLEMENTATION_CONTRACT_SCHEMA_V1,
+  IMPLEMENTATION_CONTRACT_SCHEMA_V2,
   UI_PLAN_CONTRACT_SCHEMA,
   REQUIRED_STOPS,
   deriveImplementationContract,
