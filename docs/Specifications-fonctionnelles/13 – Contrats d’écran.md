@@ -1511,91 +1511,97 @@ E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
 # 11. B8 — Catégories et navigation
 
-## CE-T03-16 — Catégories — enregistrement et retour Catalogue séances
+## CE-T03-16 — Modale Catégories — validation et retour Catalogue séances
 
 ### 1. Identification
 
-Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frame `2028:11204`; image `ecran-6-categories-seance.png`.
+Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frames `2028:11204` (standard) et `2028:11248` (nouvelle catégorie inline) ; image `ecran-6-categories-seance.png`.
 
 ### 2. Finalité fonctionnelle
 
-Finaliser la Séance et revenir déterministement sur Catalogue des séances / segment Séances avec transition canonique.
+Permettre la sélection/création facultative de Catégories sans quitter visuellement la Composition, puis finaliser la Séance et revenir déterministement sur Catalogue des séances / segment Séances avec transition canonique.
 
 ### 3. Contexte d’entrée
 
-Composition valide → Catégories.
+Composition valide → ouverture de la modale Catégories au-dessus de la Composition courante.
 
 ### 4. Contexte de sortie / destinations
 
-Enregistrer succès → CE-T03-01 / Séances. Échec → reste Catégories. Retour arrière selon brouillon existant.
+`Annuler` d’en-tête → fermeture de la modale et retour à la Composition avec brouillon intact. `Valider` succès → CE-T03-01 / Séances. Échec → modale maintenue ouverte.
 
 ### 5. Données affichées et source de vérité
 
-Draft Session + catégories existantes/nouvelles temporaires et sélection.
+Draft Session + catégories existantes/nouvelles temporaires + sélection courante. La Composition visible derrière est le contexte du brouillon, pas une copie persistée.
 
 ### 6. Classification des valeurs Figma
 
-Noms catégories = dynamiques ; titres/actions = statiques ; exemples = démonstration.
+Noms catégories = dynamiques ; titre `Catégories de la séance`, actions d’en-tête et actions inline = statiques ; exemples de catégories = démonstration.
 
-### 7. Structure de l’écran
+### 7. Structure de la modale
 
-Contrat Catégories existant : titre, tags, création inline éventuelle, CTA Enregistrer.
+Voile modal plein écran bloquant ; conteneur modal ; en-tête fixe `Annuler / Catégories de la séance / Valider` ; contenu avec tags ; état standard avec `Créer une catégorie` ; état inline avec champ `Nom de la catégorie` et actions `Annuler / Ajouter`. Aucun CTA inférieur `Enregistrer la séance`.
 
 ### 8. Éléments obligatoires
 
-Catégories selon règles existantes ; Enregistrer ; message erreur ; pas de texte introductif supplémentaire.
+Voile bloquant ; titre ; action Annuler d’en-tête ; action Valider d’en-tête ; tags ; création inline éventuelle ; message erreur si persistance échoue ; aucun texte introductif supplémentaire.
 
 ### 9. Layout déterministe
 
-Conserver Figma Catégories. T03 ne change que destination/transition et protection double save.
+Référence `402 × 874` :
+- `2028:11204` : modale `x=12`, `y=38`, `378 × 313 pt` ; en-tête `60 pt` ; contenu `253 pt` ;
+- `2028:11248` : modale `x=12`, `y=38`, `378 × 369 pt` ; en-tête `60 pt` ; contenu `309 pt` ;
+- actions d’en-tête dans des zones `48 × 53 pt` avec fond circulaire `38 × 38 pt` ;
+- divider d’en-tête `1 pt`.
+
+Ces mesures constituent la référence Figma ; l’implémentation respecte le contrat adaptatif sans convertir ces coordonnées en positionnement absolu non adaptable.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; clavier inline ne masque pas CTA ; scroll selon contrat existant.
+360/402/440 : conserver marges de sécurité, titre lisible, actions d’en-tête accessibles et contenu scrollable si nécessaire. Dans l’état inline, le clavier ne masque ni le champ actif ni les actions `Annuler / Ajouter`; la Composition sous le voile reste non interactive.
 
-### 11. États de l’écran
+### 11. États de la modale
 
-Draft ; nouvelle catégorie inline ; saving ; erreur ; succès/navigation.
+Standard ; nouvelle catégorie inline ; saving ; erreur ; fermeture Annuler ; succès/navigation.
 
 ### 12. Contrôles et interactions
 
-Sélection tags ; création inline ; Enregistrer une seule fois ; désactivation/busy pendant sauvegarde.
+Tags = sélectionner/désélectionner. `Créer une catégorie` → état inline. `Annuler` inline → ferme seulement l’état de création. `Ajouter` → ajoute la catégorie temporaire et la sélectionne. `Annuler` d’en-tête → ferme la modale sans persistance finale. `Valider` d’en-tête → une seule transaction finale ; désactivation/busy pendant sauvegarde.
 
 ### 13. Gestes
 
-Tap et saisie/scroll ; aucun geste spécial de transition local.
+Tap, saisie et scroll dans la modale. Le voile ne valide pas implicitement. Aucun geste spécial de transition local.
 
 ### 14. Validation
 
-Règles catégories existantes ; transaction valide ; pas double-submit.
+Catégories facultatives ; règles de nom existantes pour nouvelle Catégorie ; Séance valide avant transaction ; pas double-submit.
 
 ### 15. Brouillon et persistance
 
-Transaction Session+Composition+catégories ; erreur = rollback et brouillon intact.
+Avant `Valider`, catégories temporaires et sélection restent dans le brouillon. `Annuler` d’en-tête n’effectue aucune persistance finale. `Valider` exécute la transaction Session+Composition+Catégories ; erreur = rollback et brouillon intact.
 
 ### 16. Navigation et conservation d’état
 
-Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Activités.
+`Annuler` restaure la Composition sous-jacente. Succès `Valider` impose `Catalogue des séances`, segment Séances, transition §4.9, même si le dernier segment global était Activités.
 
 ### 17. Erreurs et cas limites
 
-Erreur save : rester, message, CTA réactivé, aucune donnée partielle. Double tap = une transaction.
+Erreur save : rester dans la modale, message, `Valider` réactivé, aucune donnée partielle. Double tap Valider = une transaction. Nom de Catégorie dupliqué après normalisation = sélectionner l’existante selon la règle actuelle, sans doublon.
 
 ### 18. Accessibilité
 
-Saving/disabled annoncé ; erreur live region ; focus clavier correct.
+Le voile rend le contexte sous-jacent non focusable. Focus initial dans la modale ; ordre Annuler → titre/contenu → Valider cohérent ; saving/disabled annoncé ; erreur live region ; focus clavier correct en état inline.
 
 ### 19. Invariants
 
-Destination jamais Catalogue Activités ; segment Séances ; une seule sauvegarde.
+Catégories est une modale, jamais un écran autonome ; aucune action finale inférieure ; `Annuler` d’en-tête ne persiste pas ; `Valider` est l’unique action de finalisation ; destination après succès = Catalogue des séances / Séances.
 
 ### 20. Recette déterministe
 
-Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Activités préalable. Négatif : retour Activités après save.
+Vérifier `2028:11204` et `2028:11248` ; voile bloquant ; géométrie standard/inline ; Annuler d’en-tête ; Valider ; création inline Annuler/Ajouter ; save ; double tap ; erreur ; destination/animation ; dernier segment Activités préalable ; 360/402/440 et clavier. Négatifs : écran plein autonome, CTA inférieur `Enregistrer la séance`, interaction avec Composition sous voile, Annuler inline fermant toute la modale, retour Activités après save.
 
 ### 21. Traçabilité
 
-E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
+E67–E69 → D-168/D-178/D-190 ; API-SEA-03/04 ; Figma `2028:11204`, `2028:11248`.
 
 ![Catégories](./images/ecran-6-categories-seance.png)
 
