@@ -228,7 +228,7 @@ Une Activité autonome exécute toutes les Séries du premier côté puis toutes
 
 ## 2 bis.7 Limite Circuit
 
-Le Catalogue peut proposer `Un circuit` dans son arbre V2. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
+Lorsque le Catalogue `Circuits` devient fonctionnel en V2, son contrôle contextuel `Créer` ouvre directement le formulaire Circuit, sans arbre intermédiaire. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
 
 # 3. Composition d'une séance
 
