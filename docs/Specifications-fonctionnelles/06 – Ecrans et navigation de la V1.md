@@ -820,24 +820,31 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
 
-## Écran 6 – Catégories de la séance
-
+## Modale 6 – Catégories de la séance
 
 ![[images/ecran-6-categories-seance.png|260]]
 
-*Écran 6 — Catégories de la séance — Figma `2028:11204`*
+*Modale 6 — Catégories de la séance — Figma `2028:11204`*
 
 L’état de création intégrée d’une nouvelle Catégorie est illustré par :
 
 ![[images/ecran-6a-categories-nouvelle-inline.png|260]]
 
-*Écran 6a — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
+*Modale 6a — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
 
 ### Objectif
 
-Permettre d’associer zéro, une ou plusieurs Catégories à une Séance.
+Permettre d’associer zéro, une ou plusieurs Catégories à une Séance sans quitter le contexte de Composition.
 
 Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles n’ont aucun impact sur l’Exécution.
+
+### Structure modale
+
+- la Composition reste visible en arrière-plan sous un voile modal et n’est pas interactive tant que la modale est ouverte ;
+- dans la référence Figma `402 × 874`, la modale est positionnée à `x=12`, `y=38`, largeur `378 pt` ;
+- l’état standard `2028:11204` mesure `378 × 313 pt` ; l’état de création inline `2028:11248` mesure `378 × 369 pt` ;
+- l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Catégories de la séance` centré et l’action `Valider` à droite ;
+- l’ancien CTA inférieur `Enregistrer la séance` n’est plus affiché dans ces états et ne constitue plus la cible UI courante.
 
 ### Contenu et comportement
 
@@ -845,10 +852,11 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante ; leur sélection ne change pas leur position et aucune réorganisation manuelle n’est proposée dans le MVP ;
 - la sélection est multiple ;
 - aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
-- Retour vers la Composition puis retour aux Catégories conserve séparément les Catégories temporaires existantes et les identifiants sélectionnés ; aucune Catégorie nouvelle n’est persistée avant l’enregistrement final ;
-- `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
-- en cas d’échec, aucune donnée partielle n’est conservée, le brouillon reste intact, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
+- `+ Créer une catégorie` ouvre dans la modale une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; cet `Annuler` inline ferme uniquement la création de catégorie et ne ferme pas la modale ;
+- une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
+- l’action d’en-tête `Annuler` ferme la modale et revient à la Composition en conservant le brouillon de Séance tel qu’il était avant validation finale, y compris les modifications de Composition déjà présentes ; aucune Catégorie nouvelle n’est persistée ;
+- l’action d’en-tête `Valider` remplace fonctionnellement l’ancien CTA `Enregistrer la séance` : elle persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir le contexte courant vers la gauche ;
+- en cas d’échec, aucune donnée partielle n’est conservée, la modale reste ouverte, le brouillon reste intact, l’action `Valider` est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
 
 ## Écran 7 – Calendrier
 
