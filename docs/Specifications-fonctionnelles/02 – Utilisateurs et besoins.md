@@ -184,7 +184,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Configurer une Activité ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
+- Configurer la bilatéralité au niveau de chaque Activité. La version actuelle n’expose aucune bilatéralité au niveau du Tour, dont `sideMode` reste figé à `UNILATERAL`.
 
 ## 9. Besoins MVP T03 — Catalogue des Activités et Exécution directe
 
