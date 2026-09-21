@@ -392,9 +392,11 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 ### Corrections UX communes T03
 
 - une roulette ouverte laisse le bouton principal inférieur visuellement inchangé sous le voile grisé, mais le rend fonctionnellement et accessibilité-inactif ;
-- le swipe gauche déplace réellement la carte et révèle progressivement les actions placées derrière ;
+- le swipe gauche déplace réellement la carte tandis que le bloc d’actions reste fixe et révèle progressivement ses options ;
+- à l’état ouvert de référence, le gap carte→actions vaut `10 pt` et est égal au gap actions→bord droit du conteneur ; le premier bouton porte les rayons gauches, le dernier les rayons droits, et une action unique porte les quatre rayons ;
 - seul un swipe droit commencé sur la carte contextuellement ouverte la referme ;
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
+- une confirmation destructive déclenchée depuis le swipe conserve la carte ouverte et l’action déclenchante visibles sous le voile modal jusqu’à décision ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
 - après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
