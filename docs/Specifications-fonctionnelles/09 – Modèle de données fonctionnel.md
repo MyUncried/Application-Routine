@@ -72,7 +72,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
-| DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T04 ; D-156 |
+| DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés de l’Activité. | Prérequis T04 ; D-156/D-200 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T04 ; D-156 |
 | DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T04 |
 
@@ -549,7 +549,7 @@ Elle ne contient pas directement :
 - Une Activité peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Une Activité possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Pour `C` Séries, la Pause apparaît `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`.
-- La Récupération est insérée après tous les côtés d’une Activité autonome, ou après chaque passage de côté d’un Tour bilatéral, lorsque sa durée est strictement positive ; elle précède `SESSION_END` le cas échéant.
+- La Récupération est insérée après tous les côtés de l’Activité lorsque sa durée est strictement positive ; elle précède `SESSION_END` le cas échéant.
 - Ni la Pause ni la Récupération ne créent une entité Activité associée.
 - En mode Durée, `D = L × [C × A + P(C,R) × B] + R` pour une Activité autonome, avec `P(C,R) = C` si `R = 0`, sinon `C − 1` ; `D` est recalculée à partir des valeurs canoniques.
 - Si l’utilisateur pilote par une Durée totale cible, `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondi à l’entier le plus proche avec `.5` vers le haut et minimum `1`; la valeur atteignable de `D` est ensuite recalculée. Seul `C` est persisté.
