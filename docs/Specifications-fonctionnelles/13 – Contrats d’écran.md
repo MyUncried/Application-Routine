@@ -607,7 +607,7 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/A
 
 ### 1. Identification
 
-Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame courante `3933:5780`. L’ancienne frame `3788:5258` est supersédée.
+Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frames courantes synchronisées `3788:5258` et `3933:5780`.
 
 ### 2. Finalité fonctionnelle
 
@@ -639,7 +639,7 @@ Fond Composition + arbre contextuel à quatre options.
 
 ### 9. Layout déterministe
 
-Conforme frame `3933:5780` ; les options gardent la relation hiérarchique représentée et l’arbre reste dans la Safe Area.
+Conforme aux frames `3788:5258` et `3933:5780` ; les options gardent la relation hiérarchique représentée et l’arbre reste dans la Safe Area.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -687,7 +687,7 @@ Tester quatre choix, abandon, retour, draft intact, insertion et repositionnemen
 
 ### 21. Traçabilité
 
-E22–E24 → D-170/D-188 ; Figma `3933:5780`; API-COM-03 / API-COM-09 / API-COMP-SEL.
+E22–E24 → D-170/D-188 ; Figma `3788:5258`, `3933:5780`; API-COM-03 / API-COM-09 / API-COMP-SEL.
 
 ---
 
