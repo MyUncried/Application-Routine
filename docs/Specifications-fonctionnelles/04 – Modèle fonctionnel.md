@@ -91,7 +91,7 @@ Chaque Activité possède notamment :
 - une ou plusieurs zones corporelles facultatives ;
 - aucun média fonctionnel dans le MVP T03 ; l’architecture prépare `0..n` médias ordonnés par Activité pour une évolution post-MVP.
 
-Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause. Pour une Activité autonome, elle intervient une fois après tous les côtés ; dans un Tour bilatéral, une Récupération intervient à la fin de chaque passage de côté.
+Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause. Elle intervient une fois après tous les côtés de l’Activité.
 
 En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `R` la Récupération : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale pilote, les formules inverses de D-156 s’appliquent, puis le nombre de Séries est arrondi selon la règle validée et la durée réalisable est recalculée.
 
