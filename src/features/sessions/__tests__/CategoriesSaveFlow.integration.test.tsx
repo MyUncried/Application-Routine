@@ -82,6 +82,9 @@ async function renderCreationRouter() {
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/categories": require("../../../../app/(creation)/categories").default,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
+        .default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );
@@ -96,6 +99,7 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     // Composition : Nom + Activité 1 (Durée, Zones corporelles).
     fireEvent.changeText(screen.getByLabelText(composition.name), "Circuit complet");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
     // T02-S02 (D-137) : plus d'étape `Valider` — la Zone corporelle est
     // atteinte en déployant sa section, sur le même écran. L'en-tête est
@@ -107,6 +111,7 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Squats");
     fireEvent.press(
       screen.getByLabelText(exercise.executionMode.repetitions),
@@ -170,6 +175,7 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance qui échoue");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
     fireEvent.press(screen.getByLabelText(composition.continueAction));

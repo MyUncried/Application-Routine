@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
+  NAVIGATION_BAR_HEIGHT,
   NAVIGATION_CONTENT_HEIGHT,
   NAVIGATION_ROW_HORIZONTAL_MARGIN,
   navigationBarTotalHeight,
@@ -29,7 +30,20 @@ describe("NAVIGATION_BAR_BOTTOM_RESIDUAL", () => {
 });
 
 describe("navigationBarTotalHeight", () => {
-  it("is always NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_CONTENT_HEIGHT", () => {
-    expect(navigationBarTotalHeight()).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_CONTENT_HEIGHT);
+  it("is always NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_BAR_HEIGHT", () => {
+    expect(navigationBarTotalHeight()).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_BAR_HEIGHT);
+  });
+});
+
+/**
+ * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
+ * barre reste strictement plus haute que le contenu d'un item — condition
+ * nécessaire pour ménager une marge visible entre le haut des icônes et le
+ * bord supérieur du cadre (`alignItems: "center"` centre alors le contenu
+ * dans l'espace excédentaire).
+ */
+describe("NAVIGATION_BAR_HEIGHT", () => {
+  it("is strictly greater than NAVIGATION_CONTENT_HEIGHT, leaving a visible margin above/below the item content", () => {
+    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThan(NAVIGATION_CONTENT_HEIGHT);
   });
 });

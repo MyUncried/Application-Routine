@@ -6,6 +6,8 @@ import { Text } from "react-native";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
+import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { NodeSqliteDatabase as mockNodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -114,13 +116,21 @@ jest.mock("expo-sqlite", () => {
   return { SQLiteProvider, useSQLiteContext };
 });
 
-function Consumer({ onRender }: { onRender: (service: SessionService) => void }) {
+function Consumer({
+  onRender,
+  onRenderActivityDefinitionService,
+}: {
+  onRender: (service: SessionService) => void;
+  onRenderActivityDefinitionService?: (service: ActivityDefinitionService) => void;
+}) {
   const service = useSessionService();
+  const activityDefinitionService = useActivityDefinitionService();
   // Sans tableau de dépendances : journalise l'instance vue à *chaque*
   // rendu de ce composant, pour pouvoir prouver sa stabilité référentielle
   // entre deux rendus successifs (point 5 de la consigne).
   useEffect(() => {
     onRender(service);
+    onRenderActivityDefinitionService?.(activityDefinitionService);
   });
   return <Text>app-content</Text>;
 }
@@ -165,11 +175,23 @@ describe("SessionServiceProvider — régression : un children applicatif variab
   it("propage un remplacement ultérieur de children (null → contenu réel) jusqu'à SessionServiceContext, avec l'instance exacte de SessionService", async () => {
     const onReady = jest.fn();
     const onRender = jest.fn();
+    // V2-CAT-01 : `ActivityDefinitionServiceProvider` expose une instance
+    // réelle d'`ActivityDefinitionService`, construite depuis la MÊME
+    // composition SQLite que `SessionService` — jamais une seconde connexion
+    // ni un second cycle de migration. Journalisée par le même `Consumer`,
+    // une fois `children` effectivement rendu (jamais avant : le contexte
+    // vaudrait encore `null`).
+    const onRenderActivityDefinitionService = jest.fn();
 
     function Harness({ showContent }: { showContent: boolean }) {
       return (
         <SessionServiceProvider onReady={onReady}>
-          {showContent ? <Consumer onRender={onRender} /> : null}
+          {showContent ? (
+            <Consumer
+              onRender={onRender}
+              onRenderActivityDefinitionService={onRenderActivityDefinitionService}
+            />
+          ) : null}
         </SessionServiceProvider>
       );
     }
@@ -215,6 +237,14 @@ describe("SessionServiceProvider — régression : un children applicatif variab
     const lastCall = onRender.mock.calls[onRender.mock.calls.length - 1];
     const lastSeen = lastCall?.[0];
     expect(lastSeen).toBe(firstSeen);
+
+    // V2-CAT-01 : le même `Consumer`, déjà monté ci-dessus une fois `children`
+    // effectivement rendu, a également reçu une instance réelle
+    // d'`ActivityDefinitionService`.
+    await waitFor(() => expect(onRenderActivityDefinitionService).toHaveBeenCalled());
+    expect(onRenderActivityDefinitionService.mock.calls[0]?.[0]).toBeInstanceOf(
+      ActivityDefinitionService,
+    );
     // Délai par test (troisième argument de `it`, pas une modification du
     // timeout global de Jest) : mesuré empiriquement, ce fichier complet
     // (chargement + exécution) peut prendre jusqu'à ~54 s sous les 26

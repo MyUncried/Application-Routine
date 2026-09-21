@@ -2,10 +2,12 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   classifyMovement,
+  clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
   resolveDropZone,
+  shouldRevealAfterSwipe,
   SWIPE_REVEAL_DISTANCE,
   TOUCH_SLOP,
   type CompositionDragLayout,
@@ -40,6 +42,51 @@ describe("classifyMovement / isTap (arbitrage appui / glissement / défilement)"
 
   it("uses the platform's own long-press delay rather than an invented one", () => {
     expect(LONG_PRESS_DELAY_MS).toBe(500);
+  });
+});
+
+/**
+ * V2-CAT-01 (UI-CAT-R-007) : calculs purs du balayage PROGRESSIF de
+ * Composition — la carte suit le doigt en temps réel, et son alignement à la
+ * relâche dépend de la position ATTEINTE, jamais de la distance parcourue
+ * depuis l'origine du geste.
+ */
+describe("clampSwipeTranslateX (translation bornée de la carte glissée)", () => {
+  it("never lets the card progress beyond its closed position (0), regardless of a rightward dx", () => {
+    expect(clampSwipeTranslateX(0, 154)).toBe(0);
+    expect(clampSwipeTranslateX(80, 154)).toBe(0);
+  });
+
+  it("never lets the card progress beyond its fully open position (-revealOffset), regardless of how far left dx goes", () => {
+    expect(clampSwipeTranslateX(-154, 154)).toBe(-154);
+    expect(clampSwipeTranslateX(-400, 154)).toBe(-154);
+  });
+
+  it("follows dx exactly within the reachable range", () => {
+    expect(clampSwipeTranslateX(-80, 154)).toBe(-80);
+    expect(clampSwipeTranslateX(-154 + 80, 154)).toBe(-74);
+  });
+});
+
+describe("shouldRevealAfterSwipe (alignement à la relâche)", () => {
+  const revealOffset = 154;
+
+  it("aligns OPEN once the reached position is past half of the reveal course", () => {
+    expect(shouldRevealAfterSwipe(-revealOffset, revealOffset)).toBe(true);
+    expect(shouldRevealAfterSwipe(-(revealOffset / 2), revealOffset)).toBe(true);
+    expect(shouldRevealAfterSwipe(-(revealOffset / 2) - 1, revealOffset)).toBe(true);
+  });
+
+  it("aligns CLOSED when the reached position stayed short of half the reveal course", () => {
+    expect(shouldRevealAfterSwipe(0, revealOffset)).toBe(false);
+    expect(shouldRevealAfterSwipe(-(revealOffset / 2) + 1, revealOffset)).toBe(false);
+  });
+
+  it("decides from the reached position alone — a card released mid-close from fully open stays open unless it crossed the midpoint", () => {
+    // Carte ouverte (`-154`), remontée de `60` (donc `-94`) : reste au-delà
+    // de la moitié (`-77`), donc encore ouverte, quelle que soit la distance
+    // parcourue depuis l'origine du geste (jamais lue par cette fonction).
+    expect(shouldRevealAfterSwipe(-94, revealOffset)).toBe(true);
   });
 });
 

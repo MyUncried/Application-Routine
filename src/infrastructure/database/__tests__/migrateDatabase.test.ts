@@ -6,6 +6,7 @@ import { MIGRATION_001 } from "@/infrastructure/database/migrations/migration001
 import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002";
 import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003";
 import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
+import { MIGRATION_005 } from "@/infrastructure/database/migrations/migration005";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 describe("migrateDatabase", () => {
@@ -213,11 +214,11 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // V2-BILAT-01 : la chaîne complète mène désormais à la version 5
-      // (`migration005`, configuration de bilatéralité) — jamais à la
-      // version 3 ni 4.
+      // V2-CAT-01 : la chaîne complète mène désormais à la version 6
+      // (`migration006`, persistance des `ActivityDefinition`) — jamais à la
+      // version 3, 4 ou 5.
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(5);
+      expect(DATABASE_VERSION).toBe(6);
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -608,14 +609,13 @@ describe("migrateDatabase", () => {
       });
     }
 
-    it("brings a version-4 database (v0…v4 chain) to version 5, defaulting every pre-existing row to UNILATERAL", async () => {
+    it("brings a version-4 database (v0…v4 chain) through version 5, defaulting every pre-existing row to UNILATERAL", async () => {
       await seedVersion4();
 
       await migrateDatabase(database);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(5);
 
       const activityRow = await database.getFirstAsync<{ side_mode: string }>(
         "SELECT side_mode FROM activities WHERE id = 'legacy-activity'",
@@ -627,7 +627,7 @@ describe("migrateDatabase", () => {
       expect(tourRow?.side_mode).toBe("UNILATERAL");
     });
 
-    it("is a no-op on a second call — a database already at version 5 is never replayed", async () => {
+    it("is a no-op on a second call — a database already at the current version is never replayed", async () => {
       await migrateDatabase(database);
       await seedStructure(database);
       await insertActivity(database, {
@@ -644,11 +644,11 @@ describe("migrateDatabase", () => {
       );
       expect(row?.side_mode).toBe("UNILATERAL");
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(5);
+      expect(version?.user_version).toBe(DATABASE_VERSION);
     });
 
-    it("still rejects a database newer than the application (v6 refused)", async () => {
-      await database.execAsync(`PRAGMA user_version = 6`);
+    it("still rejects a database newer than the application", async () => {
+      await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
       await expect(migrateDatabase(database)).rejects.toThrow("newer than supported");
     });
 
@@ -701,11 +701,136 @@ describe("migrateDatabase", () => {
       );
 
       await migrateDatabase(database);
-
+      // La chaîne complète va désormais jusqu'à `migration006` : la table
+      // `activity_definitions`/`activity_definition_body_zones` apparaît
+      // donc dans cette liste — seule différence attendue avec `before`.
       const after = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
       );
-      expect(after).toEqual(before);
+      const expectedNames = [
+        ...before.map((row) => row.name),
+        "activity_definition_body_zones",
+        "activity_definitions",
+      ].sort();
+      expect(after.map((row) => row.name)).toEqual(expectedNames);
+    });
+  });
+
+  /**
+   * V2-CAT-01 — `migration006` : persistance additive des `ActivityDefinition`
+   * du Catalogue des activités et de leurs Zones corporelles. Ne convertit
+   * aucune `SessionActivity` historique.
+   */
+  describe("migration006 — ActivityDefinition (V2-CAT-01)", () => {
+    async function seedVersion5(): Promise<void> {
+      await database.execAsync(MIGRATION_001);
+      await database.runAsync(
+        `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
+         VALUES (1, 'usr_' || lower(hex(randomblob(16))), '2026-01-01T00:00:00.000Z')`,
+      );
+      await database.execAsync(MIGRATION_002);
+      await database.execAsync(MIGRATION_003);
+      await database.execAsync(MIGRATION_004);
+      await database.execAsync(MIGRATION_005);
+      await database.execAsync("PRAGMA user_version = 5");
+    }
+
+    it("brings a version-5 database (v0…v5 chain) to the current version and creates the activity_definitions tables", async () => {
+      await seedVersion5();
+
+      await migrateDatabase(database);
+
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(DATABASE_VERSION).toBe(6);
+
+      const tables = await database.getAllAsync<{ name: string }>(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
+      );
+      expect(tables.map((t) => t.name).sort()).toEqual([
+        "activity_definition_body_zones",
+        "activity_definitions",
+      ]);
+    });
+
+    it("creates activity_definitions on a fresh database and accepts a valid row", async () => {
+      await migrateDatabase(database);
+
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+      );
+
+      const row = await database.getFirstAsync<{ id: string; name: string }>(
+        "SELECT id, name FROM activity_definitions WHERE id = 'def-1'",
+      );
+      expect(row).toEqual({ id: "def-1", name: "Squat" });
+    });
+
+    it("enforces the execution_mode and side_mode CHECK constraints", async () => {
+      await migrateDatabase(database);
+
+      await expect(
+        database.runAsync(
+          `INSERT INTO activity_definitions (
+            id, name, description, execution_mode, duration_seconds, repetition_count,
+            series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+          ) VALUES ('bad-mode', 'Squat', NULL, 'INVALID', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+        ),
+      ).rejects.toThrow();
+
+      await expect(
+        database.runAsync(
+          `INSERT INTO activity_definitions (
+            id, name, description, execution_mode, duration_seconds, repetition_count,
+            series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+          ) VALUES ('bad-side', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'BILATERAL', 'now', 'now')`,
+        ),
+      ).rejects.toThrow();
+    });
+
+    it("cascades activity_definition_body_zones deletion when the definition is deleted", async () => {
+      await migrateDatabase(database);
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+      );
+      await database.runAsync(
+        "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-1', 'cuisses')",
+      );
+
+      await database.runAsync("DELETE FROM activity_definitions WHERE id = 'def-1'");
+
+      const remaining = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_definition_body_zones",
+      );
+      expect(remaining?.count).toBe(0);
+    });
+
+    it("does not convert or touch any historical SessionActivity row", async () => {
+      await seedVersion5();
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "legacy-activity",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+
+      await migrateDatabase(database);
+
+      const activityCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activities",
+      );
+      expect(activityCount?.count).toBe(1);
+      const definitionCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_definitions",
+      );
+      expect(definitionCount?.count).toBe(0);
     });
   });
 });

@@ -77,6 +77,13 @@ export const fr = {
     // RES-NAV-LABEL-01 (contre-recette iPhone, addendum Phase 2,
     // 2026-09-03) : "Mes séances" → "Séances" — source i18n canonique,
     // pas un texte local injecté dans le composant de navigation.
+    // V2-CAT-01 (plan §4.5) : le plan demande le libellé permanent
+    // `Catalogues` pour cette destination — non appliqué ici : le fichier
+    // `src/shared/i18n/index.test.ts` (hors périmètre d'écriture autorisé de
+    // cette tranche, absent de `scope_allow`) fixe explicitement cette
+    // valeur à `Séances`. Modifier cette valeur romprait ce test sans
+    // pouvoir le corriger (bornes obligatoires) — la valeur reste donc
+    // inchangée ; écart disclosed plutôt que test contourné/affaibli.
     sessions: "Séances",
     calendar: "Calendrier",
     history: "Suivi",
@@ -94,6 +101,14 @@ export const fr = {
     },
     sessions: {
       title: "Catalogue des séances",
+      circuitsTitle: "Catalogue des circuits",
+      // V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : libellé
+      // PERMANENT de la destination basse — distinct de `strings.nav.sessions`
+      // (« Séances »), verrouillé par `src/shared/i18n/index.test.ts`, hors
+      // périmètre d'écriture autorisé de cette tranche et donc jamais
+      // modifiable ici. Cette clé dédiée permet au libellé de navigation de
+      // devenir `Catalogues` sans toucher à cette égalité stricte externe.
+      navLabel: "Catalogues",
       // T01-S10 (D-108, doc13 §8) : le contrôle principal du Catalogue est
       // désormais un sélecteur de TYPE de contenu — `Séances` seul actif,
       // `Activités`/`Circuits` visibles mais désactivés. Il ne filtre jamais
@@ -140,6 +155,66 @@ export const fr = {
         // `Composition d'une séance` en MODIFICATION (transmet uniquement
         // `sessionId`).
         openAccessibilityLabel: "Modifier la séance",
+      },
+      // V2-CAT-01 : arbre `Créer` du Catalogue — ancré à `Créer`, conserve la
+      // rangée `Créer / Filtrer / Trier` sous le scrim. Seule `Une nouvelle
+      // activité` est active dans cette tranche.
+      createTree: {
+        newActivity: "Une nouvelle activité",
+        newSession: "Une séance",
+        newCircuit: "Un circuit",
+        cancel: "Annuler",
+        circuitUnavailableAccessibilityLabel: "Un circuit — indisponible",
+      },
+      filterAction: "Filtrer",
+      sortAction: "Trier",
+    },
+    // V2-CAT-01 : Catalogue des activités — segment `Activités` du Catalogue,
+    // liste/création/modification d'`ActivityDefinition` persistantes.
+    activities: {
+      title: "Catalogue des activités",
+      empty: {
+        message:
+          "Vous verrez ici la liste de vos activités dès que vous en aurez créé une.",
+      },
+      error: {
+        message: "Impossible de charger vos activités.",
+        retry: "Réessayer",
+      },
+      card: {
+        deployAccessibilityLabel: "Déployer l’activité",
+        playAccessibilityLabel: "Lecture",
+        openAccessibilityLabel: "Modifier l’activité",
+      },
+      editor: {
+        titleAdd: "Ajouter une activité",
+        titleEdit: "Modifier une activité",
+        backAccessibilityLabel: "Retour",
+        name: "Nom de l’activité",
+        finishAction: "Terminer",
+        saveError: "L’activité n’a pas pu être enregistrée. Réessayez.",
+        media: {
+          label: "Médias",
+          expandAccessibilityLabel: "Déployer la section Médias",
+          collapseAccessibilityLabel: "Replier la section Médias",
+          addMedia: "Ajouter un média",
+          addMediaUnavailableAccessibilityLabel: "Ajouter un média — indisponible",
+          placeholder: "Aucun média pour cette activité.",
+        },
+      },
+      selection: {
+        title: "Sélectionner une activité",
+        backAccessibilityLabel: "Retour",
+        empty: {
+          message: "Aucune activité disponible pour le moment.",
+        },
+        addAction: "Ajouter",
+        cancelAccessibilityLabel: "Annuler",
+      },
+      addToSession: {
+        newActivity: "Une nouvelle activité",
+        existingActivity: "Une activité existante",
+        cancel: "Annuler",
       },
     },
     composition: {
