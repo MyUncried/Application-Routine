@@ -123,17 +123,17 @@ La copie reprend :
 
 Les deux séances deviennent totalement indépendantes.
 
-## 2.5 Suppression d'une séance
+## 2.5 Archivage, restauration et suppression d'une séance
 
-Une séance peut être supprimée depuis le catalogue.
+L’archivage, la consultation des archives, la restauration et la suppression définitive d’une Séance font partie du MVP.
 
-La suppression est définitive.
+Une Séance active ne peut pas être supprimée directement. Elle doit d’abord être archivée depuis le Catalogue actif.
 
-Si la séance est utilisée par une ou plusieurs routines, l'application demande une confirmation avant la suppression.
+L’archivage retire la Séance du Catalogue actif et supprime les Routines qui lui sont associées. Les Exécutions déjà enregistrées et leurs Instantanés restent conservés.
 
-La suppression d'une séance entraîne également la suppression de toutes les routines qui lui sont associées.
+Une Séance archivée peut être restaurée. La restauration la rend de nouveau disponible dans le Catalogue actif mais ne recrée aucune Routine supprimée lors de l’archivage.
 
-Les exécutions déjà enregistrées restent conservées dans l'historique.
+La suppression définitive est disponible uniquement depuis le résultat du filtre `Archivées` et demande toujours une confirmation explicite. Les Routines ayant déjà été supprimées lors de l’archivage, la suppression définitive retire la Séance persistante sans supprimer les Exécutions ni leurs Instantanés historiques.
 
 ## 2.6 Exécution d'une séance
 
