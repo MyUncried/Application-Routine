@@ -62,7 +62,14 @@ Les API fonctionnelles respectent les principes suivants :
 | API-COM-06 | Réordonner les activités               | ID Activité déplacée, position structurelle cible et ordre cible | Nouvelles positions enregistrées   | L’appui long ne persiste rien ; l’opération est appelée uniquement à la dépose dans une destination valide. Déplacement autorisé entre `Avant Tour`, `Dans Tour` et `Après Tour` ; positions uniques dans chaque zone | Activités, Cycle, Tour |
 | API-COM-07 | Paramétrer le compte à rebours initial | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; une durée de 0 s rend la phase instantanée              | Séance              |
 | API-COM-08 | Paramétrer la fin de séance            | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; la Fin de séance n’est pas une Activité                 | Séance              |
+| API-COM-09 | Ajouter un Point d’arrêt                 | ID Séance, position structurelle cible                          | Nouveau Point d’arrêt positionné    | Uniquement entre deux unités exécutables ; jamais en première/dernière position ni adjacent à un autre Point d’arrêt ; insertion initiale après la dernière Activité créée si aucune position explicite n’est fournie | Point d’arrêt, Composition |
+| API-COM-10 | Supprimer un Point d’arrêt               | ID Point d’arrêt                                                | Point d’arrêt retiré                | Le marqueur doit exister ; aucune Activité ni donnée historique n’est supprimée                 | Point d’arrêt, Composition |
+| API-COM-11 | Réordonner un Point d’arrêt              | ID Point d’arrêt, position structurelle cible et ordre cible    | Nouvelle position enregistrée       | Déplacement uniquement vers une transition valide ; dans un Tour, le marqueur reste dans la séquence répétée | Point d’arrêt, Cycle, Tour éventuel |
 | API-COM-09 | Ajouter / déplacer / supprimer un Point d’arrêt | ID Séance, position structurelle ou ID Point d’arrêt | Point d’arrêt ajouté, repositionné ou retiré | Position uniquement entre deux unités exécutables ; interdit en première/dernière position et consécutivement à un autre Point d’arrêt ; ajout initial après la dernière Activité créée | Séance, Cycle/Tour selon position |
+### Création contextuelle depuis les Catalogues
+
+Le contrôle `Créer` n’appelle aucun service de sélection intermédiaire : le Catalogue courant détermine directement le parcours de création cible. `Activités` initialise la création d’une `ActivityDefinition`; `Séances` initialise une nouvelle Composition. Les Circuits restent hors périmètre fonctionnel T03.
+
 ## 11.4 API Activités
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
@@ -117,6 +124,10 @@ Une même Séance peut être associée à plusieurs Routines afin de permettre p
 | API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 minutes consécutives en pause, l’application demande si l’utilisateur souhaite reprendre ; si oui, reprise à l’activité interrompue ; en l’absence de réponse, clôture automatique au statut `Interrompue` | Exécution |
 | API-EXE-10 | Réconcilier une Exécution après interruption technique | ID Exécution, choix `Reprendre` ou `Arrêter` | Exécution reprise ou clôturée `Interrompue` | Aucune nouvelle Exécution tant que la réconciliation n’est pas faite | Exécution |
 | API-EXE-11 | Enregistrer la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée et données de Synthèse enregistrées | Ressenti obligatoire si Synthèse présentée ; Commentaire ≤ 200 caractères | Exécution |
+
+### Règle Point d’arrêt pendant l’Exécution
+
+Le Point d’arrêt ne crée pas une opération d’Exécution autonome ni un écran propre. Lorsqu’un marqueur est rencontré, `ExecutionService` prépare l’unité exécutable suivante et expose son écran normal, mais bloque son démarrage automatique. La reprise correspond ensuite au démarrage normal de cette unité. Le Point d’arrêt lui-même ne produit ni Résultat ni durée planifiée.
 
 ### Règles de navigation pendant l’exécution
 
