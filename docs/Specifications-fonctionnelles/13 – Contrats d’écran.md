@@ -1545,6 +1545,14 @@ Voile modal plein écran bloquant ; conteneur modal ; en-tête fixe `Annuler / C
 
 Voile bloquant ; titre ; action Annuler d’en-tête ; action Valider d’en-tête ; tags ; création inline éventuelle ; message erreur si persistance échoue ; aucun texte introductif supplémentaire.
 
+Sources DSF obligatoires :
+- icônes : `Icon / Modal Action — Source exact` (`4155:6201`), variantes `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ;
+- actions d’en-tête : `Modal / Header Action — Source exact` (`4151:6197`), variantes `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
+- actions texte : `Action / Categories — Source exact` (`4152:6189`), variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) ;
+- tags : `Selection / Category Tag` (`3302:4166`).
+
+Aucune copie graphique locale ni glyphe texte ne remplace ces sources.
+
 ### 9. Layout déterministe
 
 Référence `402 × 874` :
@@ -1593,7 +1601,7 @@ Le voile rend le contexte sous-jacent non focusable. Focus initial dans la modal
 
 ### 19. Invariants
 
-Catégories est une modale, jamais un écran autonome ; aucune action finale inférieure ; `Annuler` d’en-tête ne persiste pas ; `Valider` est l’unique action de finalisation ; destination après succès = Catalogue des séances / Séances.
+Catégories est une modale, jamais un écran autonome ; aucune action finale inférieure ; `Annuler` d’en-tête ne persiste pas ; `Valider` est l’unique action de finalisation ; destination après succès = Catalogue des séances / Séances. Les cinq contrôles d’action et les deux pictogrammes d’en-tête sont exclusivement des instances des sources DSF listées au §8 ; aucune frame locale équivalente n’est autorisée.
 
 ### 20. Recette déterministe
 
@@ -1601,7 +1609,7 @@ Vérifier `2028:11204` et `2028:11248` ; voile bloquant ; géométrie standard/i
 
 ### 21. Traçabilité
 
-E67–E69 → D-168/D-178/D-190 ; API-SEA-03/04 ; Figma `2028:11204`, `2028:11248`.
+E67–E69 → D-168/D-178/D-190 ; API-SEA-03/04 ; Figma `2028:11204`, `2028:11248` ; sources DSF `4155:6201`, `4151:6197`, `4152:6189`, `3302:4166`.
 
 ![Catégories](./images/ecran-6-categories-seance.png)
 
