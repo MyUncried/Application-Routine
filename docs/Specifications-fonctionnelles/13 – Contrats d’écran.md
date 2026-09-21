@@ -2,17 +2,21 @@
 
 ## 1. Objet et statut normatif
 
-Ce chapitre constitue la **spécification déterministe des écrans de production de T03**. Il transforme les décisions produit, règles métier, modèle de données, API fonctionnelles, architecture, Design System Figma et frames de référence en comportements directement exploitables par le développement et la recette.
+Ce chapitre constitue la **spécification déterministe des écrans de production du produit**, toutes tranches confondues. Les contrats qu’il contient aujourd’hui sont issus de T03 ; sa couverture du produit est donc **partielle** et publiée en section 17. Il transforme les décisions produit, règles métier, modèle de données, API fonctionnelles, architecture, Design System Figma et frames de référence en comportements directement exploitables par le développement et la recette.
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette et traçabilité.
 
-Les contrats T03 actifs sont `CE-T03-01` à `CE-T03-17`. Le présent chapitre constitue l’unique référence active des contrats d’écran T03. Aucun chapitre historique parallèle n’est requis pour l’application des contrats courants.
+Les contrats actuellement actifs sont `CE-T03-01` à `CE-T03-17`. Ils conservent ces identifiants comme alias permanents afin de ne pas casser les références existantes.
+
+## 1 bis. Identifiants produit et alias
+
+Le chapitre 13 est le référentiel de contrats d’écran de tout le produit (D-192). Chaque contrat porte un identifiant produit stable `CE-<DOMAINE>-<nn>` en plus de son alias historique `CE-T03-nn`. La tranche est un attribut du contrat, pas son identité. Les identifiants `CE-T01-xx`, `CE-T02-xx` et `CE-T04-xx` d’un référentiel antérieur supprimé sont historiques et ne constituent pas des contrats actifs.
 
 ## 2. Sources et ordre d’application
 
 Pour T03 :
 
-1. décisions validées dans le chapitre 07, notamment D-143 à D-186, avec priorité aux décisions supersédantes D-167 à D-186 ;
+1. décisions validées dans le chapitre 07, notamment D-143 à D-200, avec priorité aux décisions supersédantes les plus récentes ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -24,7 +28,7 @@ Figma ne transforme jamais une valeur de démonstration en règle métier. Inver
 
 ## 3. Structure canonique obligatoire
 
-Chaque contrat comporte **exactement les 21 rubriques suivantes**, même lorsqu’une rubrique renvoie à une règle commune :
+Chaque contrat comporte **exactement les 22 rubriques suivantes**, même lorsqu’une rubrique renvoie à une règle commune :
 
 1. Identification ;
 2. Finalité fonctionnelle ;
@@ -46,9 +50,10 @@ Chaque contrat comporte **exactement les 21 rubriques suivantes**, même lorsqu�
 18. Accessibilité ;
 19. Invariants ;
 20. Recette déterministe ;
-21. Traçabilité.
+21. Traçabilité ;
+22. Implémentation — rattachement de l’écran aux modules qui l’implémentent (D-193).
 
-## 4. Règles communes T03
+## 4. Règles communes
 
 ### 4.1 Classification des valeurs Figma
 
@@ -92,7 +97,7 @@ Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-re
 
 Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
 
-`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune. `Créer` reste actif. Dans le MVP, `Filtrer` propose uniquement `Archivées` sur les Catalogues Séances et Activités ; l’application/désactivation est immédiate et ferme le panneau. Source DSF : `Overlay / Catalogue Filter — Source exact` (`4170:6608`), variantes `4170:6570` / `4170:6589`. `Trier` reste visible mais disabled.
 
 Pour T03 / `Activités` :
 
@@ -106,7 +111,7 @@ Pour T03 / `Activités` :
 
 `Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Dans `1992:10129 — Recherche globale — Champ déployé`, la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
 
-Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le détail graphique des **panneaux/options ouverts** `Filtrer` et `Trier` n’existe pas encore : conformité visuelle détaillée `NON VÉRIFIABLE` / `À CLARIFIER` pour ces panneaux uniquement.
+Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Le panneau ouvert `Filtrer` est couvert par `4170:6608`, `4170:11315` et `4170:11443`. `Trier` reste disabled et aucun panneau de tri MVP ne doit être inventé.
 
 ### 4.6 Roulettes
 
@@ -130,11 +135,17 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 ---
 
+### 4.10 Pastilles de statut
+
+Toute pastille de statut est une instance du composant `Status / Badge — Source exact` (`3959:5970`). Aucune pastille n’est redessinée localement. Les couleurs sont liées aux variables `color/status/*` et respectent le seuil WCAG AA documenté par D-194 à D-196.
+
 # 5. B1 — Catalogue multi-type
 
 ## CE-T03-01 — Catalogue des séances — état T03
 
 ### 1. Identification
+
+Identifiant produit : `CE-CAT-01` — alias T03 `CE-T03-01`.
 
 | Propriété | Valeur |
 |---|---|
@@ -231,11 +242,20 @@ Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible,
 
 E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `1992:10129`; l’ancienne frame d’arbre `3841:8375` est historique/supersédée.
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-02 — Catalogue des activités — liste, recherche, filtres et cartes
 
 ### 1. Identification
+
+Identifiant produit : `CE-CAT-02` — alias T03 `CE-T03-02`.
 
 | Propriété | Valeur |
 |---|---|
@@ -333,11 +353,20 @@ E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → 
 
 *Export du 16 septembre 2026, node `3786:5093`, 402 × 874 px.*
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-03 — Catalogue — action `Créer` contextuelle
 
 ### 1. Identification
+
+Identifiant produit : `CE-CAT-03` — alias T03 `CE-T03-03`.
 
 Bloc B1 ; T03-E E19–E21, E72 ; action contextuelle partagée entre Catalogues. Les anciennes frames `3787:5148` et `3841:8375` décrivent l’écran intermédiaire supprimé et sont conservées uniquement comme évidences historiques.
 
@@ -433,6 +462,8 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
+Identifiant produit : `CE-ACT-01` — alias T03 `CE-T03-04`.
+
 Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; frames `3879:5947`, `3879:6079`, `3542:4656`, `3561:4695`, `3561:7802`, `3679:4880`, `3724:5428`, roulettes `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, état vide `3943:6064`; responsive `2296:91/173/255`.
 
 ### 2. Finalité fonctionnelle
@@ -515,11 +546,20 @@ Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier
 
 E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
 
 ### 1. Identification
+
+Identifiant produit : `CE-ACT-02` — alias T03 `CE-T03-05`.
 
 Bloc B2 ; états S28–S33 ; T03-E E15–E18, E58–E62 ; pattern visuel de référence Séances `1992:10749`, `2234:88`, `1992:10848`, `2234:189`; aucun frame Activity-archives dédié actuellement.
 
@@ -611,6 +651,8 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/A
 
 ### 1. Identification
 
+Identifiant produit : `CE-CMP-01` — alias T03 `CE-T03-06`.
+
 Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame `3788:5258`.
 
 ### 2. Finalité fonctionnelle
@@ -693,11 +735,20 @@ Tester trois choix, abandon, retour, draft intact. Négatif : création Activity
 
 E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-07 — Sélection multiple d’Activités existantes
 
 ### 1. Identification
+
+Identifiant produit : `CE-CMP-02` — alias T03 `CE-T03-07`.
 
 Bloc B4 ; états S47–S54 ; T03-E E25–E31 ; frames `3789:5349`, `3789:5405`; preuve `ecran-14-selection-activites-existantes.png`.
 
@@ -783,11 +834,20 @@ E25–E31 → D-165/D-171 ; 09 bis ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `
 
 ![Sélection Activités](./images/ecran-14-selection-activites-existantes.png)
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-08 — Composition après insertion et corrections UX
 
 ### 1. Identification
+
+Identifiant produit : `CE-CMP-03` — alias T03 `CE-T03-08`.
 
 Bloc B3/B9 ; états S37–S46 ; T03-E E31, E53, E58–E66 ; frames `2028:11700`, `2028:11808`, appui long `3518:4576`.
 
@@ -881,6 +941,8 @@ E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2
 
 ### 1. Identification
 
+Identifiant produit : `CE-EXE-01` — alias T03 `CE-T03-09`.
+
 Bloc B5 ; état S55 ; T03-E E32, E37–E39, E42 ; source Catalogue `3786:5093`; preuve `ecran-16-preparation-directe-5-s.png`; Shell Execution partagé.
 
 ### 2. Finalité fonctionnelle
@@ -965,11 +1027,20 @@ E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
 
 ![Préparation](./images/ecran-16-preparation-directe-5-s.png)
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-10 — Exécution directe — Durée unilatérale
 
 ### 1. Identification
+
+Identifiant produit : `CE-EXE-02` — alias T03 `CE-T03-10`.
 
 Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuve `ecran-17-execution-directe-en-cours.png`.
 
@@ -1055,11 +1126,20 @@ E40/E43 → D-139/D-140/D-156/D-172 ; API-ACT-EXE-03 ; modèle Execution.
 
 ![Exécution directe](./images/ecran-17-execution-directe-en-cours.png)
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-11 — Exécution directe — Répétitions et À l’échec
 
 ### 1. Identification
+
+Identifiant produit : `CE-EXE-03` — alias T03 `CE-T03-11`.
 
 Bloc B5 ; états S57/S58 ; T03-E E40/E43 ; Shell Execution partagé.
 
@@ -1143,11 +1223,20 @@ REPS/Failure C=1/N ; Pauses/Récup ; double tap ; absence confirmation ; absence
 
 D-111/D-139/D-172 ; API-ACT-EXE ; règles mode chapitre 10.
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-12 — Exécution directe — bilatéralité, Pauses, Récupération
 
 ### 1. Identification
+
+Identifiant produit : `CE-EXE-04` — alias T03 `CE-T03-12`.
 
 Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149.
 
@@ -1231,11 +1320,20 @@ D→G/G→D, C=1/N, R=0/>0, skip premier côté, reset second, interruption/repr
 
 E41 → D-143..D-150/D-156/D-172 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-13 — Fin, interruption et retour d’Exécution directe
 
 ### 1. Identification
+
+Identifiant produit : `CE-EXE-05` — alias T03 `CE-T03-13`.
 
 Bloc B5 ; états S63–S65 ; T03-E E43, E44, E49.
 
@@ -1326,6 +1424,8 @@ E43/E44/E49 → D-158..D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 ## CE-T03-14 — Synthèse d’Exécution directe
 
 ### 1. Identification
+
+Identifiant produit : `CE-SYN-01` — alias T03 `CE-T03-14`.
 
 Bloc B6 ; états S66–S70 ; T03-E E44–E46, E49 ; frames structure `1992:8718`, `1992:8780`; preuves `CE-ACT-EXE-04/05`.
 
@@ -1421,6 +1521,8 @@ E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
 ### 1. Identification
 
+Identifiant produit : `CE-SUI-01` — alias T03 `CE-T03-15`.
+
 Bloc B7 ; états S71–S74 ; T03-E E47–E48 ; frames structure `1992:8843`, `1992:8996`; images `ecran-11-suivi-condense.png`, `ecran-11a-suivi-deploye.png`.
 
 ### 2. Finalité fonctionnelle
@@ -1514,6 +1616,8 @@ E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 ## CE-T03-16 — Modale Catégories — validation et retour Catalogue séances
 
 ### 1. Identification
+
+Identifiant produit : `CE-CMP-04` — alias T03 `CE-T03-16`.
 
 Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frames `2028:11204` (standard) et `2028:11248` (nouvelle catégorie inline) ; image `ecran-6-categories-seance.png`.
 
@@ -1613,11 +1717,20 @@ E67–E69 → D-168/D-178/D-190 ; API-SEA-03/04 ; Figma `2028:11204`, `2028:1124
 
 ![Catégories](./images/ecran-6-categories-seance.png)
 
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 ## CE-T03-17 — Navigation principale — inventaire DSF
 
 ### 1. Identification
+
+Identifiant produit : `CE-NAV-01` — alias T03 `CE-T03-17`.
 
 Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `2537:214`.
 
@@ -1868,3 +1981,39 @@ Les preuves suivantes ont été réexportées depuis le Figma courant le 16 sept
 Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
 
 Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` sont vérifiables ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER` tant qu’aucune frame dédiée n’est validée.
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
+
+
+# 17. Couverture du référentiel produit
+
+Cette section est le compte exact de ce que le référentiel couvre. Elle ne doit être ni omise ni arrondie. Décision : D-192.
+
+| Écran du chapitre 06 | Contrat | Couverture |
+|---|---|---|
+| Écran 0 — Splash | — | non contracté |
+| Écran 1 — Profil | — | non contracté |
+| Écran 2 — Catalogue des séances | `CE-T03-01` | contractée pour le Catalogue et le cycle de vie MVP des Séances |
+| Écran 3 — Composition d'une séance | `CE-T03-06`, `07`, `08`, `16` | partielle |
+| Écran 4 — Création / modification d'une Activité | `CE-T03-04`, `05` | contractée |
+| Écran 7 — Calendrier | — | non contracté |
+| Écran 8 — Planifier une séance | — | non contracté |
+| Écran 9 — Exécution de séance | — | non contracté ; `CE-T03-09` à `13` couvrent l'exécution directe d'une Activité |
+| Écran 10 — Synthèse de séance | — | non contracté ; `CE-T03-14` couvre la synthèse d'exécution directe |
+| Écran 11 — Suivi : Séances | `CE-T03-15` | partielle : exécutions `ACTIVITY` |
+| Écrans 12 à 18 — Catalogue des Activités et Exécution directe | `CE-T03-02`, `03`, `09` à `14` | contractés |
+| Navigation principale | `CE-T03-17` | contractée |
+
+**Conséquence opérationnelle.** Une tranche touchant un écran non contracté ne dispose pas de spécification déterministe : son plan doit soit créer le contrat, soit déclarer explicitement qu'il travaille sur une base narrative.
+
+# 18. Référentiel de contrats antérieur — supprimé
+
+Un référentiel de contrats d'écran antérieur, organisé par tranche, portait les identifiants `CE-T01-xx`, `CE-T02-xx` et `CE-T04-xx`. Il a été supprimé lors de la consolidation du présent chapitre. Ces identifiants subsistent dans certaines matrices de traçabilité.
+
+Ce sont des **références historiques**. Elles ne désignent aucun contrat actif et ne constituent jamais une spécification opposable.
