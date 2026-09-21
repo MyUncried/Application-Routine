@@ -454,6 +454,14 @@ Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. 
 
 E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:8375` = historiques/supersédées ; aucune API d’écriture supplémentaire.
 
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 # 6. B2 — CRUD et cycle de vie ActivityDefinition
@@ -642,6 +650,14 @@ Archiver → disparition active ; Filtrer>Archivées ; Restaurer ; Supprimer/Ann
 ### 21. Traçabilité
 
 E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
+
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
 
 ---
 
@@ -932,6 +948,14 @@ Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap 
 E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2028:11700`, `2028:11808`, `3518:4576`.
 
 ![Actions glissées](./images/ecran-3a-composition-actions-glissees.png)
+
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
 
 ---
 
@@ -1417,6 +1441,14 @@ Fin avec/sans Recovery, arrêt, interruption, idempotence, retour état Catalogu
 
 E43/E44/E49 → D-158..D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 # 9. B6 — Synthèse Activité
@@ -1513,6 +1545,14 @@ E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
 ![Synthèse Ressenti sélectionné](./images/ecran-18a-synthese-directe-ressenti-selectionne.png)
 
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
+
 ---
 
 # 10. B7 — Suivi
@@ -1608,6 +1648,14 @@ E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 ![Suivi condensé](./images/ecran-11-suivi-condense.png)
 
 ![Suivi déployé](./images/ecran-11a-suivi-deploye.png)
+
+
+### 22. Implémentation
+
+- Chemins source : `À RENSEIGNER`.
+- Composants partagés consommés : `À RENSEIGNER`.
+- Suites de tests attachées : `À RENSEIGNER`.
+- Révision de dernière vérification : `À RENSEIGNER`.
 
 ---
 
