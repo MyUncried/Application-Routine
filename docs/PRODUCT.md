@@ -173,7 +173,7 @@ La Durée estimée est calculée à partir de toutes les durées déterminables 
 
 Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`, qui additionne les Pauses et Récupérations connues.
 
-Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
+Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur ainsi que toute attente provoquée par un Point d’arrêt. Cette règle s’applique à toute exécution qui utilise des Points d’arrêt, notamment une Séance ou un Circuit.
 
 Trois indicateurs d’Activités sont distingués :
 - Nombre d’Activités de la Composition ;
