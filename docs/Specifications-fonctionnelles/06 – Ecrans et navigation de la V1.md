@@ -845,6 +845,9 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - dans la référence Figma `402 × 874`, la modale est positionnée à `x=12`, `y=38`, largeur `378 pt` ;
 - l’état standard `2028:11204` mesure `378 × 313 pt` ; l’état de création inline `2028:11248` mesure `378 × 369 pt` ;
 - l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Catégories de la séance` centré et l’action `Valider` à droite ;
+- les actions d’en-tête sont des instances de `Modal / Header Action — Source exact` (`4151:6197`) : `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
+- leurs pictogrammes sont eux-mêmes des instances de `Icon / Modal Action — Source exact` (`4155:6201`) : `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ; aucun glyphe texte ne les remplace ;
+- `Créer une catégorie`, `Annuler` inline et `Ajouter` sont les variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) du component set `Action / Categories — Source exact` (`4152:6189`) ;
 - l’ancien CTA inférieur `Enregistrer la séance` n’est plus affiché dans ces états et ne constitue plus la cible UI courante.
 
 ### Contenu et comportement
