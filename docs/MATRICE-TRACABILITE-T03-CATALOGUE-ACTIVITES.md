@@ -4,7 +4,7 @@ Baseline de consolidation : `main` au commit `7b6415f44a9ea39bd41d7e88ea6d232e07
 
 Branche de consolidation : `docs/consolidate-06-07-t03-20260916`.
 
-Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-187. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
+Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadmap, Figma et contrats d’écran T03. Le chapitre `06 – Ecrans et navigation de la V1.md` porte directement les règles UX T03. Le chapitre `07 – Registre des décisions de conception.md` porte directement D-167 à D-188. `13 – Contrats d’écran.md` est l’unique référence normative des contrats T03.
 
 ## Matrice
 
@@ -59,8 +59,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 - `3561:7673` Création activité — Répétitions — roulette compacte ouverte ;
 - `3561:7802` Création activité — À l’échec ;
 - `3943:6064` Création activité — Durée / Pause / Séries — Vide ;
-- `3788:5258` ancien Ajouter activité depuis Composition — supersédé ;
-- `3933:5780` Ajouter activité depuis Composition — arbre courant avec Point d’arrêt ;
+- `3788:5258`, `3933:5780` Ajouter activité depuis Composition — arbres courants synchronisés avec Point d’arrêt ;
 - `3789:5349`, `3789:5405` multi-sélection ;
 - `3879:5947`, `3879:6079` créer/modifier référence persistante ;
 - `2028:11700`, `2028:11808` Composition / actions glissées ; `2028:11808` inclut le Point d’arrêt courant ;
@@ -77,7 +76,7 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | Contrôle | Résultat | Évidence |
 |---|---|---|
 | Corrections UX T03 intégrées dans 06 | CONFORME | Règles UX T03 présentes dans les sections concernées de 06 ; anciennes formulations contradictoires remplacées. |
-| D-167 à D-187 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-187 supersède explicitement l’ancien arbre `Créer` des Catalogues. |
+| D-167 à D-188 intégrées dans 07 | CONFORME | Registre 07 consolidé ; D-187 supersède explicitement l’ancien arbre `Créer` des Catalogues et D-188 introduit le Point d’arrêt de Composition. |
 | 13 unique | CONFORME | `13 – Contrats d’écran.md` reste l’unique référence des contrats T03. |
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
