@@ -128,7 +128,8 @@ test('UI plan: handoff factice PLAN vers PLAN_REVIEW conserve exactement le cont
 test('UI plan: consume refuse un contrat embarque divergent', () => {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-plan-'));
   const matrix=validMatrix();
-  const bad={schema:'kodjo.ui-plan-contract.v1',contract_version:1,protocol_commit:protocolCommit,scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],criterion_count:1,matrix_sha256:'0'.repeat(64)};
+  const assertionIds=matrix.criteria[0].assertions.map(a=>a.assertion_id).sort();
+  const bad={schema:'kodjo.ui-plan-contract.v1',contract_version:2,protocol_commit:protocolCommit,scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],criterion_count:1,assertion_count:2,assertion_ids_sha256:require('../../scripts/kodjo/lib/plan-impact').sha256(assertionIds),matrix_sha256:'0'.repeat(64)};
   const plan=path.join(dir,'plan.md'); fs.writeFileSync(plan,fixture(matrix,bad));
   const result=run([plan,'b'.repeat(40),dir,path.join(dir,'out.json'),'consume',protocolCommit],dir);
   assert.notEqual(result.status,0);
@@ -149,6 +150,7 @@ test('workflows: INITIAL et REVISION produisent la matrice et les revues la rejo
     const reviewer=source.indexOf('Review initial V2 plan with Claude') >= 0 ? source.indexOf('Review initial V2 plan with Claude') : source.indexOf('Review V2 plan with Claude');
     assert.ok(gate >= 0 && reviewer > gate, name+': UI gate must precede reviewer');
     assert.match(source,/source-to-criteria completeness/i);
+    assert.match(source,/source-to-assertion completeness/i);
     assert.match(source,/REUSE|EXTEND|CREATE/);
   }
 });
