@@ -9,6 +9,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import { DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import {
+  formatActivityRecoveryLabel,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
@@ -97,13 +98,21 @@ export function ActivitySelectionScreen() {
   }
 
   const canAdd = state.status === "ready" && availableSelectedIds.length > 0;
-  // V2-CAT-01 (UI-CAT-R-003) : CTA dynamique — le libellé de base
-  // (`t.addAction`, seule chaîne traduite existante) porte désormais le
-  // compteur de la sélection courante (purgée des identifiants obsolètes)
-  // entre parenthèses dès qu'elle n'est pas vide ; aucune nouvelle chaîne
-  // traduite n'est ajoutée.
+  // VISUAL_CORRECTION (revue indépendante 5753653735, point 2) : libellé
+  // EXACT `Ajouter 1 activité` / `Ajouter X activités` — jamais un compteur
+  // entre parenthèses. `activitySingular`/`activityPlural`
+  // (`strings.screens.sessions.card`) sont une ressource de localisation
+  // DÉJÀ APPROUVÉE (réutilisée telle quelle, `fr.ts` hors périmètre
+  // d'écriture de cette reprise) ; aucune nouvelle chaîne traduite n'est
+  // ajoutée.
+  const activityNoun =
+    availableSelectedIds.length === 1
+      ? strings.screens.sessions.card.activitySingular
+      : strings.screens.sessions.card.activityPlural;
   const addLabel =
-    availableSelectedIds.length > 0 ? `${t.addAction} (${availableSelectedIds.length})` : t.addAction;
+    availableSelectedIds.length > 0
+      ? `${t.addAction} ${availableSelectedIds.length} ${activityNoun}`
+      : t.addAction;
 
   return (
     <ScreenShell>
@@ -184,12 +193,17 @@ export function ActivitySelectionScreen() {
 }
 
 /**
- * V2-CAT-01 (UI-CAT-R-003) : carte DÉTAILLÉE — nom, Zones corporelles, mode
- * et cible, Séries et Pause (mêmes fonctions de présentation déjà éprouvées
- * par `ActivityCard.tsx`/`compositionPresentation.ts`, jamais reformulées
- * localement) — jamais seulement le nom. La checkbox reste un cadre
- * vectoriel TOUJOURS visible (coché/décoché), jamais une icône apparaissant
- * seulement à la sélection.
+ * V2-CAT-01 (UI-CAT-R-003), VISUAL_CORRECTION (revue indépendante
+ * 5753653735, point 2) : carte alignée sur la carte CANONIQUE
+ * (`ActivityCard.tsx`) — barre de couleur gauche, nom, Zones corporelles,
+ * mode et cible, Séries et Pause, sous-carte Récupération (mêmes fonctions
+ * de présentation déjà éprouvées par `ActivityCard.tsx`/
+ * `compositionPresentation.ts`, jamais reformulées localement), synthèse
+ * NON tronquée. Contour et fond sélectionnés conformes au patron DSF déjà
+ * établi (`CategoriesScreen.tagSelected` : `colors.selection`/
+ * `colors.selectionSurface`). La checkbox reste un cadre vectoriel TOUJOURS
+ * visible (coché/décoché), jamais une icône apparaissant seulement à la
+ * sélection.
  */
 function SelectionRow({
   definition,
@@ -202,6 +216,7 @@ function SelectionRow({
 }) {
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);
   const summary = formatExerciseRowSummary(definition);
+  const recoveryLabel = formatActivityRecoveryLabel(definition.recoverySeconds);
 
   return (
     <Pressable
@@ -209,32 +224,50 @@ function SelectionRow({
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={definition.name}
-      style={styles.row}
+      style={[styles.row, selected ? styles.rowSelected : null]}
       testID={`activity-selection-row-${definition.id}`}
     >
-      <View style={styles.rowContent}>
-        <Text style={styles.rowLabel} numberOfLines={1}>
-          {definition.name}
-        </Text>
-        {bodyZones !== null ? (
-          <Text
-            style={styles.rowSecondaryLine}
-            numberOfLines={1}
-            testID={`activity-selection-row-body-zones-${definition.id}`}
+      <View style={styles.rowColorBar} testID={`activity-selection-row-color-bar-${definition.id}`} />
+      <View style={styles.rowBody}>
+        <View style={styles.rowMainArea}>
+          <View style={styles.rowContent}>
+            <Text style={styles.rowLabel} numberOfLines={2}>
+              {definition.name}
+            </Text>
+            {bodyZones !== null ? (
+              <Text
+                style={styles.rowSecondaryLine}
+                testID={`activity-selection-row-body-zones-${definition.id}`}
+              >
+                {bodyZones}
+              </Text>
+            ) : null}
+            {/* VISUAL_CORRECTION (point 2) : synthèse NON tronquée — retour à la ligne, jamais `numberOfLines`. */}
+            <Text style={styles.rowSecondaryLine}>{summary}</Text>
+          </View>
+          <View
+            style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
+            testID={`activity-selection-row-checkbox-${definition.id}`}
           >
-            {bodyZones}
-          </Text>
-        ) : null}
-        <Text style={styles.rowSecondaryLine} numberOfLines={1}>
-          {summary}
-        </Text>
-      </View>
-      <View
-        style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
-        testID={`activity-selection-row-checkbox-${definition.id}`}
-      >
-        {selected ? (
-          <KodjoIcon name="state-selected" size={20} testID={`activity-selection-row-checked-${definition.id}`} />
+            {selected ? (
+              <KodjoIcon
+                name="state-selected"
+                size={20}
+                testID={`activity-selection-row-checked-${definition.id}`}
+              />
+            ) : null}
+          </View>
+        </View>
+        {/* VISUAL_CORRECTION (point 2) : sous-carte Récupération alignée sur `ActivityCard.recoveryCard`. */}
+        {recoveryLabel !== null ? (
+          <View
+            style={styles.rowRecoveryCard}
+            testID={`activity-selection-row-recovery-${definition.id}`}
+          >
+            <Text style={styles.rowRecoveryLabel} numberOfLines={1}>
+              {recoveryLabel}
+            </Text>
+          </View>
         ) : null}
       </View>
     </Pressable>
@@ -277,18 +310,42 @@ const styles = StyleSheet.create({
     gap: spacing[8],
     paddingBottom: spacing[16],
   },
+  // VISUAL_CORRECTION (revue indépendante 5753653735, point 2) : anatomie
+  // alignée sur la carte CANONIQUE `ActivityCard.tsx` — conteneur ligne
+  // (barre gauche + corps), `overflow: "hidden"` pour que la sous-carte
+  // Récupération suive le rayon du bloc.
   row: {
+    flexDirection: "row",
+    borderRadius: dimensions.standardCard.radius,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    overflow: "hidden",
+    minHeight: minTouchTarget,
+  },
+  // Patron DSF déjà établi pour un contour sélectionné
+  // (`CategoriesScreen.tagSelected`) — jamais une couleur locale inventée.
+  rowSelected: {
+    borderColor: colors.selection,
+    backgroundColor: colors.selectionSurface,
+  },
+  // Barre de couleur FIXE, même valeur que `ActivityCard.colorBar` — une
+  // `ActivityDefinition` ne porte pas de couleur propre.
+  rowColorBar: {
+    alignSelf: "stretch",
+    width: 4,
+    backgroundColor: colors.primary,
+  },
+  rowBody: {
+    flex: 1,
+  },
+  rowMainArea: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing[12],
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[12],
-    borderRadius: dimensions.standardCard.radius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    minHeight: minTouchTarget,
   },
   rowContent: {
     flex: 1,
@@ -317,8 +374,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Patron DSF déjà établi (`CategoriesScreen.tagSelected`), jamais
+  // `colors.primary` inventé localement pour ce contour.
   checkboxSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.selection,
+  },
+  // Présentation ALIGNÉE sur `ActivityCard.recoveryCard` (VISUAL_CORRECTION,
+  // point 2) — sous-carte `24` points, liseré supérieur, fond `colors.surface`.
+  rowRecoveryCard: {
+    height: dimensions.compositionActivityRow.recoveryCardHeight,
+    justifyContent: "center",
+    paddingLeft: spacing[16],
+    paddingRight: spacing[16],
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  rowRecoveryLabel: {
+    ...type.compactCardTitle,
+    color: colors.textSecondary,
   },
   bottomAction: {
     flexDirection: "row",

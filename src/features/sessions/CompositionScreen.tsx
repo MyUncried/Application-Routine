@@ -63,6 +63,15 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
 
 type OverlayKind = "color" | "countdown" | "finalPhase" | "tour";
 
+/**
+ * Hauteur du séparateur sous l'en-tête (`ScreenShell.tsx`, `HeaderSeparator`,
+ * `styles.separator.height`) — reprise ici en constante, même disclosure que
+ * `CatalogueCreateOptions.tsx` (valeur non exportée par `ScreenShell.tsx`),
+ * pour composer `addActivityTreeTop` (VISUAL_CORRECTION, revue indépendante
+ * 5753653735, point 7).
+ */
+const HEADER_SEPARATOR_HEIGHT = 1;
+
 export type CompositionScreenProps = {
   /**
    * Identifiant de la Séance ouverte en MODIFICATION, tel que porté par la
@@ -157,6 +166,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
+  // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
+  // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
+  // de l'en-tête fixe, de son séparateur et de la bande Context, jamais
+  // seulement `contextBand.height` (qui plaçait l'arbre ~100 pt trop haut,
+  // chevauchant l'en-tête).
+  const addActivityTreeTop =
+    insets.top +
+    dimensions.header.contentHeight +
+    HEADER_SEPARATOR_HEIGHT +
+    dimensions.contextBand.height +
+    spacing[8];
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
@@ -537,66 +557,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       </ContextBand>
 
       {/*
-       * V2-CAT-01 (plan §4.4) : arbre exact `Une nouvelle activité` / `Une
-       * activité existante` / `Annuler`. `Une nouvelle activité` crée une
-       * `SessionActivity` locale (route `/exercise`, comportement préservé à
-       * l'identique) ; `Une activité existante` ouvre la sélection multiple
-       * des définitions persistantes (`/activity-selection`) ; `Annuler`
-       * ferme sans écriture.
-       */}
-      {isAddActivityTreeOpen ? (
-        <>
-          <Pressable
-            onPress={() => setIsAddActivityTreeOpen(false)}
-            accessible={false}
-            testID="composition-add-activity-tree-backdrop"
-            style={styles.backdrop}
-          />
-          <View style={styles.addActivityTree} testID="composition-add-activity-tree">
-            <Pressable
-              onPress={() => {
-                setIsAddActivityTreeOpen(false);
-                router.push("/exercise");
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.newActivity}
-              style={styles.addActivityTreeOption}
-              testID="composition-add-activity-tree-new"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.newActivity}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setIsAddActivityTreeOpen(false);
-                router.push("/activity-selection");
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.existingActivity}
-              style={styles.addActivityTreeOption}
-              testID="composition-add-activity-tree-existing"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.existingActivity}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setIsAddActivityTreeOpen(false)}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.cancel}
-              style={styles.addActivityTreeOption}
-              testID="composition-add-activity-tree-cancel"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.cancel}
-              </Text>
-            </Pressable>
-          </View>
-        </>
-      ) : null}
-
-      {/*
        * R4-13 (`Fixed Header + Fixed Context + Scrollable Content + Fixed
        * Bottom Action`, `[ChatGPT] REWORK04 ADDENDUM — FIXED SHELL /
        * ACTIVITIES SCROLL CONTRACT`, 2026-09-03) : `composition-body` est
@@ -894,6 +854,83 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           testIDPrefix="composition-tour-bilateral-confirm"
         />
       ) : null}
+
+      {/*
+       * V2-CAT-01 (plan §4.4), VISUAL_CORRECTION (revue indépendante
+       * 5753653735, point 7) : arbre exact `Une nouvelle activité` / `Une
+       * activité existante` / `Annuler` — comportement PRÉSERVÉ à
+       * l'identique (`Une nouvelle activité` crée une `SessionActivity`
+       * locale, route `/exercise` ; `Une activité existante` ouvre la
+       * sélection multiple, `/activity-selection` ; `Annuler` ferme sans
+       * écriture). Seuls format/dimensions/ordre/scrim/z-order sont
+       * corrigés :
+       * - `top` inclut désormais la hauteur RÉELLE cumulée de l'en-tête
+       *   fixe, de son séparateur et de la bande Context (même calcul que
+       *   `CatalogueCreateOptions.menuTop`), jamais seulement
+       *   `contextBand.height` (l'arbre chevauchait l'en-tête) ;
+       * - le voile porte désormais un fond VISIBLE (`colors.overlayScrim`,
+       *   même token que `CatalogueCreateOptions`), jamais transparent
+       *   (`styles.backdrop`, partagé avec la palette de couleur, reste lui
+       *   inchangé) ;
+       * - rendu en DERNIER, après le `ScrollView` et `bottomAction` (React
+       *   Native empile par ORDRE DE RENDU, `position: "absolute"` ne
+       *   change rien à cet ordre) : l'arbre peint désormais AU-DESSUS de
+       *   tout le reste de l'écran, jamais dessous.
+       */}
+      {isAddActivityTreeOpen ? (
+        <>
+          <Pressable
+            onPress={() => setIsAddActivityTreeOpen(false)}
+            accessible={false}
+            testID="composition-add-activity-tree-backdrop"
+            style={styles.addActivityTreeScrim}
+          />
+          <View
+            style={[styles.addActivityTree, { top: addActivityTreeTop }]}
+            testID="composition-add-activity-tree"
+          >
+            <Pressable
+              onPress={() => {
+                setIsAddActivityTreeOpen(false);
+                router.push("/exercise");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.newActivity}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-new"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.newActivity}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setIsAddActivityTreeOpen(false);
+                router.push("/activity-selection");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.existingActivity}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-existing"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.existingActivity}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setIsAddActivityTreeOpen(false)}
+              accessibilityRole="button"
+              accessibilityLabel={strings.screens.activities.addToSession.cancel}
+              style={styles.addActivityTreeOption}
+              testID="composition-add-activity-tree-cancel"
+            >
+              <Text style={styles.addActivityTreeOptionLabel}>
+                {strings.screens.activities.addToSession.cancel}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
     </ScreenShell>
   );
 }
@@ -1135,6 +1172,7 @@ function ActivityZoneList({
           isSideModeInherited={isSideModeInherited}
           areActionsRevealed={revealedActionsId === activity.id}
           isDragged={draggedActivityId === activity.id}
+          isBlockedByOtherReveal={revealedActionsId !== null && revealedActionsId !== activity.id}
           onLayout={(event) => onRowLayout(activity.id, event)}
           onEdit={() => onEdit(activity.id)}
           onRevealActions={() => onRevealActions(activity.id)}
@@ -1165,6 +1203,15 @@ type CompositionActivityRowProps = {
   readonly isSideModeInherited: boolean;
   readonly areActionsRevealed: boolean;
   readonly isDragged: boolean;
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : `true`
+   * lorsqu'UNE AUTRE carte de la Composition a ses actions révélées —
+   * conformément au contrat existant (CE-T02-02), les interactions de
+   * CETTE carte restent bloquées jusqu'à la fermeture de l'autre (appui,
+   * appui long, balayage), plutôt que d'ouvrir directement son édition ou
+   * d'engager un déplacement pendant qu'une autre carte reste ouverte.
+   */
+  readonly isBlockedByOtherReveal: boolean;
   readonly onLayout: (event: LayoutChangeEvent) => void;
   readonly onEdit: () => void;
   readonly onRevealActions: () => void;
@@ -1292,6 +1339,7 @@ function CompositionActivityRow({
   isSideModeInherited,
   areActionsRevealed,
   isDragged,
+  isBlockedByOtherReveal,
   onLayout,
   onEdit,
   onRevealActions,
@@ -1565,8 +1613,25 @@ function CompositionActivityRow({
 
   return (
     <View
-      style={[styles.activityRowContainer, isDragged ? styles.activityRowContainerDragged : null]}
+      style={[
+        styles.activityRowContainer,
+        // VISUAL_CORRECTION (revue indépendante 5753653735, point 6) : le
+        // gap révélé par le balayage reste BLANC hors Tour — seule une
+        // Activité `IN_TOUR` montre le fond `tourSurface`, jamais une
+        // Activité `BEFORE_TOUR`/`AFTER_TOUR`, qui repose elle-même sur un
+        // fond blanc.
+        {
+          backgroundColor:
+            activity.structuralPosition === "IN_TOUR" ? colors.tourSurface : colors.background,
+        },
+        isDragged ? styles.activityRowContainerDragged : null,
+      ]}
       onLayout={onLayout}
+      // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : une
+      // AUTRE carte a ses actions révélées — cette carte reste bloquée
+      // (aucun appui, appui long ni balayage) jusqu'à la fermeture de
+      // l'autre, conformément au contrat existant (CE-T02-02).
+      pointerEvents={isBlockedByOtherReveal ? "none" : "auto"}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -2294,14 +2359,15 @@ const styles = StyleSheet.create({
   // T02-S01, révisé V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : conteneur de
   // position d'une carte d'Activité — support du groupe d'actions glissées,
   // DERRIÈRE la carte principale (`position: "absolute"`, D-128), que la
-  // carte découvre en se translatant PROGRESSIVEMENT. Le fond
-  // `colors.tourSurface` du conteneur lui-même EST le gap visible entre la
-  // carte ouverte et les actions — égal par construction à la marge
-  // `compositionTourSection.inset` (`SWIPE_REVEAL_OFFSET` ci-dessus), jamais
-  // une valeur locale.
+  // carte découvre en se translatant PROGRESSIVEMENT. Le fond du gap
+  // (VISUAL_CORRECTION, revue indépendante 5753653735, point 6 : `colors
+  // .tourSurface` UNIQUEMENT pour une Activité DANS le Tour — `colors
+  // .background` (blanc) pour toute Activité hors Tour, appliqué en ligne
+  // selon `activity.structuralPosition`, voir plus bas) reste égal par
+  // construction à la marge `compositionTourSection.inset`
+  // (`SWIPE_REVEAL_OFFSET` ci-dessus), jamais une valeur locale.
   activityRowContainer: {
     position: "relative",
-    backgroundColor: colors.tourSurface,
   },
   // La carte soulevée passe au-dessus de ses voisines pendant le
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
@@ -2465,18 +2531,24 @@ const styles = StyleSheet.create({
   // aux libellés centrés horizontalement et verticalement, `H` valant la
   // hauteur du BLOC (`60` sans Récupération, `84` avec) — « `Dupliquer` et
   // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
-  // appliquée par l'écran (`blockHeightFor`), pas ici. Les coins HAUT-GAUCHE
-  // et BAS-GAUCHE — ceux qui font face au gap ouvert vers la carte — sont
-  // arrondis au même rayon que le bloc ; les coins droits, flush avec le
-  // bord de l'écran, restent carrés (jamais un rayon local inventé).
+  // appliquée par l'écran (`blockHeightFor`), pas ici.
+  //
+  // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : les QUATRE
+  // coins suivent le même rayon `12` que le bloc — une correction
+  // antérieure ne rendait carrés QUE les coins droits de `Supprimer`
+  // (rightmost, flush avec le bord droit du contenu défilant), rompant la
+  // silhouette arrondie uniforme que porte, elle, TOUTE autre carte de
+  // cette même liste (`activityBlock.borderRadius: 12`, sur ses quatre
+  // coins). Le groupe entièrement révélé DEVIENT visuellement le bord droit
+  // de la rangée : il doit donc reprendre exactement le même rayon partout,
+  // jamais un rayon local inventé.
   activityRowActions: {
     position: "absolute",
     top: 0,
     right: 0,
     width: dimensions.compositionSwipeActions.groupWidth,
     flexDirection: "row",
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    borderRadius: 12,
     overflow: "hidden",
   },
   activityRowAction: {
@@ -2662,11 +2734,13 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.primary,
   },
-  // V2-CAT-01 : arbre `Ajouter une activité` — même géométrie de carte que
+  // V2-CAT-01, VISUAL_CORRECTION (revue indépendante 5753653735, point 7) :
+  // arbre `Ajouter une activité` — même géométrie de carte que
   // `CatalogueCreateOptions` (rayon `standardCard`, liseré `colors.border`).
+  // `top` dépend d'`insets.top` (indisponible dans cette feuille de styles
+  // statique) : transmis en ligne (`addActivityTreeTop`).
   addActivityTree: {
     position: "absolute",
-    top: dimensions.contextBand.height + spacing[8],
     left: spacing[24],
     right: spacing[24],
     backgroundColor: colors.background,
@@ -2674,6 +2748,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
+  },
+  // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : voile
+  // VISIBLE dédié — même token que `CatalogueCreateOptions.backdrop`
+  // (`colors.overlayScrim`), jamais transparent. Distinct de `styles
+  // .backdrop` (partagé avec la palette de couleur, qui reste, lui, sans
+  // fond visible).
+  addActivityTreeScrim: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.overlayScrim,
   },
   addActivityTreeOption: {
     paddingHorizontal: spacing[16],

@@ -84,13 +84,12 @@ export type ActivityEditorFormProps = {
    */
   isSideModeInherited?: boolean;
   /**
-   * V2-CAT-01 (plan §4.3) : le Catalogue affiche EN PLUS une section
-   * `Médias` visible et repliable (contrôle, placeholder et `Ajouter un
-   * média` désactivés, aucune fonction média réelle). La Composition garde
-   * son bouton `+ Ajouter un média` unique de la zone bleue contextuelle
-   * (D-105, inchangé — `ExerciseScreen — bouton média désactivé, aucune
-   * section Médias`) : ce drapeau reste `false` par défaut pour ne rien lui
-   * changer.
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) : la section
+   * `Médias`, visible et repliable, est désormais affichée IDENTIQUEMENT
+   * quelle que soit l'origine (Composition ET Catalogue) — `true` par
+   * défaut. Le bouton `+ Ajouter un média` unique de la zone bleue
+   * contextuelle (D-105) reste le seul point d'action média, la section
+   * elle-même n'en portant plus aucun (aucune fonction média réelle).
    */
   showMediaSection?: boolean;
   /** Libellé de l'action finale (« Terminer »), identique dans les deux contextes. */
@@ -148,7 +147,7 @@ export function ActivityEditorForm({
   value,
   onChange,
   isSideModeInherited = false,
-  showMediaSection = false,
+  showMediaSection = true,
   finishLabel,
   onFinish,
   isFinishDisabled = false,
@@ -491,9 +490,15 @@ export function ActivityEditorForm({
         </CollapsibleSection>
 
         {/*
-         * V2-CAT-01 (plan §4.3) : section `Médias` — Catalogue uniquement.
-         * Visible et repliable ; contrôle, placeholder et `Ajouter un média`
-         * restent désactivés, aucune fonction média réelle.
+         * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) :
+         * section `Médias` — présentation IDENTIQUE quelle que soit
+         * l'origine (Composition ET Catalogue, `showMediaSection` par
+         * défaut `true` désormais). Le texte d'état vide (« Aucun média
+         * pour cette activité ») et le bouton `Ajouter un média` REDONDANT
+         * de cette section sont retirés — celui de la zone bleue
+         * contextuelle, sous le nom (`exercise-add-media`), reste le seul,
+         * conformément à D-105. Visible et repliable, aucune fonction
+         * média réelle.
          */}
         {showMediaSection ? (
           <CollapsibleSection
@@ -502,20 +507,7 @@ export function ActivityEditorForm({
             expanded={expandedSections.media}
             onToggle={() => toggleSection("media")}
           >
-            <Text style={styles.mediaPlaceholder} testID="activity-editor-media-placeholder">
-              {mediaStrings.placeholder}
-            </Text>
-            <Pressable
-              disabled
-              accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              accessibilityLabel={mediaStrings.addMediaUnavailableAccessibilityLabel}
-              style={styles.addMediaSectionButton}
-              testID="activity-editor-add-media"
-            >
-              <KodjoIcon name="action-add" testID="activity-editor-add-media-icon" />
-              <Text style={styles.addMediaLabel}>{mediaStrings.addMedia}</Text>
-            </Pressable>
+            {null}
           </CollapsibleSection>
         ) : null}
       </ScrollView>
@@ -943,26 +935,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: spacing[16],
   },
-  addMediaSectionButton: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing[16],
-    marginTop: spacing[8],
-  },
   addMediaLabel: {
     ...type.button,
-    color: colors.textSecondary,
-  },
-  mediaPlaceholder: {
-    ...type.body,
     color: colors.textSecondary,
   },
   summaryCard: {

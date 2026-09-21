@@ -329,6 +329,28 @@ describe("CompositionScreen — état initial", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : `top`
+   * inclut désormais la hauteur RÉELLE cumulée de l'en-tête fixe, de son
+   * séparateur et de la bande Context — jamais seulement
+   * `contextBand.height`, qui chevauchait l'en-tête. Le voile porte un fond
+   * VISIBLE, jamais transparent.
+   */
+  it("positions the add-activity tree below the fixed header and context band, with a visible scrim", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+
+    const tree = screen.getByTestId("composition-add-activity-tree");
+    const flattenedTop = StyleSheet.flatten(tree.props.style).top as number;
+    // Insets de test (`TestSafeAreaProvider`) : `top: 47`.
+    const expectedTop = 47 + dimensions.header.contentHeight + 1 + dimensions.contextBand.height + spacing[8];
+    expect(flattenedTop).toBe(expectedTop);
+
+    const scrim = screen.getByTestId("composition-add-activity-tree-backdrop");
+    expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
+  });
+
   it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
     renderScreen();
 
@@ -1854,6 +1876,28 @@ describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () 
     expect(within(tourSection).queryByTestId("composition-zone-after-tour")).toBeNull();
   });
 
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 6) : une carte
+   * hors Tour garde un fond BLANC (y compris le gap révélé par le
+   * balayage) — seule une carte DANS le Tour montre le fond `tourSurface`.
+   */
+  it("keeps a white background outside the Tour, and only colours it inside the Tour", () => {
+    renderScreenWithDraft(threeZones);
+
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-warmup").props.style)
+        .backgroundColor,
+    ).toBe(colors.background);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-stretch").props.style)
+        .backgroundColor,
+    ).toBe(colors.background);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-core").props.style)
+        .backgroundColor,
+    ).toBe(colors.tourSurface);
+  });
+
   it("AC-05 — the fixed structural rows carry no gesture recognizer, and therefore no revealable action", () => {
     renderScreenWithDraft(threeZones);
 
@@ -2087,11 +2131,12 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(actionsStyle.position).toBe("absolute");
     expect(actionsStyle.right).toBe(0);
     expect(actionsStyle.width).toBe(144);
-    // Coins HAUT-GAUCHE/BAS-GAUCHE arrondis (face au gap), coins droits carrés.
-    expect(actionsStyle.borderTopLeftRadius).toBe(12);
-    expect(actionsStyle.borderBottomLeftRadius).toBe(12);
-    expect(actionsStyle.borderTopRightRadius).toBeUndefined();
-    expect(actionsStyle.borderBottomRightRadius).toBeUndefined();
+    // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : les
+    // QUATRE coins suivent le même rayon que le bloc — le groupe
+    // entièrement révélé DEVIENT le bord droit visuel de la rangée, jamais
+    // des coins droits carrés rompant la silhouette arrondie uniforme
+    // partagée par toute autre carte de cette liste.
+    expect(actionsStyle.borderRadius).toBe(12);
     const cardStyle = StyleSheet.flatten(
       screen.getByTestId("composition-exercise-row-ex-1").props.style,
     );
@@ -2166,6 +2211,37 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
     // Masquer n'ouvre jamais la modification.
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : tant
+   * qu'une carte a ses actions révélées, les AUTRES cartes restent
+   * bloquées (conformément au contrat existant, CE-T02-02) — un appui sur
+   * une autre carte n'ouvre jamais directement son édition avant la
+   * fermeture de la première.
+   */
+  it("blocks presses on other cards while one card's actions are revealed", () => {
+    renderTwo();
+
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+
+    expect(
+      screen.getByTestId("composition-activity-ex-2").props.pointerEvents,
+    ).toBe("none");
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    expect(mockPush).not.toHaveBeenCalled();
+
+    // Une fois refermée, l'autre carte redevient interactive.
+    fireSwipeRight("ex-1");
+    expect(
+      screen.getByTestId("composition-activity-ex-2").props.pointerEvents,
+    ).toBe("auto");
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { exerciseId: "ex-2" },
+    });
   });
 
   /**

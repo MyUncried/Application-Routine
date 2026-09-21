@@ -31,7 +31,7 @@ function Harness({
   initial,
   onChangeSpy,
   onFinish = jest.fn(),
-  showMediaSection = false,
+  showMediaSection = true,
   errorMessage = null,
   isFinishDisabled = false,
 }: {
@@ -107,21 +107,36 @@ describe("ActivityEditorForm", () => {
     expect(onChangeSpy).toHaveBeenCalledWith({ bodyZoneIds: ["dos"] });
   });
 
-  it("hides the Médias section by default (Composition)", () => {
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) :
+   * présentation Médias IDENTIQUE quelle que soit l'origine — la section
+   * est désormais visible par défaut aussi bien pour la Composition que
+   * pour le Catalogue (`showMediaSection` par défaut `true`).
+   */
+  it("shows the Médias section by default, identically regardless of origin (Composition or Catalogue)", () => {
     render(<Harness />);
-    expect(screen.queryByTestId("activity-editor-section-media")).toBeNull();
+    expect(screen.getByTestId("activity-editor-section-media")).toBeTruthy();
   });
 
-  it("shows the Médias section, collapsed by default, with disabled controls (Catalogue)", () => {
-    render(<Harness showMediaSection />);
-    expect(screen.getByTestId("activity-editor-section-media")).toBeTruthy();
+  it("keeps the Médias section collapsed by default, with no redundant text or button once expanded", () => {
+    render(<Harness />);
     expect(screen.queryByTestId("activity-editor-section-media-content")).toBeNull();
 
     fireEvent.press(screen.getByTestId("activity-editor-section-media-header"));
 
     expect(screen.getByTestId("activity-editor-section-media-content")).toBeTruthy();
-    const addMedia = screen.getByTestId("activity-editor-add-media");
-    expect(addMedia.props.accessibilityState.disabled).toBe(true);
+    // VISUAL_CORRECTION (point 3) : ni le texte d'état vide, ni le bouton
+    // `Ajouter un média` redondant de cette section ne subsistent — seul
+    // celui de la zone bleue contextuelle, sous le nom, reste (D-105).
+    expect(screen.queryByTestId("activity-editor-media-placeholder")).toBeNull();
+    expect(screen.queryByText("Aucun média pour cette activité.")).toBeNull();
+    expect(screen.queryByTestId("activity-editor-add-media")).toBeNull();
+    expect(screen.getByTestId("exercise-add-media")).toBeTruthy();
+  });
+
+  it("can still explicitly hide the Médias section when a caller opts out", () => {
+    render(<Harness showMediaSection={false} />);
+    expect(screen.queryByTestId("activity-editor-section-media")).toBeNull();
   });
 
   it("bolds only the name inside the summary", () => {

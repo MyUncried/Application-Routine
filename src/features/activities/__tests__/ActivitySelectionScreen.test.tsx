@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -8,6 +9,7 @@ import type { ActivityDefinitionService } from "@/features/activities/ActivityDe
 import { ActivitySelectionScreen } from "@/features/activities/ActivitySelectionScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 const mockBack = jest.fn();
 
@@ -116,18 +118,26 @@ describe("ActivitySelectionScreen", () => {
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  /** V2-CAT-01 (UI-CAT-R-003) : le libellé du CTA porte le compteur de la sélection courante. */
-  it("shows a dynamic CTA label reflecting the current selection count", async () => {
+  /**
+   * V2-CAT-01 (UI-CAT-R-003), VISUAL_CORRECTION (revue indépendante
+   * 5753653735, point 2) : libellé EXACT `Ajouter 1 activité` /
+   * `Ajouter X activités` — jamais un compteur entre parenthèses.
+   */
+  it("shows the exact dynamic CTA label — Ajouter 1 activité / Ajouter X activités", async () => {
     renderScreen([makeDefinition("a", "Squat"), makeDefinition("b", "Fentes")]);
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
 
     expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter");
 
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
-    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter (1)");
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
+      "Ajouter 1 activité",
+    );
 
     fireEvent.press(screen.getByTestId("activity-selection-row-b"));
-    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter (2)");
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
+      "Ajouter 2 activités",
+    );
   });
 
   /** V2-CAT-01 (UI-CAT-R-003) : carte détaillée + checkbox vectorielle TOUJOURS visible. */
@@ -145,6 +155,34 @@ describe("ActivitySelectionScreen", () => {
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     expect(screen.getByTestId("activity-selection-row-checkbox-a")).toBeTruthy();
     expect(screen.getByTestId("activity-selection-row-checked-a")).toBeTruthy();
+  });
+
+  /**
+   * VISUAL_CORRECTION (revue indépendante 5753653735, point 2) : carte
+   * alignée sur la carte canonique `ActivityCard.tsx` — barre gauche,
+   * sous-carte Récupération, contour sélectionné conforme au patron DSF
+   * déjà établi (`CategoriesScreen.tagSelected`).
+   */
+  it("shows the left color bar, a Récupération sub-card and the canonical selected outline", async () => {
+    renderScreen([makeDefinition("a", "Squat", { recoverySeconds: 90 })]);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+
+    expect(screen.getByTestId("activity-selection-row-color-bar-a")).toBeTruthy();
+    expect(screen.getByTestId("activity-selection-row-recovery-a")).toBeTruthy();
+    expect(screen.getByText("Récupération 1 min 30 s")).toBeTruthy();
+
+    const rowBefore = screen.getByTestId("activity-selection-row-a");
+    expect(StyleSheet.flatten(rowBefore.props.style).borderColor).toBe(colors.border);
+
+    fireEvent.press(rowBefore);
+
+    const rowAfter = screen.getByTestId("activity-selection-row-a");
+    expect(StyleSheet.flatten(rowAfter.props.style).borderColor).toBe(colors.selection);
+    expect(StyleSheet.flatten(rowAfter.props.style).backgroundColor).toBe(colors.selectionSurface);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("activity-selection-row-checkbox-a").props.style)
+        .borderColor,
+    ).toBe(colors.selection);
   });
 
   /**
@@ -178,7 +216,9 @@ describe("ActivitySelectionScreen", () => {
 
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     fireEvent.press(screen.getByTestId("activity-selection-row-b"));
-    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe("Ajouter (2)");
+    expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
+      "Ajouter 2 activités",
+    );
 
     // Aller-retour : la liste se recharge SANS `a` (supprimée par ailleurs).
     if (!focusEffectHarness.effect) {
@@ -187,7 +227,7 @@ describe("ActivitySelectionScreen", () => {
     focusEffectHarness.effect();
     await waitFor(() =>
       expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
-        "Ajouter (1)",
+        "Ajouter 1 activité",
       ),
     );
     expect(screen.queryByTestId("activity-selection-row-a")).toBeNull();
