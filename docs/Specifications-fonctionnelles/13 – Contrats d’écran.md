@@ -500,7 +500,7 @@ Nom → Ajouter média disabled → sections/accordéons → paramètres Séries
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté Activité `74 × 42 pt` quelle que soit sa position structurelle ; aucun contrôle Côté du Tour dans la version actuelle ; roulettes Annuler/Confirmer.
+Sous le Nom, deux contrôles directs `+ Catégorie` et `+ Zones corporelles` ouvrent respectivement une modale de sélection unique facultative et une modale de sélection multiple facultative. Quand une sélection existe, le contrôle affiche la ou les valeurs sélectionnées ; un nouveau tap rouvre la modale avec l’état courant. Aucune section repliable Catégorie/Zone corporelle n’est présente. Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; le bouton supérieur `Ajouter un média` est absent ; contrôle Côté Activité `74 × 42 pt` quelle que soit sa position structurelle ; aucun contrôle Côté du Tour dans la version actuelle ; roulettes Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -528,7 +528,7 @@ Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupérati
 
 ### 15. Brouillon et persistance
 
-Création persiste ActivityDefinition à Terminer uniquement. Modification atomique. L’éditeur porte zéro ou une Catégorie, zéro ou plusieurs Zones corporelles, un Compte à rebours d’activité et une Fin d’activité propres. Les deux durées sont initialisées depuis le Profil pour une nouvelle Activité puis modifiables ici. Annuler roulette ne change pas dernière valeur confirmée.
+Création persiste ActivityDefinition à Terminer uniquement. Modification atomique. L’éditeur porte zéro ou une Catégorie, zéro ou plusieurs Zones corporelles, un Compte à rebours d’activité et une Fin d’activité propres. Catégorie et Zones sont manipulées exclusivement via les deux contrôles du bandeau supérieur et leurs modales. Les deux durées sont initialisées depuis le Profil pour une nouvelle Activité puis modifiables ici. Annuler roulette ne change pas dernière valeur confirmée.
 
 ### 16. Navigation et conservation d’état
 
@@ -544,13 +544,15 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Catégorie facultative unique ; Zones corporelles multiples ; Compte à rebours d’activité et Fin d’activité propres ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; bouton supérieur `Ajouter un média` absent ; `+ Catégorie` et `+ Zones corporelles` présents sous le Nom ; Catégorie facultative unique ; Zones corporelles multiples ; sélection courante réaffichée dans le contrôle et modifiable par réouverture de la modale ; aucune section Catégorie/Zone corporelle ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Compte à rebours d’activité et Fin d’activité propres ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
 Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée et `Durée totale >=` en Reps/Échec, vérifier Synthèse `Durée totale : ≥ …`, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, Durée totale masquée, libellé Reps/Échec sans `>=`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
+
+D-207 ; Figma états éditeur mis à jour, plus `4194:6847` (Modale Catégorie) et `4194:7026` (Modale Zones corporelles).
 
 E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
 
