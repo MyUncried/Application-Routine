@@ -764,7 +764,7 @@ Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le s
 - le champ du nom d’Activité, placé à `12` points du haut, de même hauteur et au même alignement que le champ `Nom de la séance` de la Composition ;
 - deux contrôles dans le bandeau supérieur : `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+`; Catégorie ouvre une modale de sélection unique facultative, Zones corporelles une modale de sélection multiple facultative ; après sélection, le même contrôle affiche la ou les valeurs sélectionnées et permet leur modification au tap.
 
-`Renforcement du genou` visible dans les états renseignés est une **valeur de démonstration Figma**, jamais un libellé statique ni une valeur codée en dur. Seul l’état vide `3943:6064` utilise `Nom de l’activité` comme placeholder/état vide.
+`Renforcement du genou` visible dans les états renseignés est une **valeur de démonstration Figma**, jamais un libellé statique ni une valeur codée en dur. Seul l’état vide `3943:6064` utilise `Comment s’appelle cette activité ?` comme placeholder/état vide, rendu avec le gris sémantique standard `color/text-secondary`.
 
 Le reste du formulaire affiche ensuite, dans cet ordre :
 
@@ -1709,7 +1709,7 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Sous le Nom, `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` ouvrent leurs modales respectives et affichent les sélections courantes lorsqu’elles existent. Les anciennes sections Catégorie/Zone corporelle sont supprimées. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la section Médias reste visible et repliable ; son contrôle `Déployer / Condenser` et son placeholder restent désactivés, sans fonction média réelle. Le bouton supérieur `Ajouter un média` est supprimé par D-207. Lorsque le contenu Médias chevauche verticalement la zone de Synthèse, la Synthèse masque ce contenu ; le masque commence `16 pt` au-dessus du cadre de Synthèse afin de conserver la respiration visuelle.
 
-La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Côté / Récupération / Durée totale >=`, sans cible chiffrée. La frame `3561:4695` et la roulette `3561:7673` appliquent la même visibilité `Durée totale >=` en Répétitions. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
+La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Côté / Récupération / Durée totale >=`, sans cible chiffrée. La frame `3561:4695` et la roulette `3561:7673` appliquent la même visibilité `Durée totale >=` en Répétitions. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` affiche `Comment s’appelle cette activité ?` comme placeholder de l’état vide, avec `color/text-secondary`.
 
 ## Mise à jour Bilatéralité — rectifiée le 13 septembre 2026
 
