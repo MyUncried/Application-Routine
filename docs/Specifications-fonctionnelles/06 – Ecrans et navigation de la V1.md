@@ -828,6 +828,8 @@ D-224 décline exactement ce même modèle sur les huit éléments de la liste `
 
 D-225 précise deux contenus centraux : `Mode d’exécution` et `Côté` utilisent eux aussi une roulette à une colonne de trois valeurs. Mode : `Durée`, `Répétitions`, `À l’échec`, avec `Durée` centrée dans l’état de référence. Côté : `Unilatéral`, `Gauche puis Droite`, `Droite puis Gauche`, avec `Unilatéral` centré. Ces libellés développés sont propres à la modale Côté ; les indicateurs courts `G→D` / `D→G` restent inchangés ailleurs. Le shell modal reste strictement identique à D-223/D-224.
 
+
+D-226 applique ce même standard unique à la modale `Catégorie de l’activité` (`4194:6979`) : feuille `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée standard, en-tête `378 × 60 pt` à `x=12`, `y=0`, actions Annuler/Valider aux coordonnées standard et titre centré sur l’axe `201 pt`. Les catégories existantes et l’action `Créer une catégorie` sont conservées dans une zone interne défilable.
 Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
 ### Dépendance Séries / Durée totale
