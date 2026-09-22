@@ -496,7 +496,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Nom → Ajouter média disabled → sections/accordéons → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
+Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
 
 ### 8. Éléments obligatoires
 
@@ -516,7 +516,7 @@ Création/modification ; état vide avec `Nom de l’activité` ; états renseig
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Ajouter média disabled.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Les contrôles `Catégorie` et `Zones corporelles` ouvrent leurs modales respectives ; aucun contrôle supérieur d’ajout de média n’est présent.
 
 ### 13. Gestes
 
@@ -552,7 +552,7 @@ Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier
 
 ### 21. Traçabilité
 
-D-207 ; Figma états éditeur mis à jour, plus `4194:6847` (Modale Catégorie) et `4194:7026` (Modale Zones corporelles).
+D-207 / D-208 ; Figma états éditeur mis à jour, plus `4194:6847` (Modale Catégorie) et `4194:7026` (Modale Zones corporelles).
 
 E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
 
