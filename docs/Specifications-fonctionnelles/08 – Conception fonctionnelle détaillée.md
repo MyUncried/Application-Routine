@@ -955,8 +955,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 ### Layout de référence
 
-- frame standard `2028:11204` : modale `x=12`, `y=38`, `378 × 313 pt`, en-tête `60 pt`, contenu `253 pt` ;
-- frame création inline `2028:11248` : modale `x=12`, `y=38`, `378 × 369 pt`, en-tête `60 pt`, contenu `309 pt` ;
+- frame standard `2028:11204` : modale `x=0`, `y=644`, `402 × 230 pt`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, contenu défilable `378 × 170 pt` ;
+- frame création inline `2028:11248` : même shell `402 × 230 pt` à `x=0`, `y=644`, avec contenu défilable `378 × 170 pt` conservant le champ `Nom de la classification` et les actions inline `Annuler / Ajouter` ;
 - aucun CTA inférieur `Enregistrer la séance` n’est affiché dans l’état courant.
 
 ### Règles fonctionnelles
@@ -1015,6 +1015,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 
 **D-226 — Modale Catégorie de l’activité.** La sélection de Catégorie réutilise sans variante le shell modal unique D-223/D-224 (`402 × 230 pt`, ancré en bas, poignée, en-tête standard, Annuler/Valider et titre centré). Son contenu reste spécifique : liste des catégories existantes et action `Créer une catégorie`, dans une zone interne défilable lorsque la hauteur disponible ne permet pas d’afficher toutes les options simultanément.
+
+**D-227 — Modale Classification de la séance.** Les deux états `2028:11204` et `2028:11248` réutilisent sans variante le shell modal unique D-223/D-224/D-226. Seul le contenu interne varie entre sélection standard et création inline ; il défile dans une zone `378 × 170 pt` lorsque nécessaire.
 **Ordre transverse des paramètres :** la rangée suit toujours `Séries` à gauche → cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`) → `Pause` à droite. L’ouverture d’une roulette ne déplace, ne permute et ne redimensionne aucun de ces contrôles.
 
 Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `Durée totale` utilisent le composant compact canonique : `203` points de haut, barre supérieure Annuler/Confirmer de `53` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Les roulettes `Nombre de répétitions` et `Nombre de Séries` réutilisent le même component set dans sa variante `Type=Numeric wheel` (`3210:49`) : une colonne, largeur `144`, même hauteur `203` et mêmes actions. Le brouillon reste local jusqu’à Confirmer ; Annuler restaure la valeur précédemment enregistrée. Aucun écran de roulette supplémentaire n’est requis pour `Récupération` ou `Durée totale` : ces contrôles héritent du contrat canonique de durée.
