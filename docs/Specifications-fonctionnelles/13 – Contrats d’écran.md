@@ -164,16 +164,6 @@ Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue 
 
 Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Classification. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Activités`.
 
-### 3 bis. Variante D-210 — Paramétrage repliable
-
-Références Figma : `4230:7023` = état replié initial ; `4217:6980` = état déplié.
-
-Dans cette variante, le bloc `Synthèse de l’activité` est positionné entre `Description de l’activité` et `Mode d’exécution`. À l’état initial, le bloc est réduit à une ligne et affiche exactement `cliquer pour paramétrer`. Tap sur le bloc → état déplié ; second tap → état replié. Le passage entre états conserve intégralement le brouillon.
-
-L’état déplié affiche sous la Synthèse une liste verticale compacte en deux colonnes. Ordre et libellés exacts : `Compte à rebours` → `Nombre de séries` → `Durée de l’activité` → `Pause entre chaque série` → `Côté` → `Récupération` → `Fin d’activité` → `Durée totale`. Les valeurs sont alignées à droite avant leur chevron. Le contrôle `Côté` utilise le même alignement de chevron ; en `UNILATERAL`, aucune valeur textuelle n’est affichée.
-
-Chaque modification confirmée d’un paramètre met à jour en temps réel le texte de Synthèse à partir du brouillon courant. Le repli ne fige pas une valeur antérieure et ne persiste rien à lui seul.
-
 ### 4. Contexte de sortie / destinations
 
 - segment Activités → `CE-T03-02` ;
@@ -491,6 +481,16 @@ Créer/modifier une définition persistante complète, en réutilisant l’édit
 ### 3. Contexte d’entrée
 
 Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau brouillon ; modification = copie de travail de la définition existante.
+
+### 3 bis. Variante D-210 — Paramétrage repliable
+
+Références Figma : `4230:7023` = état replié initial ; `4217:6980` = état déplié.
+
+Dans cette variante, le bloc `Synthèse de l’activité` est positionné entre `Description de l’activité` et `Mode d’exécution`. À l’état initial, le bloc est réduit à une ligne et affiche exactement `cliquer pour paramétrer`. Tap sur le bloc → état déplié ; second tap → état replié. Le passage entre états conserve intégralement le brouillon.
+
+L’état déplié affiche sous la Synthèse une liste verticale compacte en deux colonnes. Ordre et libellés exacts : `Compte à rebours` → `Nombre de séries` → `Durée de l’activité` → `Pause entre chaque série` → `Côté` → `Récupération` → `Fin d’activité` → `Durée totale`. Les valeurs sont alignées à droite avant leur chevron. Le contrôle `Côté` utilise le même alignement de chevron ; en `UNILATERAL`, aucune valeur textuelle n’est affichée.
+
+Chaque modification confirmée d’un paramètre met à jour en temps réel le texte de Synthèse à partir du brouillon courant. Le repli ne fige pas une valeur antérieure et ne persiste rien à lui seul.
 
 ### 4. Contexte de sortie / destinations
 
