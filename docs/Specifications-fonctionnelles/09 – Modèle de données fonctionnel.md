@@ -889,7 +889,7 @@ Les **Activités** référencent zéro ou une Catégorie.
 | Nom                  | Libellé affiché               | Obligatoire | Non vide après trim ; maximum `40` caractères ; unique par utilisateur après normalisation canonique |
 | Icône                | Icône représentative          | Obligatoire | Icône KODJO attribuée automatiquement à une Catégorie personnalisée dans le MVP ; non modifiable par l’utilisateur |
 | Couleur              | Couleur d'affichage           | Obligatoire | `color.background` (`#FFFFFF`) attribué automatiquement à une Catégorie personnalisée dans le MVP ; non modifiable par l’utilisateur |
-| Ordre d'affichage    | Position dans les listes      | Obligatoire | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; non modifiable manuellement dans le MVP |
+| Ordre d'affichage    | Position dans les listes      | Obligatoire | Valeurs initiales selon `displayOrder`, puis personnalisées par date de création croissante ; non modifiable manuellement dans le MVP |
 | Date de création     | Date de création              | Obligatoire | Générée automatiquement                              |
 | Date de modification | Dernière modification         | Obligatoire | Mise à jour automatiquement                          |
 ## Règles métier
@@ -899,10 +899,10 @@ Les **Activités** référencent zéro ou une Catégorie.
 - Le nom d'une catégorie est limité à `40` caractères après trim et est unique pour un même utilisateur après normalisation canonique de comparaison.
 - Une tentative de création avec un nom normalisé déjà existant ne crée pas de doublon : elle réutilise et sélectionne la Catégorie existante.
 - Les Catégories prédéfinies sont affichées selon leur `displayOrder`. Les Catégories personnalisées viennent ensuite, par date de création croissante. La sélection ou l’utilisation d’une Catégorie ne change pas sa position et aucune réorganisation manuelle n’est disponible dans le MVP.
-- Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste une donnée du brouillon jusqu’à l’enregistrement final. Son existence temporaire est distincte de sa sélection : la désélection ne la supprime pas du brouillon et elle peut être resélectionnée sans doublon. Les allers-retours entre Composition et Catégories conservent ces deux états séparément. Elle n’acquiert une identité persistante que dans la transaction finale, uniquement si elle est sélectionnée.
-- L’abandon du parcours ou l’échec de cette transaction ne laisse aucune Catégorie personnalisée orpheline dans le référentiel persistant.
+- Une Catégorie est un référentiel autonome d’Activité ; elle peut être créée depuis la gestion du référentiel ou depuis un parcours ActivityDefinition qui en a besoin. Elle n’est jamais créée comme dépendance d’une transaction de Séance.
+- Une création de Catégorie échouée ne laisse aucune donnée partielle dans le référentiel persistant.
 - Une Catégorie peut être utilisée par zéro, une ou plusieurs Activités.
-- À partir du MVP bis, une Catégorie peut être supprimée, qu’elle soit utilisée ou non.
+- Une Catégorie peut être archivée/réactivée ou supprimée ; une suppression utilisée exige confirmation.
 - Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une confirmation est demandée puis elle est retirée de ces Activités.
 - Cette suppression ne modifie jamais les Instantanés d’Exécution déjà enregistrés.
 - Les Instantanés historiques conservent le libellé de la Catégorie tel qu’il existait au moment de l’Exécution.
@@ -980,7 +980,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute exécution de séance référence une seule séance.
 - Toute Catégorie personnalisée appartient à un seul Utilisateur.
 - Dans le MVP, toute Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. L’utilisateur ne peut modifier aucune de ces deux valeurs.
-- Aucune règle ne fait actuellement dériver la couleur d’une Séance de ses Catégories. Une telle dérivation reste une évolution future à définir, notamment pour les Séances associées à plusieurs Catégories.
+- La présentation d’une Catégorie n’a aucun effet sur la couleur d’une Séance.
 - Les Zones corporelles sont des données du référentiel administrable de l’Utilisateur.
 
 ### Cohérence des données
