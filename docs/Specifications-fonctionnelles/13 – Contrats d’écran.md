@@ -506,7 +506,7 @@ D-223 fixe le standard unique de la feuille `Durée de l’activité` : `402 × 
 
 D-224 ajoute les huit états modaux de référence : `4367:7128`, `4367:7276`, `4367:7450`, `4367:7624`, `4367:7765`, `4367:7906`, `4367:8052`, `4367:8193`. Tous utilisent exactement le même shell modal que `Durée de l’activité` : `402 × 230 pt`, poignée, en-tête standard, actions et titre centrés selon D-223. Aucun écran ne possède de variante de positionnement propre.
 
-D-225 fixe le contenu des deux modales de choix non numériques : `Mode d’exécution` est une roulette à trois valeurs `Durée / Répétitions / À l’échec`; `Côté` est une roulette à trois valeurs `Unilatéral / D→G / G→D`. Dans les références Figma, les valeurs centrées sont respectivement `Durée` et `Unilatéral`. Aucun contrôle segmenté ni trio de boutons n’est admis dans ces deux feuilles.
+D-225 fixe le contenu des deux modales de choix non numériques : `Mode d’exécution` est une roulette à trois valeurs `Durée / Répétitions / À l’échec`; `Côté` est une roulette à trois valeurs `Unilatéral / Gauche puis Droite / Droite puis Gauche`. Dans les références Figma, les valeurs centrées sont respectivement `Durée` et `Unilatéral`. Ces libellés développés ne remplacent pas les indicateurs courts `G→D` / `D→G` hors de la modale. Aucun contrôle segmenté ni trio de boutons n’est admis dans ces deux feuilles.
 
 ### 4. Contexte de sortie / destinations
 
