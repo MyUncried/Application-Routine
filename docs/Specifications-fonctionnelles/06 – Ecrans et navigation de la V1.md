@@ -707,7 +707,7 @@ L’action `Continuer` valide la Composition. Elle reste désactivée tant que l
 
 En création, elle ouvre la modale `Classification de la séance` au-dessus de la Composition.
 
-En modification d’une Séance existante, le parcours de validation conserve les catégories existantes et permet, le cas échéant, de les revoir conformément au flux Figma.
+En modification d’une Séance existante, le parcours de validation conserve la Classification éventuelle et permet de la revoir conformément au flux Figma.
 
 La Séance n’est exécutable que si elle contient au moins une Activité valide.
 
@@ -864,7 +864,7 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - `+ Créer une catégorie` ouvre dans la modale une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; cet `Annuler` inline ferme uniquement la création de catégorie et ne ferme pas la modale ;
 - une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
 - l’action d’en-tête `Annuler` ferme la modale et revient à la Composition en conservant le brouillon de Séance tel qu’il était avant validation finale, y compris les modifications de Composition déjà présentes ; aucune Catégorie nouvelle n’est persistée ;
-- l’action d’en-tête `Valider` remplace fonctionnellement l’ancien CTA `Enregistrer la séance` : elle persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir le contexte courant vers la gauche ;
+- l’action d’en-tête `Valider` remplace fonctionnellement l’ancien CTA `Enregistrer la séance` : elle persiste atomiquement la Séance, sa Composition et la Classification éventuelle, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir le contexte courant vers la gauche ;
 - en cas d’échec, aucune donnée partielle n’est conservée, la modale reste ouverte, le brouillon reste intact, l’action `Valider` est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
 
 ## Écran 7 – Calendrier
