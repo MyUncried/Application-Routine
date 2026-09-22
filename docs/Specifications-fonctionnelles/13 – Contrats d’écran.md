@@ -504,6 +504,8 @@ D-222 ajoute l’état `4332:7095` pour `Durée de l’activité` ouverte. Le co
 
 D-223 fixe le standard unique de la feuille `Durée de l’activité` : `402 × 230 pt`, ancrée en bas ; en-tête standard `378 × 60 pt` à `x=12`, `y=0`; Annuler `x=0`, `y=3` et Confirmer/Valider `x=330`, `y=3` dans l’en-tête, soit `12 pt` des bords écran et `3 pt` du haut de la feuille, identiques à `Classification de la séance`. La poignée `50 × 4 pt` reste centrée à `y=8` et n’introduit aucun décalage. Le titre `Durée de l’activité` est centré exactement sur l’axe `201 pt`. La roulette n’a aucun cadre externe ou interne et sa zone utile mesure `330 × 150 pt`. `minutes` se termine `15 pt` avant la capsule grise secondes ; les écarts aux capsules propres sont `9,5 pt` et `11 pt`.
 
+D-224 ajoute les huit états modaux de référence : `4367:7128`, `4367:7276`, `4367:7450`, `4367:7624`, `4367:7765`, `4367:7906`, `4367:8052`, `4367:8193`. Tous utilisent exactement le même shell modal que `Durée de l’activité` : `402 × 230 pt`, poignée, en-tête standard, actions et titre centrés selon D-223. Aucun écran ne possède de variante de positionnement propre.
+
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
