@@ -528,7 +528,7 @@ Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupérati
 
 ### 15. Brouillon et persistance
 
-Création persiste ActivityDefinition à Terminer uniquement. Modification atomique. Annuler roulette ne change pas dernière valeur confirmée.
+Création persiste ActivityDefinition à Terminer uniquement. Modification atomique. L’éditeur porte zéro ou une Catégorie, zéro ou plusieurs Zones corporelles, un Compte à rebours d’activité et une Fin d’activité propres. Les deux durées sont initialisées depuis le Profil pour une nouvelle Activité puis modifiables ici. Annuler roulette ne change pas dernière valeur confirmée.
 
 ### 16. Navigation et conservation d’état
 
@@ -544,7 +544,7 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Catégorie facultative unique ; Zones corporelles multiples ; Compte à rebours d’activité et Fin d’activité propres ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
@@ -663,17 +663,15 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/A
 
 # 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
-## CE-T03-06 — Composition — arbre `Ajouter une activité`
+## CE-T03-06 — Composition — ajouter une activité depuis le Catalogue
 
 ### 1. Identification
 
-Identifiant produit : `CE-CMP-01` — alias T03 `CE-T03-06`.
-
-Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame `3788:5258`.
+Identifiant produit : `CE-COM-ADD-01` — alias T03 `CE-T03-06`.
 
 ### 2. Finalité fonctionnelle
 
-Choisir entre création Session-only et insertion depuis Catalogue, sans mutation préalable de la Composition.
+Ajouter une ou plusieurs Activités à une Séance exclusivement à partir du Catalogue des Activités.
 
 ### 3. Contexte d’entrée
 
@@ -681,84 +679,83 @@ Tap `+ Ajouter une activité` dans Composition.
 
 ### 4. Contexte de sortie / destinations
 
-Nouvelle activité → éditeur SessionActivity ; activité existante → CE-T03-07 ; Annuler → Composition inchangée.
+L’action ouvre directement la modale de sélection des `ActivityDefinition` actives. Aucun arbre intermédiaire n’est affiché.
 
 ### 5. Données affichées et source de vérité
 
-Aucune donnée métier créée à l’ouverture. Fond = draft Composition réel.
+Liste filtrable des `ActivityDefinition` actives fournie par `ActivityDefinitionRepository`. Les Activités archivées ne sont pas proposées pour une nouvelle affectation.
 
 ### 6. Classification des valeurs Figma
 
-Trois libellés = statiques ; contenu Composition = dynamique/démonstration.
+Noms, Catégories, Zones corporelles et paramètres d’Activités = dynamiques. `Sélectionner les activités`, `Rechercher une activité`, `Créer une activité`, `Ajouter N activité(s)` et `Annuler` = libellés fonctionnels.
 
-### 7. Structure de l’écran
+### 7. Structure de la modale
 
-Fond Composition + arbre contextuel à trois options.
+En-tête, recherche, action `Créer une activité`, liste multi-sélectionnable, actions `Ajouter N activité(s)` et `Annuler`.
 
 ### 8. Éléments obligatoires
 
-`Une nouvelle activité`, `Une activité existante`, `Annuler`; Annuler gris ; vecteurs DSF uniquement.
+Recherche ; création ; liste ; sélection ; compteur ; validation ; annulation.
 
 ### 9. Layout déterministe
 
-Conforme frame ; les deux actions principales utilisent la disposition représentée ; arbre dans Safe Area.
+Référence active : frame de sélection multiple `3789:5349`. L’ancien arbre `Une nouvelle activité / Une activité existante / Annuler` est historique et supersédé par D-205.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; libellés complets ; cibles ≥48 ; aucun clavier.
+Conserver le contrat adaptatif 360/402/440 ; liste scrollable ; clavier de recherche sans masquer les actions finales.
 
-### 11. États de l’écran
+### 11. États de la modale
 
-Ouvert ; Annuler ; navigation nouvelle ; navigation existante.
+Vide ; liste ; recherche ; sélection 1..N ; création d’une nouvelle Activité ; retour après création ; erreur.
 
 ### 12. Contrôles et interactions
 
-Chaque ligne active ouvre son sous-parcours ; Annuler ferme. Aucun tap fond ne modifie draft.
+Tap Activité = sélection/désélection. `Créer une activité` ouvre l’éditeur ActivityDefinition. Après enregistrement réussi, la nouvelle Activité est ajoutée directement à la Séance puis le parcours revient à la Composition. `Ajouter N activité(s)` copie les sélections existantes selon leur ordre visible.
 
 ### 13. Gestes
 
-Tap uniquement.
+Tap, saisie et scroll uniquement dans la modale.
 
 ### 14. Validation
 
-Aucune validation métier avant choix. Sous-parcours fait sa propre validation.
+Validation de sélection désactivée si aucune Activité n’est sélectionnée. La création d’une Activité suit CE-T03-04.
 
 ### 15. Brouillon et persistance
 
-Nouvelle activité crée seulement un brouillon SessionActivity. Aucun ActivityDefinition, aucune action Enregistrer dans Catalogue T03.
+La sélection reste temporaire jusqu’à validation. Chaque insertion crée une `SessionActivity` indépendante. La Catégorie éventuelle et les Zones corporelles sont copiées ; le Compte à rebours d’activité et la Fin d’activité ne le sont jamais.
 
 ### 16. Navigation et conservation d’état
 
-Retour sous-parcours restitue Composition et scroll. Annuler exact.
+Annuler → Composition intacte. Validation → Composition enrichie. Création réussie depuis la modale → nouvelle ActivityDefinition persistée + copie ajoutée + retour Composition.
 
 ### 17. Erreurs et cas limites
 
-Échec ouverture sous-parcours → Composition inchangée.
+Création abandonnée → retour modale sans ajout. Erreur de création → rester dans l’éditeur. ActivityDefinition archivée pendant le parcours → non éligible à l’ajout.
 
 ### 18. Accessibilité
 
-Ordre focus visuel ; Annuler explicite ; aucune option cachée.
+Focus modal, liste multi-sélectionnable annoncée, compteur de sélection, action Créer accessible, cibles ≥48.
 
 ### 19. Invariants
 
-Nouvelle = Session-only ; Existante = copie depuis références ; aucun save-to-catalogue.
+Aucune création locale de SessionActivity ; aucun arbre intermédiaire ; toute Activité de Séance provient d’une ActivityDefinition persistante.
 
 ### 20. Recette déterministe
 
-Tester trois choix, abandon, retour, draft intact. Négatif : création ActivityDefinition depuis Nouvelle activité.
+Vérifier ouverture directe depuis `Ajouter une activité`, multi-sélection, création d’une Activité absente, ajout direct après création, ordre visible, annulation et 360/402/440. Négatifs : apparition de `Une nouvelle activité` ou `Une activité existante`, création d’une Activité de Séance non persistante.
 
 ### 21. Traçabilité
 
-E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
+D-171 révisée, D-205, RM-160, API-COM-03 ; Figma `3789:5349`.
 
 ### 22. Implémentation
 
-- Chemins source : `À RENSEIGNER`.
-- Composants partagés consommés : `À RENSEIGNER`.
-- Suites de tests attachées : `À RENSEIGNER`.
-- Révision de dernière vérification : `À RENSEIGNER`.
+- Chemins source : à auditer dans la prochaine tranche corrective.
+- Composants partagés consommés : modale de sélection ActivityDefinition, éditeur ActivityDefinition.
+- Suites de tests attachées : à compléter lors de l’implémentation.
+- Révision de dernière vérification : 22/09/2026.
 
----
 
 ## CE-T03-07 — Sélection multiple d’Activités existantes
 
@@ -1661,118 +1658,99 @@ E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
 # 11. B8 — Catégories et navigation
 
-## CE-T03-16 — Modale Catégories — validation et retour Catalogue séances
+## CE-T03-16 — Modale Classification — validation et retour Catalogue séances
 
 ### 1. Identification
 
-Identifiant produit : `CE-CMP-04` — alias T03 `CE-T03-16`.
-
-Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frames `2028:11204` (standard) et `2028:11248` (nouvelle catégorie inline) ; image `ecran-6-categories-seance.png`.
+Identifiant produit : `CE-SESSION-CLASS-01` — alias T03 `CE-T03-16`.
 
 ### 2. Finalité fonctionnelle
 
-Permettre la sélection/création facultative de Catégories sans quitter visuellement la Composition, puis finaliser la Séance et revenir déterministement sur Catalogue des séances / segment Séances avec transition canonique.
+Permettre l’affectation facultative d’une seule Classification à la Séance, la création inline d’une Classification absente, puis finaliser la Séance sans quitter visuellement la Composition.
 
 ### 3. Contexte d’entrée
 
-Composition valide → ouverture de la modale Catégories au-dessus de la Composition courante.
+Composition valide → ouverture de la modale Classification au-dessus de la Composition courante.
 
 ### 4. Contexte de sortie / destinations
 
-`Annuler` d’en-tête → fermeture de la modale et retour à la Composition avec brouillon intact. `Valider` succès → CE-T03-01 / Séances. Échec → modale maintenue ouverte.
+`Annuler` → Composition avec brouillon intact. `Valider` succès → Catalogue des séances / segment Séances. Échec → modale maintenue ouverte.
 
 ### 5. Données affichées et source de vérité
 
-Draft Session + catégories existantes/nouvelles temporaires + sélection courante. La Composition visible derrière est le contexte du brouillon, pas une copie persistée.
+Draft Session + référentiel des Classifications actives + Classification sélectionnée éventuelle. Une Classification archivée déjà affectée reste lisible sur une Séance existante mais n’est pas proposée pour une nouvelle affectation.
 
 ### 6. Classification des valeurs Figma
 
-Noms catégories = dynamiques ; titre `Catégories de la séance`, actions d’en-tête et actions inline = statiques ; exemples de catégories = démonstration.
+Noms de Classifications = dynamiques ; titre `Classification de la séance`, actions d’en-tête et actions inline = statiques ; exemples = démonstration.
 
 ### 7. Structure de la modale
 
-Voile modal plein écran bloquant ; conteneur modal ; en-tête fixe `Annuler / Catégories de la séance / Valider` ; contenu avec tags ; état standard avec `Créer une catégorie` ; état inline avec champ `Nom de la catégorie` et actions `Annuler / Ajouter`. Aucun CTA inférieur `Enregistrer la séance`.
+Voile modal bloquant ; en-tête fixe `Annuler / Classification de la séance / Valider` ; contenu avec choix unique ; état standard avec `Créer une classification` ; état inline avec champ `Nom de la classification` et actions `Annuler / Ajouter`. Aucun CTA inférieur.
 
 ### 8. Éléments obligatoires
 
-Voile bloquant ; titre ; action Annuler d’en-tête ; action Valider d’en-tête ; tags ; création inline éventuelle ; message erreur si persistance échoue ; aucun texte introductif supplémentaire.
-
-Sources DSF obligatoires :
-- icônes : `Icon / Modal Action — Source exact` (`4155:6201`), variantes `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ;
-- actions d’en-tête : `Modal / Header Action — Source exact` (`4151:6197`), variantes `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
-- actions texte : `Action / Categories — Source exact` (`4152:6189`), variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) ;
-- tags : `Selection / Category Tag` (`3302:4166`).
-
-Aucune copie graphique locale ni glyphe texte ne remplace ces sources.
+Voile ; titre ; Annuler ; Valider ; options ; création inline ; message erreur si persistance échoue. Le patron DSF de l’ancienne modale Catégories est réutilisé.
 
 ### 9. Layout déterministe
 
-Référence `402 × 874` :
-- `2028:11204` : modale `x=12`, `y=38`, `378 × 313 pt` ; en-tête `60 pt` ; contenu `253 pt` ;
-- `2028:11248` : modale `x=12`, `y=38`, `378 × 369 pt` ; en-tête `60 pt` ; contenu `309 pt` ;
-- actions d’en-tête dans des zones `48 × 53 pt` avec fond circulaire `38 × 38 pt` ;
-- divider d’en-tête `1 pt`.
-
-Ces mesures constituent la référence Figma ; l’implémentation respecte le contrat adaptatif sans convertir ces coordonnées en positionnement absolu non adaptable.
+Références Figma héritées et révisées : `2028:11204` et `2028:11248`.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 : conserver marges de sécurité, titre lisible, actions d’en-tête accessibles et contenu scrollable si nécessaire. Dans l’état inline, le clavier ne masque ni le champ actif ni les actions `Annuler / Ajouter`; la Composition sous le voile reste non interactive.
+360/402/440 : conserver marges, titre lisible, actions accessibles et contenu scrollable. Le clavier ne masque pas la création inline.
 
 ### 11. États de la modale
 
-Standard ; nouvelle catégorie inline ; saving ; erreur ; fermeture Annuler ; succès/navigation.
+Standard ; aucune Classification ; une Classification sélectionnée ; création inline ; saving ; erreur.
 
 ### 12. Contrôles et interactions
 
-Tags = sélectionner/désélectionner. `Créer une catégorie` → état inline. `Annuler` inline → ferme seulement l’état de création. `Ajouter` → ajoute la catégorie temporaire et la sélectionne. `Annuler` d’en-tête → ferme la modale sans persistance finale. `Valider` d’en-tête → une seule transaction finale ; désactivation/busy pendant sauvegarde.
+Sélection exclusive 0..1. Tap sur la Classification sélectionnée la désélectionne. `Créer une classification` ouvre l’état inline. `Ajouter` crée la valeur temporaire et la sélectionne. `Valider` déclenche une transaction finale unique.
 
 ### 13. Gestes
 
-Tap, saisie et scroll dans la modale. Le voile ne valide pas implicitement. Aucun geste spécial de transition local.
+Tap, saisie, scroll. Aucun geste spécial local.
 
 ### 14. Validation
 
-Catégories facultatives ; règles de nom existantes pour nouvelle Catégorie ; Séance valide avant transaction ; pas double-submit.
+Classification facultative ; unicité canonique du nom ; pas de double-submit.
 
 ### 15. Brouillon et persistance
 
-Avant `Valider`, catégories temporaires et sélection restent dans le brouillon. `Annuler` d’en-tête n’effectue aucune persistance finale. `Valider` exécute la transaction Session+Composition+Catégories ; erreur = rollback et brouillon intact.
+Avant Valider, sélection et création temporaire restent dans le brouillon. Valider persiste atomiquement Session + Composition + Classification éventuelle.
 
 ### 16. Navigation et conservation d’état
 
-`Annuler` restaure la Composition sous-jacente. Succès `Valider` impose `Catalogue des séances`, segment Séances, transition §4.9, même si le dernier segment global était Activités.
+Annuler restaure la Composition. Succès → Catalogue des séances / Séances selon transition canonique.
 
 ### 17. Erreurs et cas limites
 
-Erreur save : rester dans la modale, message, `Valider` réactivé, aucune donnée partielle. Double tap Valider = une transaction. Nom de Catégorie dupliqué après normalisation = sélectionner l’existante selon la règle actuelle, sans doublon.
+Doublon canonique → réutiliser l’existante. Classification archivée → non proposée à une nouvelle affectation. Suppression d’une Classification utilisée → confirmation, puis Séances concernées sans Classification.
 
 ### 18. Accessibilité
 
-Le voile rend le contexte sous-jacent non focusable. Focus initial dans la modale ; ordre Annuler → titre/contenu → Valider cohérent ; saving/disabled annoncé ; erreur live region ; focus clavier correct en état inline.
+Voile bloquant, focus modal, choix unique annoncé, saving/disabled annoncé, erreur live region.
 
 ### 19. Invariants
 
-Catégories est une modale, jamais un écran autonome ; aucune action finale inférieure ; `Annuler` d’en-tête ne persiste pas ; `Valider` est l’unique action de finalisation ; destination après succès = Catalogue des séances / Séances. Les cinq contrôles d’action et les deux pictogrammes d’en-tête sont exclusivement des instances des sources DSF listées au §8 ; aucune frame locale équivalente n’est autorisée.
+Une Séance porte zéro ou une Classification ; jamais plusieurs. Classification remplace l’ancienne notion de Catégories de Séance.
 
 ### 20. Recette déterministe
 
-Vérifier `2028:11204` et `2028:11248` ; voile bloquant ; géométrie standard/inline ; Annuler d’en-tête ; Valider ; création inline Annuler/Ajouter ; vérifier que les actions d’en-tête ont pour `mainComponent` `4151:6191` / `4151:6196`, que leurs icônes proviennent de `4155:6197` / `4155:6200`, et que les actions texte utilisent `4152:6182` / `4152:6185` / `4152:6188` ; save ; double tap ; erreur ; destination/animation ; dernier segment Activités préalable ; 360/402/440 et clavier. Négatifs : écran plein autonome, CTA inférieur `Enregistrer la séance`, contrôle local non instancié, interaction avec Composition sous voile, Annuler inline fermant toute la modale, retour Activités après save.
+Vérifier `2028:11204` et `2028:11248`, sélection exclusive, création inline, validation, erreur, destination, 360/402/440. Négatif : multi-sélection ou libellé `Catégories de la séance`.
 
 ### 21. Traçabilité
 
-E67–E69 → D-168/D-178/D-190 ; API-SEA-03/04 ; Figma `2028:11204`, `2028:11248` ; sources DSF `4155:6201`, `4151:6197`, `4152:6189`, `3302:4166`.
-
-![Catégories](./images/ecran-6-categories-seance.png)
+D-203/D-204 ; RM-022/RM-023/RM-107/RM-108 ; API-SEA-03/API-REF-07.
 
 ### 22. Implémentation
 
-- Chemins source : `À RENSEIGNER`.
-- Composants partagés consommés : `À RENSEIGNER`.
-- Suites de tests attachées : `À RENSEIGNER`.
-- Révision de dernière vérification : `À RENSEIGNER`.
+- Chemins source : à auditer dans la prochaine tranche corrective.
+- Composants partagés consommés : patron modal de référentiel existant.
+- Suites de tests attachées : à compléter lors de l’implémentation.
+- Révision de dernière vérification : 22/09/2026.
 
----
 
 ## CE-T03-17 — Navigation principale — inventaire DSF
 
@@ -1895,9 +1873,9 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E19 | Créer contextuel Catalogue |
 | E20 | Activités → création directe ActivityDefinition |
 | E21 | Séances → création directe Séance |
-| E22 | Arbre Ajouter depuis Composition |
-| E23 | Nouvelle activité depuis Composition = SessionActivity |
-| E24 | Pas Enregistrer dans Catalogue T03 |
+| E22 | Ajouter une activité ouvre directement la sélection Catalogue |
+| E23 | Créer une activité depuis la sélection = ActivityDefinition persistante puis copie ajoutée |
+| E24 | Aucune création locale de SessionActivity à la volée |
 | E25 | Multi-sélection ActivityDefinition |
 | E26 | Validation disabled sélection vide |
 | E27 | Compteur sélection |
@@ -1940,7 +1918,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E64 | CR initial non déplaçable |
 | E65 | Fin séance non déplaçable |
 | E66 | Aucun long press/poignée cartes structurelles |
-| E67 | Après Catégories → Catalogue séances |
+| E67 | Après Classification → Catalogue séances |
 | E68 | Segment Séances sélectionné |
 | E69 | Transition canonique droite→gauche |
 | E70 | Migration sans promotion SessionActivity |
