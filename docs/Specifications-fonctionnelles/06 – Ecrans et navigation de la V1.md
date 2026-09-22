@@ -824,6 +824,8 @@ D-222 ajoute l’état `4332:7095`, copie de l’écran 3 avec le réglage `Dur�
 
 D-223 applique strictement le standard unique de modale : en-tête `378 × 60 pt` à `x=12`, `y=0`; Annuler `x=0`, `y=3` et Confirmer/Valider `x=330`, `y=3` dans cet en-tête, donc `12 pt` des bords écran et `3 pt` du haut de la feuille, exactement comme `Classification de la séance`. La poignée centrée à `y=8` ne décale pas l’en-tête. Le titre `Durée de l’activité` est centré exactement sur l’axe `201 pt`. La roulette ne comporte aucun cadre externe ou interne. La colonne secondes est décalée afin que `minutes` se termine `15 pt` avant sa capsule grise ; les écarts unités/capsules propres sont `9,5 pt` pour `minutes` et `11 pt` pour `secondes`. La feuille finale mesure `402 × 230 pt`.
 
+D-224 décline exactement ce même modèle sur les huit éléments de la liste `Paramètres d’exécution` : `4367:7128` Mode d’exécution, `4367:7276` Compte à rebours, `4367:7450` Nombre de séries, `4367:7624` Durée de l’activité, `4367:7765` Pause entre chaque série, `4367:7906` Côté, `4367:8052` Récupération, `4367:8193` Durée totale. Seul le contrôle central varie selon le paramètre ; la feuille, l’en-tête, les marges et les actions sont identiques.
+
 Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
 ### Dépendance Séries / Durée totale
