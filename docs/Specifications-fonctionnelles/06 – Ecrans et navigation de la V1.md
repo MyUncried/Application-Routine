@@ -509,7 +509,7 @@ Toucher l’action de création ouvre un nouvel écran `Composition d’une séa
 
 La création suit ensuite le parcours défini dans la section de navigation générale.
 
-Après `Valider` dans la modale `Catégories de la séance`, l’utilisateur revient directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique d’avancement.
+Après `Valider` dans la modale `Classification de la séance`, l’utilisateur revient directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique d’avancement.
 
 ### Actions secondaires
 
@@ -651,7 +651,7 @@ Un seul bouton secondaire `+ Ajouter une activité` est affiché en haut de l’
 
 Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Activités.
 
-Un appui sur `Ajouter une activité` ouvre l’arbre `Une nouvelle activité / Une activité existante / Annuler`. `Une nouvelle activité` crée une Activité propre à la Séance ; `Une activité existante` ouvre la sélection multiple des références persistantes. La validation est désactivée lorsque la sélection est vide et les Activités validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers.
+Un appui sur `Ajouter une activité` ouvre directement la modale de sélection multiple des `ActivityDefinition` actives. `Créer une activité` permet de créer une référence persistante absente ; après enregistrement elle est ajoutée directement à la Séance et le parcours revient à la Composition. La validation est désactivée lorsque la sélection est vide et les Activités validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers.
 
 La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
@@ -705,7 +705,7 @@ L’écran ne comporte pas de bouton `Démarrer`.
 
 L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou que la Composition ne contient pas au moins une Activité valide.
 
-En création, elle ouvre la modale `Catégories de la séance` au-dessus de la Composition.
+En création, elle ouvre la modale `Classification de la séance` au-dessus de la Composition.
 
 En modification d’une Séance existante, le parcours de validation conserve les catégories existantes et permet, le cas échéant, de les revoir conformément au flux Figma.
 
@@ -814,7 +814,7 @@ Avant toute interaction, tous les contrôles sont utilisables et aucun contour p
 
 La formule d’une occurrence autonome est `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, `L = 1` en unilatéral et `L = 2` en bilatéral, `A` durée par Série, `B` Pause, `C` nombre entier de Séries par côté, `R` Récupération et `D` Durée totale globale. Si `D` pilote, `C théorique = D / [L × (A + B)]` lorsque `R = 0`, sinon `C théorique = ((D − R) / L + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
 
-La Description et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel prédéfini et ne sont ni créées, ni renommées, ni supprimées ici.
+La Description, la Catégorie et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel administrable et restent multi-sélectionnables. La gestion des valeurs du référentiel suit les règles communes Catégorie / Classification / Zone corporelle.
 
 ### Modification d’une Activité
 
@@ -826,11 +826,11 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
 
-## Modale — Catégories de la séance
+## Modale — Classification de la séance
 
 ![ecran 6 categories seance](./images/ecran-6-categories-seance.png)
 
-*Modale — Catégories de la séance — Figma `2028:11204`*
+*Modale — Classification de la séance — Figma `2028:11204`*
 
 L’état de création intégrée d’une nouvelle Catégorie est illustré par :
 
@@ -840,7 +840,7 @@ L’état de création intégrée d’une nouvelle Catégorie est illustré par 
 
 ### Objectif
 
-Permettre d’associer zéro, une ou plusieurs Catégories à une Séance sans quitter le contexte de Composition.
+Permettre d’associer zéro ou une Classification à une Séance sans quitter le contexte de Composition.
 
 Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles n’ont aucun impact sur l’Exécution.
 
@@ -849,7 +849,7 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - la Composition reste visible en arrière-plan sous un voile modal et n’est pas interactive tant que la modale est ouverte ;
 - dans la référence Figma `402 × 874`, la modale est positionnée à `x=12`, `y=38`, largeur `378 pt` ;
 - l’état standard `2028:11204` mesure `378 × 313 pt` ; l’état de création inline `2028:11248` mesure `378 × 369 pt` ;
-- l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Catégories de la séance` centré et l’action `Valider` à droite ;
+- l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Classification de la séance` centré et l’action `Valider` à droite ;
 - les actions d’en-tête sont des instances de `Modal / Header Action — Source exact` (`4151:6197`) : `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
 - leurs pictogrammes sont eux-mêmes des instances de `Icon / Modal Action — Source exact` (`4155:6201`) : `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ; aucun glyphe texte ne les remplace ;
 - `Créer une catégorie`, `Annuler` inline et `Ajouter` sont les variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) du component set `Action / Categories — Source exact` (`4152:6189`) ;
@@ -1372,7 +1372,7 @@ Cette règle n’active pas les Circuits dans T03/MVP. Les anciennes frames Figm
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
-Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
+Depuis `Ajouter une activité`, la frame `3789:5349` s’ouvre directement au-dessus de la Composition grisée. La liste seule défile. Elle expose `Créer une activité`; les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
 
 Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
 
