@@ -166,7 +166,7 @@ Dans le MVP :
 - les **Catégories** qualifient les Activités, à raison de zéro ou une par Activité ;
 - les **Classifications** qualifient les Séances, à raison de zéro ou une par Séance ;
 - Catégories, Classifications et Zones corporelles sont des référentiels administrables, archivables et réactivables ;
-- les **Zones corporelles** qualifient les Activités et constituent un référentiel applicatif prédéfini : elles peuvent être sélectionnées mais ne peuvent pas être créées, renommées ou supprimées par l'utilisateur.
+- les **Zones corporelles** qualifient les Activités et constituent un référentiel administrable : elles restent multi-sélectionnables et suivent les mêmes principes de création, archivage, réactivation et suppression contrôlée que les Catégories.
 
 # 4.4 Structure d'une séance
 
