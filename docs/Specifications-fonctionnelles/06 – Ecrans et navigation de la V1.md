@@ -852,7 +852,7 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Classification de la séance` centré et l’action `Valider` à droite ;
 - les actions d’en-tête sont des instances de `Modal / Header Action — Source exact` (`4151:6197`) : `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
 - leurs pictogrammes sont eux-mêmes des instances de `Icon / Modal Action — Source exact` (`4155:6201`) : `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ; aucun glyphe texte ne les remplace ;
-- `Créer une catégorie`, `Annuler` inline et `Ajouter` sont les variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) du component set `Action / Categories — Source exact` (`4152:6189`) ;
+- `Créer une classification`, `Annuler` inline et `Ajouter` réutilisent les variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) du component set DSF historique `Action / Categories — Source exact` (`4152:6189`) ;
 - l’ancien CTA inférieur `Enregistrer la séance` n’est plus affiché dans ces états et ne constitue plus la cible UI courante.
 
 ### Contenu et comportement
@@ -861,7 +861,7 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 - les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante ; leur sélection ne change pas leur position et aucune réorganisation manuelle n’est proposée dans le MVP ;
 - la sélection est multiple ;
 - aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre dans la modale une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; cet `Annuler` inline ferme uniquement la création de catégorie et ne ferme pas la modale ;
+- `Créer une classification` ouvre dans la modale une ligne de création intégrée comportant `Nom de la classification`, `Annuler` et `Ajouter` ; cet `Annuler` inline ferme uniquement cette création et ne ferme pas la modale ;
 - une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
 - l’action d’en-tête `Annuler` ferme la modale et revient à la Composition en conservant le brouillon de Séance tel qu’il était avant validation finale, y compris les modifications de Composition déjà présentes ; aucune Catégorie nouvelle n’est persistée ;
 - l’action d’en-tête `Valider` remplace fonctionnellement l’ancien CTA `Enregistrer la séance` : elle persiste atomiquement la Séance, sa Composition et la Classification éventuelle, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir le contexte courant vers la gauche ;
