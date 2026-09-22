@@ -92,7 +92,7 @@ Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
 Une Activité peut être associée à zéro, une ou plusieurs zones corporelles.
 
-Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
+Les Zones corporelles constituent un référentiel administrable. L’utilisateur peut les consulter, les sélectionner, en créer, les archiver/réactiver et les supprimer selon les mêmes règles générales que les Catégories. Une Activité conserve la sélection multiple de Zones corporelles.
 
 # Parcours principal — Créer et exécuter une séance
 
@@ -376,7 +376,7 @@ Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catal
 4. L’application copie ses données et ses associations média dans la Séance.
 5. Modifier librement la copie sans modifier la référence ni les autres copies.
 
-Une Activité créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes activités` est reportée au-delà de la première version de la bibliothèque.
+Une Activité ajoutée à une Séance provient toujours d’une `ActivityDefinition` persistante du Catalogue. Si elle n’existe pas, elle est créée depuis la modale de sélection, ajoutée directement à la Séance puis le parcours revient à la Composition.
 
 ## Exécuter un Exercice À l’échec — MVP
 
