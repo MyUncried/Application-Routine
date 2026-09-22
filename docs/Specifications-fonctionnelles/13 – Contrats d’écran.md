@@ -492,7 +492,7 @@ Dans l’état déplié, le même cadre de Synthèse reste dépourvu de chevron 
 
 Chaque modification confirmée d’un paramètre met à jour en temps réel le texte de Synthèse à partir du brouillon courant. Le repli ne fige pas une valeur antérieure et ne persiste rien à lui seul.
 
-D-212 fixe la composition de cette variante : `Description de l’activité` est déployée au premier affichage, avec son champ visible sous le titre. Le titre statique exact `Paramètres d’exécution.` est inséré avant le cadre de Synthèse. La section `Médias` est présente et déployée sous le bloc de paramétrage. Ordre replié : Description déployée → `Paramètres d’exécution.` → Synthèse repliée → Médias déployée. Ordre déplié : Description déployée → `Paramètres d’exécution.` → Synthèse → liste des paramètres → Médias déployée. Cette réintégration ne rend pas les fonctions média actives.
+D-213 supersède l’ordre de D-212 : `Description de l’activité` est déployée au premier affichage ; son champ vide a une hauteur minimale d’une ligne et sa hauteur augmente dynamiquement avec le contenu. `Médias` est présent et déployé immédiatement après Description ; les emplacements précédemment libellés `Photo` / `Vidéo` affichent `Appuyer pour ajouter`. Le titre statique exact `Paramètres d’exécution.` suit Médias et précède le cadre de Synthèse. Ordre replié : Description → Médias → `Paramètres d’exécution.` → Synthèse repliée. Ordre déplié : Description → Médias → `Paramètres d’exécution.` → Synthèse → liste des paramètres. Le nouveau libellé média ne constitue pas à lui seul une activation fonctionnelle hors MVP.
 
 ### 4. Contexte de sortie / destinations
 
@@ -508,7 +508,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Hors variante D-210 à D-212 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-212 suit l’ordre spécifique défini au §3 bis.
+Hors variante D-210 à D-213 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-213 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
