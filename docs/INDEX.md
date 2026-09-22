@@ -190,7 +190,7 @@ Les cartes du Catalogue des activités séparent l’ouverture en consultation/m
 
 `Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. Dans le MVP, `Filtrer` propose uniquement `Archivées` sur les Catalogues Séances et Activités ; l’option est appliquée/désappliquée immédiatement au tap et le panneau se ferme. `Trier` est visible mais désactivé ; le tri par défaut reste la dernière modification décroissante.
 
-La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
+La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante d’une `ActivityDefinition` persistante. Si une Activité manque, elle est créée dans le Catalogue depuis la modale puis ajoutée directement à la Séance.
 
 Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Une `ActivityDefinition` porte zéro ou une Catégorie, ses propres paramètres de Compte à rebours/Fin d’activité et des Zones corporelles ; sa copie dans une Séance reste indépendante et exclut les deux phases temporelles propres à l’Activité.
 
