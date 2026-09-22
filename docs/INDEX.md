@@ -8,7 +8,7 @@
 >
 > Décisions du 21 septembre 2026 — D-188/D-189 : archivage, restauration et suppression définitive des Séances depuis les archives sont inclus dans le MVP. Le pattern de swipe est commun à Composition, Calendrier Semaine et Catalogues : carte déplacée, actions fixes, marges symétriques de `10 pt`, rayons extérieurs sur le groupe d’actions et conservation de l’état ouvert sous une confirmation destructive.
 >
-> Décision du 21 septembre 2026 — D-190 : `Catégories de la séance` est une modale ouverte au-dessus de la Composition, et non un écran autonome. Les frames courantes sont `2028:11204` et `2028:11248`; l’action d’en-tête Annuler revient à la Composition avec le brouillon intact, l’action Valider remplace l’ancien CTA inférieur `Enregistrer la séance` et déclenche la persistance finale. Les sources DSF exactes sont `Icon / Modal Action — Source exact` (`4155:6201`), `Modal / Header Action — Source exact` (`4151:6197`) et `Action / Categories — Source exact` (`4152:6189`).
+> Décisions du 22 septembre 2026 — D-201 à D-206 : l’Activité porte ses propres Compte à rebours/Fin d’activité et zéro ou une Catégorie ; la Séance porte zéro ou une Classification ; Catégories, Classifications et Zones corporelles deviennent des référentiels administrables ; `Ajouter une activité` ouvre directement la sélection du Catalogue et toute création depuis ce parcours produit une `ActivityDefinition` persistante. Le patron modal historique de D-190 est conservé mais son contenu devient `Classification de la séance`.
 >
 > Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif sur Séances et Activités avec l’unique option MVP `Archivées`. Le panneau ouvert `Filtrer` est désormais déterministe via D-197 et Figma `4170:6608`, `4170:11315`, `4170:11443` ; seul `Trier` reste sans panneau MVP. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
 
@@ -85,11 +85,11 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Activité Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Activité — état vide ;
-- `3788:5258` — Composition — Ajouter une activité — arbre ;
+- `3789:5349` — Composition — sélection directe des Activités du Catalogue ;
 - `3789:5349` et `3789:5405` — sélection multiple d’Activités existantes ;
 - `3879:5947` / `3879:6079` — création/modification d’une Activité persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
-- `2028:11204` — Catégories ;
+- `2028:11204` / `2028:11248` — Classification de la séance — patron modal révisé ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
 - `2537:1033` — composant DSF canonique `Déployer` ;
 - `2537:214` — composant DSF canonique `Navigation / Bottom`.
@@ -192,9 +192,9 @@ Les cartes du Catalogue des activités séparent l’ouverture en consultation/m
 
 La sélection multiple depuis une Composition insère les Activités selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
 
-Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Cette suppression ne cascade ni vers les copies déjà placées dans les Séances ni vers l’historique.
+Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Une `ActivityDefinition` porte zéro ou une Catégorie, ses propres paramètres de Compte à rebours/Fin d’activité et des Zones corporelles ; sa copie dans une Séance reste indépendante et exclut les deux phases temporelles propres à l’Activité.
 
-La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
+La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY`. La révision D-201 à D-206 est portée par une migration additive ultérieure ; aucune conversion sémantique des anciennes Catégories de Séance n’est requise en phase projet.
 
 Les Circuits fonctionnels et les médias multiples restent hors MVP.
 
