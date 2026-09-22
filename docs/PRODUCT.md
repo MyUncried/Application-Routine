@@ -131,7 +131,7 @@ Dans la version actuelle, la bilatéralité configurable est portée exclusiveme
 
 Dans la Composition, une carte d’Activité affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral. Le nom de l’Activité est en gras dans cette Synthèse.
 
-Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
+Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide affiche `Comment s’appelle cette activité ?` comme placeholder, avec la couleur sémantique secondaire standard.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -407,7 +407,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après enregistrement depuis Classification, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
-- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
+- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Comment s’appelle cette activité ?` en gris secondaire, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
 
 ### Médias et Circuits
 
