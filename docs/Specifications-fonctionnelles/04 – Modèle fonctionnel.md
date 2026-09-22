@@ -28,7 +28,7 @@ Il possède notamment :
 - ses séances ;
 - ses Activités persistantes ;
 - ses routines ;
-- ses catégories ;
+- sa Classification éventuelle ;
 - ses zones corporelles ;
 - ses préférences globales ;
 - son historique d'exécution.
@@ -73,7 +73,7 @@ Un **Tour** est un groupe ordonné d'Activités exécuté intégralement un nomb
 
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des activités (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
+Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle existe comme définition persistante autonome du Catalogue des activités (`ActivityDefinition`) et peut être copiée dans une Séance (`SessionActivity`). Elle porte zéro ou une Catégorie, zéro ou plusieurs Zones corporelles, un Compte à rebours d’activité et une Fin d’activité propres. Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -85,13 +85,13 @@ Chaque Activité possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative régie par D-156 ;
-- une Récupération facultative exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, `0 s` signifiant absence de phase ;
+- une Récupération facultative exécutée après tous les côtés de l’Activité, `0 s` signifiant absence de phase ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives ;
 - aucun média fonctionnel dans le MVP T03 ; l’architecture prépare `0..n` médias ordonnés par Activité pour une évolution post-MVP.
 
-Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause. Pour une Activité autonome, elle intervient une fois après tous les côtés ; dans un Tour bilatéral, une Récupération intervient à la fin de chaque passage de côté.
+Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause. Elle intervient une fois après tous les côtés de l’Activité.
 
 En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `R` la Récupération : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale pilote, les formules inverses de D-156 s’appliquent, puis le nombre de Séries est arrondi selon la règle validée et la durée réalisable est recalculée.
 
@@ -99,11 +99,11 @@ En modes Répétitions et À l’échec, `Durée totale` reste affichée mais n�
 
 ### Activité de référence et Activité de Séance
 
-Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des activités. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
+Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des activités. Elle possède ses propres paramètres `initialCountdownSeconds` et `finalPhaseSeconds`, initialisés depuis les Préférences lors de sa création puis modifiables indépendamment. Lorsqu’elle est copiée dans une Séance, ces deux paramètres ne sont pas transportés : la Séance conserve uniquement ses phases globales. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
 Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles et direction propre. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
-Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
+Une Activité n’est plus créée directement comme simple `SessionActivity` depuis une Séance : la Composition sélectionne ou crée d’abord une `ActivityDefinition` du Catalogue, puis en crée une copie indépendante dans la Séance.
 
 La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les `SessionActivity` déjà copiées ni vers les Instantanés, Exécutions et résultats historiques.
 
@@ -136,12 +136,14 @@ Chaque Exécution est indépendante des modifications, archivages ou suppression
 
 ## Préférences globales
 
-Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l'utilisation des séances et des routines. Elles peuvent être modifiées dans le Profil. Leur modification n'altère pas rétroactivement les séances ou routines déjà créées.
+Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l’utilisation des Séances, Activités et Routines. Elles peuvent être modifiées dans le Profil. Leur modification n’altère pas rétroactivement les contenus déjà créés.
 
 Elles comprennent :
 
 **Préférences de création d'une séance :**
-- la durée par défaut du compte à rebours initial ;
+- la durée par défaut du compte à rebours initial de Séance ;
+- la durée par défaut du Compte à rebours d’activité ;
+- la durée par défaut de la Fin d’activité ;
 - le texte vocal par défaut du compte à rebours initial ;
 - la durée par défaut de la fin de séance ;
 - le texte vocal par défaut de la fin de séance.
@@ -161,8 +163,10 @@ Les préférences utilisées comme valeurs par défaut sont copiées dans la sé
 L'application utilise des référentiels permettant de qualifier ses contenus.
 
 Dans le MVP :
-- les **Catégories** sont utilisées pour classer les Séances et peuvent être personnalisées selon les règles applicables ;
-- les **Zones corporelles** qualifient les Activités et constituent un référentiel applicatif prédéfini : elles peuvent être sélectionnées mais ne peuvent pas être créées, renommées ou supprimées par l'utilisateur.
+- les **Catégories** qualifient les Activités, à raison de zéro ou une par Activité ;
+- les **Classifications** qualifient les Séances, à raison de zéro ou une par Séance ;
+- Catégories, Classifications et Zones corporelles sont des référentiels administrables, archivables et réactivables ;
+- les **Zones corporelles** qualifient les Activités et constituent un référentiel administrable : elles restent multi-sélectionnables et suivent les mêmes principes de création, archivage, réactivation et suppression contrôlée que les Catégories.
 
 # 4.4 Structure d'une séance
 
@@ -274,7 +278,8 @@ Le MVP permet notamment :
 - ajouter plusieurs Activités existantes à une Séance par copies indépendantes ;
 - organiser les Activités avant, dans ou après le Tour et définir le nombre de répétitions du Tour ;
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
-- associer plusieurs catégories à une Séance ;
+- associer zéro ou une Classification à une Séance ;
+- associer zéro ou une Catégorie et zéro ou plusieurs Zones corporelles à une Activité ;
 - associer des zones corporelles aux Activités ;
 - exécuter directement une Activité persistante à partir de T03 ;
 - exécuter une Séance dans T04 et les tranches associées du MVP ;
@@ -308,9 +313,9 @@ Le Circuit est une racine persistante préparée pour une version post-MVP, poss
 
 ## Modèle fonctionnel de bilatéralité
 
-Une Activité persistante, son occurrence copiée dans une Séance et un Tour portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
+Une Activité persistante et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
 
-La direction effective est résolue une seule fois : celle du Tour si celui-ci est bilatéral, sinon celle de l’Activité. L’activation bilatérale d’un Tour recherche d’abord les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, après confirmation, le Tour prend la direction choisie et les seules Activités concernées sont remises à `UNILATERAL` dans une opération atomique ; `Annuler` ne modifie aucune donnée. Sous un Tour bilatéral, les contrôles enfants restent visibles, propres `UNILATERAL` et désactivés. La désactivation ultérieure du Tour ne restaure aucune ancienne valeur.
+Le Tour conserve techniquement le même champ `sideMode` pour compatibilité avec le modèle et le moteur existants, mais cette capacité n’est pas activée dans la version actuelle : la valeur produite/persistée par le produit courant est figée à `UNILATERAL` et aucune interaction utilisateur ne peut la modifier. La direction fonctionnelle effective d’une Activité est donc sa direction propre. Les mécanismes techniques capables de traiter un Tour `RIGHT_LEFT` ou `LEFT_RIGHT` restent dormants et ne constituent pas une règle produit active.
 
 Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Activité concernée.
 

@@ -6,7 +6,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 
 ### Fonctionnalités
 
-- créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
+- créer, modifier, dupliquer et archiver une Séance ; consulter les archives, restaurer une Séance archivée et la supprimer définitivement uniquement depuis les archives ;
 - créer des Activités sans sélection de type ;
 - définir pour chaque exercice :
   - un nom ;
@@ -14,7 +14,7 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
   - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
+  - une Récupération éventuelle exécutée après tous les côtés de l’Activité ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
 - ordonner les activités d’un Tour ;
@@ -68,7 +68,7 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ## MVP bis – Compléments immédiats
 
-- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
+- gérer les référentiels Catégories, Classifications et Zones corporelles : création, archivage, réactivation et suppression contrôlée ; une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation.
 
 ## V2 – Réutilisation avancée des séances
 
@@ -110,7 +110,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante. Depuis D-205, toute Activité ajoutée à une Séance provient de ce Catalogue ; il n’existe plus de création locale de `SessionActivity` depuis la Composition. Le Compte à rebours d’activité et la Fin d’activité ne sont pas copiés dans la Séance.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -181,6 +181,8 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 
 ### V1 (MVP)
+
+Pour cette version, la bilatéralité au niveau du Tour n’est pas activée : `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`; seule la bilatéralité propre aux Activités est configurable.
 - Gestion des séances actives et archivées.
 - Gestion des routines de planification.
 
@@ -191,7 +193,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
-- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- nouvelle structure d’édition d’une Activité : suppression du type, Catégorie facultative unique, Zones corporelles multiples, Compte à rebours d’activité et Fin d’activité propres, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
 ### MVP — complément T03
@@ -222,7 +224,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau des Activités, la copie et la duplication, les calculs et les synthèses. La capacité technique historique du Tour est conservée mais non activée : `tour.sideMode` reste figé à `UNILATERAL`, sans contrôle ni confirmation utilisateur. Elle n’exécute encore aucun passage.
 
 T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
 

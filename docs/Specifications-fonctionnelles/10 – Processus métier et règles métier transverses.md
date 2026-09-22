@@ -15,13 +15,14 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-005 | Le glissement sur une Séance active expose uniquement les actions prévues pour ce contexte : `Planifier`, `Dupliquer` et `Archiver`. |
 | RM-006 | La duplication crée une copie indépendante de la Séance et de sa Composition. Elle ne crée ni Routine ni Exécution. |
 | RM-007 | Une Séance active ne peut pas être supprimée. Elle doit d’abord être archivée, puis supprimée depuis le résultat du filtre `Archivées`. |
-| RM-008 | L’archivage supprime les Routines futures associées à la Séance, mais conserve les Exécutions et leurs Instantanés historiques. |
+| RM-008 | L’archivage supprime atomiquement toutes les Routines associées à la Séance, mais conserve les Exécutions et leurs Instantanés historiques. S’il existe au moins une Routine, l’action demande la confirmation `Archiver cette séance ?` avec le message `Les planifications associées à cette séance seront supprimées. Les séances déjà effectuées resteront dans votre historique.` et les actions `Annuler` / `Archiver`. Sans Routine, l’archivage est immédiat. Après succès, aucun undo post-archivage n’est proposé. |
 | RM-009 | Une Séance archivée peut être restaurée. La restauration ne recrée aucune ancienne Routine. |
 | RM-010 | Après restauration, un message `Séance restaurée` propose temporairement `Annuler`. |
-| RM-011 | Une Séance archivée peut être supprimée définitivement après confirmation explicite. Cette suppression ne supprime pas ses Exécutions historiques. |
-| RM-012 | Le glissement gauche déplace visiblement la carte avec le geste et révèle progressivement les actions placées derrière. Une fois ouverte, la carte se referme uniquement par un glissement droit commencé sur cette même carte ; un glissement droit ailleurs, un appui sur le fond ou un appui sur sa surface principale hors options n’a aucun effet de fermeture. Une seule carte peut exposer simultanément ses actions, sans désactiver les autres contrôles de l’écran. |
+| RM-011 | Une Séance archivée peut être supprimée définitivement après confirmation explicite. Cette suppression ne supprime pas ses Exécutions historiques. L’ouverture de la confirmation destructive conserve sous le voile modal l’état de swipe qui a déclenché l’action : carte déplacée et action `Supprimer` visible jusqu’à `Annuler` ou `Confirmer`. |
+| RM-012 | Le glissement gauche déplace visiblement la carte avec le geste et révèle progressivement les actions placées derrière. Le bloc d’actions reste fixe. À l’état ouvert de référence, le gap entre la carte déplacée et le bloc d’actions vaut `10 pt` et est égal au gap entre le bloc d’actions et le bord droit du conteneur. Le premier bouton du bloc a ses coins haut-gauche et bas-gauche arrondis ; le dernier a ses coins haut-droit et bas-droit arrondis ; une action unique a ses quatre coins arrondis. Une fois ouverte, la carte se referme uniquement par un glissement droit commencé sur cette même carte ; un glissement droit ailleurs, un appui sur le fond ou un appui sur sa surface principale hors options n’a aucun effet de fermeture. Une seule carte peut exposer simultanément ses actions, sans désactiver les autres contrôles de l’écran. |
 | RM-013 | La recherche globale ne modifie pas la collection. Retour ramène au contexte depuis lequel la recherche a été ouverte. |
 | RM-014 | L’état vide du Catalogue permet de lancer la création de la première Séance. |
+| RM-133 | Après archivage réussi d’une Séance, la carte disparaît de la liste active et l’utilisateur reste dans le Catalogue actif. Aucune action d’annulation immédiate de l’archivage n’est proposée. Un feedback `Séance archivée` peut être informatif mais sans action. La récupération passe par `Filtrer > Archivées` puis `Restaurer`; la restauration ne recrée aucune ancienne Routine. |
 
 ## 2. Création et modification d’une Séance
 
@@ -32,12 +33,12 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-017 | `Continuer` reste désactivé tant que le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. |
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter une activité`. |
-| RM-020 | La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Les suivantes sont insérées après la dernière Activité existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Tour. |
+| RM-020 | Toute Activité ajoutée à une Séance provient d’une `ActivityDefinition` du Catalogue. L’insertion initiale suit la position par défaut existante puis l’Activité peut être déplacée manuellement avant, dans ou après le Tour. |
 | RM-021 | Toucher brièvement une carte d’Activité ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucune Activité dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. |
-| RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro, une ou plusieurs Catégories à la Séance. |
-| RM-023 | Une Catégorie personnalisée peut être créée depuis l’écran de sélection. À partir du MVP bis, une Catégorie supprimée est retirée des Séances concernées sans modifier les Instantanés historiques. |
-| RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
-| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. La couleur de la Séance reste choisie indépendamment de ses Catégories. |
+| RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro ou une Classification à la Séance. |
+| RM-023 | Une Classification peut être créée depuis la modale de sélection. Catégories, Classifications et Zones corporelles sont archivables/réactivables ; une valeur archivée reste liée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. Une suppression utilisée demande confirmation puis retire les affectations courantes, sans modifier les Instantanés historiques. |
+| RM-024 | La validation de la Classification termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
+| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. Cette présentation du référentiel n’a aucun effet sur la couleur des Séances. |
 
 ## 3. Composition, Tour et Cycle technique
 
@@ -60,10 +61,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-034 | Une Activité porte une Pause entre Séries d’un même côté et une durée de Récupération positionnée selon sa direction effective ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
 | RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
 | RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries, une Pause éventuelle est insérée `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`; une Série n’est pas une entité métier autonome. |
-| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
+| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés de l’Activité. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
 | RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
 | RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
-| RM-040 | Les Zones corporelles constituent un référentiel prédéfini : elles sont sélectionnables mais non créables, non modifiables et non supprimables dans le MVP. |
+| RM-040 | Les Zones corporelles constituent un référentiel administrable. Elles restent multi-sélectionnables sur une Activité et suivent les mêmes règles d’archivage, réactivation et suppression contrôlée que les Catégories. |
 | RM-041 | Une Activité ne possède aucun média fonctionnel dans le MVP. Le modèle prévoit `0..n` médias ordonnés par Activité en V2. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
 | RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral et `P(C,R) = C` si `R = 0`, sinon `C − 1`, la Durée totale globale d’une Activité autonome est `D = L × [C × A + P(C,R) × B] + R`. |
@@ -155,7 +156,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-085 | Les Préférences MVP sont Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. |
+| RM-085 | Les Préférences MVP sont Sons, Annonces vocales, Vibration, Compte à rebours initial de Séance, Fin de séance, Compte à rebours d’activité, Fin d’activité et Notifications. |
 | RM-086 | Les Préférences sont sauvegardées immédiatement. |
 | RM-087 | Sons, Annonces vocales et Vibrations fonctionnelles sont indépendants. |
 | RM-088 | La voix utilisée est celle du système et son volume dépend du téléphone. |
@@ -181,10 +182,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-104 | Tout contrôle historique de type `pull-up`, `pull-down` ou menu numérique ouvre une roulette native OS. Pour une valeur scalaire, elle utilise une seule colonne et la variante DSF `Type=Numeric wheel`; aucune sélection n’est persistée sans action explicite Confirmer. |
 | RM-105 | Le Compte à rebours initial et la Fin de séance conservent des valeurs et des brouillons indépendants. Les secondes d’une durée sont sélectionnables de `00` à `59`, par pas de `1`. |
 | RM-106 | Les Catégories prédéfinies suivent leur `displayOrder`; les Catégories personnalisées sont affichées ensuite par date de création croissante. Une sélection ne change pas cet ordre et aucune réorganisation manuelle n’est proposée dans le MVP. |
-| RM-107 | Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste dans le brouillon. Son existence temporaire est distincte de sa sélection : elle est sélectionnée automatiquement à la création, demeure visible après désélection et peut être resélectionnée sans doublon. La navigation Catégories ↔ Composition conserve les deux états. `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations ; un abandon ou un échec ne crée aucune Catégorie orpheline. |
-| RM-108 | En cas d’échec de l’enregistrement final, l’écran Catégories reste affiché, le brouillon complet est conservé, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative est possible et aucune donnée partielle n’est conservée. |
+| RM-107 | Une Classification personnalisée créée dans la modale `Classification de la séance` reste dans le brouillon. Son existence temporaire est distincte de sa sélection. `Valider` persiste atomiquement la Séance, sa Composition et la Classification éventuelle ; `Annuler` ferme la modale sans persistance finale ; un abandon ou un échec ne crée aucune Classification orpheline. |
+| RM-108 | En cas d’échec de l’enregistrement final, la modale Classification reste affichée, le brouillon complet est conservé, l’action `Valider` est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché. Une nouvelle tentative est possible et aucune donnée partielle n’est conservée. |
 | RM-109 | Le Catalogue sélectionne `Activités`, `Séances` ou `Circuits`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est actif à partir de T03 ; `Circuits` reste visible mais désactivé. |
-| RM-110 | Sans filtre, toutes les Séances non archivées sont triées par dernière modification décroissante. Les filtres sont Toutes, Planifiées, Non planifiées, Archivées ; les tris initiaux portent uniquement sur dernière modification et nom. |
+| RM-110 | Sans filtre, les Séances non archivées sont triées par dernière modification décroissante. Dans le MVP, `Filtrer` propose uniquement `Archivées` pour les Catalogues Séances et Activités : sélection/désélection appliquée immédiatement puis fermeture du panneau. Aucune option `Toutes`, `Planifiées` ou `Non planifiées` n’est exposée. `Trier` reste visible mais désactivé en T03 ; aucun menu ni préférence de tri n’est créé. |
 | RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
 | RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
 | RM-113 | Une référence d’Activité du MVP T03 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
@@ -197,14 +198,14 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-120 | Activités, Séances et Circuits peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
 | RM-143 | Le réglage de côté cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`; `UNILATERAL` est le défaut et la valeur de migration. |
 | RM-144 | Une Activité autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
-| RM-145 | Un Tour bilatéral exécute à chaque répétition tout son contenu du premier côté puis du second. Chaque Récupération est exécutée une fois par passage de côté. |
-| RM-146 | Un Tour bilatéral impose sa direction à toutes ses Activités. Leur réglage propre est `UNILATERAL`, visible et désactivé ; aucune capacité « latéralisable » n’existe. |
-| RM-147 | Activer un Tour bilatéral demande confirmation uniquement si au moins une Activité contenue possède un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans Activité concernée, la direction est appliquée directement. Avec confirmation, `Annuler` ne modifie rien et `Confirmer` applique atomiquement la direction au Tour puis remet les seules Activités concernées à `UNILATERAL`. Désactiver le Tour ne restaure aucun réglage antérieur. |
+| RM-145 | La mécanique historique de Tour bilatéral est conservée techniquement mais n’est pas activée dans la version actuelle ; `tour.sideMode` reste figé à `UNILATERAL`. |
+| RM-146 | Dans la version actuelle, le Tour n’impose aucune direction fonctionnelle à ses Activités. Chaque Activité conserve son `sideMode` propre, y compris dans le Tour. |
+| RM-147 | Aucune activation bilatérale du Tour n’est proposée dans la version actuelle ; aucune confirmation spécifique au Tour n’existe. |
 | RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Activité, sans compteur de côté. La progression `Activité X/Y` ne change pas de rang entre les deux passages. |
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
-| RM-151 | Dans la Composition, le Tour porte seul toute direction héritée : ses cartes ne répètent pas `D→G` ou `G→D`. Hors Tour bilatéral, une carte affiche sa direction propre bilatérale dans ses informations secondaires ; aucune indication en `UNILATERAL`. |
-| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL` et en héritage du Tour. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
+| RM-151 | Dans la Composition, une carte affiche sa direction propre bilatérale `D→G` ou `G→D` dans ses informations secondaires quelle que soit sa position structurelle ; aucune indication en `UNILATERAL`. |
+| RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse propre bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente en `UNILATERAL`. Dans une carte d’Activité de la Composition, le texte ne développe jamais la direction : le petit indicateur `D→G` ou `G→D` la porte seul. |
 | RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
 
 ## 12. Règles métier — Exécution directe d’une Activité — MVP T03
@@ -212,6 +213,10 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 |---|---|
 | RM-096 | `Exécuter` est disponible uniquement pour une `ActivityDefinition` valide. |
+| RM-160 | `Ajouter une activité` ouvre directement la modale de sélection du Catalogue, sans arbre intermédiaire. `Créer une activité` depuis cette modale crée une `ActivityDefinition`, l’ajoute directement à la Séance puis revient à la Composition. |
+| RM-161 | Une `ActivityDefinition` porte un Compte à rebours d’activité et une Fin d’activité propres, initialisés depuis le Profil. Ces deux valeurs ne sont jamais copiées dans une `SessionActivity`; une Exécution de Séance utilise uniquement les phases globales de Séance. |
+| RM-162 | Une Activité porte zéro ou une Catégorie ; une Séance porte zéro ou une Classification. Les propriétés copiées dans la Séance suivent le principe de copie indépendante, notamment la Catégorie éventuelle de l’Activité. |
+
 | RM-097 | Le lancement crée un instantané autonome d’origine `ACTIVITY` sans Séance artificielle. |
 | RM-098 | La préparation directe dure exactement `5 s` et n’est pas persistée dans la définition de l’Activité. |
 | RM-099 | Le plan applique les règles communes de mode, Séries, Pauses, bilatéralité et Récupération, sans Tour, Cycle visible ni `SESSION_END`. |

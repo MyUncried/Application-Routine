@@ -26,7 +26,7 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 Elle possède notamment :
 - un nom ;
 - une couleur ;
-- zéro, une ou plusieurs catégories ;
+- zéro ou une Classification ;
 - une Composition présentée autour d’un Tour unique ;
 - des paramètres de guidage et d’exécution.
 
@@ -42,7 +42,9 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des activités ; son ajout à une Séance crée une copie indépendante.
 
-Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle. Pour une Activité autonome, cette Récupération est exécutée une seule fois après tous ses côtés ; dans un Tour bilatéral, elle est exécutée une fois après chaque passage de côté. `Récupération` n’est plus un type d’Activité.
+Une Activité possède un Compte à rebours d’activité et une Fin d’activité propres, initialisés à la création depuis les valeurs par défaut du Profil puis modifiables dans sa fiche. Elle porte zéro ou une Catégorie et zéro ou plusieurs Zones corporelles. Dans l’éditeur, Catégorie et Zones corporelles sont sélectionnées via deux contrôles directs du bandeau supérieur : `Catégorie` et `Zones corporelles` (chacun précédé de l’icône vectorielle `+`). Après sélection, ces contrôles affichent les valeurs courantes et permettent de rouvrir leur modale pour les modifier ; aucune section repliable Catégorie/Zone corporelle n’est conservée.
+
+Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle, exécutée une seule fois après tous les côtés de cette Activité. `Récupération` n’est plus un type d’Activité.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -52,7 +54,7 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, elle est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. Aucune Pause supplémentaire n’est ajoutée spécifiquement entre les deux côtés. Une Récupération distincte peut être définie ; elle appartient à l’Activité, n’augmente jamais le nombre d’Activités de la Composition et s’exécute après tous les côtés d’une Activité autonome ou après chaque passage de côté dans un Tour bilatéral.
+Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, elle est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. Aucune Pause supplémentaire n’est ajoutée spécifiquement entre les deux côtés. Une Récupération distincte peut être définie ; elle appartient à l’Activité, n’augmente jamais le nombre d’Activités de la Composition et s’exécute une fois après tous les côtés de cette Activité.
 
 Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa Durée totale globale est calculée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` lorsque `R = 0`, sinon `P(C,R) = C − 1`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée par Série, `B` la Pause et `R` la Récupération. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
 
@@ -60,7 +62,7 @@ Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode
 
 Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Il porte lui aussi un réglage de côté. À chaque répétition, un Tour bilatéral exécute toutes ses Activités pour le premier côté, puis toutes pour le second, selon la direction choisie. Le Tour porte alors seul la direction effective : les réglages propres de ses Activités sont remis à `UNILATERAL`, affichés désactivés et ne sont pas restaurés si le Tour redevient unilatéral.
+Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Dans la version actuelle, il ne porte aucun réglage de côté fonctionnel : `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`. Chaque Activité conserve son propre réglage de côté, y compris lorsqu’elle appartient au Tour.
 
 Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
@@ -79,8 +81,8 @@ Pour un plan bilatéral, cet instantané conserve la direction effective et chaq
 Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
-- associer zéro, une ou plusieurs Catégories ;
-- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
+- associer zéro ou une Classification ;
+- afficher dans chaque carte du Catalogue la Classification éventuelle et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
@@ -104,7 +106,11 @@ La rangée de commandes Catalogue est commune aux écrans représentés `Séance
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
-Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
+Une Séance est composée exclusivement à partir d’Activités persistantes du Catalogue. Aucune Activité n’est créée comme simple `SessionActivity` à la volée depuis la Composition.
+
+### Référentiels administrables
+
+Les Catégories, Classifications et Zones corporelles sont des référentiels administrables. Une valeur peut être archivée puis réactivée. Une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. La suppression d’une valeur utilisée demande confirmation puis retire l’affectation des contenus concernés. Les Instantanés historiques restent immuables. Les Zones corporelles restent multi-sélectionnables sur une Activité.
 
 ### Composition d’une Séance
 
@@ -119,13 +125,13 @@ Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, y compris pour la dernière Activité avant `SESSION_END`.
+Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient une fois après tous les côtés de cette Activité, y compris pour la dernière Activité avant `SESSION_END`.
 
-Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
+Dans la version actuelle, la bilatéralité configurable est portée exclusivement par les Activités. Le Tour conserve techniquement un champ `sideMode`, mais le produit courant le fige à `UNILATERAL` et n’expose aucun contrôle permettant de le modifier. La mécanique moteur capable de traiter `RIGHT_LEFT` / `LEFT_RIGHT` au niveau du Tour est conservée comme capacité technique dormante et ne constitue pas un comportement produit actif.
 
-Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le nom de l’Activité est en gras dans cette Synthèse.
+Dans la Composition, une carte d’Activité affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral. Le nom de l’Activité est en gras dans cette Synthèse.
 
-Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
+Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide affiche `Comment s’appelle cette activité ?` comme placeholder, avec la couleur sémantique secondaire standard.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -149,7 +155,7 @@ Pour une Activité chronométrée passée avant son terme, une confirmation est 
 
 Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
-Une Activité bilatérale autonome exécute toutes ses Séries du premier côté puis toutes celles du second. Un Tour bilatéral exécute, à chaque répétition, tout son contenu du premier côté puis tout son contenu du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
+Une Activité bilatérale exécute toutes ses Séries du premier côté puis toutes celles du second, y compris lorsqu’elle appartient au Tour. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
 
 Une Récupération d’Activité est une phase chronométrée. Elle annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Activité suivante` après confirmation. L’Exercice reste alors terminé et la Récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement cette phase. Un arrêt pendant la Récupération produit une Exécution `Interrompue`.
 
@@ -243,7 +249,7 @@ Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles
 
 ### Profil et préférences
 
-Les Préférences globales définissent notamment les valeurs par défaut du Compte à rebours initial et de la Fin de séance, les sons, les annonces vocales, les vibrations fonctionnelles de séance et l’activation des notifications.
+Les Préférences globales définissent notamment les valeurs par défaut du Compte à rebours initial et de la Fin de séance, ainsi que les valeurs par défaut du Compte à rebours d’activité et de la Fin d’activité pour toute nouvelle Activité. Elles définissent également les sons, les annonces vocales, les vibrations fonctionnelles de séance et l’activation des notifications.
 
 Les valeurs initiales sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. Le réglage `Vibration` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
 
@@ -290,7 +296,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
-8. Les catégories qualifient les Séances.
+8. Une Activité porte zéro ou une Catégorie ; une Séance porte zéro ou une Classification.
 9. Les zones corporelles qualifient les Activités ; elles restent facultatives.
 10. La couleur appartient à la Séance et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
@@ -313,7 +319,7 @@ Les principaux écrans du MVP sont :
 - Composition d’une Séance ;
 - création ou modification d’une Activité ;
 - options d’une Activité ;
-- catégories de la Séance ;
+- Classification de la Séance dans une modale de sélection/validation ouverte depuis la Composition ;
 - Calendrier semaine et mois ;
 - planification d’une Séance ;
 - Exécution d’une Séance ;
@@ -377,9 +383,9 @@ Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et 
 
 Une Activité de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
-Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
+Son insertion dans une Séance copie les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Catégorie éventuelle, Zones corporelles, direction propre et autres champs applicables — **à l’exception du Compte à rebours d’activité et de la Fin d’activité**. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix restent `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, la modale de sélection des Activités du Catalogue s’ouvre directement. Si l’Activité recherchée n’existe pas, `Créer une activité` ouvre sa création ; après enregistrement elle est ajoutée directement à la Séance puis le parcours revient à la Composition. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
 
@@ -392,14 +398,16 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 ### Corrections UX communes T03
 
 - une roulette ouverte laisse le bouton principal inférieur visuellement inchangé sous le voile grisé, mais le rend fonctionnellement et accessibilité-inactif ;
-- le swipe gauche déplace réellement la carte et révèle progressivement les actions placées derrière ;
+- le swipe gauche déplace réellement la carte tandis que le bloc d’actions reste fixe et révèle progressivement ses options ;
+- à l’état ouvert de référence, le gap carte→actions vaut `10 pt` et est égal au gap actions→bord droit du conteneur ; le premier bouton porte les rayons gauches, le dernier les rayons droits, et une action unique porte les quatre rayons ;
 - seul un swipe droit commencé sur la carte contextuellement ouverte la referme ;
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
+- une confirmation destructive déclenchée depuis le swipe conserve la carte ouverte et l’action déclenchante visibles sous le voile modal jusqu’à décision ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
-- après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
+- après enregistrement depuis Classification, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
-- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
+- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Comment s’appelle cette activité ?` en gris secondaire, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
 
 ### Médias et Circuits
 

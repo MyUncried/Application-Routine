@@ -47,9 +47,8 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
-- Répéter le Tour de 1 à 99 fois et régler sa direction sur la même ligne que le nombre de Tours, sans titre de côté visible.
-- Voir la direction propre d’une Activité bilatérale sur sa carte et dans sa synthèse, sans répétition lorsque la direction est portée par un Tour bilatéral.
-- Ne confirmer l’activation bilatérale d’un Tour que si elle remplace le réglage bilatéral propre d’au moins une Activité.
+- Répéter le Tour de 1 à 99 fois ; aucun réglage de côté du Tour n’est exposé dans la version actuelle.
+- Voir et modifier la direction propre d’une Activité bilatérale sur sa carte et dans sa synthèse, y compris lorsqu’elle appartient au Tour.
 - Réordonner manuellement les Activités par glisser-déposer.
 - Régler le Compte à rebours initial et la Fin de séance.
 - Associer facultativement plusieurs Catégories et Zones corporelles compatibles.
@@ -185,7 +184,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Configurer une Activité ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
+- Configurer la bilatéralité au niveau de chaque Activité. La version actuelle n’expose aucune bilatéralité au niveau du Tour, dont `sideMode` reste figé à `UNILATERAL`.
 
 ## 9. Besoins MVP T03 — Catalogue des Activités et Exécution directe
 

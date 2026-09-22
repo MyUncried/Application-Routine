@@ -1,3 +1,5 @@
+> **Document historique — non normatif après D-200 (21/09/2026).** Les conclusions relatives à la priorité du Tour, au contrôle de côté du Tour et à sa confirmation décrivent l’état antérieur. Dans la version actuelle, `tour.sideMode` est figé à `UNILATERAL`, aucun contrôle Tour n’est exposé et la bilatéralité configurable est portée exclusivement par les Activités. Les autres constats du rapport restent historiques.
+
 # Rapport final de conformité — Bilatéralité
 
 Date : 14 septembre 2026 — rectification après validation visuelle de la PR #131.

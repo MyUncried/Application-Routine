@@ -123,17 +123,17 @@ La copie reprend :
 
 Les deux séances deviennent totalement indépendantes.
 
-## 2.5 Suppression d'une séance
+## 2.5 Archivage, restauration et suppression d'une séance
 
-Une séance peut être supprimée depuis le catalogue.
+L’archivage, la consultation des archives, la restauration et la suppression définitive d’une Séance font partie du MVP.
 
-La suppression est définitive.
+Une Séance active ne peut pas être supprimée directement. Elle doit d’abord être archivée depuis le Catalogue actif.
 
-Si la séance est utilisée par une ou plusieurs routines, l'application demande une confirmation avant la suppression.
+L’archivage retire la Séance du Catalogue actif et supprime les Routines qui lui sont associées. Les Exécutions déjà enregistrées et leurs Instantanés restent conservés.
 
-La suppression d'une séance entraîne également la suppression de toutes les routines qui lui sont associées.
+Une Séance archivée peut être restaurée. La restauration la rend de nouveau disponible dans le Catalogue actif mais ne recrée aucune Routine supprimée lors de l’archivage.
 
-Les exécutions déjà enregistrées restent conservées dans l'historique.
+La suppression définitive est disponible uniquement depuis le résultat du filtre `Archivées` et demande toujours une confirmation explicite. Les Routines ayant déjà été supprimées lors de l’archivage, la suppression définitive retire la Séance persistante sans supprimer les Exécutions ni leurs Instantanés historiques.
 
 ## 2.6 Exécution d'une séance
 
@@ -194,16 +194,16 @@ La liste des Activités conserve recherche, filtres, tri et position de défilem
 
 Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Activités, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Circuits lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
 
-La création d’une Activité depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
+La création d’une Activité depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Sous le Nom, deux contrôles directs `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` ouvrent leurs modales respectives ; après sélection, ils affichent les valeurs courantes et restent réouvrables pour modification. Les anciennes sections Catégorie et Zone corporelle sont supprimées. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Description, Mode et Médias suivent les contrats de l’Écran 4.
 
 Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persistante et revient au Catalogue. Ouvert depuis une Composition, le même éditeur agit uniquement sur l’Activité de Séance. Le contexte d’ouverture ne doit jamais être déduit de la seule apparence de l’écran.
 
 ## 2 bis.3 Ajouter une Activité à une Séance
 
-Depuis la Composition, `Ajouter une activité` propose `Une nouvelle activité / Une activité existante / Annuler`.
+Depuis la Composition, `Ajouter une activité` ouvre directement la modale de sélection multiple des Activités du Catalogue.
 
-- `Une nouvelle activité` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
-- `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités ;
+- `Créer une activité` dans la modale ouvre l’éditeur d’une `ActivityDefinition` persistante ; après enregistrement, elle est ajoutée directement à la Séance et le parcours revient à la Composition ;
+- la sélection multiple copie les Activités existantes selon leur ordre visible dans la liste filtrée ;
 - `Annuler` ferme les options sans modifier le brouillon.
 
 La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Une Activité créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
@@ -224,7 +224,7 @@ Dans le MVP, la section Médias est visible et repliable. Le contrôle `Déploye
 
 `sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Une Activité de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
 
-Une Activité autonome exécute toutes les Séries du premier côté puis toutes celles du second. Dans un Tour bilatéral, le Tour porte seul la direction effective et les cartes enfants ne la répètent pas. Les résultats restent séparés par côté.
+Une Activité bilatérale exécute toutes les Séries du premier côté puis toutes celles du second, quelle que soit sa position structurelle. Dans la version actuelle, le Tour ne porte aucune direction fonctionnelle configurable : `tour.sideMode` reste techniquement présent mais figé à `UNILATERAL`. Les résultats restent séparés par côté.
 
 ## 2 bis.7 Limite Circuit
 
@@ -266,7 +266,7 @@ Une activité possède notamment :
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
+- une **Récupération** facultative, exécutée une fois après tous les côtés de l’Activité ;
 - une Description et des Zones corporelles d’exécution facultatives ;
 - des Médias dans le périmètre cible post-MVP. Dans le MVP, la section Médias est affichée et repliable mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est active.
 
@@ -744,7 +744,8 @@ La planification repose sur les principes suivants :
 - une routine référence toujours une séance existante ;
 - plusieurs routines peuvent utiliser la même séance ;
 - les occurrences ne sont pas modifiables individuellement dans le MVP ;
-- l'archivage d'une Séance supprime les Routines qui lui sont associées ;
+- l'archivage d'une Séance supprime toutes les Routines qui lui sont associées ; sans Routine, l'archivage est immédiat ; avec au moins une Routine, il exige la confirmation `Archiver cette séance ?` avant toute écriture ;
+- après archivage, aucune action d'annulation immédiate n'est proposée ; la récupération passe par `Filtrer > Archivées` puis `Restaurer` ;
 - la restauration d'une Séance archivée ne recrée ni ne restaure ses anciennes Routines ;
 - la suppression d'une routine ne supprime jamais la séance ;
 - la suppression d'une séance entraîne la suppression des routines qui lui sont associées ;
@@ -882,10 +883,7 @@ Le suivi repose sur les principes suivants :
 | --- | --- | --- | --- | --- |
 | Bouton Ajouter (+) | Bouton | Toujours | Visible | Créer une Séance |
 | Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |
-| Filtre `Toutes` | Filtre | Toujours | Affiche toutes les Séances actives, planifiées ou non ; exclut les archivées | Filtrer |
-| Filtre `Planifiées` | Filtre | Toujours | Séances ayant au moins une Routine | Filtrer |
-| Filtre `Non planifiées` | Filtre | Toujours | Séances actives ne possédant aucune Routine | Filtrer |
-| Filtre `Archivées` | Filtre | Toujours | Séances archivées uniquement | Filtrer |
+| Filtre `Archivées` | Filtre | Toujours | Unique option fonctionnelle ; tap = bascule immédiate actif/archives puis fermeture du panneau | Filtrer |
 | Carte Séance | Carte | 1 par Séance | Condensée ou déployée | Zone principale : ouvrir la Séance en modification |
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
@@ -903,17 +901,15 @@ Le suivi repose sur les principes suivants :
 | --- | --- |
 | Chargement | Les Séances sont affichées dès l’ouverture de l’écran. |
 | Recherche globale | Deux états, saisie puis résultats ; une Séance peut apparaître comme Catalogue, Planifiée, Exécutée ou Archivée. Retour est contextuel à l’écran d’origine. |
-| `Toutes` | Affiche toutes les Séances non archivées. |
-| `Planifiées` | Affiche les Séances disposant d’au moins une Routine. |
-| `Archivées` | Affiche uniquement les Séances archivées. |
+| `Filtrer > Archivées` | `Archivées` est l’unique option fonctionnelle du panneau Filtrer. Sa sélection s’applique immédiatement, ferme le panneau et affiche uniquement les Séances archivées ; sa désélection revient aux Séances actives/non archivées. |
 | Zone principale de la carte | Ouvre directement la Séance en mode modification. |
 | Métadonnées | Sous le nom, affiche les Catégories associées puis, si présentes, les Zones corporelles dédupliquées de tous les Exercices ; séparateur ` : ` seulement lorsque les deux groupes existent ; une seule ligne tronquée si nécessaire. |
 | Chevron | Sert exclusivement au déploiement / repli de la carte. |
 | Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
 | Modifier | Toucher la zone principale ouvre la Composition préremplie. |
-| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
-| Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. |
+| Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées et aucune Routine n’est supprimée à cette étape. |
+| Archivage | Retire la Séance de la liste active et la rend accessible via `Filtrer > Archivées`. S’il existe au moins une Routine, affiche la confirmation validée puis supprime atomiquement toutes les Routines associées ; sinon l’archivage est immédiat. Après succès, aucun undo n’est proposé. |
 
 ## Composition d’une séance — création et modification
 
@@ -943,31 +939,39 @@ Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération
 
 Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
-## Catégories de la séance
+## Classification de la séance — modale
 
 ### Éléments affichés
 
 | Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraintes | Source | Action | Remarques |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bouton Retour | Bouton | Toujours | Oui | Visible | Revient à la composition | Système | Retour | |
-| Titre de l’écran | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | En-tête fixe |
-| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; une sélection ne change pas l’ordre |
-| Bouton Créer une catégorie | Bouton | Toujours | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Ajoute une catégorie personnalisée ; si le nom normalisé existe déjà, sélectionne l’existante |
-| Bouton Enregistrer la séance | Bouton | Toujours | Oui | Actif | La séance doit être valide | Statique | Enregistrer | Retourne à Catalogue de séances |
+| Voile modal | Overlay | Toujours | Oui | Visible | Bloque les interactions avec la Composition sous-jacente | DSF/Figma | Aucune | La Composition reste visible mais inactive |
+| Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | `Modal / Header Action — Source exact` (`4151:6191`) | Annuler | Icône `Icon / Modal Action — Source exact` (`4155:6197`) ; cible `48 × 53 pt`, fond circulaire `38 × 38 pt` |
+| Titre de la modale | Texte | Toujours | Oui | « Classification de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
+| Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | `Modal / Header Action — Source exact` (`4151:6196`) | Valider | Icône `Icon / Modal Action — Source exact` (`4155:6200`) ; remplace l’ancien CTA inférieur |
+| Classifications proposées | Tags | Toujours | Non | Aucune sélection | Sélection unique facultative | Classification / DSF | Sélectionner / Désélectionner | Réutilise le patron `Selection / Category Tag` (`3302:4166`) ; valeurs actives du référentiel Classification |
+| Bouton Créer une classification | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | DSF | Créer | Réutilise le patron d’action de référentiel existant |
+| Saisie inline | Champ + actions | État création | Non | « Nom de la classification » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la Classification temporaire | Brouillon / DSF | Annuler / Ajouter | Frame `2028:11248` révisée ; actions de référentiel existantes |
+
+### Layout de référence
+
+- frame standard `2028:11204` : modale `x=0`, `y=644`, `402 × 230 pt`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, contenu défilable `378 × 170 pt` ;
+- frame création inline `2028:11248` : même shell `402 × 230 pt` à `x=0`, `y=644`, avec contenu défilable `378 × 170 pt` conservant le champ `Nom de la classification` et les actions inline `Annuler / Ajouter` ;
+- aucun CTA inférieur `Enregistrer la séance` n’est affiché dans l’état courant.
 
 ### Règles fonctionnelles
 
 | Règle | Description |
 | --- | --- |
-| Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
-| Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
-| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant l’enregistrement final. |
-| Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
-| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant la navigation Catégories ↔ Composition. |
-| Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
-| Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances. |
-| Échec d’enregistrement | Reste sur l’écran, conserve le brouillon complet, réactive l’action et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
-| Réorganisation | Aucune réorganisation manuelle des Catégories dans le MVP. |
+| Caractère facultatif | Une Séance peut être enregistrée sans Classification. |
+| Sélection unique facultative | Une Séance peut être associée à zéro ou une Classification. |
+| Création d’une Classification | La saisie est intégrée dans la modale avec `Nom de la classification`, `Annuler` et `Ajouter` ; la nouvelle Classification est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant la validation finale. |
+| Apparence par défaut | La Classification réutilise le patron visuel du référentiel existant ; aucune règle visuelle nouvelle n’est introduite par cette décision fonctionnelle. |
+| Existence et sélection temporaires | Une Classification `NEW` reste dans le brouillon jusqu’à validation finale ; la sélection unique éventuelle est conservée pendant les ouvertures de la modale. |
+| Annuler la modale | Ferme la modale et restitue la Composition avec son brouillon ; aucune persistance finale n’est effectuée. |
+| Valider la modale | Persiste dans une transaction unique la Séance complète et sa Classification éventuelle, puis ramène au Catalogue de séances, segment `Séances`. |
+| Échec d’enregistrement | Reste dans la modale, conserve le brouillon complet, réactive `Valider` et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
+| Réorganisation | Aucune réorganisation manuelle des Classifications dans le MVP. |
 
 
 ## Activité
@@ -979,25 +983,45 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
-| Ajouter un média          | Bouton / section repliable | Toujours | Oui dans le rendu | Contrôle et placeholder désactivés dans le MVP | Centré horizontalement ; activation fonctionnelle post-MVP | Statique | Déployer / Condenser | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; section Médias visible, aucune fonction média réelle |
-| Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
-| Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
+| Catégorie | Contrôle direct + modale | Toujours | Non | `Catégorie` si aucune sélection ; icône `+` distincte conservée | Zéro ou une Catégorie | Activité | Ouvrir / modifier la sélection | Sous le Nom ; lorsqu’une Catégorie est sélectionnée, le contrôle affiche son libellé à la place de `Catégorie` |
+| Zones corporelles | Contrôle direct + modale | Toujours | Non | `Zones corporelles` si aucune sélection ; icône `+` distincte conservée | Zéro à plusieurs Zones | Activité | Ouvrir / modifier la sélection | Sous le Nom ; lorsqu’une ou plusieurs Zones sont sélectionnées, le contrôle affiche les valeurs sélectionnées à la place de `Zones corporelles` |
+| Description de l’activité | Section repliable + texte multiligne à hauteur dynamique | Toujours ; repliée par défaut hors variante D-213 ; déployée par défaut dans D-213 | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Dans D-213, hauteur initiale minimale d’une ligne puis croissance avec le contenu ; le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
 | Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 30 s                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer |
 | Pause entre Séries        | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | `C` occurrences si `R = 0`, y compris après la dernière Série ; sinon `C − 1`, la Récupération remplaçant la dernière Pause |
 | Nombre de Séries          | Roulette native compacte | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer ; valeur canonique persistée |
-| Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; désactivé sous Tour bilatéral |
-| Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
+| Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; actif quelle que soit la position structurelle |
+| Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés de l’Activité |
 | Durée totale              | Roulette durée calculée/pilotable ou indicateur de borne | Mode déployé | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions/À l’échec : borne connue | Calcul | Sélection en mode Durée ; lecture en modes non chronométrés | Contrôle `Durée totale` en Durée ; contrôle `Durée totale >=` visible en Répétitions/À l’échec ; la Synthèse conserve `Durée totale : ≥ {durée connue}` |
-| Médias                    | Section repliable + placeholder | MVP : visible, repliable, inactive | Non | Vide | Aucune fonction média active dans le MVP ; `0..n` médias ordonnés post-MVP | Activité | Déployer / Condenser désactivé | Présence UI conforme aux frames courantes ; import, capture, lecture, stockage et galerie fonctionnelle restent post-MVP |
+| Médias                    | Section repliable + placeholder | MVP : visible, repliable, inactive | Non | Vide | Aucune fonction média active dans le MVP ; `0..n` médias ordonnés post-MVP | Activité | Déployer / Condenser désactivé | Présence UI conforme aux frames courantes ; import, capture, lecture, stockage et galerie fonctionnelle restent post-MVP ; en cas de chevauchement avec la Synthèse fixe, la zone Médias est masquée sous celle-ci avec une marge visuelle de `16 pt` avant le cadre de Synthèse |
+
+**Modales de référentiel de l’Activité.** `Catégorie` utilise une sélection facultative unique. `Zones corporelles` utilise une sélection facultative multiple. Les modales affichent la sélection courante à leur réouverture et permettent de la remplacer ou de la modifier. Les contrôles du bandeau supérieur constituent l’unique point d’accès à ces sélections dans l’éditeur.
+
+**Variante de paramétrage compact D-210/D-211.** Dans `Ajouter une activité — Nouvelle activité`, la Synthèse est un bloc interactif placé immédiatement après Description. La section autonome `Mode d’exécution` et son contrôle segmenté sont absents. Au premier affichage, la Synthèse est repliée sur une ligne, sans chevron interne, avec `Cliquez pour paramétrer`. Le tap affiche la liste ; un second tap la replie. Dans l’état déplié, le même cadre affiche le texte de Synthèse fonctionnel existant et cette Synthèse est recalculée immédiatement après chaque changement confirmé de paramètre. La liste utilise deux colonnes libellé/valeur. Sa première ligne est `Mode d’exécution` ; la valeur `Durée` est affichée à droite avec chevron. Les lignes suivantes sont `Compte à rebours`, `Nombre de séries`, `Durée de l’activité`, `Pause entre chaque série`, `Changement de côté`, `Récupération`, `Fin d’activité`, `Durée totale`. La frame courante représente `Fin d’activité` à `10 s` ; cette valeur de maquette ne remplace pas les valeurs par défaut du Profil. Cette variante n’altère pas les formules, bornes ni règles métier des paramètres.
+
+**Composition D-213 à D-223.** `Description de l’activité` est déployée par défaut et conserve une hauteur dynamique. Dans l’état initial `4230:7023`, son texte indicatif est `Décrivez ce qu’il faut faire, comment, et avec quoi`; le premier emplacement Médias est vide. Dans l’état renseigné replié `4217:6980`, le nom de démonstration est `Squats sautés`, la description est `Descendez en squat, puis sautez verticalement. Atterrissez souplement et enchaînez. Gardez les genoux alignés avec les pieds et les jambes.`, le premier cadre Médias réutilise l’illustration `Squat assisté`, et le cadre de paramétrage affiche `Cliquez pour paramétrer`. L’état `4279:7044` est une vue défilée : la Description est au-dessus de la fenêtre visible, une partie seulement de Médias reste en haut, puis la Synthèse complète et huit lignes de paramètres sont visibles intégralement. Ordre : `Mode d’exécution`, `Compte à rebours`, `Nombre de séries`, `Durée de l’activité`, `Pause entre chaque série`, `Changement de côté`, `Récupération`, `Durée totale`. `Fin d’activité` n’est pas affichée dans cette liste. L’action fixe `Terminer` reste visible. Les valeurs et textes `Squats sautés` sont des valeurs de démonstration Figma et non des valeurs métier par défaut.
+
+**Précisions D-219.** Dans `4279:7044`, le contenu est défilé de sorte que 91 pt de la section Médias passent derrière la zone colorée et que seuls 75 pt restent visibles ; la Synthèse et les huit paramètres demeurent entièrement visibles et la liste se termine 16 pt avant `Terminer`. Dans `4217:6980` et `4294:7075`, la Description de démonstration comporte une ligne supplémentaire sur l’alignement des genoux et son cadre grandit avec le contenu. Le nom `Squats sautés` est lié à `color/text-primary` dans les états renseignés. Dans les états 3 et 4, la Catégorie renseignée utilise un contrôle `144 × 32 pt` ajusté au contenu, avec `Renforcement`, un écart de 8 pt, puis la pastille rouge `24 × 24 pt` à 4 pt des bords haut/bas/droit. `4294:7075` affiche la Synthèse complète et la valeur Zones corporelles `Cuisses - Fessier`. Les CTA `Terminer` des états 1 et 2 restent en `color/disabled`.
+
+**Précisions D-220.** Sur `4217:6980`, le bloc Paramètres replié affiche `Cliquez pour paramétrer`. Les emplacements Médias d’ajout utilisent le SF Symbol standard `photo.badge.plus`, centré, à la place de tout libellé `Cliquez pour ajouter`, pour rendre explicite l’ajout d’un média. Sur `4294:7075`, le contrôle Zones corporelles renseigné n’affiche pas d’icône `+` et son texte exact est `Cuisses · Fessier`.
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 
+**Variante D-222/D-223 — Durée de l’activité.** La feuille plein écran en largeur applique le standard unique de modale existant : largeur `402 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, actions Annuler/Confirmer aux coordonnées canoniques `x=0/330`, `y=3` dans l’en-tête, soit `12 pt` des bords écran. La poignée reste à `y=8` sans modifier cette géométrie. Le titre est centré exactement sur l’axe `201 pt`. Aucun fond, trait ou rayon ne subsiste autour des conteneurs externe ou interne de la roulette. Sa zone utile est `330 × 150 pt`. La colonne secondes est décalée pour laisser `15 pt` entre la fin de `minutes` et la capsule grise secondes ; les unités restent respectivement à `9,5 pt` et `11 pt` de leur propre capsule. La feuille finale mesure `402 × 230 pt`. Le brouillon et la confirmation suivent les règles transverses existantes.
+
+**D-224/D-225 — Modales de tous les paramètres.** Les huit lignes de `Paramètres d’exécution` disposent chacune d’un état Figma avec modale ouverte et reprennent sans variante le modèle D-223. `Mode d’exécution` utilise une roulette à une colonne avec `Durée / Répétitions / À l’échec` ; `Changement de côté` utilise une roulette à une colonne avec `Aucun / Gauche puis Droite / Droite puis Gauche`. Dans les états de référence, `Durée` et `Aucun` sont centrés. `Aucun` correspond à l’état technique `UNILATERAL` uniquement dans cette modale ; les formulations explicites de direction sont réservées à cette modale et les indicateurs compacts de l’éditeur et des cartes restent `G→D` / `D→G`. Compte à rebours et Nombre de séries utilisent une roulette numérique une colonne ; Durée de l’activité, Pause entre chaque série, Récupération et Durée totale utilisent la roulette minutes/secondes. Le shell modal reste identique dans les huit cas.
+
+
+**D-226 — Modale Catégorie de l’activité.** La sélection de Catégorie réutilise sans variante le shell modal unique D-223/D-224 (`402 × 230 pt`, ancré en bas, poignée, en-tête standard, Annuler/Valider et titre centré). Son contenu reste spécifique : liste des catégories existantes et action `Créer une catégorie`, dans une zone interne défilable lorsque la hauteur disponible ne permet pas d’afficher toutes les options simultanément.
+
+**D-227 — Modale Classification de la séance.** Les deux états `2028:11204` et `2028:11248` réutilisent sans variante le shell modal unique D-223/D-224/D-226. Seul le contenu interne varie entre sélection standard et création inline ; il défile dans une zone `378 × 170 pt` lorsque nécessaire.
 **Ordre transverse des paramètres :** la rangée suit toujours `Séries` à gauche → cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`) → `Pause` à droite. L’ouverture d’une roulette ne déplace, ne permute et ne redimensionne aucun de ces contrôles.
 
-Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `Durée totale` utilisent le composant compact canonique : `203` points de haut, barre supérieure Annuler/Confirmer de `53` points, roulette native de `150` points et largeur de `330` points. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`; les unités restent hors des cadres. Les roulettes `Nombre de répétitions` et `Nombre de Séries` réutilisent le même component set dans sa variante `Type=Numeric wheel` (`3210:49`) : une colonne, largeur `144`, même hauteur `203` et mêmes actions. Le brouillon reste local jusqu’à Confirmer ; Annuler restaure la valeur précédemment enregistrée. Aucun écran de roulette supplémentaire n’est requis pour `Récupération` ou `Durée totale` : ces contrôles héritent du contrat canonique de durée.
+**D-228 — Standard des roulettes ouvertes.** Toute roulette ouverte du Prototype MVP est présentée dans le shell modal unique `402 × 230 pt`, ancré en bas, avec poignée et en-tête standard Annuler/Valider. La partie native de roulette visible mesure `150 pt` de haut. Les composants historiques de `203 pt` peuvent rester des sources internes, mais leur barre d’actions de `53 pt` est masquée et ne constitue plus un élément visible du contrat d’écran. Les roulettes minutes/secondes conservent une largeur utile de `330 pt`; les roulettes numériques une colonne conservent leur largeur propre. Le brouillon reste local jusqu’à Valider/Confirmer ; Annuler restaure la valeur précédemment enregistrée.
+
+**D-230 — Unités des roulettes.** Dans toutes les roulettes temporelles, les unités affichées sont `minutes` et `secondes` en toutes lettres. Elles sont positionnées hors des capsules grises. Sur les roulettes à deux colonnes, la seconde colonne peut être décalée pour garantir l’absence de chevauchement avec le mot `minutes`. Les notations compactes `min` et `s` restent autorisées hors roulette.
 ### Règles fonctionnelles
 
 | Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |
@@ -1006,13 +1030,16 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
 | Mode À l’échec    | N’affiche aucune cible chiffrée ; conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause`. |
 | Séries            | Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; une Pause éventuelle n’est insérée qu’entre deux Séries du même côté. |
-| Côté              | Réglage propre `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`. Dans l’éditeur : ligne 2 colonne 1 sous Séries, `74 × 42 pt`; visible mais désactivé sous un Tour bilatéral. |
-| Récupération      | Durée facultative, canonique `0 s`. Elle est exécutée après le second côté d’une Activité autonome bilatérale, ou après chaque passage de côté d’un Tour bilatéral. Elle précède `SESSION_END` lorsqu’elle est la dernière phase utile. |
+| Côté              | Réglage propre `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`. Dans l’éditeur : ligne 2 colonne 1 sous Séries, `74 × 42 pt`; actif y compris pour une Activité placée dans le Tour. |
+| Récupération      | Durée facultative, canonique `0 s`. Elle est exécutée après le second côté d’une Activité bilatérale, quelle que soit sa position structurelle. Elle précède `SESSION_END` lorsqu’elle est la dernière phase utile. |
 | Durée totale calculée | En mode Durée, pour une Activité autonome, `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Toute modification de `A`, `B`, `C`, `R` ou du réglage de côté recalcule `D` lorsque Séries est le pilote. |
 | Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
 | Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si la durée saisie est ajustée, un message bref annonce la valeur réalisable. |
 | Modes non chronométrés | En Répétitions et À l’échec, le contrôle reste visible sous le libellé `Durée totale >=`. Il affiche la borne minimale composée des seules Pauses connues et de la Récupération ; la Synthèse l’exprime sous la forme `Durée totale : ≥ {durée connue}`. |
-| Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
+| Catégorie | Zéro ou une Catégorie issue du référentiel administrable. |
+| Zones corporelles | Sélection multiple parmi le référentiel administrable. Les règles de création, archivage, réactivation et suppression contrôlée sont communes aux référentiels. |
+| Compte à rebours d’activité | Durée propre à l’ActivityDefinition, initialisée depuis le Profil lors de la création puis modifiable. |
+| Fin d’activité | Durée propre à l’ActivityDefinition, initialisée depuis le Profil lors de la création puis modifiable. Ces deux durées ne sont pas copiées dans une SessionActivity. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
 | Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La Récupération positive est ajoutée après l’Activité. |
@@ -1164,7 +1191,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
 | Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
-| Supprimer une catégorie — MVP bis                | Oui (si utilisée) | Annuler / Supprimer     | Retire la catégorie des Séances concernées ; les Instantanés historiques restent inchangés |
+| Supprimer une catégorie / classification / zone corporelle | Oui si utilisée | Annuler / Supprimer | Retire les affectations courantes concernées après confirmation ; les Instantanés historiques restent inchangés |
 | Réinitialiser les préférences                    | Oui               | Annuler / Réinitialiser | Restaure les préférences par défaut                                    |
 | Supprimer l'historique                           | Oui               | Annuler / Supprimer     | Supprime toutes les exécutions enregistrées                            |
 | Quitter la création d'une séance non enregistrée | Oui               | Annuler / Confirmer | Dialogue centré ; `Confirmer` abandonne la création |

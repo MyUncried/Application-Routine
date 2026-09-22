@@ -10,9 +10,10 @@ Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des
 Présenter la couverture fonctionnelle du MVP et orienter vers les parcours utilisateur détaillés de ce chapitre.
 
 Le MVP permet à l'utilisateur :
-- de gérer ses catégories de séances et de sélectionner les zones corporelles du référentiel applicatif ;
+- de gérer les Catégories d’Activités, les Classifications de Séances et les Zones corporelles administrables ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
+- d’archiver une Séance, de consulter les archives, de la restaurer ou de la supprimer définitivement depuis les archives ;
 - de planifier une séance au moyen d'une routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
@@ -57,13 +58,18 @@ Ces fonctions sont prévues pour des versions ultérieures.
 # Gestion des référentiels utilisateur
 
 Les référentiels utilisés dans le MVP sont de deux natures :
-- les **Catégories de Séances**, personnalisables par l’utilisateur ;
-- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et non administrable par l’utilisateur.
+- les **Catégories d’Activités**, les **Classifications de Séances** et les **Zones corporelles**, administrables par l’utilisateur ;
 
-## Gestion des catégories
+## Gestion des catégories, classifications et zones corporelles
 
-Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
-Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
+Les trois référentiels sont administrables. Une valeur peut être archivée puis réactivée. Une valeur archivée reste visible sur les contenus déjà affectés mais n’est plus proposée pour une nouvelle affectation. La suppression d’une valeur utilisée demande confirmation et retire alors l’affectation. Les Zones corporelles restent multi-sélectionnables sur une Activité.
+
+### Catégories
+
+
+
+Les Catégories qualifient les Activités afin d’en faciliter l’organisation, la recherche et le suivi. Une Activité porte zéro ou une Catégorie.
+Une Séance ne porte plus de Catégorie. Elle peut porter zéro ou une Classification, issue d’un référentiel administrable selon les mêmes règles générales que les Catégories.
 
 L'utilisateur peut :
 - consulter les catégories existantes ;
@@ -71,21 +77,21 @@ L'utilisateur peut :
 - modifier son nom ;
 - supprimer une catégorie dans la gestion dédiée, à partir du MVP bis.
 
-Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
+Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une confirmation est demandée puis l’affectation est retirée des Activités concernées. Une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. Les Instantanés historiques restent inchangés.
 
 ### Parcours
 
 1. Ouvrir la gestion ou la sélection des catégories.
 2. Consulter les catégories existantes.
 3. Créer ou modifier une catégorie selon le besoin ; sa suppression est disponible à partir du MVP bis.
-4. Dans la création d’une Séance, une nouvelle Catégorie reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
+4. Dans la création ou modification d’une Séance, une nouvelle Classification reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
 
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
 Une Activité peut être associée à zéro, une ou plusieurs zones corporelles.
 
-Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
+Les Zones corporelles constituent un référentiel administrable. L’utilisateur peut les consulter, les sélectionner, en créer, les archiver/réactiver et les supprimer selon les mêmes règles générales que les Catégories. Une Activité conserve la sélection multiple de Zones corporelles.
 
 # Parcours principal — Créer et exécuter une séance
 
@@ -113,7 +119,7 @@ Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Dur
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
-`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
+`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une Classification puis enregistre la Séance.
 ### 2. Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
@@ -235,12 +241,15 @@ Les exécutions déjà réalisées sont conservées.
 # Parcours complémentaire 3 — Archiver puis supprimer une Séance
 
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
-2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
-3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
-4. Glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
-5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
+2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans cette vue.
+3. Si aucune Routine n’est associée, l’archivage est immédiat. Si au moins une Routine est associée, afficher la confirmation `Archiver cette séance ?` avec le message `Les planifications associées à cette séance seront supprimées. Les séances déjà effectuées resteront dans votre historique.` et les actions `Annuler` / `Archiver`. `Annuler` n’écrit rien ; `Archiver` archive la Séance et supprime atomiquement toutes ses Routines associées.
+4. Après archivage, revenir au Catalogue des Séances actives. La Séance disparaît de cette liste ; un feedback informatif `Séance archivée` peut être affiché, sans action `Annuler`.
+5. Pour retrouver la Séance, ouvrir `Filtrer` et toucher l’unique option `Archivées` ; le filtre s’applique immédiatement et le panneau se ferme.
+6. Dans `Archivées`, l’utilisateur peut choisir `Restaurer` ; la Séance revient alors dans le Catalogue actif sans recréer les Routines supprimées lors de l’archivage.
+7. Pour supprimer définitivement, glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
+8. Choisir `Supprimer`, puis confirmer dans la modale. La confirmation conserve visuellement sous son voile la carte déplacée et l’action `Supprimer` qui l’a déclenchée. `Annuler` revient à la liste `Archivées`.
 
-Les Exécutions historiques restent conservées après suppression.
+Les Exécutions historiques restent conservées après archivage, restauration ou suppression définitive.
 ## Points d'attention
 
 - Une routine ne modifie jamais le contenu d'une séance.
@@ -353,9 +362,9 @@ Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catal
 ## Ajouter une Activité depuis une Composition
 
 1. Appuyer sur `Ajouter une activité`.
-2. Choisir `Une nouvelle activité`, `Une activité existante` ou `Annuler`.
-3. `Une nouvelle activité` ouvre le formulaire d’Activité de Séance.
-4. `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités.
+2. La modale de sélection multiple du Catalogue d’Activités s’ouvre directement.
+3. Sélectionner une ou plusieurs Activités existantes, ou utiliser `Créer une activité` si l’Activité recherchée n’existe pas.
+4. Une Activité créée depuis cette modale est enregistrée dans le Catalogue, ajoutée directement à la Séance puis le parcours revient à la Composition.
 5. `Annuler` ferme les options sans modifier la Composition.
 
 ## Utiliser une Activité de référence
@@ -366,7 +375,7 @@ Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catal
 4. L’application copie ses données et ses associations média dans la Séance.
 5. Modifier librement la copie sans modifier la référence ni les autres copies.
 
-Une Activité créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes activités` est reportée au-delà de la première version de la bibliothèque.
+Une Activité ajoutée à une Séance provient toujours d’une `ActivityDefinition` persistante du Catalogue. Si elle n’existe pas, elle est créée depuis la modale de sélection, ajoutée directement à la Séance puis le parcours revient à la Composition.
 
 ## Exécuter un Exercice À l’échec — MVP
 
@@ -385,12 +394,11 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 
 ## Parcours bilatéral
 
-1. Dans l’éditeur d’Activité ou la Composition, l’utilisateur fait cycler `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`.
-2. Dans l’éditeur, `Côté` est placé sous `Séries`; dans la Composition, la direction du Tour partage la ligne de `Nombre de tours`. Une carte hors Tour bilatéral affiche sa direction propre bilatérale ; une carte contenue dans un Tour bilatéral ne la répète pas.
-3. Lorsqu’il rend un Tour bilatéral, le système recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`.
-4. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, une confirmation demande : **Voulez-vous exécuter ce Tour de manière bilatérale ?**
-5. `Annuler` ne modifie rien. `Confirmer` applique atomiquement la direction au Tour, remet les seules Activités concernées à `UNILATERAL` et désactive les contrôles enfants.
-6. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom de l’Activité. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
+1. Dans l’éditeur d’Activité ou la Composition, l’utilisateur fait cycler le côté propre de l’Activité : `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`.
+2. Le contrôle `Côté` de l’Activité est disponible quelle que soit sa position structurelle, y compris dans le Tour.
+3. Une carte affiche sa direction propre bilatérale `D→G` ou `G→D` ; aucune indication n’est affichée en `UNILATERAL`.
+4. Le Tour ne propose aucun réglage de côté dans la version actuelle. Son champ technique `sideMode` reste figé à `UNILATERAL`; aucune confirmation spécifique au Tour n’est présentée.
+5. À l’Exécution, le sous-titre `Côté droit` ou `Côté gauche` apparaît sous le nom d’une Activité bilatérale. `Activité X/Y` conserve son rang logique ; aucun `1/2` ou `2/2` n’est ajouté.
 7. Une Activité autonome termine toutes ses Séries du premier côté puis toutes celles du second. Un Tour termine tout son contenu du premier côté puis tout son contenu du second, pour chaque répétition.
 8. La modale générique de passage à l’Activité suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 
@@ -416,7 +424,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Dépl
 
 ## Ajouter plusieurs Activités existantes à une Composition — MVP T03
 
-1. Depuis l’arbre d’ajout de la Composition, choisir `Une activité existante`.
+1. Depuis la Composition, appuyer sur `Ajouter une activité` pour ouvrir directement la modale de sélection.
 2. Rechercher ou filtrer le Catalogue d’Activités présenté dans le panneau modal.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
 4. Vérifier le nombre indiqué par `Ajouter N activité(s)`.

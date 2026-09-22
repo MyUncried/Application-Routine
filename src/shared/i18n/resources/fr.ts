@@ -612,7 +612,7 @@ export const fr = {
     calendar: {
       title: "Calendrier",
       placeholder:
-        "Le calendrier des routines sera développé dans une prochaine tranche.",
+        "La gestion des planifications dans le calendrier sera développée dans une prochaine tranche.",
     },
     history: {
       title: "Suivi",
