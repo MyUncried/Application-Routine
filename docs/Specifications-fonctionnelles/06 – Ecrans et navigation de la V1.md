@@ -860,7 +860,7 @@ L’état de création intégrée d’une nouvelle Catégorie est illustré par 
 
 ![ecran 6a categories nouvelle inline](./images/ecran-6a-categories-nouvelle-inline.png)
 
-*Modale — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
+*Modale — Classification de la séance — nouvelle classification inline — Figma `2028:11248`*
 
 ### Objectif
 
@@ -872,8 +872,8 @@ Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles 
 
 - la Composition reste visible en arrière-plan sous un voile modal et n’est pas interactive tant que la modale est ouverte ;
 - dans la référence Figma `402 × 874`, la modale est positionnée à `x=12`, `y=38`, largeur `378 pt` ;
-- l’état standard `2028:11204` mesure `378 × 313 pt` ; l’état de création inline `2028:11248` mesure `378 × 369 pt` ;
-- l’en-tête modal mesure `60 pt`, avec l’action `Annuler` à gauche, le titre `Classification de la séance` centré et l’action `Valider` à droite ;
+- D-227 aligne les deux états sur le standard modal unique : `2028:11204` et `2028:11248` utilisent une feuille `402 × 230 pt` à `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt` et contenu interne défilable `378 × 170 pt` ;
+- l’en-tête modal mesure `378 × 60 pt` à `x=12`, `y=0`, avec `Annuler` à `x=0,y=3`, `Valider` à `x=330,y=3` et le titre `Classification de la séance` centré sur l’axe `201 pt` ;
 - les actions d’en-tête sont des instances de `Modal / Header Action — Source exact` (`4151:6197`) : `Type=Cancel` (`4151:6191`) et `Type=Validate` (`4151:6196`) ;
 - leurs pictogrammes sont eux-mêmes des instances de `Icon / Modal Action — Source exact` (`4155:6201`) : `Type=Cancel` (`4155:6197`) et `Type=Validate` (`4155:6200`) ; aucun glyphe texte ne les remplace ;
 - `Créer une classification`, `Annuler` inline et `Ajouter` réutilisent les variantes `Type=Create` (`4152:6182`), `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) du component set DSF historique `Action / Categories — Source exact` (`4152:6189`) ;
