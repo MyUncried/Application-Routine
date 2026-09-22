@@ -50,7 +50,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
 | Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
-| Catégorie | Classement des séances | Métier |
+| Catégorie | Classement des Activités | Métier |
+| Classification | Classement facultatif d’une Séance | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
 | Exécution | Réalisation effective d’une source `SESSION` ou `ACTIVITY` | Principale |
 | Préférences globales | Paramètres généraux | Configuration |
@@ -83,7 +84,7 @@ UTILISATEUR
 │
 ├── possède 0..n SÉANCES
 │       │
-│       ├── appartient à 0..n CATÉGORIES
+│       ├── appartient à 0..1 CLASSIFICATION
 │       ├── contient 0..n ACTIVITÉS AVANT LE CYCLE
 │       ├── contient 1 CYCLE
 │       │      │
@@ -104,7 +105,7 @@ UTILISATEUR
 │       ├── contient 1 INSTANTANÉ DE SOURCE
 │       └── contient 1 ÉTAT D'EXÉCUTION
 │
-├── possède 0..n CATÉGORIES
+├── possède 0..1 CATÉGORIE
 ├── possède 0..n ZONES CORPORELLES
 └── possède 1 PRÉFÉRENCES GLOBALES
 ```
@@ -127,7 +128,7 @@ Un utilisateur possède directement :
 - ses séances ;
 - ses routines ;
 - ses exécutions de séance ;
-- ses catégories ;
+- sa Classification éventuelle ;
 - ses zones corporelles ;
 - ses préférences globales.
 
@@ -191,7 +192,7 @@ Elle ne contient pas directement :
 | Identifiant                             | Identifiant interne unique de la séance                                   |         Obligatoire          | Stable pendant toute la durée de vie de la séance                                                                                                                                                                                                      |
 | Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
 | Couleur                                 | Couleur d'identification de la séance                                     |         Obligatoire          | Valeur proposée par défaut ; choix possible parmi une palette prédéfinie de 12 couleurs                                                                                                                                                                 |
-| Catégories                              | Catégories de classement                                                  |          Facultatif          | Zéro, une ou plusieurs catégories appartenant au même utilisateur                                                                                                                                                                                      |
+| Classification                          | Classification de la Séance                                               |          Facultatif          | Zéro ou une Classification appartenant au même utilisateur                                                                                                                                                                                              |
 | Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
 | Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
 | Date de modification                    | Date de dernière modification                                             |         Obligatoire          | Mise à jour automatiquement                                                                                                                                                                                                                            |
@@ -268,7 +269,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 ## Relations principales
 
 - Une séance appartient à un seul utilisateur.
-- Une séance peut être associée à zéro, une ou plusieurs catégories.
+- Une Séance peut être associée à zéro ou une Classification.
 - Une séance peut être référencée par zéro, une ou plusieurs routines.
 - Une séance contient un cycle unique.
 - Le Cycle contient un Tour unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
@@ -288,7 +289,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Une séance peut être modifiée, dupliquée, archivée ou restaurée. Elle ne peut être supprimée qu’après archivage.
 - La duplication crée une nouvelle séance indépendante avec un nouvel identifiant.
 - La duplication conserve la couleur de la séance d'origine.
-- La duplication copie la structure, les activités, les catégories et les paramètres de la séance, mais ne copie ni les routines, ni les exécutions passées.
+- La duplication copie la structure, les Activités, la Classification éventuelle et les paramètres de la Séance, mais ne copie ni les Routines, ni les Exécutions passées.
 - L’archivage conserve intégralement la séance et ses exécutions historiques.
 - Une séance archivée ne peut plus être utilisée pour créer une nouvelle routine ou démarrer une nouvelle exécution tant qu’elle n’est pas restaurée.
 - La suppression d’une Séance archivée demande toujours confirmation. Les Routines associées ont déjà été supprimées lors de l’archivage.
@@ -645,7 +646,7 @@ Il ne contient pas de copie physique des médias associés aux Activités.
 
 | Élément conservé         | Contenu                                                                                                        |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Séance                   | Identifiant source, nom, couleur, catégorie(s)                                                                 |
+| Séance                   | Identifiant source, nom, couleur, Classification éventuelle                                                          |
 | Compte à rebours initial | Durée, texte vocal                                                                                             |
 | Cycle                    | Identifiant, position, nombre de répétitions                                                                   |
 | Tour                      | Identifiant, position, nombre de répétitions                                                                   |
@@ -702,7 +703,7 @@ Contient notamment :
 
 `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale calculée n’est visible qu’en mode `DURATION`.
 
-L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
+L’ajout d’une définition copie nom, description, Catégorie éventuelle, Zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. Le Compte à rebours d’activité et la Fin d’activité ne sont pas copiés dans la Séance. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
 ## Contraintes Média
 
@@ -826,6 +827,8 @@ Elles ne contiennent pas directement :
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
 | Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                                                 |
+| Durée du compte à rebours d’activité par défaut    | Durée proposée lors de la création d’une nouvelle Activité                 | Obligatoire | Valeur initiale à définir par le référentiel de préférences courant      |
+| Durée de la fin d’activité par défaut               | Durée proposée lors de la création d’une nouvelle Activité                 | Obligatoire | Valeur initiale à définir par le référentiel de préférences courant      |
 | Texte vocal du compte à rebours initial par défaut | Texte vocal proposé pour le compte à rebours initial d'une nouvelle séance | Facultatif  | Valeur initiale : `Préparez-vous`                                        |
 | Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `5 s`                                                  |
 | Texte vocal de la fin de séance par défaut         | Texte vocal proposé pour la fin de séance d'une nouvelle séance            | Facultatif  | Valeur initiale : `Séance terminée, bravo`                               |
@@ -838,15 +841,26 @@ Elles ne contiennent pas directement :
 - Une exécution de séance utilise les préférences actives au moment de son démarrage.
 - Une modification des préférences ne modifie jamais une exécution déjà en cours.
 - Les préférences sont enregistrées automatiquement après chaque modification.
-- Les valeurs par défaut du compte à rebours initial et de la fin de séance sont copiées dans la séance lors de sa création.
+- Les valeurs par défaut du compte à rebours initial et de la fin de séance sont copiées dans la Séance lors de sa création. Les valeurs par défaut du Compte à rebours d’activité et de la Fin d’activité sont copiées uniquement lors de la création d’une nouvelle `ActivityDefinition`.
 - Une modification ultérieure des Préférences globales ne modifie pas les séances déjà créées
 
+
+# 09.9 bis Révision structurante du modèle — D-201 à D-206
+
+Le modèle courant applique les règles suivantes :
+
+- `ActivityDefinition` porte `initialCountdownSeconds`, `finalPhaseSeconds`, `categoryId? (0..1)` et `bodyZoneIds (0..n)`.
+- `SessionActivity` reste une copie indépendante, mais ne porte pas les deux phases temporelles propres à l’Activité de Catalogue ; l’Exécution de Séance utilise exclusivement `Session.initialCountdownSeconds` et `Session.finalPhaseSeconds`.
+- `Session` ne référence plus de Catégories ; elle référence `classificationId? (0..1)`.
+- Catégorie, Classification et Zone corporelle portent un cycle de vie administrable avec état actif/archivé. Une valeur archivée reste référencée par les contenus existants mais n’est pas éligible à une nouvelle affectation.
+- La suppression d’une valeur utilisée retire ses références courantes après confirmation ; les Instantanés historiques restent autonomes et immuables.
+- Aucune migration sémantique des anciennes Catégories de Séance vers les Classifications n’est requise en phase projet. Les migrations historiques restent immuables ; une migration additive suivante porte le schéma courant.
 
 # 09.10 Entité Catégorie
 
 ## Définition
 
-Une **Catégorie** permet de classer les **séances** afin d'en faciliter l'organisation, le filtrage et la recherche.
+Une **Catégorie** permet de classer les **Activités** afin d’en faciliter l’organisation, le filtrage et la recherche. Une Activité porte zéro ou une Catégorie.
 
 L'application fournit une liste de catégories par défaut, que l'utilisateur peut compléter et personnaliser.
 ## Périmètre
@@ -865,7 +879,7 @@ Elle ne contient pas directement :
 - les routines ;
 - les exécutions de séance.
 
-Les **séances** référencent zéro, une ou plusieurs catégories.
+Les **Activités** référencent zéro ou une Catégorie.
 ## Attributs fonctionnels
 
 | Attribut             | Description                   |  Caractère  | Règle principale                                     |
@@ -880,25 +894,29 @@ Les **séances** référencent zéro, une ou plusieurs catégories.
 | Date de modification | Dernière modification         | Obligatoire | Mise à jour automatiquement                          |
 ## Règles métier
 
-- Une séance peut être associée à zéro, une ou plusieurs catégories.
+- Une Activité peut être associée à zéro ou une Catégorie.
 - Un utilisateur peut créer et personnaliser ses catégories.
 - Le nom d'une catégorie est limité à `40` caractères après trim et est unique pour un même utilisateur après normalisation canonique de comparaison.
 - Une tentative de création avec un nom normalisé déjà existant ne crée pas de doublon : elle réutilise et sélectionne la Catégorie existante.
 - Les Catégories prédéfinies sont affichées selon leur `displayOrder`. Les Catégories personnalisées viennent ensuite, par date de création croissante. La sélection ou l’utilisation d’une Catégorie ne change pas sa position et aucune réorganisation manuelle n’est disponible dans le MVP.
 - Une Catégorie personnalisée créée depuis le parcours de création d’une Séance reste une donnée du brouillon jusqu’à l’enregistrement final. Son existence temporaire est distincte de sa sélection : la désélection ne la supprime pas du brouillon et elle peut être resélectionnée sans doublon. Les allers-retours entre Composition et Catégories conservent ces deux états séparément. Elle n’acquiert une identité persistante que dans la transaction finale, uniquement si elle est sélectionnée.
 - L’abandon du parcours ou l’échec de cette transaction ne laisse aucune Catégorie personnalisée orpheline dans le référentiel persistant.
-- Une catégorie peut être utilisée par zéro, une ou plusieurs séances.
+- Une Catégorie peut être utilisée par zéro, une ou plusieurs Activités.
 - À partir du MVP bis, une Catégorie peut être supprimée, qu’elle soit utilisée ou non.
-- Si une Catégorie supprimée à partir du MVP bis est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances.
+- Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une confirmation est demandée puis elle est retirée de ces Activités.
 - Cette suppression ne modifie jamais les Instantanés d’Exécution déjà enregistrés.
 - Les Instantanés historiques conservent le libellé de la Catégorie tel qu’il existait au moment de l’Exécution.
+# 09.10 bis Entité Classification
+
+Une **Classification** qualifie une Séance. Une Séance référence zéro ou une Classification. Le référentiel est administrable par l’Utilisateur et applique les mêmes règles de nom, unicité canonique, archivage, réactivation et suppression contrôlée que les Catégories. Une Classification archivée reste visible sur les Séances existantes mais n’est plus proposée pour une nouvelle affectation.
+
 # 09.11 Entité Zone corporelle
 
 ## Définition
 
 Une **Zone corporelle** désigne une partie du corps principalement sollicitée par une Activité.
 
-L’application fournit un référentiel prédéfini de Zones corporelles utilisé pour caractériser les Activités. Ce référentiel n’est pas administrable par l’utilisateur dans le MVP.
+L’application fournit un référentiel initial de Zones corporelles utilisé pour caractériser les Activités. Ce référentiel est administrable par l’utilisateur selon les mêmes principes que les Catégories.
 
 ## Périmètre
 
@@ -921,8 +939,8 @@ Les activités référencent zéro, une ou plusieurs zones corporelles. Une zone
 ## Règles métier
 
 - Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles.
-- Les Zones corporelles constituent un référentiel prédéfini de l’application.
-- L’utilisateur ne peut ni créer, ni modifier, ni supprimer une Zone corporelle dans le MVP.
+- Les Zones corporelles constituent un référentiel administrable initialisé par l’application.
+- L’utilisateur peut créer, archiver, réactiver et supprimer une Zone corporelle selon les mêmes règles que pour une Catégorie ; une Zone archivée reste attachée aux Activités existantes mais n’est plus proposée pour une nouvelle affectation.
 
 ## Référentiel MVP (D-093)
 
@@ -963,7 +981,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute Catégorie personnalisée appartient à un seul Utilisateur.
 - Dans le MVP, toute Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. L’utilisateur ne peut modifier aucune de ces deux valeurs.
 - Aucune règle ne fait actuellement dériver la couleur d’une Séance de ses Catégories. Une telle dérivation reste une évolution future à définir, notamment pour les Séances associées à plusieurs Catégories.
-- Les Zones corporelles appartiennent au référentiel applicatif et ne sont pas rattachées à un Utilisateur.
+- Les Zones corporelles sont des données du référentiel administrable de l’Utilisateur.
 
 ### Cohérence des données
 
@@ -976,7 +994,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Nouvelle séance avec un nouvel identifiant.
 - Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
 - Copie de la couleur de la séance.
-- Copie du Cycle, du Tour, des Activités et des Catégories. Après le MVP, si un média est réutilisé, une nouvelle association Média pourra référencer le même fichier physique.
+- Copie du Cycle, du Tour, des Activités et de la Classification éventuelle. Après le MVP, si un média est réutilisé, une nouvelle association Média pourra référencer le même fichier physique.
 - Les routines et les exécutions de séance ne sont jamais copiées.
 
 ## Duplication d'une activité
