@@ -502,7 +502,7 @@ D-221 ajoute un chevron de section à droite du titre `Paramètres d’exécutio
 
 D-222 ajoute l’état `4332:7095` pour `Durée de l’activité` ouverte. Le contexte écran 3 reste visible sous un voile modal. La feuille occupe toute la largeur `402 pt`, est ancrée en bas, avec fond blanc, rayon `24 pt`, poignée `50 × 4 pt` et titre `Durée de l’activité` selon le patron `3789:5405`. Elle contient la roulette canonique de durée `3556:7710`, `330 × 203 pt`, avec ses propres actions Annuler/Confirmer. Les unités visibles sont `minutes` et `secondes`. Les boutons d’action de la modale `Sélectionner les activités` ne sont pas repris.
 
-D-223 révise la composition interne de cette feuille : Annuler et Confirmer utilisent les contrôles standards mais sont placés en haut de la feuille, respectivement à `24 pt` des bords gauche et droit ; le titre est sous cette rangée d’actions. La roulette n’a plus de fond, trait ni rayon propre et sa barre d’actions interne est retirée. Sa zone utile mesure `330 × 150 pt`. Les mots `minutes` et `secondes` restent hors des capsules grises, avec environ `9 pt` d’écart. La feuille finale mesure `402 × 282 pt`.
+D-223 révise la composition interne de cette feuille : elle conserve la poignée supérieure, puis réutilise un en-tête modal standard `378 × 60 pt` à `x=12`, avec Annuler à gauche, le titre `Durée de l’activité` centré, et Confirmer à droite. La roulette n’a plus aucun fond, trait ni rayon sur ses conteneurs externe et interne, et sa barre d’actions interne est retirée. Sa zone utile mesure `330 × 150 pt`. Les mots `minutes` et `secondes` restent hors des capsules grises avec `11,5 pt` et `11 pt` d’écart. La feuille finale mesure `402 × 254 pt`.
 
 ### 4. Contexte de sortie / destinations
 
