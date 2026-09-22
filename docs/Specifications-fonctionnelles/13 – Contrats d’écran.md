@@ -492,6 +492,8 @@ Dans l’état déplié, le même cadre de Synthèse reste dépourvu de chevron 
 
 Chaque modification confirmée d’un paramètre met à jour en temps réel le texte de Synthèse à partir du brouillon courant. Le repli ne fige pas une valeur antérieure et ne persiste rien à lui seul.
 
+D-212 fixe la composition de cette variante : `Description de l’activité` est déployée au premier affichage, avec son champ visible sous le titre. Le titre statique exact `Paramètres d’exécution.` est inséré avant le cadre de Synthèse. La section `Médias` est présente et déployée sous le bloc de paramétrage. Ordre replié : Description déployée → `Paramètres d’exécution.` → Synthèse repliée → Médias déployée. Ordre déplié : Description déployée → `Paramètres d’exécution.` → Synthèse → liste des paramètres → Médias déployée. Cette réintégration ne rend pas les fonctions média actives.
+
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
