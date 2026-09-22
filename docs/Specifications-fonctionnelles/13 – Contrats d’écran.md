@@ -484,7 +484,7 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 3 bis. Variante D-210 — Paramétrage repliable
 
-Références Figma courantes : `4230:7023` = état initial vide/replié ; `4217:6980` = état renseigné `Squats sautés`, liste repliée ; `4279:7044` = état renseigné, vue défilée avec paramètres dépliés ; `4294:7075` = copie renseignée repliée affichant `Cliquez pour paramétrer`.
+Références Figma courantes : `4230:7023` = état initial vide/replié ; `4217:6980` = état renseigné `Squats sautés`, liste repliée ; `4279:7044` = état renseigné, vue défilée avec paramètres dépliés ; `4294:7075` = état renseigné replié affichant la Synthèse complète et `Cuisses - Fessier`.
 
 Dans cette variante, le bloc `Synthèse de l’activité` est positionné immédiatement après `Description de l’activité`. La section autonome `Mode d’exécution` et son contrôle segmenté sont supprimés. À l’état initial, le bloc de Synthèse est réduit à une ligne, ne contient aucun chevron, et affiche exactement `Cliquez pour paramétrer`. Tap sur le bloc → état déplié ; second tap → état replié. Le passage entre états conserve intégralement le brouillon.
 
@@ -494,7 +494,7 @@ Chaque modification confirmée d’un paramètre met à jour en temps réel le t
 
 D-217 révise les deux états renseignés. `4217:6980` conserve nom, description et illustration de démonstration, garde la liste repliée mais affiche la Synthèse fonctionnelle complète. `4279:7044` représente la même Activité après défilement : la Description est au-dessus de la fenêtre visible ; une partie de Médias occupe le haut disponible sous la zone colorée ; `Paramètres d’exécution`, la Synthèse complète et les huit lignes de paramètres sont ensuite visibles intégralement avant `Terminer`. Cette représentation défilée ne supprime pas fonctionnellement la Description.
 
-D-218 précise la géométrie et les états : dans `4279:7044`, la liste se termine 16 pt au-dessus de l’action fixe et `Médias` occupe seulement l’espace restant en haut, sans aucun chevauchement avec `Paramètres d’exécution`. `4294:7075` est une copie de l’état renseigné replié avec le texte initial `Cliquez pour paramétrer`. Sur `4279:7044` et `4294:7075`, le contrôle Catégorie affiche `Renforcement` avec une pastille rouge ronde de `24 × 24 pt` et sans icône `+`; la pastille est ancrée à droite avec `4 pt` de marge uniforme en haut, en bas et à droite, en cohérence avec le rayon `16 pt` du contrôle. Sur `4230:7023` et `4217:6980`, le bouton `Terminer` est rendu avec `color/disabled`.
+D-219 précise la géométrie et les contenus : dans `4279:7044`, le défilement masque 91 pt de la section Médias sous la zone colorée et n’en laisse visibles que 75 pt ; la Synthèse et les huit paramètres sont entièrement visibles et la liste se termine 16 pt avant l’action fixe. Dans `4217:6980` et `4294:7075`, la Description de démonstration est `Descendez en squat, puis sautez verticalement. Atterrissez souplement et enchaînez. Gardez les genoux alignés avec les pieds et les jambes.` et sa hauteur suit le contenu. Le nom `Squats sautés` utilise `color/text-primary`. Sur `4279:7044` et `4294:7075`, le contrôle Catégorie renseigné mesure `144 × 32 pt`, affiche `Renforcement`, puis une pastille rouge `24 × 24 pt` séparée de 8 pt et placée à 4 pt des bords haut/bas/droit. `4294:7075` affiche la Synthèse complète et `Cuisses - Fessier` dans Zones corporelles. `Terminer` reste en `color/disabled` sur `4230:7023` et `4217:6980`.
 
 ### 4. Contexte de sortie / destinations
 
@@ -510,7 +510,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Hors variante D-210 à D-218 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-218 suit l’ordre spécifique défini au §3 bis.
+Hors variante D-210 à D-219 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-219 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
