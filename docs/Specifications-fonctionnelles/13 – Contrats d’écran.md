@@ -508,7 +508,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
+Hors variante D-210 à D-212 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-212 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
