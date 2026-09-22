@@ -500,7 +500,7 @@ D-220 révise trois éléments : `4217:6980` revient au texte initial `Cliquez p
 
 D-221 ajoute un chevron de section à droite du titre `Paramètres d’exécution`. Orientation : bas si la liste est repliée (`4230:7023`, `4217:6980`, `4294:7075`), haut si elle est dépliée (`4279:7044`). Aucun chevron n’est ajouté dans le cadre de Synthèse.
 
-D-222 ajoute l’état `4332:7095` pour `Durée de l’activité` ouverte. Le contexte écran 3 reste visible sous un voile modal. La feuille occupe toute la largeur `402 pt`, est ancrée en bas, avec fond blanc, rayon `24 pt`, poignée `50 × 4 pt` et titre `Durée de l’activité` selon le patron `3789:5405`. Elle contient la roulette canonique de durée `3556:7710`, `330 × 203 pt`, avec ses propres actions Annuler/Confirmer. Les unités visibles sont `minutes` et `secondes`. Les boutons d’action de la modale `Sélectionner les activités` ne sont pas repris.
+D-222 introduit l’état `4332:7095`; D-223 puis D-228 en supersèdent la géométrie. L’état courant utilise la feuille standard `402 × 230 pt`, poignée `50 × 4 pt`, en-tête Annuler/Valider et titre centré. La roulette visible occupe `150 pt` de haut et ne possède plus d’actions internes visibles.
 
 D-223 fixe le standard unique de la feuille `Durée de l’activité` : `402 × 230 pt`, ancrée en bas ; en-tête standard `378 × 60 pt` à `x=12`, `y=0`; Annuler `x=0`, `y=3` et Confirmer/Valider `x=330`, `y=3` dans l’en-tête, soit `12 pt` des bords écran et `3 pt` du haut de la feuille, identiques à `Classification de la séance`. La poignée `50 × 4 pt` reste centrée à `y=8` et n’introduit aucun décalage. Le titre `Durée de l’activité` est centré exactement sur l’axe `201 pt`. La roulette n’a aucun cadre externe ou interne et sa zone utile mesure `330 × 150 pt`. `minutes` se termine `15 pt` avant la capsule grise secondes ; les écarts aux capsules propres sont `9,5 pt` et `11 pt`.
 
@@ -512,6 +512,8 @@ D-225 fixe le contenu des deux modales de choix non numériques : `Mode d’exé
 D-226 ajoute `4194:6979` comme référence de la modale `Catégorie de l’activité`. Elle utilise exactement le même shell que `Durée de l’activité` et les modales de paramètres : `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider `x=330,y=3`, titre centré à `201 pt`. Le contenu Catégorie reste fonctionnellement inchangé et défile à l’intérieur si nécessaire.
 
 D-227 met au standard les deux états `Classification de la séance` `2028:11204` / `4067:6137` et `2028:11248` / `4069:6137` : feuille `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider `x=330,y=3`, titre centré à `201 pt`. Le contenu devient une zone interne défilable `378 × 170 pt`; le comportement de sélection exclusive et de création inline reste inchangé.
+
+D-228 impose ce même shell à tout état du prototype montrant une roulette ouverte : `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider/Confirmer `x=330,y=3`, titre centré à `201 pt`, zone utile de roulette `150 pt`. Les anciennes barres d’actions internes de `53 pt` sont masquées. Le date picker/calendrier n’est pas concerné.
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
