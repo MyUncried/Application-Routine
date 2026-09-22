@@ -949,9 +949,9 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | `Modal / Header Action — Source exact` (`4151:6191`) | Annuler | Icône `Icon / Modal Action — Source exact` (`4155:6197`) ; cible `48 × 53 pt`, fond circulaire `38 × 38 pt` |
 | Titre de la modale | Texte | Toujours | Oui | « Classification de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
 | Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | `Modal / Header Action — Source exact` (`4151:6196`) | Valider | Icône `Icon / Modal Action — Source exact` (`4155:6200`) ; remplace l’ancien CTA inférieur |
-| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie / DSF | Sélectionner / Désélectionner | `Selection / Category Tag` (`3302:4166`) ; prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante |
-| Bouton Créer une catégorie | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | DSF | Créer | `Action / Categories — Source exact` `Type=Create` (`4152:6182`) |
-| Saisie inline | Champ + actions | État création | Non | « Nom de la catégorie » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la catégorie temporaire | Brouillon / DSF | Annuler / Ajouter | Frame `2028:11248` ; actions `Type=Cancel` (`4152:6185`) et `Type=Add` (`4152:6188`) de `Action / Categories — Source exact` (`4152:6189`) |
+| Classifications proposées | Tags | Toujours | Non | Aucune sélection | Sélection unique facultative | Classification / DSF | Sélectionner / Désélectionner | Réutilise le patron `Selection / Category Tag` (`3302:4166`) ; valeurs actives du référentiel Classification |
+| Bouton Créer une classification | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | DSF | Créer | Réutilise le patron d’action de référentiel existant |
+| Saisie inline | Champ + actions | État création | Non | « Nom de la classification » | `Annuler` inline ne ferme que cette création ; `Ajouter` valide la Classification temporaire | Brouillon / DSF | Annuler / Ajouter | Frame `2028:11248` révisée ; actions de référentiel existantes |
 
 ### Layout de référence
 
@@ -963,15 +963,15 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 | Règle | Description |
 | --- | --- |
-| Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
+| Caractère facultatif | Une Séance peut être enregistrée sans Classification. |
 | Sélection unique facultative | Une Séance peut être associée à zéro ou une Classification. |
-| Création d’une catégorie | La saisie est intégrée dans la modale avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant la validation finale. |
-| Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
-| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant les ouvertures de la modale. |
+| Création d’une Classification | La saisie est intégrée dans la modale avec `Nom de la classification`, `Annuler` et `Ajouter` ; la nouvelle Classification est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant la validation finale. |
+| Apparence par défaut | La Classification réutilise le patron visuel du référentiel existant ; aucune règle visuelle nouvelle n’est introduite par cette décision fonctionnelle. |
+| Existence et sélection temporaires | Une Classification `NEW` reste dans le brouillon jusqu’à validation finale ; la sélection unique éventuelle est conservée pendant les ouvertures de la modale. |
 | Annuler la modale | Ferme la modale et restitue la Composition avec son brouillon ; aucune persistance finale n’est effectuée. |
-| Valider la modale | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances, segment `Séances`. |
+| Valider la modale | Persiste dans une transaction unique la Séance complète et sa Classification éventuelle, puis ramène au Catalogue de séances, segment `Séances`. |
 | Échec d’enregistrement | Reste dans la modale, conserve le brouillon complet, réactive `Valider` et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
-| Réorganisation | Aucune réorganisation manuelle des Catégories dans le MVP. |
+| Réorganisation | Aucune réorganisation manuelle des Classifications dans le MVP. |
 
 
 ## Activité
@@ -1172,7 +1172,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
 | Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
-| Supprimer une catégorie — MVP bis                | Oui (si utilisée) | Annuler / Supprimer     | Retire la catégorie des Séances concernées ; les Instantanés historiques restent inchangés |
+| Supprimer une catégorie / classification / zone corporelle | Oui si utilisée | Annuler / Supprimer | Retire les affectations courantes concernées après confirmation ; les Instantanés historiques restent inchangés |
 | Réinitialiser les préférences                    | Oui               | Annuler / Réinitialiser | Restaure les préférences par défaut                                    |
 | Supprimer l'historique                           | Oui               | Annuler / Supprimer     | Supprime toutes les exécutions enregistrées                            |
 | Quitter la création d'une séance non enregistrée | Oui               | Annuler / Confirmer | Dialogue centré ; `Confirmer` abandonne la création |
