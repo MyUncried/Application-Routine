@@ -510,6 +510,8 @@ D-225 fixe le contenu des deux modales de choix non numériques : `Mode d’exé
 
 
 D-226 ajoute `4194:6979` comme référence de la modale `Catégorie de l’activité`. Elle utilise exactement le même shell que `Durée de l’activité` et les modales de paramètres : `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider `x=330,y=3`, titre centré à `201 pt`. Le contenu Catégorie reste fonctionnellement inchangé et défile à l’intérieur si nécessaire.
+
+D-227 met au standard les deux états `Classification de la séance` `2028:11204` / `4067:6137` et `2028:11248` / `4069:6137` : feuille `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider `x=330,y=3`, titre centré à `201 pt`. Le contenu devient une zone interne défilable `378 × 170 pt`; le comportement de sélection exclusive et de création inline reste inchangé.
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
