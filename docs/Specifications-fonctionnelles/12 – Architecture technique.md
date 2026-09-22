@@ -186,7 +186,7 @@ Sont notamment persistés :
 - Instantanés d’Exécution ;
 - Occurrences historisées.
 
-Les Zones corporelles constituent un référentiel applicatif prédéfini.
+Les Zones corporelles constituent un référentiel administrable initialisé par l’application.
 
 ### Repositories
 
@@ -805,7 +805,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte ; leurs actions `Annuler` / `Confirmer` sont exclusivement des instances de `Modal / Header Action — Source exact` (`4151:6197`) et réutilisent les tokens `component/wheel/action-*` |
 | Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
-| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
+| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Classification/Zones sur une ligne lorsque pertinente, Classification éventuelle puis Zones corporelles dédupliquées, séparateur ` : ` et troncature |
 | Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
 | Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
 | Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
