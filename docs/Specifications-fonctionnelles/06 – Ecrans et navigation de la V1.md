@@ -818,7 +818,7 @@ D-219 révise D-218. Dans `4279:7044`, le formulaire est représenté après dé
 
 D-220 précise les derniers états : `4217:6980` affiche `Cliquez pour paramétrer` au lieu du texte de Synthèse. Dans les quatre états courants, les emplacements Médias d’ajout n’affichent plus `Cliquez pour ajouter` : ils montrent uniquement le SF Symbol standard `photo.badge.plus`, centré, afin d’indiquer clairement un média à ajouter. Sur `4294:7075`, le contrôle Zones corporelles renseigné est sans icône `+` et affiche exactement `Cuisses · Fessier`.
 
-D-221 ajoute au titre `Paramètres d’exécution` le petit chevron standard de section, aligné à droite : vers le bas dans les états repliés `4230:7023`, `4217:6980` et `4294:7075`, vers le haut dans l’état déplié `4279:7044`. Le cadre de Synthèse reste sans chevron.
+D-221 ajoute au titre `Paramètres d’exécution` le petit chevron standard de section, aligné à droite : vers le bas dans les états repliés `4230:7023`, `4217:6980` et `4294:7075`, vers le haut dans l’état déplié `4279:7044`. Le cadre de Synthèse reste sans chevron. Les chevrons de section réutilisent directement les références DSF canoniques (`3943:6074` bas, `3943:6083` haut), sans rotation ni redessin, et partagent l’axe horizontal des autres chevrons de section.
 
 Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
