@@ -806,6 +806,12 @@ En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’e
 
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour toute nouvelle Activité, sa valeur par défaut est `1`.
 
+#### Variante Figma — Ajouter une activité / Nouvelle activité (D-210)
+
+Les frames `4230:7023` et `4217:6980` documentent une variante spécifique de l’écran de création. Dans cette variante, la Synthèse est placée entre `Description de l’activité` et `Mode d’exécution`. L’état initial `4230:7023` est replié : le cadre tient sur une ligne et affiche exactement `cliquer pour paramétrer`. Un tap sur le cadre ouvre l’état `4217:6980`, qui affiche sous la Synthèse la liste complète des paramètres ; un nouveau tap replie cette liste.
+
+Dans l’état déplié, les paramètres sont disposés verticalement en deux colonnes, libellé à gauche et valeur/chevron à droite, dans l’ordre : `Compte à rebours`, `Nombre de séries`, `Durée de l’activité`, `Pause entre chaque série`, `Côté`, `Récupération`, `Fin d’activité`, `Durée totale`. Toute modification d’une valeur alimente la Synthèse en temps réel. Pour `Côté`, le chevron est aligné sur celui des autres contrôles ; l’état `UNILATERAL` ne porte aucun texte de valeur.
+
 Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
 ### Dépendance Séries / Durée totale
