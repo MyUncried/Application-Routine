@@ -508,6 +508,8 @@ D-224 ajoute les huit états modaux de référence : `4367:7128`, `4367:7276`, `
 
 D-225 fixe le contenu des deux modales de choix non numériques : `Mode d’exécution` est une roulette à trois valeurs `Durée / Répétitions / À l’échec`; `Côté` est une roulette à trois valeurs `Unilatéral / Gauche puis Droite / Droite puis Gauche`. Dans les références Figma, les valeurs centrées sont respectivement `Durée` et `Unilatéral`. Ces libellés développés ne remplacent pas les indicateurs courts `G→D` / `D→G` hors de la modale. Aucun contrôle segmenté ni trio de boutons n’est admis dans ces deux feuilles.
 
+
+D-226 ajoute `4194:6979` comme référence de la modale `Catégorie de l’activité`. Elle utilise exactement le même shell que `Durée de l’activité` et les modales de paramètres : `402 × 230 pt`, `x=0`, `y=644`, rayon `24 pt`, poignée `50 × 4 pt`, en-tête `378 × 60 pt` à `x=12`, `y=0`, Annuler `x=0,y=3`, Valider `x=330,y=3`, titre centré à `201 pt`. Le contenu Catégorie reste fonctionnellement inchangé et défile à l’intérieur si nécessaire.
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
