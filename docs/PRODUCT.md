@@ -404,7 +404,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
 - une confirmation destructive déclenchée depuis le swipe conserve la carte ouverte et l’action déclenchante visibles sous le voile modal jusqu’à décision ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
-- après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
+- après enregistrement depuis Classification, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
 - dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
