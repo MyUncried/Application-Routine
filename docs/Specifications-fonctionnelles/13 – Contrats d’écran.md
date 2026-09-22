@@ -492,7 +492,7 @@ Nom, Description, mode, cible, Séries, Pause, Récupération, zones, sideMode, 
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Activité** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’activité` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
+Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Activité** dans les états renseignés et ne doit jamais être codée en dur. `Comment s’appelle cette activité ?` est le placeholder exact de l’état vide visible dans `3943:6064` ; il utilise `color/text-secondary`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
 
 ### 7. Structure de l’écran
 
@@ -512,7 +512,7 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
+Création/modification ; état vide avec `Comment s’appelle cette activité ?` en `color/text-secondary` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
 
 ### 12. Contrôles et interactions
 
@@ -544,11 +544,11 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; bouton supérieur `Ajouter un média` absent ; le contenu Médias est masqué sous la Synthèse en cas de chevauchement, avec un masque blanc de même largeur commençant `16 pt` au-dessus du cadre de Synthèse ; `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` présents sous le Nom ; Catégorie facultative unique ; Zones corporelles multiples ; sélection courante réaffichée dans le contrôle et modifiable par réouverture de la modale ; aucune section Catégorie/Zone corporelle ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Compte à rebours d’activité et Fin d’activité propres ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity. La zone Médias est située sous la Synthèse dans l’ordre visuel : tout chevauchement est masqué par le cadre de Synthèse, avec un masque commençant `16 pt` au-dessus du bord supérieur de cette Synthèse.
+Aucun média fonctionnel ; bouton supérieur `Ajouter un média` absent ; le contenu Médias est masqué sous la Synthèse en cas de chevauchement, avec un masque blanc de même largeur commençant `16 pt` au-dessus du cadre de Synthèse ; `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` présents sous le Nom ; Catégorie facultative unique ; Zones corporelles multiples ; sélection courante réaffichée dans le contrôle et modifiable par réouverture de la modale ; aucune section Catégorie/Zone corporelle ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Comment s’appelle cette activité ?` réservé à l’état vide/placeholder représenté et rendu avec `color/text-secondary` ; Compte à rebours d’activité et Fin d’activité propres ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity. La zone Médias est située sous la Synthèse dans l’ordre visuel : tout chevauchement est masqué par le cadre de Synthèse, avec un masque commençant `16 pt` au-dessus du bord supérieur de cette Synthèse.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée et `Durée totale >=` en Reps/Échec, vérifier Synthèse `Durée totale : ≥ …`, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, Durée totale masquée, libellé Reps/Échec sans `>=`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée et `Durée totale >=` en Reps/Échec, vérifier Synthèse `Durée totale : ≥ …`, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : `Renforcement du genou` statique, ancien placeholder `Nom de l’activité`, placeholder vide en couleur de texte principale, Durée totale masquée, libellé Reps/Échec sans `>=`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
