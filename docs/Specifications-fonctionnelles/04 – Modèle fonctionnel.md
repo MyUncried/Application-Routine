@@ -28,7 +28,7 @@ Il possède notamment :
 - ses séances ;
 - ses Activités persistantes ;
 - ses routines ;
-- ses catégories ;
+- sa Classification éventuelle ;
 - ses zones corporelles ;
 - ses préférences globales ;
 - son historique d'exécution.
@@ -73,7 +73,7 @@ Un **Tour** est un groupe ordonné d'Activités exécuté intégralement un nomb
 
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des activités (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
+Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle existe comme définition persistante autonome du Catalogue des activités (`ActivityDefinition`) et peut être copiée dans une Séance (`SessionActivity`). Elle porte zéro ou une Catégorie, zéro ou plusieurs Zones corporelles, un Compte à rebours d’activité et une Fin d’activité propres. Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -99,11 +99,11 @@ En modes Répétitions et À l’échec, `Durée totale` reste affichée mais n�
 
 ### Activité de référence et Activité de Séance
 
-Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des activités. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
+Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des activités. Elle possède ses propres paramètres `initialCountdownSeconds` et `finalPhaseSeconds`, initialisés depuis les Préférences lors de sa création puis modifiables indépendamment. Lorsqu’elle est copiée dans une Séance, ces deux paramètres ne sont pas transportés : la Séance conserve uniquement ses phases globales. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
 Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles et direction propre. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
-Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
+Une Activité n’est plus créée directement comme simple `SessionActivity` depuis une Séance : la Composition sélectionne ou crée d’abord une `ActivityDefinition` du Catalogue, puis en crée une copie indépendante dans la Séance.
 
 La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les `SessionActivity` déjà copiées ni vers les Instantanés, Exécutions et résultats historiques.
 
@@ -136,12 +136,14 @@ Chaque Exécution est indépendante des modifications, archivages ou suppression
 
 ## Préférences globales
 
-Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l'utilisation des séances et des routines. Elles peuvent être modifiées dans le Profil. Leur modification n'altère pas rétroactivement les séances ou routines déjà créées.
+Les préférences globales regroupent les paramètres personnels utilisés comme valeurs par défaut lors de la création et de l’utilisation des Séances, Activités et Routines. Elles peuvent être modifiées dans le Profil. Leur modification n’altère pas rétroactivement les contenus déjà créés.
 
 Elles comprennent :
 
 **Préférences de création d'une séance :**
-- la durée par défaut du compte à rebours initial ;
+- la durée par défaut du compte à rebours initial de Séance ;
+- la durée par défaut du Compte à rebours d’activité ;
+- la durée par défaut de la Fin d’activité ;
 - le texte vocal par défaut du compte à rebours initial ;
 - la durée par défaut de la fin de séance ;
 - le texte vocal par défaut de la fin de séance.
@@ -161,7 +163,9 @@ Les préférences utilisées comme valeurs par défaut sont copiées dans la sé
 L'application utilise des référentiels permettant de qualifier ses contenus.
 
 Dans le MVP :
-- les **Catégories** sont utilisées pour classer les Séances et peuvent être personnalisées selon les règles applicables ;
+- les **Catégories** qualifient les Activités, à raison de zéro ou une par Activité ;
+- les **Classifications** qualifient les Séances, à raison de zéro ou une par Séance ;
+- Catégories, Classifications et Zones corporelles sont des référentiels administrables, archivables et réactivables ;
 - les **Zones corporelles** qualifient les Activités et constituent un référentiel applicatif prédéfini : elles peuvent être sélectionnées mais ne peuvent pas être créées, renommées ou supprimées par l'utilisateur.
 
 # 4.4 Structure d'une séance
@@ -274,7 +278,8 @@ Le MVP permet notamment :
 - ajouter plusieurs Activités existantes à une Séance par copies indépendantes ;
 - organiser les Activités avant, dans ou après le Tour et définir le nombre de répétitions du Tour ;
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
-- associer plusieurs catégories à une Séance ;
+- associer zéro ou une Classification à une Séance ;
+- associer zéro ou une Catégorie et zéro ou plusieurs Zones corporelles à une Activité ;
 - associer des zones corporelles aux Activités ;
 - exécuter directement une Activité persistante à partir de T03 ;
 - exécuter une Séance dans T04 et les tranches associées du MVP ;
