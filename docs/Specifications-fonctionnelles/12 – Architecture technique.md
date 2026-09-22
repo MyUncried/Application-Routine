@@ -121,7 +121,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
 | `PreferencesService` | Lecture et modification des Préférences globales |
-| `ReferenceDataService` | Gestion des Catégories et consultation du référentiel des Zones corporelles |
+| `ReferenceDataService` | Gestion des Catégories, Classifications et Zones corporelles administrables |
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -180,6 +180,8 @@ Sont notamment persistés :
 - Activités ;
 - Routines ;
 - Catégories ;
+- Classifications ;
+- Zones corporelles administrables ;
 - Exécutions ;
 - Instantanés d’Exécution ;
 - Occurrences historisées.
@@ -221,7 +223,7 @@ Cet identifiant :
 
 Les principales données métier sont rattachées directement ou indirectement à cet Utilisateur.
 
-Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Tour et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
+Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution, Catégorie, Classification et Zone corporelle) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Tour et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
 
 ### Évolution future
 
@@ -425,7 +427,7 @@ Exemples :
 - archivage d’une Séance et suppression de ses Routines ;
 - restauration d’une Séance archivée ;
 - suppression définitive d’une Séance archivée, avec conservation des Exécutions et Instantanés historiques ;
-- à partir du MVP bis, suppression d’une Catégorie et retrait de ses associations ;
+- archivage, réactivation et suppression contrôlée des Catégories, Classifications et Zones corporelles ;
 - création d’une Exécution et de son Instantané.
 
 Une opération atomique :
@@ -818,7 +820,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
 | Statut | `Status / Badge — Source exact` (`3959:5970`) | `Status=Catalogue/Planifiée/Exécutée/Archivée/Partielle/Terminée/Interrompue` ; pastille `h=24`, rayon `12`, `Inter Semi Bold 11`, padding `12/5`, largeur au contenu ; quatorze couleurs liées aux variables sémantiques `color/status/*` ; utilisée par le Suivi et par les résultats de Recherche globale |
 | Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
-| Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
+| Référentiel sélectionnable | `Selection / Category Tag` (`3302:4166`) | Réutilisé pour Catégorie, Classification et Zone corporelle lorsque pertinent ; `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
 | Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant. Pour la modale Catégories, les sources `4155:6201`, `4151:6197` et `4152:6189` sont dérivées des contrôles validés de `2028:11204` / `2028:11248`, puis réinstanciées dans ces mêmes écrans afin d’éliminer les copies graphiques locales.
@@ -1267,7 +1269,7 @@ Ordre de développement retenu :
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
-9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; Zones corporelles utilisées comme référentiel prédéfini, sélectionnable et associable aux Exercices, sans création, modification ni suppression des valeurs du référentiel dans le MVP ; Profil et Préférences.
+9. **Catégories, Classifications, Zones corporelles et Préférences (écran Profil)** : référentiels administrables avec archivage/réactivation/suppression contrôlée ; Catégorie `0..1` par Activité, Classification `0..1` par Séance, Zones corporelles `0..n` par Activité ; Profil et Préférences, dont les valeurs par défaut du Compte à rebours d’activité et de la Fin d’activité.
 10. **Robustesse, accessibilité, responsive, tests end-to-end et stabilisation**.
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.
@@ -1280,7 +1282,7 @@ Si l’application est interrompue alors qu’une Exécution est `En cours`, cel
 
 SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Circuits, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
 
-Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
+Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `CategoryRepository`, `ClassificationRepository`, `BodyZoneRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie d’une définition dans une Séance en excluant explicitement le Compte à rebours d’activité et la Fin d’activité. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
 Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries, la Récupération et `sideMode`. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent `executionSide`, `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
@@ -1322,6 +1324,23 @@ Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 
 Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
 ## Architecture MVP T03 — Catalogue des Activités et moteur multi-origine
+
+## Plan technique de transition — D-201 à D-206
+
+La révision du modèle doit être implémentée **avant T04** afin que le moteur d’Exécution de Séance soit développé directement sur le modèle cible.
+
+Ordre technique :
+
+1. **Domaine** — étendre `ActivityDefinition` avec `initialCountdownSeconds`, `finalPhaseSeconds` et `categoryId?: string | null`; remplacer les Catégories de `Session` par `classificationId?: string | null`.
+2. **Référentiels** — rendre Catégorie, Classification et Zone corporelle persistantes et administrables, avec état actif/archivé, réactivation et suppression contrôlée.
+3. **Persistance SQLite** — ajouter une migration additive ; ne modifier aucune migration historique. En phase projet, aucune conversion sémantique des anciennes Catégories de Séance n’est exigée.
+4. **Repositories / services** — créer les contrats Classification/BodyZone CRUD, enrichir Category, et adapter ActivityDefinitionRepository/SessionRepository.
+5. **Composition** — supprimer le chemin de création locale de `SessionActivity`; `Ajouter une activité` ouvre directement la sélection Catalogue. La copie transporte la Catégorie et les Zones corporelles mais exclut les deux phases temporelles d’Activité.
+6. **Profil** — ajouter les deux préférences par défaut d’Activité ; elles initialisent uniquement les nouvelles ActivityDefinition.
+7. **Contrats écran et tests** — mettre à jour éditeur Activité, sélection d’Activités, Composition, modale Classification, Profil et gestion des référentiels.
+8. **T04** — seulement après cette convergence, construire le Plan d’Exécution de Séance ; il ne doit jamais injecter le Compte à rebours/Fin propres à l’ActivityDefinition dans une Exécution de Séance.
+
+**Impact de code attendu.** Modifications structurantes dans `src/domain/activities/`, `src/domain/sessions/`, `src/domain/categories/`, nouveau domaine/contrat Classification si absent, référentiel Zones corporelles, migrations SQLite, repositories, services de composition, Profil et écrans associés. Le moteur d’Exécution existant n’a pas à être refondu maintenant ; sa frontière T03/T04 reste valide.
 
 T03 livre le Catalogue des Activités et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
