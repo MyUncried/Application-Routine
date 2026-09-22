@@ -38,7 +38,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro ou une Classification à la Séance. |
 | RM-023 | Une Classification peut être créée depuis la modale de sélection. Catégories, Classifications et Zones corporelles sont archivables/réactivables ; une valeur archivée reste liée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. Une suppression utilisée demande confirmation puis retire les affectations courantes, sans modifier les Instantanés historiques. |
 | RM-024 | La validation de la Classification termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
-| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. La couleur de la Séance reste choisie indépendamment de ses Catégories. |
+| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. Cette présentation du référentiel n’a aucun effet sur la couleur des Séances. |
 
 ## 3. Composition, Tour et Cycle technique
 
