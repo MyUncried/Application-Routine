@@ -200,10 +200,10 @@ Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persis
 
 ## 2 bis.3 Ajouter une Activité à une Séance
 
-Depuis la Composition, `Ajouter une activité` propose `Une nouvelle activité / Une activité existante / Annuler`.
+Depuis la Composition, `Ajouter une activité` ouvre directement la modale de sélection multiple des Activités du Catalogue.
 
-- `Une nouvelle activité` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
-- `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités ;
+- `Créer une activité` dans la modale ouvre l’éditeur d’une `ActivityDefinition` persistante ; après enregistrement, elle est ajoutée directement à la Séance et le parcours revient à la Composition ;
+- la sélection multiple copie les Activités existantes selon leur ordre visible dans la liste filtrée ;
 - `Annuler` ferme les options sans modifier le brouillon.
 
 La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Une Activité créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
@@ -939,7 +939,7 @@ Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération
 
 Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
-## Catégories de la séance — modale
+## Classification de la séance — modale
 
 ### Éléments affichés
 
@@ -947,7 +947,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Voile modal | Overlay | Toujours | Oui | Visible | Bloque les interactions avec la Composition sous-jacente | DSF/Figma | Aucune | La Composition reste visible mais inactive |
 | Action Annuler d’en-tête | Bouton iconique | Toujours | Oui | Visible | Ferme la modale sans persistance finale | `Modal / Header Action — Source exact` (`4151:6191`) | Annuler | Icône `Icon / Modal Action — Source exact` (`4155:6197`) ; cible `48 × 53 pt`, fond circulaire `38 × 38 pt` |
-| Titre de la modale | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
+| Titre de la modale | Texte | Toujours | Oui | « Classification de la séance » | Texte fixe | Statique | Aucune | Centré dans l’en-tête modal de `60 pt` |
 | Action Valider d’en-tête | Bouton iconique | Toujours | Oui | Actif si la Séance est valide | Déclenche une seule transaction finale | `Modal / Header Action — Source exact` (`4151:6196`) | Valider | Icône `Icon / Modal Action — Source exact` (`4155:6200`) ; remplace l’ancien CTA inférieur |
 | Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie / DSF | Sélectionner / Désélectionner | `Selection / Category Tag` (`3302:4166`) ; prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante |
 | Bouton Créer une catégorie | Bouton | État standard | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | DSF | Créer | `Action / Categories — Source exact` `Type=Create` (`4152:6182`) |
@@ -964,7 +964,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Règle | Description |
 | --- | --- |
 | Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
-| Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
+| Sélection unique facultative | Une Séance peut être associée à zéro ou une Classification. |
 | Création d’une catégorie | La saisie est intégrée dans la modale avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant la validation finale. |
 | Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
 | Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant les ouvertures de la modale. |
@@ -985,7 +985,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
 | Ajouter un média          | Bouton / section repliable | Toujours | Oui dans le rendu | Contrôle et placeholder désactivés dans le MVP | Centré horizontalement ; activation fonctionnelle post-MVP | Statique | Déployer / Condenser | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; section Médias visible, aucune fonction média réelle |
 | Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
-| Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
+| Catégorie | Section repliable + sélection | Toujours ; repliée par défaut | Non | Aucune | Sélection unique facultative | Activité | Déployer / sélectionner | Référentiel administrable ; zéro ou une Catégorie par Activité |
+| Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel administrable ; le titre ou son chevron ouvre et referme les tags |
 | Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 30 s                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer |
@@ -1016,7 +1017,10 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
 | Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si la durée saisie est ajustée, un message bref annonce la valeur réalisable. |
 | Modes non chronométrés | En Répétitions et À l’échec, le contrôle reste visible sous le libellé `Durée totale >=`. Il affiche la borne minimale composée des seules Pauses connues et de la Récupération ; la Synthèse l’exprime sous la forme `Durée totale : ≥ {durée connue}`. |
-| Zones corporelles | Sélection multiple parmi le référentiel prédéfini. L'utilisateur ne peut ni créer, ni renommer, ni supprimer une Zone corporelle dans le MVP. |
+| Catégorie | Zéro ou une Catégorie issue du référentiel administrable. |
+| Zones corporelles | Sélection multiple parmi le référentiel administrable. Les règles de création, archivage, réactivation et suppression contrôlée sont communes aux référentiels. |
+| Compte à rebours d’activité | Durée propre à l’ActivityDefinition, initialisée depuis le Profil lors de la création puis modifiable. |
+| Fin d’activité | Durée propre à l’ActivityDefinition, initialisée depuis le Profil lors de la création puis modifiable. Ces deux durées ne sont pas copiées dans une SessionActivity. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
 | Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La Récupération positive est ajoutée après l’Activité. |
