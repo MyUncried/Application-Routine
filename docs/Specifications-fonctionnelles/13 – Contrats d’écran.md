@@ -484,15 +484,15 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 3 bis. Variante D-210 — Paramétrage repliable
 
-Références Figma : `4230:7023` = état replié initial ; `4217:6980` = état déplié.
+Références Figma courantes : `4230:7023` = état initial vide/replié ; `4217:6980` = état renseigné `Squats sautés`/replié ; `4279:7044` = état renseigné/paramètres dépliés.
 
 Dans cette variante, le bloc `Synthèse de l’activité` est positionné immédiatement après `Description de l’activité`. La section autonome `Mode d’exécution` et son contrôle segmenté sont supprimés. À l’état initial, le bloc de Synthèse est réduit à une ligne, ne contient aucun chevron, et affiche exactement `Cliquez pour paramétrer`. Tap sur le bloc → état déplié ; second tap → état replié. Le passage entre états conserve intégralement le brouillon.
 
-Dans l’état déplié, le même cadre de Synthèse reste dépourvu de chevron et affiche le texte de Synthèse fonctionnel existant. Sous ce cadre, la liste verticale compacte est présentée en deux colonnes. Ordre et libellés exacts : `Mode d’exécution` → `Compte à rebours` → `Nombre de séries` → `Durée de l’activité` → `Pause entre chaque série` → `Côté` → `Récupération` → `Fin d’activité` → `Durée totale`. La ligne `Mode d’exécution` affiche la valeur `Durée` avec chevron. Les autres valeurs restent alignées à droite avant leur chevron. Le contrôle `Côté` utilise le même alignement ; en `UNILATERAL`, aucune valeur textuelle n’est affichée. La frame `4217:6980` représente `Fin d’activité` à `10 s`, sans redéfinir la valeur par défaut du Profil.
+Dans l’état déplié `4279:7044`, le même cadre de Synthèse reste dépourvu de chevron et affiche le texte de Synthèse fonctionnel existant. Sous ce cadre, la liste verticale compacte est présentée en deux colonnes. Ordre et libellés exacts : `Mode d’exécution` → `Compte à rebours` → `Nombre de séries` → `Durée de l’activité` → `Pause entre chaque série` → `Côté` → `Récupération` → `Fin d’activité` → `Durée totale`. La ligne `Mode d’exécution` affiche la valeur `Durée` avec chevron. Les autres valeurs restent alignées à droite avant leur chevron. Le contrôle `Côté` utilise le même alignement ; en `UNILATERAL`, aucune valeur textuelle n’est affichée. `Fin d’activité` est représentée à `10 s`, sans redéfinir la valeur par défaut du Profil.
 
 Chaque modification confirmée d’un paramètre met à jour en temps réel le texte de Synthèse à partir du brouillon courant. Le repli ne fige pas une valeur antérieure et ne persiste rien à lui seul.
 
-D-213 supersède l’ordre de D-212 : `Description de l’activité` est déployée au premier affichage ; son champ vide a une hauteur minimale d’une ligne et sa hauteur augmente dynamiquement avec le contenu. `Médias` est présent et déployé immédiatement après Description ; le premier cadre Médias contient une illustration d’activité qui épouse les contours du cadre et reste strictement clippée à l’intérieur ; les cadres suivants affichent `Cliquez pour ajouter` sur deux lignes (`Cliquez` puis `pour ajouter`). Le titre statique exact `Paramètres d’exécution` suit Médias et précède le cadre de Synthèse. Ordre replié : Description → Médias → `Paramètres d’exécution` → Synthèse repliée. Ordre déplié : Description → Médias → `Paramètres d’exécution` → Synthèse → liste des paramètres. Le nouveau libellé média ne constitue pas à lui seul une activation fonctionnelle hors MVP.
+D-216 fixe les trois états de référence. `4230:7023` : Description déployée, texte indicatif `Décrivez ce qu’il faut faire, comment, et avec quoi`, premier cadre Médias vide, paramètres repliés, `Terminer` fixe. `4217:6980` : nom de démonstration `Squats sautés`, description `Descendez en squat, puis sautez verticalement. Atterrissez souplement et enchaînez.`, illustration `Squat assisté` dans le premier cadre Médias, paramètres repliés, `Terminer` fixe. `4279:7044` : copie renseignée avec liste complète des neuf paramètres sous la Synthèse ; le contenu commence à la limite basse de la zone colorée (`y = 115`) et utilise un espacement compact ; `Terminer` reste fixe. Les autres cadres Médias affichent `Cliquez pour ajouter` sur deux lignes. Ces contenus renseignés restent des valeurs de démonstration Figma.
 
 ### 4. Contexte de sortie / destinations
 
@@ -508,7 +508,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Hors variante D-210 à D-213 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-213 suit l’ordre spécifique défini au §3 bis.
+Hors variante D-210 à D-216 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-216 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
