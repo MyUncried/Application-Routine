@@ -771,7 +771,7 @@ Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans
 
 ### 3. Contexte d’entrée
 
-`Une activité existante` depuis CE-T03-06.
+Ouverture directe depuis `Ajouter une activité` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
