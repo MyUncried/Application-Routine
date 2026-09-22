@@ -498,6 +498,8 @@ D-219 précise la géométrie et les contenus : dans `4279:7044`, le défilement
 
 D-220 révise trois éléments : `4217:6980` revient au texte initial `Cliquez pour paramétrer`; dans les quatre états de la variante, les cadres Médias d’ajout n’ont plus de texte et utilisent uniquement le SF Symbol standard `photo.badge.plus`, centré ; sur `4294:7075`, le contrôle Zones corporelles est sans `+` et affiche exactement `Cuisses · Fessier`.
 
+D-221 ajoute un chevron de section à droite du titre `Paramètres d’exécution`. Orientation : bas si la liste est repliée (`4230:7023`, `4217:6980`, `4294:7075`), haut si elle est dépliée (`4279:7044`). Aucun chevron n’est ajouté dans le cadre de Synthèse.
+
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
@@ -512,7 +514,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Hors variante D-210 à D-220 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-220 suit l’ordre spécifique défini au §3 bis.
+Hors variante D-210 à D-221 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-221 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
