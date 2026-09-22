@@ -26,7 +26,7 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 Elle possède notamment :
 - un nom ;
 - une couleur ;
-- zéro, une ou plusieurs catégories ;
+- zéro ou une Classification ;
 - une Composition présentée autour d’un Tour unique ;
 - des paramètres de guidage et d’exécution.
 
@@ -41,6 +41,8 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 ### Activité
 
 Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des activités ; son ajout à une Séance crée une copie indépendante.
+
+Une Activité possède un Compte à rebours d’activité et une Fin d’activité propres, initialisés à la création depuis les valeurs par défaut du Profil puis modifiables dans sa fiche. Elle porte zéro ou une Catégorie et zéro ou plusieurs Zones corporelles.
 
 Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle, exécutée une seule fois après tous les côtés de cette Activité. `Récupération` n’est plus un type d’Activité.
 
@@ -79,8 +81,8 @@ Pour un plan bilatéral, cet instantané conserve la direction effective et chaq
 Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
-- associer zéro, une ou plusieurs Catégories ;
-- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
+- associer zéro ou une Classification ;
+- afficher dans chaque carte du Catalogue la Classification éventuelle et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
@@ -104,7 +106,11 @@ La rangée de commandes Catalogue est commune aux écrans représentés `Séance
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
-Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
+Une Séance est composée exclusivement à partir d’Activités persistantes du Catalogue. Aucune Activité n’est créée comme simple `SessionActivity` à la volée depuis la Composition.
+
+### Référentiels administrables
+
+Les Catégories, Classifications et Zones corporelles sont des référentiels administrables. Une valeur peut être archivée puis réactivée. Une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. La suppression d’une valeur utilisée demande confirmation puis retire l’affectation des contenus concernés. Les Instantanés historiques restent immuables. Les Zones corporelles restent multi-sélectionnables sur une Activité.
 
 ### Composition d’une Séance
 
@@ -243,7 +249,7 @@ Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles
 
 ### Profil et préférences
 
-Les Préférences globales définissent notamment les valeurs par défaut du Compte à rebours initial et de la Fin de séance, les sons, les annonces vocales, les vibrations fonctionnelles de séance et l’activation des notifications.
+Les Préférences globales définissent notamment les valeurs par défaut du Compte à rebours initial et de la Fin de séance, ainsi que les valeurs par défaut du Compte à rebours d’activité et de la Fin d’activité pour toute nouvelle Activité. Elles définissent également les sons, les annonces vocales, les vibrations fonctionnelles de séance et l’activation des notifications.
 
 Les valeurs initiales sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. Le réglage `Vibration` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
 
@@ -290,7 +296,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
-8. Les catégories qualifient les Séances.
+8. Une Activité porte zéro ou une Catégorie ; une Séance porte zéro ou une Classification.
 9. Les zones corporelles qualifient les Activités ; elles restent facultatives.
 10. La couleur appartient à la Séance et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
@@ -313,7 +319,7 @@ Les principaux écrans du MVP sont :
 - Composition d’une Séance ;
 - création ou modification d’une Activité ;
 - options d’une Activité ;
-- catégories de la Séance dans une modale de sélection/validation ouverte depuis la Composition ;
+- Classification de la Séance dans une modale de sélection/validation ouverte depuis la Composition ;
 - Calendrier semaine et mois ;
 - planification d’une Séance ;
 - Exécution d’une Séance ;
@@ -377,9 +383,9 @@ Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et 
 
 Une Activité de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
-Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
+Son insertion dans une Séance copie les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Catégorie éventuelle, Zones corporelles, direction propre et autres champs applicables — **à l’exception du Compte à rebours d’activité et de la Fin d’activité**. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix restent `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, la modale de sélection des Activités du Catalogue s’ouvre directement. Si l’Activité recherchée n’existe pas, `Créer une activité` ouvre sa création ; après enregistrement elle est ajoutée directement à la Séance puis le parcours revient à la Composition. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
 
