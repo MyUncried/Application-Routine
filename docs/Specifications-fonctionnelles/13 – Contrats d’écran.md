@@ -496,7 +496,7 @@ D-217 révise les deux états renseignés. `4217:6980` conserve nom, description
 
 D-219 précise la géométrie et les contenus : dans `4279:7044`, le défilement masque 91 pt de la section Médias sous la zone colorée et n’en laisse visibles que 75 pt ; la Synthèse et les huit paramètres sont entièrement visibles et la liste se termine 16 pt avant l’action fixe. Dans `4217:6980` et `4294:7075`, la Description de démonstration est `Descendez en squat, puis sautez verticalement. Atterrissez souplement et enchaînez. Gardez les genoux alignés avec les pieds et les jambes.` et sa hauteur suit le contenu. Le nom `Squats sautés` utilise `color/text-primary`. Sur `4279:7044` et `4294:7075`, le contrôle Catégorie renseigné mesure `144 × 32 pt`, affiche `Renforcement`, puis une pastille rouge `24 × 24 pt` séparée de 8 pt et placée à 4 pt des bords haut/bas/droit. `4294:7075` affiche la Synthèse complète et `Cuisses - Fessier` dans Zones corporelles. `Terminer` reste en `color/disabled` sur `4230:7023` et `4217:6980`.
 
-D-220 révise trois éléments : `4217:6980` revient au texte initial `Cliquez pour paramétrer`; dans les quatre états de la variante, les cadres Médias d’ajout n’ont plus de texte et utilisent uniquement une icône de téléchargement média centrée ; sur `4294:7075`, le contrôle Zones corporelles est sans `+` et affiche exactement `Cuisses · Fessier`.
+D-220 révise trois éléments : `4217:6980` revient au texte initial `Cliquez pour paramétrer`; dans les quatre états de la variante, les cadres Médias d’ajout n’ont plus de texte et utilisent uniquement le SF Symbol standard `tray.and.arrow.down`, centré ; sur `4294:7075`, le contrôle Zones corporelles est sans `+` et affiche exactement `Cuisses · Fessier`.
 
 ### 4. Contexte de sortie / destinations
 
