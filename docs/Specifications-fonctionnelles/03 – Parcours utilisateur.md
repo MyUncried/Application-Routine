@@ -10,7 +10,7 @@ Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des
 Présenter la couverture fonctionnelle du MVP et orienter vers les parcours utilisateur détaillés de ce chapitre.
 
 Le MVP permet à l'utilisateur :
-- de gérer ses catégories de séances et de sélectionner les zones corporelles du référentiel applicatif ;
+- de gérer les Catégories d’Activités, les Classifications de Séances et les Zones corporelles administrables ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
 - d’archiver une Séance, de consulter les archives, de la restaurer ou de la supprimer définitivement depuis les archives ;
@@ -58,13 +58,19 @@ Ces fonctions sont prévues pour des versions ultérieures.
 # Gestion des référentiels utilisateur
 
 Les référentiels utilisés dans le MVP sont de deux natures :
-- les **Catégories de Séances**, personnalisables par l’utilisateur ;
+- les **Catégories d’Activités**, les **Classifications de Séances** et les **Zones corporelles**, administrables par l’utilisateur ;
 - les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et non administrable par l’utilisateur.
 
-## Gestion des catégories
+## Gestion des catégories, classifications et zones corporelles
 
-Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
-Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
+Les trois référentiels sont administrables. Une valeur peut être archivée puis réactivée. Une valeur archivée reste visible sur les contenus déjà affectés mais n’est plus proposée pour une nouvelle affectation. La suppression d’une valeur utilisée demande confirmation et retire alors l’affectation. Les Zones corporelles restent multi-sélectionnables sur une Activité.
+
+### Catégories
+
+
+
+Les Catégories qualifient les Activités afin d’en faciliter l’organisation, la recherche et le suivi. Une Activité porte zéro ou une Catégorie.
+Une Séance ne porte plus de Catégorie. Elle peut porter zéro ou une Classification, issue d’un référentiel administrable selon les mêmes règles générales que les Catégories.
 
 L'utilisateur peut :
 - consulter les catégories existantes ;
@@ -72,7 +78,7 @@ L'utilisateur peut :
 - modifier son nom ;
 - supprimer une catégorie dans la gestion dédiée, à partir du MVP bis.
 
-Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
+Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une confirmation est demandée puis l’affectation est retirée des Activités concernées. Une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation. Les Instantanés historiques restent inchangés.
 
 ### Parcours
 
@@ -114,7 +120,7 @@ Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Dur
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
-`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
+`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une Classification puis enregistre la Séance.
 ### 2. Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
@@ -357,9 +363,9 @@ Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catal
 ## Ajouter une Activité depuis une Composition
 
 1. Appuyer sur `Ajouter une activité`.
-2. Choisir `Une nouvelle activité`, `Une activité existante` ou `Annuler`.
-3. `Une nouvelle activité` ouvre le formulaire d’Activité de Séance.
-4. `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités.
+2. La modale de sélection multiple du Catalogue d’Activités s’ouvre directement.
+3. Sélectionner une ou plusieurs Activités existantes, ou utiliser `Créer une activité` si l’Activité recherchée n’existe pas.
+4. Une Activité créée depuis cette modale est enregistrée dans le Catalogue, ajoutée directement à la Séance puis le parcours revient à la Composition.
 5. `Annuler` ferme les options sans modifier la Composition.
 
 ## Utiliser une Activité de référence
@@ -419,7 +425,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Dépl
 
 ## Ajouter plusieurs Activités existantes à une Composition — MVP T03
 
-1. Depuis l’arbre d’ajout de la Composition, choisir `Une activité existante`.
+1. Depuis la Composition, appuyer sur `Ajouter une activité` pour ouvrir directement la modale de sélection.
 2. Rechercher ou filtrer le Catalogue d’Activités présenté dans le panneau modal.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
 4. Vérifier le nombre indiqué par `Ajouter N activité(s)`.
