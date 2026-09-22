@@ -68,7 +68,7 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ## MVP bis – Compléments immédiats
 
-- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
+- gérer les référentiels Catégories, Classifications et Zones corporelles : création, archivage, réactivation et suppression contrôlée ; une valeur archivée reste attachée aux contenus existants mais n’est plus proposée pour une nouvelle affectation.
 
 ## V2 – Réutilisation avancée des séances
 
@@ -110,7 +110,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante. Depuis D-205, toute Activité ajoutée à une Séance provient de ce Catalogue ; il n’existe plus de création locale de `SessionActivity` depuis la Composition. Le Compte à rebours d’activité et la Fin d’activité ne sont pas copiés dans la Séance.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -193,7 +193,7 @@ Pour cette version, la bilatéralité au niveau du Tour n’est pas activée : `
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
-- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- nouvelle structure d’édition d’une Activité : suppression du type, Catégorie facultative unique, Zones corporelles multiples, Compte à rebours d’activité et Fin d’activité propres, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
 ### MVP — complément T03
