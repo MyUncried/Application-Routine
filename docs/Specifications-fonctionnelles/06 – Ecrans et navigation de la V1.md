@@ -721,7 +721,7 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 *Écran 4 — Activité — Durée / Pause / Séries — Figma `3542:4656`*
 
-La capture Figma matérialise la structure cible commune. Dans le MVP, la section Médias reste visible et repliable ; son contrôle `Déployer / Condenser` et son placeholder média sont désactivés et aucune fonction d’import, capture, lecture ou stockage n’est active. Le bouton supérieur `Ajouter un média` n’est plus présent dans l’éditeur : sa zone est occupée par les contrôles `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` définis par D-207.
+La capture Figma matérialise la structure cible commune. Dans le MVP, la section Médias reste visible et repliable ; son contrôle `Déployer / Condenser` et son placeholder média sont désactivés et aucune fonction d’import, capture, lecture ou stockage n’est active. Le bouton supérieur `Ajouter un média` n’est plus présent dans l’éditeur : sa zone est occupée par les contrôles `Catégorie` et `Zones corporelles`, chacun précédé de l’icône vectorielle `+` définis par D-207. Lorsque la zone Médias s’étend jusqu’à la Synthèse fixe, son contenu est masqué sous le cadre de Synthèse ; le masque commence `16 pt` avant le bord supérieur du cadre de Synthèse afin de conserver la marge visuelle attendue.
 
 ### États Figma de référence
 
