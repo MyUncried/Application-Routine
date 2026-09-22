@@ -180,8 +180,8 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Activité, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Catégories | Modale au-dessus de la Composition : en-tête modal fixe avec Annuler/Valider ; contenu interne défilable si nécessaire ; aucun CTA final inférieur. Avec le clavier ouvert dans l’état inline, le champ actif et Annuler/Ajouter restent atteignables. |
-| Activité | Aucun contrôle de type n’est affiché. `Description de l’activité`, `Zone corporelle`, `Mode d’exécution` et `Médias` sont des sections repliables ; Mode est déployé par défaut. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Les rangées `Séries / cible / Pause` et `Côté / Récupération / Durée totale` conservent leurs emplacements. La synthèse et l’action `Terminer` restent fixes. |
+| Classification | Modale au-dessus de la Composition : en-tête modal fixe avec Annuler/Valider ; contenu interne défilable si nécessaire ; aucun CTA final inférieur. Avec le clavier ouvert dans l’état inline, le champ actif et Annuler/Ajouter restent atteignables. |
+| Activité | La fiche porte une Catégorie facultative unique, des Zones corporelles multiples, un Compte à rebours d’activité et une Fin d’activité propres. Aucun contrôle de type n’est affiché. `Description de l’activité`, `Catégorie`, `Zone corporelle`, `Mode d’exécution` et `Médias` sont des sections repliables ; Mode est déployé par défaut. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Les rangées `Séries / cible / Pause` et `Côté / Récupération / Durée totale` conservent leurs emplacements. La synthèse et l’action `Terminer` restent fixes. |
 | Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -229,7 +229,7 @@ La création suit le parcours suivant :
 1. saisie du nom, choix de la couleur et composition de la Séance dans l’écran unique `Composition d’une séance` ;
 2. ajout d’au moins un Exercice valide ;
 3. action `Continuer` ;
-4. sélection facultative d’une ou plusieurs Catégories ;
+4. sélection facultative d’une Classification ;
 5. retour au `Catalogue des séances`, segment `Séances`, après validation.
 
 Aucune Routine n’est créée automatiquement. La transition canonique d’avancement fait entrer l’écran cible depuis la droite et sortir l’écran courant vers la gauche.
@@ -240,7 +240,7 @@ Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la
 
 La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités` comme pour `Séances`, `Filtrer` ouvre le panneau partagé `Archivées`, unique option fonctionnelle du MVP. Par défaut, `Archivées` est non sélectionné et seules les entrées actives/non archivées sont affichées. Un tap sur `Archivées` applique immédiatement le filtre, ferme le panneau et affiche uniquement les entrées archivées ; rouvrir `Filtrer` montre `Archivées` sélectionné. Un nouveau tap sur `Archivées` désactive immédiatement le filtre, ferme le panneau et revient à la liste active. Aucun bouton de validation, aucune option `Toutes`, `Planifiées` ou `Non planifiées` et aucun autre critère ne font partie du MVP. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre Archives, tri implicite et scroll sont conservés pendant l’aller-retour courant, mais perdus au relaunch.
 
-Depuis la Composition d’une Séance, `Ajouter une activité` ouvre les choix `Une nouvelle activité / Une activité existante / Annuler`. La première action ouvre l’éditeur d’une Activité de Séance ; la seconde ouvre la sélection multiple du Catalogue des Activités. La validation copie les Activités dans leur ordre visible et restaure la Composition.
+Depuis la Composition d’une Séance, `Ajouter une activité` ouvre directement la modale de sélection multiple du Catalogue des Activités. La modale permet aussi `Créer une activité` ; après création, la nouvelle `ActivityDefinition` est ajoutée directement à la Séance puis le parcours revient à la Composition. La validation de sélection copie les Activités dans leur ordre visible et restaure la Composition.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
@@ -279,7 +279,7 @@ Les écrans principaux du MVP sont :
 3. `Composition d’une séance`, incluant le nom et la couleur ;
 4. `Création / modification d’une Activité — Exercice` ;
 5. numéro réservé — ancien écran autonome Récupération supprimé ;
-6. `Catégories de la séance` ;
+6. `Classification de la séance` ;
 7. `Calendrier` ;
 8. `Planifier une séance` ;
 9. `Exécution de séance`, incluant les états et commandes d’interruption ;
@@ -395,10 +395,12 @@ L’écran comporte notamment :
 - `Annonces vocales` ;
 - `Vibration` ;
 - la durée par défaut du `Compte à rebours initial` ;
+- la durée par défaut du `Compte à rebours d’activité` ;
+- la durée par défaut de la `Fin d’activité` ;
 - la durée par défaut de la `Fin de séance` ;
 - `Notifications` et rappels.
 
-Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance.
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Le Profil définit également les valeurs par défaut du Compte à rebours d’activité et de la Fin d’activité, utilisées uniquement lors de la création d’une nouvelle Activité. Toutes ces valeurs restent ensuite modifiables sur leur contenu respectif.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
 
