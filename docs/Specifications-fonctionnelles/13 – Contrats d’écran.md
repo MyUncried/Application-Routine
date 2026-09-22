@@ -162,7 +162,7 @@ Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue 
 
 ### 3. Contexte d’entrée
 
-Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Activités`.
+Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Classification. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Activités`.
 
 ### 4. Contexte de sortie / destinations
 
@@ -176,7 +176,7 @@ Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour 
 
 ### 5. Données affichées et source de vérité
 
-Liste issue des services/repositories Séance. Noms, catégories, zones, durées et statuts sont dynamiques. Aucune carte d’exemple ne doit être ajoutée pour remplir l’écran.
+Liste issue des services/repositories Séance. Noms, Classification éventuelle, zones, durées et statuts sont dynamiques. Aucune carte d’exemple ne doit être ajoutée pour remplir l’écran.
 
 ### 6. Classification des valeurs Figma
 
@@ -200,7 +200,7 @@ Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrolla
 
 ### 11. États de l’écran
 
-Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour d’un sous-parcours ; relaunch sur Séances.
+Vide réel ; liste ; recherche globale déployée ; retour Classification ; retour d’un sous-parcours ; relaunch sur Séances.
 
 ### 12. Contrôles et interactions
 
@@ -220,7 +220,7 @@ Aucun état de segment persisté au relaunch. Le brouillon de création de Séan
 
 ### 16. Navigation et conservation d’état
 
-Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. La recherche/filtres/tri implicite/scroll ne sont conservés que pendant l’aller-retour courant.
+Retour Classification impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. La recherche/filtres/tri implicite/scroll ne sont conservés que pendant l’aller-retour courant.
 
 ### 17. Erreurs et cas limites
 
@@ -236,7 +236,7 @@ Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bot
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, Recherche globale `1992:10129`, retour Classification, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
 
 ### 21. Traçabilité
 
