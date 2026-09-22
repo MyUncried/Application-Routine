@@ -826,7 +826,7 @@ D-223 applique strictement le standard unique de modale : en-tête `378 × 60 pt
 
 D-224 décline exactement ce même modèle sur les huit éléments de la liste `Paramètres d’exécution` : `4367:7128` Mode d’exécution, `4367:7276` Compte à rebours, `4367:7450` Nombre de séries, `4367:7624` Durée de l’activité, `4367:7765` Pause entre chaque série, `4367:7906` Côté, `4367:8052` Récupération, `4367:8193` Durée totale. Seul le contrôle central varie selon le paramètre ; la feuille, l’en-tête, les marges et les actions sont identiques.
 
-D-225 précise deux contenus centraux : `Mode d’exécution` et `Côté` utilisent eux aussi une roulette à une colonne de trois valeurs. Mode : `Durée`, `Répétitions`, `À l’échec`, avec `Durée` centrée dans l’état de référence. Côté : `Unilatéral`, `D→G`, `G→D`, avec `Unilatéral` centré. Le shell modal reste strictement identique à D-223/D-224.
+D-225 précise deux contenus centraux : `Mode d’exécution` et `Côté` utilisent eux aussi une roulette à une colonne de trois valeurs. Mode : `Durée`, `Répétitions`, `À l’échec`, avec `Durée` centrée dans l’état de référence. Côté : `Unilatéral`, `Gauche puis Droite`, `Droite puis Gauche`, avec `Unilatéral` centré. Ces libellés développés sont propres à la modale Côté ; les indicateurs courts `G→D` / `D→G` restent inchangés ailleurs. Le shell modal reste strictement identique à D-223/D-224.
 
 Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée uniquement entre les Séries d’un même côté ; aucune Pause n’est ajoutée entre les côtés. La Récupération est exécutée une seule fois après les deux côtés.
 
