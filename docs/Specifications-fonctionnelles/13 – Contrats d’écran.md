@@ -502,6 +502,8 @@ D-221 ajoute un chevron de section à droite du titre `Paramètres d’exécutio
 
 D-222 ajoute l’état `4332:7095` pour `Durée de l’activité` ouverte. Le contexte écran 3 reste visible sous un voile modal. La feuille occupe toute la largeur `402 pt`, est ancrée en bas, avec fond blanc, rayon `24 pt`, poignée `50 × 4 pt` et titre `Durée de l’activité` selon le patron `3789:5405`. Elle contient la roulette canonique de durée `3556:7710`, `330 × 203 pt`, avec ses propres actions Annuler/Confirmer. Les unités visibles sont `minutes` et `secondes`. Les boutons d’action de la modale `Sélectionner les activités` ne sont pas repris.
 
+D-223 révise la composition interne de cette feuille : Annuler et Confirmer utilisent les contrôles standards mais sont placés en haut de la feuille, respectivement à `24 pt` des bords gauche et droit ; le titre est sous cette rangée d’actions. La roulette n’a plus de fond, trait ni rayon propre et sa barre d’actions interne est retirée. Sa zone utile mesure `330 × 150 pt`. Les mots `minutes` et `secondes` restent hors des capsules grises, avec environ `9 pt` d’écart. La feuille finale mesure `402 × 282 pt`.
+
 ### 4. Contexte de sortie / destinations
 
 `Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
@@ -516,7 +518,7 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Hors variante D-210 à D-222 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-222 suit l’ordre spécifique défini au §3 bis.
+Hors variante D-210 à D-223 : Nom → contrôles `Catégorie` / `Zones corporelles` → sections `Description de l’activité` / `Mode d’exécution` / `Médias` → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer. La variante D-210 à D-223 suit l’ordre spécifique défini au §3 bis.
 
 ### 8. Éléments obligatoires
 
