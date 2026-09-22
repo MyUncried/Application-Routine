@@ -59,7 +59,6 @@ Ces fonctions sont prévues pour des versions ultérieures.
 
 Les référentiels utilisés dans le MVP sont de deux natures :
 - les **Catégories d’Activités**, les **Classifications de Séances** et les **Zones corporelles**, administrables par l’utilisateur ;
-- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et non administrable par l’utilisateur.
 
 ## Gestion des catégories, classifications et zones corporelles
 
@@ -85,7 +84,7 @@ Si une Catégorie supprimée est utilisée par une ou plusieurs Activités, une 
 1. Ouvrir la gestion ou la sélection des catégories.
 2. Consulter les catégories existantes.
 3. Créer ou modifier une catégorie selon le besoin ; sa suppression est disponible à partir du MVP bis.
-4. Dans la création d’une Séance, une nouvelle Catégorie reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
+4. Dans la création ou modification d’une Séance, une nouvelle Classification reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
 
 ## Référentiel des zones corporelles
 
