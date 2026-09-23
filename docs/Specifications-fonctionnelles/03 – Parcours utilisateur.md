@@ -236,6 +236,8 @@ Les exécutions déjà réalisées sont conservées.
 
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
+   - Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation.
+   - Si une ou plusieurs Routines sont associées, une confirmation explicite est demandée avant l’archivage ; après confirmation, ces Routines sont supprimées.
 3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
 4. Glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
 5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
@@ -247,7 +249,7 @@ Les Exécutions historiques restent conservées après suppression.
 - Une séance peut être associée à plusieurs routines.
 - La suppression d'une routine ne supprime jamais la séance.
 - Les exécutions déjà réalisées sont toujours conservées.
-- L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
+- L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Cette suppression ne demande une confirmation que lorsqu’au moins une Routine est effectivement associée ; sans Routine associée, l’archivage est immédiat. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
 ## Résultat attendu
 
 L'utilisateur gère facilement la planification de ses séances sans modifier leur contenu et conserve un historique fiable de toutes les exécutions réalisées.
