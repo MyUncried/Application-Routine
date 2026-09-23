@@ -189,7 +189,7 @@ Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour 
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Circuits disabled ; `Créer` initialise directement le parcours de création d’une Séance. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Activités navigue ; Séances maintient ; Circuits disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée ; si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -197,7 +197,7 @@ Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste
 
 ### 14. Validation
 
-Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture.
+Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance.
 
 ### 15. Brouillon et persistance
 
@@ -221,7 +221,7 @@ Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bot
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
 
 ### 21. Traçabilité
 
