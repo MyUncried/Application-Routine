@@ -930,6 +930,20 @@ Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas
 
 Le choix d’un token existant est obligatoire. Une nouvelle valeur ne peut être ajoutée que si aucun token ne permet de reproduire une différence réellement visible et intentionnelle du Figma.
 
+##### Modales basses — géométrie canonique du contenu
+
+Les modales basses réutilisent les tokens du DSF Figma et ne déduisent pas leurs marges à partir de la hauteur d’un contenu particulier :
+
+| Token DSF | Valeur | Règle |
+| --- | ---: | --- |
+| `size/modal-header-height` | `60` | Hauteur canonique de l’en-tête de la modale basse |
+| `size/modal-width` | `378` | Largeur utile interne à la largeur de référence `402`, soit `12` points de marge latérale de chaque côté |
+| `spacing/modal-content-top-inset` | `16` | Espace vertical obligatoire entre le bas de l’en-tête et le premier élément fonctionnel visible du contenu |
+| `spacing/modal-bottom-inset` | `22` | Espace vertical obligatoire entre le dernier élément fonctionnel visible du contenu et le bas de la modale |
+
+La hauteur totale d’une modale basse suit son contenu, dans la limite de hauteur définie pour cette famille. Les cibles tactiles restent indépendantes de la boîte visuelle : un contrôle peut disposer d’une cible `48 × 48` alors que son élément visible est plus petit. En conséquence, les espacements visuels entre groupes se mesurent entre les boîtes visuelles des éléments, et non entre les limites transparentes de leurs cibles tactiles. Une cible tactile plus grande ne doit donc jamais créer artificiellement un espacement visuel supérieur au token demandé.
+
+
 ##### Échelle et usages des espacements
 
 | Token | Usage canonique |
