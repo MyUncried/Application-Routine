@@ -41,6 +41,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Composition** | Structure ordonnée d’une Séance et écran unique permettant de renseigner son nom, sa couleur et ses Activités. |
 | **Compte à rebours initial** | Phase structurelle précédant la première Activité. Sa valeur initiale est 10 s ; 0 s la rend instantanée. Ce n’est pas une Activité et elle n’est pas déplaçable. |
 | **Fin de séance** | Phase structurelle chronométrée suivant la dernière Activité. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas une Activité et elle n’est pas déplaçable. |
+| **Point d’arrêt** | Élément structurel positionnable entre deux unités exécutables successives d’une Composition. Il n’a ni durée ni résultat propre, n’est ni une Activité ni une Pause chronométrée et ne possède aucun écran d’Exécution dédié. Lorsqu’il est rencontré, l’unité suivante est affichée mais n’est pas démarrée automatiquement. Un Point d’arrêt dans un Tour s’applique à chaque répétition du Tour. |
 | **Série** | Exécution d’une Activité selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour une Activité bilatérale autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient `C` fois si la Récupération vaut `0`, y compris après la dernière Série, ou `C − 1` fois si la Récupération est positive et remplace alors la dernière Pause. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Pause entre les Séries** | Durée facultative rattachée aux Séries d’un même côté. Pour `C` Séries, elle est exécutée `C` fois lorsque la Récupération vaut `0`, y compris après la dernière Série ; lorsqu’une Récupération positive existe, elle est exécutée `C − 1` fois et la Récupération remplace la dernière Pause. Elle reste distincte de la Récupération. `Pause après Série` peut être conservé comme libellé historique. |
@@ -49,7 +50,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Activité avant le Tour** | Activité exécutée une seule fois avant la première répétition du Tour. |
 | **Activité dans le Tour** | Activité exécutée à chaque répétition du Tour. |
 | **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
-| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases de Récupération et répétitions du Tour. |
+| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases de Récupération et répétitions du Tour ; elle conserve également les marqueurs structurels nécessaires aux Points d’arrêt sans les traiter comme des Activités. |
 
 ### Direction propre et direction héritée
 

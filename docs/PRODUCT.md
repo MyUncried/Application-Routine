@@ -115,6 +115,10 @@ La structure affichée comprend, dans l’ordre :
 4. zéro, une ou plusieurs Activités après le Tour ;
 5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
+La Composition peut contenir zéro ou plusieurs **Points d’arrêt** entre deux unités exécutables successives. Un Point d’arrêt est un élément structurel positionnable : ce n’est ni une Activité, ni une Pause chronométrée, ni un écran d’Exécution. Il ne peut être placé ni en première ni en dernière position, deux Points d’arrêt ne peuvent pas être consécutifs, et un Point d’arrêt situé dans un Tour est rencontré à chaque répétition de ce Tour. Lors de son ajout, il est positionné par défaut après la dernière Activité créée, puis peut être déplacé indépendamment dans la Composition vers toute transition valide.
+
+Pendant l’Exécution de Séance T04, lorsqu’un Point d’arrêt est rencontré après l’achèvement de l’unité courante, l’écran normal de l’unité suivante est affiché mais cette unité ne démarre pas automatiquement. Aucun écran intermédiaire propre au Point d’arrêt n’est affiché ; la reprise utilise le comportement normal de démarrage de l’unité suivante.
+
 Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
@@ -169,7 +173,7 @@ La Durée estimée est calculée à partir de toutes les durées déterminables 
 
 Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`, qui additionne les Pauses et Récupérations connues.
 
-Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
+Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur ainsi que toute attente provoquée par un Point d’arrêt. Cette règle s’applique à toute exécution qui utilise des Points d’arrêt, notamment une Séance ou un Circuit.
 
 Trois indicateurs d’Activités sont distingués :
 - Nombre d’Activités de la Composition ;
@@ -379,7 +383,7 @@ Une Activité de Catalogue est une référence persistante `ActivityDefinition`.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix restent `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix sont `Une nouvelle activité`, `Une activité existante`, `Un point d’arrêt` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
 

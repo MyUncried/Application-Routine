@@ -228,7 +228,7 @@ Une Activité autonome exécute toutes les Séries du premier côté puis toutes
 
 ## 2 bis.7 Limite Circuit
 
-Le Catalogue peut proposer `Un circuit` dans son arbre V2. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
+Lorsque le Catalogue `Circuits` devient fonctionnel en V2, son contrôle contextuel `Créer` ouvre directement le formulaire Circuit, sans arbre intermédiaire. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
 
 # 3. Composition d'une séance
 
@@ -936,6 +936,8 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins une Activité valide.
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur confirmée et leur propre brouillon. L’ouverture copie la dernière valeur confirmée dans le brouillon ; le défilement ne modifie ni la carte ni la synthèse intégrée au Tour. Annuler abandonne le brouillon. Confirmer enregistre exactement les minutes et secondes centrées, puis actualise seulement la carte structurelle concernée. La synthèse sous `Nombre de tours` reste inchangée, car elle exclut ces deux éléments structurels hors Tour. Les secondes couvrent `00` à `59` avec un pas de `1`.
+
+Le Point d’arrêt est un élément structurel de Composition avec une position propre. L’arbre `Ajouter une activité` courant (frames synchronisées `3788:5258` et `3933:5780`) ajoute l’option `Un point d’arrêt` entre `Une activité existante` et `Annuler`. À la création, le Point d’arrêt est inséré après la dernière Activité créée ; il peut ensuite être déplacé vers toute transition valide. Il n’est jamais compté comme Activité, ne porte ni durée, ni Série, ni Résultat et n’ouvre aucun écran d’édition propre. À l’intérieur d’un Tour, sa position appartient à la séquence répétée et il s’applique donc à chaque passage.
 
 Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. La carte ou le bloc suit le glissement et révèle progressivement `Dupliquer` et `Supprimer` placés derrière. Avec Récupération, le groupe d’actions couvre la hauteur `93`; sans Récupération, la hauteur reste `69`. `Dupliquer` conserve les rayons définis par Figma/DSF et un espace visuel à son bord gauche laisse apparaître le fond du conteneur Tour conformément à D-176.
 

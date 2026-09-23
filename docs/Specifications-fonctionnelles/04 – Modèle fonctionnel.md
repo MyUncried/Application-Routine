@@ -176,11 +176,13 @@ Une Séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Activités après le Tour ;
 6. une Fin de séance.
 
-Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. `RECOVERY` est une phase appartenant à l’Activité qui la précède, jamais une Activité autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
+Des **Points d’arrêt** optionnels peuvent être insérés entre deux unités exécutables successives de cette structure, avant, dans ou après le Tour selon la transition visée. Ils possèdent une position propre dans l’ordre de Composition, peuvent être déplacés indépendamment, ne peuvent être ni le premier ni le dernier élément d’une séquence et ne peuvent pas être consécutifs. Un Point d’arrêt placé dans le Tour est rencontré à chaque répétition du Tour.
+
+Dans le Plan d’Exécution d’une Séance, les phases exécutées sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Un Point d’arrêt est un marqueur structurel de transition, pas une phase d’Activité ni une phase chronométrée. `RECOVERY` est une phase appartenant à l’Activité qui la précède, jamais une Activité autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
-Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
+Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur et le temps d’attente aux Points d’arrêt. Cette exclusion vaut également pour l’exécution future d’un Circuit utilisant le même mécanisme.
 
 Le **Cycle** contient le **Tour unique** et les Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
@@ -203,6 +205,7 @@ Cycle technique × 1 — non affiché
 ├── Activité avant le Tour
 ├── Tour × N
 │      ├── Activité
+│      ├── Point d’arrêt optionnel
 │      ├── Activité
 │      └── Activité
 └── Activité après le Tour
@@ -228,8 +231,8 @@ Dans l’interface de Composition, un appui long sur la carte d’une **Activit�
 Lorsqu'une Séance est démarrée :
 
 1. un instantané de la Séance est créé ;
-2. le moteur construit le Plan d’Exécution ;
-3. les Activités sont exécutées dans l'ordre prévu ;
+2. le moteur construit le Plan d’Exécution en conservant les Points d’arrêt de la Composition comme marqueurs de suspension d’auto-enchaînement ;
+3. les Activités sont exécutées dans l'ordre prévu ; lorsqu’un Point d’arrêt est rencontré, l’écran de l’unité suivante est préparé et affiché sans démarrage automatique ;
 4. les informations d'Exécution sont enregistrées ;
 5. les résultats sont sauvegardés.
 

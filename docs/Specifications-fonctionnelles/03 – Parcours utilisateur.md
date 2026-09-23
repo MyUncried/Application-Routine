@@ -19,6 +19,7 @@ Le MVP permet à l'utilisateur :
 - de consulter les Exécutions enregistrées dans le Suivi ;
 - d’accéder au Catalogue des Activités, d’y créer et modifier des Activités persistantes ;
 - de sélectionner plusieurs Activités existantes pour les insérer dans une Séance ;
+- d’ajouter et positionner des Points d’arrêt dans la Composition afin d’interrompre volontairement l’auto-enchaînement entre deux unités ;
 - d’exécuter directement une Activité avec préparation, Synthèse et Suivi.
 ## Parcours de référence
 
@@ -35,6 +36,7 @@ Le MVP permet à l'utilisateur :
 ## Principes communs
 
 - Une séance définit le contenu à exécuter.
+- Un Point d’arrêt placé dans la Composition n’ajoute aucune Activité : pendant l’Exécution de Séance, il affiche l’unité suivante sans la démarrer automatiquement ; l’utilisateur reprend depuis l’écran normal de cette unité.
 - Une routine définit la planification d'une séance.
 - Une exécution de séance conserve le déroulement réel d'une séance exécutée.
 - Une séance peut être exécutée sans être planifiée.

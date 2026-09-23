@@ -192,7 +192,8 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
-- modèle et calculs de Récupération après l’Activité préparés avant T04.
+- modèle et calculs de Récupération après l’Activité préparés avant T04 ;
+- Points d’arrêt structurels de Composition préparés et persistés avant T04 afin que le moteur puisse suspendre l’auto-enchaînement sans reprise d’architecture.
 
 ### MVP — complément T03
 
@@ -217,7 +218,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances selon les contrats existants. |
 | T03 | Catalogue des Activités : liste, cycle de vie persistant, création contextuelle directe, sélection multiple, copie dans une Séance et Exécution directe complète. |
-| T04 | Moteur d’Exécution des Séances, correspondant à l’ancienne T03 et à ses anciens lots 1 et 2. |
+| T04 | Moteur d’Exécution des Séances, correspondant à l’ancienne T03 et à ses anciens lots 1 et 2 ; il respecte les Points d’arrêt déjà définis dans la Composition en affichant l’unité suivante sans la démarrer automatiquement. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans changement automatique de périmètre. |
 
 ## Tranche Bilatéralité et révision de T04

@@ -6,6 +6,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 ## 1. Gestion du Catalogue et des Séances
 
+`Créer` est contextuel au Catalogue courant : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Cette règle ne modifie pas le périmètre fonctionnel des Catalogues encore désactivés.
+
 | ID | Règle |
 | --- | --- |
 | RM-001 | Une Séance possède un identifiant unique, un nom obligatoire et une couleur obligatoire. |
@@ -222,3 +224,5 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est visible mais fonctionnellement désactivé en T03 et réutilise le composant DSF canonique du Catalogue des séances ; son activation est reportée au lot Médias. Aucune poignée de déplacement n’est affichée. |
 | RM-163 | À la validation d’une sélection multiple d’Activités existantes, `CompositionService` copie les Activités sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
 | RM-164 | Lorsqu’une roulette est ouverte, le voile grisé bloque l’arrière-plan. Le bouton principal fixe inférieur reste visuellement inchangé mais devient fonctionnellement désactivé et non déclenchable via VoiceOver/TalkBack jusqu’à fermeture de la roulette. |
+| RM-165 | Un Point d’arrêt peut être ajouté plusieurs fois dans une Composition et déplacé comme élément structurel, mais uniquement entre deux unités exécutables ; il est interdit en première ou dernière position et deux Points d’arrêt ne peuvent pas être consécutifs. |
+| RM-166 | Un Point d’arrêt situé dans un Tour est rencontré à chaque répétition. Lors de l’Exécution, il termine l’auto-enchaînement après l’unité précédente, affiche l’écran normal de l’unité suivante sans la démarrer automatiquement et n’ajoute ni durée, ni Résultat, ni écran intermédiaire. Le temps passé à attendre la reprise au Point d’arrêt est exclu du temps total écoulé et de la Durée réelle, pour une Séance comme pour un Circuit. |
