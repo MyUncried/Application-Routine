@@ -531,7 +531,9 @@ Après confirmation :
 
 L’archivage retire la Séance de la liste principale.
 
-Si la Séance est utilisée par une ou plusieurs Routines, celles-ci sont supprimées après confirmation.
+Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation.
+
+Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées.
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
