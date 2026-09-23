@@ -1002,7 +1002,9 @@ Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’i
 
 L'archivage d'une Séance :
 - conserve la Séance ;
-- supprime toutes les Routines qui lui sont associées ;
+- ne demande pas de confirmation si aucune Routine ne lui est associée ;
+- demande une confirmation explicite si au moins une Routine lui est associée ;
+- après cette confirmation, supprime toutes les Routines qui lui sont associées ;
 - met donc fin au calcul de leurs occurrences futures ;
 - conserve les occurrences déjà historisées ;
 - conserve toutes les Exécutions et leurs instantanés ;
