@@ -531,9 +531,9 @@ Après confirmation :
 
 L’archivage retire la Séance de la liste principale.
 
-Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation.
+Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation. Un snackbar `Séance archivée` est affiché avec l’action `Annuler`. `Annuler` restaure immédiatement la Séance dans la liste active.
 
-Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées.
+Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées. Dans ce cas, aucun snackbar `Séance archivée` avec `Annuler` n’est affiché.
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
@@ -1743,4 +1743,4 @@ Ces points sont consignés sans modification des règles fonctionnelles. Ils son
 2. **Section Médias de l’éditeur d’Activité.** Arbitrage résolu pour V2-CAT-01 : les frames courantes `3542:4656`, `3561:4695` et `3561:7802` font foi pour la présence de la section Médias repliable. La section est visible ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les anciennes formulations « section Médias masquée » sont supersédées par D-185.
 3. **Écran 13 / 13a — ancien arbre `Créer`.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` restent des évidences historiques et ne doivent plus être utilisées comme cible fonctionnelle.
 4. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
-5. **Écran 2h — Catalogue après archivage.** La frame `1992:10937` affiche la snackbar `Séance supprimée`, alors que la légende du chapitre décrit un retrait par archivage.
+
