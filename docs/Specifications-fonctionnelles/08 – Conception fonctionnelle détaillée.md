@@ -913,7 +913,7 @@ Le suivi repose sur les principes suivants :
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
 | Modifier | Toucher la zone principale ouvre la Composition préremplie. |
 | Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
-| Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. |
+| Archivage | Retire la Séance de `Toutes` et la rend accessible via `Archivées`. Sans Routine associée, l’action est immédiate et ne demande pas de confirmation. Si au moins une Routine est associée, une confirmation explicite est demandée avant l’archivage et la suppression de ces Routines. |
 
 ## Composition d’une séance — création et modification
 
@@ -1162,7 +1162,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | ------------------------------------------------ | ----------------- | ----------------------- | ---------------------------------------------------------------------- |
 | Supprimer une séance archivée                    | Oui               | Annuler / Confirmer | Dialogue centré ; disponible uniquement via le filtre `Archivées` ; conserve les Exécutions |
 | Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
-| Archiver une séance                              | Non               | Snackbar + Annuler      | Déplace la séance dans les archives                                    |
+| Archiver une séance                              | Conditionnelle : oui si ≥ 1 Routine associée ; sinon non | Dialogue de confirmation si nécessaire ; sinon aucun | Archive la Séance ; si des Routines sont associées, elles sont supprimées après confirmation |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
 | Supprimer une catégorie — MVP bis                | Oui (si utilisée) | Annuler / Supprimer     | Retire la catégorie des Séances concernées ; les Instantanés historiques restent inchangés |
 | Réinitialiser les préférences                    | Oui               | Annuler / Réinitialiser | Restaure les préférences par défaut                                    |
