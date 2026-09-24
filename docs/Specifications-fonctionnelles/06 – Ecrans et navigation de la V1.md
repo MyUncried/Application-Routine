@@ -155,7 +155,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles.
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
-- Toute roulette numérique ouverte est rendue dans une couche d’overlay centrée dans la zone utile de l’écran, indépendante de la position du déclencheur et du défilement du contenu. Un voile atténue le fond et bloque ses interactions ainsi que son défilement jusqu’à Annuler ou Confirmer. Une action principale fixe inférieure (`Continuer`, `Terminer`, etc.) conserve son apparence visuelle normale sous le voile, mais devient fonctionnellement et accessibilité-inactive jusqu’à fermeture de la roulette.
+- Toute roulette numérique ouverte est rendue dans une **modale basse standardisée**, indépendante de la position du déclencheur et du défilement du contenu. Un voile atténue le fond et bloque ses interactions ainsi que son défilement jusqu’à `Annuler` ou `Confirmer`. Une action principale fixe inférieure (`Continuer`, `Terminer`, etc.) conserve son apparence visuelle normale sous le voile, mais devient fonctionnellement et accessibilité-inactive jusqu’à fermeture de la roulette.
 - La variante canonique `Type=Duration` mesure `330 × 203` points : barre d’actions supérieure de `53` points et zone de roulette native de `150` points. Les sélecteurs d’heure de la Planification conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, sans modifier les dimensions canoniques de `Type=Duration`.
 - La barre d’actions place Annuler à gauche et Confirmer à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `38 × 38`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Confirmer, contenant une icône `24 × 24`. Le conteneur de mise en page peut mesurer `48 × 53` pour conserver `7,5` points de respiration verticale autour du cercle : cette hauteur ne redéfinit pas la cible tactile, qui reste `48 × 48`. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
@@ -241,7 +241,7 @@ Aucune Routine n’est créée automatiquement. La transition canonique d’avan
 
 Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Activités, elle ouvre directement la création d’une Activité persistante, sans écran ni arbre intermédiaire.
 
-La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités`, `Filtrer` est fonctionnel au minimum pour `Archivées`; aucune autre option ne doit être inventée. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre Archives, tri implicite et scroll sont conservés pendant l’aller-retour courant, mais perdus au relaunch.
+La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtre / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités`, `Filtrer` est fonctionnel au minimum pour `Archivées`; aucune autre option ne doit être inventée. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre Archives, tri implicite et scroll sont conservés pendant l’aller-retour courant, mais perdus au relaunch.
 
 Depuis la Composition d’une Séance, `Ajouter une activité` ouvre les choix `Une nouvelle activité / Une activité existante / Annuler`. La première action ouvre l’éditeur d’une Activité de Séance ; la seconde ouvre la sélection multiple du Catalogue des Activités. La validation copie les Activités dans leur ordre visible et restaure la Composition.
 
@@ -755,6 +755,8 @@ L’écran est ouvert lorsque l’utilisateur :
 
 Le contexte d’ouverture détermine la destination de retour et le type d’objet édité ; il ne doit jamais être déduit de la seule apparence de l’écran.
 
+Dans le parcours courant de Composition, l’interface expose la sélection d’Activités du Catalogue. La capacité existante de créer directement une Activité locale à la Séance reste conservée mais n’est pas exposée dans cet enchaînement d’écrans.
+
 ### Contenu et sections
 
 L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en création et `Modifier une activité` en modification. Le nom de la Séance n’est pas utilisé comme titre d’écran.
@@ -762,19 +764,20 @@ L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en créat
 Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
 - le champ du nom d’Activité, placé à `12` points du haut, de même hauteur et au même alignement que le champ `Nom de la séance` de la Composition ;
-- le bouton centré `Ajouter un média`, visible mais désactivé dans le MVP, avec l’icône vectorielle DSF `3382:61` en `16 × 16` et jamais un caractère `+`.
+- deux accès `Catégorie` et `Zones corporelles`, chacun avec une icône `+` séparée du libellé ; le caractère `+` ne fait pas partie du texte.
 
 `Renforcement du genou` visible dans les états renseignés est une **valeur de démonstration Figma**, jamais un libellé statique ni une valeur codée en dur. Seul l’état vide `3943:6064` utilise `Nom de l’activité` comme placeholder/état vide.
 
 Le reste du formulaire affiche ensuite, dans cet ordre :
 
 - section repliable `Description de l’activité`, fermée par défaut, contenant un champ multiligne facultatif ;
-- section repliable `Zone corporelle`, fermée par défaut, contenant le référentiel multisélection facultatif ;
+- accès `Catégorie` permettant de sélectionner la Catégorie de l’Activité ;
+- accès `Zones corporelles` permettant la multisélection du référentiel facultatif ;
 - section repliable `Mode d’exécution`, déployée par défaut ;
 - segment `Durée / Répétitions / À l’échec` ;
 - cadre `Séries / cible du mode / Pause` ;
-- cadre bleu, ligne 2 : `Côté / Récupération / Durée totale` ;
-- section repliable `Médias`, visible dans le MVP ; son contrôle `Déployer / Condenser` et son placeholder restent désactivés tant que la fonction Média n’est pas livrée ;
+- cadre bleu, ligne 2 : `Changement de côté / Récupération / Durée totale` ;
+- zone Média conforme au Figma courant ; le cadre de synthèse reste au-dessus en cas de chevauchement. L’affichage média déployé du Catalogue fait partie du MVP ; cette règle ne crée pas à elle seule une fonction d’import/capture supplémentaire dans l’éditeur ;
 - synthèse calculée de l’Activité, immuable et ancrée en bas de l’écran ;
 - bouton final fixe `Terminer`.
 

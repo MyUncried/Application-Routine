@@ -10,7 +10,7 @@ Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des
 Présenter la couverture fonctionnelle du MVP et orienter vers les parcours utilisateur détaillés de ce chapitre.
 
 Le MVP permet à l'utilisateur :
-- de gérer ses catégories de séances et de sélectionner les zones corporelles du référentiel applicatif ;
+- de gérer les Étiquettes de Séances, les Catégories d’Activités et de sélectionner les Zones corporelles du référentiel applicatif ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
 - de planifier une séance au moyen d'une routine ;
@@ -24,7 +24,7 @@ Le MVP permet à l'utilisateur :
 
 | Tranche          | Besoin utilisateur                            | Parcours de référence                                                          | Statut documentaire   |
 | ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------ | --------------------- |
-| T01–T02          | Gérer les catégories et zones corporelles     | Gestion des référentiels utilisateur                                           | Spécifié MVP          |
+| T01–T02          | Gérer Étiquettes, Catégories et Zones corporelles | Gestion des référentiels utilisateur                                        | Spécifié MVP          |
 | T01–T02          | Créer et réorganiser une Séance               | Parcours principal — Créer une Séance                                          | Spécifié MVP          |
 | T03              | Gérer des Activités persistantes              | Accéder au Catalogue des Activités ; créer, consulter ou modifier une Activité | Spécifié MVP          |
 | T03              | Ajouter des Activités existantes à une Séance | Sélectionner plusieurs Activités existantes depuis la Composition              | Spécifié MVP          |
@@ -57,12 +57,13 @@ Ces fonctions sont prévues pour des versions ultérieures.
 # Gestion des référentiels utilisateur
 
 Les référentiels utilisés dans le MVP sont de deux natures :
-- les **Catégories de Séances**, personnalisables par l’utilisateur ;
-- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et non administrable par l’utilisateur.
+- les **Étiquettes de Séances**, qui qualifient la Séance et portent sa couleur ;
+- les **Catégories d’Activités**, qui qualifient les Activités et portent leur couleur ;
+- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et distinctes des Catégories.
 
-## Gestion des catégories
+## Gestion des Étiquettes et des Catégories
 
-Les catégories permettent de classer les séances afin d'en faciliter l'organisation, la recherche et le suivi.
+Les Étiquettes classent les Séances et portent leur couleur. Les Catégories classent les Activités et portent leur couleur sémantique. Les Zones corporelles restent un référentiel distinct.
 Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
 
 L'utilisateur peut :
@@ -107,7 +108,7 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
+Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. La couleur affichée de la Séance est désormais celle de son Étiquette. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Activité peut définir son propre Compte à rebours et sa propre Fin d’activité, distincts des phases structurelles de la Séance. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
 Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération après l’ensemble des Séries, ainsi que les informations facultatives. `Description de l’activité` et `Zone corporelle` sont repliables ; `Mode d’exécution` est déployé par défaut. L’action `Terminer` enregistre l’Activité.
 
@@ -414,18 +415,18 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 3. Consulter ou modifier l’Activité.
 4. Revenir au Catalogue dans son état précédent.
 
-Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 ; il est réservé à l’évolution Médias et ne modifie pas l’action principale de la carte.
+Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé à l’Activité, sans modifier l’action principale de la carte.
 
 ## Ajouter plusieurs Activités existantes à une Composition — MVP T03
 
-1. Depuis l’arbre d’ajout de la Composition, choisir `Une activité existante`.
-2. Rechercher ou filtrer le Catalogue d’Activités présenté dans le panneau modal.
+1. Depuis `Ajouter une activité` dans la Composition, ouvrir le Catalogue d’Activités présenté pour la sélection.
+2. Rechercher ou filtrer le Catalogue.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
 4. Vérifier le nombre indiqué par `Ajouter N activité(s)`.
 5. Appuyer sur `Ajouter N activité(s)`.
 6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Activités dans la liste filtrée au moment de la validation.
 
-`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies.
+`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’une Activité locale à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
 
 # Parcours prévus pour une phase ultérieure
 

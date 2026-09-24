@@ -34,8 +34,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter une activité`. |
 | RM-020 | La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Les suivantes sont insérées après la dernière Activité existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Tour. |
 | RM-021 | Toucher brièvement une carte d’Activité ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucune Activité dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. |
-| RM-022 | Après `Continuer`, l’utilisateur peut associer facultativement zéro, une ou plusieurs Catégories à la Séance. |
-| RM-023 | Une Catégorie personnalisée peut être créée depuis l’écran de sélection. À partir du MVP bis, une Catégorie supprimée est retirée des Séances concernées sans modifier les Instantanés historiques. |
+| RM-022 | La Séance est classée par Étiquette ; la couleur affichée de la Séance est celle de cette Étiquette. |
+| RM-023 | Une Catégorie qualifie une Activité et porte sa couleur sémantique ; les Zones corporelles restent distinctes. |
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
 | RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. La couleur de la Séance reste choisie indépendamment de ses Catégories. |
 
@@ -188,14 +188,14 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
 | RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
 | RM-113 | Une référence d’Activité du MVP T03 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
-| RM-114 | Le MVP affiche la section Médias repliable ; son contrôle `Déployer / Condenser` et son placeholder restent désactivés, sans import, capture, lecture ni stockage. La V2 média autorise `0..n` photos ou vidéos ordonnées. |
+| RM-114 | Dans le MVP, une carte d’Activité du Catalogue peut être déployée/repliée pour afficher son média associé. Cette activation d’affichage n’introduit pas à elle seule d’import ou de capture supplémentaire dans l’éditeur. |
 | RM-115 | Une association média est copiée indépendamment mais partage un fichier immuable ; le fichier n’est supprimé que sans aucune référence. |
 | RM-116 | Un Circuit validé exige nom, couleur et au moins deux étapes. Une Séance peut apparaître plusieurs fois ; aucune répétition d’étape n’est définie. |
 | RM-117 | L’écran de transition d’un Circuit est obligatoire. Il attend l’utilisateur en manuel ou passe automatiquement après la durée globale, `30 s` par défaut. |
 | RM-118 | Chaque Séance conserve son compte à rebours initial. Une fin intermédiaire est remplacée par la transition et seule la dernière étape ouvre la fin du Circuit. |
 | RM-119 | L’Exécution de Circuit et ses Exécutions de Séance liées utilisent un instantané immuable ; un arrêt confirmé conserve l’exécution partielle et ne crée rien pour les étapes futures. |
 | RM-120 | Activités, Séances et Circuits peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
-| RM-143 | Le réglage de côté cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`; `UNILATERAL` est le défaut et la valeur de migration. |
+| RM-143 | Le `Changement de côté` d’une Activité propose `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Tour dans la version actuelle. |
 | RM-144 | Une Activité autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
 | RM-145 | Un Tour bilatéral exécute à chaque répétition tout son contenu du premier côté puis du second. Chaque Récupération est exécutée une fois par passage de côté. |
 | RM-146 | Un Tour bilatéral impose sa direction à toutes ses Activités. Leur réglage propre est `UNILATERAL`, visible et désactivé ; aucune capacité « latéralisable » n’existe. |
@@ -219,6 +219,11 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Activités pour l’aller-retour courant ; cet état n’est pas persisté après une fermeture/reprise complète de l’application. |
-| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est visible mais fonctionnellement désactivé en T03 et réutilise le composant DSF canonique du Catalogue des séances ; son activation est reportée au lot Médias. Aucune poignée de déplacement n’est affichée. |
-| RM-163 | À la validation d’une sélection multiple d’Activités existantes, `CompositionService` copie les Activités sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
+| RM-162 | Dans le Catalogue des Activités, un appui sur la carte hors bouton Lecture ouvre l’Activité en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. `Déployer` affiche/masque le média associé. Un swipe gauche sur une Activité active expose `Planifier / Dupliquer / Archiver`; dans les archives il expose `Supprimer`. |
+| RM-163| RM-188 | Un filtre de Catalogue persiste uniquement pendant la session applicative courante. Au relaunch, aucun filtre n’est appliqué ; l’état étendu affiche `Filtre / Aucun` jusqu’à sélection d’un critère. |
+| RM-189 | Toutes les roulettes des écrans actifs s’ouvrent dans une modale basse standardisée avec `Annuler / Confirmer`. |
+| RM-190 | Une Activité peut porter un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de Séance. |
+| RM-191 | Un Point d’arrêt suspend l’enchaînement jusqu’à reprise explicite et son attente est exclue de la durée de la Séance. |
+| RM-192 | Le parcours de composition exposé sélectionne les Activités dans le Catalogue ; la création locale de SessionActivity reste techniquement et fonctionnellement disponible mais non exposée dans cet enchaînement. |
+ | À la validation d’une sélection multiple d’Activités existantes, `CompositionService` copie les Activités sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
 | RM-164 | Lorsqu’une roulette est ouverte, le voile grisé bloque l’arrière-plan. Le bouton principal fixe inférieur reste visuellement inchangé mais devient fonctionnellement désactivé et non déclenchable via VoiceOver/TalkBack jusqu’à fermeture de la roulette. |

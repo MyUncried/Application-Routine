@@ -19,6 +19,8 @@ Les exercices et séances sont souvent communiqués oralement, sur papier, par m
 
 KODJO réunit dans une même application :
 
+La classification est dissociée : une **Étiquette** qualifie la Séance et porte sa couleur ; une **Catégorie** qualifie l’Activité et porte sa couleur. Les Zones corporelles restent une information distincte de l’Activité.
+
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
 - à partir de T03, un Catalogue des activités persistantes et leur Exécution directe ;
@@ -64,6 +66,8 @@ Une Séance contient :
 3. un Tour unique, visible et répétable de 1 à 99 fois ;
 4. des Activités éventuellement placées après le Tour ;
 5. une Fin de séance.
+
+Une Activité peut également porter son propre Compte à rebours et sa propre Fin d’activité. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
@@ -132,7 +136,7 @@ Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités
 
 La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des activités permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
-Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Les médias multiples ordonnés restent post-MVP ; le contrôle `Déployer` est visible mais fonctionnellement désactivé en T03 et sera activé dans une évolution Médias distincte.
+Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, une carte d’Activité du Catalogue peut être déployée pour afficher le média associé ; cette activation n’ajoute pas implicitement de nouveau mécanisme d’import ou de capture.
 
 L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
 
@@ -142,4 +146,4 @@ Les Circuits restent préparés conceptuellement et techniquement mais ne sont n
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur une Activité. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour ; le Tour reste fonctionnellement `UNILATERAL`. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.

@@ -19,6 +19,10 @@ Le modèle fonctionnel repose sur les principes suivants :
 
 # 4.3 Concepts métier
 
+## Classification active
+
+Une **Étiquette** qualifie une Séance et porte sa couleur. Une **Catégorie** qualifie une Activité et porte sa couleur sémantique. Les Zones corporelles restent distinctes de la Catégorie.
+
 Le fonctionnement de l’application repose sur les concepts principaux suivants. À partir du MVP T03, les deux formes d’Activité sont distinguées explicitement afin qu’une Activité persistante ne soit jamais confondue avec sa copie dans une Séance.
 
 ## Utilisateur
@@ -161,7 +165,8 @@ Les préférences utilisées comme valeurs par défaut sont copiées dans la sé
 L'application utilise des référentiels permettant de qualifier ses contenus.
 
 Dans le MVP :
-- les **Catégories** sont utilisées pour classer les Séances et peuvent être personnalisées selon les règles applicables ;
+- les **Étiquettes** sont utilisées pour classer les Séances et portent leur couleur ;
+- les **Catégories** sont utilisées pour classer les Activités et portent leur couleur sémantique ;
 - les **Zones corporelles** qualifient les Activités et constituent un référentiel applicatif prédéfini : elles peuvent être sélectionnées mais ne peuvent pas être créées, renommées ou supprimées par l'utilisateur.
 
 # 4.4 Structure d'une séance
@@ -180,13 +185,15 @@ Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_CO
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
+Un **Point d’arrêt** est un élément de Composition sans écran dédié. Il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente est exclu de la durée de la Séance.
+
 Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
 Le **Cycle** contient le **Tour unique** et les Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
-Chaque **Tour** regroupe une suite ordonnée d'Activités. Les Activités placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position.
+Chaque **Tour** regroupe une suite ordonnée d'Activités. Les Activités placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Activités.
 
-Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative régie par D-156 et une Récupération facultative.
+Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative régie par D-156 et une Récupération facultative. Elle peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;

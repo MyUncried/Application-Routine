@@ -25,8 +25,7 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 
 Elle possède notamment :
 - un nom ;
-- une couleur ;
-- zéro, une ou plusieurs catégories ;
+- une Étiquette de Séance lorsqu’elle est renseignée ; la couleur affichée de la Séance est la couleur de cette Étiquette ;
 - une Composition présentée autour d’un Tour unique ;
 - des paramètres de guidage et d’exécution.
 
@@ -60,7 +59,7 @@ Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode
 
 Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Il porte lui aussi un réglage de côté. À chaque répétition, un Tour bilatéral exécute toutes ses Activités pour le premier côté, puis toutes pour le second, selon la direction choisie. Le Tour porte alors seul la direction effective : les réglages propres de ses Activités sont remis à `UNILATERAL`, affichés désactivés et ne sont pas restaurés si le Tour redevient unilatéral.
+Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour : le Tour reste fonctionnellement `UNILATERAL` et son support technique historique éventuel est conservé sans être modifiable ni visible. La bilatéralité reste portée par les Activités.
 
 Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
@@ -79,8 +78,8 @@ Pour un plan bilatéral, cet instantané conserve la direction effective et chaq
 Le MVP permet de :
 - créer une Séance avec un nom et une couleur obligatoires ;
 - composer et modifier une Séance ;
-- associer zéro, une ou plusieurs Catégories ;
-- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
+- associer l’Étiquette de la Séance ;
+- afficher dans chaque carte du Catalogue l’Étiquette de Séance et la Catégorie d’Activité selon les contrats d’écran actifs ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
@@ -104,7 +103,15 @@ La rangée de commandes Catalogue est commune aux écrans représentés `Séance
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
+`Filtrer` est contextuel au Catalogue. À l’ouverture d’une nouvelle session applicative, aucun filtre n’est appliqué. Le bouton blanc replié s’étend sur appui et affiche `Filtre / Aucun` sans modifier la liste ; un critère n’est appliqué qu’après sélection. Un filtre appliqué est conservé pendant la session courante et lors des allers-retours, puis revient à `Aucun` après relance complète.
+
+
 Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
+
+Dans le parcours utilisateur actuellement exposé pour composer une Séance, l’ajout passe par la sélection d’une Activité du Catalogue. La capacité existante de créer directement une Activité locale à la Séance reste fonctionnellement et techniquement conservée, sans modification de modèle ni d’API ; elle n’est simplement pas exposée dans cet enchaînement d’écrans.
+
+Une Activité peut définir un Compte à rebours propre et une Fin d’activité propre, distincts du Compte à rebours initial et de la Fin de séance. Un Point d’arrêt peut être inséré dans la Composition ; il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente n’entre pas dans la durée de la Séance.
+
 
 ### Composition d’une Séance
 
@@ -121,7 +128,7 @@ Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
 Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, y compris pour la dernière Activité avant `SESSION_END`.
 
-Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
+Le contrôle utilisateur `Changement de côté` d’une Activité propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
 
 Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le nom de l’Activité est en gras dans cette Synthèse.
 
@@ -129,7 +136,7 @@ Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée total
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Une Activité ne possède aucun média fonctionnel dans le MVP. La section Médias est visible et repliable dans l’éditeur ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les médias multiples ordonnés restent post-MVP.
+Dans le MVP, une Activité peut afficher ses médias associés dans le Catalogue : la carte se déploie et se replie pour afficher ou masquer le média. Cette décision n’introduit pas à elle seule de nouveau mécanisme d’import ou de capture dans l’éditeur. Les médias multiples ordonnés restent post-MVP.
 
 ### Exécution d’une Séance
 
@@ -360,7 +367,7 @@ Les versions futures pourront notamment introduire :
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
-- activation de `Déployer` sur les cartes du Catalogue des activités avec le lot Médias ;
+
 - Circuits persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.

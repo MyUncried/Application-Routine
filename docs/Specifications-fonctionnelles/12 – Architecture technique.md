@@ -121,7 +121,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
 | `PreferencesService` | Lecture et modification des Préférences globales |
-| `ReferenceDataService` | Gestion des Catégories et consultation du référentiel des Zones corporelles |
+| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Activité et consultation du référentiel des Zones corporelles |
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -179,7 +179,8 @@ Sont notamment persistés :
 - Tours ;
 - Activités ;
 - Routines ;
-- Catégories ;
+- Étiquettes de Séance ;
+- Catégories d’Activité ;
 - Exécutions ;
 - Instantanés d’Exécution ;
 - Occurrences historisées.
@@ -778,7 +779,9 @@ La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle d
 
 ### Composants et contrôles réutilisables
 
-Les composants ci-dessous constituent le catalogue structurel actuellement vérifié dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+Les composants ci-dessous constituent le catalogue structurel actuellement vérifié
+
+Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Condensed** ; le titre supérieur de Séance et les dialogues de décision utilisent **Inter**. Les écrans d’Exécution réutilisent une seule instance d’en-tête canonique. dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
 
 | Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
 | --- | --- | --- |
@@ -1010,8 +1013,8 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
-| Roulette compacte à deux colonnes — `Type=Duration` | `330 × 203` = barre d’actions `53` + contenu natif `150` ; overlay centré dans la zone utile, indépendant du déclencheur et du défilement. Les sélecteurs de Planification gardent leur géométrie Figma propre, d’environ `310 × 201`. |
-| Roulette numérique compacte à une colonne | `144 × 203` ; largeur déterminée par deux cibles tactiles de largeur `48` et une colonne sélectionnée `56 × 34` centrée ; même overlay d’écran bloquant |
+| Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
+| Roulette numérique compacte à une colonne | Variante numérique du contenu de la même modale basse canonique ; mêmes règles de brouillon et de confirmation |
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
@@ -1298,7 +1301,7 @@ Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; auc
 
 Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants ajoutent `side_mode` à l’Activité de catalogue, à l’occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut. Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
 
-Le générateur de Plan est l’unique composant autorisé à développer les passages. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
 Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Activité/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 

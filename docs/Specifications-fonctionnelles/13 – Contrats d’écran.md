@@ -78,7 +78,7 @@ Composant : `Navigation / Bottom — Source exact` (`2537:214`). Les quatre dess
 
 ### 4.4 Conservation d’état Catalogue
 
-Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-retour courant. Ils ne survivent pas à un relaunch complet. Un relaunch revient au segment `Séances`.
+Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session applicative courante et les allers-retours. Au relaunch, aucun filtre n’est appliqué et le Catalogue revient au segment `Séances`.
 
 ### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
@@ -92,7 +92,7 @@ Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-re
 
 Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
 
-`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtre / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
 Pour T03 / `Activités` :
 
@@ -110,7 +110,9 @@ Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le 
 
 ### 4.6 Roulettes
 
-Roulette ouverte : scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
+Toutes les roulettes actives utilisent la famille de **modales basses** du DSF. Les anciennes représentations centrées ne constituent plus une référence active.
+
+Roulette ouverte : **modale basse standardisée** avec scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
 
 ### 4.7 Swipe contextuel
 
@@ -231,6 +233,8 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 
 ## CE-T03-02 — Catalogue des activités — liste, recherche, filtres et cartes
 
+> Mise à jour 24/09/2026 : actions glissées actives = `Planifier / Dupliquer / Archiver`; dans les archives = `Supprimer`. Le média déployé fait partie du MVP.
+
 ### 1. Identification
 
 | Propriété | Valeur |
@@ -247,7 +251,7 @@ L’ancienne référence `3787:5209` n’existe plus dans l’état Figma couran
 
 ### 2. Finalité fonctionnelle
 
-Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consultation/modification et lancement direct, tout en séparant surface carte, Déployer disabled et Lecture active.
+Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consultation/modification, affichage média déployé et lancement direct, tout en séparant surface carte, Déployer et Lecture.
 
 ### 3. Contexte d’entrée
 
@@ -271,7 +275,7 @@ Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trie
 
 ### 8. Éléments obligatoires
 
-Barre bleue ; zone droite constante ; Déployer visible disabled ; Lecture active indépendante ; aucune poignée ; `Créer` actif ; Filtrer actif ; Trier visible disabled ; rangée commune conforme §4.5.
+Barre de Catégorie colorée ; zone droite constante ; Déployer actif pour afficher/masquer le média ; Lecture active indépendante ; aucune poignée ; `Créer` actif ; Filtrer actif ; Trier visible disabled ; rangée commune conforme §4.5.
 
 ### 9. Layout déterministe
 
@@ -287,11 +291,11 @@ Liste active ; vide ; recherche ; Filtrer ouvert lorsque son panneau sera défin
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
 
 ### 13. Gestes
 
-Swipe selon §4.7. Aucun appui long/drag de carte Catalogue. Tap Déployer disabled ne déclenche rien.
+Swipe selon §4.7. Aucun appui long/drag de carte Catalogue. Tap Déployer alterne l’état média condensé/déployé.
 
 ### 14. Validation
 
@@ -315,11 +319,11 @@ Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>`
 
 ### 19. Invariants
 
-Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer visible disabled ; Lecture indépendante ; aucune poignée ; Filtrer donne accès à Archivées ; Trier disabled ; tri effectif `updatedAt DESC`; aucune option supplémentaire inventée.
+Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer actif pour le média ; Lecture indépendante ; aucune poignée ; Filtrer utilise les options contextuelles validées ; Trier disabled ; tri effectif `updatedAt DESC`.
 
 ### 20. Recette déterministe
 
-0/N cartes ; récupération 0/>0 ; géométrie rangée 108/108/108 avec gap 8 et centrage ; surface/Lecture/Déployer ; Filtrer>Archivées ; Trier tap/clavier/VoiceOver sans action ; recherche avec rangée d’arrière-plan ; swipe ; retour état ; relaunch ; ordre updatedAt DESC ; responsive. Négatifs : `Créer` seul centré, Filtrer/Trier absents, Déployer actif/absent, Trier fonctionnel, option de filtre inventée, poignée, récupération forcée première carte.
+0/N cartes ; récupération 0/>0 ; géométrie rangée ; surface/Lecture/Déployer ; média condensé/déployé ; Filtrer contextuel ; Trier sans action ; recherche ; swipe `Planifier / Dupliquer / Archiver` sur actives et `Supprimer` dans archives ; retour état ; relaunch sans filtre ; responsive.
 
 ### 21. Traçabilité
 
@@ -453,11 +457,11 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Nom → Ajouter média disabled → sections/accordéons → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
+Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Pause → deuxième rangée Changement de côté/Récupération/Durée totale → zone Média → Synthèse fixe → Terminer.
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
+Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -783,6 +787,8 @@ E25–E31 → D-165/D-171 ; 09 bis ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `
 
 ## CE-T03-08 — Composition après insertion et corrections UX
 
+> Mise à jour 24/09/2026 : le parcours exposé sélectionne les Activités dans le Catalogue ; la capacité de création locale à la Séance reste conservée mais n’est pas proposée dans cet enchaînement. La Composition accepte aussi le Point d’arrêt, ainsi que les Compte à rebours / Fin propres aux Activités.
+
 ### 1. Identification
 
 Bloc B3/B9 ; états S37–S46 ; T03-E E31, E53, E58–E66 ; frames `2028:11700`, `2028:11808`, appui long `3518:4576`.
@@ -801,7 +807,7 @@ Tap Activity → éditeur ; long press Activity → déplacement ; swipe → act
 
 ### 5. Données affichées et source de vérité
 
-Draft Session. Direction propre hors Tour bilatéral : D→G/G→D ; rien en UNILATERAL ; dans Tour bilatéral, aucune répétition direction sur carte.
+Draft Session. Direction propre de l’Activité : D→G/G→D ; rien avec `Aucun`. Aucun changement de côté n’est exposé au niveau Tour.
 
 ### 6. Classification des valeurs Figma
 
@@ -809,7 +815,7 @@ Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de ca
 
 ### 7. Structure de l’écran
 
-CR initial → activités avant Tour → Tour → activités après Tour → Fin séance. Actions contextualisées derrière Activity.
+CR initial → activités / Points d’arrêt avant Tour → Tour → activités / Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
 
 ### 8. Éléments obligatoires
 
@@ -964,6 +970,8 @@ E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
 ---
 
 ## CE-T03-10 — Exécution directe — Durée unilatérale
+
+> Standard typographique d’Exécution : contenu = Roboto Condensed ; titre supérieur et dialogues = Inter. Pour l’Exécution de Séance, le layout courant regroupe chrono circulaire, côté, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`.
 
 ### 1. Identification
 

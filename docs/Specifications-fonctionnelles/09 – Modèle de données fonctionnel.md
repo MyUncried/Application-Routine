@@ -49,8 +49,9 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Routine | Planification d'une séance | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
-| Média | Illustration future d'une Activité ; entité hors MVP | Post-MVP |
-| Catégorie | Classement des séances | Métier |
+| Média | Média associé à une Activité ; affichable dans le Catalogue MVP | Métier |
+| Étiquette | Classement d’une Séance et source de sa couleur affichée | Métier |
+| Catégorie | Classement d’une Activité et source de sa couleur sémantique | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
 | Exécution | Réalisation effective d’une source `SESSION` ou `ACTIVITY` | Principale |
 | Préférences globales | Paramètres généraux | Configuration |
@@ -74,7 +75,11 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés d’une Activité autonome, ou une fois par côté dans un Tour bilatéral. | Prérequis T04 ; D-156 |
 | DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T04 ; D-156 |
-| DM-016 | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T04 |
+| DM-016| DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
+| DM-018 | Une Activité peut porter un Compte à rebours propre et une Fin d’activité propre. | 24/09/2026 |
+| DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
+| DM-020 | La Séance porte une Étiquette ; l’Activité porte une Catégorie ; les Zones corporelles restent une association distincte de l’Activité. | 24/09/2026 |
+ | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T04 |
 
 ## Relations principales
 
@@ -83,7 +88,7 @@ UTILISATEUR
 │
 ├── possède 0..n SÉANCES
 │       │
-│       ├── appartient à 0..n CATÉGORIES
+│       ├── porte une ÉTIQUETTE de Séance
 │       ├── contient 0..n ACTIVITÉS AVANT LE CYCLE
 │       ├── contient 1 CYCLE
 │       │      │

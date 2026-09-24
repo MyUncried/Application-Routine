@@ -1,5 +1,7 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
+> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Activité ; Point d’arrêt ; Compte à rebours et Fin propres à l’Activité ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média déployable dans le Catalogue des Activités.
+
 ### Objectif
 
 Permettre à un utilisateur de créer une séance structurée, la planifier si nécessaire, l’exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
@@ -190,7 +192,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
-- section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
+- carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
@@ -232,4 +234,4 @@ La première version fonctionnelle du Catalogue des Activités inclut l’exécu
 
 ### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
 
-Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. Son activation pour afficher les médias reste une évolution post-MVP distincte.
+Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. Son activation pour afficher les médias reste une évolution post-MVP distincte.

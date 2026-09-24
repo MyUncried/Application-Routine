@@ -6,6 +6,8 @@
 >
 > Décision du 21 septembre 2026 — D-187 : dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant ; l’écran/arbre intermédiaire est supprimé. Les anciennes frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques, non comme cible fonctionnelle.
 >
+> Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Activité ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Activité ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média déployable dans le Catalogue des Activités ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
+>
 > Mise à jour Figma/documentation du 16 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` est conçue et déterministe dans Figma (`108 × 32 pt` chacun, gap `8 pt`, ensemble centré dans la référence `402 pt`) sur les Catalogues Séances/Activités et dans les états concernés. `Trier` reste visible disabled T03 ; `Filtrer` est actif selon le contexte fonctionnel, notamment `Archivées` pour Activités. Seuls les panneaux/options ouverts `Filtrer`/`Trier` restent `NON VÉRIFIABLE` / `À CLARIFIER`. L’éditeur Activité distingue le contrôle `Durée totale >=` en Répétitions/À l’échec de la Synthèse `Durée totale : ≥ {durée connue}` ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
 
 ## 1. Objet
@@ -85,7 +87,7 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3789:5349` et `3789:5405` — sélection multiple d’Activités existantes ;
 - `3879:5947` / `3879:6079` — création/modification d’une Activité persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
-- `2028:11204` — Catégories ;
+- `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
 - `2537:1033` — composant DSF canonique `Déployer` ;
 - `2537:214` — composant DSF canonique `Navigation / Bottom`.
@@ -94,7 +96,7 @@ L’ancienne référence `3787:5209 — Catalogue — action contextuelle direct
 
 La rangée Catalogue `Créer / Filtrer / Trier` est conçue et vérifiée : chacun des trois contrôles mesure visuellement `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré dans la référence `402 pt`. Cette géométrie est une contrainte de rendu/recette et ne constitue pas un jeu de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`.
 
-Le contrôle `Déployer` du Catalogue des activités réutilise exactement le composant du Catalogue des séances ; il reste visible mais fonctionnellement désactivé en T03. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
+Le contrôle `Déployer` du Catalogue des activités réutilise le composant du Catalogue des séances et est actif dans le MVP pour afficher ou masquer le média associé. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
 
 Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont donc vérifiables. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu dans Figma. Pour T03 Activités, le comportement est fixé dans D-184 et CE-T03-02/05 : `Filtrer` permet au minimum `Archivées`; `Trier` est visible disabled. Toute conformité visuelle détaillée de ces panneaux reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes.
 

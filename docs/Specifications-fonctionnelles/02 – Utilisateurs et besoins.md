@@ -52,7 +52,9 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Ne confirmer l’activation bilatérale d’un Tour que si elle remplace le réglage bilatéral propre d’au moins une Activité.
 - Réordonner manuellement les Activités par glisser-déposer.
 - Régler le Compte à rebours initial et la Fin de séance.
-- Associer facultativement plusieurs Catégories et Zones corporelles compatibles.
+- Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Activité.
+- Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.
+- Associer une Étiquette à la Séance et une Catégorie aux Activités ; sélectionner séparément les Zones corporelles des Activités.
 - Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
 - Pouvoir abandonner explicitement une création commencée.
 

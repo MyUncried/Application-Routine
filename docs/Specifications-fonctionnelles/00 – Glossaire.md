@@ -19,6 +19,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Activités, un Tour unique, un Cycle technique et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
 | **Activité** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec et peut porter une Pause entre les Séries ainsi qu’une Récupération après l’ensemble des Séries. Dans le MVP T03, elle existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance ; l’ajout depuis le Catalogue crée une copie indépendante. | 3 Séries de 12 squats, puis 30 s de récupération |
+| **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
+| **Compte à rebours d’Activité** | Phase optionnelle propre à une Activité, distincte du Compte à rebours initial de la Séance. | |
+| **Fin d’activité** | Phase optionnelle propre à une Activité, distincte de la Fin de séance. | |
 | **Exercice** | Synonyme fonctionnel de l’Activité exécutée. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
 | **Récupération** | Durée facultative appartenant à une Activité. Elle est exécutée une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle ne constitue ni une Activité autonome ni une Pause entre les Séries. Une valeur de `0 s` signifie qu’aucune phase de Récupération n’est créée. | Récupération de 30 s après l’Exercice |
 | **Tour** | Conteneur ordonné d’Activités appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
@@ -28,7 +31,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Activité. | Exécution démarrée à 18 h 03 |
 | **Résultat d’Activité** | Résultat enregistré pour une occurrence d’Activité effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
 | **Instantané de séance** | Copie fonctionnelle immuable de la Séance au démarrage d’une Exécution. Il garantit la restitution de l’historique après modification, archivage ou suppression de la Séance source. | Version de `Renforcement du genou` exécutée lundi |
-| **Catégorie** | Classement facultatif d’une Séance. Une Séance peut posséder plusieurs Catégories prédéfinies ou personnalisées. | Mobilité |
+| **Étiquette** | Classement d’une Séance. L’Étiquette porte la couleur affichée de la Séance. | Hyrox |
+| **Catégorie** | Classement d’une Activité, distinct de ses Zones corporelles. La Catégorie porte la couleur sémantique affichée pour l’Activité. | Renforcement |
 | **Zone corporelle** | Valeur facultative d’un référentiel prédéfini pouvant être associée à une Activité. | Genou |
 | **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. | Fin de séance : 5 s |
 | **Ressenti** | Évaluation obligatoire sélectionnée sur la Synthèse lorsqu’elle est présentée. | Positif, moyen ou difficile |
@@ -140,11 +144,11 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition canonique |
 |---|---|
-| **Réglage de côté** | État d’une Activité ou d’un Tour parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Les états bilatéraux affichent `D→G` et `G→D`. En `UNILATERAL`, le contrôle d’Activité reste sans texte court et le contrôle du Tour affiche un tiret `–` centré. |
-| **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Il provient du Tour lorsqu’il est bilatéral ; sinon de l’Activité. Une Activité n’est jamais doublée simultanément par les deux niveaux. |
+| **Changement de côté** | Paramètre d’une Activité parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, affiché à l’utilisateur comme `Aucun`, `D→G` ou `G→D`. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Tour ; un éventuel champ technique historique du Tour reste fixé à `UNILATERAL`. |
+| **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Dans la version actuelle, il provient de l’Activité ; le Tour n’expose aucun changement de côté. |
 | **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Activité par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté. |
-| **Tour bilatéral** | À chaque répétition du Tour, toutes ses Activités sont exécutées pour le premier côté, puis toutes pour le second. Le Tour impose la direction effective à toutes ses Activités, sans notion d’Activité « latéralisable ». |
+| **Tour bilatéral** | Capacité technique historique non exposée dans la version actuelle ; le Tour reste fonctionnellement `UNILATERAL`. |
 
 ## 11. Concepts d’exécution directe — MVP T03
 

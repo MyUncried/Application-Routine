@@ -80,7 +80,7 @@ Les modifications apportées à une séance n'ont aucun effet sur les exécution
 La création d'une séance se déroule en quatre étapes successives :
 
 1. saisie du nom, sélection de la couleur et construction de la Composition dans l’écran unique `Composition d’une séance` ;
-2. sélection des catégories ;
+2. sélection de l’Étiquette de Séance ;
 3. retour au Catalogue des séances.
 
 À l'issue de cette création, la séance est immédiatement disponible dans le catalogue.
@@ -99,7 +99,7 @@ L'utilisateur peut notamment modifier :
 - sa couleur ;
 - sa composition ;
 - ses activités ;
-- ses catégories.
+- son Étiquette.
 
 Les modifications sont immédiatement visibles dans le catalogue.
 
@@ -218,7 +218,7 @@ La Synthèse affiche les données compatibles d’une Activité seule. Le Ressen
 
 ## 2 bis.5 Médias d’Activité
 
-Dans le MVP, la section Médias est visible et repliable. Le contrôle `Déployer / Condenser` et le placeholder média restent désactivés : aucun import, capture, lecture ni stockage média n’est fonctionnel. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales ; une vidéo ne démarre jamais automatiquement. L’activation fonctionnelle des médias reste une évolution distincte.
+Dans le MVP, le Catalogue permet de déployer/replier une carte d’Activité pour afficher son média associé. Dans l’éditeur, la zone Média suit le Figma courant et reste sous la Synthèse en cas de chevauchement. Cette décision ne crée pas implicitement de nouveau mécanisme d’import ou de capture. En V2 média, une Activité peut porter `0..n` associations ordonnées vers des photos ou vidéos locales ; une vidéo ne démarre jamais automatiquement. L’activation fonctionnelle des médias reste une évolution distincte.
 
 ## 2 bis.6 Bilatéralité
 
@@ -248,6 +248,8 @@ Une séance est composée, dans l'ordre, des éléments suivants :
 2. un Cycle technique unique contenant, dans l’ordre, les Activités placées avant le Tour, un Tour unique et les Activités placées après le Tour ;
 3. une fin de séance.
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
+
+Chaque Activité peut en outre définir un Compte à rebours propre et une Fin d’activité propre. Un Point d’arrêt peut être inséré dans la Composition et déplacé entre les éléments autorisés ; il ne possède pas d’écran dédié et son temps d’attente est exclu de la durée de la Séance.
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
 
@@ -907,7 +909,7 @@ Le suivi repose sur les principes suivants :
 | `Planifiées` | Affiche les Séances disposant d’au moins une Routine. |
 | `Archivées` | Affiche uniquement les Séances archivées. |
 | Zone principale de la carte | Ouvre directement la Séance en mode modification. |
-| Métadonnées | Sous le nom, affiche les Catégories associées puis, si présentes, les Zones corporelles dédupliquées de tous les Exercices ; séparateur ` : ` seulement lorsque les deux groupes existent ; une seule ligne tronquée si nécessaire. |
+| Métadonnées | Sous le nom, affiche `Étiquette · Catégorie` selon les données disponibles et le rendu Figma actif ; même convention dans les archives et la Recherche globale. |
 | Chevron | Sert exclusivement au déploiement / repli de la carte. |
 | Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
@@ -927,7 +929,7 @@ Le nom, la couleur et la Composition sont réunis dans le même écran.
 | Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
-| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée via `Composition / Activity Row with Recovery` (`3572:64`). Chaque carte affiche le nom, les Zones corporelles séparées par ` · ` en texte secondaire monochrome, puis la synthèse. Aucune Catégorie de Séance n’est affichée. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
+| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée. Chaque carte affiche le nom, puis la Catégorie d’Activité et les Zones corporelles. La Catégorie porte sa couleur sémantique et la barre verticale de la carte reprend cette couleur. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
@@ -979,7 +981,8 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
 | Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Activité | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
-| Ajouter un média          | Bouton / section repliable | Toujours | Oui dans le rendu | Contrôle et placeholder désactivés dans le MVP | Centré horizontalement ; activation fonctionnelle post-MVP | Statique | Déployer / Condenser | `Action / Add Media — Source exact` (`3382:60`) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais le caractère `+` ; placé sous Nom ; section Médias visible, aucune fonction média réelle |
+| Catégorie | Bouton / sélection | Toujours | Non | Aucune | Une Catégorie d’Activité | Activité | Ouvrir la modale de sélection | Icône `+` séparée du libellé `Catégorie` |
+| Zones corporelles | Bouton / sélection | Toujours | Non | Aucune | Sélection multiple | Activité | Ouvrir la modale de sélection | Icône `+` séparée du libellé `Zones corporelles` |
 | Description de l’activité | Section repliable + texte multiligne | Toujours ; repliée par défaut | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | Le titre ou son chevron ouvre et referme le champ ; la valeur est conservée au repli |
 | Zone corporelle d’exécution | Section repliable + tags | Toujours ; repliée par défaut | Non | Aucune | Sélection multiple | Activité | Déployer / sélectionner | Référentiel prédéfini ; le titre ou son chevron ouvre et referme les tags |
 | Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Durée | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Adapte la cible centrale ; le repli conserve la valeur |
@@ -987,7 +990,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Nombre de répétitions     | Roulette native compacte | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer |
 | Pause entre Séries        | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | `C` occurrences si `R = 0`, y compris après la dernière Série ; sinon `C − 1`, la Récupération remplaçant la dernière Pause |
 | Nombre de Séries          | Roulette native compacte | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Une colonne, `144 × 203`, Annuler/Confirmer ; valeur canonique persistée |
-| Côté | Contrôle cyclique | Mode déployé, ligne 2 colonne 1 | Non | `UNILATERAL` | Trois états exacts | Activité | Appui | `74 × 42 pt`; vide / `D→G` / `G→D`; désactivé sous Tour bilatéral |
+| Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `Aucun`, `D→G`, `G→D` | Activité | Ouvrir la modale | Aucun réglage de côté n’est exposé au niveau Tour |
 | Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés d’une Activité autonome ; une phase par côté dans un Tour bilatéral |
 | Durée totale              | Roulette durée calculée/pilotable ou indicateur de borne | Mode déployé | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions/À l’échec : borne connue | Calcul | Sélection en mode Durée ; lecture en modes non chronométrés | Contrôle `Durée totale` en Durée ; contrôle `Durée totale >=` visible en Répétitions/À l’échec ; la Synthèse conserve `Durée totale : ≥ {durée connue}` |
 | Médias                    | Section repliable + placeholder | MVP : visible, repliable, inactive | Non | Vide | Aucune fonction média active dans le MVP ; `0..n` médias ordonnés post-MVP | Activité | Déployer / Condenser désactivé | Présence UI conforme aux frames courantes ; import, capture, lecture, stockage et galerie fonctionnelle restent post-MVP |
@@ -1044,6 +1047,7 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Récupération` et `
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Suivant` termine normalement la Série. |
 | Réinitialisation | Demande confirmation et remet l’Activité courante à son état initial sans revenir à une Activité antérieure. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
+| Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
 | Navigation | L’utilisateur ne revient pas à une Activité déjà exécutée. |
 | Étapes | Aucun compteur d’« étapes » n’est affiché dans le MVP. |
 
