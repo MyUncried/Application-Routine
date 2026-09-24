@@ -512,12 +512,15 @@ Une activité possède directement :
 - son identité ;
 - son nom ;
 - sa description ;
+- sa Catégorie et ses Zones corporelles ;
 - son mode d'exécution ;
 - sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée en mode À l’échec ;
 - son nombre de Séries ;
 - sa Pause entre Séries ;
 - sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
-- ses zones corporelles ;
+- son Changement de côté propre ;
+- son Compte à rebours d’Activité propre lorsqu’il est utilisé ;
+- sa Fin d’activité propre lorsqu’elle est utilisée ;
 - un média associé peut être affiché dans la carte Catalogue déployée du MVP ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
 - sa position structurelle dans la Séance et son ordre au sein de cette position.
 
@@ -538,6 +541,10 @@ Elle ne contient pas directement :
 | Tour                       | Tour contenant l’Activité                       |       Conditionnel        | Obligatoire uniquement pour une Activité `Dans Tour`                           |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
+| Catégorie                  | Classification de l’Activité                    |        Facultatif         | Porte la couleur sémantique de l’Activité                                      |
+| Changement de côté        | `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`        |        Obligatoire        | Affiché `Aucun`, `D→G`, `G→D`; défaut `UNILATERAL`                             |
+| Compte à rebours d’Activité | Durée propre précédant le travail              |        Facultatif         | Distinct du Compte à rebours initial de Séance                                 |
+| Fin d’activité            | Durée propre suivant les phases de l’Activité   |        Facultatif         | Distincte de la Fin de séance                                                   |
 | Mode d'exécution           | Durée, Répétitions ou À l’échec                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
 | Durée                      | Durée                                           |       Conditionnel        | Activité chronométrée                                                         |
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
@@ -1054,9 +1061,18 @@ Création → Édition → Active
 
 ## Cycle de vie d'une activité
 
-- Une Activité de Séance appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
-- Sa copie crée une nouvelle activité indépendante.
-- Sa suppression peut être annulée via la snackbar.
+Une `ActivityDefinition` persistante du Catalogue suit le cycle :
+
+```text
+Création → Active → Modifier → Archiver → Restaurer
+                                  └→ Supprimer définitivement depuis les archives
+```
+
+- Une `ActivityDefinition` est autonome et ne porte aucune position de Séance.
+- Une Activité de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
+- L’insertion depuis le Catalogue crée une copie indépendante ; aucune synchronisation ultérieure n’existe.
+- La capacité de création directe d’une `SessionActivity` locale à une Séance reste conservée techniquement et fonctionnellement, même si elle n’est pas exposée dans le parcours courant.
+- La suppression définitive d’une `ActivityDefinition` ne supprime ni les `SessionActivity` déjà copiées, ni les Exécutions, ni les Instantanés historiques.
 
 ## Cycle de vie d'une routine
 
@@ -1088,7 +1104,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 | `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
 | `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Activité, le Tour et la Série. |
 
-La migration ajoute les champs avec `UNILATERAL` pour toutes les données antérieures. Elle ne duplique ni Activité ni Résultat historique. Les résultats historiques reçoivent `NONE`. Au passage d’un Tour de `UNILATERAL` à un mode bilatéral, le domaine recherche les Activités propres bilatérales. Si aucune n’existe, la direction est appliquée directement. Sinon, après confirmation, l’application de la direction et la remise des seules Activités concernées à `UNILATERAL` s’effectuent dans une transaction unique. `Annuler` ne produit aucune écriture. Aucun état antérieur n’est conservé.
+La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté historiques sans dupliquer Activité ni Résultat. Les résultats historiques reçoivent `NONE`. Le champ technique historique de côté du Tour est conservé pour compatibilité et non-régression, reste fixé à `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle.
 
 ## Extension V2 — origine et instantané d’Exécution
 
@@ -1102,4 +1118,50 @@ La migration ajoute les champs avec `UNILATERAL` pour toutes les données antér
 | `Execution.completedSeriesCount` | Agrégat compatible avec une Activité directe. |
 
 Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.
+
+# 09.15 Migration T03 — Catalogue des Activités
+
+Cette section intègre l’ancien complément `09 bis – Modèle et migration T03 Catalogue`. Elle constitue désormais l’unique référence du chapitre 09 pour la distinction `ActivityDefinition` / `SessionActivity`, le cycle de vie et la migration T03.
+
+## Distinction ActivityDefinition / SessionActivity
+
+`ActivityDefinition` est la référence persistante autonome du Catalogue des Activités. `SessionActivity` est une copie appartenant à une Séance.
+
+Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Activité, Fin d’activité et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
+
+La capacité existante de créer directement une `SessionActivity` depuis une Composition ne crée jamais implicitement d’`ActivityDefinition`. Elle est conservée dans le modèle et l’architecture même lorsqu’elle n’est pas exposée dans le parcours utilisateur courant.
+
+## Migration T03
+
+La migration T03 introduit les structures persistantes nécessaires aux `ActivityDefinition`, à leurs relations et à l’origine d’Exécution `ACTIVITY`.
+
+Elle :
+
+- ne transforme pas les `SessionActivity` historiques en références de Catalogue ;
+- ne crée aucune `ActivityDefinition` silencieusement ;
+- est idempotente ;
+- reste compatible avec la base locale existante ;
+- préserve les Séances, Exécutions, Instantanés et résultats antérieurs.
+
+## Exécution directe
+
+Une Exécution directe d’Activité :
+
+- possède `origin = ACTIVITY` ;
+- utilise un instantané autonome immuable de l’`ActivityDefinition` au lancement ;
+- ne crée aucune Séance technique ou artificielle ;
+- applique la préparation système fixe de `5 s` ;
+- exécute ensuite les phases propres de l’Activité, y compris son Compte à rebours éventuel, ses Séries, Pauses, côtés, Récupération et Fin d’activité éventuelle ;
+- ne contient ni Cycle ni Tour de Séance artificiels ;
+- alimente le Suivi et les statistiques compatibles sans augmenter le nombre de Séances.
+
+## Sélection multiple depuis une Composition
+
+La sélection multiple reçoit les identifiants des `ActivityDefinition` choisies, mais les copies sont insérées selon l’ordre courant de présentation de la liste filtrée au moment de la validation. L’ordre des touchers n’est pas un ordre métier.
+
+Une validation sans sélection ne crée aucune donnée.
+
+## Frontière d’évolution
+
+La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. Les Circuits fonctionnels restent hors du périmètre T03. Les structures T03 ne doivent pas empêcher ces évolutions ultérieures.
 
