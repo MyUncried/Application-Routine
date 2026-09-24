@@ -53,7 +53,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Régler le Compte à rebours initial et la Fin de séance.
 - Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Activité.
 - Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.
-- Associer une Étiquette à la Séance et une Catégorie aux Activités ; sélectionner séparément les Zones corporelles des Activités et gérer le référentiel de Zones corporelles (création, renommage, suppression).
+- Associer une Étiquette à la Séance et une Catégorie aux Activités ; sélectionner séparément les Zones corporelles des Activités ; gérer les trois référentiels. Un appui long sur une Étiquette, une Catégorie ou une Zone corporelle permet d’en demander la suppression après confirmation, y compris pour une valeur initialement fournie par KODJO.
 - Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
 - Pouvoir abandonner explicitement une création commencée.
 
