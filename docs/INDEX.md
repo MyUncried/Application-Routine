@@ -72,6 +72,8 @@ L’inventaire complet des preuves visuelles — numéro documentaire, titre, no
 
 Les captures sont des fichiers image physiques du dépôt, référencés par chemins relatifs. Elles restent donc visibles après export/import du dossier documentaire sans dépendre d’une URL Figma temporaire.
 
+**Règle de localisation des copies d’écran : toutes les copies d’écrans et de modales utilisées dans les spécifications sont référencées exclusivement dans le chapitre `06 – Ecrans et navigation de la V1`. Le chapitre 13 n’embarque aucune copie d’écran ; il référence seulement les nodes Figma et les contrats déterministes.**
+
 La maquette Figma constitue la référence visuelle et interactive. Les documents fonctionnels constituent la référence pour les règles, les calculs et les comportements. Un détail graphique n’est pas transformé automatiquement en règle fonctionnelle.
 
 Évidences Figma T03 courantes contrôlées le 16 septembre 2026 :
