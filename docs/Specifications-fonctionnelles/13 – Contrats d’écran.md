@@ -94,7 +94,7 @@ Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la 
 
 Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
 
-`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Activités / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
 Pour T03 / `Activités` :
 
@@ -164,7 +164,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Parcours visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
 
 ### 3. Contexte d’entrée
 
@@ -174,7 +174,7 @@ Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour 
 
 - segment Activités → `CE-T03-02` ;
 - segment Séances → reste ;
-- Circuits → aucune navigation ;
+- Parcours → aucune navigation ;
 - Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
 - carte Séance → parcours existant T01/T02 ;
 - Recherche → expérience de Recherche globale existante ;
@@ -186,7 +186,7 @@ Liste issue des services/repositories Séance. Noms, catégories, zones, durées
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Activités`, `Séances`, `Circuits`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
+`Catalogue des séances`, `Activités`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
@@ -194,7 +194,7 @@ Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`,
 
 ### 8. Éléments obligatoires
 
-Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Circuits disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
+Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Parcours disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
 
 ### 9. Layout déterministe
 
@@ -210,7 +210,7 @@ Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour 
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Circuits disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Activités navigue ; Séances maintient ; Parcours disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -218,7 +218,7 @@ Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste
 
 ### 14. Validation
 
-Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance. Le snackbar d’annulation est affiché si et seulement si l’archivage a été réalisé sans dialogue de confirmation.
+Aucune validation pour changer de segment. Parcours et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance. Le snackbar d’annulation est affiché si et seulement si l’archivage a été réalisé sans dialogue de confirmation.
 
 ### 15. Brouillon et persistance
 
@@ -234,15 +234,15 @@ Erreur de chargement : afficher état d’erreur prévu, pas un faux état vide.
 
 ### 18. Accessibilité
 
-Circuits annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
+Parcours annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
 
 ### 19. Invariants
 
-Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
+Séances = défaut/relaunch ; Activités = actif T03 ; Parcours = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Activités, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Activités après relaunch.
 
 ### 21. Traçabilité
 
@@ -370,9 +370,9 @@ Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermi
 
 - Catalogue `Activités` → `CE-T03-04` en création ;
 - Catalogue `Séances` → parcours de création d’une Séance ;
-- Catalogue `Circuits` → parcours de création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+- Catalogue `Parcours` → parcours de création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
-Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
+Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
 
 ### 5. Données affichées et source de vérité
 
@@ -380,7 +380,7 @@ Aucun écran intermédiaire et aucune donnée métier intermédiaire. La destina
 
 ### 6. Classification des valeurs Figma
 
-`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
+`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
 
 ### 7. Structure de l’écran
 
@@ -400,7 +400,7 @@ Appliquer les règles du Catalogue courant. Aucun layout responsive propre à un
 
 ### 11. États de l’écran
 
-Action disponible depuis les Catalogues actifs. Dans T03 : `Activités` et `Séances` ; `Circuits` reste disabled.
+Action disponible depuis les Catalogues actifs. Dans T03 : `Activités` et `Séances` ; `Parcours` reste disabled.
 
 ### 12. Contrôles et interactions
 
@@ -432,11 +432,11 @@ Si le parcours cible ne peut pas être initialisé, aucune donnée partielle n�
 
 ### 19. Invariants
 
-Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Circuits non activés par cette règle en T03.
+Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Parcours non activés par cette règle en T03.
 
 ### 20. Recette déterministe
 
-Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un circuit / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Circuits.
+Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
 
 ### 21. Traçabilité
 
@@ -1711,10 +1711,10 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 
 | ID | Contenu élémentaire |
 |---|---|
-| E01 | Catalogue multi-type `Activités / Séances / Circuits` |
+| E01 | Catalogue multi-type `Activités / Séances / Parcours` |
 | E02 | Séances sélectionné par défaut/relaunch |
 | E03 | Activités actif T03 |
-| E04 | Circuits visible disabled |
+| E04 | Parcours visible disabled |
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
@@ -1782,7 +1782,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E69 | Transition canonique droite→gauche |
 | E70 | Migration sans promotion SessionActivity |
 | E71 | Médias multiples hors T03 |
-| E72 | Circuits fonctionnels hors T03 |
+| E72 | Parcours fonctionnels hors T03 |
 | E73 | Valeurs Figma démo non codées en dur |
 
 # 13. Couverture des contenus élémentaires
