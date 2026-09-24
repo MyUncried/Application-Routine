@@ -174,7 +174,7 @@ Les chapitres 00 à 13 et les matrices transverses constituent la baseline docum
 
 ## 9. Baseline consolidée — Activités, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` pour l’Activité et le Tour. Les règles bilatérales validées restent inchangées et sont réutilisées par l’Exécution directe T03.
+La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` au niveau Activité. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
 
 ## 10. MVP T03 — Catalogue des activités
 
