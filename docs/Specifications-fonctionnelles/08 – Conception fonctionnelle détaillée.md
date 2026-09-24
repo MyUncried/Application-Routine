@@ -199,7 +199,7 @@ Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persis
 
 ## 2 bis.3 Ajouter une Activité à une Séance
 
-Depuis la Composition, `Ajouter une activité` propose `Une nouvelle activité / Une activité existante / Annuler`.
+Depuis la Composition, `Ajouter une activité` ouvre directement la sélection des Activités du Catalogue. La capacité technique et fonctionnelle de créer une Activité locale à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
 
 - `Une nouvelle activité` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
 - `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités ;
