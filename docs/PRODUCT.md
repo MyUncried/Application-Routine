@@ -76,7 +76,7 @@ Pour un plan bilatéral, cet instantané conserve la direction effective et chaq
 ### Catalogue des séances
 
 Le MVP permet de :
-- créer une Séance avec un nom et une couleur obligatoires ;
+- créer une Séance avec un nom obligatoire, au moins une Activité valide et une Étiquette facultative dont la couleur devient la couleur affichée de la Séance ;
 - composer et modifier une Séance ;
 - associer l’Étiquette de la Séance ;
 - afficher dans chaque carte du Catalogue l’Étiquette de Séance et la Catégorie d’Activité selon les contrats d’écran actifs ;
