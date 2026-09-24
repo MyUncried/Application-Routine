@@ -600,7 +600,7 @@ Archiver → disparition active ; Filtrer>Archivées ; Restaurer ; Supprimer/Ann
 
 ### 21. Traçabilité
 
-E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
+E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
 
 ---
 
@@ -778,7 +778,7 @@ Sélection B puis A alors que liste A/B → insertion A/B ; recherche/filtre ave
 
 ### 21. Traçabilité
 
-E25–E31 → D-165/D-171 ; 09 bis ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
+E25–E31 → D-165/D-171 ; 09 ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
 
 ![Sélection Activités](./images/ecran-14-selection-activites-existantes.png)
 
@@ -962,7 +962,7 @@ Vérifier 5 s, snapshot, origin, source supprimée après lancement, absence Ses
 
 ### 21. Traçabilité
 
-E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
+E37–E39/E42 → D-157/D-172/D-180 ; 09 ; API-ACT-EXE-01/02.
 
 ![Préparation](./images/ecran-16-preparation-directe-5-s.png)
 
@@ -1793,7 +1793,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E58–E63 | CE-T03-02/05/08 |
 | E64–E66 | CE-T03-08 |
 | E67–E69 | CE-T03-01/16 |
-| E70 | invariant non visuel 09 bis + contrats de persistance |
+| E70 | invariant non visuel 09 + contrats de persistance |
 | E71 | CE-T03-03/04 |
 | E72 | CE-T03-01/03 |
 | E73 | règle commune §4.1 + tous contrats données |
