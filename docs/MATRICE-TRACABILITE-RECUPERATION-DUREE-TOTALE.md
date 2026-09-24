@@ -1,6 +1,6 @@
 # Matrice de traçabilité — Activité, Récupération et Durée totale
 
-> **Correspondance de roadmap (D-166)** — Le Catalogue des Activités constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
+> **Correspondance de roadmap (D-166)** — Le Catalogue des Exercices constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
 
 ## Références
 
