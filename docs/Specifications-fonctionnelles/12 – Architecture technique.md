@@ -1267,9 +1267,9 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre.
 
-## 12.34 Architecture cible — Activités, Médias et Circuits
+## 12.34 Architecture cible — Activités, Médias et Parcours
 
-SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Circuits, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
+SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Parcours, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
@@ -1281,7 +1281,7 @@ Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_F
 |---|---|---|
 | Activités | désactivé, aucune requête | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
-| Circuits | désactivé, aucune requête | `CircuitRepository` |
+| Parcours | désactivé, aucune requête | `CircuitRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
 
