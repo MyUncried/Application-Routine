@@ -184,7 +184,7 @@ La navigation basse utilise le libellé permanent `Catalogues`. Les titres conte
 
 L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Activité, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
 
-Les cartes du Catalogue des activités séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est visible mais désactivé, utilise le même composant DSF `2537:1033` que le Catalogue des séances et occupe la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est présente.
+Les cartes du Catalogue des activités séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF du Catalogue des séances. Aucune poignée de déplacement n’est présente.
 
 `Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. Les options de `Filtrer` sont contextuelles et conçues dans Figma ; `Trier` est visible mais désactivé et le tri par défaut reste la dernière modification décroissante.
 
