@@ -266,7 +266,7 @@ Le MVP comporte quatre destinations principales :
 - `Suivi` ;
 - `Profil`.
 
-`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
+`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
 
 Le composant DSF canonique de navigation est `Navigation / Bottom — Source exact` (`2537:214`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
 
@@ -284,7 +284,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 - Séances imbriquées ;
 - structures comportant plusieurs Tours ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier ;
-- Circuits fonctionnels ;
+- Parcours fonctionnels ;
 - médias multiples fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
 
@@ -368,15 +368,15 @@ Les versions futures pourront notamment introduire :
 - réglages sonores plus fins ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
 
-- Circuits persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
+- Parcours persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
 
-## 11. Activités, Catalogue et Circuits
+## 11. Activités, Catalogue et Parcours
 
 ### Catalogue multi-type
 
-Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et `Circuits`. `Séances` est le segment sélectionné par défaut ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
+Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et `Parcours`. `Séances` est le segment sélectionné par défaut ; `Activités` devient fonctionnel en T03 ; `Parcours` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
 `Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. Dans la maquette de référence `402 pt`, chacun est dessiné en `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Activités, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
@@ -386,7 +386,7 @@ Une Activité de Catalogue est une référence persistante `ActivityDefinition`.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Activités du Catalogue. La capacité existante de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Parcours depuis `Parcours` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Activités du Catalogue. La capacité existante de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des activités portent la couleur de leur Catégorie. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier`, `Dupliquer` et `Archiver` sur une Activité active ; dans la liste des Activités archivées, il expose `Supprimer`. Aucune poignée de déplacement n’est affichée.
 
@@ -408,11 +408,11 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
 - dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
 
-### Médias et Circuits
+### Médias et Parcours
 
 L’affichage du média associé dans la carte déployée du Catalogue des Activités appartient au MVP. Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
 
-Un Circuit reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Circuit. Le segment `Circuits` est visible et désactivé.
+Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est visible et désactivé.
 
 ## 12. Roadmap des tranches MVP
 
