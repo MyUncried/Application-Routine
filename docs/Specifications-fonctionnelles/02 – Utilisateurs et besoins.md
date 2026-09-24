@@ -180,8 +180,8 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Créer dans le MVP T03 une Activité de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - Associer `0..n` photos ou vidéos à une Activité, les réordonner et les consulter hors ligne.
-- Créer en V2 un Circuit d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
-- Planifier les Circuits seulement en V3.
+- Créer en V2 un Parcours d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
+- Planifier les Parcours seulement en V3.
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
 - Configurer une Activité ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
