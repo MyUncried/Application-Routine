@@ -16,9 +16,9 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
   - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
+  - une Récupération éventuelle exécutée après tous les côtés de l’Activité ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
-- ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
+- afficher dans le MVP le média associé à une Activité lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
 - ordonner les activités d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
 - ordonner les Activités dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
