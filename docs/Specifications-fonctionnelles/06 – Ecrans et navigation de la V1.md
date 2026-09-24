@@ -517,7 +517,7 @@ Exemples : `12 reps · x3`, `45 s · x2` ou simplement `30 s` lorsque le nombre 
 
 Toucher l’action de création ouvre `Composition d’une séance`, qui réunit le nom, l’Étiquette/couleur et la Composition.
 
-La création suit ensuite le parcours défini dans la section de navigation générale. `Continuer` valide la Séance ; il n’existe plus d’écran autonome `Catégories de la séance` en sortie de Composition.
+La création suit ensuite le parcours défini dans la section de navigation générale. `Continuer` valide la Séance ; l’ancien écran autonome de classification de la Séance n’est plus utilisé en sortie de Composition.
 
 ### Actions secondaires
 
@@ -629,13 +629,13 @@ Le modèle conserve un Cycle technique unique dont le nombre de répétitions va
 L’écran affiche notamment :
 
 - le champ `Nom de la séance` ;
-- un contrôle de couleur compact placé à côté du nom ;
-- une palette de 12 couleurs organisée en grille 4 × 3 ;
+- l’accès à la modale `Étiquettes` ;
+- l’Étiquette sélectionnée, lorsqu’elle existe, affichée sous le nom de la Séance ;
 - le résumé `N activité(s) · durée des Activités`, intégré sous `Nombre de tours` dans le conteneur Tour.
 
-Le champ `Nom de la séance` mesure `354 × 42`. Dans tous les états de Composition, son fond est transparent afin de laisser apparaître la couleur de la séance ; il possède un liseré blanc intérieur de `1` point (`color.sessionNameBorder`). Le texte et le contrôle de couleur conservent leurs styles et positions canoniques.
+Le champ `Nom de la séance` mesure `354 × 42`. Son fond reste transparent. Lorsqu’une Étiquette est sélectionnée, sa couleur devient la couleur affichée de la Séance ; il n’existe pas de palette de couleur indépendante de l’Étiquette dans le parcours courant.
 
-Une couleur est proposée par défaut. L’ouverture de la palette ne grise pas le reste de l’écran.
+L’ouverture de la modale Étiquettes conserve la Composition en arrière-plan et ne modifie aucune autre valeur tant qu’une sélection ou création n’est pas validée.
 
 ### Paramètres du Tour
 
