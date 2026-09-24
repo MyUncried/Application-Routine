@@ -15,8 +15,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Navigation basse | `Catalogues`; titres contextuels ; DSF exact ; dessins ≤24 pt | 01, 06, 07, 13 CE-T03-17, Figma `2537:214` | libellé `Séances`, icônes surdimensionnées | CONFORME | Règles intégrées directement dans 06/07. |
 | État Catalogue | recherche/filtres/tri/scroll conservés pendant aller-retour uniquement | 03, 06, 07, 13 CE-T03-01/02/05 | persistance non bornée | CONFORME | D-168. |
 | Rangée `Créer / Filtrer / Trier` | 3 contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence 402 ; même représentation Séances/Activités ; cibles ≥48 | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Contrôles d’entrée conçus et propagés. Coordonnées Figma utilisées uniquement comme preuve de rendu. |
-| Filtrer / Trier — comportement | Filtrer/Trier communs ; Filtrer Activités → `Archivées` ; Trier visible disabled ; aucune option inventée | 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-02/05 | contrôles tous désactivés / contenu implicite | CONFORME | Fonctionnel déterministe. |
-| Filtrer / Trier — panneaux/options ouverts | Aucun détail graphique inventé tant que panneaux/options non dessinés | 06, 07 D-184, PRODUCT, 13, Figma | « représentation Filtrer/Trier non conçue » appliquée indistinctement aux boutons et panneaux | NON VÉRIFIABLE | Seuls les panneaux/options ouverts restent sans design validé. |
+| Filtrer / Trier — comportement | Filtrer/Trier communs ; options Filtrer contextuelles ; Activités = statut, Catégories, Zones corporelles ; Séances = statut, Étiquettes ; Trier visible disabled | 06, 07 D-192, PRODUCT, 13 §4.5 | ancien filtre limité à `Archivées` | CONFORME | Fonctionnel déterministe. |
+| Filtrer / Trier — panneaux/options ouverts | Panneaux `Filtrer` conçus dans Figma ; `Trier` reste disabled | 06, 07 D-192, PRODUCT, 13, Figma | anciens panneaux non conçus | CONFORME | Les filtres ouverts sont désormais vérifiables. |
 | Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
 | `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
 | Cycle de vie ActivityDefinition | créer, modifier, archiver, restaurer, supprimer depuis archives | 04, 06, 07, 08, 09/09 bis, 10, 11, 13 CE-T03-04/05 | CRUD incomplet | CONFORME | Accès Archives via Filtrer. |
@@ -38,11 +38,11 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Cartes structurelles | CR initial + Fin non déplaçables | 00, 04, 06, 07, 10, 13 CE-T03-08 | poignée/appui long | CONFORME | D-177. |
 | Catégories destination | save → Catalogue des séances / Séances | 03, 06, 07, 10, 13 CE-T03-16 | retour dernier segment | CONFORME | D-168. |
 | Transition | cible entre droite, courant sort gauche | 06, 07, 13 CE-T03-16/17 | animation locale | CONFORME | D-178. |
-| Déployer Activity | même DSF Séance, visible disabled, zone réservée | Figma `3786:5093`, `2537:1033`, 06, 07, 13 CE-T03-02 | D-164 absent | CONFORME | D-164 est supersédée par D-173. |
+| Déployer Activity | actif ; déploie/replie le média associé dans le MVP | Figma courant, 06, 07 D-195, 13 CE-T03-02 | `Déployer` disabled | CONFORME | D-195 supersède D-173. |
 | Lecture Activity | indépendante, lance direct execution | 03, 06, 07, 13 CE-T03-02/09 | confusion Déployer | CONFORME | D-173. |
 | Première carte + Recovery | démo Figma seulement | Figma + 06 + 07 + 13 | règle de position | CONFORME | Pas de règle métier. |
 | Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 07, 09/09 bis, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
-| Médias | section visible/repliable ; contrôle Déployer/Condenser et placeholder désactivés ; fonctions et médias multiples hors T03 | 00, 04, 05, 07, 09, 12, 13 | activation T03 | CONFORME | Aucun média fonctionnel. |
+| Médias | affichage du média associé dans la carte Catalogue déployée inclus au MVP ; import/capture et gestion multiple selon périmètre propre | 00, 04, 05, 07 D-195, 09, 12, 13 | média totalement désactivé | CONFORME | Affichage média actif dans le Catalogue. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–07, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
 | Référence Figma `3787:5209` | ne plus la présenter comme preuve active | 06, 07, 13, README preuves, INDEX | node historique encore cité comme courant | CONFORME | Node absent du Figma courant ; aucun remplacement inventé. |
 | Captures Figma physiques | copies embarquées doivent refléter les écrans modifiés du 16/09 avant d’être dites courantes | images README + preuves chapitre 13 | export du 15/09 interprété comme courant | PARTIELLEMENT CONFORME | Les nodes courants ont été contrôlés ; les anciens binaires restent explicitement à réexporter/historiques. |
@@ -63,13 +63,13 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 - `3789:5349`, `3789:5405` multi-sélection ;
 - `3879:5947`, `3879:6079` créer/modifier référence persistante ;
 - `2028:11700`, `2028:11808` Composition / actions glissées ;
-- `2028:11204` Catégories ;
+- `2028:11204` Composition séance — Étiquettes ;
 - `2537:1033` Déployer ;
 - `2537:214` Navigation Bottom.
 
 `3787:5209` n’est plus disponible dans le Figma courant et n’est plus une évidence active.
 
-Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conçus. La rangée d’entrée, elle, est vérifiée.
+Panneaux ouverts `Filtrer` : **CONFORME**, conçus dans Figma. `Trier` reste visible mais disabled.
 
 ## Résultat de la consolidation
 
@@ -81,8 +81,9 @@ Panneaux/options ouverts `Filtrer` / `Trier` : **NON VÉRIFIABLE** car non conç
 | 21 sections par contrat | CONFORME | 17 contrats CE-T03-01..17 conservent les 21 rubriques. |
 | Référentiel T03-E01..E73 | CONFORME | Section 12 du chapitre 13. |
 | Frontière T03/T04 | CONFORME | Section 14 du chapitre 13. |
-| Filtrer/Trier — panneaux ouverts | NON VÉRIFIABLE | Aucun détail visuel Figma validé. |
-| Options Filtrer/Trier supplémentaires | À CLARIFIER | Hors `Archivées` pour Activités et état disabled de Trier, aucune option supplémentaire ne doit être implémentée. |
+| Filtrer — panneaux ouverts | CONFORME | Détail visuel validé dans Figma. |
+| Trier — panneau ouvert | HORS PÉRIMÈTRE T03 | Contrôle disabled. |
+| Options Filtrer | CONFORME | Options contextuelles validées par Catalogue ; D-192. |
 | Captures Figma du 16/09 physiquement réexportées | PARTIELLEMENT CONFORME | Les nodes sont vérifiés mais les copies binaires concernées ne sont pas encore toutes réexportées. |
 
 ## Contrôle de clôture du 16 septembre 2026
