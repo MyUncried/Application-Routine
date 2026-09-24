@@ -127,6 +127,22 @@ Swipe gauche : la carte suit le doigt et révèle progressivement les actions de
 
 Avancement vers l’écran suivant : cible entre depuis la droite, écran courant sort vers la gauche. Ne pas recréer localement une autre animation.
 
+### 4.10 Référentiels — appui long et suppression
+
+Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
+
+- appui court sur une option : sélection/désélection selon le contexte ;
+- appui long : aucun changement de sélection et ouverture d’un `Overlay / Decision Dialog` destructif à deux actions ;
+- titre dynamique : `Supprimer « {nom} » ?` ;
+- message dynamique : si la valeur est utilisée, préciser qu’elle sera retirée des objets courants qui l’utilisent et que l’historique restera inchangé ;
+- actions : `Annuler` à gauche, `Supprimer` à droite ;
+- toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO ;
+- après `Supprimer`, revenir à la modale de sélection restée ouverte, avec la valeur supprimée absente ;
+- la suppression retire aussi la valeur de la sélection courante lorsqu’elle y était sélectionnée ;
+- aucune restauration automatique d’une valeur initiale supprimée.
+
+La recette doit couvrir au minimum une Étiquette, une Catégorie et une Zone corporelle, chacune dans un cas utilisé et non utilisé.
+
 ---
 
 # 5. B1 — Catalogue multi-type
