@@ -104,7 +104,7 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. La couleur affichée de la Séance est désormais celle de son Étiquette. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Activité peut définir son propre Compte à rebours et sa propre Fin d’activité, distincts des phases structurelles de la Séance. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque Activité, un écran unique permet de renseigner le nom, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération après l’ensemble des Séries, ainsi que les informations facultatives. `Description de l’activité` et `Zone corporelle` sont repliables ; `Mode d’exécution` est déployé par défaut. L’action `Terminer` enregistre l’Activité.
+Pour chaque Activité, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération, le Changement de côté, le Compte à rebours propre et la Fin d’activité propre. La Description reste facultative. L’action `Terminer` enregistre l’Activité.
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
@@ -347,13 +347,39 @@ La recherche, les filtres et la position de défilement appartiennent à l’ét
 
 Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
 
+## Créer ou modifier une Activité
+
+1. Depuis le Catalogue des Activités, utiliser `Créer` pour ouvrir une nouvelle `ActivityDefinition`, ou toucher une carte existante pour la modifier.
+2. Renseigner le nom de l’Activité.
+3. Sélectionner sa **Catégorie** et, si nécessaire, ses **Zones corporelles**.
+4. Définir les paramètres d’exécution :
+   - mode `Durée`, `Répétitions` ou `À l’échec` ;
+   - cible du mode lorsqu’elle existe ;
+   - nombre de Séries ;
+   - Pause entre Séries ;
+   - Récupération ;
+   - `Changement de côté` : `Aucun`, `D→G` ou `G→D` ;
+   - Compte à rebours propre de l’Activité lorsqu’il est utilisé ;
+   - Fin d’activité propre lorsqu’elle est utilisée ;
+   - Durée totale dérivée ou pilotée selon le mode.
+5. Ajouter ou consulter le média selon le périmètre disponible.
+6. Valider avec `Terminer`.
+
+Les paramètres métier restent identiques entre création et modification ; seule l’organisation de l’écran et le contexte de retour diffèrent.
+
+### Déroulement d’une Activité
+
+Lorsqu’elle est exécutée, l’Activité suit son propre enchaînement : Compte à rebours d’Activité éventuel → Séries et côtés → Pauses applicables → Récupération éventuelle → Fin d’activité éventuelle. Ce déroulement est réutilisé dans une Séance comme en Exécution directe.
+
 ## Ajouter une Activité depuis une Composition
 
 1. Appuyer sur `Ajouter une activité`.
-2. Choisir `Une nouvelle activité`, `Une activité existante` ou `Annuler`.
-3. `Une nouvelle activité` ouvre le formulaire d’Activité de Séance.
-4. `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités.
-5. `Annuler` ferme les options sans modifier la Composition.
+2. Le parcours actuellement exposé ouvre directement la sélection des Activités du Catalogue.
+3. Rechercher ou filtrer les Activités puis sélectionner une ou plusieurs références.
+4. Valider avec `Ajouter N activité(s)`.
+5. Les copies sont insérées dans la Composition et deviennent indépendantes de leur `ActivityDefinition` source.
+
+La capacité existante de créer directement une Activité locale à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
 
 ## Utiliser une Activité de référence
 
@@ -394,8 +420,8 @@ En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats d
 1. Ouvrir `Activités` dans le Catalogue.
 2. Appuyer sur l’action `Exécuter` d’une Activité valide.
 3. Le système fige un instantané autonome et affiche une préparation de `5 s`.
-4. Exécuter les Séries, Pauses, côtés et la Récupération selon la définition figée.
-5. Après la dernière phase, entendre le signal de fin et ouvrir immédiatement la Synthèse.
+4. Après la préparation système, exécuter le Compte à rebours propre éventuel de l’Activité, puis les Séries, Pauses, côtés, la Récupération et la Fin d’activité éventuelle selon la définition figée.
+5. Après la dernière phase propre à l’Activité, entendre le signal de fin et ouvrir immédiatement la Synthèse.
 6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
 8. Revenir au Catalogue des Activités avec recherche, filtres et position de défilement restaurés.
