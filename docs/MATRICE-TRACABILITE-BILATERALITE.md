@@ -1,5 +1,7 @@
 # Matrice de traçabilité — Bilatéralité
 
+> Mise à jour du 24 septembre 2026 — D-189 : le changement de côté n’est plus exposé au niveau du Tour. Les critères historiques relatifs à un Tour bilatéral ne constituent plus des exigences actives. La bilatéralité active est portée par les Activités ; le support technique historique du Tour reste conservé, fixé à `UNILATERAL`, pour non-régression.
+
 Date de consolidation : 10 septembre 2026. Correction finale contrôlée sur `main@a904c16dc2f77189c42012071ba8ff481f122410` et sur la copie de `docs/PRODUCT.md` issue de `/Dev` fournie le 10 septembre 2026.
 
 Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODUCT.md`, `docs/INDEX.md`, des chapitres `00` à `13`, de la présente matrice et du rapport de conformité. `CONFORME` signifie que la décision validée est explicitement couverte sans ancienne règle contradictoire active connue. L’archive initiale reste une preuve de provenance historique ; elle n’est plus la limite du contrôle final.
@@ -26,19 +28,19 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-018 | Durée totale pilote : cible globale | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-019 | Arrondi au plus proche, `.5` vers le haut, minimum 1 | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-020 | Après arrondi, recalcul de D réalisable | 06, 08, 10, 11, 13 | CONFORME |
-| BIL-021 | Tour : tout le contenu premier côté puis second | 03, 07 D-145, 08 | CONFORME |
+| BIL-021 | Tour bilatéral exposé | D-189 | SUPERSÉDÉ |
 | BIL-022 | Paire de passages à chaque répétition du Tour | 03, 08, 10 | CONFORME |
 | BIL-023 | `LEFT_RIGHT` inverse l’ordre sans changer le calcul | 00, 08, 12 | CONFORME |
-| BIL-024 | Récupération une fois par passage de Tour bilatéral | 00, 08–11 | CONFORME |
+| BIL-024 | Récupération par passage de Tour bilatéral | D-189 | SUPERSÉDÉ |
 | BIL-025 | Toutes les Activités héritent du Tour ; aucune notion « latéralisable » | 00, 04, 06, 07 D-145, 10, 13 | CONFORME |
 | BIL-026 | Confirmation seulement si une Activité propre bilatérale sera remplacée ; sinon application directe | PRODUCT, 02–04, 06–13 ; D-146 ; CE-BIL-02 | CONFORME |
 | BIL-027 | Confirmation remet uniquement les Activités propres bilatérales concernées à `UNILATERAL` | 03, 04, 06, 09, 13 | CONFORME |
-| BIL-028 | Source effective : Tour bilatéral, sinon Activité | 00, 04, 09, 12 | CONFORME |
+| BIL-028 | Source effective portée par le Tour | D-189 | SUPERSÉDÉ — source active = Activité |
 | BIL-029 | Contrôles enfants visibles mais désactivés | 04, 06, 10, 13 | CONFORME |
 | BIL-030 | Contrôles enfants montrent leur état propre unilatéral | 04, 06, 13 | CONFORME |
 | BIL-031 | Désactivation du Tour sans restauration | 04, 07 D-146, 09, 10 | CONFORME |
 | BIL-032 | Duplication d’Activité conserve le côté | 04, 07 D-147, 11 | CONFORME |
-| BIL-033 | Duplication de Tour conserve le côté | 04, 07 D-147, 11 | CONFORME |
+| BIL-033 | Duplication de Tour conserve un côté utilisateur | D-189 | SUPERSÉDÉ — champ technique historique seulement |
 | BIL-034 | Activité bilatérale en deux passages distincts | 03, 04, 08, 09 | CONFORME |
 | BIL-035 | Résultats séparés par côté | 02, 04, 09, 11 | CONFORME |
 | BIL-036 | Un côté partiel rend l’Activité globale partielle | 02, 04, 10, 13 | CONFORME |
@@ -90,5 +92,5 @@ Pour une Activité autonome en mode Durée :
 - si `R = 0`, `Cth = D / [L × (A + B)]` ; si `R > 0`, `Cth = ((D − R) / L + B) / (A + B)` ;
 - arrondi au plus proche, `.5` vers le haut, minimum `1`, puis recalcul de `D`.
 
-Dans un Tour bilatéral, la direction du Tour développe deux passages complets de son contenu. Le multiplicateur d’une Activité n’est jamais appliqué une seconde fois.
+Historique : l’ancien modèle permettait au Tour de porter la direction. Depuis D-189, cette capacité n’est plus exposée ; la direction active est portée par l’Activité.
 
