@@ -833,7 +833,7 @@ Avant toute interaction, tous les contrôles sont utilisables et aucun contour p
 
 La formule d’une occurrence autonome est `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, `L = 1` en unilatéral et `L = 2` en bilatéral, `A` durée par Série, `B` Pause, `C` nombre entier de Séries par côté, `R` Récupération et `D` Durée totale globale. Si `D` pilote, `C théorique = D / [L × (A + B)]` lorsque `R = 0`, sinon `C théorique = ((D − R) / L + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
 
-La Description et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel prédéfini et ne sont ni créées, ni renommées, ni supprimées ici.
+La Description et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel utilisateur administrable. La modale `Zones corporelles` permet la sélection multiple et la création inline d’une nouvelle Zone (`4683:6336`). Le référentiel autorise également le renommage et la suppression ; ces deux opérations sont des règles fonctionnelles actives mais ne disposent pas encore d’une frame dédiée dans le Prototype MVP.
 
 ### Modification d’une Activité
 
@@ -1776,7 +1776,7 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4332:7095` | Durée de l’Activité — roulette ouverte | Référencée dans Écran 4 |
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
 | `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
-| `4683:6336` | Nouvelle zone corporelle — clavier | **À CLARIFIER** : contradiction entre cet état Figma et le référentiel métier non administrable |
+| `4683:6336` | Nouvelle zone corporelle — clavier | Référencée dans Écran 4 ; création inline conforme au référentiel administrable |
 | `4521:6220` | Catalogue Activités — État vide | Référencée dans Écran 12 |
 | `4544:6344` | Activités — Filtre inactif étendu | Référencée dans Écran 12 |
 | `4544:6651` | Activités — Filtre actif étendu | Référencée dans Écran 12 |
@@ -1818,7 +1818,7 @@ L’ancienne référence `3787:5209 — Catalogue — action contextuelle direct
 
 ### Résolutions postérieures au contrôle visuel du 16 septembre 2026
 
-Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Activités appartient au MVP ; l’ancien arbre `Créer` reste historique. Un seul point de cette liste reste `À CLARIFIER` :
+Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Activités appartient au MVP ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Un seul point de cette liste reste `À CLARIFIER` :
 
 1. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 
