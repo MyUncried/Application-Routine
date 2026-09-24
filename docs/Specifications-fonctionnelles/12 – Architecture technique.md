@@ -285,7 +285,7 @@ Le moteur gère ensuite :
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
 - l’insertion d’une étape `SERIES_PAUSE` après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- l’insertion d’une étape `RECOVERY` après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral lorsque sa durée est positive ;
+- l’insertion d’une étape `RECOVERY` après tous les côtés de l’Activité lorsque sa durée est positive ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -1299,7 +1299,7 @@ Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; auc
 
 ## Architecture de la bilatéralité
 
-Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants ajoutent `side_mode` à l’Activité de catalogue, à l’occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut. Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Activité de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Activité ; les résultats conservent le côté.
 
 Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
