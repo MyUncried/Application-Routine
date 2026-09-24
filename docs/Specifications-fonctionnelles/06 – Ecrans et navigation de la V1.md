@@ -678,7 +678,7 @@ Si deux Activités s’enchaînent sans Pause entre Séries ni Récupération, u
 La ligne d’une Activité dans la Composition affiche :
 
 - le nom de l’Activité ;
-- ses Zones corporelles, sur une ligne dédiée, sans Catégorie et sans couleur ; les valeurs sont séparées par ` · ` ;
+- sa Catégorie suivie de ses Zones corporelles, sur une ligne dédiée ; la Catégorie porte sa couleur sémantique et les valeurs sont séparées par ` · ` ;
 - un résumé compact de sa configuration essentielle (nombre de Séries, Durée, Répétitions ou À l’échec, Pause entre Séries).
 
 La Description ne figure jamais dans la ligne. Les Zones corporelles ne sont pas intégrées au résumé de configuration : elles sont affichées séparément entre le nom et ce résumé. Lorsque la Récupération est supérieure à `0 s`, une carte `Récupération X min Y s` de `24` points de haut est attachée immédiatement sous la carte principale ; l’ensemble mesure `354 × 93` et constitue un seul bloc fonctionnel.
@@ -713,7 +713,7 @@ Le Tour reste structurel. Le Compte à rebours initial et la Fin de séance sont
 
 L’écran ne comporte pas de bouton `Démarrer`.
 
-L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou que la Composition ne contient pas au moins une Activité valide.
+L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné ou que la Composition ne contient pas au moins une Activité valide. L’Étiquette est facultative ; lorsqu’elle est sélectionnée, sa couleur devient celle de la Séance.
 
 En création comme en modification, l’Étiquette de la Séance est gérée depuis la Composition par la modale `Étiquettes`. L’Étiquette sélectionnée est affichée sous le nom de la Séance et porte sa couleur.
 
@@ -1531,13 +1531,13 @@ Le dialogue flottant centré demande une confirmation explicite. `Annuler` ferme
 
 Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
-### Modale 4 – Suppression d’une planification### Modale 3b – Confirmer l’archivage d’une Séance planifiée
+### Modale 3b – Confirmer l’archivage d’une Séance planifiée
 
 Référence Figma : `4593:6285 — Modal — Confirmer l’archivage d’une séance planifiée`.
 
 Cette modale est utilisée lorsqu’une Séance active possède des planifications associées. Elle indique que les planifications seront supprimées tandis que les Séances déjà effectuées restent dans l’historique. Les actions sont `Archiver` et `Annuler`.
 
-
+### Modale 4 – Suppression d’une planification
 
 ![[images/modale-4-suppression-planification-unique.png|260]]
 
