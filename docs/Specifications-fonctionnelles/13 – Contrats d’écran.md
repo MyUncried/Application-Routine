@@ -287,11 +287,11 @@ Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 p
 
 ### 11. États de l’écran
 
-Liste active ; vide ; recherche ; Filtrer ouvert lorsque son panneau sera défini ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte ouverte ; retour restauré ; relaunch perdu.
+Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel appliqué ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte média déployée ; retour restauré ; relaunch sans filtre.
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
 
 ### 13. Gestes
 
@@ -315,7 +315,7 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer disabled ; Filtrer bouton actif avec état appliqué ; Trier disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
+Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer annonce l’état condensé/déployé ; Filtrer expose son état ; Trier reste disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
 
 ### 19. Invariants
 
