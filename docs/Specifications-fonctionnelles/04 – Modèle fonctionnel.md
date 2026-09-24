@@ -30,7 +30,7 @@ Le fonctionnement de l’application repose sur les concepts principaux suivants
 L'utilisateur est propriétaire de l'ensemble de ses données.
 Il possède notamment :
 - ses séances ;
-- ses Activités persistantes ;
+- ses Exercices persistantes ;
 - ses routines ;
 - ses catégories ;
 - ses zones corporelles ;
@@ -47,7 +47,7 @@ Elle définit :
 - son nom ;
 - sa couleur ;
 - ses catégories ;
-- sa structure (Cycle technique, Tour et Activités) ;
+- sa structure (Cycle technique, Tour et Exercices) ;
 - ses paramètres généraux ;
 - les règles de guidage.
 
@@ -69,15 +69,15 @@ Une Séance ne contient jamais :
 
 ## Cycle
 
-Un **Cycle** est conservé comme structure technique unique de la Composition. Il ordonne les Activités placées avant le Tour, le Tour unique et les Activités placées après le Tour. Dans le MVP, son nombre de répétitions vaut toujours `1`, il n’est pas modifiable et n’est jamais affiché à l’utilisateur.
+Un **Cycle** est conservé comme structure technique unique de la Composition. Il ordonne les Exercices placées avant le Tour, le Tour unique et les Exercices placées après le Tour. Dans le MVP, son nombre de répétitions vaut toujours `1`, il n’est pas modifiable et n’est jamais affiché à l’utilisateur.
 
 ## Tour
 
-Un **Tour** est un groupe ordonné d'Activités exécuté intégralement un nombre défini de fois. Il est toujours contenu dans le Cycle technique unique du MVP. Son nombre de répétitions est compris entre `1` et `99`.
+Un **Tour** est un groupe ordonné d'Exercices exécuté intégralement un nombre défini de fois. Il est toujours contenu dans le Cycle technique unique du MVP. Son nombre de répétitions est compris entre `1` et `99`.
 
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des activités (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
+Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -107,7 +107,7 @@ En modes Répétitions et À l’échec, `Durée totale` reste affichée mais n�
 
 ### Activité de référence et Activité de Séance
 
-Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des activités. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
+Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
 Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles et direction propre. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
@@ -136,7 +136,7 @@ Une routine ne contient jamais le contenu d'une séance. Une même séance peut 
 Une **Exécution** représente la réalisation effective d’un contenu. Elle porte obligatoirement une origine :
 
 - `SESSION` pour une Séance lancée manuellement ou depuis une Routine ;
-- `ACTIVITY` pour une Activité persistante lancée directement depuis le Catalogue des activités dans le MVP T03.
+- `ACTIVITY` pour une Activité persistante lancée directement depuis le Catalogue des exercices dans le MVP T03.
 
 Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution `SESSION` peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
 
@@ -170,8 +170,8 @@ L'application utilise des référentiels permettant de qualifier ses contenus.
 
 Dans le MVP :
 - les **Étiquettes** sont utilisées pour classer les Séances et portent leur couleur ;
-- les **Catégories** sont utilisées pour classer les Activités et portent leur couleur sémantique ;
-- les **Étiquettes**, **Catégories** et **Zones corporelles** sont des référentiels utilisateur administrables. Toutes leurs valeurs, qu’elles soient initiales ou créées ensuite par l’utilisateur, peuvent être supprimées. La suppression d’une Étiquette retire son association aux Séances courantes ; celle d’une Catégorie ou d’une Zone corporelle retire ses associations aux Activités courantes. Les Instantanés/Exécutions historiques restent inchangés.
+- les **Catégories** sont utilisées pour classer les Exercices et portent leur couleur sémantique ;
+- les **Étiquettes**, **Catégories** et **Zones corporelles** sont des référentiels utilisateur administrables. Toutes leurs valeurs, qu’elles soient initiales ou créées ensuite par l’utilisateur, peuvent être supprimées. La suppression d’une Étiquette retire son association aux Séances courantes ; celle d’une Catégorie ou d’une Zone corporelle retire ses associations aux Exercices courantes. Les Instantanés/Exécutions historiques restent inchangés.
 
 # 4.4 Structure d'une séance
 
@@ -180,22 +180,22 @@ Le modèle fonctionnel repose sur une hiérarchie : Séance → Cycle technique 
 Une Séance comprend, dans l'ordre :
 1. un Compte à rebours initial ;
 2. un **Cycle technique unique**, fixé à une répétition ;
-3. zéro, une ou plusieurs Activités avant le Tour ;
-4. un **Tour unique**, contenant zéro, une ou plusieurs Activités et répété de 1 à 99 fois ;
-5. zéro, une ou plusieurs Activités après le Tour ;
+3. zéro, une ou plusieurs Exercices avant le Tour ;
+4. un **Tour unique**, contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
+5. zéro, une ou plusieurs Exercices après le Tour ;
 6. une Fin de séance.
 
 Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. `RECOVERY` est une phase appartenant à l’Activité qui la précède, jamais une Activité autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
 
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
+Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
 Un **Point d’arrêt** est un élément de Composition sans écran dédié. Il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente est exclu de la durée de la Séance.
 
-Le modèle distingue trois mesures temporelles. La **Durée synthétique des Activités**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Activités mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
+Le modèle distingue trois mesures temporelles. La **Durée synthétique des Exercices**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
-Le **Cycle** contient le **Tour unique** et les Activités ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
+Le **Cycle** contient le **Tour unique** et les Exercices ordonnées avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
-Chaque **Tour** regroupe une suite ordonnée d'Activités. Les Activités placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Activités.
+Chaque **Tour** regroupe une suite ordonnée d'Exercices. Les Exercices placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
 Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative régie par D-156 et une Récupération facultative. Elle peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
 
@@ -225,9 +225,9 @@ Le déroulement du Cycle est donc :
 
 ```
 Exécuter une fois le Cycle technique :
-    Exécuter les Activités placées avant le Tour
-    Répéter N fois le Tour et ses Activités
-    Exécuter les Activités placées après le Tour
+    Exécuter les Exercices placées avant le Tour
+    Répéter N fois le Tour et ses Exercices
+    Exécuter les Exercices placées après le Tour
 ```
 
 Cette organisation permet de construire des séances simples ou plus élaborées tout en conservant un nombre limité de concepts métier.
@@ -294,7 +294,7 @@ Lorsqu'une Séance est démarrée :
 
 1. un instantané de la Séance est créé ;
 2. le moteur construit le Plan d’Exécution ;
-3. les Activités sont exécutées dans l'ordre prévu ;
+3. les Exercices sont exécutées dans l'ordre prévu ;
 4. les informations d'Exécution sont enregistrées ;
 5. les résultats sont sauvegardés.
 
@@ -334,13 +334,13 @@ Chaque Exécution conserve son propre instantané immuable correspondant à son 
 Le MVP permet notamment :
 - créer, modifier, dupliquer, archiver, restaurer et supprimer définitivement des Séances selon leur cycle de vie ;
 - créer, modifier et supprimer des Routines de planification ;
-- créer et modifier des Activités de Séance ;
+- créer et modifier des Exercices de Séance ;
 - à partir de T03, gérer le cycle de vie complet des `ActivityDefinition` persistantes ;
-- ajouter plusieurs Activités existantes à une Séance par copies indépendantes ;
-- organiser les Activités avant, dans ou après le Tour et définir le nombre de répétitions du Tour ;
+- ajouter plusieurs Exercices existantes à une Séance par copies indépendantes ;
+- organiser les Exercices avant, dans ou après le Tour et définir le nombre de répétitions du Tour ;
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
 - associer éventuellement une Étiquette à une Séance ;
-- associer une Catégorie et des Zones corporelles aux Activités ;
+- associer une Catégorie et des Zones corporelles aux Exercices ;
 - exécuter directement une Activité persistante à partir de T03 ;
 - exécuter une Séance dans T04 et les tranches associées du MVP ;
 - suspendre puis reprendre une Exécution lorsque le parcours concerné le prévoit ;
@@ -375,7 +375,7 @@ Le Parcours est une racine persistante préparée pour une version post-MVP, pos
 
 Une Activité persistante et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
 
-La direction effective exposée est celle de l’Activité. Le Tour ne remplace ni ne neutralise les réglages de côté de ses Activités dans la version actuelle.
+La direction effective exposée est celle de l’Activité. Le Tour ne remplace ni ne neutralise les réglages de côté de ses Exercices dans la version actuelle.
 
 Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Activité concernée.
 
