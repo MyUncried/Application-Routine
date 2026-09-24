@@ -1133,7 +1133,7 @@ Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée auc
 
 # 09.15 Migration T03 — Catalogue des Activités
 
-Cette section intègre l’ancien complément `09 bis – Modèle et migration T03 Catalogue`. Elle constitue désormais l’unique référence du chapitre 09 pour la distinction `ActivityDefinition` / `SessionActivity`, le cycle de vie et la migration T03.
+Cette section constitue l’unique référence du chapitre 09 pour la distinction `ActivityDefinition` / `SessionActivity`, le cycle de vie et la migration T03.
 
 ## Distinction ActivityDefinition / SessionActivity
 
