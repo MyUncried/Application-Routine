@@ -31,7 +31,7 @@ Le MVP permet à l'utilisateur :
 | T03              | Exécuter directement une Activité             | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue     | Spécifié MVP          |
 | T04              | Exécuter une Séance                           | Exécution guidée fondamentale, auparavant T03                                  | Spécifié MVP          |
 | T05 et suivantes | Dupliquer, planifier et suivre les Séances    | Parcours complémentaires 1 à 4                                                 | Spécifié MVP          |
-| Hors MVP         | Créer et exécuter un Circuit                  | Parcours Circuit                                                               | Partiel — à compléter |
+| Hors MVP         | Créer et exécuter un Parcours                  | Parcours de création et d’exécution d’un Parcours                                                               | Partiel — à compléter |
 ## Principes communs
 
 - Une séance définit le contenu à exécuter.
@@ -346,9 +346,9 @@ La recherche, les filtres et la position de défilement appartiennent à l’ét
 
 1. dans le Catalogue `Activités`, `Créer` ouvre directement le formulaire de création d’une Activité persistante ;
 2. dans le Catalogue `Séances`, `Créer` ouvre directement une nouvelle Composition de Séance ;
-3. dans le Catalogue `Circuits`, le même principe ouvre directement la création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+3. dans le Catalogue `Parcours`, le même principe ouvre directement la création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
-Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
+Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
 
 ## Créer ou modifier une Activité
 
@@ -398,16 +398,16 @@ Une Activité créée directement dans une Séance ne rejoint pas le catalogue. 
 
 L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute avant la Série suivante. Après la dernière Série, la Récupération configurée s’exécute une seule fois ; si elle vaut `0 s`, l’Activité suivante commence immédiatement.
 
-## Créer et exécuter un Circuit — hors MVP, conception partielle
+## Créer et exécuter un Parcours — hors MVP, conception partielle
 
 1. Renseigner un nom et une couleur.
 2. Ajouter au moins deux étapes, chacune référençant une Séance ; une même Séance peut être ajoutée plusieurs fois.
 3. Choisir une transition manuelle ou automatique ; l’automatique utilise une durée commune, `30 s` par défaut.
-4. Lancer manuellement le Circuit. Le lancement fige un instantané.
+4. Lancer manuellement le Parcours. Le lancement fige un instantané.
 5. Après chaque Séance intermédiaire, remplacer son écran de fin par l’écran de transition ; conserver ensuite le compte à rebours initial de la Séance suivante.
-6. Après la dernière Séance, afficher la fin du Circuit et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
+6. Après la dernière Séance, afficher la fin du Parcours et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
 
-En cas d’arrêt confirmé, le Circuit, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.
+En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.
 
 ## Parcours bilatéral
 
