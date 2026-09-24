@@ -849,7 +849,7 @@ Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquett
 - les libellés visibles dans Figma (`Marathon`, `Hyrox`, `Vacances d'été`, `Challenge groupe`) sont des données de démonstration, pas des valeurs codées en dur ;
 - la navigation et les autres valeurs déjà saisies dans la Composition sont conservées pendant l’ouverture/fermeture de la modale.
 
-La validation de la Séance reste portée par l’action `Continuer` de la Composition ; aucune transaction distincte de « Catégories de séance » n’est créée par ce parcours.
+La validation de la Séance reste portée par l’action `Continuer` de la Composition ; l’Étiquette est enregistrée avec la Séance dans le même flux de validation.
 
 ## Écran 7 – Calendrier
 
