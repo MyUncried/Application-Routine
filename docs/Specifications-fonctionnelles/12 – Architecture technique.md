@@ -121,7 +121,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
 | `PreferencesService` | Lecture et modification des Préférences globales |
-| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Activité et consultation du référentiel des Zones corporelles |
+| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Activité et du référentiel administrable des Zones corporelles |
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -181,11 +181,12 @@ Sont notamment persistés :
 - Routines ;
 - Étiquettes de Séance ;
 - Catégories d’Activité ;
+- Zones corporelles ;
 - Exécutions ;
 - Instantanés d’Exécution ;
 - Occurrences historisées.
 
-Les Zones corporelles constituent un référentiel applicatif prédéfini.
+Les Zones corporelles constituent un référentiel utilisateur persistant et administrable, initialisé avec des valeurs par défaut. Leur identité reste stable à travers les renommages ; leur suppression retire les associations courantes selon les règles du chapitre 10.
 
 ### Repositories
 
@@ -1255,7 +1256,7 @@ Ordre de développement retenu :
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
-9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; Zones corporelles utilisées comme référentiel prédéfini, sélectionnable et associable aux Exercices, sans création, modification ni suppression des valeurs du référentiel dans le MVP ; Profil et Préférences.
+9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; référentiel persistant des Zones corporelles administrable par l’utilisateur (lister, créer, renommer, supprimer) et sélection multiple sur les Activités ; Profil et Préférences.
 10. **Robustesse, accessibilité, responsive, tests end-to-end et stabilisation**.
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.
