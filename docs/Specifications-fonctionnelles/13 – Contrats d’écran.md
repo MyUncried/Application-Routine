@@ -60,7 +60,7 @@ Toute valeur visible est classée :
 - `DONNÉE MÉTIER DYNAMIQUE` : valeur provenant du modèle, d’un brouillon ou d’un calcul ;
 - `VALEUR DE DÉMONSTRATION FIGMA` : valeur uniquement illustrative, interdite en dur.
 
-Les noms d’Activités/Séances, catégories, zones corporelles, durées, nombres de Séries/répétitions, commentaires, ressentis, dates et ordre des cartes montrés dans les maquettes sont dynamiques/démonstratifs sauf mention contraire.
+Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombres de Séries/répétitions, commentaires, ressentis, dates et ordre des cartes montrés dans les maquettes sont dynamiques/démonstratifs sauf mention contraire.
 
 ### 4.2 Responsive
 
@@ -94,9 +94,9 @@ Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la 
 
 Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
 
-`Filtrer` et `Trier` sont communs à `Activités / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Exercices / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
-Pour T03 / `Activités` :
+Pour T03 / `Exercices` :
 
 - `Filtrer` propose les critères contextuels validés : statut (`Actives` / `Archivées`), Catégories et Zones corporelles ;
 - `Trier` est visible mais disabled ;
@@ -164,15 +164,15 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Parcours visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Exercices désormais actif, Parcours visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
 
 ### 3. Contexte d’entrée
 
-Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Activités`.
+Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Exercices`.
 
 ### 4. Contexte de sortie / destinations
 
-- segment Activités → `CE-T03-02` ;
+- segment Exercices → `CE-T03-02` ;
 - segment Séances → reste ;
 - Parcours → aucune navigation ;
 - Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
@@ -186,7 +186,7 @@ Liste issue des services/repositories Séance. Noms, catégories, zones, durées
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Activités`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
+`Catalogue des séances`, `Exercices`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
@@ -194,11 +194,11 @@ Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`,
 
 ### 8. Éléments obligatoires
 
-Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Parcours disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
+Titre contextuel ; segments égaux ; Séances selected ; Exercices enabled ; Parcours disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
 
 ### 9. Layout déterministe
 
-Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des activités ; elle ne devient pas un jeu de coordonnées absolues RN.
+Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des exercices ; elle ne devient pas un jeu de coordonnées absolues RN.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -210,7 +210,7 @@ Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour 
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Parcours disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Exercices navigue ; Séances maintient ; Parcours disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -238,11 +238,11 @@ Parcours annonce disabled ; Séances selected ; `Catalogues` est le label access
 
 ### 19. Invariants
 
-Séances = défaut/relaunch ; Activités = actif T03 ; Parcours = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
+Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Exercices, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Exercices après relaunch.
 
 ### 21. Traçabilité
 
@@ -250,7 +250,7 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 
 ---
 
-## CE-T03-02 — Catalogue des activités — liste, recherche, filtres et cartes
+## CE-T03-02 — Catalogue des exercices — liste, recherche, filtres et cartes
 
 > Mise à jour 24/09/2026 : actions glissées actives = `Planifier / Dupliquer / Archiver`; dans les archives = `Supprimer`. Le média déployé fait partie du MVP.
 
@@ -274,7 +274,7 @@ Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consu
 
 ### 3. Contexte d’entrée
 
-Segment Activités depuis Catalogue ; retour éditeur ; retour Exécution directe ; retour archives. L’état du parcours courant est restitué.
+Segment Exercices depuis Catalogue ; retour éditeur ; retour Exécution directe ; retour archives. L’état du parcours courant est restitué.
 
 ### 4. Contexte de sortie / destinations
 
@@ -368,7 +368,7 @@ Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermi
 
 ### 4. Contexte de sortie / destinations
 
-- Catalogue `Activités` → `CE-T03-04` en création ;
+- Catalogue `Exercices` → `CE-T03-04` en création ;
 - Catalogue `Séances` → parcours de création d’une Séance ;
 - Catalogue `Parcours` → parcours de création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
@@ -400,7 +400,7 @@ Appliquer les règles du Catalogue courant. Aucun layout responsive propre à un
 
 ### 11. États de l’écran
 
-Action disponible depuis les Catalogues actifs. Dans T03 : `Activités` et `Séances` ; `Parcours` reste disabled.
+Action disponible depuis les Catalogues actifs. Dans T03 : `Exercices` et `Séances` ; `Parcours` reste disabled.
 
 ### 12. Contrôles et interactions
 
@@ -436,7 +436,7 @@ Destination déterminée par le Catalogue courant ; aucun écran/arbre interméd
 
 ### 20. Recette déterministe
 
-Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
+Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
 
 ### 21. Traçabilité
 
@@ -510,7 +510,7 @@ Création persiste ActivityDefinition à Terminer uniquement. Modification atomi
 
 ### 16. Navigation et conservation d’état
 
-Succès → Catalogue activités restauré. Aucun SessionActivity créé dans ce contexte.
+Succès → Catalogue exercices restauré. Aucun SessionActivity créé dans ce contexte.
 
 ### 17. Erreurs et cas limites
 
@@ -632,7 +632,7 @@ Bloc B3 ; parcours courant de Composition ; frame cible `3789:5349`. Les ancienn
 
 ### 2. Finalité fonctionnelle
 
-Ouvrir directement la sélection des Activités persistantes du Catalogue depuis la Composition, sans arbre intermédiaire.
+Ouvrir directement la sélection des Exercices persistantes du Catalogue depuis la Composition, sans arbre intermédiaire.
 
 ### 3. Contexte d’entrée
 
@@ -696,7 +696,7 @@ Le brouillon de Composition est conservé. La capacité existante de création d
 
 ### 18. Accessibilité
 
-`Ajouter une activité` annonce l’ouverture de la sélection d’Activités.
+`Ajouter une activité` annonce l’ouverture de la sélection d’Exercices.
 
 ### 19. Invariants
 
@@ -712,7 +712,7 @@ D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiqu
 
 ---
 
-## CE-T03-07 — Sélection multiple d’Activités existantes
+## CE-T03-07 — Sélection multiple d’Exercices existantes
 
 ### 1. Identification
 
@@ -803,7 +803,7 @@ E25–E31 → D-165/D-171 ; 09 ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789
 
 ## CE-T03-08 — Composition après insertion et corrections UX
 
-> Mise à jour 24/09/2026 : le parcours exposé sélectionne les Activités dans le Catalogue ; la capacité de création locale à la Séance reste conservée mais n’est pas proposée dans cet enchaînement. La Composition accepte aussi le Point d’arrêt, ainsi que les Compte à rebours / Fin propres aux Activités.
+> Mise à jour 24/09/2026 : le parcours exposé sélectionne les Exercices dans le Catalogue ; la capacité de création locale à la Séance reste conservée mais n’est pas proposée dans cet enchaînement. La Composition accepte aussi le Point d’arrêt, ainsi que les Compte à rebours / Fin propres aux Exercices.
 
 ### 1. Identification
 
@@ -831,7 +831,7 @@ Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de ca
 
 ### 7. Structure de l’écran
 
-CR initial → activités / Points d’arrêt avant Tour → Tour → activités / Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
+CR initial → exercices / Points d’arrêt avant Tour → Tour → exercices / Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
 
 ### 8. Éléments obligatoires
 
@@ -1314,7 +1314,7 @@ Sauvegarder Execution/results avant navigation ; ne pas perdre résultats en cas
 
 ### 16. Navigation et conservation d’état
 
-Synthèse puis Terminer → Catalogue activités avec état aller-retour. Relaunch ultérieur ne restaure pas ce contexte UI.
+Synthèse puis Terminer → Catalogue exercices avec état aller-retour. Relaunch ultérieur ne restaure pas ce contexte UI.
 
 ### 17. Erreurs et cas limites
 
@@ -1588,7 +1588,7 @@ Transaction Session+Composition+catégories ; erreur = rollback et brouillon int
 
 ### 16. Navigation et conservation d’état
 
-Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Activités.
+Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Exercices.
 
 ### 17. Erreurs et cas limites
 
@@ -1600,11 +1600,11 @@ Saving/disabled annoncé ; erreur live region ; focus clavier correct.
 
 ### 19. Invariants
 
-Destination jamais Catalogue Activités ; segment Séances ; une seule sauvegarde.
+Destination jamais Catalogue Exercices ; segment Séances ; une seule sauvegarde.
 
 ### 20. Recette déterministe
 
-Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Activités préalable. Négatif : retour Activités après save.
+Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Exercices préalable. Négatif : retour Exercices après save.
 
 ### 21. Traçabilité
 
@@ -1711,15 +1711,15 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 
 | ID | Contenu élémentaire |
 |---|---|
-| E01 | Catalogue multi-type `Activités / Séances / Parcours` |
+| E01 | Catalogue multi-type `Exercices / Séances / Parcours` |
 | E02 | Séances sélectionné par défaut/relaunch |
-| E03 | Activités actif T03 |
+| E03 | Exercices actif T03 |
 | E04 | Parcours visible disabled |
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
-| E08 | Recherche Catalogue activités |
-| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Activités ; Trier disabled ; autres options non définies |
+| E08 | Recherche Catalogue exercices |
+| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Exercices ; Trier disabled ; autres options non définies |
 | E10 | Préserver recherche/filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
 | E12 | Ouvrir ActivityDefinition en consultation/modification |
@@ -1730,7 +1730,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E17 | Supprimer définitivement depuis archives |
 | E18 | Aucune cascade vers copies/historique |
 | E19 | Créer contextuel Catalogue |
-| E20 | Activités → création directe ActivityDefinition |
+| E20 | Exercices → création directe ActivityDefinition |
 | E21 | Séances → création directe Séance |
 | E22 | Arbre Ajouter depuis Composition |
 | E23 | Nouvelle activité depuis Composition = SessionActivity |
@@ -1759,7 +1759,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E46 | Commentaire facultatif |
 | E47 | Suivi type Activité |
 | E48 | Stats compatibles sans compter Séance |
-| E49 | Retour Catalogue activités état restauré |
+| E49 | Retour Catalogue exercices état restauré |
 | E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
 | E51 | Durée totale visible trois modes ; contrôle Reps/Failure libellé `Durée totale >=` |
 | E52 | Synthèse Reps/Failure `Durée totale : ≥ {durée connue}` |
@@ -1819,7 +1819,7 @@ T03 ne doit pas implémenter au titre de cette tranche :
 
 - orchestration complète Session ;
 - Compte à rebours Session comme phase du plan Session ;
-- Activités avant/dans/après Tour dans une Execution ACTIVITY ;
+- Exercices avant/dans/après Tour dans une Execution ACTIVITY ;
 - répétitions Tour/Cycle dans ACTIVITY ;
 - progression globale Session ;
 - `SESSION_END` dans ACTIVITY ;
