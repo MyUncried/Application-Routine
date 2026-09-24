@@ -1,5 +1,7 @@
 # Rapport final de conformité — Bilatéralité
 
+> Mise à jour du 24 septembre 2026 : D-189 supersède l’exposition fonctionnelle de la bilatéralité au niveau Tour. Les conclusions historiques relatives au Tour bilatéral doivent être lues comme traces de conception antérieure, pas comme exigences actives.
+
 Date : 14 septembre 2026 — rectification après validation visuelle de la PR #131.
 
 ## Baseline et périmètre
@@ -13,7 +15,7 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 | Priorité Tour / Activité | CONFORME | PRODUCT ; 00 ; 04 ; D-145/D-146 ; RM-146 ; CE-BIL-01/02/02A. |
 | Contrôle Tour | CONFORME APRÈS RECTIFICATION | Géométrie Figma conservée à `42 × 34 pt`, espace `8 pt`; affichage intégral de `D→G`/`G→D`; tiret `–` centré en unilatéral. |
 | Confirmation conditionnelle | CONFORME APRÈS RECTIFICATION | Condition inchangée ; titre et message exacts réalignés dans PRODUCT, 03, D-146 et CE-BIL-02. |
-| Carte Activité | CONFORME APRÈS RECTIFICATION | `3706:5020`, `42 × 20 pt`, `x=311`, `y=24,5`; petit indicateur seul, sans direction développée dans le texte et sans répétition sous Tour bilatéral. |
+| Carte Activité | CONFORME APRÈS RECTIFICATION | Petit indicateur `D→G` / `G→D` pour la direction propre de l’Activité ; aucun changement de côté n’est exposé au niveau Tour depuis D-189. |
 | Contrôle Activité | CONFORME | Déjà sous Séries ; `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt`; `3704:5021`. |
 | Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Activité dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
