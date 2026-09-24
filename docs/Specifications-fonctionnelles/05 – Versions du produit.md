@@ -193,7 +193,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
-- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
 ### MVP — complément T03
@@ -224,9 +224,9 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Activité, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle.
 
-T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
+T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés portés par les Activités, affiche le côté courant, pondère la progression globale, émet les annonces vocales de côté, réinitialise uniquement le passage courant et persiste des résultats séparés par côté.
 
 ## MVP T03 — Activité directement exécutable
 
@@ -234,4 +234,4 @@ La première version fonctionnelle du Catalogue des Activités inclut l’exécu
 
 ### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
 
-Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. Son activation pour afficher les médias reste une évolution post-MVP distincte.
+Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. L’affichage du média dans la carte déployée appartient au MVP.
