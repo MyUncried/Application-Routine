@@ -384,6 +384,8 @@ Les états complémentaires suivants font partie de la référence de développe
 | Écran 1c | Sélecteur du compte à rebours | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné | `1992:474` |
 | Écran 1d | Sélecteur de fin de séance | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné | `1992:579` |
 | Écran 1e | Profil d’un parcours encore vide | ![[images/ecran-1e-profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu | `2139:86` |
+| Contrôle 1f | Compte à rebours d’Activité | — | Valeur globale proposée pour le Compte à rebours propre d’une nouvelle Activité ; pas de frame plein écran distincte | `4179:9550` |
+| Contrôle 1g | Fin d’activité | — | Valeur globale proposée pour la Fin propre d’une nouvelle Activité ; pas de frame plein écran distincte | `4179:9556` |
 
 ### Objectif
 
@@ -399,9 +401,11 @@ L’écran comporte notamment :
 - `Vibration` ;
 - la durée par défaut du `Compte à rebours initial` ;
 - la durée par défaut de la `Fin de séance` ;
+- le `Compte à rebours d’activité` ;
+- la `Fin d’activité` ;
 - `Notifications` et rappels.
 
-Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance.
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les contrôles Figma `4179:9550` et `4179:9556` matérialisent de la même manière le Compte à rebours d’Activité et la Fin d’activité pour les nouvelles Activités ; ces phases restent modifiables au niveau de chaque Activité.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
 
@@ -446,6 +450,11 @@ L’état de résultats de la recherche globale est illustré par :
 | Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `1992:10749` |
 | Écran 2g | Séance restaurée | ![[images/ecran-2g-catalogue-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` | `1992:10848` |
 | Écran 2h | Catalogue après archivage | ![[images/ecran-2h-catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active | `1992:10937` |
+| Écran 2i | Filtres — panneau ouvert | — | Modale de filtres contextuels Séances : statut et Étiquettes | `4168:11149` |
+| Écran 2j | Filtre inactif étendu | — | État `Filtres / Aucun`, liste inchangée | `4549:6382` |
+| Écran 2k | Filtre actif `Archivées` | — | État actif du contrôle et liste filtrée | `4549:6742` |
+
+Référence complémentaire de variante d’actions glissées : `4592:6217 — Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité`. Cette frame matérialise le même contrat d’actions que l’Écran 2d et ne crée pas un nouvel écran fonctionnel.
 
 ### Objectif
 
@@ -593,6 +602,7 @@ L’état révélant les actions d’une Activité est illustré par :
 | Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
 | Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
 | Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité | `3518:4576` |
+| Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
 
 ### Objectif
 
@@ -717,9 +727,9 @@ Les modifications internes sont conservées au fur et à mesure, sous réserve d
 
 ![[images/ecran-4-creation-activite-duree.png|260]]
 
-*Écran 4 — Activité — Durée / Pause / Séries — Figma `3542:4656`*
+*Écran 4 — ancienne structure de référence — Figma `3542:4656`*
 
-La capture Figma matérialise la structure cible commune. Dans le MVP, la section Médias reste visible et repliable ; son contrôle `Déployer / Condenser` et son placeholder média sont désactivés et aucune fonction d’import, capture, lecture ou stockage n’est active. Le Design System conserve la section et ses composants pour l’activation fonctionnelle du lot Média post-MVP. Le bouton réutilise `Action / Add Media — Source exact` (`3382:60`) et son icône vectorielle DSF `icon/ajouter` (`3382:61`) en `16 × 16` ; aucun caractère typographique `+` n’est utilisé.
+La structure visuelle courante de l’éditeur d’Activité est portée par les frames Figma de la série `4217:*` à `4734:*` listées ci-dessous. Elles supersèdent l’ancienne organisation visuelle `3542:4656` pour l’implantation de l’écran, sans modifier les règles métier des paramètres d’exécution. Les accès `Catégorie` et `Zones corporelles` sont distincts, la zone Média reste sous la Synthèse en cas de chevauchement, et toutes les roulettes utilisent une modale basse standardisée.
 
 ### États Figma de référence
 
@@ -738,6 +748,14 @@ La frame principale est `3542:4656`. Les états Description et Zone corporelle s
 | Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | `Séries` pilote et `Durée totale` calculée | `3580:4733` |
 | Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | `Durée totale` pilote et Séries calculées | `3580:4845` |
 | Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
+| Écran 4l | Ajouter une activité — paramètres repliés | — | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
+| Écran 4m | Paramètres dépliés — vue défilée | — | Organisation actuelle des paramètres d’exécution | `4279:7044` |
+| Écran 4n | Invitation à paramétrer | — | État replié avec action `Cliquez pour paramétrer` | `4294:7075` |
+| Écran 4o | Modifier une activité | — | Variante modification de l’éditeur courant | `4734:6342` |
+| Écran 4p | Durée de l’Activité — roulette ouverte | — | Roulette en modale basse dans le nouvel éditeur | `4332:7095` |
+| Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
+| Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
+| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | État Figma existant ; le référentiel métier reste non administrable tant qu’aucune décision fonctionnelle ne l’autorise | `4683:6336` |
 
 ### Objectif
 
@@ -1202,6 +1220,11 @@ L’état initial, avant sélection du ressenti, est illustré par :
 
 *Écran 10a — Synthèse de séance — Évaluation initiale — Figma `1992:8718`*
 
+États Figma complémentaires sans copie documentaire mise à jour à ce stade :
+
+- `4760:6448 — Synthèse de séance — Partielle — Évaluation initiale` ;
+- `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné`.
+
 ### Objectif
 
 Présenter un bilan immédiatement compréhensible et recueillir le ressenti obligatoire avant de quitter l’écran.
@@ -1340,6 +1363,17 @@ Chaque carte présente une barre verticale portant la couleur de sa Catégorie. 
 
 *Écran 12 — Catalogue des Activités — Liste — Figma `3786:5093`*
 
+États Figma complémentaires de la famille Catalogue des Activités :
+
+- `4521:6220 — Catalogue des activités — État vide` ;
+- `4168:11262 — Catalogue des Activités — Filtrer — Panneau ouvert` ;
+- `4544:6344 — Catalogue des Activités — Liste — Filtre inactif étendu` ;
+- `4544:6651 — Catalogue des Activités — Liste — Filtre actif étendu` ;
+- `4738:6209 — Catalogue des Activités — Liste — actions glissées` ;
+- `4738:6355 — Catalogue des Activités — Liste — Première carte déployée — Média`.
+
+La frame `4534:6339 — Catalogue des Activités — Filtre — États du contrôle` est une planche de référence du contrôle, pas un écran utilisateur autonome.
+
 L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans l’état courant et n’est plus une preuve active. Aucun état de remplacement n’est inventé.
 
 ### Écran 13 — Supprimé — ancien arbre `Créer` des Catalogues
@@ -1353,7 +1387,6 @@ Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet corr
 
 Cette règle n’active pas les Circuits dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
 
-### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
 Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
@@ -1447,44 +1480,40 @@ La Composition reste visible en arrière-plan, assombrie et non interactive.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
-### Modale 2 – Abandonner les modifications d’une Activité (D-094)
+### Modale 2 – Abandonner la création d’une Activité
 
 ![[images/modale-2-abandon-modifications-activite.png|260]]
 
-*Modale d’abandon de création d’une Activité — source Figma courante `4714:6241 — Modal — Abandonner la création de l’activité`. L’ancienne référence `3224:4082` est historique.*
+*Référence Figma courante : `4714:6241 — Modal — Abandonner la création de l’activité`. La copie documentaire sera mise à jour dans la phase dédiée aux captures.*
 
 #### Objectif
 
-Éviter la perte accidentelle des modifications apportées à une Activité dans l’écran unique `Création / modification d’une Activité`.
+Éviter la perte accidentelle des informations saisies pendant la création d’une Activité.
 
 #### Ouverture
 
-La modale s’affiche depuis l’écran Activité lorsque l’utilisateur tente de quitter (Retour, geste de glissement, bouton matériel Android) alors que des modifications non enregistrées existent sur l’Activité en cours d’édition — comparées à son état au moment de l’ouverture de l’écran, jamais au reste de la Composition.
-
-L’écran Activité reste visible en arrière-plan, assombri et non interactif.
+La modale s’affiche lorsque l’utilisateur tente de quitter l’écran `Ajouter une activité` alors qu’une création non enregistrée contient des informations saisies.
 
 #### Contenu
 
 **Titre**
 
-> Abandonner les modifications ?
+> Abandonner la création ?
 
-**Message**
+**Message Figma**
 
-> Les modifications apportées à cette activité seront perdues.
+> Les informations saisies seront perdues et l'activité ne sera pas créé.
 
 **Actions**
 
-- `Annuler`, action neutre grise
-- `Confirmer`, action destructive rouge
+- `Annuler` ;
+- `Confirmer`, action destructive.
 
 #### Comportement
 
-`Annuler` ferme la modale et conserve intégralement les modifications en cours sur l’Activité.
+`Annuler` ferme la modale et conserve le brouillon d’Activité. `Confirmer` abandonne la création locale en cours et revient au contexte d’origine sans modifier les autres données de la Composition ou du Catalogue.
 
-`Confirmer` annule uniquement les modifications locales de l’Activité, puis revient à `Composition d’une séance` — le reste de la Composition (nom, couleur, Compte à rebours initial, Fin de séance, autre Exercice déjà enregistré) n’est jamais affecté. Le geste Retour système est traité comme `Annuler` et toucher le voile ne confirme jamais l’abandon.
-
-La référence de production est la frame Figma `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Elle instancie `Overlay / Decision Dialog`, variante `PrimaryTone=Danger, SecondaryTone=Neutral, Actions=2` (`2590:2934`) : dialogue centré de `354 × 186`, rayon `18`, boutons `147 × 48`, écart horizontal `12` et espacement `16` entre la dernière ligne du message et les actions. Les libellés sont centrés horizontalement et verticalement dans leurs boutons.
+La confirmation d’abandon d’une **modification** d’Activité existante reste un comportement fonctionnel distinct lorsqu’il est requis ; elle ne doit pas être déduite de cette frame de création.
 
 ### Modale 3 – Confirmer la suppression d’une Séance archivée
 
@@ -1502,7 +1531,13 @@ Le dialogue flottant centré demande une confirmation explicite. `Annuler` ferme
 
 Le bouton destructif porte le libellé `Confirmer`. Dans l’application, sa confirmation supprime la Séance archivée tout en conservant les Exécutions historiques.
 
-### Modale 4 – Suppression d’une planification
+### Modale 4 – Suppression d’une planification### Modale 3b – Confirmer l’archivage d’une Séance planifiée
+
+Référence Figma : `4593:6285 — Modal — Confirmer l’archivage d’une séance planifiée`.
+
+Cette modale est utilisée lorsqu’une Séance active possède des planifications associées. Elle indique que les planifications seront supprimées tandis que les Séances déjà effectuées restent dans l’historique. Les actions sont `Archiver` et `Annuler`.
+
+
 
 ![[images/modale-4-suppression-planification-unique.png|260]]
 
@@ -1667,14 +1702,54 @@ Met fin à l’Exécution :
 
 La modale ne peut être fermée que par l’une des deux actions prévues.
 
-### Contrôles intégrés – Compte à rebours initial et Fin de séance
+### Contrôles à roulette – Compte à rebours et fins
 
-Ces réglages ne sont plus des modales dans le MVP.
+Toutes les roulettes utilisent désormais une **modale basse standardisée**. Dans la Composition, `Compte à rebours initial`, `Fin de séance` et `Nombre de tours` réutilisent cette famille. Dans l’éditeur d’Activité, les paramètres numériques, y compris le Compte à rebours d’Activité et la Fin d’activité lorsqu’ils sont réglés, suivent le même standard.
 
-Dans la Composition, toucher la ligne `Compte à rebours initial` ou `Fin de séance` ouvre une roulette minutes/secondes intégrée. Ces deux valeurs possèdent des brouillons et des valeurs confirmées indépendants. Dans le Profil, toucher la préférence correspondante ouvre la roulette numérique compacte native à une colonne, avec les valeurs en secondes et les actions Annuler/Confirmer. Le choix ne modifie la préférence qu’après confirmation.
+Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’activité` (`4179:9550`) et `Fin d’activité` (`4179:9556`) servent de préférences proposées à la création de nouveaux contenus. Les valeurs ne sont appliquées qu’après `Confirmer`.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
+## État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
+
+Un contrôle direct de la page Figma `Prototype MVP` a recensé **107 frames de premier niveau actives** après exclusion des frames explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` et `Avant / Après`.
+
+Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature.
+
+| Node Figma | Frame | Traitement documentaire |
+| --- | --- | --- |
+| `4760:6448` | Synthèse partielle — Évaluation initiale | Référencée dans Écran 10 |
+| `4760:6500` | Synthèse partielle — Ressenti sélectionné | Référencée dans Écran 10 |
+| `3722:5061` | Composition séance — Point d’arrêt | Référencée dans Écran 3 |
+| `4168:11149` | Catalogue Séances — Filtrer — Panneau ouvert | Référencée dans Écran 2 |
+| `4168:11262` | Catalogue Activités — Filtrer — Panneau ouvert | Référencée dans Écran 12 |
+| `4593:6285` | Confirmer l’archivage d’une séance planifiée | Référencée dans les modales |
+| `4217:6980` | Ajouter une activité — paramètres repliés | Référencée dans Écran 4 |
+| `4279:7044` | Ajouter une activité — paramètres dépliés | Référencée dans Écran 4 |
+| `4294:7075` | Ajouter une activité — invitation à paramétrer | Référencée dans Écran 4 |
+| `4734:6342` | Modifier une activité — Squats sautés | Référencée dans Écran 4 |
+| `4332:7095` | Durée de l’Activité — roulette ouverte | Référencée dans Écran 4 |
+| `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
+| `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
+| `4683:6336` | Nouvelle zone corporelle — clavier | Référencée comme état Figma ; aucune création métier de Zone n’est déduite |
+| `4521:6220` | Catalogue Activités — État vide | Référencée dans Écran 12 |
+| `4544:6344` | Activités — Filtre inactif étendu | Référencée dans Écran 12 |
+| `4544:6651` | Activités — Filtre actif étendu | Référencée dans Écran 12 |
+| `4549:6382` | Séances — Filtre inactif étendu | Référencée dans Écran 2 |
+| `4549:6742` | Séances — Filtre actif Archivées | Référencée dans Écran 2 |
+| `4592:6217` | Séances — actions glissées — Dos et mobilité | Couvert par la famille Écran 2d ; référence complémentaire |
+| `4738:6209` | Activités — actions glissées | Référencée dans Écran 12 |
+| `4738:6355` | Activités — carte déployée — Média | Référencée dans Écran 12 |
+| `4367:7128` | Modèle paramètre — Mode Durée | **Pas un écran utilisateur** : planche de référence |
+| `4367:7276` | Modèle paramètre — Compte à rebours | **Pas un écran utilisateur** : planche de référence |
+| `4367:7906` | Modèle paramètre — Côté | **Pas un écran utilisateur** : planche historique/référence, le libellé actif est `Changement de côté` |
+| `4367:8052` | Modèle paramètre — Récupération | **Pas un écran utilisateur** : planche de référence |
+| `4367:8193` | Modèle paramètre — Durée totale | **Pas un écran utilisateur** : planche de référence |
+| `4490:6757` | Modèle paramètre — À l’échec | **Pas un écran utilisateur** : planche de référence |
+| `4490:6903` | Modèle paramètre — Répétitions | **Pas un écran utilisateur** : planche de référence |
+| `4534:6339` | Filtre — États du contrôle | **Pas un écran utilisateur** : planche de référence du composant |
+
+Cette distinction est normative pour la documentation : une frame Figma de référence de composant ne doit pas être promue artificiellement au rang d’écran ou de modale. Les **copies d’écrans** restent centralisées exclusivement dans ce chapitre 06 ; la mise à jour physique des captures est une étape séparée.
 ## Couverture du Prototype MVP et exclusions justifiées
 
 ### Périmètre intégré
