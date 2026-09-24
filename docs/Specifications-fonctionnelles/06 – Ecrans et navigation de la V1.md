@@ -641,7 +641,7 @@ L’ouverture de la modale Étiquettes conserve la Composition en arrière-plan 
 
 ### Paramètres du Tour
 
-L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Nouvelle séance — Nom renseigné` (`2028:12003`, source graphique historique `2028:12040`) : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
+L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
 
 Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
@@ -733,7 +733,7 @@ La structure visuelle courante de l’éditeur d’Activité est portée par les
 
 ### États Figma de référence
 
-La frame principale est `3542:4656`. Les états Description et Zone corporelle sont `3553:4704` et `3553:4768`. Les roulettes canoniques sont `3556:7645`, `3556:7712`, `3556:7801` et `3561:7673`. Les modes Répétitions et À l’échec sont `3561:4695` et `3561:7802`. L’état vide de référence est `3943:6064`. Les états de calcul sont `3580:4733`, `3580:4845` et `3580:4957`.
+La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des références historiques de l’ancienne organisation. Les références actives de l’éditeur sont les frames `4217:*`, `4279:*`, `4294:*`, `4332:*`, `4474:*`, `4478:*`, `4683:*` et `4734:*` listées ci-dessous. Les anciens états de calcul restent utiles à la traçabilité des règles métier, mais leurs nodes supprimés ne constituent plus des références visuelles courantes.
 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
@@ -743,10 +743,10 @@ La frame principale est `3542:4656`. Les états Description et Zone corporelle s
 | Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
 | Écran 4e | Nombre de Séries ouvert | ![[images/ecran-4e-creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3556:7801` |
 | Écran 4f | Répétitions ouvertes | ![[images/ecran-4f-creation-activite-repetitions-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3561:7673` |
-| Écran 4g | Description déployée | ![[images/ecran-4g-creation-activite-description.png\|220]] | Champ facultatif intégré au même écran | `3553:4704` |
-| Écran 4h | Zone corporelle déployée | ![[images/ecran-4h-creation-activite-zone-corporelle.png\|220]] | Référentiel facultatif intégré au même écran | `3553:4768` |
-| Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | `Séries` pilote et `Durée totale` calculée | `3580:4733` |
-| Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | `Durée totale` pilote et Séries calculées | `3580:4845` |
+| Écran 4g | Description déployée | ![[images/ecran-4g-creation-activite-description.png\|220]] | Copie documentaire historique ; comportement Description toujours valide | ancien node supprimé |
+| Écran 4h | Zone corporelle déployée | ![[images/ecran-4h-creation-activite-zone-corporelle.png\|220]] | Copie documentaire historique ; la sélection courante utilise `4478:7209` | ancien node supprimé |
+| Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
+| Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
 | Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
 | Écran 4l | Ajouter une activité — paramètres repliés | — | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
 | Écran 4m | Paramètres dépliés — vue défilée | — | Organisation actuelle des paramètres d’exécution | `4279:7044` |
