@@ -42,18 +42,18 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 - Saisir le nom et choisir une couleur dans le même écran de Composition.
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
-- Ajouter des Activités et définir, si nécessaire, une Récupération après l’ensemble de leurs Séries.
+- Ajouter des Exercices et définir, si nécessaire, une Récupération après l’ensemble de leurs Séries.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
-- Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
+- Organiser les Exercices avant le Tour, dans le Tour ou après le Tour.
 - Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
 - Régler le `Changement de côté` propre à une Activité sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
-- Réordonner manuellement les Activités par glisser-déposer.
+- Réordonner manuellement les Exercices par glisser-déposer.
 - Régler le Compte à rebours initial et la Fin de séance.
 - Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Activité.
 - Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.
-- Associer une Étiquette à la Séance et une Catégorie aux Activités ; sélectionner séparément les Zones corporelles des Activités ; gérer les trois référentiels. Un appui long sur une Étiquette, une Catégorie ou une Zone corporelle permet d’en demander la suppression après confirmation, y compris pour une valeur initialement fournie par KODJO.
+- Associer une Étiquette à la Séance et une Catégorie aux Exercices ; sélectionner séparément les Zones corporelles des Exercices ; gérer les trois référentiels. Un appui long sur une Étiquette, une Catégorie ou une Zone corporelle permet d’en demander la suppression après confirmation, y compris pour une valeur initialement fournie par KODJO.
 - Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
 - Pouvoir abandonner explicitement une création commencée.
 
@@ -120,7 +120,7 @@ Un professionnel qui prépare, transmet et fait évoluer des Séances destinées
 
 ### Besoins futurs
 
-- Créer des modèles et réutiliser des Activités ou des Séances.
+- Créer des modèles et réutiliser des Exercices ou des Séances.
 - Associer un média à une Activité.
 - Transmettre et mettre à jour une Séance.
 - Consulter uniquement les informations que l’utilisateur a accepté de partager.
@@ -186,17 +186,17 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Configurer une Activité ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Activités héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
+- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Exercices héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
 
-## 9. Besoins MVP T03 — Catalogue des Activités et Exécution directe
+## 9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe
 
 L’utilisateur doit pouvoir :
 
-- ouvrir le Catalogue des Activités depuis le sélecteur de type ;
+- ouvrir le Catalogue des Exercices depuis le sélecteur de type ;
 - créer, consulter et modifier une Activité persistante ;
 - distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
 - utiliser `Créer` comme action contextuelle : dans chaque Catalogue, ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire ;
-- depuis une Composition, choisir entre une nouvelle Activité, une ou plusieurs Activités existantes et l’annulation ;
+- depuis une Composition, choisir entre une nouvelle Activité, une ou plusieurs Exercices existantes et l’annulation ;
 - lancer une Activité persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - renseigner le Ressenti obligatoire dans la Synthèse ;
 - retrouver l’Exécution dans le Suivi général sous le type Activité ;
