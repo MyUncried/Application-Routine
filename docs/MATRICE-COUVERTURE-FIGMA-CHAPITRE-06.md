@@ -6,7 +6,7 @@ Sources contrôlées directement : Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `Prototy
 
 ## Objet
 
-Cette matrice détermine, pour **chacune des 120 frames de premier niveau** actuellement présentes dans la page Figma, si une copie d’écran doit être reprise explicitement dans le chapitre 06 lors du prochain réexport documentaire.
+Cette matrice détermine, pour **chacune des 122 frames de premier niveau** actuellement présentes dans la page Figma, si une copie d’écran doit être reprise explicitement dans le chapitre 06 lors du prochain réexport documentaire.
 
 Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la phase suivante de mise à jour des copies d’écran.
 
@@ -31,7 +31,7 @@ Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la p
 - La famille d’ancien éditeur `3542/3556/3561/3580/3943` reste une trace documentaire ; l’organisation visuelle active est portée par `4217:*` à `4734:*`.
 - Une copie physique déjà présente n’est jamais considérée comme actuelle uniquement parce que son fichier existe : le node Figma courant reste la source visuelle.
 
-## Matrice exhaustive — 120 frames
+## Matrice exhaustive — 122 frames
 
 | # | Node Figma | Frame | Nature | Copie dans 06 ? | Copie actuelle | Action | Cible PNG proposée | Réf. dans 06 | Justification |
 |---:|---|---|---|:---:|---|---|---|---:|---|
