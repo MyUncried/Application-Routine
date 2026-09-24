@@ -259,7 +259,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
 - Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Activité.
 
-## 11.13 API du Catalogue des Activités, des Médias et des Circuits
+## 11.13 API du Catalogue des Activités, des Médias et des Parcours
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
@@ -267,10 +267,10 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
-| `API-CIR-01..06` | V2 | Circuit et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Circuit. |
-| `API-CIR-EXE-01` | V2 | ID Circuit | Fige l’instantané et crée l’Exécution globale. |
+| `API-CIR-01..06` | V2 | Parcours et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Parcours. |
+| `API-CIR-EXE-01` | V2 | ID Parcours | Fige l’instantané et crée l’Exécution globale. |
 | `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
-| `API-CIR-EXE-03` | V2 | ID Exécution, confirmation | Interrompt le Circuit et l’étape courante ; conserve les résultats existants. |
+| `API-CIR-EXE-03` | V2 | ID Exécution, confirmation | Interrompt le Parcours et l’étape courante ; conserve les résultats existants. |
 
 `API-EXE-05` couvre aussi `TO_FAILURE` : comme pour `REPETITIONS`, `Suivant` constitue une fin normale de Série sans confirmation. Les DTO d’Activité acceptent `DURATION`, `REPETITIONS`, `TO_FAILURE` et appliquent les contraintes d’exclusivité du chapitre 09.
 
