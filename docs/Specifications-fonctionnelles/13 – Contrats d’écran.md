@@ -460,7 +460,7 @@ Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Paus
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -606,91 +606,91 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-C
 
 # 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
-## CE-T03-06 — Composition — arbre `Ajouter une activité`
+## CE-T03-06 — Composition — `Ajouter une activité` vers le Catalogue
 
 ### 1. Identification
 
-Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame `3788:5258`.
+Bloc B3 ; parcours courant de Composition ; frame cible `3789:5349`. Les anciennes frames d’arbre `3788:5258` et `3933:5780` sont historiques/supersédées et ne constituent plus une cible d’implémentation.
 
 ### 2. Finalité fonctionnelle
 
-Choisir entre création Session-only et insertion depuis Catalogue, sans mutation préalable de la Composition.
+Ouvrir directement la sélection des Activités persistantes du Catalogue depuis la Composition, sans arbre intermédiaire.
 
 ### 3. Contexte d’entrée
 
-Tap `+ Ajouter une activité` dans Composition.
+Tap `+ Ajouter une activité` dans la Composition.
 
 ### 4. Contexte de sortie / destinations
 
-Nouvelle activité → éditeur SessionActivity ; activité existante → CE-T03-07 ; Annuler → Composition inchangée.
+Ouverture directe de CE-T03-07 ; `Annuler` dans CE-T03-07 restitue la Composition inchangée.
 
 ### 5. Données affichées et source de vérité
 
-Aucune donnée métier créée à l’ouverture. Fond = draft Composition réel.
+Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.
 
 ### 6. Classification des valeurs Figma
 
-Trois libellés = statiques ; contenu Composition = dynamique/démonstration.
+Les anciennes options `Une nouvelle activité / Une activité existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
 
 ### 7. Structure de l’écran
 
-Fond Composition + arbre contextuel à trois options.
+Aucun écran intermédiaire : transition directe de la Composition vers la sélection Catalogue.
 
 ### 8. Éléments obligatoires
 
-`Une nouvelle activité`, `Une activité existante`, `Annuler`; Annuler gris ; vecteurs DSF uniquement.
+Action `Ajouter une activité` dans la Composition ; écran de sélection CE-T03-07.
 
 ### 9. Layout déterministe
 
-Conforme frame ; les deux actions principales utilisent la disposition représentée ; arbre dans Safe Area.
+Aucun layout d’arbre contextuel à implémenter.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; libellés complets ; cibles ≥48 ; aucun clavier.
+Conforme à la Composition puis à CE-T03-07.
 
 ### 11. États de l’écran
 
-Ouvert ; Annuler ; navigation nouvelle ; navigation existante.
+Composition → sélection Catalogue → retour/validation.
 
 ### 12. Contrôles et interactions
 
-Chaque ligne active ouvre son sous-parcours ; Annuler ferme. Aucun tap fond ne modifie draft.
+Le tap ouvre CE-T03-07. Aucun choix préalable n’est demandé.
 
 ### 13. Gestes
 
-Tap uniquement.
+Tap sur `Ajouter une activité`.
 
 ### 14. Validation
 
-Aucune validation métier avant choix. Sous-parcours fait sa propre validation.
+La validation métier est portée par CE-T03-07 ; aucune mutation à l’ouverture.
 
 ### 15. Brouillon et persistance
 
-Nouvelle activité crée seulement un brouillon SessionActivity. Aucun ActivityDefinition, aucune action Enregistrer dans Catalogue T03.
+Le brouillon de Composition est conservé. La capacité existante de création directe d’une `SessionActivity` locale reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement.
 
 ### 16. Navigation et conservation d’état
 
-Retour sous-parcours restitue Composition et scroll. Annuler exact.
+`Annuler` depuis CE-T03-07 restitue Composition et scroll ; valider insère les copies puis revient à la Composition.
 
 ### 17. Erreurs et cas limites
 
-Échec ouverture sous-parcours → Composition inchangée.
+Échec d’ouverture du Catalogue → Composition inchangée.
 
 ### 18. Accessibilité
 
-Ordre focus visuel ; Annuler explicite ; aucune option cachée.
+`Ajouter une activité` annonce l’ouverture de la sélection d’Activités.
 
 ### 19. Invariants
 
-Nouvelle = Session-only ; Existante = copie depuis références ; aucun save-to-catalogue.
+Aucun arbre intermédiaire ; aucune suppression du mécanisme technique de `SessionActivity` locale.
 
 ### 20. Recette déterministe
 
-Tester trois choix, abandon, retour, draft intact. Négatif : création ActivityDefinition depuis Nouvelle activité.
+Vérifier l’ouverture directe de CE-T03-07 et l’absence de l’ancien arbre.
 
 ### 21. Traçabilité
 
-E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
+D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiques ; API-COMP-SEL.
 
 ---
 
@@ -706,7 +706,7 @@ Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans
 
 ### 3. Contexte d’entrée
 
-`Une activité existante` depuis CE-T03-06.
+Ouverture directe depuis `Ajouter une activité` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
