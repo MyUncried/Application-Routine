@@ -282,7 +282,7 @@ Les écrans principaux du MVP sont :
 3. `Composition d’une séance`, incluant le nom et la couleur ;
 4. `Création / modification d’une Activité — Exercice` ;
 5. numéro réservé — ancien écran autonome Récupération supprimé ;
-6. `Catégories de la séance` ;
+6. `Étiquettes de la séance` dans la Composition ;
 7. `Calendrier` ;
 8. `Planifier une séance` ;
 9. `Exécution de séance`, incluant les états et commandes d’interruption ;
@@ -705,9 +705,7 @@ L’écran ne comporte pas de bouton `Démarrer`.
 
 L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou que la Composition ne contient pas au moins une Activité valide.
 
-En création, elle ouvre l’écran `Catégories de la séance`.
-
-En modification d’une Séance existante, le parcours de validation conserve les catégories existantes et permet, le cas échéant, de les revoir conformément au flux Figma.
+En création comme en modification, l’Étiquette de la Séance est gérée depuis la Composition par la modale `Étiquettes`. L’Étiquette sélectionnée est affichée sous le nom de la Séance et porte sa couleur.
 
 La Séance n’est exécutable que si elle contient au moins une Activité valide.
 
@@ -829,35 +827,29 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
 
-## Écran 6 – Catégories de la séance
+## Écran 6 – Étiquettes de la séance dans la Composition
 
+La gestion des Étiquettes n’est plus un écran autonome de fin de parcours : elle est intégrée à la Composition de séance.
 
-![[images/ecran-6-categories-seance.png|260]]
-
-*Écran 6 — Catégories de la séance — Figma `2028:11204`*
-
-L’état de création intégrée d’une nouvelle Catégorie est illustré par :
-
-![[images/ecran-6a-categories-nouvelle-inline.png|260]]
-
-*Écran 6a — Catégories — Nouvelle catégorie inline — Figma `2028:11248`*
+Références Figma courantes :
+- `2028:11204 — Composition séance — Étiquettes` ;
+- `4640:6308 — Composition séance — Nouvelle étiquette` ;
+- `4581:6404 — Composition séance — Étiquette sélectionnée`.
 
 ### Objectif
 
-Permettre d’associer zéro, une ou plusieurs Catégories à une Séance.
-
-Les Catégories facilitent l’organisation, la recherche et le filtrage. Elles n’ont aucun impact sur l’Exécution.
+Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquette porte la couleur affichée de la Séance ; il n’existe pas de couleur de Séance indépendante de l’Étiquette.
 
 ### Contenu et comportement
 
-- les Catégories sont proposées sous forme de tags sélectionnables ;
-- les Catégories prédéfinies suivent leur `displayOrder`, puis les Catégories personnalisées sont affichées par date de création croissante ; leur sélection ne change pas leur position et aucune réorganisation manuelle n’est proposée dans le MVP ;
-- la sélection est multiple ;
-- aucune Catégorie n’est obligatoire ;
-- `+ Créer une catégorie` ouvre une ligne de création intégrée comportant `Nom de la catégorie`, `Annuler` et `Ajouter` ; une nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement ; sa désélection ne la supprime pas, elle reste visible et peut être resélectionnée sans doublon ;
-- Retour vers la Composition puis retour aux Catégories conserve séparément les Catégories temporaires existantes et les identifiants sélectionnés ; aucune Catégorie nouvelle n’est persistée avant l’enregistrement final ;
-- `Enregistrer la séance` persiste atomiquement la Séance, sa Composition, les nouvelles Catégories sélectionnées et leurs associations, puis ramène directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique faisant entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
-- en cas d’échec, aucune donnée partielle n’est conservée, le brouillon reste intact, l’action est réactivée et le message `La séance n’a pas pu être enregistrée. Réessayez.` est affiché.
+- l’action Étiquette ouvre une modale basse sur la Composition ;
+- la modale affiche les Étiquettes disponibles et l’action `Nouvelle étiquette` ;
+- sélectionner une Étiquette ferme le choix et affiche son libellé sous le nom de la Séance ; sa couleur devient la couleur de la Séance ;
+- `Nouvelle étiquette` ouvre la saisie `Nom de l’étiquette` dans la modale ; l’action d’envoi ajoute la nouvelle valeur aux choix ;
+- les libellés visibles dans Figma (`Marathon`, `Hyrox`, `Vacances d'été`, `Challenge groupe`) sont des données de démonstration, pas des valeurs codées en dur ;
+- la navigation et les autres valeurs déjà saisies dans la Composition sont conservées pendant l’ouverture/fermeture de la modale.
+
+La validation de la Séance reste portée par l’action `Continuer` de la Composition ; aucune transaction distincte de « Catégories de séance » n’est créée par ce parcours.
 
 ## Écran 7 – Calendrier
 
