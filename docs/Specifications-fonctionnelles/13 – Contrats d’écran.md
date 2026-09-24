@@ -817,7 +817,7 @@ CR initial → activités / Points d’arrêt avant Tour → Tour → activités
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court ; contrôle Tour selon décisions bilatérales existantes.
+CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur de direction propre sur les cartes Activité ; aucun contrôle de changement de côté exposé au niveau Tour.
 
 ### 9. Layout déterministe
 
