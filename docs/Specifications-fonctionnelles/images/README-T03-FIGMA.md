@@ -158,9 +158,9 @@ Les sept variantes ont été contrôlées visuellement sur l’export `status-ba
 
 ## 6. Points `NON VÉRIFIABLE` / `À CLARIFIER`
 
-1. **Modale 2 — `modale-2-abandon-modifications-activite.png`.** Le chapitre 06 cite le node `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Ce node **n’existe plus** dans le fichier Figma courant et aucune frame équivalente n’a été trouvée sur les deux pages du fichier. La capture existante est conservée sans remplacement et n’est pas déclarée courante. Statut : `À CLARIFIER`.
-2. **Panneaux/options ouverts `Filtrer` et `Trier`.** Les contrôles d’entrée sont conçus et vérifiables ; le détail des panneaux ouverts reste `NON VÉRIFIABLE` faute de frame dédiée validée. Aucune modale, feuille, popover ou liste d’options ne doit être inventée avant arbitrage.
-3. **Section Médias de l’éditeur d’Activité.** Arbitrage V2-CAT-01 résolu : les frames courantes `3542:4656`, `3561:4695`, `3561:7802`, `3553:4704`, `3553:4768`, `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, `3580:4733`, `3580:4845`, `3580:4957`, `3879:5947` et `3879:6079` constituent l’évidence visuelle de la section Médias repliable. La section est visible dans le MVP, mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est activée. Voir D-185.
+1. **Modale d’abandon de création d’Activité.** Le Figma courant contient `4714:6241 — Modal — Abandonner la création de l’activité`. Cette frame remplace l’ancienne référence disparue `3224:4082` pour le parcours de création courant.
+2. **Panneaux ouverts `Filtrer`.** Ils sont conçus et vérifiables dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible mais disabled dans le périmètre T03.
+3. **Médias Activité.** Le média associé peut être affiché dans la carte déployée du Catalogue des Activités dans le MVP. L’éditeur suit les frames courantes ; l’import/capture et la gestion multiple restent régis par leur périmètre propre. Voir D-195.
 4. **Ancien arbre `Créer` des Catalogues.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques/supersédées ; D-186 reste une décision historique.
 5. **Écran 1e — `ecran-1e-profil-parcours-vide.png`.** L’export de la frame `2139:86`, `Profil — Vue d’ensemble — Parcours vide`, est **strictement identique** (même empreinte binaire) à l’export de la frame `1992:684`, `Profil — Vue d’ensemble - Vibration activée`. L’état « parcours vide » n’est pas visuellement distinguable dans le Figma courant. Les deux nodes existent et sont conservés tels quels.
 
@@ -187,7 +187,7 @@ En Répétitions et À l’échec, le contrôle visible porte `Durée totale >=`
 ## 9. Historique des exports
 
 État du 15 septembre 2026 :
-- le contrôle `Déployer` des cartes Activité réutilisait le composant DSF canonique `2537:1033 — State=Collapsed`, visible mais fonctionnellement désactivé en T03 ;
+- le contrôle `Déployer` des cartes Activité était encore désactivé à cette date historique ; D-195 l’a depuis rendu actif dans le MVP pour afficher/masquer le média associé ;
 - le composant `Navigation / Bottom — Source exact` (`2537:214`) utilisait des dessins de destination de dimension maximale `24 pt`, recentrés dans les boîtes optiques `32 × 32 pt` ;
 - les trois fichiers `CE-ACT-EXE-01a/01b/01c` avaient alors été réexportés après ces deux corrections.
 
