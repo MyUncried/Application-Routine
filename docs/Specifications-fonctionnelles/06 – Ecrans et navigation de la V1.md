@@ -184,7 +184,7 @@ Ces insets sont des règles de composition du contenu et ne doivent pas être re
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Activité, Catégories, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Activité | Aucun contrôle de type n’est affiché. `Description de l’activité`, `Zone corporelle`, `Mode d’exécution` et `Médias` sont des sections repliables ; Mode est déployé par défaut. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Les rangées `Séries / cible / Pause` et `Côté / Récupération / Durée totale` conservent leurs emplacements. La synthèse et l’action `Terminer` restent fixes. |
+| Activité | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Les rangées `Séries / cible / Pause` et `Changement de côté / Récupération / Durée totale` conservent leurs emplacements. La synthèse et l’action `Terminer` restent fixes. |
 | Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -356,7 +356,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Routine` : planification d’une Séance ;
 - `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et Récupération facultatives ;
 - `Exercice` : Activité physique ;
-- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral ;
+- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés de l’Activité ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Activités exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Activités placées avant le Tour, le Tour et les Activités placées après le Tour ;
@@ -1097,7 +1097,7 @@ T04 développe toutes les Séries, les répétitions de Tour et les passages de 
 
 ### Récupération
 
-Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés d’une Activité autonome, ou après chaque passage de côté lorsque l’Activité appartient à un Tour bilatéral. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
+Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés de l’Activité. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
 
 La zone `À suivre` permet de préparer l’Activité suivante ou la Fin de séance. `Activité suivante` avant zéro demande confirmation ; l’Exercice reste `Terminé`, tandis que `recoveryElapsedSeconds` conserve le temps partiel de Récupération.
 
@@ -1342,7 +1342,7 @@ La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type
 
 La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : trois contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence `402 pt`, cibles tactiles ≥ `48 × 48 pt`. `Filtrer` est actif au minimum pour `Archivées`; `Trier` est visible disabled. Les panneaux/options ouverts ne sont pas encore définis visuellement et restent `NON VÉRIFIABLE` / `À CLARIFIER`.
 
-Chaque carte présente une barre verticale bleue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 et réutilise le composant canonique `2537:1033 — State=Collapsed`, avec une zone droite réservée identique sur toutes les cartes. Aucune poignée de déplacement n’est affichée.
+Chaque carte présente une barre verticale portant la couleur de sa Catégorie. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Activités actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ![[images/ecran-12-catalogue-activites-liste.png|260]]
 
@@ -1701,17 +1701,17 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la section Médias est visible et repliable conformément aux frames courantes ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans fonction média réelle. Le bouton utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`. Les composants Média du DSF constituent la référence d’activation fonctionnelle post-MVP.
 
-La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Côté / Récupération / Durée totale >=`, sans cible chiffrée. La frame `3561:4695` et la roulette `3561:7673` appliquent la même visibilité `Durée totale >=` en Répétitions. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
+La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Les états actuels des roulettes utilisent les modales basses standardisées. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
 
 ## Mise à jour Bilatéralité — rectifiée le 13 septembre 2026
 
-Le contrôle Activité porte le libellé singulier `Côté` et cycle `UNILATERAL → RIGHT_LEFT → LEFT_RIGHT → UNILATERAL`. Il est déjà placé dans le cadre bleu `354 × 156 pt`, ligne 2 colonne 1, directement sous `Séries`. Il mesure `74 × 42 pt`. La grille utilise deux lignes séparées de `10 pt`, trois colonnes de `74 / 124 / 124 pt` et deux gouttières de `8 pt`. Les états affichent : rien pour `UNILATERAL`, `D→G`, `G→D`. Sous un Tour bilatéral, le contrôle reste visible, propre `UNILATERAL` et désactivé.
+Le contrôle Activité porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Tour.
 
 Dans la Composition `2028:11700`, le contrôle du Tour est enfant de l’en-tête `2028:11743` (`354 × 34 pt`). Le cadre numérique `2028:11752` est à `x=237`, `y=0`, en `66 × 34 pt`; la direction est immédiatement à droite à `x=311`, `y=0`, en `42 × 34 pt`, avec `8 pt` d’espace. Les bords haut/bas et centres verticaux coïncident. Aucun titre visible `Côté` ou `Côtés`. `UNILATERAL` est vide ; les états bilatéraux affichent uniquement `D→G` ou `G→D`. Références : composant `3705:5021`, frames `3722:5061` et `3722:5207`.
 
-Une confirmation n’est affichée au passage vers un Tour bilatéral que si au moins une Activité contenue possède déjà une direction propre bilatérale. Tour vide ou enfants tous propres `UNILATERAL` : application directe. Sinon, `Annuler` ne modifie rien et `Confirmer` applique la direction au Tour puis remet atomiquement les seules Activités concernées à `UNILATERAL`. Aucune propriété « latéralisable » n’est introduite.
+Aucune confirmation d’activation bilatérale du Tour n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
-Dans une carte `354 × 69 pt`, l’indicateur propre appartient aux informations secondaires à droite : `x=311`, `y=24,5`, `42 × 20 pt`. Il affiche `D→G` ou `G→D` seulement hors Tour bilatéral ; il est absent pour `UNILATERAL` et sous un Tour bilatéral. La synthèse propre place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Elle omet cette clause pour une direction héritée. Références : `3706:5020`, `2028:11700`, `3679:4880`, `3724:5428`.
+Dans une carte d’Activité, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Activité est bilatérale ; il est absent avec `Aucun`. La synthèse place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Les références géométriques suivent le Figma courant.
 
 Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
