@@ -133,7 +133,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **À l’échec** | Troisième mode d’Exercice du MVP, sans durée ni répétitions cibles. Chaque Série se termine par l’action `Suivant`, comme en mode Répétitions. |
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
-| **Média** | Photo ou vidéo stockée localement, réutilisable par plusieurs associations. Une Activité pourra en associer `0..n` en version post-MVP, dans un ordre modifiable. |
+| **Média** | Photo ou vidéo associée à une Activité. Dans le MVP, le média associé peut être affiché dans la carte déployée du Catalogue ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre. |
 | **Circuit** | Contenu persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. |
 | **Étape de Circuit** | Occurrence ordonnée d’une Séance dans un Circuit ; elle ne possède pas de nombre de répétitions. |
 | **Exécution de Circuit** | Exécution globale d’un Circuit, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
