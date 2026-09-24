@@ -97,7 +97,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- |
 | **Catalogue des séances** | Écran du Catalogue lorsque le segment `Séances` est sélectionné. Il est le segment par défaut à l’ouverture initiale et après relance complète. |
 | **Catalogue des activités** | Destination MVP livrée en T03 du Catalogue multi-type. Elle liste les Activités persistantes, permet de les créer, consulter, modifier, archiver/restaurer, sélectionner pour une Séance ou exécuter directement. |
-| **Catalogue des circuits** | État du Catalogue associé au segment `Circuits`, visible mais désactivé dans T03. |
+| **Catalogue des parcours** | État du Catalogue associé au segment `Parcours`, visible mais désactivé dans T03. |
 | **Catalogues** | Libellé permanent de la destination correspondante dans la navigation basse, indépendamment du segment Catalogue actif. |
 | **Toutes** | Valeur du filtre de Catalogue affichant les Séances non archivées. |
 | **Planifiées** | Valeur du filtre de Catalogue affichant les Séances possédant au moins une Routine. |
@@ -124,7 +124,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise **Aucune**. |
 | **Routine** pour désigner une Séance | Usage incorrect. Une Routine désigne uniquement la planification d’une Séance. |
 
-## 9. Concepts ajoutés — Activités, Médias et Circuits
+## 9. Concepts ajoutés — Activités, Médias et Parcours
 
 | Terme | Définition de référence |
 |---|---|
@@ -134,9 +134,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
 | **Média** | Photo ou vidéo associée à une Activité. Dans le MVP, le média associé peut être affiché dans la carte déployée du Catalogue ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre. |
-| **Circuit** | Contenu persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. |
-| **Étape de Circuit** | Occurrence ordonnée d’une Séance dans un Circuit ; elle ne possède pas de nombre de répétitions. |
-| **Exécution de Circuit** | Exécution globale d’un Circuit, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
+| **Parcours** | **Parcours (anciennement Circuit)** : contenu persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. |
+| **Étape de Parcours** | Occurrence ordonnée d’une Séance dans un Parcours ; elle ne possède pas de nombre de répétitions. |
+| **Exécution de Parcours** | Exécution globale d’un Parcours, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
 
 `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` désignent des valeurs du filtre de Catalogue, jamais les segments de sélection du type de contenu.
 
