@@ -75,6 +75,8 @@ L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les 
 3. Créer une nouvelle Étiquette depuis la Composition de Séance lorsque nécessaire ; la nouvelle Étiquette devient sélectionnable dans ce contexte.
 4. Créer ou sélectionner une Catégorie depuis l’éditeur d’Activité ; les Zones corporelles restent un référentiel distinct.
 5. Ouvrir la sélection `Zones corporelles`, sélectionner une ou plusieurs Zones existantes ou créer une nouvelle Zone directement depuis la modale. La gestion du référentiel autorise également le renommage et la suppression des Zones existantes.
+6. Dans les modales `Étiquettes`, `Catégorie` et `Zones corporelles`, un appui court conserve sa fonction de sélection/désélection. Un appui long sur une option n’en modifie pas la sélection et ouvre une confirmation de suppression.
+7. La confirmation propose `Annuler` et `Supprimer`. Toutes les options sont supprimables, y compris les valeurs initiales fournies par KODJO. Après `Supprimer`, l’option disparaît du référentiel et de la sélection courante. Si elle est utilisée par des Séances ou Activités existantes, ses associations courantes sont retirées ; les Instantanés et Exécutions historiques restent inchangés.
 
 ## Référentiel des zones corporelles
 
