@@ -102,13 +102,13 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Dans l’écran unique `Composition d’une séance`, il renseigne son nom, choisit une couleur parmi 12 propositions dont une valeur par défaut, puis construit progressivement la Composition. La couleur affichée de la Séance est désormais celle de son Étiquette. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Activité peut définir son propre Compte à rebours et sa propre Fin d’activité, distincts des phases structurelles de la Séance. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
+Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Activité peut définir son propre Compte à rebours et sa propre Fin d’activité, distincts des phases structurelles de la Séance. Les Activités peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
 Pour chaque Activité, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération, le Changement de côté, le Compte à rebours propre et la Fin d’activité propre. La Description reste facultative. L’action `Terminer` enregistre l’Activité.
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
-`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucune couleur n’est sélectionnée ou qu’aucun Exercice valide n’est présent. Après `Continuer`, il associe éventuellement une ou plusieurs Catégories puis enregistre la Séance.
+`Continuer` reste désactivé tant que le nom n’est pas renseigné ou qu’aucun Exercice valide n’est présent. L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette.
 ### 2. Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
