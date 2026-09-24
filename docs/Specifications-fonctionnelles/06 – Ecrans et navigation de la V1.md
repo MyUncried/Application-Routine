@@ -1710,7 +1710,52 @@ Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `C
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
-## État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
+## Règles transverses de l’éditeur d’Activité
+
+Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la zone Média suit les frames courantes et la carte d’Activité du Catalogue peut être déployée pour afficher le média associé. Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
+
+La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Les états actuels des roulettes utilisent les modales basses standardisées. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
+
+## Composant transverse `Status / Badge`
+
+La preuve visuelle canonique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
+
+![[images/status-badge-composant.png|700]]
+
+*Composant — `Status / Badge — Source exact` — Figma `3959:5970` — export PNG ×2*
+
+Les sept variantes se répartissent en deux familles sémantiques, sans que cette répartition scinde le composant :
+
+| Famille | Variantes | Node de variante |
+| --- | --- | --- |
+| Statuts d’exécution | `Terminée`, `Partielle`, `Interrompue` | `3959:5966`, `3959:5963`, `3959:5969` |
+| Statuts d’élément / provenance | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `3959:5951`, `3959:5954`, `3959:5957`, `3959:5960` |
+
+Les preuves d’usage sont distinctes de la preuve du composant et ne s’y substituent pas :
+
+| N° | Écran | Variantes visibles | Node Figma |
+| --- | --- | --- | --- |
+| Écran 11 | Suivi : Séances — Liste condensée | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
+| Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
+| Écran 2a | Recherche globale — Résultats affichés | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `1992:10320` |
+
+## Couverture du Prototype MVP et exclusions justifiées
+
+### Périmètre intégré
+
+La page Figma `Prototype MVP` (`510:101`) constitue la source visuelle des frames de production. Une capture ne remplace pas la règle écrite : le présent chapitre définit les comportements, tandis que les captures et le chapitre 13 définissent les références visuelles et critères déterministes.
+
+### Éléments non intégrés comme écrans distincts
+
+Les calques internes, zones tactiles transparentes, cibles de défilement et duplications de liens de prototypage ne constituent pas des écrans distincts. Les états fonctionnels sans frame dédiée réutilisent les composants de leurs écrans parents ; aucune fausse capture Figma ne doit être inventée.
+
+### Règle de maintenance
+
+Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit explicitement classée hors périmètre avec justification. Une variante ne peut plus être omise silencieusement.
+
+## Traçabilité documentaire et contrôles historiques
+
+### État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
 
 Un contrôle direct de la page Figma `Prototype MVP` a recensé **107 frames de premier niveau actives** après exclusion des frames explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` et `Avant / Après`.
 
@@ -1753,27 +1798,7 @@ Cette distinction est normative pour la documentation : une frame Figma de réf�
 
 Le contrôle a également identifié des références documentaires devenues inexistantes dans Figma : `1992:10749`, `2028:11921`, `3879:5947`, `3879:6079`, `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` et `3787:5209`. Elles ne doivent plus être présentées comme références courantes. Elles ont été soit remplacées par une frame active, soit conservées uniquement comme traces historiques lorsque la fonctionnalité réutilise désormais une autre famille d’écrans.
 
-## Couverture du Prototype MVP et exclusions justifiées
-
-### Périmètre intégré
-
-La page Figma `Prototype MVP` (`510:101`) constitue la source visuelle des frames de production. Une capture ne remplace pas la règle écrite : le présent chapitre définit les comportements, tandis que les captures et le chapitre 13 définissent les références visuelles et critères déterministes.
-
-### Éléments non intégrés comme écrans distincts
-
-Les calques internes, zones tactiles transparentes, cibles de défilement et duplications de liens de prototypage ne constituent pas des écrans distincts. Les états fonctionnels sans frame dédiée réutilisent les composants de leurs écrans parents ; aucune fausse capture Figma ne doit être inventée.
-
-### Règle de maintenance
-
-Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit explicitement classée hors périmètre avec justification. Une variante ne peut plus être omise silencieusement.
-
-## Règles transverses de l’éditeur d’Activité
-
-Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la zone Média suit les frames courantes et la carte d’Activité du Catalogue peut être déployée pour afficher le média associé. Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
-
-La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Les états actuels des roulettes utilisent les modales basses standardisées. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
-
-## Mise à jour Bilatéralité — rectifiée le 13 septembre 2026
+### Mise à jour Bilatéralité — rectifiée le 13 septembre 2026
 
 Le contrôle Activité porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Tour.
 
@@ -1785,36 +1810,13 @@ Dans une carte d’Activité, l’indicateur propre affiche `D→G` ou `G→D` l
 
 Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
-## Évidences Figma T03 — état courant du 16 septembre 2026
+### Évidences Figma T03 — état courant du 16 septembre 2026
 
 Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
 
-## Composant transverse `Status / Badge`
-
-La preuve visuelle canonique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
-
-![[images/status-badge-composant.png|700]]
-
-*Composant — `Status / Badge — Source exact` — Figma `3959:5970` — export PNG ×2*
-
-Les sept variantes se répartissent en deux familles sémantiques, sans que cette répartition scinde le composant :
-
-| Famille | Variantes | Node de variante |
-| --- | --- | --- |
-| Statuts d’exécution | `Terminée`, `Partielle`, `Interrompue` | `3959:5966`, `3959:5963`, `3959:5969` |
-| Statuts d’élément / provenance | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `3959:5951`, `3959:5954`, `3959:5957`, `3959:5960` |
-
-Les preuves d’usage sont distinctes de la preuve du composant et ne s’y substituent pas :
-
-| N° | Écran | Variantes visibles | Node Figma |
-| --- | --- | --- | --- |
-| Écran 11 | Suivi : Séances — Liste condensée | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
-| Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
-| Écran 2a | Recherche globale — Résultats affichés | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `1992:10320` |
-
-## Résolutions postérieures au contrôle visuel du 16 septembre 2026
+### Résolutions postérieures au contrôle visuel du 16 septembre 2026
 
 Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Activités appartient au MVP ; l’ancien arbre `Créer` reste historique. Un seul point de cette liste reste `À CLARIFIER` :
 
