@@ -185,13 +185,13 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Activités`, `Séances` et `Parcours`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
 
 La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale portant la couleur de sa Catégorie. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Activités actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
-Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Activités, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Circuits lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
+Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Activités, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
 
 La création d’une Activité depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
@@ -225,9 +225,9 @@ Dans le MVP, le Catalogue permet de déployer/replier une carte d’Activité po
 
 Une Activité bilatérale exécute toutes les Séries du premier côté puis toutes celles du second. Aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle. Les résultats restent séparés par côté.
 
-## 2 bis.7 Limite Circuit
+## 2 bis.7 Limite Parcours
 
-Le Catalogue peut proposer `Un circuit` dans son arbre V2. Le formulaire Circuit exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Circuits appartient à la V3. Le contrat d’écran détaillé du formulaire Circuit reste à finaliser avant développement.
+Le Catalogue peut proposer `Un parcours` dans son arbre V2. Le formulaire Parcours exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Parcours appartient à la V3. Le contrat d’écran détaillé du formulaire Parcours reste à finaliser avant développement.
 
 # 3. Composition d'une séance
 
