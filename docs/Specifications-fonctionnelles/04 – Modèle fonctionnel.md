@@ -356,7 +356,7 @@ Ne sont pas inclus dans le MVP :
 - exceptions de planification ;
 - notifications avancées ;
 - intelligence artificielle ;
-- Circuits fonctionnels ;
+- Parcours fonctionnels ;
 - médias multiples fonctionnels.
 
 # 4.11 Extension validée du modèle
@@ -369,7 +369,7 @@ L’Exécution directe d’Activité T03 développe uniquement le sous-ensemble 
 
 Le Média est un actif local associé à une Activité. Dans le MVP, le Catalogue peut afficher le média associé dans une carte déployée. Les capacités d’import, capture et gestion multiple restent régies par leur périmètre propre.
 
-Le Circuit est une racine persistante préparée pour une version post-MVP, possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Circuit. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Aucun Circuit n’est fonctionnel dans T03.
+Le Parcours est une racine persistante préparée pour une version post-MVP, possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Parcours. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Aucun Parcours n’est fonctionnel dans T03.
 
 ## Modèle fonctionnel de bilatéralité
 
