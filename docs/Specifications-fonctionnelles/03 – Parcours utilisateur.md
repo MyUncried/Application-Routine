@@ -72,8 +72,8 @@ L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les 
 
 1. Ouvrir la gestion ou la sélection du référentiel concerné.
 2. Consulter les Étiquettes de Séance ou les Catégories d’Activité existantes.
-3. Créer ou modifier une catégorie selon le besoin ; sa suppression est disponible à partir du MVP bis.
-4. Dans la création d’une Séance, une nouvelle Catégorie reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
+3. Créer une nouvelle Étiquette depuis la Composition de Séance lorsque nécessaire ; la nouvelle Étiquette devient sélectionnable dans ce contexte.
+4. Créer ou sélectionner une Catégorie depuis l’éditeur d’Activité ; les Zones corporelles restent un référentiel distinct.
 
 ## Référentiel des zones corporelles
 
