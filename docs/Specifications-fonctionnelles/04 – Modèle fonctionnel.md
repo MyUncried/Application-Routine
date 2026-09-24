@@ -230,7 +230,61 @@ Cette organisation permet de construire des séances simples ou plus élaborées
 
 Dans l’interface de Composition, un appui long sur la carte d’une **Activité** amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Activité en modification. Cette règle ne s’applique ni au Compte à rebours initial ni à la Fin de séance.
 
-# 4.5 Déroulement d'une séance
+# 4.5 Structure d'une Activité
+
+Une **Activité** est une unité exécutable autonome dans son modèle fonctionnel, qu’elle soit définie comme `ActivityDefinition` dans le Catalogue ou copiée comme `SessionActivity` dans une Séance.
+
+Elle porte :
+
+- une identité, un nom et une Description facultative ;
+- une **Catégorie** d’Activité et zéro à plusieurs **Zones corporelles** ;
+- un mode d’exécution parmi `Durée`, `Répétitions` et `À l’échec` ;
+- la cible du mode lorsqu’elle existe ;
+- un nombre de **Séries** ;
+- une **Pause** entre Séries ;
+- une **Récupération** éventuelle après les Séries et côtés de l’Activité ;
+- un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
+- un **Compte à rebours d’Activité** propre lorsqu’il est utilisé ;
+- une **Fin d’activité** propre lorsqu’elle est utilisée ;
+- une Durée totale dérivée ou estimée selon le mode ;
+- les associations média prévues par le périmètre courant.
+
+Le Compte à rebours d’Activité et la Fin d’activité appartiennent à l’Activité. Ils sont distincts du Compte à rebours initial et de la Fin de séance, qui restent des éléments structurels de la Séance.
+
+La structure fonctionnelle d’une Activité peut donc être représentée ainsi :
+
+```text
+Activité
+├── Compte à rebours d’Activité éventuel
+├── Exécution du travail
+│   ├── côté 1 éventuel
+│   │   ├── Série
+│   │   ├── Pause éventuelle
+│   │   └── ...
+│   └── côté 2 éventuel
+├── Récupération éventuelle
+└── Fin d’activité éventuelle
+```
+
+Une `ActivityDefinition` et une `SessionActivity` partagent ces propriétés métier. La seconde reste une copie indépendante appartenant à sa Séance.
+
+# 4.6 Déroulement d'une Activité
+
+Lorsqu’une Activité est exécutée, le moteur applique ses phases propres dans l’ordre fonctionnel suivant :
+
+1. exécuter le Compte à rebours d’Activité lorsqu’il est présent ;
+2. déterminer le ou les côtés à exécuter à partir du `Changement de côté` propre à l’Activité ;
+3. pour chaque côté applicable, exécuter les Séries dans leur ordre ;
+4. appliquer les Pauses entre Séries selon les règles de Pause/Récupération ;
+5. après les côtés de l’Activité, exécuter la Récupération lorsqu’elle est non nulle ;
+6. exécuter la Fin d’activité lorsqu’elle est présente ;
+7. poursuivre vers l’élément suivant du Plan d’Exécution.
+
+En mode `Durée`, chaque Série est chronométrée. En mode `Répétitions` ou `À l’échec`, l’utilisateur termine normalement la Série par l’action `Suivant`.
+
+Le déroulement propre de l’Activité reste identique qu’elle soit exécutée directement depuis le Catalogue ou à l’intérieur d’une Séance, sous réserve des phases de contexte qui l’entourent : préparation d’Exécution directe, Compte à rebours initial de Séance, Point d’arrêt, Tour ou Fin de séance.
+
+# 4.7 Déroulement d'une séance
 
 Lorsqu'une Séance est démarrée :
 
@@ -242,7 +296,7 @@ Lorsqu'une Séance est démarrée :
 
 Le Plan d’Exécution constitue une structure interne générée automatiquement au démarrage de chaque Séance. Il n'est jamais manipulé directement par l'utilisateur.
 
-# 4.6 Guidage de l'utilisateur
+# 4.8 Guidage de l'utilisateur
 
 Pendant une Exécution, l'application accompagne l'utilisateur grâce à différents mécanismes de guidage.
 
@@ -261,7 +315,7 @@ Le guidage sonore peut comprendre :
 
 Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct : il est systématique et n'est pas piloté par la préférence `Vibrations`.
 
-# 4.7 Historisation
+# 4.9 Historisation
 
 L'application distingue systématiquement la définition d’un contenu et son Exécution réelle.
 
@@ -271,7 +325,7 @@ Chaque Exécution conserve son propre instantané immuable correspondant à son 
 - l'historique demeure fidèle à ce qui s'est réellement déroulé ;
 - la suppression définitive d’une `ActivityDefinition` ne supprime jamais les Exécutions d’Activité historiques.
 
-# 4.8 Périmètre du MVP
+# 4.10 Périmètre du MVP
 
 Le MVP permet notamment :
 - créer, modifier, dupliquer, archiver, restaurer et supprimer définitivement des Séances selon leur cycle de vie ;
@@ -301,7 +355,7 @@ Ne sont pas inclus dans le MVP :
 - Circuits fonctionnels ;
 - médias multiples fonctionnels.
 
-# 4.9 Extension validée du modèle
+# 4.11 Extension validée du modèle
 
 L’Activité possède deux formes distinctes dans le MVP T03 : la **référence autonome** du Catalogue et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier applicables ; la position avant, dans ou après le Tour appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
 
