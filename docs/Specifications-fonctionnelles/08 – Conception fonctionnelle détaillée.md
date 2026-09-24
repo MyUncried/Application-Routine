@@ -116,8 +116,7 @@ La duplication crée une nouvelle séance indépendante.
 La copie reprend :
 
 - le nom de la séance avec le suffixe disponible suivant : `(copie)`, puis `(copie 2)`, `(copie 3)`, etc. ;
-- la couleur ;
-- les catégories ;
+- l’Étiquette, dont la couleur devient la couleur de la Séance ;
 - l'ensemble de la composition ;
 - les paramètres d'exécution.
 
@@ -270,7 +269,7 @@ Une activité possède notamment :
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
 - une **Récupération** facultative, exécutée une fois après tous les côtés de l’Activité ;
 - une Description et des Zones corporelles d’exécution facultatives ;
-- des Médias dans le périmètre cible post-MVP. Dans le MVP, la section Médias est affichée et repliable mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est active.
+- un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
 
 Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
 
@@ -772,7 +771,7 @@ Il est basé sur l'instantané enregistré au lancement de l'exécution.
 Cet instantané comprend notamment :
 
 - l’identifiant et le nom de la Séance source ;
-- sa couleur et ses catégories ;
+- son Étiquette et la couleur portée par cette Étiquette ;
 - le Compte à rebours initial ;
 - la structure ordonnée des Cycles, Tours et Activités ;
 - les paramètres fonctionnels nécessaires de chaque Activité ;
@@ -780,7 +779,7 @@ Cet instantané comprend notamment :
 - la Fin de séance ;
 - les paramètres nécessaires à la génération du plan d’exécution.
 
-Les médias, absents du MVP, ne seront pas copiés dans l’Instantané lors de leur introduction ultérieure.
+Les informations média nécessaires à la restitution suivent le périmètre média courant ; l’historique conserve en priorité les données nécessaires à la fidélité fonctionnelle de l’Exécution.
 
 L'instantané n'est jamais modifié après sa création.
 
@@ -829,9 +828,9 @@ Dans le MVP, les cartes peuvent être condensées ou déployées individuellemen
 
 La recherche est effectuée sur :
 
-- le nom de la séance ;
-- les catégories ;
-- les zones corporelles.
+- le nom de la Séance ;
+- les Étiquettes de Séance ;
+- les Catégories et Zones corporelles des Activités selon le contexte de recherche.
 
 Les résultats sont mis à jour au fur et à mesure de la saisie.
 
@@ -891,7 +890,7 @@ Le suivi repose sur les principes suivants :
 | Carte Séance | Carte | 1 par Séance | Condensée ou déployée | Zone principale : ouvrir la Séance en modification |
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
-| Métadonnées Catégories/Zones | Texte | Si au moins un groupe existe | Catégories puis ` : ` puis union dédupliquée des Zones corporelles ; une seule ligne tronquée | Aucune |
+| Métadonnées Étiquette/Catégorie | Texte | Selon données disponibles | `Étiquette · Catégorie`, une seule ligne tronquée si nécessaire | Aucune |
 | Nombre d’Activités / durée | Texte | Toujours | Nombre d’Activités et durée synthétique des Activités calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
 | Tour | Texte | Toujours | Nombre de répétitions calculé | Aucune |
 | Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
@@ -919,21 +918,21 @@ Le suivi repose sur les principes suivants :
 
 ## Composition d’une séance — création et modification
 
-Le nom, la couleur et la Composition sont réunis dans le même écran.
+Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écran.
 
 ### Éléments affichés
 
 | Élément | Comportement et règle |
 | --- | --- |
 | Nom de la séance | Champ obligatoire de 1 à 80 caractères. |
-| Couleur | Une valeur est proposée par défaut ; palette de 12 couleurs en grille 4 × 3. |
+| Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
 | Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée. Chaque carte affiche le nom, puis la Catégorie d’Activité et les Zones corporelles. La Catégorie porte sa couleur sémantique et la barre verticale de la carte reprend cette couleur. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
-| Continuer | Désactivé lorsque le nom est vide, qu’aucune couleur n’est sélectionnée ou qu’aucune Activité valide n’est présente ; ouvre les Catégories. |
+| Continuer | Désactivé lorsque le nom est vide ou qu’aucune Activité valide n’est présente ; valide et enregistre la Séance avec son Étiquette éventuelle. |
 
 Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins une Activité valide.
 
