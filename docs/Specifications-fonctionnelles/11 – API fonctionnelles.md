@@ -69,7 +69,7 @@ Les API fonctionnelles respectent les principes suivants :
 |---|---|---|---|---|---|
 |API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, Catégorie, Zones corporelles, mode d’exécution, cible éventuelle, Séries, Pause, Récupération, Changement de côté, Compte à rebours propre, Fin d’activité propre|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; `Aucun/D→G/G→D` au niveau Activité ; paramètres temporels ≥ 0 selon leur nature|Activité|
 |API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, Récupération `R`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée totale réalisable|Avec `L = 1` ou `2` et `P(C,R) = C` si `R = 0`, sinon `C − 1`, pilote Séries : `D = L × [C × A + P(C,R) × B] + R`. Pilote Durée totale : `Cth = D/[L × (A+B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B)/(A + B)`, arrondi au plus proche avec `.5` vers le haut, minimum `1`, puis recalcul de `D`|Activité, calcul sans entité supplémentaire|
-|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|`C` Pauses par côté si `R = 0`, y compris après la dernière Série, sinon `C − 1`; Récupération positive remplaçant la dernière Pause et exécutée une fois après tous les côtés d’une Activité autonome ou une fois par passage de Tour bilatéral|Activité|
+|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|`C` Pauses par côté si `R = 0`, y compris après la dernière Série, sinon `C − 1`; Récupération positive remplaçant la dernière Pause et exécutée une fois après tous les côtés de l’Activité|Activité|
 |API-ACT-04|Lire/afficher les médias associés|ID Activité|Média(s) associé(s) pour l’état déployé de la carte|L’affichage déployé fait partie du MVP ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Activité, Média|
 |API-ACT-05|Associer des zones corporelles|ID Activité, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel prédéfini|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Activité, nombre de Séries|Activité mise à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Activité|
@@ -271,8 +271,8 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 | ID | Commande | Entrée | Effet et garanties |
 |---|---|---|---|
-| `API-SIDE-01` | Modifier le côté d’une Activité | ID, `sideMode` | Valide les trois valeurs ; recalcule les durées et synthèses ; interdit l’action si l’Activité appartient à un Tour bilatéral. |
-| `API-SIDE-02` | Modifier le côté d’un Tour | ID, `sideMode`, confirmation seulement si requise | Au passage de `UNILATERAL` à un mode bilatéral, recherche les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Liste vide : applique directement. Liste non vide : `Annuler` n’écrit rien ; `Confirmer` met à jour atomiquement le Tour et remet les seules Activités concernées à `UNILATERAL`. Aucune propriété « latéralisable ». |
+| `API-SIDE-01` | Modifier le Changement de côté d’une Activité | ID, `sideMode` | Valide `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` ; recalcule les durées et synthèses. |
+| `API-SIDE-02` | Compatibilité technique du côté Tour | ID Tour | Aucune mutation utilisateur exposée dans la version actuelle ; le champ historique reste conservé et contraint à `UNILATERAL`. |
 | `API-SIDE-03` | Dupliquer | ID Activité ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
 | `API-SIDE-04` | Insérer une Activité persistante | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
 | `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours/Récupérations et produit un ordre déterministe. |
