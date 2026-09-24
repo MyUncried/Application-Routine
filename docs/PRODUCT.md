@@ -320,7 +320,7 @@ Les principaux écrans du MVP sont :
 - Composition d’une Séance ;
 - création ou modification d’une Activité ;
 - options d’une Activité ;
-- catégories de la Séance ;
+- Étiquette de la Séance ;
 - Calendrier semaine et mois ;
 - planification d’une Séance ;
 - Exécution d’une Séance ;
