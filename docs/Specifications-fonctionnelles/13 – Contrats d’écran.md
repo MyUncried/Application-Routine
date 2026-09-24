@@ -432,11 +432,11 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; frames `3879:5947`, `3879:6079`, `3542:4656`, `3561:4695`, `3561:7802`, `3679:4880`, `3724:5428`, roulettes `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, état vide `3943:6064`; responsive `2296:91/173/255`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Activité et les règles de calcul existantes, sans média fonctionnel T03.
+Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Activité et les règles de calcul existantes. L’éditeur courant n’expose plus de bouton `Ajouter un média` ; la zone Média reste affichable selon les données et le rendu Figma courant.
 
 ### 3. Contexte d’entrée
 
@@ -448,7 +448,7 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 5. Données affichées et source de vérité
 
-Nom, Description, mode, cible, Séries, Pause, Récupération, zones, sideMode, Durée totale. Source = brouillon ; persistance seulement à validation.
+Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause, Récupération, `Changement de côté`, Durée totale, Compte à rebours d’Activité, Fin d’activité et données média affichables. Source = brouillon ; persistance seulement à validation.
 
 ### 6. Classification des valeurs Figma
 
@@ -476,7 +476,7 @@ Création/modification ; état vide avec `Nom de l’activité` ; états renseig
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Ajouter média disabled.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant.
 
 ### 13. Gestes
 
