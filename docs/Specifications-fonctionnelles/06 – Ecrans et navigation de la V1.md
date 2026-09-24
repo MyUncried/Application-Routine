@@ -168,6 +168,20 @@ Les modales basses utilisent le gabarit DSF commun : en-tête de `60` points, zo
 
 Ces insets sont des règles de composition du contenu et ne doivent pas être recalculés depuis la taille des zones tactiles. Lorsqu’un contrôle compact possède une cible tactile `48 × 48` plus grande que sa représentation visible, l’espacement vertical ou horizontal avec le contrôle voisin est mesuré entre les boîtes visuelles ; la zone tactile transparente ne constitue pas une marge supplémentaire. La hauteur de la modale suit son contenu et n’ajoute pas de vide structurel au-delà de ces insets, sous réserve de la limite maximale de hauteur de la famille.
 
+### Gestion des référentiels dans les modales de sélection
+
+Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la même règle de gestion :
+
+- appui court sur une option : sélectionner ou désélectionner selon le contexte ;
+- appui long sur une option : ne pas modifier sa sélection et ouvrir une modale de confirmation de suppression ;
+- toutes les options sont supprimables, y compris celles fournies initialement par KODJO ;
+- la modale de confirmation affiche le nom de l’option et propose `Annuler` à gauche et `Supprimer` à droite dans le ton destructif ;
+- si l’option est utilisée, le message indique qu’elle sera retirée des objets courants concernés et que l’historique restera inchangé ;
+- `Annuler` ferme la confirmation et restitue la modale de sélection sans changement ;
+- `Supprimer` retire la valeur du référentiel, de la sélection courante et des associations courantes concernées, puis restitue la modale de sélection actualisée ;
+- aucune restauration automatique d’une valeur initiale supprimée n’est effectuée.
+
+
 ### Dialogues d’action et modales plein écran
 
 - Une décision contextuelle s’affiche dans un dialogue flottant centré, jamais dans une feuille ancrée au bas de l’écran. Le dialogue mesure `354` points de large, possède un rayon de `18` et une ombre ; le voile laisse le contexte visible mais non interactif.
