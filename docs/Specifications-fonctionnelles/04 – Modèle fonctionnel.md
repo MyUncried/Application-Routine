@@ -89,13 +89,13 @@ Chaque Activité possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative régie par D-156 ;
-- une Récupération facultative exécutée après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, `0 s` signifiant absence de phase ;
+- une Récupération facultative exécutée après tous les côtés de l’Activité, `0 s` signifiant absence de phase ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
 - une ou plusieurs zones corporelles facultatives ;
-- aucun média fonctionnel dans le MVP T03 ; l’architecture prépare `0..n` médias ordonnés par Activité pour une évolution post-MVP.
+- un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les capacités d’import/capture restent régies par leur périmètre propre.
 
-Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause. Pour une Activité autonome, elle intervient une fois après tous les côtés ; dans un Tour bilatéral, une Récupération intervient à la fin de chaque passage de côté.
+Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause et intervient une fois après tous les côtés de l’Activité.
 
 En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `R` la Récupération : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale pilote, les formules inverses de D-156 s’appliquent, puis le nombre de Séries est arrondi selon la règle validée et la durée réalisable est recalculée.
 
@@ -309,15 +309,15 @@ Une Activité accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisièm
 
 L’Exécution directe d’Activité T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les répétitions du Tour et les passages bilatéraux décrits dans le Plan d’Exécution.
 
-Le Média est préparé comme actif local immuable associé par une relation ordonnée à `0..n` Activités. Plusieurs associations pourront référencer le même fichier sans duplication physique. Ce comportement reste post-MVP et n’active aucun média en T03.
+Le Média est un actif local associé à une Activité. Dans le MVP, le Catalogue peut afficher le média associé dans une carte déployée. Les capacités d’import, capture et gestion multiple restent régies par leur périmètre propre.
 
 Le Circuit est une racine persistante préparée pour une version post-MVP, possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Circuit. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Aucun Circuit n’est fonctionnel dans T03.
 
 ## Modèle fonctionnel de bilatéralité
 
-Une Activité persistante, son occurrence copiée dans une Séance et un Tour portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source.
+Une Activité persistante et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
 
-La direction effective est résolue une seule fois : celle du Tour si celui-ci est bilatéral, sinon celle de l’Activité. L’activation bilatérale d’un Tour recherche d’abord les Activités propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Si aucune n’existe — Tour vide compris — la direction est appliquée directement. Sinon, après confirmation, le Tour prend la direction choisie et les seules Activités concernées sont remises à `UNILATERAL` dans une opération atomique ; `Annuler` ne modifie aucune donnée. Sous un Tour bilatéral, les contrôles enfants restent visibles, propres `UNILATERAL` et désactivés. La désactivation ultérieure du Tour ne restaure aucune ancienne valeur.
+La direction effective exposée est celle de l’Activité. Le Tour ne remplace ni ne neutralise les réglages de côté de ses Activités dans la version actuelle.
 
 Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Activité porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Activité concernée.
 
