@@ -945,31 +945,27 @@ Dans la variante d’appui long (`3518:4576`), le bloc actif avec Récupération
 
 Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la création ?`. `Annuler` conserve les données ; `Confirmer`, action destructive rouge, les supprime. Pour une Séance existante, Retour ne supprime jamais la Séance.
 
-## Catégories de la séance
+## Étiquettes de la séance
+
+L’Étiquette est gérée directement dans la Composition via une modale basse.
 
 ### Éléments affichés
 
-| Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraintes | Source | Action | Remarques |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bouton Retour | Bouton | Toujours | Oui | Visible | Revient à la composition | Système | Retour | |
-| Titre de l’écran | Texte | Toujours | Oui | « Catégories de la séance » | Texte fixe | Statique | Aucune | En-tête fixe |
-| Catégories proposées | Tags | Toujours | Non | Aucune sélection | Sélection multiple | Catégorie | Sélectionner / Désélectionner | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante ; une sélection ne change pas l’ordre |
-| Bouton Créer une catégorie | Bouton | Toujours | Non | Visible | Nom non vide après trim, maximum `40` caractères, unique après normalisation | Statique | Créer | Ajoute une catégorie personnalisée ; si le nom normalisé existe déjà, sélectionne l’existante |
-| Bouton Enregistrer la séance | Bouton | Toujours | Oui | Actif | La séance doit être valide | Statique | Enregistrer | Retourne à Catalogue de séances |
+| Élément affiché | Type | Comportement |
+| --- | --- | --- |
+| Titre de modale | Texte | `Étiquettes` |
+| Étiquettes proposées | Tags | Sélection de l’Étiquette de la Séance ; données démonstratives dans Figma |
+| Nouvelle étiquette | Action | Ouvre la saisie `Nom de l’étiquette` |
+| Nom de l’étiquette | Champ texte | Permet d’ajouter une nouvelle Étiquette via l’action d’envoi |
+| Étiquette sélectionnée | Libellé dans la Composition | Affichée sous le nom de la Séance ; sa couleur devient celle de la Séance |
 
 ### Règles fonctionnelles
 
-| Règle | Description |
-| --- | --- |
-| Caractère facultatif | Une séance peut être enregistrée sans catégorie. |
-| Sélection multiple | Une séance peut être associée à zéro, une ou plusieurs catégories. |
-| Création d’une catégorie | La saisie est intégrée dans l’écran avec `Nom de la catégorie`, `Annuler` et `Ajouter` ; la nouvelle Catégorie est ajoutée au brouillon et sélectionnée automatiquement, sans persistance avant l’enregistrement final. |
-| Apparence par défaut | Dans le MVP, une Catégorie personnalisée reçoit automatiquement l’icône officielle KODJO et la couleur `color.background` (`#FFFFFF`). Aucun contrôle ne permet de modifier ces valeurs. |
-| Existence et sélection temporaires | Une Catégorie `NEW` désélectionnée reste dans le brouillon, demeure visible et peut être resélectionnée sans doublon ; existence et sélection sont conservées séparément pendant la navigation Catégories ↔ Composition. |
-| Retour | Revient à la composition sans supprimer la séance ni ses modifications déjà validées. |
-| Enregistrement | Persiste dans une transaction unique la Séance complète, les nouvelles Catégories sélectionnées du brouillon et leurs associations, puis ramène au Catalogue de séances. |
-| Échec d’enregistrement | Reste sur l’écran, conserve le brouillon complet, réactive l’action et affiche `La séance n’a pas pu être enregistrée. Réessayez.` ; aucune donnée partielle n’est conservée. |
-| Réorganisation | Aucune réorganisation manuelle des Catégories dans le MVP. |
+- Étiquette et couleur de Séance désignent la même classification visuelle : il n’existe pas de couleur indépendante de l’Étiquette ;
+- l’ouverture de la modale ne modifie pas les autres données de Composition ;
+- la création d’une nouvelle Étiquette se fait depuis la modale sans écran autonome ;
+- les valeurs `Marathon`, `Hyrox`, `Vacances d'été` et `Challenge groupe` sont des exemples Figma et non un référentiel statique imposé ;
+- les Catégories sont réservées aux Activités et ne doivent plus être utilisées comme classification de la Séance.
 
 
 ## Activité
