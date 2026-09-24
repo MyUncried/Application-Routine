@@ -10,7 +10,7 @@ Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des
 Présenter la couverture fonctionnelle du MVP et orienter vers les parcours utilisateur détaillés de ce chapitre.
 
 Le MVP permet à l'utilisateur :
-- de gérer les Étiquettes de Séances, les Catégories d’Activités et de sélectionner les Zones corporelles du référentiel applicatif ;
+- de gérer les Étiquettes de Séances, les Catégories d’Activités et le référentiel de Zones corporelles, puis de sélectionner les Zones corporelles applicables aux Activités ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
 - de planifier une séance au moyen d'une routine ;
@@ -59,7 +59,7 @@ Ces fonctions sont prévues pour des versions ultérieures.
 Les référentiels utilisés dans le MVP sont de deux natures :
 - les **Étiquettes de Séances**, qui qualifient la Séance et portent sa couleur ;
 - les **Catégories d’Activités**, qui qualifient les Activités et portent leur couleur ;
-- les **Zones corporelles**, issues d’un référentiel applicatif prédéfini et distinctes des Catégories.
+- les **Zones corporelles**, issues d’un référentiel utilisateur distinct des Catégories et initialisé avec des valeurs par défaut.
 
 ## Gestion des Étiquettes et des Catégories
 
@@ -74,13 +74,14 @@ L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les 
 2. Consulter les Étiquettes de Séance ou les Catégories d’Activité existantes.
 3. Créer une nouvelle Étiquette depuis la Composition de Séance lorsque nécessaire ; la nouvelle Étiquette devient sélectionnable dans ce contexte.
 4. Créer ou sélectionner une Catégorie depuis l’éditeur d’Activité ; les Zones corporelles restent un référentiel distinct.
+5. Ouvrir la sélection `Zones corporelles`, sélectionner une ou plusieurs Zones existantes ou créer une nouvelle Zone directement depuis la modale. La gestion du référentiel autorise également le renommage et la suppression des Zones existantes.
 
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
 Une Activité peut être associée à zéro, une ou plusieurs zones corporelles.
 
-Dans le MVP, les Zones corporelles constituent un référentiel prédéfini de l'application. L'utilisateur peut les consulter et les sélectionner lors de la création ou de la modification d'un Exercice, mais ne peut ni en créer, ni les renommer, ni les supprimer.
+Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’une Activité. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Activités courantes, ses associations sont retirées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.
 
 # Parcours principal — Créer et exécuter une séance
 
