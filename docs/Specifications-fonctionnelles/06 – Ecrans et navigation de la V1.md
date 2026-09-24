@@ -1459,7 +1459,7 @@ Ce comportement concerne uniquement le parcours de création. Pour une Séance e
 
 ![[images/modale-2-abandon-modifications-activite.png|260]]
 
-*Modale 2 — Abandonner les modifications d’une Activité — source Figma **À CLARIFIER** (node historique `3224:4082` absent du Figma courant)*
+*Modale d’abandon de création d’une Activité — source Figma courante `4714:6241 — Modal — Abandonner la création de l’activité`. L’ancienne référence `3224:4082` est historique.*
 
 #### Objectif
 
@@ -1719,7 +1719,7 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 
 Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
-L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Seul le détail visuel des panneaux/options **ouverts** `Filtrer` et `Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER`; aucune modale, feuille, popover ou liste locale ne doit être inventée avant arbitrage.
+L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
 
 ## Composant transverse `Status / Badge`
 
@@ -1744,12 +1744,9 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
 | Écran 2a | Recherche globale — Résultats affichés | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `1992:10320` |
 
-## Points `À CLARIFIER` relevés lors du contrôle visuel du 16 septembre 2026
+## Résolutions postérieures au contrôle visuel du 16 septembre 2026
 
-Ces points sont consignés sans modification des règles fonctionnelles. Ils sont détaillés dans `images/README-T03-FIGMA.md`.
+Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Activités appartient au MVP ; l’ancien arbre `Créer` reste historique. Un seul point de cette liste reste `À CLARIFIER` :
 
-1. **Modale 2 — Abandonner les modifications d’une Activité.** Le node `3224:4082` cité par ce chapitre n’existe plus dans le Figma courant et aucune frame de remplacement n’a été identifiée. La capture `modale-2-abandon-modifications-activite.png` est conservée telle quelle comme évidence historique ; elle n’est pas déclarée courante.
-2. **Section Médias de l’éditeur d’Activité.** Arbitrage résolu pour V2-CAT-01 : les frames courantes `3542:4656`, `3561:4695` et `3561:7802` font foi pour la présence de la section Médias repliable. La section est visible ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les anciennes formulations « section Médias masquée » sont supersédées par D-185.
-3. **Écran 13 / 13a — ancien arbre `Créer`.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` restent des évidences historiques et ne doivent plus être utilisées comme cible fonctionnelle.
-4. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
+1. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 
