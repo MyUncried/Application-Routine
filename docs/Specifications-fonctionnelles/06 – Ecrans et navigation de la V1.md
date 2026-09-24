@@ -229,7 +229,7 @@ La navigation principale donne accès à quatre destinations :
 - `Suivi` ;
 - `Profil`.
 
-`Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
+`Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
 
 L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
@@ -251,13 +251,13 @@ La création suit le parcours suivant :
 
 Aucune Routine n’est créée automatiquement. La transition canonique d’avancement fait entrer l’écran cible depuis la droite et sortir l’écran courant vers la gauche.
 
-### Parcours du Catalogue des Activités — MVP T03
+### Parcours du Catalogue des Exercices — MVP T03
 
-Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Activités, elle ouvre directement la création d’une Activité persistante, sans écran ni arbre intermédiaire.
+Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Activité en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’une Activité persistante, sans écran ni arbre intermédiaire.
 
-La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
+La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
 
-Depuis la Composition d’une Séance, `Ajouter une activité` ouvre directement la sélection multiple du Catalogue des Activités. La validation copie les Activités dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
+Depuis la Composition d’une Séance, `Ajouter une activité` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
@@ -285,7 +285,7 @@ La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est gris
 
 Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.
 
-Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. Les fonctions correspondantes restent post-MVP. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Activités.
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. Les fonctions correspondantes restent post-MVP. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Exercices.
 
 ### Écrans principaux
 
@@ -305,9 +305,9 @@ Les écrans principaux du MVP sont :
 
 Les écrans principaux ajoutés ou activés en T03 sont :
 
-12. `Catalogue des Activités — Liste` ;
+12. `Catalogue des Exercices — Liste` ;
 13. supprimé — ancien `Catalogue — Créer — Arbre d’actions`, conservé uniquement comme évidence historique ;
-14. `Composition — Sélectionner plusieurs Activités existantes` ;
+14. `Composition — Sélectionner plusieurs Exercices existantes` ;
 15. `Création / modification d’une Activité persistante`, qui réutilise l’éditeur d’Activité ;
 16. `Exécution directe d’une Activité — Préparation 5 s` ;
 17. `Exécution directe d’une Activité — En cours` ;
@@ -372,8 +372,8 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Exercice` : Activité physique ;
 - `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés de l’Activité ;
 - `Série` : répétition propre à un Exercice ;
-- `Tour` : groupe ordonné d’Activités exécuté intégralement un nombre défini de fois ;
-- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Activités placées avant le Tour, le Tour et les Activités placées après le Tour ;
+- `Tour` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
+- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
 ## Écran 1 – Profil
@@ -419,7 +419,7 @@ L’écran comporte notamment :
 - la `Fin d’activité` ;
 - `Notifications` et rappels.
 
-Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les contrôles Figma `4179:9550` et `4179:9556` matérialisent de la même manière le Compte à rebours d’Activité et la Fin d’activité pour les nouvelles Activités ; ces phases restent modifiables au niveau de chaque Activité.
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les contrôles Figma `4179:9550` et `4179:9556` matérialisent de la même manière le Compte à rebours d’Activité et la Fin d’activité pour les nouvelles Exercices ; ces phases restent modifiables au niveau de chaque Activité.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
 
@@ -478,7 +478,7 @@ Cet écran constitue l’accueil de l’application.
 
 ### Recherche et filtres
 
-Le Catalogue présente le sélecteur `Activités / Séances / Parcours`, avec `Séances` sélectionné par défaut, `Activités` actif en T03 et `Parcours` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise trois contrôles visuels de `108 × 32 pt`, séparés de `8 pt` et centrés comme ensemble dans la référence `402 pt`; les cibles tactiles restent ≥ `48 × 48 pt`. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
+Le Catalogue présente le sélecteur `Exercices / Séances / Parcours`, avec `Séances` sélectionné par défaut, `Exercices` actif en T03 et `Parcours` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise trois contrôles visuels de `108 × 32 pt`, séparés de `8 pt` et centrés comme ensemble dans la référence `402 pt`; les cibles tactiles restent ≥ `48 × 48 pt`. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
 
 La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
 
@@ -492,8 +492,8 @@ Chaque carte affiche notamment :
 
 - le nom de la Séance ;
 - sa seconde ligne de métadonnées sous la forme `Étiquette · Catégorie` selon les données disponibles et le rendu Figma courant ;
-- le nombre d’Activités ;
-- sa durée synthétique des Activités, qui exclut toujours le Compte à rebours initial et la Fin de séance ;
+- le nombre d’Exercices ;
+- sa durée synthétique des Exercices, qui exclut toujours le Compte à rebours initial et la Fin de séance ;
 - le nombre de répétitions du Tour (`xN`) ;
 - la prochaine occurrence planifiée lorsqu’elle existe ;
 - un chevron de déploiement ;
@@ -512,7 +512,7 @@ La zone principale constitue une cible tactile large. Il n’est pas nécessaire
 
 ### Carte de Séance — vue déployée
 
-Le déploiement est facultatif et permet de consulter les Activités de la Séance sans changer d’écran.
+Le déploiement est facultatif et permet de consulter les Exercices de la Séance sans changer d’écran.
 
 La zone principale de la carte conserve la même action que dans la vue condensée : elle ouvre la Séance en mode modification. Le chevron sert uniquement à déployer ou replier la carte et la zone `Démarrer` ouvre l’écran initial d’Exécution.
 
@@ -632,12 +632,12 @@ La Composition est présentée comme une structure hiérarchique ordonnée et no
 Elle comprend dans le MVP :
 
 - un `Compte à rebours initial` ;
-- zéro, une ou plusieurs Activités placées avant le Tour ;
-- un `Tour` unique, qui peut lui-même contenir des Activités ;
-- zéro, une ou plusieurs Activités placées après le Tour ;
+- zéro, une ou plusieurs Exercices placées avant le Tour ;
+- un `Tour` unique, qui peut lui-même contenir des Exercices ;
+- zéro, une ou plusieurs Exercices placées après le Tour ;
 - une `Fin de séance`.
 
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
+Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
 Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
 
@@ -648,7 +648,7 @@ L’écran affiche notamment :
 - le champ `Nom de la séance` ;
 - l’accès à la modale `Étiquettes` ;
 - l’Étiquette sélectionnée, lorsqu’elle existe, affichée sous le nom de la Séance ;
-- le résumé `N activité(s) · durée des Activités`, intégré sous `Nombre de tours` dans le conteneur Tour.
+- le résumé `N activité(s) · durée des Exercices`, intégré sous `Nombre de tours` dans le conteneur Tour.
 
 Le champ `Nom de la séance` mesure `354 × 42`. Son fond reste transparent. Lorsqu’une Étiquette est sélectionnée, sa couleur devient la couleur affichée de la Séance ; il n’existe pas de palette de couleur indépendante de l’Étiquette dans le parcours courant.
 
@@ -660,9 +660,9 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface, le nombre est affiché sans préfixe `x` ni signe `×`, dans un contrôle compact placé à droite du bloc de textes. Le bord droit du contrôle est aligné avec le bord droit des cartes d’Activité. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. Cette synthèse compte uniquement les Activités et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas. L’icône du sélecteur reprend strictement la couleur de la référence `Nouvelle séance — Nom renseigné` (`2028:12003`, vecteur `2028:12051`, `#CDCEFA`). Aucun chevron de repli pointant vers le haut n’est affiché dans cet en-tête.
+Dans l’interface, le nombre est affiché sans préfixe `x` ni signe `×`, dans un contrôle compact placé à droite du bloc de textes. Le bord droit du contrôle est aligné avec le bord droit des cartes d’Activité. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N activité(s) · X min`. Cette synthèse compte uniquement les Exercices et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas. L’icône du sélecteur reprend strictement la couleur de la référence `Nouvelle séance — Nom renseigné` (`2028:12003`, vecteur `2028:12051`, `#CDCEFA`). Aucun chevron de repli pointant vers le haut n’est affiché dans cet en-tête.
 
-La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Activités ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement la carte structurelle concernée et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Tour dans ses états fermé et déployé.
+La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement la carte structurelle concernée et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Tour dans ses états fermé et déployé.
 
 Un appui sur le contrôle de valeur ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`). Le défilement ne modifie qu’un brouillon ; Annuler ferme sans enregistrer et Confirmer applique la valeur centrée.
 
@@ -674,11 +674,11 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 
 Un seul bouton secondaire `+ Ajouter une activité` est affiché en haut de l’écran de Composition.
 
-Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Activités.
+Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Exercices.
 
-Un appui sur `Ajouter une activité` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Activités validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’une Activité locale à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
+Un appui sur `Ajouter une activité` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’une Activité locale à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
-La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
+La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Exercices suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -686,7 +686,7 @@ Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
 Aucune Récupération n’est ajoutée implicitement. Une phase `RECOVERY` est créée uniquement lorsque le paramètre Récupération de l’Activité est supérieur à `0 s`.
 
-Si deux Activités s’enchaînent sans Pause entre Séries ni Récupération, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+Si deux Exercices s’enchaînent sans Pause entre Séries ni Récupération, un avertissement discret et non bloquant peut être affiché selon la règle existante.
 
 ### Résumé de la ligne d’une Activité (D-095)
 
@@ -704,7 +704,7 @@ Format :
 - mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série` ;
 - mode À l’échec : `N série(s) jusqu’à l’échec, avec Z s de pause entre les séries` ; le nom, déjà affiché séparément sur la ligne, n’est pas répété. La proposition relative à la pause est omise lorsque la pause vaut zéro ou lorsqu’une seule Série ne crée aucun intervalle entre Séries.
 
-La clause de pause est entièrement omise lorsque la Pause vaut `0 s` ou lorsqu’une seule Série ne crée aucun intervalle. La Récupération est affichée dans sa carte attachée et intégrée aux durées calculées, mais elle n’augmente pas le nombre d’Activités. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
+La clause de pause est entièrement omise lorsque la Pause vaut `0 s` ou lorsqu’une seule Série ne crée aucun intervalle. La Récupération est affichée dans sa carte attachée et intégrée aux durées calculées, mais elle n’augmente pas le nombre d’Exercices. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
 
 Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries de 12 répétitions avec 20 s de pause par série` ; `1 série de 45 s`.
 
@@ -716,7 +716,7 @@ Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:
 
 ### Réorganisation
 
-Les Activités peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’Activité et sa Récupération attachée passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’Activité et sa Récupération attachée passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Activité et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
@@ -784,11 +784,11 @@ L’écran est ouvert lorsque l’utilisateur :
 
 - ajoute une Activité depuis la Composition ;
 - choisit `Modifier` sur une Activité ;
-- crée ou modifie une `ActivityDefinition` persistante depuis le Catalogue des activités.
+- crée ou modifie une `ActivityDefinition` persistante depuis le Catalogue des exercices.
 
 Le contexte d’ouverture détermine la destination de retour et le type d’objet édité ; il ne doit jamais être déduit de la seule apparence de l’écran.
 
-Dans le parcours courant de Composition, l’interface expose la sélection d’Activités du Catalogue. La capacité existante de créer directement une Activité locale à la Séance reste conservée mais n’est pas exposée dans cet enchaînement d’écrans.
+Dans le parcours courant de Composition, l’interface expose la sélection d’Exercices du Catalogue. La capacité existante de créer directement une Activité locale à la Séance reste conservée mais n’est pas exposée dans cet enchaînement d’écrans.
 
 ### Contenu et sections
 
@@ -1048,7 +1048,7 @@ Les occurrences futures sont recalculées à partir de la nouvelle planification
 
 Guider l’utilisateur pendant l’Exécution avec une hiérarchie visuelle adaptée à une lecture rapide et à distance.
 
-Un seul layout standard est utilisé pour les Activités en Durée, en Répétitions et À l’échec ainsi que pour leur phase de Récupération. Le comportement temporel s’adapte à la phase du Plan d’Exécution sans changer la structure générale de l’écran.
+Un seul layout standard est utilisé pour les Exercices en Durée, en Répétitions et À l’échec ainsi que pour leur phase de Récupération. Le comportement temporel s’adapte à la phase du Plan d’Exécution sans changer la structure générale de l’écran.
 
 ### Entrée dans l’écran et démarrage
 
@@ -1199,7 +1199,7 @@ Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque
 
 Au début d’une Activité, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase `RECOVERY`, l’annonce est `Récupération`.
 
-Pour les Activités chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
+Pour les Exercices chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Pour un Exercice en Répétitions ou À l’échec, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
 
@@ -1253,19 +1253,19 @@ L’écran affiche notamment :
 - le nom de la Séance ;
 - le statut de l’Exécution ;
 - la durée réellement exécutée ;
-- le nombre d’Activités réalisées ;
-- le nombre d’Activités partielles, uniquement s’il est supérieur à zéro ;
+- le nombre d’Exercices réalisées ;
+- le nombre d’Exercices partielles, uniquement s’il est supérieur à zéro ;
 - le choix du ressenti ;
 - un champ `Commentaire` facultatif ;
 - le bouton `Terminer`.
 
 Les Tours et Cycles ne sont pas affichés dans la Synthèse du MVP.
 
-Aucun parcours détaillé des Activités n’est affiché sur cet écran dans le MVP.
+Aucun parcours détaillé des Exercices n’est affiché sur cet écran dans le MVP.
 
 ### Statut
 
-Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Activités réellement réalisées.
+Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Exercices réellement réalisées.
 
 Une Exécution arrêtée volontairement depuis la modale de pause est enregistrée avec le statut `Interrompue`.
 
@@ -1366,30 +1366,30 @@ Si aucune Exécution ne correspond à la recherche, l’écran affiche un messag
 
 Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vos séances exécutées dès que vous aurez terminé votre première séance.`
 
-## Écrans 12 à 18 — Catalogue des Activités et Exécution directe — MVP T03
+## Écrans 12 à 18 — Catalogue des Exercices et Exécution directe — MVP T03
 
-### Écran 12 — Catalogue des Activités — Liste
+### Écran 12 — Catalogue des Exercices — Liste
 
-La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Activités` sélectionné. La liste contient les Activités persistantes et conserve recherche, filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
+La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Exercices` sélectionné. La liste contient les Exercices persistantes et conserve recherche, filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
 
 La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : trois contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence `402 pt`, cibles tactiles ≥ `48 × 48 pt`. `Filtrer` propose les critères contextuels validés et ses panneaux ouverts sont définis dans Figma ; `Trier` reste visible disabled.
 
-Chaque carte présente une barre verticale portant la couleur de sa Catégorie. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Activités actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+Chaque carte présente une barre verticale portant la couleur de sa Catégorie. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ![[images/ecran-12-catalogue-activites-liste.png|260]]
 
-*Écran 12 — Catalogue des Activités — Liste — Figma `3786:5093`*
+*Écran 12 — Catalogue des Exercices — Liste — Figma `3786:5093`*
 
-États Figma complémentaires de la famille Catalogue des Activités :
+États Figma complémentaires de la famille Catalogue des Exercices :
 
-- `4521:6220 — Catalogue des activités — État vide` ;
-- `4168:11262 — Catalogue des Activités — Filtrer — Panneau ouvert` ;
-- `4544:6344 — Catalogue des Activités — Liste — Filtre inactif étendu` ;
-- `4544:6651 — Catalogue des Activités — Liste — Filtre actif étendu` ;
-- `4738:6209 — Catalogue des Activités — Liste — actions glissées` ;
-- `4738:6355 — Catalogue des Activités — Liste — Première carte déployée — Média`.
+- `4521:6220 — Catalogue des exercices — État vide` ;
+- `4168:11262 — Catalogue des Exercices — Filtrer — Panneau ouvert` ;
+- `4544:6344 — Catalogue des Exercices — Liste — Filtre inactif étendu` ;
+- `4544:6651 — Catalogue des Exercices — Liste — Filtre actif étendu` ;
+- `4738:6209 — Catalogue des Exercices — Liste — actions glissées` ;
+- `4738:6355 — Catalogue des Exercices — Liste — Première carte déployée — Média`.
 
-La frame `4534:6339 — Catalogue des Activités — Filtre — États du contrôle` est une planche de référence du contrôle, pas un écran utilisateur autonome.
+La frame `4534:6339 — Catalogue des Exercices — Filtre — États du contrôle` est une planche de référence du contrôle, pas un écran utilisateur autonome.
 
 L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans l’état courant et n’est plus une preuve active. Aucun état de remplacement n’est inventé.
 
@@ -1398,21 +1398,21 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 L’écran/arbre intermédiaire `Une nouvelle activité / Une séance / Un parcours / Annuler` est supprimé par D-187.
 
 Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
-- `Catalogue des Activités` → création d’une Activité persistante ;
+- `Catalogue des Exercices` → création d’une Activité persistante ;
 - `Catalogue des Séances` → création d’une Séance ;
 - `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
 Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
 
-### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
+### Écran 14 — Composition — Sélectionner plusieurs Exercices existantes
 
-Depuis `Ajouter une activité`, la frame `3789:5349` ouvre directement la sélection des Activités du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
+Depuis `Ajouter une activité`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
 
-Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
+Les Exercices sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
 
 ![[images/ecran-14-selection-activites-existantes.png|260]]
 
-*Écran 14 — Composition — Sélectionner plusieurs Activités existantes — Figma `3789:5349`*
+*Écran 14 — Composition — Sélectionner plusieurs Exercices existantes — Figma `3789:5349`*
 
 ### Écran 15 — Création ou modification d’une Activité persistante
 
@@ -1446,7 +1446,7 @@ L’écran réutilise le moteur et le Shell d’Exécution. Il développe Série
 
 ### Écran 18 — Synthèse d’une Activité directe
 
-Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Activités dans son état précédent.
+Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Exercices dans son état précédent.
 
 ![[images/ecran-18-synthese-directe-ressenti-requis.png|260]]
 
@@ -1801,7 +1801,7 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4760:6500` | Synthèse partielle — Ressenti sélectionné | Référencée dans Écran 10 |
 | `3722:5061` | Composition séance — Point d’arrêt | Référencée dans Écran 3 |
 | `4168:11149` | Catalogue Séances — Filtrer — Panneau ouvert | Référencée dans Écran 2 |
-| `4168:11262` | Catalogue Activités — Filtrer — Panneau ouvert | Référencée dans Écran 12 |
+| `4168:11262` | Catalogue Exercices — Filtrer — Panneau ouvert | Référencée dans Écran 12 |
 | `4593:6285` | Confirmer l’archivage d’une séance planifiée | Référencée dans les modales |
 | `4217:6980` | Ajouter une activité — paramètres repliés | Référencée dans Écran 4 |
 | `4279:7044` | Ajouter une activité — paramètres dépliés | Référencée dans Écran 4 |
@@ -1814,14 +1814,14 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4861:6145` | Étiquette — confirmation suppression | Référencée dans Écran 3 et Modale 8 |
 | `4861:6259` | Catégorie — confirmation suppression | Référencée dans Écran 4 et Modale 8 |
 | `4861:6348` | Zone corporelle — confirmation suppression | Référencée dans Écran 4 et Modale 8 |
-| `4521:6220` | Catalogue Activités — État vide | Référencée dans Écran 12 |
-| `4544:6344` | Activités — Filtre inactif étendu | Référencée dans Écran 12 |
-| `4544:6651` | Activités — Filtre actif étendu | Référencée dans Écran 12 |
+| `4521:6220` | Catalogue Exercices — État vide | Référencée dans Écran 12 |
+| `4544:6344` | Exercices — Filtre inactif étendu | Référencée dans Écran 12 |
+| `4544:6651` | Exercices — Filtre actif étendu | Référencée dans Écran 12 |
 | `4549:6382` | Séances — Filtre inactif étendu | Référencée dans Écran 2 |
 | `4549:6742` | Séances — Filtre actif Archivées | Référencée dans Écran 2 |
 | `4592:6217` | Séances — actions glissées — Dos et mobilité | Couvert par la famille Écran 2d ; référence complémentaire |
-| `4738:6209` | Activités — actions glissées | Référencée dans Écran 12 |
-| `4738:6355` | Activités — carte déployée — Média | Référencée dans Écran 12 |
+| `4738:6209` | Exercices — actions glissées | Référencée dans Écran 12 |
+| `4738:6355` | Exercices — carte déployée — Média | Référencée dans Écran 12 |
 | `4367:7128` | Modèle paramètre — Mode Durée | **Pas un écran utilisateur** : planche de référence |
 | `4367:7276` | Modèle paramètre — Compte à rebours | **Pas un écran utilisateur** : planche de référence |
 | `4367:7906` | Modèle paramètre — Côté | **Pas un écran utilisateur** : planche historique/référence, le libellé actif est `Changement de côté` |
@@ -1849,13 +1849,13 @@ Dans l’Écran 9, une Activité effectivement bilatérale affiche `Côté droit
 
 ### Évidences Figma T03 — état courant du 16 septembre 2026
 
-Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Activités), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
+Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Exercices), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Activité), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
 
 ### Résolutions postérieures au contrôle visuel du 16 septembre 2026
 
-Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Activités appartient au MVP ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Un seul point de cette liste reste `À CLARIFIER` :
+Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Activité est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Exercices appartient au MVP ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Un seul point de cette liste reste `À CLARIFIER` :
 
 1. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 
