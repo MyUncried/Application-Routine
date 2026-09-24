@@ -91,14 +91,14 @@ Aucune routine n'est créée automatiquement.
 
 Une séance peut être modifiée à tout moment depuis le catalogue des séances.
 
-La modification d’une Séance ouvre directement l’écran unique `Composition d’une séance`, prérempli avec le nom, la couleur et les Activités. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
+La modification d’une Séance ouvre directement l’écran unique `Composition d’une séance`, prérempli avec le nom, la couleur et les Exercices. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
 
 L'utilisateur peut notamment modifier :
 
 - son nom ;
 - sa couleur ;
 - sa composition ;
-- ses activités ;
+- ses exercices ;
 - son Étiquette.
 
 Les modifications sont immédiatement visibles dans le catalogue.
@@ -181,17 +181,17 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
-# 2 bis. Catalogue des Activités — cycle de vie d’une Activité persistante — MVP T03
+# 2 bis. Catalogue des Exercices — cycle de vie d’une Activité persistante — MVP T03
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Activités`, `Séances` et `Parcours`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Exercices`, `Séances` et `Parcours`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
 
-La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale portant la couleur de sa Catégorie. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Activités actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale portant la couleur de sa Catégorie. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
-Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Activités, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
+Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Exercices, il ouvre directement l’éditeur de création d’une Activité persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
 
 La création d’une Activité depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Côté → Récupération → Durée totale` lorsque la Durée totale s’applique. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
@@ -199,10 +199,10 @@ Ouvert depuis le Catalogue, `Terminer` crée ou met à jour une Activité persis
 
 ## 2 bis.3 Ajouter une Activité à une Séance
 
-Depuis la Composition, `Ajouter une activité` ouvre directement la sélection des Activités du Catalogue. La capacité technique et fonctionnelle de créer une Activité locale à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
+Depuis la Composition, `Ajouter une activité` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer une Activité locale à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
 
 - `Une nouvelle activité` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
-- `Une activité existante` ouvre la sélection multiple du Catalogue d’Activités ;
+- `Une activité existante` ouvre la sélection multiple du Catalogue d’Exercices ;
 - `Annuler` ferme les options sans modifier le brouillon.
 
 La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Une Activité créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
@@ -233,9 +233,9 @@ Le Catalogue peut proposer `Un parcours` dans son arbre V2. Le formulaire Parcou
 
 ## 3.1 Principe général
 
-Une séance est constituée d'un ensemble d'activités organisées dans un ordre d'exécution précis.
+Une séance est constituée d'un ensemble d'exercices organisées dans un ordre d'exécution précis.
 
-L'utilisateur construit librement sa séance en ajoutant, modifiant, supprimant ou réorganisant ces activités.
+L'utilisateur construit librement sa séance en ajoutant, modifiant, supprimant ou réorganisant ces exercices.
 
 La structure d'une séance est entièrement définie par son contenu. Aucun comportement implicite n'est ajouté automatiquement par l'application.
 
@@ -244,19 +244,19 @@ La structure d'une séance est entièrement définie par son contenu. Aucun comp
 Une séance est composée, dans l'ordre, des éléments suivants :
 
 1. un compte à rebours initial ;
-2. un Cycle technique unique contenant, dans l’ordre, les Activités placées avant le Tour, un Tour unique et les Activités placées après le Tour ;
+2. un Cycle technique unique contenant, dans l’ordre, les Exercices placées avant le Tour, un Tour unique et les Exercices placées après le Tour ;
 3. une fin de séance.
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Activités. Leur durée peut être égale à 0 s.
+Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à 0 s.
 
 Chaque Activité peut en outre définir un Compte à rebours propre et une Fin d’activité propre. Un Point d’arrêt peut être inséré dans la Composition et déplacé entre les éléments autorisés ; il ne possède pas d’écran dédié et son temps d’attente est exclu de la durée de la Séance.
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
 
-Les Activités placées après le Tour sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
+Les Exercices placées après le Tour sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
 
 Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum une Activité pour être exécutable.
 
-## 3.3 Les activités
+## 3.3 Les exercices
 
 Une activité représente une étape élémentaire de la séance.
 
@@ -271,7 +271,7 @@ Une activité possède notamment :
 - une Description et des Zones corporelles d’exécution facultatives ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
 
-Les activités sont exécutées dans l'ordre où elles apparaissent dans la séance.
+Les exercices sont exécutées dans l'ordre où elles apparaissent dans la séance.
 
 ## 3.4 Modes et récupération d’une Activité
 
@@ -285,17 +285,17 @@ Elle peut être définie :
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
-La Récupération est un paramètre de durée facultatif de l’Activité. Sa valeur canonique est `0 s`. Lorsqu’elle est strictement positive, le Plan d’Exécution insère une phase chronométrée `RECOVERY` immédiatement après la dernière Série de l’Activité. Cette phase ne constitue pas une Activité et n’augmente pas le nombre d’Activités affiché.
+La Récupération est un paramètre de durée facultatif de l’Activité. Sa valeur canonique est `0 s`. Lorsqu’elle est strictement positive, le Plan d’Exécution insère une phase chronométrée `RECOVERY` immédiatement après la dernière Série de l’Activité. Cette phase ne constitue pas une Activité et n’augmente pas le nombre d’Exercices affiché.
 
 Une Activité dont le nom ou l’intention fonctionnelle est « Récupération » reste possible : elle utilise le même modèle et les mêmes modes que toute autre Activité ; aucun traitement particulier n’est associé à son nom.
 
 ## 3.5 Tours
 
-Un Tour est un conteneur regroupant plusieurs activités exécutées dans un ordre déterminé.
+Un Tour est un conteneur regroupant plusieurs exercices exécutées dans un ordre déterminé.
 
 Dans le MVP, chaque cycle contient un seul Tour.
 
-Les activités d'un Tour peuvent être réorganisées librement.
+Les exercices d'un Tour peuvent être réorganisées librement.
 
 Le Tour constitue principalement un élément fonctionnel de structuration. Son maintien dans le vocabulaire visible par l'utilisateur pourra être réévalué ultérieurement.
 
@@ -313,7 +313,7 @@ Dans le MVP :
 Dans une version ultérieure, une Séance pourra comporter plusieurs Cycles et un Cycle pourra comporter plusieurs Tours.
 ## 3.7 Réorganisation
 
-Les activités peuvent être :
+Les exercices peuvent être :
 
 - ajoutées ;
 - supprimées ;
@@ -330,7 +330,7 @@ Une séance est considérée comme valide lorsqu'elle contient au minimum une Ac
 
 Une activité est valide lorsque toutes les informations obligatoires correspondant à son type sont renseignées.
 
-Les activités incomplètes sont signalées à l'utilisateur.
+Les exercices incomplètes sont signalées à l'utilisateur.
 
 Une séance incomplète peut être enregistrée mais ne peut pas être exécutée.
 
@@ -339,8 +339,8 @@ Une séance incomplète peut être enregistrée mais ne peut pas être exécuté
 À chaque modification, l'application recalcule automatiquement :
 
 - la **durée estimée d’exécution** ;
-- la **durée synthétique des Activités** ;
-- le **nombre d'Activités de la Composition**.
+- la **durée synthétique des Exercices** ;
+- le **nombre d'Exercices de la Composition**.
 
 ### Durée estimée d’exécution
 
@@ -349,7 +349,7 @@ La durée estimée d’exécution correspond à la somme de toutes les durées d
 Le calcul tient compte :
 
 - du Compte à rebours initial et de la Fin de séance ;
-- de toutes les occurrences d'Activités chronométrées ;
+- de toutes les occurrences d'Exercices chronométrées ;
 - des Pauses entre Séries effectivement insérées dans le plan ;
 - de la Récupération facultative exécutée une fois après chaque occurrence d’Activité ;
 - des Séries ;
@@ -362,15 +362,15 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 - Si toutes les durées sont déterminables, la durée est affichée normalement, par exemple `18 min`.
 - Si au moins un Exercice est en mode Répétitions ou À l’échec, la somme des durées connues constitue une **borne minimale** et l’interface affiche le signe `≥`, par exemple `≥ 18 min`.
 
-### Durée synthétique des Activités
+### Durée synthétique des Exercices
 
-La durée synthétique des Activités est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses entre Séries, Récupérations attachées, répétitions du Tour et positions structurelles, mais porte exclusivement sur les Activités et leurs phases attachées. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses entre Séries, Récupérations attachées, répétitions du Tour et positions structurelles, mais porte exclusivement sur les Exercices et leurs phases attachées. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
 Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
-### Nombre d'Activités de la Composition
+### Nombre d'Exercices de la Composition
 
-Le nombre d'Activités de la Composition correspond au nombre de cartes d’Activité explicitement définies dans la Composition.
+Le nombre d'Exercices de la Composition correspond au nombre de cartes d’Activité explicitement définies dans la Composition.
 
 Il :
 
@@ -392,7 +392,7 @@ La composition d'une séance repose sur les principes suivants :
 
 ## 4.1 Principe général
 
-L'exécution d'une séance consiste à guider l'utilisateur à travers l'ensemble des activités qui composent la séance, dans l'ordre défini lors de sa création.
+L'exécution d'une séance consiste à guider l'utilisateur à travers l'ensemble des exercices qui composent la séance, dans l'ordre défini lors de sa création.
 
 Avant le démarrage effectif de la séance, un instantané fonctionnel de la séance est enregistré. Cet instantané est utilisé pour garantir la cohérence de l'historique, même si la séance est modifiée ultérieurement.
 
@@ -414,13 +414,13 @@ Lorsque le Compte à rebours initial est configuré à `0 s`, cette phase est in
 
 ## 4.3 Déroulement
 
-Les activités sont exécutées dans l'ordre défini dans la séance.
+Les exercices sont exécutées dans l'ordre défini dans la séance.
 
 Chaque activité est exécutée intégralement avant le passage à la suivante.
 
 Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
 
-Les Activités placées après le Tour sont exécutées une seule fois après la dernière répétition du Tour.
+Les Exercices placées après le Tour sont exécutées une seule fois après la dernière répétition du Tour.
 
 Lorsque la dernière Activité est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
@@ -445,9 +445,9 @@ Le **temps total écoulé** correspond au temps actif réellement passé dans l'
 Il inclut notamment :
 
 - le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;
-- les Activités chronométrées ;
+- les Exercices chronométrées ;
 - les Pauses entre Séries effectivement exécutées ;
-- les phases `RECOVERY` attachées aux Activités ;
+- les phases `RECOVERY` attachées aux Exercices ;
 - les phases chronométrées du Compte à rebours initial et de la Fin de séance.
 
 La **durée réelle** enregistrée à la fin de l'Exécution suit la même règle : les périodes de Pause utilisateur en sont exclues.
@@ -458,15 +458,15 @@ La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
-Son calcul s'appuie cependant sur les occurrences d'Activités du plan d'Exécution :
+Son calcul s'appuie cependant sur les occurrences d'Exercices du plan d'Exécution :
 
-- `N` = nombre total d'Activités à exécuter dans le plan ;
+- `N` = nombre total d'Exercices à exécuter dans le plan ;
 - `R` = nombre d’occurrences d’Exercices sans durée cible, en mode Répétitions ou À l’échec ;
-- `T` = somme des durées des occurrences d'Activités chronométrées du plan.
+- `T` = somme des durées des occurrences d'Exercices chronométrées du plan.
 
 Chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids de `1 / N` dans la barre.
 
-La part restante, `1 - R / N`, est répartie entre les occurrences d'Activités chronométrées proportionnellement à leur durée. Pour une Activité chronométrée de durée `d`, son poids est donc :
+La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrées proportionnellement à leur durée. Pour une Activité chronométrée de durée `d`, son poids est donc :
 
 `(1 - R / N) × d / T`
 
@@ -572,7 +572,7 @@ Lorsque l'utilisateur confirme cet arrêt :
 - la séance est enregistrée dans l'historique avec le statut **Interrompue** ;
 - l'écran de synthèse est affiché.
 
-Les activités restantes ne sont pas exécutées.
+Les exercices restantes ne sont pas exécutées.
 ### Pause prolongée
 
 Lorsqu'une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite poursuivre l'Exécution.
@@ -598,7 +598,7 @@ Le statut de l'exécution est déterminé selon les règles suivantes :
 
 | Statut      | Description                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------------ |
-| Terminée    | Toutes les Activités ont été terminées normalement et `SESSION_END` a été achevée. |
+| Terminée    | Toutes les Exercices ont été terminées normalement et `SESSION_END` a été achevée. |
 | Partielle   | `SESSION_END` a été achevée, mais au moins une Activité a été interrompue ou ignorée. |
 | Interrompue | L’Exécution a été arrêtée avant l’achèvement de `SESSION_END`, y compris pendant cette phase. |
 
@@ -773,7 +773,7 @@ Cet instantané comprend notamment :
 - l’identifiant et le nom de la Séance source ;
 - son Étiquette et la couleur portée par cette Étiquette ;
 - le Compte à rebours initial ;
-- la structure ordonnée des Cycles, Tours et Activités ;
+- la structure ordonnée des Cycles, Tours et Exercices ;
 - les paramètres fonctionnels nécessaires de chaque Activité ;
 - les zones corporelles nécessaires à la restitution fidèle de l’historique ;
 - la Fin de séance ;
@@ -791,7 +791,7 @@ Chaque historique enregistre notamment :
 - la durée réelle ;
 - le statut de l'exécution ;
 - le ressenti de l'utilisateur ;
-- le détail des activités exécutées ;
+- le détail des exercices exécutées ;
 - les temps réellement réalisés ;
 - les éventuelles interruptions.
 
@@ -805,7 +805,7 @@ Le MVP distingue les statuts suivants :
 
 |Statut|Description|
 |---|---|
-|Terminée|Toutes les Activités ont été terminées normalement et `SESSION_END` a été achevée.|
+|Terminée|Toutes les Exercices ont été terminées normalement et `SESSION_END` a été achevée.|
 |Partielle|La séance est arrivée à son terme, mais au moins une activité chronométrée a été interrompue avant la fin de sa durée.|
 |Interrompue|La séance a été arrêtée avant la fin de son exécution.|
 
@@ -830,7 +830,7 @@ La recherche est effectuée sur :
 
 - le nom de la Séance ;
 - les Étiquettes de Séance ;
-- les Catégories et Zones corporelles des Activités selon le contexte de recherche.
+- les Catégories et Zones corporelles des Exercices selon le contexte de recherche.
 
 Les résultats sont mis à jour au fur et à mesure de la saisie.
 
@@ -891,11 +891,11 @@ Le suivi repose sur les principes suivants :
 | Chevron | Bouton | Toujours | Droite si replié, bas si déployé | Déployer / Replier uniquement |
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
 | Métadonnées Étiquette/Catégorie | Texte | Selon données disponibles | `Étiquette · Catégorie`, une seule ligne tronquée si nécessaire | Aucune |
-| Nombre d’Activités / durée | Texte | Toujours | Nombre d’Activités et durée synthétique des Activités calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
+| Nombre d’Exercices / durée | Texte | Toujours | Nombre d’Exercices et durée synthétique des Exercices calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
 | Tour | Texte | Toujours | Nombre de répétitions calculé | Aucune |
 | Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
 | Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |
-| Liste des Activités | Liste | Carte déployée | Ordre de la Séance | Aucune |
+| Liste des Exercices | Liste | Carte déployée | Ordre de la Séance | Aucune |
 | Résumé d’Activité | Texte | Carte déployée | À droite : `durée/reps · xN` ; `xN` seulement si N > 1 | Aucune |
 
 ### Règles fonctionnelles
@@ -910,7 +910,7 @@ Le suivi repose sur les principes suivants :
 | Zone principale de la carte | Ouvre directement la Séance en mode modification. |
 | Métadonnées | Sous le nom, affiche `Étiquette · Catégorie` selon les données disponibles et le rendu Figma actif ; même convention dans les archives et la Recherche globale. |
 | Chevron | Sert exclusivement au déploiement / repli de la carte. |
-| Carte déployée | Affiche la liste des Activités ; la zone `Démarrer` conserve son action propre. |
+| Carte déployée | Affiche la liste des Exercices ; la zone `Démarrer` conserve son action propre. |
 | Actions d’une Séance active | Un glissement gauche révèle `Planifier`, `Dupliquer` et `Archiver`. |
 | Modifier | Toucher la zone principale ouvre la Composition préremplie. |
 | Supprimer | Disponible uniquement après archivage. Dans `Archivées`, un glissement gauche déplace la carte et révèle `Supprimer` derrière, puis ouvre une confirmation. Les Exécutions historiques sont conservées. |
@@ -927,10 +927,10 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Nom de la séance | Champ obligatoire de 1 à 80 caractères. |
 | Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
-| Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des activités et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
-| Activités | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée. Chaque carte affiche le nom, puis la Catégorie d’Activité et les Zones corporelles. La Catégorie porte sa couleur sémantique et la barre verticale de la carte reprend cette couleur. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
+| Tour | Seul conteneur affiché ; `1` par défaut, réglable de 1 à 99 par roulette native compacte à une colonne. Son en-tête affiche `Nombre de tours`, la synthèse calculée des exercices et le contrôle déclencheur `66 × 34`, aligné sur le bord droit des cartes. La valeur est affichée sans `x` ni `×`, l’icône utilise `#CDCEFA` comme dans `2028:12003`, et aucun chevron de repli n’est visible. |
+| Exercices | Cartes ordonnées de `354 × 69` sans Récupération ou blocs `354 × 93` avec sous-carte attachée. Chaque carte affiche le nom, puis la Catégorie d’Activité et les Zones corporelles. La Catégorie porte sa couleur sémantique et la barre verticale de la carte reprend cette couleur. Toucher ouvre la modification ; glisser à gauche déplace la carte et révèle progressivement les actions placées derrière ; un appui long déplace le bloc complet. Dupliquer copie notamment Pause et Récupération avec le suffixe `(copie)` puis numéroté. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
-| Résumé | `N activité(s) · durée des Activités`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Activités seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
+| Résumé | `N activité(s) · durée des Exercices`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Exercices seulement ; la durée inclut leurs Pauses entre Séries et Récupérations attachées. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 activité · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter une activité | Un seul bouton secondaire `+ Ajouter une activité`, placé en haut. |
 | Continuer | Désactivé lorsque le nom est vide ou qu’aucune Activité valide n’est présente ; valide et enregistre la Séance avec son Étiquette éventuelle. |
 
@@ -964,7 +964,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 - l’ouverture de la modale ne modifie pas les autres données de Composition ;
 - la création d’une nouvelle Étiquette se fait depuis la modale sans écran autonome ;
 - les valeurs `Marathon`, `Hyrox`, `Vacances d'été` et `Challenge groupe` sont des exemples Figma et non un référentiel statique imposé ;
-- les Catégories sont réservées aux Activités et ne doivent plus être utilisées comme classification de la Séance.
+- les Catégories sont réservées aux Exercices et ne doivent plus être utilisées comme classification de la Séance.
 
 
 ## Activité
@@ -1069,8 +1069,8 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Date / heure de fin   | Texte            | Toujours |         Oui | Date courante                                        | Format local                | Séance      | Aucune         |                                      |
 | Carte Votre séance    | Carte            | Toujours |         Oui | Visible                                              | Une seule                   | Séance      | Aucune         |                                      |
 | Durée réelle          | Durée            | Toujours |         Oui | Calculée                                             | Temps réellement exécuté    | Séance      | Aucune         |                                      |
-| Nombre d'activités    | Valeur           | Toujours |         Oui | Calculé                                              | X / Y                       | Séance      | Aucune         |                                      |
-| Activités partiellement réalisées | Texte | Si > 0 | Non | Masqué | `n activité(s) partiellement réalisée(s)` | Séance | Aucune | Libellé UI ; le statut métier de l’Activité reste `Partielle` |
+| Nombre d'exercices    | Valeur           | Toujours |         Oui | Calculé                                              | X / Y                       | Séance      | Aucune         |                                      |
+| Exercices partiellement réalisées | Texte | Si > 0 | Non | Masqué | `n activité(s) partiellement réalisée(s)` | Séance | Aucune | Libellé UI ; le statut métier de l’Activité reste `Partielle` |
 | Question de ressenti  | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Obligatoire" | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
 | Choix du ressenti     | Sélecteur        | Toujours |         Oui | Aucun sélectionné                                    | Une seule sélection         | Utilisateur | Sélection      | MVP : 3 niveaux                      |
@@ -1083,7 +1083,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | ------------------- | -------------------------------------------------------------------------------- |
 | Durée affichée      | Toujours la durée réellement exécutée.                                           |
 | Tours / Cycles      | Non affichés dans le MVP.                                                        |
-| Activités partiellement réalisées | Affichées uniquement si leur nombre est supérieur à zéro ; `Partielle` reste le terme métier. |                        |
+| Exercices partiellement réalisées | Affichées uniquement si leur nombre est supérieur à zéro ; `Partielle` reste le terme métier. |                        |
 | Ressenti            | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après une interruption technique sans Synthèse.                                            |
 | Commentaire         | Facultatif, **200 caractères maximum**.                                                                      |
 | Validation          | Le bouton **Terminer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
