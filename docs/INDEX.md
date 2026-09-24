@@ -13,6 +13,8 @@
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
 > Décision du 24 septembre 2026 — D-200 : Étiquettes, Catégories et Zones corporelles utilisent une règle commune de suppression. Toutes les valeurs, y compris celles fournies initialement par KODJO, sont supprimables. Un appui long sur une option ouvre une modale `Annuler / Supprimer`; la suppression retire les associations courantes et conserve l’historique.
+>
+> Décision du 24 septembre 2026 — D-201 : `Parcours` devient le terme fonctionnel et UX de référence pour l’entité post-MVP correspondante. La documentation de référence est alignée ; les identifiants techniques existants restent inchangés jusqu’à leur éventuel renommage dans le code, et Figma est à aligner dans l’étape suivante.
 
 ## 1. Objet
 
@@ -182,9 +184,9 @@ La baseline distingue une Activité, sa Pause entre Séries et sa Récupération
 
 ## 10. MVP T03 — Catalogue des activités
 
-Le Catalogue multi-type présente `Activités / Séances / Circuits`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des activités persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Circuits` reste visible mais désactivé.
+Le Catalogue multi-type présente `Activités / Séances / Parcours`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des activités persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Parcours` reste visible mais désactivé.
 
-La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`.
+La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours`.
 
 L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Activité, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
 
@@ -198,7 +200,7 @@ Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et
 
 La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
 
-Les Circuits fonctionnels et les médias multiples restent hors MVP.
+Les Parcours fonctionnels et les médias multiples restent hors MVP.
 
 ## 11. Matrices et rapports de traçabilité
 
