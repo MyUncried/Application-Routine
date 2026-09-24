@@ -617,6 +617,7 @@ L’état révélant les actions d’une Activité est illustré par :
 | Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
 | Écran 3j | Nouvelle étiquette | — | Création d’une Étiquette depuis la modale | `4640:6308` |
 | Écran 3k | Étiquette sélectionnée | — | Étiquette et couleur visibles dans la Composition | `4581:6404` |
+| Écran 3l | Étiquette — confirmation de suppression | — | Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer` | `4861:6145` |
 
 ### Objectif
 
@@ -770,6 +771,8 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
 | Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | Création inline d’une Zone corporelle dans le référentiel administrable | `4683:6336` |
+| Écran 4t | Catégorie — confirmation de suppression | — | Appui long sur une Catégorie ; confirmation destructive `Annuler / Supprimer` | `4861:6259` |
+| Écran 4u | Zone corporelle — confirmation de suppression | — | Appui long sur une Zone corporelle ; confirmation destructive `Annuler / Supprimer` | `4861:6348` |
 
 ### Objectif
 
@@ -1716,6 +1719,23 @@ Met fin à l’Exécution :
 
 La modale ne peut être fermée que par l’une des deux actions prévues.
 
+### Modale 8 – Supprimer une valeur de référentiel
+
+Cette famille de modales est ouverte par appui long sur une option dans les sélecteurs `Étiquettes`, `Catégorie` ou `Zones corporelles`.
+
+Références Figma :
+- Étiquette : `4861:6145 — Composition séance — Étiquettes — Appui long — Confirmation suppression` ;
+- Catégorie : `4861:6259 — Ajouter une activité — Catégorie — Appui long — Confirmation suppression` ;
+- Zone corporelle : `4861:6348 — Ajouter une activité — Zones corporelles — Appui long — Confirmation suppression`.
+
+Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle sera retirée des objets courants concernés et que l’historique restera inchangé.
+
+Actions :
+- `Annuler` : ferme la confirmation sans modifier le référentiel ni la sélection ;
+- `Supprimer` : supprime la valeur, retire sa sélection courante et ses associations courantes, puis restitue la modale de sélection actualisée.
+
+Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensuite par l’utilisateur.
+
 ### Contrôles à roulette – Compte à rebours et fins
 
 Toutes les roulettes utilisent désormais une **modale basse standardisée**. Dans la Composition, `Compte à rebours initial`, `Fin de séance` et `Nombre de tours` réutilisent cette famille. Dans l’éditeur d’Activité, les paramètres numériques, y compris le Compte à rebours d’Activité et la Fin d’activité lorsqu’ils sont réglés, suivent le même standard.
@@ -1771,9 +1791,9 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ### État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
 
-Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **117 frames de premier niveau**, dont **11** explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` ou `Avant / Après`. Après ces exclusions, **106 frames de premier niveau actives** restent à qualifier.
+Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **120 frames de premier niveau**, dont **11** explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` ou `Avant / Après`. Après ces exclusions, **109 frames de premier niveau actives** restent à qualifier.
 
-Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **106 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
+Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **109 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
 
 | Node Figma | Frame | Traitement documentaire |
 | --- | --- | --- |
@@ -1791,6 +1811,9 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
 | `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
 | `4683:6336` | Nouvelle zone corporelle — clavier | Référencée dans Écran 4 ; création inline conforme au référentiel administrable |
+| `4861:6145` | Étiquette — confirmation suppression | Référencée dans Écran 3 et Modale 8 |
+| `4861:6259` | Catégorie — confirmation suppression | Référencée dans Écran 4 et Modale 8 |
+| `4861:6348` | Zone corporelle — confirmation suppression | Référencée dans Écran 4 et Modale 8 |
 | `4521:6220` | Catalogue Activités — État vide | Référencée dans Écran 12 |
 | `4544:6344` | Activités — Filtre inactif étendu | Référencée dans Écran 12 |
 | `4544:6651` | Activités — Filtre actif étendu | Référencée dans Écran 12 |
