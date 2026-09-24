@@ -191,7 +191,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### MVP
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
-- Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
+- Catalogue affichant `Activités / Séances / Parcours` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Parcours` reste visible mais désactivé ;
 - carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
@@ -207,12 +207,12 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### V2
 
 - `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
-- création, modification, archivage, suppression et exécution manuelle des Circuits ;
+- création, modification, archivage, suppression et exécution manuelle des Parcours ;
 - écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
 
 ### V3
 
-- planification, récurrences, calendrier, rappels et notifications des Circuits.
+- planification, récurrences, calendrier, rappels et notifications des Parcours.
 
 ## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
