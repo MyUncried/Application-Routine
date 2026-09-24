@@ -106,7 +106,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 18 | Synthèse d’une Activité directe — Ressenti requis | `3836:5437` | `ecran-18-synthese-directe-ressenti-requis.png` | `402 × 874` | écran | COURANT |
 | Écran 18a | Synthèse d’une Activité directe — Ressenti sélectionné | `3836:5503` | `ecran-18a-synthese-directe-ressenti-selectionne.png` | `402 × 874` | écran | COURANT |
 | Modale 1 | Abandonner la création de la séance | `2028:11298` | `modale-1-abandon-creation-seance.png` | `402 × 874` | écran | COURANT |
-| Modale 2 | Abandonner les modifications d’une Activité | — | `modale-2-abandon-modifications-activite.png` | `402 × 874` | écran | À CLARIFIER |
+| Modale 2 | Abandonner la création d’une Activité | `4714:6241` | `modale-2-abandon-modifications-activite.png` | `402 × 874` | écran | COURANT |
 | Modale 3 | Séance archivée — Action Supprimer révélée | `2234:88` | `modale-3-seance-archivee-action-supprimer.png` | `402 × 874` | écran | COURANT |
 | Modale 3a | Confirmer la suppression d’une séance archivée | `2234:189` | `modale-3a-confirmer-suppression-seance-archivee.png` | `402 × 874` | écran | COURANT |
 | Modale 4 | Supprimer une planification unique | `1992:5365` | `modale-4-suppression-planification-unique.png` | `402 × 874` | écran | COURANT |
@@ -156,7 +156,7 @@ Les sept variantes ont été contrôlées visuellement sur l’export `status-ba
 | `creation-activite-recuperation.png` | non documenté | HISTORIQUE | Idem. |
 | `creation-recuperation-duree-ouverte.png` | non documenté | HISTORIQUE | Idem. |
 
-## 6. Points `NON VÉRIFIABLE` / `À CLARIFIER`
+## 6. Résolutions et point restant `À CLARIFIER`
 
 1. **Modale d’abandon de création d’Activité.** Le Figma courant contient `4714:6241 — Modal — Abandonner la création de l’activité`. Cette frame remplace l’ancienne référence disparue `3224:4082` pour le parcours de création courant.
 2. **Panneaux ouverts `Filtrer`.** Ils sont conçus et vérifiables dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible mais disabled dans le périmètre T03.
