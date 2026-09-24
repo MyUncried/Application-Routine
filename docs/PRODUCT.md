@@ -99,7 +99,7 @@ Le MVP permet de :
 
 La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Activités` : `Créer`, `Filtrer` et `Trier` sont alignés horizontalement ; dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` d’espace entre contrôles et un ensemble centré. Cette géométrie est une contrainte de rendu/recette, pas une instruction de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Les **contrôles d’entrée** sont désormais conçus dans Figma ; seul le détail visuel de leurs **panneaux/options ouverts** reste à définir.
+`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Les options de filtre sont contextuelles et les panneaux ouverts sont définis dans Figma. Pour `Activités`, le filtre couvre le statut (`Actives` / `Archivées`), les Catégories et les Zones corporelles. Pour `Séances`, il couvre le statut des Séances et les Étiquettes. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
