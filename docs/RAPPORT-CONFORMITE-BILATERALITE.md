@@ -25,10 +25,10 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 ## Sources Figma
 
 - `Controls / Sides — Source exact` : `3704:5021`, variantes `74 × 42 pt`;
-- `Controls / Tour Sides — Source exact` : `3705:5021`, `42 × 34 pt`; la géométrie est confirmée, tandis que le nouvel état unilatéral `–` supersède l’état vide de cette instance ;
+- `Controls / Tour Sides — Source exact` : `3705:5021`, `42 × 34 pt` — **évidence historique uniquement** ; depuis D-189, ce contrôle n’est plus exposé dans la version actuelle ;
 - `Indicator / Sides — Source exact` : `3706:5020`, `42 × 20 pt`;
 - Activité unilatérale `3542:4656`, propre `D→G` `3679:4880`, propre `G→D` `3724:5428`;
-- Composition `2028:11700`, Tour `D→G` `3722:5061`, Tour `G→D` `3722:5207`.
+- Composition `2028:11700` ; les anciennes variantes Tour `D→G` `3722:5061` et Tour `G→D` `3722:5207` sont conservées comme **évidences historiques**, non comme cibles fonctionnelles actuelles.
 
 ## Ambiguïtés supprimées
 
