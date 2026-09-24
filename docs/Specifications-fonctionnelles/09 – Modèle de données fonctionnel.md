@@ -884,6 +884,7 @@ Une Étiquette possède son identité, son libellé et sa couleur persistante. U
 - une Séance peut ne porter aucune Étiquette ;
 - lorsqu’une Étiquette est associée, sa couleur est la couleur affichée de la Séance ;
 - créer une nouvelle Étiquette depuis la Composition l’ajoute au référentiel utilisateur selon le parcours validé ;
+- toute Étiquette est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression retire son association aux Séances courantes qui l’utilisent ;
 - les Instantanés historiques conservent les informations nécessaires à la restitution du libellé et de la couleur.
 
 # 09.10.1 Entité Catégorie
@@ -914,7 +915,8 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 - une Activité porte au plus une Catégorie dans le modèle courant ;
 - la Catégorie et les Zones corporelles sont deux dimensions indépendantes ;
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Activité dans les cartes et l’éditeur ;
-- une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé.
+- une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé ;
+- toute Catégorie est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression retire son association aux Activités courantes qui l’utilisent et préserve l’historique.
 
 # 09.11 Entité Zone corporelle
 
@@ -947,6 +949,7 @@ Les activités référencent zéro, une ou plusieurs zones corporelles. Une zone
 - Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles.
 - Les Zones corporelles constituent un référentiel utilisateur administrable.
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
+- Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
 - La suppression d’une Zone utilisée demande confirmation, retire les associations des Activités courantes et ne modifie pas les Instantanés/Exécutions historiques.
 
 ## Valeurs initiales du référentiel (D-093, révisée par D-199)
@@ -985,7 +988,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Tout cycle appartient à une seule séance.
 - Toute routine référence une seule séance.
 - Toute exécution de séance référence une seule séance.
-- Toute Étiquette et toute Catégorie personnalisée appartient à un seul Utilisateur.
+- Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
 - Une Séance référence au plus une Étiquette ; une Activité référence au plus une Catégorie.
 - La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’une Activité dérive uniquement de sa Catégorie.
 - Les Zones corporelles appartiennent au référentiel utilisateur local. Elles sont administrables par l’utilisateur local et restent référencées par identifiant stable.
