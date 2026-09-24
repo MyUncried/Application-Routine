@@ -6,21 +6,21 @@ Sources contrôlées directement : Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `Prototy
 
 ## Objet
 
-Cette matrice détermine, pour **chacune des 117 frames de premier niveau** actuellement présentes dans la page Figma, si une copie d’écran doit être reprise explicitement dans le chapitre 06 lors du prochain réexport documentaire.
+Cette matrice détermine, pour **chacune des 120 frames de premier niveau** actuellement présentes dans la page Figma, si une copie d’écran doit être reprise explicitement dans le chapitre 06 lors du prochain réexport documentaire.
 
-Elle ne modifie aucune règle fonctionnelle et ne déclenche aucun export PNG. Elle constitue la base de contrôle de la phase suivante de mise à jour des copies d’écran.
+Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la phase suivante de mise à jour des copies d’écran.
 
 ## Synthèse
 
 | Qualification | Nombre | Traitement des copies |
 |---|---:|---|
-| Écran / état utilisateur actif | 87 | Copie à reprendre explicitement dans 06 |
+| Écran / état utilisateur actif | 90 | Copie à reprendre explicitement dans 06 |
 | Historique documentaire de l’ancien éditeur | 9 | Ne pas réexporter comme référence courante ; conserver la traçabilité existante |
 | Référence composant | 8 | Node/règle seulement, pas de copie autonome |
 | Variante redondante | 2 | Node/règle seulement, pas de copie autonome |
-| Exclu explicitement par Figma | 10 | Ne pas reprendre comme copie active |
+| Exclu explicitement par Figma | 12 | Ne pas reprendre comme copie active |
 | À clarifier | 1 | Arbitrage requis avant export |
-| **Total** | **117** | **87 copies actives à reprendre ; 1 arbitrage** |
+| **Total** | **122** | **90 copies actives à reprendre ; 1 arbitrage** |
 
 ### Règles de qualification
 
@@ -28,15 +28,15 @@ Elle ne modifie aucune règle fonctionnelle et ne déclenche aucun export PNG. E
 - Une planche de composant reste référencée par son node mais ne devient pas un écran documentaire autonome.
 - Une variante redondante ne reçoit pas de copie distincte si elle ne matérialise pas un état fonctionnel ou visuel distinct utile.
 - Une frame explicitement nommée `HISTORIQUE`, `PROPOSITION`, `Comparaison` ou `Avant / Après` n’est pas promue en référence active.
-- La famille d’ancien éditeur `3542/3556/3561/3580/3943` reste une trace documentaire : le chapitre 06 indique explicitement que l’organisation visuelle active est désormais portée par les frames `4217:*` à `4734:*`.
+- La famille d’ancien éditeur `3542/3556/3561/3580/3943` reste une trace documentaire ; l’organisation visuelle active est portée par `4217:*` à `4734:*`.
 - Une copie physique déjà présente n’est jamais considérée comme actuelle uniquement parce que son fichier existe : le node Figma courant reste la source visuelle.
 
-## Matrice exhaustive — 117 frames
+## Matrice exhaustive — 120 frames
 
 | # | Node Figma | Frame | Nature | Copie dans 06 ? | Copie actuelle | Action | Cible PNG proposée | Réf. dans 06 | Justification |
 |---:|---|---|---|:---:|---|---|---|---:|---|
 | 1 | `1992:375` | Profil — Vue d'ensemble - Vibration désactivée | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1-profil.png | REMPLACER | images/ecran-1-profil.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 2 | `1992:469` | Splash — Kodjo (proposition métallisée) | À CLARIFIER | À CLARIFIER | images/ecran-0-splash-kodjo.png | À CLARIFIER | images/ecran-0-splash-kodjo.png | 1 | La frame porte explicitement `proposition métallisée` dans Figma mais le chapitre 06 l’utilise actuellement comme Splash actif. Aucun remplacement/suppression silencieux n’est autorisé. |
+| 2 | `1992:469` | Splash — Kodjo (proposition métallisée) | À CLARIFIER | À CLARIFIER | images/ecran-0-splash-kodjo.png | À CLARIFIER | images/ecran-0-splash-kodjo.png | 1 | La frame est nommée `proposition métallisée` dans Figma mais sert actuellement de Splash actif dans le chapitre 06. Aucun remplacement/suppression silencieux avant arbitrage. |
 | 3 | `1992:474` | Profil — Roulette compte à rebours initial ouverte | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1c-profil-compte-rebours-ouvert.png | REMPLACER | images/ecran-1c-profil-compte-rebours-ouvert.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 4 | `1992:579` | Profil — Roulette fin de séance ouverte | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1d-profil-fin-seance-ouverte.png | REMPLACER | images/ecran-1d-profil-fin-seance-ouverte.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 5 | `1992:684` | Profil — Vue d'ensemble - Vibration activée | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1b-profil-vibration-activee.png | REMPLACER | images/ecran-1b-profil-vibration-activee.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
@@ -95,34 +95,34 @@ Elle ne modifie aucune règle fonctionnelle et ne déclenche aucun export PNG. E
 | 58 | `2117:86` | Catalogue des séances — État vide | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-2i-catalogue-vide.png | REMPLACER | images/ecran-2i-catalogue-vide.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 59 | `2117:190` | Suivi — Séances — État vide | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-11b-suivi-vide.png | REMPLACER | images/ecran-11b-suivi-vide.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 60 | `2128:86` | Calendrier — Jour — État vide | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-7m-calendrier-vide.png | REMPLACER | images/ecran-7m-calendrier-vide.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 61 | `2139:86` | Profil — Vue d'ensemble — Parcours vide | VARIANTE REDONDANTE | NON | images/ecran-1e-profil-parcours-vide.png | NE PAS RÉEXPORTER | images/ecran-1e-profil-parcours-vide.png | 2 | Le rendu courant est indistinguable de `1992:684`; conserver le node comme évidence sans copie distincte. |
+| 61 | `2139:86` | Profil — Vue d'ensemble — Parcours vide | VARIANTE REDONDANTE | NON | images/ecran-1e-profil-parcours-vide.png | NE PAS RÉEXPORTER | images/ecran-1e-profil-parcours-vide.png | 2 | Rendu courant indistinguable de `1992:684`; conserver le node sans copie distincte. |
 | 62 | `2234:88` | Catalogue des séances — Archivées — actions glissées | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/modale-3-seance-archivee-action-supprimer.png | REMPLACER | images/modale-3-seance-archivee-action-supprimer.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 63 | `2234:189` | Modal — Confirmer la suppression d’une séance archivée | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/modale-3a-confirmer-suppression-seance-archivee.png | REMPLACER | images/modale-3a-confirmer-suppression-seance-archivee.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 64 | `2252:86` | Calendrier — Semaine — Mardi sélectionné | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-7h-calendrier-semaine-mardi.png | REMPLACER | images/ecran-7h-calendrier-semaine-mardi.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 65 | `3518:4576` | Composition séance — Déplacement | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-3h-composition-appui-long.png | REMPLACER | images/ecran-3h-composition-appui-long.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 66 | `3542:4656` | Création activité — Sans paramètre d'exécution— avec mode | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4-creation-activite-duree.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4-creation-activite-duree.png | 3 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 67 | `3943:6064` | Création activité — Durée / Pause / Séries — Vide | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | — | AUCUNE | — | 3 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 68 | `3556:7645` | Création activité — Durée — sélecteur ouvert | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4c-creation-activite-duree-ouverte.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4c-creation-activite-duree-ouverte.png | 1 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 69 | `3556:7712` | Création activité — Pause — sélecteur ouvert | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4d-creation-activite-pause-ouverte.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4d-creation-activite-pause-ouverte.png | 1 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 70 | `3556:7801` | Création activité — Séries — roulette compacte ouverte | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4e-creation-activite-series-ouvert.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4e-creation-activite-series-ouvert.png | 1 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 71 | `3561:4695` | Création activité — Répétitions / Pause / Séries — avec mode | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4a-creation-activite-repetitions.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4a-creation-activite-repetitions.png | 2 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 72 | `3561:7673` | Création activité — Répétitions — roulette compacte ouverte | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4f-creation-activite-repetitions-ouvert.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4f-creation-activite-repetitions-ouvert.png | 2 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 73 | `3561:7802` | Création activité — À l’échec | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4b-creation-activite-a-l-echec.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4b-creation-activite-a-l-echec.png | 3 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
-| 74 | `3580:4957` | Création activité — Durée totale ajustée — message temporaire | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4k-creation-activite-duree-ajustee.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4k-creation-activite-duree-ajustee.png | 1 | Le chapitre 06 classe cette famille comme ancienne organisation visuelle de l’éditeur. Les règles métier restent traçables, mais les références visuelles actives sont la série `4217:*` à `4734:*`. |
+| 66 | `3542:4656` | Création activité — Sans paramètre d'exécution— avec mode | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4-creation-activite-duree.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4-creation-activite-duree.png | 3 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 67 | `3943:6064` | Création activité — Durée / Pause / Séries — Vide | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | — | AUCUNE | — | 3 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 68 | `3556:7645` | Création activité — Durée — sélecteur ouvert | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4c-creation-activite-duree-ouverte.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4c-creation-activite-duree-ouverte.png | 1 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 69 | `3556:7712` | Création activité — Pause — sélecteur ouvert | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4d-creation-activite-pause-ouverte.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4d-creation-activite-pause-ouverte.png | 1 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 70 | `3556:7801` | Création activité — Séries — roulette compacte ouverte | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4e-creation-activite-series-ouvert.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4e-creation-activite-series-ouvert.png | 1 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 71 | `3561:4695` | Création activité — Répétitions / Pause / Séries — avec mode | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4a-creation-activite-repetitions.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4a-creation-activite-repetitions.png | 2 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 72 | `3561:7673` | Création activité — Répétitions — roulette compacte ouverte | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4f-creation-activite-repetitions-ouvert.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4f-creation-activite-repetitions-ouvert.png | 2 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 73 | `3561:7802` | Création activité — À l’échec | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4b-creation-activite-a-l-echec.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4b-creation-activite-a-l-echec.png | 3 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
+| 74 | `3580:4957` | Création activité — Durée totale ajustée — message temporaire | HISTORIQUE DOCUMENTAIRE | NON (pas de réexport) | images/ecran-4k-creation-activite-duree-ajustee.png | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | images/ecran-4k-creation-activite-duree-ajustee.png | 1 | Ancienne organisation visuelle de l’éditeur ; règles métier conservées, mais références visuelles actives = série `4217:*` à `4734:*`. |
 | 75 | `3722:5061` | Composition séance — Point d’arrêt | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-3722-5061.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 76 | `4581:6404` | Composition séance — Étiquette sélectionnée | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4581-6404.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 77 | `3752:5021` | PROPOSITION — Exécution séance — Timer pleine largeur | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 78 | `3764:5045` | PROPOSITION — Exécution séance — Média en partie basse | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 79 | `3771:5069` | PROPOSITION — Exécution séance — Timer pleine largeur et média | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
+| 77 | `3752:5021` | PROPOSITION — Exécution séance — Timer pleine largeur | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 78 | `3764:5045` | PROPOSITION — Exécution séance — Média en partie basse | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 79 | `3771:5069` | PROPOSITION — Exécution séance — Timer pleine largeur et média | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
 | 80 | `3786:5093` | Catalogue des Activités — Liste | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-12-catalogue-activites-liste.png | REMPLACER | images/ecran-12-catalogue-activites-liste.png | 3 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 81 | `3787:5148` | HISTORIQUE - Catalogue Activités — Arbre Créer — supersédé D-187 | EXCLU | NON | — | AUCUNE | — | 2 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 82 | `3788:5258` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
+| 81 | `3787:5148` | HISTORIQUE - Catalogue Activités — Arbre Créer — supersédé D-187 | EXCLU | NON | — | AUCUNE | — | 2 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 82 | `3788:5258` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
 | 83 | `3789:5349` | Composition séance — Sélection activités | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-14-selection-activites-existantes.png | REMPLACER | images/ecran-14-selection-activites-existantes.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 84 | `3841:8375` | HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187 | EXCLU | NON | — | AUCUNE | — | 2 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 85 | `3933:5780` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 86 | `3967:5953` | Comparaison — pastille Archivée | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 87 | `3972:5953` | Avant / Après — modifications du 16 septembre | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
-| 88 | `4091:6136` | PROPOSITION — Exécution activité directe — Informations regroupées | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; elle ne constitue pas une référence visuelle active. |
+| 84 | `3841:8375` | HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187 | EXCLU | NON | — | AUCUNE | — | 2 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 85 | `3933:5780` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 86 | `3967:5953` | Comparaison — pastille Archivée | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 87 | `3972:5953` | Avant / Après — modifications du 16 septembre | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 88 | `4091:6136` | PROPOSITION — Exécution activité directe — Informations regroupées | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
 | 89 | `4168:11149` | Catalogue des séances — Filtrer — Panneau ouvert | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4168-11149.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 90 | `4168:11262` | Catalogue des Activités — Filtrer — Panneau ouvert | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4168-11262.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 91 | `4593:6285` | Modal — Confirmer l’archivage d’une séance planifiée | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4593-6285.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
@@ -131,17 +131,17 @@ Elle ne modifie aucune règle fonctionnelle et ne déclenche aucun export PNG. E
 | 94 | `4294:7075` | Ajouter une activité — Squats sautés — Paramètres repliés — Cliquez pour paramétrer | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4294-7075.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 95 | `4734:6342` | Modifier une activité — Squats sautés | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-15a-modification-activite-persistante.png | REMPLACER | images/ecran-15a-modification-activite-persistante.png | 3 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 96 | `4332:7095` | Ajouter une activité — Squats sautés — Durée de l’activité — Roulette ouverte | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4332-7095.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 97 | `4367:7128` | Modèle paramètre — Mode d’exécution - Durée | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
-| 98 | `4367:7276` | Modèle paramètre — Compte à rebours | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
-| 99 | `4367:7906` | Modèle paramètre — Côté | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
-| 100 | `4367:8052` | Modèle paramètre — Récupération | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
-| 101 | `4367:8193` | Modèle paramètre — Durée totale | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
+| 97 | `4367:7128` | Modèle paramètre — Mode d’exécution - Durée | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
+| 98 | `4367:7276` | Modèle paramètre — Compte à rebours | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
+| 99 | `4367:7906` | Modèle paramètre — Côté | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
+| 100 | `4367:8052` | Modèle paramètre — Récupération | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
+| 101 | `4367:8193` | Modèle paramètre — Durée totale | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
 | 102 | `4474:7157` | Ajouter une activité — Squats sautés — Catégorie — Nouvelle catégorie — Clavier ouvert | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4474-7157.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 103 | `4478:7209` | Ajouter une activité — Squats sautés — Zones corporelles | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-4h-creation-activite-zone-corporelle.png | REMPLACER | images/ecran-4h-creation-activite-zone-corporelle.png | 3 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 104 | `4490:6757` | Modèle paramètre — Mode d’exécution - À l’échec | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
-| 105 | `4490:6903` | Modèle paramètre — Mode d’exécution - Répétitions | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
+| 104 | `4490:6757` | Modèle paramètre — Mode d’exécution - À l’échec | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
+| 105 | `4490:6903` | Modèle paramètre — Mode d’exécution - Répétitions | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
 | 106 | `4521:6220` | Catalogue des activités — État vide | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4521-6220.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 107 | `4534:6339` | Catalogue des Activités — Filtre — États du contrôle | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; ne doit pas être promue artificiellement au rang d’écran ou de modale. |
+| 107 | `4534:6339` | Catalogue des Activités — Filtre — États du contrôle | RÉFÉRENCE COMPOSANT | NON | — | AUCUNE | — | 1 | Planche de référence/composant ; pas d’écran documentaire autonome. |
 | 108 | `4544:6344` | Catalogue des Activités — Liste — Filtre inactif étendu | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4544-6344.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 109 | `4544:6651` | Catalogue des Activités — Liste — Filtre actif étendu | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4544-6651.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 110 | `4549:6382` | Catalogue des séances — Liste — Filtre inactif étendu | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4549-6382.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
@@ -152,18 +152,24 @@ Elle ne modifie aucune règle fonctionnelle et ne déclenche aucun export PNG. E
 | 115 | `4714:6241` | Modal — Abandonner la création de l’activité | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4714-6241.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 116 | `4738:6209` | Catalogue des Activités — Liste — actions glissées | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4738-6209.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 117 | `4738:6355` | Catalogue des Activités — Liste — Première carte déployée — Média | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4738-6355.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
+| 118 | `4859:6128` | Composition d’une séance — Proposition aérée | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
+| 119 | `4861:6145` | Composition séance — Étiquettes — Appui long — Confirmation suppression | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4861-6145.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
+| 120 | `4861:6259` | Ajouter une activité — Catégorie — Appui long — Confirmation suppression | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4861-6259.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
+| 121 | `4861:6348` | Ajouter une activité — Zones corporelles — Appui long — Confirmation suppression | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4861-6348.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
+| 122 | `4863:6363` | Composition d’une séance — Proposition aérée V2 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
 
 ## Point nécessitant un arbitrage avant réexport
 
 ### Splash `1992:469`
 
-La frame `1992:469 — Splash — Kodjo (proposition métallisée)` est explicitement nommée **proposition** dans Figma, alors que le chapitre 06 l’utilise actuellement comme référence de l’`Écran 0 – Splash KODJO` et possède la copie `images/ecran-0-splash-kodjo.png`.
+La frame `1992:469 — Splash — Kodjo (proposition métallisée)` est explicitement nommée **proposition** dans Figma, alors que le chapitre 06 l’utilise actuellement comme `Écran 0 – Splash KODJO`. Statut : **À CLARIFIER**. Aucun arbitrage n’est inféré.
 
-Statut : **À CLARIFIER**. Il faut soit confirmer que cette frame devient la référence active du Splash et la renommer/reclasser dans Figma, soit identifier la vraie frame de production. Aucune décision n’est inférée dans cette matrice.
+## Référentiels — suppression par appui long
 
-## Zones corporelles — ambiguïté levée
-
-La frame `4683:6336 — Nouvelle zone corporelle — Clavier ouvert` est désormais cohérente avec la décision D-199 : le référentiel de Zones corporelles est administrable et la création inline fait partie du MVP. Cette frame doit donc être reprise comme copie d’état utilisateur actif. Les comportements de renommage et de suppression sont fonctionnellement requis mais ne disposent pas actuellement de frame dédiée dans le Prototype MVP ; aucune fausse copie ne doit être créée.
+Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être repris comme copies actives :
+- `4861:6145` — Étiquette — confirmation de suppression ;
+- `4861:6259` — Catégorie — confirmation de suppression ;
+- `4861:6348` — Zone corporelle — confirmation de suppression.
 
 ## Utilisation pour la phase de réexport
 
@@ -172,5 +178,5 @@ La frame `4683:6336 — Nouvelle zone corporelle — Clavier ouvert` est désorm
 3. remplacer les fichiers existants indiqués `REMPLACER` sans changer leurs noms ;
 4. créer uniquement les nouveaux PNG indiqués `AJOUTER` ;
 5. ne pas réexporter les lignes historiques, composants, variantes redondantes ou exclusions ;
-6. mettre à jour les références Markdown de 06 uniquement lorsque la ligne `AJOUTER` crée effectivement une nouvelle copie ;
+6. mettre à jour les références Markdown de 06 uniquement lorsque `AJOUTER` crée effectivement une nouvelle copie ;
 7. contrôler après export l’intégrité des chemins UTF-8, les liens Markdown, les dimensions/rendus et l’absence de fichiers temporaires.
