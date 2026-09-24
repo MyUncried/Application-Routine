@@ -96,8 +96,7 @@ Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` son
 
 Pour T03 / `Activités` :
 
-- `Filtrer` est fonctionnel au minimum pour `Archivées` ;
-- aucune autre option de filtre n’est définie ;
+- `Filtrer` propose les critères contextuels validés : statut (`Actives` / `Archivées`), Catégories et Zones corporelles ;
 - `Trier` est visible mais disabled ;
 - le tri réellement appliqué reste `updatedAt DESC` ;
 - aucun menu de tri n’est ouvert ;
@@ -106,7 +105,7 @@ Pour T03 / `Activités` :
 
 `Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Dans `1992:10129 — Recherche globale — Champ déployé`, la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
 
-Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le détail graphique des **panneaux/options ouverts** `Filtrer` et `Trier` n’existe pas encore : conformité visuelle détaillée `NON VÉRIFIABLE` / `À CLARIFIER` pour ces panneaux uniquement.
+Les **contrôles d’entrée** et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 ### 4.6 Roulettes
 
@@ -581,7 +580,7 @@ Actions écrivent immédiatement de façon atomique après confirmation requise.
 
 ### 16. Navigation et conservation d’état
 
-Filtre Archives et scroll conservés pendant parcours courant. Après restaurer/supprimer, rester Archives. Relaunch perd filtre.
+Filtre Archives et scroll conservés pendant la session courante. Après restaurer/supprimer, rester Archives. Au relaunch, le filtre revient à `Aucun`.
 
 ### 17. Erreurs et cas limites
 
