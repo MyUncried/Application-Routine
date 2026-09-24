@@ -47,9 +47,8 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Activités avant le Tour, dans le Tour ou après le Tour.
-- Répéter le Tour de 1 à 99 fois et régler sa direction sur la même ligne que le nombre de Tours, sans titre de côté visible.
-- Voir la direction propre d’une Activité bilatérale sur sa carte et dans sa synthèse, sans répétition lorsque la direction est portée par un Tour bilatéral.
-- Ne confirmer l’activation bilatérale d’un Tour que si elle remplace le réglage bilatéral propre d’au moins une Activité.
+- Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
+- Régler le `Changement de côté` propre à une Activité sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
 - Réordonner manuellement les Activités par glisser-déposer.
 - Régler le Compte à rebours initial et la Fin de séance.
 - Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Activité.
