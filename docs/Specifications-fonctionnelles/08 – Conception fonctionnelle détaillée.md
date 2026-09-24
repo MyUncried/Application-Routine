@@ -188,7 +188,7 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 Le Catalogue distingue `Activités`, `Séances` et `Circuits`. `Séances` reste le type actif par défaut ; `Activités` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Activités` charge les références persistantes ; sélectionner `Circuits` charge les Circuits persistants lorsque cette capacité est livrée.
 
-La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale bleue. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 et réutilise le composant DSF canonique `2537:1033 — State=Collapsed`, avec une zone droite réservée identique sur toutes les cartes. Aucune poignée de déplacement n’est affichée.
+La liste des Activités conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale portant la couleur de sa Catégorie. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Activités actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
@@ -224,7 +224,7 @@ Dans le MVP, le Catalogue permet de déployer/replier une carte d’Activité po
 
 `sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Une Activité de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
 
-Une Activité autonome exécute toutes les Séries du premier côté puis toutes celles du second. Dans un Tour bilatéral, le Tour porte seul la direction effective et les cartes enfants ne la répètent pas. Les résultats restent séparés par côté.
+Une Activité bilatérale exécute toutes les Séries du premier côté puis toutes celles du second. Aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle. Les résultats restent séparés par côté.
 
 ## 2 bis.7 Limite Circuit
 
@@ -268,7 +268,7 @@ Une activité possède notamment :
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause entre Séries** facultative, appliquée après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- une **Récupération** facultative, exécutée une fois après tous les côtés pour une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral ;
+- une **Récupération** facultative, exécutée une fois après tous les côtés de l’Activité ;
 - une Description et des Zones corporelles d’exécution facultatives ;
 - des Médias dans le périmètre cible post-MVP. Dans le MVP, la section Médias est affichée et repliable mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est active.
 
@@ -993,7 +993,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 | Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `Aucun`, `D→G`, `G→D` | Activité | Ouvrir la modale | Aucun réglage de côté n’est exposé au niveau Tour |
 | Récupération              | Roulette durée    | Mode déployé                       | Non         | 0 s                            | 0 à 99 min 59 s                                | Activité | Sélection      | Une phase après tous les côtés de l’Activité selon son propre Changement de côté |
 | Durée totale              | Roulette durée calculée/pilotable ou indicateur de borne | Mode déployé | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions/À l’échec : borne connue | Calcul | Sélection en mode Durée ; lecture en modes non chronométrés | Contrôle `Durée totale` en Durée ; contrôle `Durée totale >=` visible en Répétitions/À l’échec ; la Synthèse conserve `Durée totale : ≥ {durée connue}` |
-| Médias                    | Section repliable + placeholder | MVP : visible, repliable, inactive | Non | Vide | Aucune fonction média active dans le MVP ; `0..n` médias ordonnés post-MVP | Activité | Déployer / Condenser désactivé | Présence UI conforme aux frames courantes ; import, capture, lecture, stockage et galerie fonctionnelle restent post-MVP |
+| Médias                    | Zone média | Selon état | Non | Vide | Le média associé peut être affiché dans la carte Catalogue déployée du MVP ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom obligatoire ; durée ou répétitions requises uniquement selon le mode | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
