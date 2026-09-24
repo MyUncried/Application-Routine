@@ -201,6 +201,7 @@ Les Circuits fonctionnels et les médias multiples restent hors MVP.
 ## 11. Matrices et rapports de traçabilité
 
 - [Matrice T03 — Catalogue des activités](./MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md)
+- [Matrice de couverture Figma ↔ chapitre 06](./MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md)
 - [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité — Récupération et Durée totale](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
