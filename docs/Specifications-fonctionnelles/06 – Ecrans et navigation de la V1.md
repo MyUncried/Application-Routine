@@ -755,7 +755,7 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4p | Durée de l’Activité — roulette ouverte | — | Roulette en modale basse dans le nouvel éditeur | `4332:7095` |
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
-| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | **À CLARIFIER** : Figma matérialise une création de Zone corporelle, alors que la règle métier active définit un référentiel non administrable | `4683:6336` |
+| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | Création inline d’une Zone corporelle dans le référentiel administrable | `4683:6336` |
 
 ### Objectif
 
