@@ -464,7 +464,7 @@ Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le co
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions/À l’échec, `Durée totale >=` est le troisième élément de la deuxième rangée, après `Côté` puis `Récupération`, conformément aux frames `3561:4695`, `3561:7673`, `3561:7802`. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
+DSF/grilles sans compensation locale. En Répétitions/À l’échec, `Durée totale >=` est le troisième élément de la deuxième rangée, après `Changement de côté` puis `Récupération`, conformément aux frames `3561:4695`, `3561:7673`, `3561:7802`. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -472,7 +472,7 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
+Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
 
 ### 12. Contrôles et interactions
 
