@@ -335,8 +335,8 @@ Le MVP permet notamment :
 - ajouter plusieurs Activités existantes à une Séance par copies indépendantes ;
 - organiser les Activités avant, dans ou après le Tour et définir le nombre de répétitions du Tour ;
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
-- associer plusieurs catégories à une Séance ;
-- associer des zones corporelles aux Activités ;
+- associer éventuellement une Étiquette à une Séance ;
+- associer une Catégorie et des Zones corporelles aux Activités ;
 - exécuter directement une Activité persistante à partir de T03 ;
 - exécuter une Séance dans T04 et les tranches associées du MVP ;
 - suspendre puis reprendre une Exécution lorsque le parcours concerné le prévoit ;
