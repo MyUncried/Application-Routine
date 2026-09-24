@@ -68,9 +68,9 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ---
 
-## MVP bis – Compléments immédiats
+## Complément intégré au MVP
 
-- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
+- D-200 intègre directement au MVP la suppression des Étiquettes, Catégories et Zones corporelles depuis leurs modales de sélection par appui long puis confirmation ; toutes les valeurs, initiales comme personnalisées, sont concernées.
 
 ## V2 – Réutilisation avancée des séances
 
