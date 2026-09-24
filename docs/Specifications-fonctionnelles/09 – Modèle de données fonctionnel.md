@@ -922,7 +922,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 
 Une **Zone corporelle** désigne une partie du corps principalement sollicitée par une Activité.
 
-L’application fournit un référentiel prédéfini de Zones corporelles utilisé pour caractériser les Activités. Ce référentiel n’est pas administrable par l’utilisateur dans le MVP.
+L’application fournit un référentiel utilisateur de Zones corporelles utilisé pour caractériser les Activités. Il est initialisé avec des valeurs par défaut mais reste administrable par l’utilisateur dans le MVP.
 
 ## Périmètre
 
@@ -945,10 +945,11 @@ Les activités référencent zéro, une ou plusieurs zones corporelles. Une zone
 ## Règles métier
 
 - Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles.
-- Les Zones corporelles constituent un référentiel prédéfini de l’application.
-- L’utilisateur ne peut ni créer, ni modifier, ni supprimer une Zone corporelle dans le MVP.
+- Les Zones corporelles constituent un référentiel utilisateur administrable.
+- L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
+- La suppression d’une Zone utilisée demande confirmation, retire les associations des Activités courantes et ne modifie pas les Instantanés/Exécutions historiques.
 
-## Référentiel MVP (D-093)
+## Valeurs initiales du référentiel (D-093, révisée par D-199)
 
 1. Cou
 2. Épaules
@@ -961,7 +962,7 @@ Les activités référencent zéro, une ou plusieurs zones corporelles. Une zone
 9. Jambes
 10. Chevilles et pieds
 
-Aucune zone `Corps entier`, aucune distinction gauche/droite. Le référentiel est volontairement structuré pour rester évolutif (identité, nom, ordre d’affichage ci-dessus) — cette liste n’est pas figée dans le code applicatif.
+Le jeu initial ne contient pas de zone `Corps entier` et ne distingue pas gauche/droite. Ces dix valeurs sont des valeurs par défaut, non une liste fermée : le référentiel peut évoluer par création, renommage ou suppression utilisateur. Les identifiants restent stables ; un renommage ne change pas l’identité de la Zone.
 
 # 09.12 Règles d’intégrité et de copie
 
@@ -987,7 +988,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute Étiquette et toute Catégorie personnalisée appartient à un seul Utilisateur.
 - Une Séance référence au plus une Étiquette ; une Activité référence au plus une Catégorie.
 - La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’une Activité dérive uniquement de sa Catégorie.
-- Les Zones corporelles appartiennent au référentiel applicatif et ne sont pas rattachées à un Utilisateur.
+- Les Zones corporelles appartiennent au référentiel utilisateur local. Elles sont administrables par l’utilisateur local et restent référencées par identifiant stable.
 
 ### Cohérence des données
 
