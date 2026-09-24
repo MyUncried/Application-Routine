@@ -696,7 +696,7 @@ Contient notamment :
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir l’action de reprise ou l’action d’arrêt adaptée à son origine. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. L’arrêt clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
 
-# 09.14 Extension du modèle — Activités, Médias et Circuits
+# 09.14 Extension du modèle — Activités, Médias et Parcours
 
 ## Racines et associations
 
@@ -706,10 +706,10 @@ Contient notamment :
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
 | `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
 | `ActivityMedia` | V2 | Association ordonnée entre une activité et un `MediaAsset`. |
-| `Circuit` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
+| `Parcours` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
 | `CircuitSession` | V2 | Étape ordonnée référençant une Séance ; plusieurs lignes peuvent viser la même Séance. |
-| `CircuitExecution` | V2 | Exécution globale et instantané immuable du Circuit. |
-| `CircuitSessionExecution` | V2 | Lien ordonné entre l’Exécution de Circuit et chaque Exécution de Séance commencée. |
+| `CircuitExecution` | V2 | Exécution globale et instantané immuable du Parcours. |
+| `CircuitSessionExecution` | V2 | Lien ordonné entre l’Exécution de Parcours et chaque Exécution de Séance commencée. |
 
 ## Contraintes d’Activité
 
@@ -721,11 +721,11 @@ L’ajout d’une définition copie nom, description, zones corporelles, mode, d
 
 Une Activité possède `0..n` lignes `ActivityMedia`, chacune avec une position unique dans son activité. Un nouvel élément reçoit la dernière position et la réorganisation ne touche que cette association. Les fichiers ne sont jamais stockés dans SQLite ; `MediaAsset` contient une URI interne stable, type photo/vidéo, miniature éventuelle et métadonnées. La suppression physique n’est autorisée que lorsque le nombre de références actives, copies et instantanés est nul.
 
-## Contraintes Circuit
+## Contraintes Parcours
 
-Un Circuit validé possède au moins deux `CircuitSession`. Il n’existe aucun compteur de répétition d’étape. `transitionMode ∈ {MANUAL, AUTOMATIC}` ; `transitionDurationSeconds` est absent en manuel, obligatoire en automatique et vaut `30` par défaut. Une Séance archivée demeure valable dans un Circuit existant mais n’est plus proposée ; sa suppression définitive est bloquée tant qu’un Circuit la référence.
+Un Parcours validé possède au moins deux `CircuitSession`. Il n’existe aucun compteur de répétition d’étape. `transitionMode ∈ {MANUAL, AUTOMATIC}` ; `transitionDurationSeconds` est absent en manuel, obligatoire en automatique et vaut `30` par défaut. Une Séance archivée demeure valable dans un Parcours existant mais n’est plus proposée ; sa suppression définitive est bloquée tant qu’un Parcours la référence.
 
-Au lancement, l’instantané contient le Circuit ordonné et l’instantané de chaque Séance. Une Exécution interrompue conserve les étapes terminées, l’étape courante interrompue et aucune ligne d’Exécution de Séance pour les étapes non commencées.
+Au lancement, l’instantané contient le Parcours ordonné et l’instantané de chaque Séance. Une Exécution interrompue conserve les étapes terminées, l’étape courante interrompue et aucune ligne d’Exécution de Séance pour les étapes non commencées.
 
 
 # 09.7.1 Résultat d’Activité exécutée
@@ -1179,5 +1179,5 @@ Une validation sans sélection ne crée aucune donnée.
 
 ## Frontière d’évolution
 
-La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. Les Circuits fonctionnels restent hors du périmètre T03. Les structures T03 ne doivent pas empêcher ces évolutions ultérieures.
+La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. Les Parcours fonctionnels restent hors du périmètre T03. Les structures T03 ne doivent pas empêcher ces évolutions ultérieures.
 
