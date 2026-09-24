@@ -229,11 +229,11 @@ Depuis `Catalogues`, segment `Séances`, l’utilisateur peut créer une Séance
 
 La création suit le parcours suivant :
 
-1. saisie du nom, choix de la couleur et composition de la Séance dans l’écran unique `Composition d’une séance` ;
-2. ajout d’au moins un Exercice valide ;
-3. action `Continuer` ;
-4. sélection facultative d’une ou plusieurs Catégories ;
-5. retour au `Catalogue des séances`, segment `Séances`, après validation.
+1. saisie du nom et construction de la Composition dans l’écran unique `Composition d’une séance` ;
+2. sélection facultative de l’Étiquette de Séance dans la modale intégrée ; la couleur de l’Étiquette devient la couleur de la Séance ;
+3. ajout d’au moins un Exercice valide ;
+4. action `Continuer` pour valider et enregistrer ;
+5. retour au `Catalogue des séances`, segment `Séances`.
 
 Aucune Routine n’est créée automatiquement. La transition canonique d’avancement fait entrer l’écran cible depuis la droite et sortir l’écran courant vers la gauche.
 
@@ -477,7 +477,7 @@ Les Séances archivées restent exclues de la liste active et ne sont accessible
 Chaque carte affiche notamment :
 
 - le nom de la Séance ;
-- ses Catégories lorsqu’elles existent, suivies de ` : ` puis de l’union dédupliquée des Zones corporelles de tous ses Exercices lorsqu’au moins une zone existe ; si un seul groupe existe, aucun séparateur n’est affiché ;
+- sa seconde ligne de métadonnées sous la forme `Étiquette · Catégorie` selon les données disponibles et le rendu Figma courant ;
 - le nombre d’Activités ;
 - sa durée synthétique des Activités, qui exclut toujours le Compte à rebours initial et la Fin de séance ;
 - le nombre de répétitions du Tour (`xN`) ;
@@ -515,11 +515,9 @@ Exemples : `12 reps · x3`, `45 s · x2` ou simplement `30 s` lorsque le nombre 
 
 ### Création d’une Séance
 
-Toucher l’action de création ouvre un nouvel écran `Composition d’une séance` réunissant le nom, la couleur et la composition.
+Toucher l’action de création ouvre `Composition d’une séance`, qui réunit le nom, l’Étiquette/couleur et la Composition.
 
-La création suit ensuite le parcours défini dans la section de navigation générale.
-
-Après `Enregistrer la séance` sur l’écran des Catégories, l’utilisateur revient directement au `Catalogue des séances`, segment `Séances`, avec la transition canonique d’avancement.
+La création suit ensuite le parcours défini dans la section de navigation générale. `Continuer` valide la Séance ; il n’existe plus d’écran autonome `Catégories de la séance` en sortie de Composition.
 
 ### Actions secondaires
 
@@ -1337,7 +1335,7 @@ Chaque carte affiche au minimum :
 
 ### Filtres avancés
 
-Le filtrage par Catégories, Zones corporelles, période ou statut est reporté à une version ultérieure. La commande `Filtrer` reste visible mais désactivée.
+Dans le Suivi, les filtres avancés restent hors du MVP. Cette règle est distincte des filtres fonctionnels des Catalogues, qui sont actifs et contextuels.
 
 ### Tri
 
