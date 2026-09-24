@@ -63,8 +63,8 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 4i | Séries pilote | `3580:4733` | `ecran-4i-creation-activite-series-pilote.png` | `402 × 874` | écran | COURANT |
 | Écran 4j | Durée totale pilote | `3580:4845` | `ecran-4j-creation-activite-duree-totale-pilote.png` | `402 × 874` | écran | COURANT |
 | Écran 4k | Durée ajustée | `3580:4957` | `ecran-4k-creation-activite-duree-ajustee.png` | `402 × 874` | écran | COURANT |
-| Écran 6 | Catégories de la séance | `2028:11204` | `ecran-6-categories-seance.png` | `402 × 874` | écran | COURANT |
-| Écran 6a | Catégories — Nouvelle catégorie inline | `2028:11248` | `ecran-6a-categories-nouvelle-inline.png` | `402 × 874` | écran | COURANT |
+| Écran 6 | Composition séance — Étiquettes | `2028:11204` | `ecran-6-categories-seance.png` | `402 × 874` | écran | COURANT — binaire historique à ne pas substituer à Figma |
+| Écran 6a | Composition séance — Nouvelle étiquette | `4640:6308` | `ecran-6a-categories-nouvelle-inline.png` | `402 × 874` | écran | COURANT — binaire historique à ne pas substituer à Figma |
 | Écran 7 | Calendrier — Jour | `1992:5510` | `ecran-7-calendrier-jour.png` | `402 × 874` | écran | COURANT |
 | Écran 7a | Calendrier — Semaine | `1992:5101` | `ecran-7a-calendrier-semaine.png` | `402 × 874` | écran | COURANT |
 | Écran 7b | Calendrier — Mois | `1992:5237` | `ecran-7b-calendrier-mois.png` | `402 × 874` | écran | COURANT |
