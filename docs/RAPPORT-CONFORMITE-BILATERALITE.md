@@ -12,11 +12,11 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 
 | Axe | Résultat | Preuve |
 | --- | --- | --- |
-| Priorité Tour / Activité | CONFORME | PRODUCT ; 00 ; 04 ; D-145/D-146 ; RM-146 ; CE-BIL-01/02/02A. |
-| Contrôle Tour | CONFORME APRÈS RECTIFICATION | Géométrie Figma conservée à `42 × 34 pt`, espace `8 pt`; affichage intégral de `D→G`/`G→D`; tiret `–` centré en unilatéral. |
-| Confirmation conditionnelle | CONFORME APRÈS RECTIFICATION | Condition inchangée ; titre et message exacts réalignés dans PRODUCT, 03, D-146 et CE-BIL-02. |
+| Priorité Tour / Activité | SUPERSEDED | Depuis D-189, la direction active est portée par l’Activité ; le Tour n’expose aucun changement de côté. |
+| Contrôle Tour | SUPERSEDED | Le contrôle de direction du Tour n’est plus exposé dans la version actuelle ; le support technique historique reste fixé à `UNILATERAL`. |
+| Confirmation conditionnelle | SUPERSEDED | Aucune confirmation d’activation bilatérale du Tour n’est exposée depuis D-189. |
 | Carte Activité | CONFORME APRÈS RECTIFICATION | Petit indicateur `D→G` / `G→D` pour la direction propre de l’Activité ; aucun changement de côté n’est exposé au niveau Tour depuis D-189. |
-| Contrôle Activité | CONFORME | Déjà sous Séries ; `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt`; `3704:5021`. |
+| Contrôle Activité | CONFORME | Libellé `Changement de côté`, valeurs `Aucun / D→G / G→D`; géométrie selon Figma courant. |
 | Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Activité dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
 | Calculs | CONFORMES À LA RECETTE | Aucun code de calcul modifié. L’arbitrage produit du 14 septembre 2026 conserve la règle existante : `C` Pauses si `R = 0`, sinon `C − 1` Pauses puis Récupération. |
