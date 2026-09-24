@@ -447,7 +447,7 @@ L’état de résultats de la recherche globale est illustré par :
 | Écran 2c | Champ de recherche déployé | ![[images/ecran-2c-recherche-globale-champ.png\|220]] | État de saisie précédant les résultats globaux ; la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan (`1992:10129`) | `1992:10129` |
 | Écran 2d | Carte condensée avec actions | ![[images/ecran-2d-catalogue-condense-actions.png\|220]] | La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière | `1992:10518` |
 | Écran 2e | Carte déployée avec actions | ![[images/ecran-2e-catalogue-deployee-actions.png\|220]] | Même convention de glissement avec déplacement réel de la carte | `1992:10628` |
-| Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `1992:10749` |
+| Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `4549:6742` |
 | Écran 2g | Séance restaurée | ![[images/ecran-2g-catalogue-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` | `1992:10848` |
 | Écran 2h | Catalogue après archivage | ![[images/ecran-2h-catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active | `1992:10937` |
 | Écran 2i | Filtres — panneau ouvert | — | Modale de filtres contextuels Séances : statut et Étiquettes | `4168:11149` |
@@ -595,12 +595,14 @@ L’état révélant les actions d’une Activité est illustré par :
 | --- | --- | --- | --- | --- |
 | Écran 3b | Composition initiale | ![[images/ecran-3b-composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée | `2028:11137` |
 | Écran 3c | Nom renseigné | ![[images/ecran-3c-composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` | `2028:12003` |
-| Écran 3d | Palette de couleurs ouverte | ![[images/ecran-3d-composition-couleur-ouverte.png\|220]] | Sélection intégrée, sans navigation vers un écran séparé | `2028:11921` |
+| Écran 3d | Étiquettes ouvertes | — | Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette | `2028:11204` |
 | Écran 3e | Compte à rebours ouvert | ![[images/ecran-3e-composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires | `2028:11375` |
 | Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
 | Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
 | Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité | `3518:4576` |
 | Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
+| Écran 3j | Nouvelle étiquette | — | Création d’une Étiquette depuis la modale | `4640:6308` |
+| Écran 3k | Étiquette sélectionnée | — | Étiquette et couleur visibles dans la Composition | `4581:6404` |
 
 ### Objectif
 
@@ -1399,23 +1401,23 @@ Les Activités sont insérées selon leur ordre courant de présentation dans la
 
 L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie une Activité de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
 
-Les deux contextes disposent d’une frame de référence distincte : `3879:5947` pour la création et `3879:6079` pour la modification. Seul le titre d’en-tête et le contenu de démonstration les distinguent ; la structure reste celle de l’Écran 4.
+Les références actives sont désormais `4217:6980 — Ajouter une activité — paramètres repliés` pour la création et `4734:6342 — Modifier une activité — Squats sautés` pour la modification. Les anciennes références `3879:5947` et `3879:6079` n’existent plus dans le Figma courant et restent historiques.
 
 ![[images/ecran-15-creation-activite-persistante.png|260]]
 
-*Écran 15 — Créer une Activité persistante — Figma `3879:5947`*
+*Écran 15 — ancienne copie documentaire ; la référence Figma active de création est `4217:6980`.*
 
 ![[images/ecran-15a-modification-activite-persistante.png|260]]
 
-*Écran 15a — Modifier une Activité persistante — Figma `3879:6079`*
+*Écran 15a — ancienne copie documentaire ; la référence Figma active de modification est `4734:6342`.*
 
 ### Écran 16 — Préparation d’une Activité directe
 
-La frame de référence affiche une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Activité. Aucun compteur de Tour ou de Cycle n’est affiché.
+L’Exécution directe conserve une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Activité. Les anciennes frames dédiées `3835:5385` et `3835:5465` n’existent plus dans le Figma courant ; l’Exécution directe réutilise les composants de la famille d’Exécution active. Aucune frame `PROPOSITION` n’est promue silencieusement en référence de production.
 
 ![[images/ecran-16-preparation-directe-5-s.png|260]]
 
-*Écran 16 — Exécution directe — Préparation fixe de 5 s — Figma `3835:5385`*
+*Écran 16 — copie documentaire historique ; aucune frame de premier niveau dédiée active n’est actuellement présente dans Figma.*
 
 ### Écran 17 — Exécution directe en cours
 
@@ -1423,7 +1425,7 @@ L’écran réutilise le moteur et le Shell d’Exécution. Il développe Série
 
 ![[images/ecran-17-execution-directe-en-cours.png|260]]
 
-*Écran 17 — Exécution directe — En cours — Figma `3835:5465`*
+*Écran 17 — copie documentaire historique ; le rendu courant réutilise la famille d’Exécution active.*
 
 ### Écran 18 — Synthèse d’une Activité directe
 
@@ -1431,11 +1433,11 @@ Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facult
 
 ![[images/ecran-18-synthese-directe-ressenti-requis.png|260]]
 
-*Écran 18 — Synthèse d’une Activité directe — Ressenti requis — Figma `3836:5437`*
+*Écran 18 — copie documentaire historique ; l’ancienne référence `3836:5437` n’existe plus dans le Figma courant.*
 
 ![[images/ecran-18a-synthese-directe-ressenti-selectionne.png|260]]
 
-*Écran 18a — Synthèse d’une Activité directe — Ressenti sélectionné — Figma `3836:5503`*
+*Écran 18a — copie documentaire historique ; l’ancienne référence `3836:5503` n’existe plus dans le Figma courant.*
 
 ## Les modales
 
@@ -1712,7 +1714,7 @@ Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours i
 
 Un contrôle direct de la page Figma `Prototype MVP` a recensé **107 frames de premier niveau actives** après exclusion des frames explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` et `Avant / Après`.
 
-Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature.
+Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **107 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
 
 | Node Figma | Frame | Traitement documentaire |
 | --- | --- | --- |
@@ -1748,6 +1750,9 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4534:6339` | Filtre — États du contrôle | **Pas un écran utilisateur** : planche de référence du composant |
 
 Cette distinction est normative pour la documentation : une frame Figma de référence de composant ne doit pas être promue artificiellement au rang d’écran ou de modale. Les **copies d’écrans** restent centralisées exclusivement dans ce chapitre 06 ; la mise à jour physique des captures est une étape séparée.
+
+Le contrôle a également identifié des références documentaires devenues inexistantes dans Figma : `1992:10749`, `2028:11921`, `3879:5947`, `3879:6079`, `3835:5385`, `3835:5465`, `3836:5437`, `3836:5503` et `3787:5209`. Elles ne doivent plus être présentées comme références courantes. Elles ont été soit remplacées par une frame active, soit conservées uniquement comme traces historiques lorsque la fonctionnalité réutilise désormais une autre famille d’écrans.
+
 ## Couverture du Prototype MVP et exclusions justifiées
 
 ### Périmètre intégré
