@@ -278,7 +278,7 @@ Barre de Catégorie colorée ; zone droite constante ; Déployer actif pour affi
 
 ### 9. Layout déterministe
 
-Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Seuls les panneaux/options ouverts Filtrer/Trier restent non définis visuellement : aucun layout local n’est inventé.
+Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Les panneaux ouverts de `Filtrer` suivent les frames Figma courantes ; `Trier` reste disabled T03.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -1856,4 +1856,4 @@ Les preuves suivantes ont été réexportées depuis le Figma courant le 16 sept
 
 Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
 
-Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` sont vérifiables ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER` tant qu’aucune frame dédiée n’est validée.
+Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont vérifiables. `Trier` reste disabled T03.
