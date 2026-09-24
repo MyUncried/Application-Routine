@@ -64,20 +64,14 @@ Les référentiels utilisés dans le MVP sont de deux natures :
 ## Gestion des Étiquettes et des Catégories
 
 Les Étiquettes classent les Séances et portent leur couleur. Les Catégories classent les Activités et portent leur couleur sémantique. Les Zones corporelles restent un référentiel distinct.
-Une séance peut appartenir à zéro, une ou plusieurs catégories. Dans le parcours de création d’une Séance, une Catégorie nouvellement créée existe dans le brouillon indépendamment de son état sélectionné.
+Une Séance utilise son Étiquette pour son classement et sa couleur. Une Activité utilise sa Catégorie ; les Zones corporelles restent indépendantes. La gestion détaillée de ces référentiels suit les écrans et contrats actifs.
 
-L'utilisateur peut :
-- consulter les catégories existantes ;
-- créer une nouvelle catégorie ;
-- modifier son nom ;
-- supprimer une catégorie dans la gestion dédiée, à partir du MVP bis.
-
-Si une catégorie supprimée est utilisée par une ou plusieurs Séances, elle est retirée de ces Séances après confirmation. Les Instantanés historiques restent inchangés et conservent le libellé historique de la catégorie.
+L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les Catégories d’Activité selon le contexte d’écran.
 
 ### Parcours
 
-1. Ouvrir la gestion ou la sélection des catégories.
-2. Consulter les catégories existantes.
+1. Ouvrir la gestion ou la sélection du référentiel concerné.
+2. Consulter les Étiquettes de Séance ou les Catégories d’Activité existantes.
 3. Créer ou modifier une catégorie selon le besoin ; sa suppression est disponible à partir du MVP bis.
 4. Dans la création d’une Séance, une nouvelle Catégorie reste temporaire jusqu’à l’enregistrement final ; les modifications persistées deviennent disponibles dans l’ensemble de l’application sans modifier les Instantanés historiques.
 
