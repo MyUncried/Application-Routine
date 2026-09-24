@@ -51,7 +51,7 @@ Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues`
 
 ### Catalogue des activités — T03
 
-T03 rend le segment `Activités` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Circuits` reste visible mais désactivé.
+T03 rend le segment `Activités` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Parcours` reste visible mais désactivé.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
@@ -103,7 +103,7 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
 - navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
-- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits` ;
+- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
 - sauvegarde immédiate des Préférences ;
@@ -130,7 +130,7 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est fonctionnel à partir de T03 ; `Circuits` reste visible mais désactivé. Une version post-MVP rendra les Circuits fonctionnels sans créer de destination principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est fonctionnel à partir de T03 ; `Parcours` reste visible mais désactivé. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
 
 ### Catalogue des activités — MVP T03
 
@@ -140,9 +140,9 @@ Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement
 
 L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
 
-### Circuits — post-MVP
+### Parcours — post-MVP
 
-Les Circuits restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
+Les Parcours restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
 
 ## Vision de la bilatéralité
 
