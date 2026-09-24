@@ -1757,9 +1757,9 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ### État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
 
-Un contrôle direct de la page Figma `Prototype MVP` a recensé **107 frames de premier niveau actives** après exclusion des frames explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` et `Avant / Après`.
+Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **117 frames de premier niveau**, dont **11** explicitement nommées `HISTORIQUE`, `PROPOSITION`, `Comparaison` ou `Avant / Après`. Après ces exclusions, **106 frames de premier niveau actives** restent à qualifier.
 
-Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **107 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
+Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **106 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
 
 | Node Figma | Frame | Traitement documentaire |
 | --- | --- | --- |
