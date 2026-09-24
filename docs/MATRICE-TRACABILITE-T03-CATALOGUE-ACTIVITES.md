@@ -19,8 +19,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Filtrer / Trier — panneaux/options ouverts | Panneaux `Filtrer` conçus dans Figma ; `Trier` reste disabled | 06, 07 D-192, PRODUCT, 13, Figma | anciens panneaux non conçus | CONFORME | Les filtres ouverts sont désormais vérifiables. |
 | Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
 | `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
-| Cycle de vie ActivityDefinition | créer, modifier, archiver, restaurer, supprimer depuis archives | 04, 06, 07, 08, 09/09 bis, 10, 11, 13 CE-T03-04/05 | CRUD incomplet | CONFORME | Accès Archives via Filtrer. |
-| Suppression ActivityDefinition | aucune cascade vers SessionActivity / historique | 04, 07, 09–12, 09 bis, 13 CE-T03-05 | cascade implicite | CONFORME | D-169. |
+| Cycle de vie ActivityDefinition | créer, modifier, archiver, restaurer, supprimer depuis archives | 04, 06, 07, 08, 09, 10, 11, 13 CE-T03-04/05 | CRUD incomplet | CONFORME | Accès Archives via Filtrer. |
+| Suppression ActivityDefinition | aucune cascade vers SessionActivity / historique | 04, 07, 09–12, 13 CE-T03-05 | cascade implicite | CONFORME | D-169. |
 | Création depuis Composition | nouvelle activité = SessionActivity uniquement ; pas save-to-catalogue | 02–04, 06–13 | action future bibliothèque | CONFORME | D-170. |
 | Sélection existante | multi-select, 0 disabled, ordre liste filtrée | 03, 06–13 | ordre touches | CONFORME | D-165/D-171. |
 | Copie vers Séance | copie complète puis indépendance | 04, 07, 09–13 | lien dynamique | CONFORME | D-171. |
@@ -41,7 +41,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Déployer Activity | actif ; déploie/replie le média associé dans le MVP | Figma courant, 06, 07 D-195, 13 CE-T03-02 | `Déployer` disabled | CONFORME | D-195 supersède D-173. |
 | Lecture Activity | indépendante, lance direct execution | 03, 06, 07, 13 CE-T03-02/09 | confusion Déployer | CONFORME | D-173. |
 | Première carte + Recovery | démo Figma seulement | Figma + 06 + 07 + 13 | règle de position | CONFORME | Pas de règle métier. |
-| Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 07, 09/09 bis, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
+| Migration | structures ActivityDefinition/ACTIVITY sans promotion historique | 04, 07, 09, 11, 12, couverture E70 chapitre 13 | migration implicite | CONFORME | D-180. |
 | Médias | affichage du média associé dans la carte Catalogue déployée inclus au MVP ; import/capture et gestion multiple selon périmètre propre | 00, 04, 05, 07 D-195, 09, 12, 13 | média totalement désactivé | CONFORME | Affichage média actif dans le Catalogue. |
 | Circuits | visible disabled ; aucune fonction T03 | 01–07, 09, 12, 13 | Circuit fonctionnel | CONFORME | D-167/D-183. |
 | Référence Figma `3787:5209` | ne plus la présenter comme preuve active | 06, 07, 13, README preuves, INDEX | node historique encore cité comme courant | CONFORME | Node absent du Figma courant ; aucun remplacement inventé. |
