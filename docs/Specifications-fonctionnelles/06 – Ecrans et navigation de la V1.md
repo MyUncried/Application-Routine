@@ -243,7 +243,7 @@ Depuis le Catalogue, l’utilisateur sélectionne `Activités` pour consulter la
 
 La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Activités`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
 
-Depuis la Composition d’une Séance, `Ajouter une activité` ouvre les choix `Une nouvelle activité / Une activité existante / Annuler`. La première action ouvre l’éditeur d’une Activité de Séance ; la seconde ouvre la sélection multiple du Catalogue des Activités. La validation copie les Activités dans leur ordre visible et restaure la Composition.
+Depuis la Composition d’une Séance, `Ajouter une activité` ouvre directement la sélection multiple du Catalogue des Activités. La validation copie les Activités dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
@@ -661,7 +661,7 @@ Un seul bouton secondaire `+ Ajouter une activité` est affiché en haut de l’
 
 Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Activités.
 
-Un appui sur `Ajouter une activité` ouvre l’arbre `Une nouvelle activité / Une activité existante / Annuler`. `Une nouvelle activité` crée une Activité propre à la Séance ; `Une activité existante` ouvre la sélection multiple des références persistantes. La validation est désactivée lorsque la sélection est vide et les Activités validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers.
+Un appui sur `Ajouter une activité` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Activités validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’une Activité locale à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
 La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Activités suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
@@ -1389,7 +1389,7 @@ Cette règle n’active pas les Circuits dans T03/MVP. Les anciennes frames Figm
 
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
-Depuis `Ajouter une activité`, le choix `Une activité existante` ouvre la frame `3789:5349` au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
+Depuis `Ajouter une activité`, la frame `3789:5349` ouvre directement la sélection des Activités du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
 
 Les Activités sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
 
