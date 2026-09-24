@@ -1,4 +1,6 @@
-# 13 – Contrats d’écran
+# 13
+
+> **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette. – Contrats d’écran
 
 ## 1. Objet et statut normatif
 
@@ -328,9 +330,7 @@ Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer actif pour le méd
 
 E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, pattern recherche `1992:10129`; `API-CAT-01`.
 
-![Catalogue des activités](./images/ecran-12-catalogue-activites-liste.png)
 
-*Export du 16 septembre 2026, node `3786:5093`, 402 × 874 px.*
 
 ---
 
@@ -780,7 +780,6 @@ Sélection B puis A alors que liste A/B → insertion A/B ; recherche/filtre ave
 
 E25–E31 → D-165/D-171 ; 09 ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
 
-![Sélection Activités](./images/ecran-14-selection-activites-existantes.png)
 
 ---
 
@@ -872,7 +871,6 @@ Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap 
 
 E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2028:11700`, `2028:11808`, `3518:4576`.
 
-![Actions glissées](./images/ecran-3a-composition-actions-glissees.png)
 
 ---
 
@@ -964,7 +962,6 @@ Vérifier 5 s, snapshot, origin, source supprimée après lancement, absence Ses
 
 E37–E39/E42 → D-157/D-172/D-180 ; 09 ; API-ACT-EXE-01/02.
 
-![Préparation](./images/ecran-16-preparation-directe-5-s.png)
 
 ---
 
@@ -1056,7 +1053,6 @@ C=1/N ; Pause R=0/R>0 ; Recovery ; reset ; passage anticipé ; pause/reprise ; b
 
 E40/E43 → D-139/D-140/D-156/D-172 ; API-ACT-EXE-03 ; modèle Execution.
 
-![Exécution directe](./images/ecran-17-execution-directe-en-cours.png)
 
 ---
 
@@ -1412,9 +1408,7 @@ Terminer vide/non vide ; commentaire 0/200/201 ; double tap ; erreur save ; reto
 
 E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
-![Synthèse Ressenti requis](./images/ecran-18-synthese-directe-ressenti-requis.png)
 
-![Synthèse Ressenti sélectionné](./images/ecran-18a-synthese-directe-ressenti-selectionne.png)
 
 ---
 
@@ -1506,9 +1500,7 @@ Execution directe → Suivi ; source supprimée ; mix Session/Activity ; bilater
 
 E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
-![Suivi condensé](./images/ecran-11-suivi-condense.png)
 
-![Suivi déployé](./images/ecran-11a-suivi-deploye.png)
 
 ---
 
@@ -1600,7 +1592,6 @@ Créer/modifier, save, double tap, erreur, destination/animation, dernier segmen
 
 E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
 
-![Catégories](./images/ecran-6-categories-seance.png)
 
 ---
 
