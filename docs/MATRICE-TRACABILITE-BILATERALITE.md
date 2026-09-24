@@ -1,6 +1,6 @@
 # Matrice de traçabilité — Bilatéralité
 
-> Mise à jour du 24 septembre 2026 — D-189 : le changement de côté n’est plus exposé au niveau du Tour. Les critères historiques relatifs à un Tour bilatéral ne constituent plus des exigences actives. La bilatéralité active est portée par les Activités ; le support technique historique du Tour reste conservé, fixé à `UNILATERAL`, pour non-régression.
+> Mise à jour du 24 septembre 2026 — D-189 : le changement de côté n’est plus exposé au niveau du Tour. Les critères historiques relatifs à un Tour bilatéral ne constituent plus des exigences actives. La bilatéralité active est portée par les Exercices ; le support technique historique du Tour reste conservé, fixé à `UNILATERAL`, pour non-régression.
 
 Date de consolidation : 10 septembre 2026. Correction finale contrôlée sur `main@a904c16dc2f77189c42012071ba8ff481f122410` et sur la copie de `docs/PRODUCT.md` issue de `/Dev` fournie le 10 septembre 2026.
 
@@ -34,7 +34,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-024 | Récupération par passage de Tour bilatéral | D-189 | SUPERSÉDÉ |
 | BIL-025 | Ancienne règle d’héritage de direction depuis le Tour | D-189 | SUPERSÉDÉ — chaque Activité porte sa direction propre |
 | BIL-026 | Ancienne confirmation conditionnelle lors de l’activation bilatérale du Tour | D-189 | SUPERSÉDÉ — aucune activation bilatérale du Tour n’est exposée |
-| BIL-027 | Ancienne mutation des Activités lors de la confirmation d’un Tour bilatéral | D-189 | SUPERSÉDÉ — aucune confirmation ni mutation liée au Tour |
+| BIL-027 | Ancienne mutation des Exercices lors de la confirmation d’un Tour bilatéral | D-189 | SUPERSÉDÉ — aucune confirmation ni mutation liée au Tour |
 | BIL-028 | Source effective portée par le Tour | D-189 | SUPERSÉDÉ — source active = Activité |
 | BIL-029 | Ancienne désactivation des contrôles Activité sous un Tour bilatéral | D-189 | SUPERSÉDÉ — aucune priorité de direction du Tour |
 | BIL-030 | Ancien affichage des contrôles Activité sous héritage du Tour | D-189 | SUPERSÉDÉ — aucune notion d’héritage du Tour |
