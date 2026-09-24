@@ -331,7 +331,7 @@ Les principaux écrans du MVP sont :
 
 Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
-Les contrôles d’entrée `Créer / Filtrer / Trier` des Catalogues sont conçus et vérifiables dans Figma. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu ; il reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
+Les contrôles d’entrée `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 ## 9. Contraintes techniques initiales
 
