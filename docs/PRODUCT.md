@@ -298,7 +298,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
 8. Les Étiquettes qualifient les Séances et portent leur couleur.
-9. Les Catégories et Zones corporelles qualifient les Activités ; les Zones corporelles restent facultatives. Le référentiel des Zones corporelles est administrable par l’utilisateur : création, renommage et suppression sont autorisés ; une suppression retire les associations des Activités courantes sans altérer les Instantanés/Exécutions historiques.
+9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, un appui court sélectionne/désélectionne une valeur ; un appui long ouvre une confirmation de suppression. La suppression retire les associations des objets courants concernés sans altérer les Instantanés/Exécutions historiques.
 10. La couleur affichée d’une Séance est celle de son Étiquette et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 12. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
