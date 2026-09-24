@@ -94,7 +94,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 
 | ID | Décision | Statut | MVP |
 | --- | --- | --- | :---: |
-| D-069 | Une Activité ne possède aucun média fonctionnel dans le MVP : l’action est visible mais désactivée et la section masquée. L’architecture prépare `0..n` médias ordonnés en V2. | Supersédée par D-115/D-185 | Oui |
+| D-069 | Ancienne règle excluant tout média fonctionnel du MVP. | Supersédée par D-115/D-185 puis D-195 pour l’affichage média du Catalogue | Oui |
 | D-059 | Le Commentaire de Synthèse est facultatif et limité à 200 caractères ; le Ressenti est obligatoire dès lors que la Synthèse est présentée. | Validée | Oui |
 | D-060 | Une Routine possède zéro ou un rappel maximum et une heure d’exécution obligatoire. | Validée | Oui |
 | D-061 | Dans le MVP, l’utilisateur peut ordonner les Activités avant le Tour, dans le Tour ou après le Tour. Les positions liées au Cycle technique ne sont pas exposées. | Révisée post-Figma | Oui |
