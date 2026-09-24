@@ -171,7 +171,7 @@ L'application utilise des référentiels permettant de qualifier ses contenus.
 Dans le MVP :
 - les **Étiquettes** sont utilisées pour classer les Séances et portent leur couleur ;
 - les **Catégories** sont utilisées pour classer les Activités et portent leur couleur sémantique ;
-- les **Zones corporelles** qualifient les Activités et constituent un référentiel utilisateur administrable, initialisé avec des valeurs par défaut : elles peuvent être sélectionnées, créées, renommées et supprimées par l’utilisateur. La suppression d’une Zone retire ses associations aux Activités courantes sans modifier les Instantanés/Exécutions historiques.
+- les **Étiquettes**, **Catégories** et **Zones corporelles** sont des référentiels utilisateur administrables. Toutes leurs valeurs, qu’elles soient initiales ou créées ensuite par l’utilisateur, peuvent être supprimées. La suppression d’une Étiquette retire son association aux Séances courantes ; celle d’une Catégorie ou d’une Zone corporelle retire ses associations aux Activités courantes. Les Instantanés/Exécutions historiques restent inchangés.
 
 # 4.4 Structure d'une séance
 
