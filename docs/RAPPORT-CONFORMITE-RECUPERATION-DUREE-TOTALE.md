@@ -1,6 +1,6 @@
 # Rapport de conformité final — Activité, Récupération et Durée totale
 
-> **Correspondance de roadmap (D-166)** — Le Catalogue des Activités constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
+> **Correspondance de roadmap (D-166)** — Le Catalogue des Exercices constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
 
 ## 1. Périmètre et références
 
@@ -27,7 +27,7 @@ La seconde passe a également détecté et corrigé quatre résidus qui contredi
 
 | Couche | Preuve principale |
 | --- | --- |
-| Produit et vision | `PRODUCT.md` §§ Activités, Exécution, durées et roadmap ; `01 – Vision Générale.md` |
+| Produit et vision | `PRODUCT.md` §§ Exercices, Exécution, durées et roadmap ; `01 – Vision Générale.md` |
 | Glossaire | `00 – Glossaire.md` : Activité, Pause entre Séries, Récupération, Durée totale et métriques temporelles |
 | Besoins et parcours | `02 – Utilisateurs et besoins.md` ; `03 – Parcours utilisateur.md` |
 | Versions et roadmap | `05 – Versions du produit.md` ; `INDEX.md` §10 |
