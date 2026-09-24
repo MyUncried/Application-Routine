@@ -23,16 +23,16 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
-- à partir de T03, un Catalogue des activités persistantes et leur Exécution directe ;
+- à partir de T03, un Catalogue des exercices persistantes et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
-- une Exécution guidée, adaptée aux Activités chronométrées, en Répétitions ou À l’échec ;
+- une Exécution guidée, adaptée aux Exercices chronométrées, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
 
 ## Utilisateur prioritaire du MVP
 
-Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Activités, planifie ses Séances, les exécute et consulte leur historique sur son appareil.
+Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie ses Séances, les exécute et consulte leur historique sur son appareil.
 
 Il fonctionne :
 
@@ -49,9 +49,9 @@ L’architecture textuelle repose néanmoins sur un lexique centralisé et des c
 
 Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet de rechercher une Séance, d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
 
-### Catalogue des activités — T03
+### Catalogue des exercices — T03
 
-T03 rend le segment `Activités` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Parcours` reste visible mais désactivé.
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Parcours` reste visible mais désactivé.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
@@ -62,9 +62,9 @@ La création est réalisée dans un écran unique `Composition d’une séance`.
 Une Séance contient :
 
 1. un Compte à rebours initial ;
-2. des Activités éventuellement placées avant le Tour ;
+2. des Exercices éventuellement placées avant le Tour ;
 3. un Tour unique, visible et répétable de 1 à 99 fois ;
-4. des Activités éventuellement placées après le Tour ;
+4. des Exercices éventuellement placées après le Tour ;
 5. une Fin de séance.
 
 Une Activité peut également porter son propre Compte à rebours et sa propre Fin d’activité. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
@@ -103,7 +103,7 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
 - navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
-- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours` ;
+- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
 - sauvegarde immédiate des Préférences ;
@@ -130,11 +130,11 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est fonctionnel à partir de T03 ; `Parcours` reste visible mais désactivé. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices`, `Séances` et `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` reste visible mais désactivé. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
 
-### Catalogue des activités — MVP T03
+### Catalogue des exercices — MVP T03
 
-La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des activités permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Exercices persistantes. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, une carte d’Activité du Catalogue peut être déployée pour afficher le média associé ; cette activation n’ajoute pas implicitement de nouveau mécanisme d’import ou de capture.
 
