@@ -85,14 +85,18 @@ Une Série correspond à une réalisation de l’Activité selon son mode d’ex
 
 Chaque Activité possède notamment :
 - un nom ;
+- une Catégorie d’Activité facultative ;
+- une ou plusieurs Zones corporelles facultatives ;
 - un mode d'exécution ;
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative régie par D-156 ;
 - une Récupération facultative exécutée après tous les côtés de l’Activité, `0 s` signifiant absence de phase ;
+- un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
+- un Compte à rebours d’Activité facultatif ;
+- une Fin d’activité facultative ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
-- une ou plusieurs zones corporelles facultatives ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les capacités d’import/capture restent régies par leur périmètre propre.
 
 Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause et intervient une fois après tous les côtés de l’Activité.
