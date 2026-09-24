@@ -250,4 +250,4 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 
 ## Évidence Figma T03 vérifiée le 16 septembre 2026
 
-Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’état Figma du 16 septembre 2026. Les décisions D-188 à D-198 et l’état Figma du 24 septembre 2026 supersèdent les règles correspondantes lorsque nécessaire. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables ; `Trier` reste disabled T03. Les nodes `3787:5148` et `3841:8375` restent des évidences historiques de l’ancien arbre `Créer`, non des cibles fonctionnelles.
+Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’état Figma du 16 septembre 2026. Les décisions D-188 à D-200 et l’état Figma du 24 septembre 2026 supersèdent les règles correspondantes lorsque nécessaire. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables ; `Trier` reste disabled T03. Les nodes `3787:5148` et `3841:8375` restent des évidences historiques de l’ancien arbre `Créer`, non des cibles fonctionnelles.
