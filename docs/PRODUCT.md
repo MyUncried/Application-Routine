@@ -410,7 +410,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 ### Médias et Circuits
 
-Les médias multiples `0..n` sont post-MVP. Le contrôle `Déployer` visible en T03 est préparatoire et reste désactivé.
+L’affichage du média associé dans la carte déployée du Catalogue des Activités appartient au MVP. Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
 
 Un Circuit reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Circuit. Le segment `Circuits` est visible et désactivé.
 
