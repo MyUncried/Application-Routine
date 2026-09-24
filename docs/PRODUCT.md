@@ -297,15 +297,15 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
-8. Les catégories qualifient les Séances.
-9. Les zones corporelles qualifient les Activités ; elles restent facultatives.
-10. La couleur appartient à la Séance et est reprise par ses Routines.
+8. Les Étiquettes qualifient les Séances et portent leur couleur.
+9. Les Catégories et Zones corporelles qualifient les Activités ; les Zones corporelles restent facultatives.
+10. La couleur affichée d’une Séance est celle de son Étiquette et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 12. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
 13. Les occurrences du Calendrier sont calculées dynamiquement.
 14. Toutes les données du MVP sont stockées localement sur l’appareil.
 15. Les règles de calcul fonctionnelles sont déterministes et centralisées dans les spécifications.
-16. Une direction bilatérale n’est appliquée qu’à un seul niveau : celle du Tour prévaut, sinon celle de l’Activité.
+16. Dans la version actuelle, la direction bilatérale active est portée par l’Activité ; aucun changement de côté n’est exposé au niveau du Tour.
 17. Les Résultats bilatéraux sont séparés par côté ; un seul côté partiellement réalisé rend l’Activité globale partielle.
 
 ## 8. Écrans de référence
@@ -403,9 +403,9 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - seul un swipe droit commencé sur la carte contextuellement ouverte la referme ;
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
-- après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
+- après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
-- dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
+- dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
 - dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
 
 ### Médias et Circuits
