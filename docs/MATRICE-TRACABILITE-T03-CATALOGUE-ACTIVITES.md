@@ -1,4 +1,4 @@
-# Matrice de traçabilité — T03 Catalogue des activités
+# Matrice de traçabilité — T03 Catalogue des exercices
 
 Baseline de consolidation : `main` au commit `7b6415f44a9ea39bd41d7e88ea6d232e07ceb5e1`.
 
@@ -10,12 +10,12 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 
 | Axe | Décision attendue | Documents / évidences concernés | Ancienne règle recherchée | Statut après consolidation | Correction / remarque |
 |---|---|---|---|---|---|
-| T03 / roadmap | Catalogue des activités = T03 MVP ; ancien T03 Exécution Séance → T04 ; ancien T04 → T05+ | PRODUCT, 01–12, 07, 13 | Catalogue V2 ; ancien T03 moteur | CONFORME | D-183 consolide D-166. |
-| Catalogue multi-type | `Activités / Séances / Parcours`; Séances par défaut ; Activités actif ; Parcours disabled | 00–07, 13, PRODUCT | D-108 « Séances seul actif » | CONFORME | D-108 est supersédée par D-167 ; CE-T03-01/02. |
+| T03 / roadmap | Catalogue des exercices = T03 MVP ; ancien T03 Exécution Séance → T04 ; ancien T04 → T05+ | PRODUCT, 01–12, 07, 13 | Catalogue V2 ; ancien T03 moteur | CONFORME | D-183 consolide D-166. |
+| Catalogue multi-type | `Exercices / Séances / Parcours`; Séances par défaut ; Exercices actif ; Parcours disabled | 00–07, 13, PRODUCT | D-108 « Séances seul actif » | CONFORME | D-108 est supersédée par D-167 ; CE-T03-01/02. |
 | Navigation basse | `Catalogues`; titres contextuels ; DSF exact ; dessins ≤24 pt | 01, 06, 07, 13 CE-T03-17, Figma `2537:214` | libellé `Séances`, icônes surdimensionnées | CONFORME | Règles intégrées directement dans 06/07. |
 | État Catalogue | recherche/filtres/tri/scroll conservés pendant aller-retour uniquement | 03, 06, 07, 13 CE-T03-01/02/05 | persistance non bornée | CONFORME | D-168. |
-| Rangée `Créer / Filtrer / Trier` | 3 contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence 402 ; même représentation Séances/Activités ; cibles ≥48 | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Contrôles d’entrée conçus et propagés. Coordonnées Figma utilisées uniquement comme preuve de rendu. |
-| Filtrer / Trier — comportement | Filtrer/Trier communs ; options Filtrer contextuelles ; Activités = statut, Catégories, Zones corporelles ; Séances = statut, Étiquettes ; Trier visible disabled | 06, 07 D-192, PRODUCT, 13 §4.5 | ancien filtre limité à `Archivées` | CONFORME | Fonctionnel déterministe. |
+| Rangée `Créer / Filtrer / Trier` | 3 contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence 402 ; même représentation Séances/Exercices ; cibles ≥48 | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Contrôles d’entrée conçus et propagés. Coordonnées Figma utilisées uniquement comme preuve de rendu. |
+| Filtrer / Trier — comportement | Filtrer/Trier communs ; options Filtrer contextuelles ; Exercices = statut, Catégories, Zones corporelles ; Séances = statut, Étiquettes ; Trier visible disabled | 06, 07 D-192, PRODUCT, 13 §4.5 | ancien filtre limité à `Archivées` | CONFORME | Fonctionnel déterministe. |
 | Filtrer / Trier — panneaux/options ouverts | Panneaux `Filtrer` conçus dans Figma ; `Trier` reste disabled | 06, 07 D-192, PRODUCT, 13, Figma | anciens panneaux non conçus | CONFORME | Les filtres ouverts sont désormais vérifiables. |
 | Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
 | `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle activité / Une séance / Un parcours / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
@@ -50,8 +50,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 
 ## Évidences Figma contrôlées le 16 septembre 2026
 
-- `3786:5093` Catalogue Activités — liste ;
-- `3787:5148` ancien arbre Créer Activités — historique/supersédé par D-187 ;
+- `3786:5093` Catalogue Exercices — liste ;
+- `3787:5148` ancien arbre Créer Exercices — historique/supersédé par D-187 ;
 - `1992:9910` Catalogue des séances — liste par défaut ;
 - `1992:10129` Recherche globale — Champ déployé ;
 - `3841:8375` ancien arbre Créer Séances — historique/supersédé par D-187 ;
