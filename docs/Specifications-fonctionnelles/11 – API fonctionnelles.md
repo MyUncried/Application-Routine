@@ -42,11 +42,11 @@ Les API fonctionnelles respectent les principes suivants :
 
 | ID         | Opération                     | Entrées principales                               | Résultat                                        | Règles / validations                                                                                                                          | Objets impactés                                             |
 | ---------- | ----------------------------- | ------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| API-SEA-01 | Lister les séances            | Statut, étiquette, tri éventuels                  | Liste des Séances correspondant aux critères, avec Étiquette et métadonnées d’Activités utiles au Catalogue | La durée retournée pour le Catalogue exclut toujours le Compte à rebours initial et la Fin de séance ; les Séances archivées ne sont incluses que si demandées ; filtres et tris doivent être valides | Séance, Catégories, Activités, Zones corporelles, lecture |
-| API-SEA-02 | Lire une séance               | ID Séance                                         | Séance et composition complète                  | La Séance doit exister                                                                                                                        | Séance, Cycle, Tour, Activités                              |
-| API-SEA-03 | Créer une séance              | Brouillon complet : propriétés générales, Étiquette, Composition | Nouvelle Séance complète | Transaction unique ; aucun objet partiel en cas d’échec | Séance, Étiquette, Cycle, Tour, Activités |
+| API-SEA-01 | Lister les séances            | Statut, étiquette, tri éventuels                  | Liste des Séances correspondant aux critères, avec Étiquette et métadonnées d’Exercices utiles au Catalogue | La durée retournée pour le Catalogue exclut toujours le Compte à rebours initial et la Fin de séance ; les Séances archivées ne sont incluses que si demandées ; filtres et tris doivent être valides | Séance, Catégories, Exercices, Zones corporelles, lecture |
+| API-SEA-02 | Lire une séance               | ID Séance                                         | Séance et composition complète                  | La Séance doit exister                                                                                                                        | Séance, Cycle, Tour, Exercices                              |
+| API-SEA-03 | Créer une séance              | Brouillon complet : propriétés générales, Étiquette, Composition | Nouvelle Séance complète | Transaction unique ; aucun objet partiel en cas d’échec | Séance, Étiquette, Cycle, Tour, Exercices |
 | API-SEA-04 | Modifier une séance           | ID Séance, valeurs à modifier                     | Séance mise à jour                              | La Séance doit exister ; les Exécutions historisées ne sont pas modifiées                                                                     | Séance                                                      |
-| API-SEA-05 | Dupliquer une séance          | ID Séance source                                  | Nouvelle Séance indépendante                    | Nouveaux identifiants ; nom `{nom} (copie)` puis suffixe numéroté disponible ; copie de l’Étiquette, de la Composition et des paramètres ; aucune Routine ni Exécution n’est dupliquée | Séance, Étiquette, Cycle, Tour, Activités |
+| API-SEA-05 | Dupliquer une séance          | ID Séance source                                  | Nouvelle Séance indépendante                    | Nouveaux identifiants ; nom `{nom} (copie)` puis suffixe numéroté disponible ; copie de l’Étiquette, de la Composition et des paramètres ; aucune Routine ni Exécution n’est dupliquée | Séance, Étiquette, Cycle, Tour, Exercices |
 | API-SEA-06 | Archiver une séance           | ID Séance, confirmation conditionnelle            | Séance archivée ; Routines associées supprimées | Aucune confirmation si 0 Routine associée ; confirmation explicite obligatoire si ≥ 1 Routine associée, avant archivage et suppression de ces Routines ; les occurrences futures cessent d'être calculées ; occurrences historisées et Exécutions conservées | Séance, Routine |
 | API-SEA-07 | Restaurer une séance archivée | ID Séance                                         | Séance au statut `Active`                       | Aucune ancienne Routine n'est restaurée ; toute nouvelle planification nécessite une nouvelle Routine                                         | Séance                                                      |
 | API-SEA-08 | Supprimer une séance archivée | ID Séance, confirmation                           | Séance supprimée                                | La Séance doit être archivée ; aucune suppression directe d’une Séance active ; Exécutions historiques conservées                              | Séance                                                      |
@@ -59,11 +59,11 @@ Les API fonctionnelles respectent les principes suivants :
 | API-COM-03 | Ajouter une activité                   | Position structurelle éventuelle, paramètres, position | Nouvelle Activité avec identifiant | Aucun type d’Activité ; première Activité créée par défaut `Avant Tour` ; destination valide parmi `Avant Tour`, `Dans Tour`, `Après Tour` | Activité, Cycle, Tour éventuel |
 | API-COM-04 | Modifier une activité                  | ID Activité, valeurs à modifier                                 | Activité mise à jour               | Respect des règles du mode et des paramètres ; les Exécutions historisées ne sont pas modifiées | Activité            |
 | API-COM-05 | Supprimer une activité                 | ID Activité                                                     | Activité retirée de la composition | L’Activité doit exister ; les données historiques restent exploitables                         | Activité, conteneur |
-| API-COM-06 | Réordonner les activités               | ID Activité déplacée, position structurelle cible et ordre cible | Nouvelles positions enregistrées   | L’appui long ne persiste rien ; l’opération est appelée uniquement à la dépose dans une destination valide. Déplacement autorisé entre `Avant Tour`, `Dans Tour` et `Après Tour` ; positions uniques dans chaque zone | Activités, Cycle, Tour |
+| API-COM-06 | Réordonner les exercices               | ID Activité déplacée, position structurelle cible et ordre cible | Nouvelles positions enregistrées   | L’appui long ne persiste rien ; l’opération est appelée uniquement à la dépose dans une destination valide. Déplacement autorisé entre `Avant Tour`, `Dans Tour` et `Après Tour` ; positions uniques dans chaque zone | Exercices, Cycle, Tour |
 | API-COM-07 | Paramétrer le compte à rebours initial | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; une durée de 0 s rend la phase instantanée              | Séance              |
 | API-COM-08 | Paramétrer la fin de séance            | ID Séance, durée, texte vocal                                   | Paramètres mis à jour              | Élément toujours présent ; durée ≥ 0 ; la Fin de séance n’est pas une Activité                 | Séance              |
 | API-COM-09 | Insérer / déplacer / retirer un Point d’arrêt | ID Séance, position ordonnée | Composition mise à jour | Aucun écran dédié ; attente exclue de la durée | Séance, Composition |
-## 11.4 API Activités
+## 11.4 API Exercices
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
@@ -166,11 +166,11 @@ Le choix du format et du mode de persistance de cet instantané relève du chapi
 | API-REF-01 | Lister les catégories         | Aucun ou filtre éventuel        | Liste des catégories                        | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante | Catégorie, lecture       |
 | API-REF-02 | Créer une catégorie           | Nom                              | Nouvelle catégorie                          | Respect des contraintes d’unicité ; icône KODJO et couleur blanche DSF attribuées automatiquement et non modifiables dans le MVP ; dans le parcours de création d’une Séance, l’opération reste dans le brouillon et est persistée par `API-SEA-03` | Catégorie |
 | API-REF-03 | Modifier une catégorie        | ID Catégorie, nouveau nom        | Catégorie mise à jour                       | La Catégorie doit exister ; l’icône et la couleur ne sont pas modifiables dans le MVP | Catégorie |
-| API-REF-04 | Supprimer une catégorie | ID Catégorie, confirmation | Catégorie supprimée | Toute Catégorie, initiale ou personnalisée, est supprimable ; si utilisée, elle est retirée des Activités courantes concernées ; les Instantanés/Exécutions historiques restent inchangés | Catégorie, Activité |
+| API-REF-04 | Supprimer une catégorie | ID Catégorie, confirmation | Catégorie supprimée | Toute Catégorie, initiale ou personnalisée, est supprimable ; si utilisée, elle est retirée des Exercices courantes concernées ; les Instantanés/Exécutions historiques restent inchangés | Catégorie, Activité |
 | API-REF-05 | Lister les zones corporelles | Aucun | Liste des zones corporelles | Retourne le référentiel utilisateur courant, valeurs par défaut et personnalisées | Zone corporelle, lecture |
 | API-REF-06 | Créer une Zone corporelle | Nom | Nouvelle Zone corporelle | Nom obligatoire et unique ; nouvel identifiant stable ; la Zone devient immédiatement sélectionnable | Zone corporelle |
 | API-REF-07 | Renommer une Zone corporelle | ID Zone, nouveau nom | Zone corporelle mise à jour | L’identifiant reste inchangé ; nom obligatoire et unique | Zone corporelle |
-| API-REF-08 | Supprimer une Zone corporelle | ID Zone, confirmation | Zone corporelle supprimée | Toute Zone, initiale ou personnalisée, est supprimable ; si utilisée, retire les associations des Activités courantes ; les Instantanés/Exécutions historiques restent inchangés | Zone corporelle, Activité |
+| API-REF-08 | Supprimer une Zone corporelle | ID Zone, confirmation | Zone corporelle supprimée | Toute Zone, initiale ou personnalisée, est supprimable ; si utilisée, retire les associations des Exercices courantes ; les Instantanés/Exécutions historiques restent inchangés | Zone corporelle, Activité |
 | API-REF-09 | Lister les Étiquettes | Aucun | Liste des Étiquettes | Retourne toutes les valeurs courantes du référentiel utilisateur | Étiquette, lecture |
 | API-REF-10 | Créer une Étiquette | Nom, couleur | Nouvelle Étiquette | Nom obligatoire et unique ; couleur issue de la palette contrôlée | Étiquette |
 | API-REF-11 | Renommer une Étiquette | ID Étiquette, nouveau nom | Étiquette mise à jour | L’identifiant reste inchangé ; les Séances associées conservent la référence | Étiquette |
@@ -230,7 +230,7 @@ Le découpage logique initial des services est le suivant :
 | Service | Responsabilité |
 |---|---|
 | `SessionService` | Gestion des Séances et de leur cycle de vie |
-| `CompositionService` | Gestion des Cycles, Tours et Activités |
+| `CompositionService` | Gestion des Cycles, Tours et Exercices |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Plan d’exécution, progression et commandes d’exécution |
 | `HistoryService` | Exécutions, Instantanés et historique |
@@ -259,7 +259,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
 - Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Activité.
 
-## 11.13 API du Catalogue des Activités, des Médias et des Parcours
+## 11.13 API du Catalogue des Exercices, des Médias et des Parcours
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
@@ -300,12 +300,12 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.
 
 
-## 11.15 Sélection multiple d’Activités existantes — MVP T03
+## 11.15 Sélection multiple d’Exercices existantes — MVP T03
 
 `CompositionService` reçoit les identifiants sélectionnés dans l’ordre courant de présentation produit par la liste filtrée au moment de la validation. Il crée une copie indépendante de chaque `ActivityDefinition` dans cet ordre, en une seule opération de composition. L’ordre temporel des touchers ne fait pas partie du contrat et ne doit pas être persisté.
 
 | Contrat | Entrée | Sortie | Règle |
 |---|---|---|---|
-| `API-COMP-SEL-01` | IDs d’Activités ordonnés selon la liste visible, position d’insertion | Références de composition créées | Conserve strictement l’ordre fourni ; aucune modification des définitions persistantes sources. |
+| `API-COMP-SEL-01` | IDs d’Exercices ordonnés selon la liste visible, position d’insertion | Références de composition créées | Conserve strictement l’ordre fourni ; aucune modification des définitions persistantes sources. |
 | `API-COMP-SEL-02` | Sélection vide | Aucune écriture | L’action de validation reste désactivée. |
 | `API-COMP-SEL-03` | Erreur pendant la copie groupée | Erreur fonctionnelle, Composition inchangée | L’insertion est atomique ; aucun sous-ensemble ne reste inséré. |
