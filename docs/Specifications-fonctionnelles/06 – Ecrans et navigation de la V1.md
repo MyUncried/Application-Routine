@@ -229,7 +229,7 @@ La navigation principale donne accès à quatre destinations :
 - `Suivi` ;
 - `Profil`.
 
-`Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
+`Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des parcours`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
 
 L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
@@ -313,7 +313,7 @@ Les écrans principaux ajoutés ou activés en T03 sont :
 17. `Exécution directe d’une Activité — En cours` ;
 18. `Synthèse d’une Activité directe`, avant et après sélection du Ressenti.
 
-La création/modification fonctionnelle d’un Circuit reste hors T03/MVP ; son segment et son entrée peuvent être visibles mais désactivés.
+La création/modification fonctionnelle d’un Parcours reste hors T03/MVP ; son segment et son entrée peuvent être visibles mais désactivés.
 
 Les modales servent aux actions courtes réalisées sans quitter le contexte courant, notamment :
 
@@ -478,7 +478,7 @@ Cet écran constitue l’accueil de l’application.
 
 ### Recherche et filtres
 
-Le Catalogue présente le sélecteur `Activités / Séances / Circuits`, avec `Séances` sélectionné par défaut, `Activités` actif en T03 et `Circuits` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise trois contrôles visuels de `108 × 32 pt`, séparés de `8 pt` et centrés comme ensemble dans la référence `402 pt`; les cibles tactiles restent ≥ `48 × 48 pt`. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
+Le Catalogue présente le sélecteur `Activités / Séances / Parcours`, avec `Séances` sélectionné par défaut, `Activités` actif en T03 et `Parcours` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise trois contrôles visuels de `108 × 32 pt`, séparés de `8 pt` et centrés comme ensemble dans la référence `402 pt`; les cibles tactiles restent ≥ `48 × 48 pt`. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
 
 La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
 
@@ -1395,14 +1395,14 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ### Écran 13 — Supprimé — ancien arbre `Créer` des Catalogues
 
-L’écran/arbre intermédiaire `Une nouvelle activité / Une séance / Un circuit / Annuler` est supprimé par D-187.
+L’écran/arbre intermédiaire `Une nouvelle activité / Une séance / Un parcours / Annuler` est supprimé par D-187.
 
 Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
 - `Catalogue des Activités` → création d’une Activité persistante ;
 - `Catalogue des Séances` → création d’une Séance ;
-- `Catalogue des Circuits` → création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+- `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
-Cette règle n’active pas les Circuits dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
+Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
 
 ### Écran 14 — Composition — Sélectionner plusieurs Activités existantes
 
