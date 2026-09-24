@@ -1699,7 +1699,7 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ## Règles transverses de l’éditeur d’Activité
 
-Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la section Médias est visible et repliable conformément aux frames courantes ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans fonction média réelle. Le bouton utilise le composant `3382:60` et son icône vectorielle `3382:61`, sans caractère `+`. Les composants Média du DSF constituent la référence d’activation fonctionnelle post-MVP.
+Les écrans Activité placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Activité n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la zone Média suit les frames courantes et la carte d’Activité du Catalogue peut être déployée pour afficher le média associé. Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
 
 La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Les états actuels des roulettes utilisent les modales basses standardisées. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’activité` comme placeholder de l’état vide.
 
@@ -1707,7 +1707,7 @@ La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cad
 
 Le contrôle Activité porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Tour.
 
-Dans la Composition `2028:11700`, le contrôle du Tour est enfant de l’en-tête `2028:11743` (`354 × 34 pt`). Le cadre numérique `2028:11752` est à `x=237`, `y=0`, en `66 × 34 pt`; la direction est immédiatement à droite à `x=311`, `y=0`, en `42 × 34 pt`, avec `8 pt` d’espace. Les bords haut/bas et centres verticaux coïncident. Aucun titre visible `Côté` ou `Côtés`. `UNILATERAL` est vide ; les états bilatéraux affichent uniquement `D→G` ou `G→D`. Références : composant `3705:5021`, frames `3722:5061` et `3722:5207`.
+Dans la Composition actuelle, aucun contrôle de changement de côté n’est affiché dans l’en-tête du Tour. Le cadre `Nombre de tours` reste la seule commande de ce groupe ; les anciennes références Figma de direction Tour sont historiques et ne constituent plus la cible active.
 
 Aucune confirmation d’activation bilatérale du Tour n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
