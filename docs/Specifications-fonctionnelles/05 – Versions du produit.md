@@ -194,6 +194,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
 - carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- référentiel de Zones corporelles administrable dans le MVP : valeurs initiales par défaut, sélection multiple, création inline, renommage et suppression ;
 - modèle et calculs de Récupération après l’Activité préparés avant T04.
 
 ### MVP — complément T03
