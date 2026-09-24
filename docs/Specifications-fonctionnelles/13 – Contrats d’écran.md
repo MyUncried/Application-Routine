@@ -143,6 +143,8 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le mêm
 
 La recette doit couvrir au minimum une Étiquette, une Catégorie et une Zone corporelle, chacune dans un cas utilisé et non utilisé.
 
+Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6348` (Zone corporelle).
+
 ---
 
 # 5. B1 — Catalogue multi-type
