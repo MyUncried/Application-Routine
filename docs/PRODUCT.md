@@ -442,7 +442,7 @@ En cas de contradiction, l’ordre de référence est :
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
 - `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-187 ;
-- `09 bis – Modèle et migration T03 Catalogue.md` ;
+- `09 – Modèle de données fonctionnel.md` — inclut désormais le modèle et la migration T03 Catalogue ;
 - `13 – Contrats d’écran.md`, unique référence des contrats d’écran T03 ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;
 - `Specifications-fonctionnelles/images/README-T03-FIGMA.md` pour les évidences Figma embarquées.
