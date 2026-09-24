@@ -1823,28 +1823,17 @@ Pour chaque contrat :
 
 Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE`, `À CLARIFIER`.
 
-# 16. Évidences Figma embarquées
+# 16. Références Figma
 
-Les fichiers historiques suivants restent physiquement présents dans le dépôt mais ne sont plus embarqués comme preuve courante ; leur statut est détaillé dans `images/README-T03-FIGMA.md` :
+Le chapitre 13 ne contient et ne référence **aucune copie physique d’écran ou de modale**. Toutes les copies d’écran utilisées dans les spécifications sont centralisées exclusivement dans le chapitre 06.
 
-- `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-12-catalogue-activites-liste.png`, réexporté le 16 septembre 2026 depuis `3786:5093`.
-- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg` et `./images/ecran-13-catalogue-activites-creer-arbre.png` — **historiques/superseded** : ils documentent l’ancien écran intermédiaire supprimé par D-187.
-- `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg` — **historique uniquement**, le node source `3787:5209` n’existe plus dans le Figma courant.
+Les contrats de ce chapitre peuvent uniquement citer :
+- le nom fonctionnel de l’état ;
+- le node Figma correspondant ;
+- le statut courant, historique ou supersédé lorsque nécessaire.
 
-Les preuves suivantes ont été réexportées depuis le Figma courant le 16 septembre 2026, au format documentaire `402 × 874 px` :
+Les références Figma courantes utiles aux contrats T03 comprennent notamment : `3786:5093`, `1992:9910`, `1992:10129`, `4168:11149`, `4168:11262`, `4217:6980`, `4279:7044`, `4734:6342`, `4738:6209`, `4738:6355`, `1992:8132`, `1992:8626`, `1992:8224`, `1992:8326` et `1992:8428`.
 
-- `./images/ecran-14-selection-activites-existantes.png` — `3789:5349`, binaire modifié.
-- `./images/ecran-16-preparation-directe-5-s.png` — `3835:5385`, binaire inchangé : l’export courant est identique à l’existant.
-- `./images/ecran-17-execution-directe-en-cours.png` — `3835:5465`, binaire inchangé.
-- `./images/ecran-18-synthese-directe-ressenti-requis.png` — `3836:5437`, binaire inchangé.
-- `./images/ecran-18a-synthese-directe-ressenti-selectionne.png` — `3836:5503`, binaire inchangé.
-- `./images/ecran-3a-composition-actions-glissees.png` — `2028:11808`, binaire modifié.
-- `./images/ecran-6-categories-seance.png` — `2028:11204`, binaire modifié.
-- `./images/ecran-11-suivi-condense.png` — `1992:8843`, binaire modifié.
-- `./images/ecran-11a-suivi-deploye.png` — `1992:8996`, binaire modifié.
+Les frames historiques explicitement marquées `HISTORIQUE` dans Figma ne constituent pas des cibles d’implémentation. Les frames `PROPOSITION` ne deviennent une référence active que lorsqu’une décision validée les adopte et que le chapitre 06 les rattache à un écran ou état de production.
 
-Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `1992:9910`, `1992:10129`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`. Les frames `3787:5148` et `3841:8375` restent conservées comme évidences historiques de l’ancien arbre `Créer`, supersédé fonctionnellement par D-187.
-
-Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
-
-Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont vérifiables. `Trier` reste disabled T03.
+Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des écrans, états, modales et leurs copies documentaires ; le présent chapitre porte seulement les contrats déterministes de comportement et de recette.
