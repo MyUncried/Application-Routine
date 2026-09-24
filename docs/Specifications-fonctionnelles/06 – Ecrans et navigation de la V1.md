@@ -755,7 +755,7 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4p | Durée de l’Activité — roulette ouverte | — | Roulette en modale basse dans le nouvel éditeur | `4332:7095` |
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
-| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | État Figma existant ; le référentiel métier reste non administrable tant qu’aucune décision fonctionnelle ne l’autorise | `4683:6336` |
+| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | **À CLARIFIER** : Figma matérialise une création de Zone corporelle, alors que la règle métier active définit un référentiel non administrable | `4683:6336` |
 
 ### Objectif
 
@@ -1731,7 +1731,7 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4332:7095` | Durée de l’Activité — roulette ouverte | Référencée dans Écran 4 |
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
 | `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
-| `4683:6336` | Nouvelle zone corporelle — clavier | Référencée comme état Figma ; aucune création métier de Zone n’est déduite |
+| `4683:6336` | Nouvelle zone corporelle — clavier | **À CLARIFIER** : contradiction entre cet état Figma et le référentiel métier non administrable |
 | `4521:6220` | Catalogue Activités — État vide | Référencée dans Écran 12 |
 | `4544:6344` | Activités — Filtre inactif étendu | Référencée dans Écran 12 |
 | `4544:6651` | Activités — Filtre actif étendu | Référencée dans Écran 12 |
