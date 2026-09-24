@@ -8,7 +8,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-001 | Une Séance possède un identifiant unique, un nom obligatoire et une couleur obligatoire. |
+| RM-001 | Une Séance possède un identifiant unique et un nom obligatoire. Son Étiquette est facultative ; lorsqu’elle existe, sa couleur devient la couleur affichée de la Séance. |
 | RM-002 | Le Catalogue des séances est l’écran d’accueil après le splash. |
 | RM-003 | Une Séance est soit active, soit archivée. Les vues actives excluent les Séances archivées. |
 | RM-004 | Toucher le corps d’une carte de Séance active ouvre cette Séance en mode modification. |
