@@ -213,3 +213,12 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 #### Planifier un Parcours — cible post-MVP
 
 Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier avec les mêmes principes qu’une Séance ou un Exercice : planification unique ou périodique, rappel facultatif et affichage dans le Calendrier. Cette capacité reste hors MVP tant que la version Parcours planifiable n’est pas livrée.
+
+#### Régler les récupérations
+
+- Distinguer clairement la Pause entre Séries, la Récupération entre côtés et la Récupération après activité.
+- Dans l’éditeur d’Exercice, n’exposer la Récupération entre côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
+- Dans la Composition, voir sous chaque occurrence une ligne `Récupération {durée}`, y compris `Récupération 0 s`, et pouvoir modifier cette durée.
+- Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
+- Exécuter la récupération de la dernière Activité avant la Fin de séance, et celle de la dernière Activité d’un Tour à chaque répétition du Tour.
+- Ne pas ajouter de récupération post-activité lors de l’Exécution directe depuis le Catalogue.
