@@ -848,7 +848,7 @@ Une Série correspond à l’Exécution de la cible du mode. Pour une Activité 
 
 Avant toute interaction, tous les contrôles sont utilisables et aucun contour pilote n’est affiché. `Séries` est néanmoins le pilote interne par défaut. Après confirmation d’une roulette, le contrôle modifié devient pilote et reçoit un contour `2` points lié à `color/selection`; le contrôle calculé conserve son contour standard et reste tactile. Ce choix n’est pas persisté : à la réouverture, `Séries` redevient pilote implicite.
 
-La formule d’une occurrence autonome est `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, `L = 1` en unilatéral et `L = 2` en bilatéral, `A` durée par Série, `B` Pause, `C` nombre entier de Séries par côté, `R` Récupération et `D` Durée totale globale. Si `D` pilote, `C théorique = D / [L × (A + B)]` lorsque `R = 0`, sinon `C théorique = ((D − R) / L + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
+La formule intrinsèque d’une Activité est `D = L × [C × A + (C − 1) × B] + S`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `S = 0` en unilatéral ou `sideRecoverySeconds` en bilatéral, `A` durée par Série, `B` Pause et `C` nombre entier de Séries par côté. `postActivityRecoverySeconds` est toujours exclu. Si `D` pilote, `C théorique = ((D − S) / L + B) / (A + B)`. `C` est arrondi à l’entier le plus proche, `.5` vers le haut, avec un minimum de `1`; `D` est ensuite recalculée à la valeur atteignable. Le recalcul intervient uniquement après `Confirmer`. Une correction affiche temporairement : `Durée ajustée à {D} pour respecter un nombre entier de Séries.`
 
 La Description et les Zones corporelles sont facultatives. Les Zones proviennent du référentiel utilisateur administrable. La modale `Zones corporelles` permet la sélection multiple et la création inline d’une nouvelle Zone (`4683:6336`). Le référentiel autorise également le renommage et la suppression ; ces deux opérations sont des règles fonctionnelles actives mais ne disposent pas encore d’une frame dédiée dans le Prototype MVP.
 
@@ -860,7 +860,7 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 ## Écran 5 — Réservé
 
-L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. La Récupération se règle dans l’Écran 4 et ne possède aucun écran autonome.
+L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. L’Écran 4 expose uniquement la **Récupération entre côtés**, conditionnelle au bilatéral. La **Récupération après activité** se règle sur l’occurrence dans la Composition et ne possède aucun écran autonome.
 
 ## Écran 6 – Étiquettes de la séance dans la Composition
 
@@ -1153,7 +1153,7 @@ Après confirmation :
 - le temps total déjà écoulé dans la Séance reste conservé ;
 - le Tour et le Cycle courants restent inchangés.
 
-Pendant `RECOVERY`, la confirmation réinitialise uniquement le compte à rebours de Récupération. Elle ne rejoue pas l’Activité terminée et ne modifie pas les résultats antérieurs.
+Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, la confirmation réinitialise uniquement le compte à rebours de la phase de récupération courante. Elle ne rejoue aucune Série déjà acquise et ne modifie pas les résultats antérieurs.
 
 ### Mise en pause
 
@@ -1184,7 +1184,7 @@ Le comportement dépend de la phase courante :
 
 - **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Activité suivante selon le plan ;
 - **Activité chronométrée avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Activité est enregistrée avec le statut `Partielle`, puis l’Exécution continue ;
-- **Récupération avant zéro** : ouvre la même confirmation ; après confirmation, l’Activité reste `Terminée`, la Récupération est partielle et l’Exécution continue ;
+- **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ;
 - **Activité chronométrée arrivée à zéro** : la transition est automatique.
 
 ### Navigation pendant l’Exécution
