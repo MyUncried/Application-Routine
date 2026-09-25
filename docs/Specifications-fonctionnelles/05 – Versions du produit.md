@@ -236,3 +236,11 @@ La première version fonctionnelle du Catalogue des Exercices inclut l’exécut
 ### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
 
 Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. L’affichage du média dans la carte déployée appartient au MVP.
+
+## Évolution conçue — consultation média pendant l’Exécution
+
+La consultation des médias pendant l’Exécution est **conçue mais non affectée à une tranche de livraison**. Tant qu’une décision de roadmap ne la requalifie pas, elle reste post-MVP conformément à la règle existante sur les médias multiples fonctionnels.
+
+La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo avec son actif par défaut et baisse temporaire pendant les annonces vocales, le plein écran orientable et le cadre flottant d’Exécution.
+
+Spécification de synthèse : `../CONCEPTION-EXECUTION-MEDIA.md`.
