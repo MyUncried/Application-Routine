@@ -189,7 +189,7 @@ Une Séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Exercices après le Tour ;
 6. une Fin de séance.
 
-Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. `RECOVERY` est une phase appartenant à l’Activité qui la précède, jamais une Activité autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
+Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Activité bilatérale ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance/Parcours. Aucune de ces phases n’est une Activité autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
@@ -201,7 +201,7 @@ Le **Cycle** contient le **Tour unique** et les Exercices ordonnées avant et ap
 
 Chaque **Tour** regroupe une suite ordonnée d'Exercices. Les Exercices placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
-Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative régie par D-156 et une Récupération facultative. Elle peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
+Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après activité n’est pas une propriété intrinsèque de l’Activité : elle appartient à l’occurrence contextualisée. L’Activité peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
@@ -242,55 +242,62 @@ Dans l’interface de Composition, un appui long sur la carte d’une **Activit�
 
 Une **Activité** est une unité exécutable autonome dans son modèle fonctionnel, qu’elle soit définie comme `ActivityDefinition` dans le Catalogue ou copiée comme `SessionActivity` dans une Séance.
 
-Elle porte :
-
+Les propriétés intrinsèques communes portent notamment :
 - une identité, un nom et une Description facultative ;
 - une **Catégorie** d’Activité et zéro à plusieurs **Zones corporelles** ;
 - un mode d’exécution parmi `Durée`, `Répétitions` et `À l’échec` ;
 - la cible du mode lorsqu’elle existe ;
 - un nombre de **Séries** ;
-- une **Pause** entre Séries ;
-- une **Récupération** éventuelle après les Séries et côtés de l’Activité ;
+- une **Pause** entre Séries, exécutée exactement `C − 1` fois par côté ;
 - un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
+- une **Récupération entre côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
 - un **Compte à rebours d’Activité** propre lorsqu’il est utilisé ;
 - une **Fin d’activité** propre lorsqu’elle est utilisée ;
-- une Durée totale dérivée ou estimée selon le mode ;
+- une Durée totale intrinsèque dérivée ou estimée selon le mode ;
 - les associations média prévues par le périmètre courant.
+
+Une `ActivityDefinition` ne possède **aucune Récupération après activité**.
+
+Une `SessionActivity` reprend les propriétés intrinsèques applicables de la définition puis porte en plus une propriété contextuelle `postActivityRecoverySeconds`. Cette valeur existe toujours, y compris à `0 s`, est initialisée à la création de l’occurrence depuis le défaut global de récupération après activité, puis devient indépendante de ce défaut. Elle se déplace, se duplique et se supprime avec l’occurrence.
 
 Le Compte à rebours d’Activité et la Fin d’activité appartiennent à l’Activité. Ils sont distincts du Compte à rebours initial et de la Fin de séance, qui restent des éléments structurels de la Séance.
 
-La structure fonctionnelle d’une Activité peut donc être représentée ainsi :
+La structure intrinsèque d’une Activité peut être représentée ainsi :
 
 ```text
 Activité
 ├── Compte à rebours d’Activité éventuel
-├── Exécution du travail
-│   ├── côté 1 éventuel
-│   │   ├── Série
-│   │   ├── Pause éventuelle
-│   │   └── ...
-│   └── côté 2 éventuel
-├── Récupération éventuelle
+├── côté 1
+│   ├── Série
+│   ├── Pause éventuelle entre Séries
+│   └── ...
+├── Récupération entre côtés éventuelle
+├── côté 2 éventuel
+│   ├── Série
+│   ├── Pause éventuelle entre Séries
+│   └── ...
 └── Fin d’activité éventuelle
 ```
 
-Une `ActivityDefinition` et une `SessionActivity` partagent ces propriétés métier. La seconde reste une copie indépendante appartenant à sa Séance.
+Dans une Séance/Parcours, la Récupération après activité s’ajoute **après cette occurrence** et ne fait pas partie de cette structure intrinsèque.
 
 # 4.6 Déroulement d'une Activité
 
-Lorsqu’une Activité est exécutée, le moteur applique ses phases propres dans l’ordre fonctionnel suivant :
+Lorsqu’une Activité est exécutée, le moteur applique ses phases intrinsèques dans l’ordre fonctionnel suivant :
 
 1. exécuter le Compte à rebours d’Activité lorsqu’il est présent ;
 2. déterminer le ou les côtés à exécuter à partir du `Changement de côté` propre à l’Activité ;
-3. pour chaque côté applicable, exécuter les Séries dans leur ordre ;
-4. appliquer les Pauses entre Séries selon les règles de Pause/Récupération ;
-5. après les côtés de l’Activité, exécuter la Récupération lorsqu’elle est non nulle ;
+3. exécuter toutes les Séries du premier côté, avec une Pause uniquement entre deux Séries successives ;
+4. si l’Activité est bilatérale et `sideRecoverySeconds > 0`, exécuter une seule phase `SIDE_RECOVERY` ;
+5. exécuter toutes les Séries du second côté, lorsqu’il existe, avec la même règle de Pause ;
 6. exécuter la Fin d’activité lorsqu’elle est présente ;
-7. poursuivre vers l’élément suivant du Plan d’Exécution.
+7. terminer l’Activité intrinsèque.
 
 En mode `Durée`, chaque Série est chronométrée. En mode `Répétitions` ou `À l’échec`, l’utilisateur termine normalement la Série par l’action `Suivant`.
 
-Le déroulement propre de l’Activité reste identique qu’elle soit exécutée directement depuis le Catalogue ou à l’intérieur d’une Séance, sous réserve des phases de contexte qui l’entourent : préparation d’Exécution directe, Compte à rebours initial de Séance, Point d’arrêt, Tour ou Fin de séance.
+Après une occurrence dans une Séance/Parcours, le Plan exécute ensuite `POST_ACTIVITY_RECOVERY` si `postActivityRecoverySeconds > 0`. La donnée reste néanmoins présente et visible dans la Composition lorsqu’elle vaut `0 s`.
+
+Une Exécution directe depuis le Catalogue exécute uniquement les phases intrinsèques de l’`ActivityDefinition` : elle peut donc contenir `SIDE_RECOVERY`, mais jamais `POST_ACTIVITY_RECOVERY`.
 
 # 4.7 Déroulement d'une séance
 
