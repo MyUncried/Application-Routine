@@ -40,10 +40,10 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-018 | Le compte à rebours initial est représenté comme une étape d'exécution à part entière. | Validée | Oui |
 | D-019 | La Fin de séance est un élément structurel obligatoire, chronométré, exécuté après la dernière activité. Elle ne constitue pas une Activité. Sa durée est configurable et peut être égale à 0 s. | Validée | Oui |
 | D-020 | Les concepts structurels métier restent : Séance, Routine, Activité, Tour et Cycle. Le terme « Série » est un paramètre d'exécution propre à une Activité ; il ne constitue ni un conteneur structurel ni une entité autonome. | Validée | Oui |
-| D-021 | Une routine est une planification d'une séance. Une séance peut être utilisée par plusieurs routines. | Validée | Oui |
+| D-021 | Ancienne règle : une Routine planifie uniquement une Séance. | **Supersédée par D-206** | Oui |
 | D-022 | Les exceptions de planification (modifier une seule occurrence) sont exclues du MVP. Toute modification s'effectue sur la routine. | Validée | Oui |
 | D-023 | Une Routine ne possède pas d'état actif/inactif dans le MVP. Elle existe ou est supprimée. L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Si aucune Routine n’est associée, l’archivage est immédiat et sans confirmation ; un snackbar `Séance archivée` avec `Annuler` permet alors d’annuler l’archivage. Si au moins une Routine est associée, une confirmation explicite est requise avant l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. La restauration ultérieure de la Séance ne restaure pas ces Routines. | Révisée | Oui |
-| D-024 | La couleur est un attribut de la séance. Les routines héritent automatiquement de cette couleur et ne possèdent pas de couleur propre. | Validée | Oui |
+| D-024 | Ancienne règle de repère visuel des Routines limitée à la couleur de Séance. | **Révisée par D-206** : une Routine n’a pas de couleur propre et reprend le repère visuel de sa source. | Oui |
 | D-025 | La couleur de la séance est conservée dans l'instantané enregistré lors de chaque exécution afin de préserver l'historique. | Validée | Oui |
 | D-026 | La création d'une séance nécessite un nom et une couleur issue d’une palette prédéfinie de 12 couleurs ; une couleur est proposée par défaut. | Révisée post-Figma | Oui |
 | D-027 | Dans le MVP, le Suivi présente des cartes condensées pouvant être déployées individuellement pour afficher le détail. | Révisée post-Figma | Oui |
