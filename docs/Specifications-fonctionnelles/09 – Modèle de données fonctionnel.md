@@ -305,7 +305,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Les exercices peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
 - La Durée estimée d’exécution, la Durée synthétique des Exercices, le Nombre d’Exercices de la Composition et le Nombre total d’Exercices à exécuter sont recalculés après toute modification influençant leur périmètre.
-- Une séance peut exister sans routine et sans avoir jamais été exécutée.
+- Une Séance ou une `ActivityDefinition` peut exister sans Routine et sans avoir jamais été exécutée.
 - Le compte à rebours initial et la Fin de séance sont toujours présents dans la structure d'une séance et ne constituent pas des Exercices.
 - Une durée de 0 s rend le compte à rebours initial ou la Fin de séance instantané sans supprimer l'élément de la structure.
 
@@ -633,7 +633,7 @@ Une Exécution possède directement :
 | Identifiant | Identifiant unique | Obligatoire | Créé au démarrage |
 | Origine | Type de source | Obligatoire | `SESSION` ou `ACTIVITY`, immuable |
 | Source persistante | Séance ou Activité de référence | Facultatif | Une seule selon l’origine ; peut devenir absente après suppression de la source |
-| Routine | Routine d'origine | Facultatif | Autorisée uniquement pour `SESSION` |
+| Routine | Routine d'origine | Facultatif | Autorisée pour `SESSION` ou `ACTIVITY` lorsqu’une occurrence planifiée a déclenché l’Exécution |
 | Instantané de source | Copie figée de la Séance ou de l’Activité | Obligatoire | Créé automatiquement |
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
