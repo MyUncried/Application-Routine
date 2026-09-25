@@ -266,3 +266,9 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | ID | Décision | Statut | MVP |
 | --- | --- | --- | :---: |
 | D-206 | Une Séance et un Exercice persistant du Catalogue sont deux contenus autonomes **exécutables et planifiables directement**. Une Routine cible exactement une source, de type `SESSION` ou `ACTIVITY`, et le même mécanisme de planification s’applique aux deux. L’action `Planifier` est donc valide dans les deux Catalogues. **Dans les deux Catalogues, une carte affiche sa prochaine planification lorsqu’au moins une occurrence future existe ; si aucune occurrence future n’existe, cette ligne est absente et aucun espace n’est réservé.** Les anciennes formulations définissant une Routine comme planification d’une Séance uniquement sont supersédées. | Validée — 25/09/2026 | Oui |
+
+## Décision du 25 septembre 2026 — extension de la planification aux Parcours
+
+| ID | Décision | Statut | Périmètre |
+| --- | --- | --- | --- |
+| D-207 | **Séance, Exercice persistant et Parcours** appartiennent au même concept de contenu autonome planifiable. D-206 reste la règle active du MVP pour `SESSION` et `ACTIVITY`. Lorsqu’un Parcours devient planifiable, il utilise la **même entité Routine, les mêmes règles de récurrence, rappel, occurrence et Calendrier**, sans second moteur de planification. Le type fonctionnel est Parcours ; l’identifiant technique existant reste `CIRCUIT` tant que le code n’est pas renommé. Cette décision ne change pas à elle seule la roadmap : la planification des Parcours reste dans la version déjà prévue pour cette capacité. | Validée — 25/09/2026 | Post-MVP / version Parcours planifiable |
