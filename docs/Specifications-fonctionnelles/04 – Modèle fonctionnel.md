@@ -77,7 +77,7 @@ Un **Tour** est un groupe ordonné d'Exercices exécuté intégralement un nombr
 
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Récupération entre côtés**, propriété intrinsèque éventuelle d’une Activité bilatérale, et la **Récupération après activité**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
+Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’une Activité bilatérale, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -99,9 +99,9 @@ Chaque Activité possède notamment :
 - une consigne facultative ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les capacités d’import/capture restent régies par leur périmètre propre.
 
-La Pause et la Récupération entre côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : toutes les Séries du premier côté → Récupération entre côtés éventuelle → toutes les Séries du second côté.
+La Pause et la Pause au changement de côté sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : toutes les Séries du premier côté → Pause au changement de côté éventuelle → toutes les Séries du second côté.
 
-En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Récupération entre côtés : en unilatéral, `Dactivité = C × A + (C − 1) × B` ; en bilatéral, `Dactivité = 2 × [C × A + (C − 1) × B] + S`. La Récupération après activité n’entre jamais dans `Dactivité`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
+En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Pause au changement de côté : en unilatéral, `Dactivité = C × A + (C − 1) × B` ; en bilatéral, `Dactivité = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dactivité`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
 
 En mode Répétitions, le texte éditable présente `Durée totale >= {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement 1 seconde. L’estimation utilise `C−1` Pauses par côté et ajoute `sideRecoverySeconds` uniquement en bilatéral ; elle exclut toujours `postActivityRecoverySeconds`. Cette convention ne transforme pas les répétitions en durée cible d’Exécution. En mode À l’échec, aucune Durée totale n’est affichée dans le texte éditable.
 
@@ -109,7 +109,7 @@ En mode Répétitions, le texte éditable présente `Durée totale >= {estimatio
 
 Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
-Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Elle initialise séparément `postActivityRecoverySeconds` à partir du défaut global de récupération après activité ; cette valeur ne provient jamais de l’`ActivityDefinition`. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Elle initialise séparément `postActivityRecoverySeconds` à partir du défaut global de récupération après exercice ; cette valeur ne provient jamais de l’`ActivityDefinition`. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
 Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
 
@@ -201,7 +201,7 @@ Le **Cycle** contient le **Tour unique** et les Exercices ordonnées avant et ap
 
 Chaque **Tour** regroupe une suite ordonnée d'Exercices. Les Exercices placées hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
-Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après activité n’est pas une propriété intrinsèque de l’Activité : elle appartient à l’occurrence contextualisée. L’Activité peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
+Une **Activité** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Activité : elle appartient à l’occurrence contextualisée. L’Activité peut également définir un Compte à rebours propre et une Fin d’activité propre, distincts des phases structurelles de la Séance.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
@@ -250,15 +250,15 @@ Les propriétés intrinsèques communes portent notamment :
 - un nombre de **Séries** ;
 - une **Pause** entre Séries, exécutée exactement `C − 1` fois par côté ;
 - un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
-- une **Récupération entre côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
+- une **Pause au changement de côté** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
 - un **Compte à rebours d’Activité** propre lorsqu’il est utilisé ;
 - une **Fin d’activité** propre lorsqu’elle est utilisée ;
 - une Durée totale intrinsèque dérivée ou estimée selon le mode ;
 - les associations média prévues par le périmètre courant.
 
-Une `ActivityDefinition` ne possède **aucune Récupération après activité**.
+Une `ActivityDefinition` ne possède **aucune Récupération après exercice**.
 
-Une `SessionActivity` reprend les propriétés intrinsèques applicables de la définition puis porte en plus une propriété contextuelle `postActivityRecoverySeconds`. Cette valeur existe toujours, y compris à `0 s`, est initialisée à la création de l’occurrence depuis le défaut global de récupération après activité, puis devient indépendante de ce défaut. Elle se déplace, se duplique et se supprime avec l’occurrence.
+Une `SessionActivity` reprend les propriétés intrinsèques applicables de la définition puis porte en plus une propriété contextuelle `postActivityRecoverySeconds`. Cette valeur existe toujours, y compris à `0 s`, est initialisée à la création de l’occurrence depuis le défaut global de récupération après exercice, puis devient indépendante de ce défaut. Elle se déplace, se duplique et se supprime avec l’occurrence.
 
 Le Compte à rebours d’Activité et la Fin d’activité appartiennent à l’Activité. Ils sont distincts du Compte à rebours initial et de la Fin de séance, qui restent des éléments structurels de la Séance.
 
@@ -271,7 +271,7 @@ Activité
 │   ├── Série
 │   ├── Pause éventuelle entre Séries
 │   └── ...
-├── Récupération entre côtés éventuelle
+├── Pause au changement de côté éventuelle
 ├── côté 2 éventuel
 │   ├── Série
 │   ├── Pause éventuelle entre Séries
@@ -279,7 +279,7 @@ Activité
 └── Fin d’activité éventuelle
 ```
 
-Dans une Séance/Parcours, la Récupération après activité s’ajoute **après cette occurrence** et ne fait pas partie de cette structure intrinsèque.
+Dans une Séance/Parcours, la Récupération après exercice s’ajoute **après cette occurrence** et ne fait pas partie de cette structure intrinsèque.
 
 # 4.6 Déroulement d'une Activité
 
@@ -411,6 +411,6 @@ Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 Le modèle de Routine est conçu pour être extensible à une troisième source fonctionnelle : le **Parcours**. Dans le MVP, seules `SESSION` et `ACTIVITY` sont actives. Lorsque la planification des Parcours est livrée, une Routine pourra référencer une source fonctionnelle `PARCOURS`, portée techniquement par l’identifiant existant `CIRCUIT` tant que le code n’est pas renommé. Les règles de date, récurrence, rappel, occurrence et historisation restent communes.
 
-### Récupération après activité portée par l’occurrence
+### Récupération après exercice portée par l’occurrence
 
 Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans un Tour, elle est exécutée après chaque occurrence, y compris la dernière, à chaque répétition du Tour. Hors Tour, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
