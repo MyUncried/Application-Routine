@@ -41,7 +41,7 @@ Dans le MVP, une Routine possède zéro ou un rappel.
 
 Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des exercices ; son ajout à une Séance crée une copie indépendante.
 
-Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle exécutée après tous ses côtés. `Récupération` n’est plus un type d’Activité.
+Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle définit une Pause entre Séries et peut définir une **Récupération entre côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de récupération après activité. `Récupération` n’est plus un type d’Activité.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -51,9 +51,9 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, elle est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. Aucune Pause supplémentaire n’est ajoutée spécifiquement entre les deux côtés. Une Récupération distincte peut être définie ; elle appartient à l’Activité, n’augmente jamais le nombre d’Exercices de la Composition et s’exécute après tous les côtés de l’Activité.
+Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, le nombre de Pauses est **toujours `C − 1`** : aucune Pause n’est exécutée après la dernière Série. La Pause est indépendante des deux récupérations.
 
-Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa Durée totale globale est calculée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` lorsque `R = 0`, sinon `P(C,R) = C − 1`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée par Série, `B` la Pause et `R` la Récupération. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
+Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa durée intrinsèque vaut `Dactivité = C × A + (C − 1) × B` en unilatéral. En bilatéral, avec `S` la Récupération entre côtés, `Dactivité = 2 × [C × A + (C − 1) × B] + S`. La **Récupération après activité** n’entre jamais dans `Dactivité`. `Séries` et `Durée totale` restent deux entrées dépendantes ; le nombre entier de Séries reste la donnée canonique persistée.
 
 ### Tour et Cycle
 
@@ -169,7 +169,7 @@ Aucun retour à l’Activité précédente n’est inclus dans le MVP.
 
 ### Exécution directe d’une Activité — T03
 
-Le bouton Lecture d’une carte d’Activité valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les règles existantes de Séries, Pauses, directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT` et Récupération, puis se clôt sans Tour, Cycle ni phase `SESSION_END`. Le signal de fin ouvre la Synthèse.
+Le bouton Lecture d’une carte d’Activité valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et les directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`. Si l’Activité est bilatérale, sa Récupération entre côtés éventuelle est exécutée une seule fois entre le premier et le second côté. **Aucune Récupération après activité n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.
 
 Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire reste facultatif. L’Exécution rejoint le Suivi général sous le type Activité et alimente les statistiques compatibles sans augmenter le nombre de Séances. T03 ne développe que ce sous-ensemble autonome réutilisable du moteur ; l’orchestration complète de Séance relève de T04.
 
@@ -463,3 +463,9 @@ L’état de face et le média courant sont mémorisés uniquement pendant la s�
 Cette conception **ne modifie pas le périmètre MVP courant** : les médias multiples fonctionnels restent post-MVP tant qu’une décision de roadmap distincte ne les requalifie pas.
 
 Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md).
+
+### Récupération après occurrence dans une Séance ou un Parcours — D-208
+
+Toute occurrence d’Activité intégrée à une Séance porte une propriété contextuelle `postActivityRecoverySeconds`, distincte de l’`ActivityDefinition`. Cette récupération existe toujours, y compris avec la valeur `0 s`, reste visible dans la Composition, se déplace avec l’occurrence, est copiée lors d’une duplication et disparaît avec l’occurrence supprimée. Elle est exécutée après l’occurrence, y compris après la dernière Activité d’un Tour et après la dernière Activité de la Séance avant la Fin de séance. Dans un Tour répété, elle est exécutée à chaque passage de l’occurrence. Sa valeur initiale provient du défaut global de récupération après activité ; les occurrences existantes ne sont pas modifiées lorsque ce défaut change.
+
+**À CLARIFIER :** la valeur initiale de `sideRecoverySeconds` lors du passage de `Aucun` à `D→G` ou `G→D` n’est pas arbitrée.
