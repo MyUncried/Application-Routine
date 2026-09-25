@@ -1194,7 +1194,7 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 ### 8. Éléments obligatoires
 
-Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause selon Séries ; Récupération finale autonome.
+Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause uniquement entre Séries ; récupération entre côtés éventuelle avant le second passage.
 
 ### 9. Layout déterministe
 
@@ -1206,7 +1206,7 @@ Sous-titre côté sous nom, centré selon Shell. Ne pas ajouter un bloc latéral
 
 ### 11. États de l’écran
 
-Premier côté ; Pause intra-côté ; second côté ; Partial side ; Recovery finale ; fin.
+Premier côté ; Pause intra-côté ; récupération entre côtés éventuelle ; second côté ; Partial side ; fin intrinsèque.
 
 ### 12. Contrôles et interactions
 
@@ -1218,7 +1218,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Recovery après second côté pour Activité autonome.
+Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une récupération entre côtés éventuelle peut intervenir avant le second côté ; aucune récupération post-activité en Exécution directe.
 
 ### 15. Brouillon et persistance
 
