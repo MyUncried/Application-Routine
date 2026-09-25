@@ -28,7 +28,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 Les API fonctionnelles respectent les principes suivants :
 - une Séance représente un contenu exécutable ; dans le MVP T03, une Activité persistante valide peut aussi constituer directement une source d’Exécution ;
-- une Routine représente la planification d’une source `SESSION` ou `ACTIVITY` ;
+- dans le MVP, une Routine représente la planification d’une source `SESSION` ou `ACTIVITY` ; la même famille `API-ROU-*` s’étend au Parcours lors de sa version planifiable ;
 - une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
 - une occurrence arrivée à échéance est historisée avec le statut `Exécutée` ou `Non exécutée` ;
