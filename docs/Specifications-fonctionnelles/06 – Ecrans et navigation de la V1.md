@@ -1874,3 +1874,7 @@ La navigation et les comportements associés sont définis par D-203 et `../CONC
 ### Planification depuis les Catalogues — D-206
 
 Une Séance et un Exercice persistant sont tous deux planifiables directement. L’action `Planifier` d’une carte ouvre le même parcours de planification avec la source préremplie. Le parcours depuis le Calendrier permet de choisir une source planifiable parmi les Séances et les Exercices persistants. La famille d’écran historiquement nommée `Planifier une séance` est donc un gabarit de planification générique ; les frames Figma actuellement nommées avec `séance` constituent l’évidence visuelle de cette variante, mais ne limitent plus le comportement fonctionnel aux seules Séances.
+
+### Prochaine planification dans les Catalogues — D-206
+
+Les cartes des Catalogues `Séances` et `Exercices` appliquent la même règle : si la source possède au moins une occurrence future calculée, la carte affiche la **plus proche** comme `prochaine planification`. Si aucune occurrence future n’existe, cette ligne est entièrement absente et aucun espace n’est réservé. Cette information n’est pas une différence de structure entre les deux Catalogues ; seule la nature de la source (`SESSION` ou `ACTIVITY`) diffère.
