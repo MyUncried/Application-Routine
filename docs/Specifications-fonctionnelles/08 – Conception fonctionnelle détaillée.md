@@ -225,7 +225,7 @@ Une Activité bilatérale exécute toutes les Séries du premier côté puis tou
 
 ## 2 bis.7 Limite Parcours
 
-Le Catalogue peut proposer `Un parcours` dans son arbre V2. Le formulaire Parcours exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Parcours appartient à la V3. Le contrat d’écran détaillé du formulaire Parcours reste à finaliser avant développement.
+Le Catalogue peut proposer `Un parcours` dans son arbre V2. Le formulaire Parcours exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Parcours appartient à la V3. **Cette planification réutilise le même modèle de Routine et le même parcours fonctionnel que pour les Séances et Exercices**, avec le Parcours comme source. Le contrat d’écran détaillé du formulaire Parcours reste à finaliser avant développement.
 
 # 3. Composition d'une séance
 
