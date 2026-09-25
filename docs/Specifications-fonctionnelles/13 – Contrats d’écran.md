@@ -1907,3 +1907,17 @@ L’orientation suit l’appareil. Le moteur d’Exécution continue. Fermer rev
 ### 5. Audio et erreur
 
 Son vidéo actif par défaut ; ducking pendant les annonces vocales KODJO. Une erreur média reste locale et n’arrête pas l’Exécution.
+
+## Complément D-206 — Planification depuis les Catalogues
+
+### Catalogue des Exercices
+
+Une carte d’Exercice active expose l’action `Planifier` au même niveau fonctionnel qu’une carte de Séance. Cette action ouvre le parcours de planification avec l’Exercice prérempli comme source `ACTIVITY`. La carte peut afficher la **prochaine planification** lorsqu’au moins une occurrence future existe ; aucune ligne ni réserve d’espace n’est affichée en son absence.
+
+### Catalogue des Séances
+
+La même règle s’applique aux Séances avec une source `SESSION`. La prochaine planification est conditionnelle et suit la même hiérarchie typographique et le même emplacement relatif que sur une carte d’Exercice.
+
+### Parcours de planification
+
+Le même contrat fonctionnel de planification sert aux deux sources. Lorsque le parcours est ouvert depuis le Calendrier, l’utilisateur choisit une Séance ou un Exercice persistant. Lorsqu’il est ouvert depuis une carte de Catalogue, la source est préremplie. Les frames Figma actuellement nommées `Planifier une séance` documentent la variante Séance ; l’état équivalent pour un Exercice reste à matérialiser visuellement sans créer un second parcours fonctionnel.
