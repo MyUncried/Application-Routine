@@ -42,14 +42,14 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 - Saisir le nom et choisir une couleur dans le même écran de Composition.
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
-- Ajouter des Exercices et définir, si nécessaire, une Récupération après l’ensemble de leurs Séries.
+- Ajouter des Exercices ; chaque occurrence créée dans la Composition possède automatiquement une **Récupération après activité**, y compris à `0 s`, initialisée depuis le défaut global.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Définir le nombre de Séries, une Pause éventuelle entre les Séries et une Récupération facultative après l’Exercice.
+- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour une Activité bilatérale, régler séparément la **Récupération entre côtés**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Exercices avant le Tour, dans le Tour ou après le Tour.
 - Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
 - Régler le `Changement de côté` propre à une Activité sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
-- Réordonner manuellement les Exercices par glisser-déposer.
+- Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après activité se déplace avec l’occurrence sans recalcul.
 - Régler le Compte à rebours initial et la Fin de séance.
 - Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Activité.
 - Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.
