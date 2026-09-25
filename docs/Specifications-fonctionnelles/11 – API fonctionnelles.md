@@ -319,3 +319,7 @@ D-203 n’ajoute aucun endpoint MVP immédiatement. La future capacité d’Exé
 - la capacité à signaler un média indisponible sans bloquer la liste.
 
 La face courante, l’index de galerie et l’état de lecture sont des états de session UI et ne nécessitent pas de persistance API durable. Aucun contrat de nommage d’endpoint supplémentaire n’est arrêté par cette conception.
+
+### Extension future des API Routine — Parcours
+
+Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une troisième source correspondant au Parcours. Fonctionnellement, la source est `PARCOURS`; techniquement, la valeur reste `CIRCUIT` tant que les identifiants existants ne sont pas renommés. Les opérations Créer/Lire/Modifier/Supprimer, Calculer les occurrences, Récupérer la prochaine occurrence, Historiser une occurrence et Gérer le rappel restent communes ; aucune API parallèle de planification des Parcours n’est créée.
