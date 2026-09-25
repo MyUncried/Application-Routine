@@ -77,11 +77,11 @@ Un **Tour** est un groupe ordonné d'Exercices exécuté intégralement un nombr
 
 ## Activité
 
-Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération` : `Récupération` est un paramètre temporel facultatif de l’Activité.
+Une **Activité** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Récupération entre côtés**, propriété intrinsèque éventuelle d’une Activité bilatérale, et la **Récupération après activité**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
 
 Une Activité possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
-Une Série correspond à une réalisation de l’Activité selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Pour `C` Séries d’un même côté, avec une Pause `B` et une Récupération `R`, le nombre d’occurrences de Pause est `P(C,R) = C` si `R = 0`, sinon `C − 1`. Ainsi, lorsque `R = 0`, une Pause éventuelle intervient aussi après la dernière Série ; lorsque `R > 0`, la Récupération remplace cette dernière Pause. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+Une Série correspond à une réalisation de l’Activité selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, toujours entre deux Séries successives. Aucune récupération ne remplace la dernière Pause. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
 
 Chaque Activité possède notamment :
 - un nom ;
@@ -90,8 +90,8 @@ Chaque Activité possède notamment :
 - un mode d'exécution ;
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
-- une Pause facultative régie par D-156 ;
-- une Récupération facultative exécutée après tous les côtés de l’Activité, `0 s` signifiant absence de phase ;
+- une Pause facultative entre Séries successives ;
+- une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée une seule fois entre les deux côtés ;
 - un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
 - un Compte à rebours d’Activité facultatif ;
 - une Fin d’activité facultative ;
@@ -99,17 +99,17 @@ Chaque Activité possède notamment :
 - une consigne facultative ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les capacités d’import/capture restent régies par leur périmètre propre.
 
-Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après la dernière Série. Lorsqu’elle est supérieure à `0 s`, la Récupération remplace cette dernière Pause et intervient une fois après tous les côtés de l’Activité.
+La Pause et la Récupération entre côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : toutes les Séries du premier côté → Récupération entre côtés éventuelle → toutes les Séries du second côté.
 
-En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `R` la Récupération : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale pilote, les formules inverses de D-156 s’appliquent, puis le nombre de Séries est arrondi selon la règle validée et la durée réalisable est recalculée.
+En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Récupération entre côtés : en unilatéral, `Dactivité = C × A + (C − 1) × B` ; en bilatéral, `Dactivité = 2 × [C × A + (C − 1) × B] + S`. La Récupération après activité n’entre jamais dans `Dactivité`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
 
-En mode Répétitions, le texte éditable présente `Durée totale >= {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement 1 seconde : `D_est = L × [C × N + P(C,R) × B] + R`, avec `N` le nombre de répétitions par Série, `P(C,R)=C` si `R=0`, sinon `C−1`, et les mêmes règles de bilatéralité que le mode Durée. Cette convention ne transforme pas les répétitions en durée cible d’Exécution. En mode À l’échec, aucune Durée totale n’est affichée dans le texte éditable.
+En mode Répétitions, le texte éditable présente `Durée totale >= {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement 1 seconde. L’estimation utilise `C−1` Pauses par côté et ajoute `sideRecoverySeconds` uniquement en bilatéral ; elle exclut toujours `postActivityRecoverySeconds`. Cette convention ne transforme pas les répétitions en durée cible d’Exécution. En mode À l’échec, aucune Durée totale n’est affichée dans le texte éditable.
 
 ### Activité de référence et Activité de Séance
 
 Dans le MVP T03, une **Activité de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
-Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie toutes les propriétés métier applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles et direction propre. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+Une **Activité de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Tour d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Elle initialise séparément `postActivityRecoverySeconds` à partir du défaut global de récupération après activité ; cette valeur ne provient jamais de l’`ActivityDefinition`. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
 Une Activité créée directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
 
@@ -403,3 +403,7 @@ Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 ## Extension du contenu planifiable — Parcours
 
 Le modèle de Routine est conçu pour être extensible à une troisième source fonctionnelle : le **Parcours**. Dans le MVP, seules `SESSION` et `ACTIVITY` sont actives. Lorsque la planification des Parcours est livrée, une Routine pourra référencer une source fonctionnelle `PARCOURS`, portée techniquement par l’identifiant existant `CIRCUIT` tant que le code n’est pas renommé. Les règles de date, récurrence, rappel, occurrence et historisation restent communes.
+
+### Récupération après activité portée par l’occurrence
+
+Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans un Tour, elle est exécutée après chaque occurrence, y compris la dernière, à chaque répétition du Tour. Hors Tour, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
