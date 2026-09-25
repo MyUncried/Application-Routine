@@ -1,5 +1,7 @@
 > **MISE À JOUR 25/09/2026 — D-208.** Les conclusions antérieures relatives aux Pauses et à la récupération après les deux côtés sont supersédées. Les autres conclusions de bilatéralité restent lisibles sous réserve de D-189 et D-208.
 
+> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Activité bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après activité appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale reste **À CLARIFIER**.
+
 # Rapport final de conformité — Bilatéralité
 
 > Mise à jour du 24 septembre 2026 : D-189 supersède l’exposition fonctionnelle de la bilatéralité au niveau Tour. Les conclusions historiques relatives au Tour bilatéral doivent être lues comme traces de conception antérieure, pas comme exigences actives.
