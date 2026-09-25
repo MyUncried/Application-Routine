@@ -172,7 +172,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
 - affichage de la `Durée totale` dans le texte éditable selon D-204 : inchangé en Durée ; estimation `>=` en Répétitions avec 1 seconde conventionnelle par répétition ; aucune Durée totale en À l’échec ;
 - les noms d’Activité visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’activité` représente l’état vide/placeholder ;
-- distinction entre Pause entre Séries et Récupération ;
+- distinction entre **Pause entre Séries**, **Récupération entre côtés** et **Récupération après activité** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Exercices de la Composition, Nombre total d’Exercices à exécuter et Nombre d’Exercices exécutées ;
 - progression hybride des Exercices chronométrées et des Exercices en Répétitions ou À l’échec ;
@@ -182,7 +182,7 @@ Les chapitres 00 à 13 et les matrices transverses constituent la baseline docum
 
 ## 9. Baseline consolidée — Exercices, Récupération et Bilatéralité
 
-La baseline distingue une Activité, sa Pause entre Séries et sa Récupération après Activité. Elle comprend le mode `À l’échec`, la Durée totale calculée et les directions `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` au niveau Activité. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
+La baseline distingue désormais trois concepts : la Pause entre Séries, la **Récupération entre côtés** intrinsèque à une Activité bilatérale et la **Récupération après activité** portée par l’occurrence d’Activité dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-activité. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
 
 ## 10. MVP T03 — Catalogue des exercices
 
@@ -226,3 +226,5 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 > Décision du 25 septembre 2026 — D-206 : une Séance et un Exercice persistant sont tous deux des contenus autonomes exécutables et planifiables directement. Les Routines utilisent une source générique `SESSION` ou `ACTIVITY`; les Catalogues peuvent afficher conditionnellement la prochaine planification pour les deux types. Les anciennes formulations limitant la planification aux seules Séances sont supersédées.
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
+
+> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Activité et ne s’applique qu’entre les deux côtés d’une Activité bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Activité. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la récupération entre côtés lors de l’activation bilatérale reste **À CLARIFIER**.
