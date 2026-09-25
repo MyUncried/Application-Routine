@@ -263,7 +263,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
-| `API-ACT-REF-01..05` | MVP T03 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. |
+| `API-ACT-REF-01..05` | MVP T03 | définition d’Activité | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
 | `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | V2 | activité, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
