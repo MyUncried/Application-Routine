@@ -368,9 +368,10 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
 - `Routine` : planification d’une Séance ou d’un Exercice persistant ;
-- `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et Récupération facultatives ;
+- `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et, en bilatéral, Récupération entre côtés éventuelle ;
 - `Exercice` : Activité physique ;
-- `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés de l’Activité ;
+- `Récupération entre côtés` : durée intrinsèque facultative d’une Activité bilatérale, exécutée une seule fois entre le premier et le second côté ;
+- `Récupération après activité` : durée contextuelle portée par chaque occurrence d’Activité dans une Séance/Parcours, visible y compris à `0 s` et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour ;
