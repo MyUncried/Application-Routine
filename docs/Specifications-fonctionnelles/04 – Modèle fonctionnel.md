@@ -117,19 +117,23 @@ La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les 
 
 ## Routine
 
-Une routine est une **planification d'une séance**.
+Une routine est une **planification d’un contenu planifiable**.
+
+Dans le MVP, sa source est exactement l’un des deux types suivants :
+- `SESSION` : une Séance persistante ;
+- `ACTIVITY` : une Activité persistante du Catalogue des exercices.
 
 Elle définit :
-- la séance concernée ;
+- le type de source et la source concernée ;
 - sa date de début ;
 - son heure d'exécution ;
 - son mode de planification affiché : `Aucune` ou `Périodique` ;
 - pour une planification périodique, sa fréquence hebdomadaire, les jours de la semaine concernés et sa date de fin ;
 - un rappel éventuel (0 ou 1 maximum).
 
-Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d'une même séance à des horaires différents sont représentées par plusieurs routines distinctes.
+Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d’une même source à des horaires différents sont représentées par plusieurs routines distinctes.
 
-Une routine ne contient jamais le contenu d'une séance. Une même séance peut être associée à plusieurs routines.
+Une routine ne contient jamais le contenu de sa source. Une même Séance ou une même Activité persistante peut être associée à plusieurs routines.
 
 ## Exécution
 
