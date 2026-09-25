@@ -147,3 +147,9 @@ Les Parcours restent préparés conceptuellement et techniquement mais ne sont n
 ## Vision de la bilatéralité
 
 La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur une Activité. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour ; le Tour reste fonctionnellement `UNILATERAL`. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+
+## Vision cible — médias pendant l’Exécution
+
+La cible post-MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
+
+Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant sans décision de roadmap distincte. Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
