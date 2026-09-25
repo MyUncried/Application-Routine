@@ -450,3 +450,13 @@ Pour T03, les références explicites de cette mise à jour sont :
 Toute évolution fonctionnelle doit préciser son impact sur Figma, la documentation fonctionnelle, le modèle de données, les règles métier, les API ou services, l’architecture technique, les contrats d’écran et la version du produit.
 
 Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique → contrat d’écran`. Une règle commune n’est pas recopiée inutilement ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
+
+## 14. Évolution conçue — Média pendant l’Exécution
+
+Une évolution post-MVP actuellement conçue permet de basculer, pendant l’Exécution, entre une face Information et une face Média de l’Exercice. La face Média respecte l’ordre de la galerie, affiche un média à la fois, permet le swipe horizontal unitaire, la lecture vidéo et l’ouverture plein écran sans suspendre le moteur d’Exécution. En plein écran, un cadre flottant conserve les informations et commandes essentielles d’Exécution.
+
+L’état de face et le média courant sont mémorisés uniquement pendant la séance en cours et sont réinitialisés entre deux séances. Une vidéo ne démarre jamais automatiquement. Le son vidéo est actif par défaut et son volume est temporairement abaissé pendant les annonces vocales KODJO.
+
+Cette conception **ne modifie pas le périmètre MVP courant** : les médias multiples fonctionnels restent post-MVP tant qu’une décision de roadmap distincte ne les requalifie pas.
+
+Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md).
