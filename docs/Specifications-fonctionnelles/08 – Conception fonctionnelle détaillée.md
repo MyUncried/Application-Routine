@@ -362,7 +362,7 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 
 ### Durée synthétique des Exercices
 
-La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les mêmes règles de développement des Séries, Pauses entre Séries, Récupérations attachées, répétitions du Tour et positions structurelles, mais porte exclusivement sur les Exercices et leurs phases attachées. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour une Activité bilatérale, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Tour. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
 Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
@@ -373,7 +373,7 @@ Le nombre d'Exercices de la Composition correspond au nombre de cartes d’Activ
 Il :
 
 - ne tient pas compte des répétitions liées aux Séries, Tours ou Cycles ;
-- ne comptabilise ni les Pauses entre Séries ni les phases `RECOVERY` attachées.
+- ne comptabilise ni les Pauses entre Séries ni les phases de récupération comme Exercices.
 
 Ces informations sont affichées en temps réel.
 
