@@ -190,3 +190,7 @@ Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être r
 | `5009:6069` | Test 2 Exécution d’une séance — Média plein écran | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-02 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
 
 Ces frames sont des évidences de la conception validée D-203 et ne constituent pas, à elles seules, une décision d’entrée dans le MVP.
+
+## Réserve D-208 — récupération
+
+D-208 modifie le comportement et le rendu attendus de la récupération. Tant que Figma n’a pas été réaligné, les frames montrant une récupération générique attachée/conditionnelle à l’Activité ou absente à `0 s` ne peuvent pas être considérées comme preuves fonctionnelles courantes sur cet axe. Elles restent utilisables pour les autres éléments non affectés. Un nouveau contrôle de couverture Figma est requis après mise à jour des écrans Éditeur Exercice, Composition et Exécution.
