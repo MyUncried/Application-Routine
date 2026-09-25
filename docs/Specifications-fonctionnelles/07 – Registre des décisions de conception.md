@@ -272,3 +272,9 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | ID | Décision | Statut | Périmètre |
 | --- | --- | --- | --- |
 | D-207 | **Séance, Exercice persistant et Parcours** appartiennent au même concept de contenu autonome planifiable. D-206 reste la règle active du MVP pour `SESSION` et `ACTIVITY`. Lorsqu’un Parcours devient planifiable, il utilise la **même entité Routine, les mêmes règles de récurrence, rappel, occurrence et Calendrier**, sans second moteur de planification. Le type fonctionnel est Parcours ; l’identifiant technique existant reste `CIRCUIT` tant que le code n’est pas renommé. Cette décision ne change pas à elle seule la roadmap : la planification des Parcours reste dans la version déjà prévue pour cette capacité. | Validée — 25/09/2026 | Post-MVP / version Parcours planifiable |
+
+## Décision du 25 septembre 2026 — refonte des récupérations
+
+| ID | Décision | Statut | Portée |
+| --- | --- | --- | --- |
+| D-208 | Le modèle distingue désormais trois concepts indépendants : **Pause entre Séries**, **Récupération entre côtés** et **Récupération après activité**. Pour `C` Séries d’un même côté, la Pause est toujours exécutée `C−1` fois. `sideRecoverySeconds` appartient à l’Activité et ne s’applique qu’en `D→G/G→D`, une seule fois entre les deux côtés. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, se déplace/duplique/supprime avec l’occurrence, est exécuté après l’occurrence y compris en fin de Tour ou de Séance, et n’entre jamais dans la durée intrinsèque de l’Activité. Une Exécution directe d’`ActivityDefinition` n’exécute aucune récupération post-activité. La valeur initiale de `sideRecoverySeconds` lors de l’activation bilatérale reste **À CLARIFIER**. | Validée — 25/09/2026 | Supersède D-138 et D-156 ; révise D-041, D-073, D-134 à D-140, D-144, D-155, D-171, D-172 et D-198 sur les axes récupération/calcul/UX. |
