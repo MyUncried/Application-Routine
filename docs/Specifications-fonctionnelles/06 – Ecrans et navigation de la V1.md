@@ -367,7 +367,7 @@ L’utilisateur ne peut pas revenir à une Activité déjà exécutée.
 Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
-- `Routine` : planification d’une Séance ;
+- `Routine` : planification d’une Séance ou d’un Exercice persistant ;
 - `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et Récupération facultatives ;
 - `Exercice` : Activité physique ;
 - `Récupération` : phase chronométrée facultative attachée à une Activité, exécutée après tous les côtés de l’Activité ;
@@ -943,7 +943,7 @@ En vue Jour, un glissement horizontal de la grille vers la gauche affiche le jou
 
 ### Comportement
 
-En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la même Séance et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
+En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la même source (`SESSION` ou `ACTIVITY`) et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
 
 L’état obtenu par glissement ne remplace pas la liste : il décale la carte concernée pour révéler ses actions. Les autres jours et occurrences restent rendus à leur position chronologique.
 
@@ -979,21 +979,21 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 ### Objectif
 
-Créer ou modifier une Routine, c’est-à-dire la planification d’une Séance.
+Créer ou modifier une Routine, c’est-à-dire la planification d’une **Séance ou d’un Exercice persistant**.
 
 ### Ouverture
 
 L’écran est accessible :
 
-- depuis `Calendrier > + Planifier une séance` ;
+- depuis `Calendrier > + Planifier` ;
 - depuis `Modifier la planification` sur une Routine existante ;
-- depuis l’action glissée `Planifier` d’une Séance active dans le Catalogue.
+- depuis l’action glissée `Planifier` d’une Séance active ou d’un Exercice actif dans son Catalogue.
 
 ### Paramètres
 
 La planification comporte :
 
-- la Séance associée ;
+- la source associée, de type `SESSION` ou `ACTIVITY` ;
 - la date de début ;
 - l’heure ;
 - le mode de répétition ;
@@ -1023,7 +1023,7 @@ Le contrôle de rappel comporte deux options fixes : `Aucun` à gauche et `Perso
 
 La flèche ouvrant le détail du `Rappel` est alignée sur la marge droite du contenu, comme les autres commandes de section. Son pictogramme reste centré dans une boîte visuelle de `24 × 24` et dans une cible tactile d’au moins `48 × 48`.
 
-Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur souhaite plusieurs horaires pour une même Séance, il crée plusieurs Routines distinctes.
+Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur souhaite plusieurs horaires pour une même source, il crée plusieurs Routines distinctes.
 
 ### Validation
 
@@ -1560,7 +1560,7 @@ Cette modale est utilisée lorsqu’une Séance active possède des planificatio
 
 *Modale 4 — Supprimer une planification unique — Figma `1992:5365`*
 
-Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée, la Séance associée et les Exécutions historiques sont conservées.
+Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée ; la source associée et les Exécutions historiques sont conservées.
 
 ![[images/modale-4a-suppression-occurrences.png|260]]
 
