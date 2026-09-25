@@ -396,7 +396,7 @@ Une Activité créée directement dans une Séance ne rejoint pas le catalogue. 
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute avant la Série suivante. Après la dernière Série, la Récupération configurée s’exécute une seule fois ; si elle vaut `0 s`, l’Activité suivante commence immédiatement.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute uniquement entre deux Séries successives. Si l’Activité est bilatérale, la Récupération entre côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après activité n’est ajoutée ; dans une Séance/Parcours, la Récupération après activité appartient à l’occurrence et s’exécute après celle-ci.
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 
