@@ -379,7 +379,7 @@ Lorsqu’une Routine est :
 - créée ;
 - modifiée ;
 - supprimée ;
-- ou supprimée à la suite de l’archivage de sa Séance ;
+- ou supprimée à la suite de l’archivage de sa source ;
 
 les notifications futures correspondantes doivent être recalculées ou supprimées.
 
