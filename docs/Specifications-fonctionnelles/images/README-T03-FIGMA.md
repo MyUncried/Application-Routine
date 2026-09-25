@@ -209,3 +209,7 @@ Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut p
 - `Créer` devient contextuel à chaque Catalogue et ouvre directement la création de l’objet correspondant ;
 - l’écran/arbre intermédiaire des Catalogues est supprimé ;
 - les frames `3787:5148` et `3841:8375` et leurs captures sont conservées comme historiques/supersédées, sans suppression physique.
+
+## Réserve D-208 — récupération
+
+À compter du 25/09/2026, les captures montrant l’ancien modèle de récupération générique attachée à l’Activité ne font plus foi sur cet axe. D-208 impose une récupération entre côtés conditionnelle dans l’éditeur et une ligne `Récupération {durée}` systématique sous chaque occurrence de Composition, y compris `0 s`. Les captures concernées doivent être réexportées après alignement du Figma ; jusqu’alors leur statut visuel est **PARTIELLEMENT CONFORME** sur le seul axe récupération.
