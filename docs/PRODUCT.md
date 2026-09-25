@@ -94,6 +94,7 @@ Le MVP permet de :
 - préserver les copies `SessionActivity` et les Instantanés/Exécutions historiques lorsqu’une définition est supprimée ;
 - ajouter une ou plusieurs Exercices existantes à une Composition par copie indépendante ;
 - exécuter directement une Activité valide depuis son bouton Lecture ;
+- planifier directement une Activité persistante depuis son action `Planifier`, avec le même mécanisme de Routine que pour une Séance ;
 - préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
