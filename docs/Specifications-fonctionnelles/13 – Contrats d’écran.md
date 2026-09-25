@@ -1855,3 +1855,55 @@ Les références Figma courantes utiles aux contrats T03 comprennent notamment :
 Les frames historiques explicitement marquées `HISTORIQUE` dans Figma ne constituent pas des cibles d’implémentation. Les frames `PROPOSITION` ne deviennent une référence active que lorsqu’une décision validée les adopte et que le chapitre 06 les rattache à un écran ou état de production.
 
 Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des écrans, états, modales et leurs copies documentaires ; le présent chapitre porte seulement les contrats déterministes de comportement et de recette.
+
+## CE-MEDIA-EXEC-01 — Bascule Information / Média pendant l’Exécution
+
+### 1. Identification
+
+Conception D-203 ; statut post-MVP à planifier. Évidences Figma :
+- `4997:6015` — Test 2 Exécution d’une séance — Initial — Bascule (info) ;
+- `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média).
+
+### 2. Finalité fonctionnelle
+
+Consulter les médias de l’Exercice en cours sans quitter ni suspendre l’Exécution.
+
+### 3. Conditions d’affichage
+
+Le bouton de changement de face existe uniquement si l’Exercice possède au moins un média. Face Information par défaut au début d’une nouvelle séance.
+
+### 4. Interactions
+
+Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02.
+
+### 5. État
+
+Face et média courant sont mémorisés par Exercice pendant la séance uniquement. Une vidéo ne démarre jamais automatiquement.
+
+### 6. Critères de contrôle
+
+Absence bouton sans média ; ordre galerie ; pagination ; une transition par swipe ; bornes résistantes ; cadrage intégral ; vidéo sans autoplay ; aucune pause du moteur.
+
+---
+
+## CE-MEDIA-EXEC-02 — Média plein écran avec cadre flottant d’Exécution
+
+### 1. Identification
+
+Conception D-203 ; évidence Figma `5009:6069` — Test 2 Exécution d’une séance — Média plein écran.
+
+### 2. Finalité fonctionnelle
+
+Agrandir le média tout en conservant le suivi et les commandes essentielles de l’Exécution.
+
+### 3. Structure fonctionnelle
+
+Le média occupe le plein écran avec ratio conservé. Une couche flottante d’Exécution présente le nom, le côté applicable, le chrono, Série/Tour et les commandes essentielles d’Exécution. La barre média reste distincte et porte Fermer, Lecture/Pause et progression vidéo.
+
+### 4. Comportement
+
+L’orientation suit l’appareil. Le moteur d’Exécution continue. Fermer revient au même média. La fin de l’Exercice ferme automatiquement le plein écran et poursuit la transition normale.
+
+### 5. Audio et erreur
+
+Son vidéo actif par défaut ; ducking pendant les annonces vocales KODJO. Une erreur média reste locale et n’arrête pas l’Exécution.
