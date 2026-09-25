@@ -140,9 +140,9 @@ Une routine ne contient jamais le contenu de sa source. Une même Séance ou une
 Une **Exécution** représente la réalisation effective d’un contenu. Elle porte obligatoirement une origine :
 
 - `SESSION` pour une Séance lancée manuellement ou depuis une Routine ;
-- `ACTIVITY` pour une Activité persistante lancée directement depuis le Catalogue des exercices dans le MVP T03.
+- `ACTIVITY` pour une Activité persistante lancée directement depuis le Catalogue des exercices **ou depuis une Routine**.
 
-Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution `SESSION` peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
+Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution de toute origine peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
 
 Chaque Exécution est indépendante des modifications, archivages ou suppressions ultérieurs de sa source.
 
