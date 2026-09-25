@@ -1,6 +1,6 @@
 > **MISE À JOUR 25/09/2026 — D-208.** Les conclusions antérieures relatives aux Pauses et à la récupération après les deux côtés sont supersédées. Les autres conclusions de bilatéralité restent lisibles sous réserve de D-189 et D-208.
 
-> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Activité bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après exercice appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale reste **À CLARIFIER**.
+> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Activité bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après exercice appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
 # Rapport final de conformité — Bilatéralité
 
