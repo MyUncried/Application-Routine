@@ -24,8 +24,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Création depuis Composition | nouvelle activité = SessionActivity uniquement ; pas save-to-catalogue | 02–04, 06–13 | action future bibliothèque | CONFORME | D-170. |
 | Sélection existante | multi-select, 0 disabled, ordre liste filtrée | 03, 06–13 | ordre touches | CONFORME | D-165/D-171. |
 | Copie vers Séance | copie des propriétés intrinsèques puis initialisation contextuelle de `postActivityRecoverySeconds` | 04, 07 D-208, 09–13 | copie d’une récupération post-activité depuis le Catalogue | CONFORME D-208 | `sideRecoverySeconds` est copié ; la post-récupération vient du défaut global. |
-| Exécution directe | origin ACTIVITY, snapshot, prep 5 s, séries/pauses/côtés, récupération entre côtés éventuelle, **aucune post-récupération**, pas SESSION_END | PRODUCT, 03–13, D-208 | récupération post-activité issue du Catalogue | CONFORME D-208 | D-172 révisée par D-208. |
-| Bilatéralité directe | D-208 : `C−1` Pauses par côté, récupération entre côtés éventuelle, nouvelle formule intrinsèque | PRODUCT, 00, 04, 07–13 | D-156 / récupération après les deux côtés | CONFORME D-208 | Exécution directe sans post-récupération. |
+| Exécution directe | origin ACTIVITY, snapshot, prep 5 s, séries/pauses/côtés, pause au changement de côté éventuelle, **aucune post-récupération**, pas SESSION_END | PRODUCT, 03–13, D-208 | récupération post-activité issue du Catalogue | CONFORME D-208 | D-172 révisée par D-208. |
+| Bilatéralité directe | D-208 : `C−1` Pauses par côté, pause au changement de côté éventuelle, nouvelle formule intrinsèque | PRODUCT, 00, 04, 07–13 | D-156 / récupération après les deux côtés | CONFORME D-208 | Exécution directe sans post-récupération. |
 | Durée totale — métier | Durée inchangée ; Répétitions = estimation avec 1 s/répétition ; À l’échec = non affichée | PRODUCT, 00, 04, 06–10, 13 CE-T03-04 | D-155/D-181 | CONFORME | D-204. |
 | Durée totale — rendu éditeur | mode Durée : inchangé ; Répétitions : `Durée totale >= {estimation}` ; À l’échec : aucune Durée totale | Figma `3561:4695`, `3561:7802`; 06, 07 D-204, PRODUCT, 13 CE-T03-04 | ancien affichage Reps/Échec commun | CONFORME | D-204. |
 | Nom Activité dans éditeur | `Renforcement du genou` = valeur de démonstration ; `Nom de l’activité` = état vide/placeholder | Figma + `3943:6064`; 06, 07, PRODUCT, 13 CE-T03-04 | valeur démo traitée comme statique | CONFORME | Donnée de démonstration interdite en dur. |
@@ -99,4 +99,4 @@ Panneaux ouverts `Filtrer` : **CONFORME**, conçus dans Figma. `Trier` reste vis
 
 ## Mise à jour D-208
 
-Le Catalogue des Exercices ne transporte plus de récupération post-activité dans `ActivityDefinition`. Toute insertion en Séance initialise `postActivityRecoverySeconds` au niveau de l’occurrence. L’Exécution directe peut utiliser `sideRecoverySeconds` en bilatéral mais ne produit jamais de récupération après activité.
+Le Catalogue des Exercices ne transporte plus de récupération post-activité dans `ActivityDefinition`. Toute insertion en Séance initialise `postActivityRecoverySeconds` au niveau de l’occurrence. L’Exécution directe peut utiliser `sideRecoverySeconds` en bilatéral mais ne produit jamais de récupération après exercice.
