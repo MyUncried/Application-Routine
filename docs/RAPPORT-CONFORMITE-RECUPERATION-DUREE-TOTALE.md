@@ -1,5 +1,7 @@
 > **HISTORIQUE — SUPERSEDÉ PAR D-208 (25/09/2026).** Ce rapport atteste l’ancien modèle de récupération générique attachée à l’Activité. Il ne doit plus être utilisé comme état courant pour les axes Pause/Récupération/Durée totale. La source normative courante est D-208 et les chapitres PRODUCT/00–13 mis à jour.
 
+> **ÉTAT COURANT D-208.** Documentation fonctionnelle/technique : **CONFORME** au modèle à trois concepts après propagation du 25/09/2026. Figma : **PARTIELLEMENT CONFORME** sur l’axe récupération et à réaligner. Point **À CLARIFIER** : valeur initiale de `sideRecoverySeconds` lors de l’activation `D→G/G→D`. Les chiffres et formules du rapport ci-dessous sont conservés uniquement comme historique pré-D-208.
+
 # Rapport de conformité final — Activité, Récupération et Durée totale
 
 > **Correspondance de roadmap (D-166)** — Le Catalogue des Exercices constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
