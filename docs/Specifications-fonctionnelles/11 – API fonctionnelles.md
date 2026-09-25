@@ -69,7 +69,7 @@ Les API fonctionnelles respectent les principes suivants :
 |---|---|---|---|---|---|
 |API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, Catégorie, Zones corporelles, mode d’exécution, cible éventuelle, Séries, Pause, `sideRecoverySeconds`, Changement de côté, Compte à rebours propre, Fin d’activité propre|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; `sideRecoverySeconds` n’a de sens qu’en `D→G/G→D`; aucune récupération post-activité sur `ActivityDefinition`|Activité|
 |API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, `sideRecoverySeconds` `S`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée intrinsèque réalisable|Unilatéral : `D=C×A+(C−1)×B`. Bilatéral : `D=2×[C×A+(C−1)×B]+S`. `postActivityRecoverySeconds` est exclu du calcul. L’inversion conserve l’arrondi `.5` vers le haut et le minimum `1`.|Activité, calcul sans entité supplémentaire|
-|API-ACT-03|Définir Pause et récupération entre côtés|ID Activité, durée de Pause, `sideRecoverySeconds`|Activité mise à jour|Pause = `C−1` occurrences par côté ; `sideRecoverySeconds` uniquement en bilatéral et exécuté une fois entre les deux côtés|Activité|
+|API-ACT-03|Définir Pause et pause au changement de côté|ID Activité, durée de Pause, `sideRecoverySeconds`|Activité mise à jour|Pause = `C−1` occurrences par côté ; `sideRecoverySeconds` uniquement en bilatéral et exécuté une fois entre les deux côtés|Activité|
 |API-ACT-04|Lire/afficher les médias associés|ID Activité|Média(s) associé(s) pour l’état déployé de la carte|L’affichage déployé fait partie du MVP ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Activité, Média|
 |API-ACT-05|Associer des zones corporelles|ID Activité, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Activité, nombre de Séries|Activité mise à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Activité|
@@ -328,8 +328,8 @@ Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une trois
 
 | ID | Opération | Entrées | Résultat | Règle |
 | --- | --- | --- | --- | --- |
-| API-COM-REC-01 | Initialiser la récupération après activité | nouvelle occurrence | `postActivityRecoverySeconds` | Valeur issue du défaut global, jamais copiée depuis `ActivityDefinition`. |
-| API-COM-REC-02 | Modifier la récupération après activité | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. |
+| API-COM-REC-01 | Initialiser la récupération après exercice | nouvelle occurrence | `postActivityRecoverySeconds` | Valeur issue du défaut global, jamais copiée depuis `ActivityDefinition`. |
+| API-COM-REC-02 | Modifier la récupération après exercice | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. |
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
 | API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
