@@ -168,3 +168,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **État média de séance** | État transitoire, limité à la séance d’Exécution courante, comprenant notamment la face et le média courant ; il n’est pas une préférence persistante. |
 
 Ces termes décrivent la conception post-MVP définie dans `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+| **Récupération entre côtés** | Durée facultative intrinsèque à une Activité bilatérale, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute une seule fois entre toutes les Séries du premier côté et toutes les Séries du second, et entre dans la durée intrinsèque de l’Activité. |
+| **Récupération après activité** | Durée contextuelle portée par une occurrence d’Activité dans une Séance ou un Parcours via `postActivityRecoverySeconds`. Elle existe toujours, y compris à `0 s`, reste visible dans la Composition et s’exécute après l’occurrence avant de poursuivre la séquence. Elle n’existe pas sur `ActivityDefinition` et n’entre pas dans la durée intrinsèque de l’Activité. |
+| **Pause entre les Séries** | Durée entre deux Séries successives d’un même côté. Pour `C` Séries, elle est exécutée exactement `C − 1` fois, toujours ; elle n’est remplacée par aucune récupération et n’est jamais exécutée après la dernière Série. |
