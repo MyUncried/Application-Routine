@@ -76,15 +76,15 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-043 | Une Routine est la planification d’une Séance ; une Séance peut posséder plusieurs Routines. |
-| RM-044 | Une Routine est unique ou périodique et possède zéro ou un rappel. Elle reprend la couleur de sa Séance et ne possède pas de couleur indépendante. |
+| RM-043 | Une Routine planifie exactement une source `SESSION` ou `ACTIVITY` ; une Séance ou un Exercice persistant peut posséder plusieurs Routines. |
+| RM-044 | Une Routine est unique ou périodique et possède zéro ou un rappel. Elle ne possède pas de couleur indépendante : elle reprend le repère visuel de sa source, couleur d’Étiquette pour une Séance ou couleur de Catégorie pour un Exercice lorsqu’elle existe. |
 | RM-045 | Les vues Jour, Semaine et Mois du Calendrier font partie du MVP ; la vue Jour est la vue initiale. |
 | RM-046 | En vue Semaine, la liste et le sélecteur de jour sont synchronisés : le jour en tête de liste devient le jour sélectionné, et sélectionner un jour positionne sa section en tête. |
 | RM-047 | Pour une Routine périodique, la semaine contenant la date de début est la semaine d’ancrage n°1. Avec une fréquence de N semaines, les occurrences sont générées, dates de début et de fin incluses, pour les jours sélectionnés des semaines correspondantes. |
 | RM-048 | Une occurrence future peut être exécutée en avance depuis l’action contextuelle disponible sur sa carte. Elle n’est ensuite pas reproposée à son horaire initial. |
 | RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. |
-| RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni la Séance ni les Exécutions historiques. |
-| RM-123 | Depuis une occurrence du Calendrier, `Dupliquer` utilise la Routine sous-jacente comme source, crée un brouillon reprenant la même Séance et tous les paramètres de planification, puis ouvre ce brouillon en modification. La nouvelle Routine n’est persistée qu’après validation explicite. |
+| RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni sa source planifiée ni les Exécutions historiques. |
+| RM-123 | Depuis une occurrence du Calendrier, `Dupliquer` utilise la Routine sous-jacente comme source, crée un brouillon reprenant la même source (`SESSION` ou `ACTIVITY`) et tous les paramètres de planification, puis ouvre ce brouillon en modification. La nouvelle Routine n’est persistée qu’après validation explicite. |
 
 ## 6. Notifications et rappels
 
