@@ -727,27 +727,28 @@ Une confirmation est systématiquement demandée.
 La suppression d'une Routine :
 - met fin au calcul de ses occurrences futures ;
 - conserve toutes les occurrences déjà historisées, qu'elles soient `Exécutées` ou `Non exécutées` ;
-- ne supprime jamais la Séance associée ;
+- ne supprime jamais la source associée ;
 - ne supprime jamais les Exécutions déjà enregistrées.
-## 5.8 Relation avec la séance
 
-Une routine référence toujours une seule séance.
-Toute modification apportée à la séance est automatiquement prise en compte par les routines qui lui sont associées.
+## 5.8 Relation avec la source
 
-Les exécutions déjà enregistrées conservent leur propre instantané.
+Une Routine référence toujours une seule source : une Séance (`SESSION`) ou un Exercice persistant (`ACTIVITY`).
+Toute modification apportée à la source est prise en compte par les occurrences futures qui n’ont pas encore démarré.
+
+Les Exécutions déjà enregistrées conservent leur propre Instantané.
 
 ## 5.9 Principes de conception
 
 La planification repose sur les principes suivants :
-- une routine ne contient jamais une copie de la séance ;
-- une routine référence toujours une séance existante ;
-- plusieurs routines peuvent utiliser la même séance ;
+- une Routine ne contient jamais une copie de sa source ;
+- une Routine référence toujours une source active existante ;
+- plusieurs Routines peuvent utiliser la même source ;
 - les occurrences ne sont pas modifiables individuellement dans le MVP ;
-- l'archivage d'une Séance supprime les Routines qui lui sont associées ;
-- la restauration d'une Séance archivée ne recrée ni ne restaure ses anciennes Routines ;
-- la suppression d'une routine ne supprime jamais la séance ;
-- la suppression d'une séance entraîne la suppression des routines qui lui sont associées ;
-- l'historique des exécutions est totalement indépendant des routines.
+- l'archivage d'une Séance **ou d’un Exercice persistant** supprime les Routines futures qui lui sont associées ;
+- la restauration d’une source archivée ne recrée ni ne restaure ses anciennes Routines ;
+- la suppression d'une Routine ne supprime jamais sa source ;
+- la suppression définitive d’une source archivée ne supprime jamais les Exécutions et Instantanés historiques ;
+- l'historique des Exécutions est totalement indépendant des Routines.
 
 
 # 6. Suivi et historique des séances
