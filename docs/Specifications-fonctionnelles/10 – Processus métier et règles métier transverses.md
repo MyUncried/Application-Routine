@@ -76,7 +76,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 | ID | Règle |
 | --- | --- |
-| RM-043 | Une Routine planifie exactement une source `SESSION` ou `ACTIVITY` ; une Séance ou un Exercice persistant peut posséder plusieurs Routines. |
+| RM-043 | Dans le MVP, une Routine planifie exactement une source `SESSION` ou `ACTIVITY` ; une Séance ou un Exercice persistant peut posséder plusieurs Routines. D-207/RM-208 étendent ce même mécanisme au Parcours lorsqu’il devient planifiable. |
 | RM-044 | Une Routine est unique ou périodique et possède zéro ou un rappel. Elle ne possède pas de couleur indépendante : elle reprend le repère visuel de sa source, couleur d’Étiquette pour une Séance ou couleur de Catégorie pour un Exercice lorsqu’elle existe. |
 | RM-045 | Les vues Jour, Semaine et Mois du Calendrier font partie du MVP ; la vue Jour est la vue initiale. |
 | RM-046 | En vue Semaine, la liste et le sélecteur de jour sont synchronisés : le jour en tête de liste devient le jour sélectionné, et sélectionner un jour positionne sa section en tête. |
