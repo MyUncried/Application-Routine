@@ -37,10 +37,10 @@ Le MVP permet à l'utilisateur :
 - Une séance définit le contenu à exécuter.
 - Une routine définit la planification d'une séance.
 - Une exécution de séance conserve le déroulement réel d'une séance exécutée.
-- Une séance peut être exécutée sans être planifiée.
-- Une séance peut être associée à plusieurs routines.
-- La modification d'une séance ou d'une routine n'altère jamais les exécutions déjà enregistrées.
-- La suppression d'une routine ne supprime jamais la séance associée ni les exécutions déjà enregistrées.
+- Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
+- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
+- La modification de la source planifiée ou d'une Routine n'altère jamais les Exécutions déjà enregistrées.
+- La suppression d'une Routine ne supprime jamais sa source associée ni les Exécutions déjà enregistrées.
 - Les données du MVP sont conservées localement sur l'appareil de l'utilisateur.
 ## Limites du MVP
 
@@ -243,9 +243,9 @@ Les exécutions déjà réalisées sont conservées.
 Les Exécutions historiques restent conservées après suppression.
 ## Points d'attention
 
-- Une routine ne modifie jamais le contenu d'une séance.
-- Une séance peut être associée à plusieurs routines.
-- La suppression d'une routine ne supprime jamais la séance.
+- Une Routine ne modifie jamais le contenu de sa source.
+- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
+- La suppression d'une Routine ne supprime jamais sa source.
 - Les exécutions déjà réalisées sont toujours conservées.
 - L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Cette suppression ne demande une confirmation que lorsqu’au moins une Routine est effectivement associée ; sans Routine associée, l’archivage est immédiat et un snackbar `Séance archivée` avec `Annuler` permet de revenir sur l’action. Après une confirmation ayant entraîné la suppression de Routines, aucun snackbar d’annulation n’est affiché. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
 ## Résultat attendu
