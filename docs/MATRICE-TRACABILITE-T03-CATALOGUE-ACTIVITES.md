@@ -26,8 +26,8 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | Copie vers Séance | copie complète puis indépendance | 04, 07, 09–13 | lien dynamique | CONFORME | D-171. |
 | Exécution directe | origin ACTIVITY, snapshot, prep 5 s, séries/pauses/côtés/recovery, pas SESSION_END | PRODUCT, 03–13 | Exécution V2 / Session artificielle | CONFORME | D-172, frontière T03/T04 explicite. |
 | Bilatéralité directe | réutilise strictement D-143–D-156 | PRODUCT, 00, 04, 07–13 | nouvelle formule | CONFORME | Aucun nouveau calcul. |
-| Durée totale — métier | visible 3 modes ; Reps/Échec = borne `≥ durée connue` | PRODUCT, 00, 04, 06–10, 13 CE-T03-04 | RM-132/CAL anciens | CONFORME | D-155/D-181. |
-| Durée totale — rendu éditeur | mode Durée : `Durée totale`; Reps/Échec : contrôle `Durée totale >=`; Synthèse : `Durée totale : ≥ {durée connue}` | Figma `3561:4695`, `3561:7673`, `3561:7802`; 06, 07 D-181, PRODUCT, 13 CE-T03-04 | contrôle générique sans distinction | CONFORME | Distinction contrôle UI court / Synthèse explicitée. |
+| Durée totale — métier | Durée inchangée ; Répétitions = estimation avec 1 s/répétition ; À l’échec = non affichée | PRODUCT, 00, 04, 06–10, 13 CE-T03-04 | D-155/D-181 | CONFORME | D-204. |
+| Durée totale — rendu éditeur | mode Durée : inchangé ; Répétitions : `Durée totale >= {estimation}` ; À l’échec : aucune Durée totale | Figma `3561:4695`, `3561:7802`; 06, 07 D-204, PRODUCT, 13 CE-T03-04 | ancien affichage Reps/Échec commun | CONFORME | D-204. |
 | Nom Activité dans éditeur | `Renforcement du genou` = valeur de démonstration ; `Nom de l’activité` = état vide/placeholder | Figma + `3943:6064`; 06, 07, PRODUCT, 13 CE-T03-04 | valeur démo traitée comme statique | CONFORME | Donnée de démonstration interdite en dur. |
 | Éditeur Activité — Synthèse | nom gras dans Synthèse uniquement ; pas direction développée carte Composition | 00, 06–08, 13 CE-T03-04/08 | anciennes variantes | CONFORME | D-182. |
 | Roulette ouverte | scrim ; CTA visuellement normal mais fonctionnel/accessibilité disabled | 06–10, 13 CE-T03-04/08 | CTA actif / style disabled divergent | CONFORME | D-174. |
