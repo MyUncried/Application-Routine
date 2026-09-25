@@ -4,7 +4,7 @@
 
 ### Objectif
 
-Permettre à un utilisateur de créer une séance structurée, la planifier si nécessaire, l’exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
+Permettre à un utilisateur de créer des Séances structurées et des Exercices persistants, **planifier directement l’un ou l’autre**, les exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
 
 ### Fonctionnalités
 
