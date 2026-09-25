@@ -1921,3 +1921,7 @@ La même règle s’applique aux Séances avec une source `SESSION`. Lorsqu’un
 ### Parcours de planification
 
 Le même contrat fonctionnel de planification sert aux deux sources. Lorsque le parcours est ouvert depuis le Calendrier, l’utilisateur choisit une Séance ou un Exercice persistant. Lorsqu’il est ouvert depuis une carte de Catalogue, la source est préremplie. Les frames Figma actuellement nommées `Planifier une séance` documentent la variante Séance ; l’état équivalent pour un Exercice reste à matérialiser visuellement sans créer un second parcours fonctionnel.
+
+## Complément D-207 — Parcours planifiable
+
+Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, applique la même convention que les deux autres Catalogues : action `Planifier`, ouverture du parcours commun avec la source préremplie et affichage conditionnel de la prochaine planification lorsqu’une occurrence future existe. Tant que la planification des Parcours n’est pas livrée, ces contrôles restent absents ou explicitement désactivés conformément à la roadmap.
