@@ -282,7 +282,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 ### 5. Données affichées et source de vérité
 
-Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Récupération affichée seulement si présente sur la définition.
+Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-activité, car elle n’existe pas sur `ActivityDefinition`; seule la récupération entre côtés éventuelle relève de la définition.
 
 ### 6. Classification des valeurs Figma
 
@@ -502,7 +502,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupération ≥0 ; FAILURE sans cible chiffrée ; calculs D-155/D-156. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation et ne modifie pas l’historique.
+Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-204/D-208. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation et ne modifie pas l’historique.
 
 ### 15. Brouillon et persistance
 
@@ -1925,3 +1925,26 @@ Le même contrat fonctionnel de planification sert aux deux sources. Lorsque le 
 ## Complément D-207 — Parcours planifiable
 
 Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, applique la même convention que les deux autres Catalogues : action `Planifier`, ouverture du parcours commun avec la source préremplie et affichage conditionnel de la prochaine planification lorsqu’une occurrence future existe. Tant que la planification des Parcours n’est pas livrée, ces contrôles restent absents ou explicitement désactivés conformément à la roadmap.
+
+## Complément D-208 — contrats Récupération
+
+### Éditeur Exercice
+- Le contrôle visible est `Récupération entre côtés`.
+- Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
+- La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-activité.
+- **À CLARIFIER :** valeur initiale lors de l’activation bilatérale.
+
+### Composition
+- Chaque occurrence affiche une ligne `Récupération {durée}`, y compris `0 s`.
+- Tap sur la durée → roulette basse de modification.
+- La ligne suit déplacement, duplication et suppression.
+- La dernière Activité du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
+- La dernière Activité de Séance conserve cette ligne avant la Fin de séance.
+
+### Exécution directe
+- Aucun état de récupération post-activité.
+- Si bilatéral, la récupération entre côtés éventuelle intervient entre les deux passages.
+
+### Exécution de Séance
+- Distinguer explicitement récupération entre côtés et récupération après occurrence.
+- La récupération post-activité est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Activité du Tour.
