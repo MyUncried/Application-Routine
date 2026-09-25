@@ -35,7 +35,7 @@ Le MVP permet à l'utilisateur :
 ## Principes communs
 
 - Une Séance ou un Exercice persistant définit un contenu pouvant être exécuté directement.
-- Une Routine définit la planification d’une source `SESSION` ou `ACTIVITY`.
+- Dans le MVP, une Routine définit la planification d’une source `SESSION` ou `ACTIVITY` ; la même logique s’étend au Parcours lorsqu’il devient planifiable.
 - Une Exécution conserve le déroulement réel de la source exécutée.
 - Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
 - Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
