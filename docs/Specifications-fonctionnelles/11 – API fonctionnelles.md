@@ -309,3 +309,12 @@ Les services d’exécution communs acceptent une origine discriminante `SESSION
 | `API-COMP-SEL-01` | IDs d’Exercices ordonnés selon la liste visible, position d’insertion | Références de composition créées | Conserve strictement l’ordre fourni ; aucune modification des définitions persistantes sources. |
 | `API-COMP-SEL-02` | Sélection vide | Aucune écriture | L’action de validation reste désactivée. |
 | `API-COMP-SEL-03` | Erreur pendant la copie groupée | Erreur fonctionnelle, Composition inchangée | L’insertion est atomique ; aucun sous-ensemble ne reste inséré. |
+
+## Contrat fonctionnel futur — médias pendant l’Exécution
+
+D-203 n’ajoute aucun endpoint MVP immédiatement. La future capacité d’Exécution média devra néanmoins fournir au client, pour l’Exercice courant :
+- la liste ordonnée des médias accessibles ;
+- le type de chaque média et les informations nécessaires à son rendu / sa lecture ;
+- la capacité à signaler un média indisponible sans bloquer la liste.
+
+La face courante, l’index de galerie et l’état de lecture sont des états de session UI et ne nécessitent pas de persistance API durable. Aucun contrat de nommage d’endpoint supplémentaire n’est arrêté par cette conception.
