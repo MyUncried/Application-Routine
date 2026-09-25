@@ -1099,8 +1099,8 @@ Création → Modification → Suppression
 
 ### Règles métier
 
-- Une routine est créée à partir d'une séance existante.
-- La suppression d'une routine ne supprime jamais la séance ni les exécutions.
+- Une Routine est créée à partir d’une source active existante, de type `SESSION` ou `ACTIVITY`.
+- La suppression d’une Routine ne supprime jamais sa source ni les Exécutions.
 
 ## Cycle de vie d’une Exécution
 
@@ -1108,7 +1108,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 ### Règles métier
 
-- Une Exécution est créée au démarrage effectif d’une Séance ou, dans le MVP T03, d’une Activité persistante depuis le Catalogue des Exercices.
+- Une Exécution est créée au démarrage effectif d’une Séance ou d’une Activité persistante, depuis son Catalogue ou depuis une occurrence planifiée de Routine.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
