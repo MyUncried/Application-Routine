@@ -184,7 +184,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### V1 (MVP)
 - Gestion des séances actives et archivées.
-- Gestion des routines de planification.
+- Gestion des Routines de planification pour les Séances **et les Exercices persistants**.
 
 ## Répartition validée — 6 septembre 2026
 
