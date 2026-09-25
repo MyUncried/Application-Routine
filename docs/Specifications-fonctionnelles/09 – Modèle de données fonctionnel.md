@@ -61,7 +61,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-activité est contextuelle à l’occurrence. | D-208 |
-| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La récupération entre côtés et la récupération après activité sont deux durées distinctes ; aucune n’est une Activité technique. | D-208 |
+| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La pause au changement de côté et la récupération après exercice sont deux durées distinctes ; aucune n’est une Activité technique. | D-208 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -554,7 +554,7 @@ Elle ne contient pas directement :
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
 | Nombre de Séries           | Entier canonique persisté                       |        Obligatoire        | Valeur de 1 à 99 ; valeur par défaut 1                                        |
 | Pause entre Séries         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; insérée `nombreDeSéries − 1` fois                     |
-| Récupération entre côtés   | Durée                                           |        Conditionnel       | `sideRecoverySeconds`; pertinente uniquement en bilatéral, phase `SIDE_RECOVERY` si > 0 |
+| Pause au changement de côté   | Durée                                           |        Conditionnel       | `sideRecoverySeconds`; pertinente uniquement en bilatéral, phase `SIDE_RECOVERY` si > 0 |
 | Durée totale               | Durée dérivée                                   |          Calculé          | Non persistée ; disponible uniquement en mode Durée                            |
 | Zones corporelles          | Zones sollicitées                               |        Facultatif         | Zéro à plusieurs                                                              |
 | Médias                     | Média(s) associé(s)                             |        Selon périmètre    | Affichage du média associé dans la carte Catalogue déployée inclus au MVP       |
@@ -745,8 +745,8 @@ Chaque occurrence d’Activité parcourue pendant une Exécution produit un **R�
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Activité | Obligatoire | Chronométré pour les modes Durée, Répétitions et À l’échec |
-| Récupération entre côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
-| Récupération après activité prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
+| Pause au changement de côté prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
+| Récupération après exercice prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
 
 Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Exercices exécutées** et les indicateurs de Suivi.
 
@@ -838,7 +838,7 @@ Elles ne contiennent pas directement :
 | Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
 | Durée par défaut d'une activité Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
-| Récupération après activité par défaut              | Valeur globale utilisée pour initialiser `postActivityRecoverySeconds` lors de la création d’une occurrence | Facultatif | Création de l’occurrence uniquement ; une modification ultérieure ne change pas les occurrences existantes |
+| Récupération après exercice par défaut              | Valeur globale utilisée pour initialiser `postActivityRecoverySeconds` lors de la création d’une occurrence | Facultatif | Création de l’occurrence uniquement ; une modification ultérieure ne change pas les occurrences existantes |
 | Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'une Activité                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
@@ -1210,4 +1210,4 @@ Toute `SessionActivity` porte `postActivityRecoverySeconds`, valeur numérique n
 
 ### Plan d’Exécution
 
-Le plan distingue au minimum la phase de récupération entre côtés de la phase de récupération après occurrence. Une Exécution `ACTIVITY` directe ne génère jamais de phase post-activité. Une Exécution `SESSION` génère la récupération après chaque occurrence, y compris à chaque répétition de Tour et avant `SESSION_END` pour la dernière occurrence.
+Le plan distingue au minimum la phase de pause au changement de côté de la phase de récupération après occurrence. Une Exécution `ACTIVITY` directe ne génère jamais de phase post-activité. Une Exécution `SESSION` génère la récupération après chaque occurrence, y compris à chaque répétition de Tour et avant `SESSION_END` pour la dernière occurrence.
