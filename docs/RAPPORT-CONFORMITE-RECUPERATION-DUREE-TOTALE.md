@@ -1,3 +1,5 @@
+> **HISTORIQUE — SUPERSEDÉ PAR D-208 (25/09/2026).** Ce rapport atteste l’ancien modèle de récupération générique attachée à l’Activité. Il ne doit plus être utilisé comme état courant pour les axes Pause/Récupération/Durée totale. La source normative courante est D-208 et les chapitres PRODUCT/00–13 mis à jour.
+
 # Rapport de conformité final — Activité, Récupération et Durée totale
 
 > **Correspondance de roadmap (D-166)** — Le Catalogue des Exercices constitue désormais T03 du MVP. Toute référence au moteur d’Exécution dans ce livrable est portée par T04, anciennement T03. L’ancienne T04 et les tranches suivantes sont décalées à partir de T05.
