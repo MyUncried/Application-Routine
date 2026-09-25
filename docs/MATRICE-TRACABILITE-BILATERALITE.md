@@ -18,14 +18,14 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-008 | Phases structurelles et Récupérations sans réglage propre | 00, 08, 09, 10 | CONFORME |
 | BIL-009 | Zones corporelles non latéralisées | 00, 02, 06 | CONFORME |
 | BIL-010 | Activité : toutes les Séries du premier côté puis du second | 03, 07 D-144, 08 | CONFORME |
-| BIL-011 | Pour `C` Séries d’un même côté : `C` Pauses si `R = 0`, sinon `C − 1`; aucune Pause supplémentaire propre au changement de côté | PRODUCT, 00, 06–11, D-156 | CONFORME |
+| BIL-011 | Pour `C` Séries d’un même côté : toujours `C − 1` Pauses, uniquement entre Séries successives | PRODUCT, 00, 04, 06–11, D-208 | CONFORME D-208 |
 | BIL-012 | Aucune Pause ajoutée entre côtés | 06, 07 D-144, 10 | CONFORME |
-| BIL-013 | Récupération d’Activité une fois après les deux côtés | 00, 06, 08, 10 | CONFORME |
+| BIL-013 | Récupération entre côtés éventuelle une fois entre le premier et le second côté | 00, 04, 06, 08–10, D-208 | CONFORME D-208 |
 | BIL-014 | Nombre de Séries interprété par côté | 00, 06, 08, 10 | CONFORME |
 | BIL-015 | Durée totale globale aux deux côtés | INDEX, 00, 06, 08 | CONFORME |
-| BIL-016 | Multiplicateur `L = 2` en bilatéral | INDEX, 06, 08–13 | CONFORME |
-| BIL-017 | Séries pilotes : recalcul bilatéral de D | 06, 08–13 | CONFORME |
-| BIL-018 | Durée totale pilote : cible globale | 06, 08, 10, 11, 13 | CONFORME |
+| BIL-016 | Durée intrinsèque bilatérale = `2×[C×A+(C−1)×B]+S` | PRODUCT, 04, 08–13, D-208 | CONFORME D-208 |
+| BIL-017 | Séries pilotes : recalcul bilatéral avec `S=sideRecoverySeconds` et sans post-récupération | 06, 08–13 | CONFORME D-208 |
+| BIL-018 | Durée totale pilote : cible intrinsèque de l’Activité, post-récupération exclue | 06, 08, 10, 11, 13 | CONFORME D-208 |
 | BIL-019 | Arrondi au plus proche, `.5` vers le haut, minimum 1 | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-020 | Après arrondi, recalcul de D réalisable | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-021 | Tour bilatéral exposé | D-189 | SUPERSÉDÉ |
@@ -94,3 +94,6 @@ Pour une Activité autonome en mode Durée :
 
 Historique : l’ancien modèle permettait au Tour de porter la direction. Depuis D-189, cette capacité n’est plus exposée ; la direction active est portée par l’Activité.
 
+## Mise à jour D-208 — récupération et bilatéralité
+
+D-208 supersède D-156 sur les Pauses et remplace la récupération après les deux côtés par une récupération **entre** les côtés. La récupération après activité appartient à l’occurrence de Séance/Parcours et ne participe pas au calcul intrinsèque de bilatéralité.
