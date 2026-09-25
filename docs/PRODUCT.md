@@ -132,7 +132,7 @@ Le contrôle utilisateur `Changement de côté` d’une Activité propose `Aucun
 
 Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause avec `Aucun`. Le nom de l’Activité est en gras dans cette Synthèse.
 
-Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
+Dans le texte éditable des paramètres d’exécution, l’affichage de la `Durée totale` dépend du mode. En mode Durée, la règle existante reste inchangée. En mode Répétitions, afficher `Durée totale >= {estimation}` ; l’estimation attribue conventionnellement **1 seconde à chaque répétition** et conserve les règles existantes de Séries, Pause, Récupération et bilatéralité : `D_est = L × [C × N + P(C,R) × B] + R`, avec `N` le nombre de répétitions par Série interprété en secondes conventionnelles, `P(C,R)=C` si `R=0`, sinon `C−1`. En mode À l’échec, la `Durée totale` n’est pas affichée dans le texte éditable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -406,7 +406,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
-- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
+- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’activité` ; dans le texte éditable, Répétitions affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition, tandis que À l’échec n’affiche pas de Durée totale.
 
 ### Médias et Parcours
 
