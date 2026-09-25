@@ -32,7 +32,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 
 ## Utilisateur prioritaire du MVP
 
-Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie ses Séances, les exécute et consulte leur historique sur son appareil.
+Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie directement ses Séances **ou ses Exercices**, les exécute et consulte leur historique sur son appareil.
 
 Il fonctionne :
 
@@ -51,7 +51,7 @@ Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues`
 
 ### Catalogue des exercices — T03
 
-T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Parcours` reste visible mais désactivé.
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` reste visible mais désactivé.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
