@@ -84,15 +84,20 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 
 ## Formules canoniques
 
-Pour une Activité autonome en mode Durée :
+Pour une Activité autonome en mode Durée, D-208 fixe :
 
-- `L = 1` pour `UNILATERAL`, `L = 2` pour `RIGHT_LEFT` ou `LEFT_RIGHT` ;
-- `P(C,R) = C` si `R = 0`, sinon `P(C,R) = C − 1` ;
-- `D = L × [C × A + P(C,R) × B] + R` ;
-- si `R = 0`, `Cth = D / [L × (A + B)]` ; si `R > 0`, `Cth = ((D − R) / L + B) / (A + B)` ;
+- `C` = nombre de Séries par côté ;
+- `A` = durée cible d’une Série ;
+- `B` = Pause entre Séries ;
+- `L = 1` en unilatéral et `L = 2` en bilatéral ;
+- `S = 0` en unilatéral et `S = sideRecoverySeconds` en bilatéral ;
+- `D = L × [C × A + (C − 1) × B] + S` ;
+- si la Durée totale pilote : `Cth = ((D − S) / L + B) / (A + B)` ;
 - arrondi au plus proche, `.5` vers le haut, minimum `1`, puis recalcul de `D`.
 
-Historique : l’ancien modèle permettait au Tour de porter la direction. Depuis D-189, cette capacité n’est plus exposée ; la direction active est portée par l’Activité.
+`postActivityRecoverySeconds` est exclu de la durée intrinsèque. En mode Répétitions, la même structure est utilisée pour l’estimation en remplaçant `A` par `N`, nombre de répétitions par Série interprété conventionnellement en secondes.
+
+Historique : l’ancien modèle permettait au Tour de porter la direction. Depuis D-189, cette capacité n’est plus exposée ; la direction active est portée par l’Activité. L’ancienne formule `P(C,R)` est supersédée par D-208.
 
 ## Mise à jour D-208 — récupération et bilatéralité
 
