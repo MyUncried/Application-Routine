@@ -1859,3 +1859,14 @@ Les points suivants ont été résolus depuis ce contrôle : la modale d’aband
 
 1. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). L’état « parcours vide » n’est donc pas visuellement distinguable dans le Figma courant.
 
+## États Figma — conception média pendant l’Exécution
+
+> **Statut roadmap : conception post-MVP à planifier.** Ces frames sont des évidences visuelles de la cible et ne requalifient pas le périmètre MVP courant.
+
+| État | Node Figma | Conséquence fonctionnelle |
+| --- | --- | --- |
+| Test 2 Exécution d’une séance — Initial — Bascule (info) | `4997:6015` | Face Information ; bouton de changement de face lorsque des médias existent. |
+| Test 2 Exécution d’une séance — Initial — Bascule (média) | `4997:6113` | Face Média ; un média à la fois ; bouton de retour ; pagination de galerie. |
+| Test 2 Exécution d’une séance — Média plein écran | `5009:6069` | Média plein écran avec contrôles média distincts et cadre flottant d’Exécution. |
+
+La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
