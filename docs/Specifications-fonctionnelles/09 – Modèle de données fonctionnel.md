@@ -66,7 +66,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
 | DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine référence exactement une source `SESSION` ou `ACTIVITY`. | MVP — D-206 |
-| DM-007 | Une exécution crée automatiquement un instantané fonctionnel immuable et allégé de la séance.                                                                                                                                       | V1             |
+| DM-007 | Une Exécution crée automatiquement un Instantané fonctionnel immuable et allégé de sa source (`SESSION` ou `ACTIVITY`).                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
@@ -686,13 +686,13 @@ Contient notamment :
 
 ## Règles métier
 
-- Une exécution est créée uniquement au démarrage d'une séance.
-- Elle référence une seule séance.
-- Elle peut référencer une routine.
-- Un Instantané de séance est créé automatiquement au démarrage effectif de l’Exécution.
+- Une Exécution est créée au démarrage effectif d’une source `SESSION` ou `ACTIVITY`.
+- Elle référence exactement une source persistante selon son origine lorsqu’elle existe encore.
+- Elle peut référencer la Routine qui a déclenché son occurrence, quelle que soit son origine.
+- Un Instantané de source est créé automatiquement au démarrage effectif de l’Exécution.
 - L’Instantané est immuable après sa création.
-- Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur l’Instantané.
-- L’Exécution conserve la référence à la Séance source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
+- Toute modification, archivage ou suppression ultérieure de la source est sans effet sur l’Instantané.
+- L’Exécution conserve la référence à sa source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
 - Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
@@ -989,8 +989,8 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies `Dans Tour` appartiennent au Tour pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
-- Toute routine référence une seule séance.
-- Toute exécution de séance référence une seule séance.
+- Toute Routine référence exactement une source `SESSION` ou `ACTIVITY`.
+- Toute Exécution référence exactement une source selon son origine.
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
 - Une Séance référence au plus une Étiquette ; une Activité référence au plus une Catégorie.
 - La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’une Activité dérive uniquement de sa Catégorie.
