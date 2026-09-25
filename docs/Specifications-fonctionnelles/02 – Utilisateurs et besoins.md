@@ -59,10 +59,10 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 
-#### Planifier une Séance
+#### Planifier une Séance ou un Exercice
 
 - Visualiser le Calendrier en vues Jour, Semaine et Mois.
-- Créer une planification unique ou périodique.
+- Créer une planification unique ou périodique pour une Séance ou une Activité persistante du Catalogue des exercices.
 - Définir la date, l’heure, la fréquence, les jours concernés et la date de fin selon le type de planification.
 - Configurer zéro ou un rappel.
 - N’être sollicité pour l’autorisation système des notifications qu’au moment de la première activation d’un rappel.
