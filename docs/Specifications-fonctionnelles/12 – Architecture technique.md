@@ -1352,3 +1352,13 @@ La conception D-203 impose des propriétés techniques observables sans imposer 
 - une erreur de chargement média reste confinée au média concerné.
 
 Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.
+
+## 12.35 Source polymorphe des Routines — D-206
+
+La persistance des Routines doit représenter une **source discriminée** : `SESSION` ou `ACTIVITY`, avec exactement un identifiant de source associé. Le choix physique des colonnes reste technique, mais le modèle ne doit pas dupliquer deux moteurs de planification distincts.
+
+Les services de calcul d’occurrences, rappels locaux, prochaine occurrence et historique d’occurrence consomment cette source générique. Au démarrage depuis une occurrence :
+- une source `SESSION` crée une Exécution d’origine `SESSION` et son Instantané de Séance ;
+- une source `ACTIVITY` crée une Exécution d’origine `ACTIVITY` et son Instantané autonome d’Exercice.
+
+La suppression ou l’archivage de la source doit arrêter ses occurrences futures selon les règles métier, sans supprimer les Exécutions ni Instantanés historiques. Les noms physiques de champs et migrations seront définis au développement ; l’exigence produit est l’unicité de la source et l’absence de second système de planification propre aux Exercices.
