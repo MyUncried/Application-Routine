@@ -22,7 +22,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Plusieurs outils sont nécessaires pour organiser, planifier, chronométrer et suivre une séance.
 - Il est difficile de respecter un ordre d’exécution, des durées, des répétitions, des Séries et des temps de récupération.
 - Pendant une activité, l’utilisateur ne peut pas toujours regarder l’écran.
-- Les séances planifiées peuvent être oubliées.
+- Les contenus planifiés, Séances comme Exercices, peuvent être oubliés.
 - L’utilisateur dispose de peu de visibilité sur ce qu’il a réellement exécuté.
 - Une modification de la Séance peut rendre son historique difficile à comprendre.
 
