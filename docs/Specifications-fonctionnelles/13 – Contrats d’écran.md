@@ -1912,11 +1912,11 @@ Son vidéo actif par défaut ; ducking pendant les annonces vocales KODJO. Une e
 
 ### Catalogue des Exercices
 
-Une carte d’Exercice active expose l’action `Planifier` au même niveau fonctionnel qu’une carte de Séance. Cette action ouvre le parcours de planification avec l’Exercice prérempli comme source `ACTIVITY`. La carte peut afficher la **prochaine planification** lorsqu’au moins une occurrence future existe ; aucune ligne ni réserve d’espace n’est affichée en son absence.
+Une carte d’Exercice active expose l’action `Planifier` au même niveau fonctionnel qu’une carte de Séance. Cette action ouvre le parcours de planification avec l’Exercice prérempli comme source `ACTIVITY`. La carte affiche la **prochaine planification** lorsqu’au moins une occurrence future existe ; aucune ligne ni réserve d’espace n’est affichée en son absence.
 
 ### Catalogue des Séances
 
-La même règle s’applique aux Séances avec une source `SESSION`. La prochaine planification est conditionnelle et suit la même hiérarchie typographique et le même emplacement relatif que sur une carte d’Exercice.
+La même règle s’applique aux Séances avec une source `SESSION`. Lorsqu’une occurrence future existe, la carte affiche la plus proche comme **prochaine planification** ; elle est absente sinon. Cette ligne suit la même hiérarchie typographique et le même emplacement relatif dans les deux Catalogues.
 
 ### Parcours de planification
 
