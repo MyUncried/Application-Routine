@@ -59,8 +59,8 @@ Le guidage sonore doit, dans la mesure permise par le système d’exploitation,
 Toutes les données sont enregistrées uniquement sur l’appareil.
 
 La V1 permet également :
-- de créer une routine ;
-- d'associer une séance à une routine ;
+- de créer une Routine ;
+- d'associer une Séance **ou un Exercice persistant** à une Routine ;
 - de définir une planification `Aucune` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
 - d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
