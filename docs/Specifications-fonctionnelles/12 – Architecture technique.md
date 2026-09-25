@@ -287,8 +287,9 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
-- l’insertion d’une étape `SERIES_PAUSE` après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- l’insertion d’une étape `RECOVERY` après tous les côtés de l’Activité lorsque sa durée est positive ;
+- l’insertion d’une étape `SERIES_PAUSE` uniquement entre Séries successives, donc `C−1` fois par côté ;
+- l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
+- l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -299,7 +300,7 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -1366,3 +1367,13 @@ La suppression ou l’archivage de la source doit arrêter ses occurrences futur
 ## 12.36 Extensibilité de la source Routine — Parcours
 
 Le discriminateur de source de Routine doit rester extensible. L’implémentation MVP couvre `SESSION` et `ACTIVITY`; la version qui livre la planification des Parcours ajoute `CIRCUIT` comme troisième valeur technique. Cette extension doit réutiliser le même stockage de Routine, le même calcul d’occurrences, le même ordonnanceur de rappels et les mêmes services de Calendrier. Aucun schéma ou moteur parallèle dédié aux Parcours ne doit être introduit.
+
+## 12.37 Schéma cible des récupérations — D-208
+
+Le champ historique générique `recovery_seconds` ne constitue plus le schéma cible. La persistance cible sépare :
+- `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
+- `SessionActivity.post_activity_recovery_seconds` — récupération contextuelle après occurrence, valeur obligatoire pouvant être `0`.
+
+Le même principe s’applique aux occurrences d’Activité d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
+
+Le moteur ne déduit jamais une récupération post-activité à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-activité et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
