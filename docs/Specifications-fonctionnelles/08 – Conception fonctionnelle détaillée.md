@@ -145,15 +145,13 @@ Au démarrage de l'exécution, un instantané fonctionnel de la séance est enre
 
 Cet instantané est utilisé pour garantir la cohérence de l'historique, même si la séance est ensuite modifiée.
 
-## 2.7 Planification d'une séance
+## 2.7 Planification d’un contenu
 
-Une séance peut être associée à aucune, une ou plusieurs routines.
+Une Séance **ou une Activité persistante** peut être associée à zéro, une ou plusieurs Routines.
 
-Chaque routine possède sa propre planification.
+Chaque Routine possède sa propre planification et référence exactement une source de type `SESSION` ou `ACTIVITY`.
 
-La suppression d'une routine n'a aucun effet sur la séance.
-
-La modification de la séance est automatiquement prise en compte par toutes les routines qui y sont associées.
+La suppression d'une Routine n'a aucun effet sur sa source. La modification de la source est prise en compte par les occurrences futures ; au démarrage d’une Exécution, un Instantané immuable de la source est créé.
 
 ## 2.8 Historique
 
@@ -1131,15 +1129,15 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 - Une routine ne possède pas de couleur propre.
 - La modification de la couleur de la Séance est immédiatement reflétée par toutes les Routines existantes qui lui sont associées, celles-ci héritant de la couleur de la Séance.
 
-## Planifier une séance
+## Planifier une Séance ou un Exercice
 
 Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le `Nombre de semaines` utilise `Type=Numeric wheel` (`144 × 203`) à une seule colonne. Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
 
 ### Règles liées à la couleur
 
-- La routine reprend automatiquement la couleur de la séance associée.
+- La Routine reprend le repère visuel de sa source : couleur d’Étiquette pour une Séance ; couleur de Catégorie pour un Exercice lorsqu’elle existe.
 - Le champ couleur n’est pas affiché dans l’écran de planification.
-- La couleur ne peut être modifiée que depuis la séance.
+- La couleur n’est jamais modifiée depuis la planification ; elle provient de la source.
 
 ## Suivi - Vue d'ensemble
 
