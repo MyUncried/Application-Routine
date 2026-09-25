@@ -1878,3 +1878,7 @@ Une Séance et un Exercice persistant sont tous deux planifiables directement. L
 ### Prochaine planification dans les Catalogues — D-206
 
 Les cartes des Catalogues `Séances` et `Exercices` appliquent la même règle : si la source possède au moins une occurrence future calculée, la carte affiche la **plus proche** comme `prochaine planification`. Si aucune occurrence future n’existe, cette ligne est entièrement absente et aucun espace n’est réservé. Cette information n’est pas une différence de structure entre les deux Catalogues ; seule la nature de la source (`SESSION` ou `ACTIVITY`) diffère.
+
+### Extension future du parcours de planification — Parcours
+
+Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours reste désactivée tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
