@@ -15,12 +15,12 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | CON-01 | Deux types d’Activité imposaient Exercice et Récupération. | Supprimer ce typage. | PRODUCT Activité ; 00 Activité ; 04 Activité ; 09 §09.5 | Aucun type `Exercice`/`Récupération`. | `3542:4656` | Corrigé | 09 §09.5 : « aucun type d’Activité ». |
 | CON-02 | Le contrôle de type restait visible. | Le retirer de l’écran. | 06 Écran 4 ; 08 Activité ; 13 CE-T01-13 | Aucun titre ni segmented de type. | `3542:4656` | Corrigé | 13 CE-T01-13 : « ne contient plus… Type d’activité ». |
-| CON-03 | La Récupération était une carte autonome. | La rattacher à l’Activité. | PRODUCT ; 04 ; 09 §09.5 | Durée facultative de l’Activité. | `3572:64` | Corrigé | 04 : Récupération attachée après toutes les Séries. |
-| CON-04 | La Récupération pouvait être confondue avec la Pause. | Conserver deux paramètres distincts. | 00 ; 04 ; 10 §4 | Pause entre Séries ; Récupération après toutes les Séries. | `3542:4656` | Corrigé | 10 RM-034 à RM-038. |
+| CON-03 | Ancienne récupération générique attachée à l’Activité. | Distinguer `sideRecoverySeconds` et `postActivityRecoverySeconds`. | D-208 ; PRODUCT ; 04 ; 09 | Intrinsèque entre côtés vs contextuelle après occurrence. | anciennes frames récupération | **SUPERSÉDÉ D-208** | L’ancien bloc générique n’est plus normatif. |
+| CON-04 | Pause et récupération générique étaient distinguées en deux concepts. | Distinguer désormais trois concepts. | D-208 ; 00 ; 04 ; 10 | Pause ; récupération entre côtés ; récupération après activité. | — | **CONFORME D-208** | Trois porteurs/sémantiques distincts. |
 | CON-05 | La Pause pouvait être supprimée par erreur. | La conserver. | PRODUCT ; 06 Écran 4 ; 10 §4 | Pause disponible dans les trois modes. | Frames Activité | Corrigé | 06 : première rangée `Séries / cible / Pause`. |
-| CON-06 | La règle de Pause après la dernière Série était contradictoire. | Conserver la recette validée : `C` Pauses si `R = 0`, sinon `C − 1`, la Récupération remplaçant la dernière Pause. | PRODUCT ; 04 ; 07 D-156 ; 09 ; 10 | Fonction `P(C,R)` conditionnelle. | — | Corrigé | 09 DM-014 ; décision produit issue #52. |
+| CON-06 | Ancienne règle conditionnelle `C` ou `C−1` Pauses. | Toujours `C−1` Pauses par côté. | PRODUCT ; 04 ; 07 D-208 ; 09 ; 10 | Aucune Pause après la dernière Série. | — | **SUPERSÉDÉ D-208** | D-156 n’est plus active. |
 | CON-07 | La Récupération pouvait être répétée après chaque Série. | Une seule occurrence. | PRODUCT ; 08 ; 10 | Une phase après la dernière Série. | — | Corrigé | 10 RM-037. |
-| CON-08 | Une Récupération nulle pouvait créer une phase. | Valeur canonique `0 s`, aucune phase. | 09 §09.5 ; 10 RM-034 | Insérer `RECOVERY` seulement si `R > 0`. | — | Corrigé | 09 : « valeur > 0 ». |
+| CON-08 | `0 s` signifiait absence de récupération générique. | `postActivityRecoverySeconds=0` reste une donnée présente/visible ; aucune phase chronométrée positive n’est créée. | D-208 ; 06 ; 09 ; 10 ; 13 | Donnée persistée, rendu `Récupération 0 s`. | — | **SUPERSÉDÉ D-208** | La présence de la donnée et l’existence d’une phase positive sont distinctes. |
 | CON-09 | Le nom « Récupération » pouvait déclencher un traitement spécial. | Aucun traitement par le nom. | 09 §09.5 | Une Activité ainsi nommée reste ordinaire. | — | Corrigé | 09 §09.5 : « aucune sémantique technique ». |
 | CON-10 | Description et Zones étaient sur un second écran. | Les intégrer à l’écran unique. | 06 Écran 4 ; 08 Activité ; 13 CE-T01-15 | Sections repliables facultatives. | `3553:4704`, `3553:4768` | Corrigé | 13 CE-T01-15. |
 | CON-11 | L’écran Informations complémentaires subsistait. | Le supprimer comme étape. | 06 Écran 5 ; 13 CE-T01-13/15 | Enregistrement depuis l’écran unique. | — | Corrigé | 13 CE-T01-13 : « aucun second écran ». |
@@ -28,11 +28,11 @@
 | CON-13 | T04 pouvait commencer sur l’ancien modèle. | Nouvelle structure préalable à T04. | 05 ; 09 DM-001 ; 12 T04 | Prérequis de données avant moteur T04. | — | Corrigé | 09 décisions : version « Prérequis T04 ». |
 | CON-14 | T04 pouvait inclure plusieurs Séries. | Toujours refusé dans T04. | 05 ; 10 RM-127 ; 13 CE-T04-01 | Refus explicite avant toute écriture. | — | Corrigé | 13 CE-T04-01. |
 | CON-15 | La prise en charge multi-Séries n’avait pas de tranche. | La conserver en T04. | 05 ; 10 RM-127 ; 13 T04 | Exécution complète en T04. | — | Corrigé | INDEX §10. |
-| CAL-01 | Durée totale non définie. | La définir en mode Durée. | PRODUCT ; 00 ; 04 ; 10 | `D = C×A + P(C,R)×B + R`, avec `P=C` si `R=0`, sinon `C−1`. | `3580:4733` | Corrigé | 10 RM-129. |
+| CAL-01 | Ancienne formule intégrant `P(C,R)` et la récupération générique. | Unilatéral : `C×A+(C−1)×B`; bilatéral : `2×[C×A+(C−1)×B]+S`. | D-208 ; PRODUCT ; 04 ; 10 | `S=sideRecoverySeconds`; post-récupération exclue. | — | **SUPERSÉDÉ D-208** | Nouvelle durée intrinsèque. |
 | CAL-02 | La durée d’une Série n’était pas identifiée. | `A` = Durée cible d’une Série. | 04 ; 10 | Définition explicite de `A`. | — | Corrigé | 10 RM-129. |
 | CAL-03 | La Pause n’était pas identifiée. | `B` = Pause entre Séries. | 04 ; 10 | Définition explicite de `B`. | — | Corrigé | 10 RM-129. |
 | CAL-04 | Le nombre de Séries n’était pas identifié. | `C` = entier de 1 à 99. | 04 ; 09 ; 10 | Valeur canonique. | — | Corrigé | 09 attribut Nombre de Séries. |
-| CAL-05 | La Récupération n’était pas incluse au calcul. | `R` ajouté une fois. | PRODUCT ; 04 ; 10 | Ajouter `R`, jamais `C×R`. | — | Corrigé | 10 RM-129. |
+| CAL-05 | Ancienne récupération générique ajoutée à la Durée totale. | Ajouter seulement la récupération entre côtés en bilatéral ; exclure la récupération post-activité. | D-208 ; PRODUCT ; 04 ; 10 | Séparation stricte activité/séquence. | — | **SUPERSÉDÉ D-208** | — |
 | CAL-06 | Durée totale pouvait être persistée comme seconde source. | Ne pas la persister. | 09 DM-015 ; 12 §12.34 | Valeur dérivée. | — | Corrigé | 12 : « Durée totale… non persistée ». |
 | CAL-07 | Séries et Durée totale pouvaient piloter ensemble. | Pilote exclusif. | 06 ; 08 ; 10 RM-131 | Un seul pilote à la fois. | `3580:4733`, `3580:4845` | Corrigé | 10 RM-131. |
 | CAL-08 | L’état initial devait rester ouvert au choix. | Tous contrôles utilisables. | 06 Dépendance ; 13 CE-T01-13 | Séries pilote implicitement sans contour. | `3542:4656` | Corrigé | 13 CE-T01-13. |
@@ -120,3 +120,6 @@
 - À clarifier : **0**.
 - Couverture partielle : **0**.
 
+## Mise à jour D-208 — 25/09/2026
+
+Cette matrice est réinterprétée selon D-208. Toute ligne historique qui suppose une récupération générique `recoverySeconds`, une formule `P(C,R)` ou une carte conditionnelle absente à `0 s` est supersédée. Les axes actifs sont : `sideRecoverySeconds` sur l’Activité bilatérale, `postActivityRecoverySeconds` sur l’occurrence, `C−1` Pauses, Exécution directe sans post-récupération, et durée intrinsèque excluant la post-récupération.
