@@ -493,3 +493,18 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - comparer les performances entre différentes séances ;
 - produire des tableaux de bord personnalisés ;
 - partager certaines statistiques avec un professionnel.
+
+## Consulter les médias pendant l’Exécution — conception post-MVP
+
+1. L’Exercice s’affiche sur la face Information.
+2. Si au moins un média existe, l’utilisateur touche le bouton de changement de face.
+3. La carte se retourne horizontalement et affiche la face Média.
+4. L’utilisateur parcourt les médias par swipe horizontal, un média par geste, dans l’ordre de la galerie.
+5. Une vidéo reste arrêtée tant que l’utilisateur n’appuie pas sur Lecture ; l’Exécution continue pendant sa lecture.
+6. Un appui sur le média ouvre le plein écran ; le cadre flottant conserve le nom, le côté, le chrono, Série/Tour et les commandes d’Exécution.
+7. Fermer le plein écran revient au même média. Retourner la carte revient à la face Information.
+8. Pendant la même séance, KODJO restitue la dernière face et le dernier média de chaque Exercice déjà rencontré.
+9. Une nouvelle séance redémarre sur la face Information.
+10. Si l’Exercice se termine pendant la consultation média, KODJO ferme le média de cet Exercice et poursuit la transition normale.
+
+Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
