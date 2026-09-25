@@ -2,6 +2,7 @@
 
 Date de conception : 25 septembre 2026  
 Baseline documentaire de départ : `main@5be88b695771566459fdcba61441cfeae7bce284`  
+Décision de conception : **D-203**  
 Statut fonctionnel : **conception validée**  
 Statut roadmap : **version à planifier ; le périmètre MVP actuel n’est pas étendu par ce document**.
 
