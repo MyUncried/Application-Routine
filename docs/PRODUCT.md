@@ -31,9 +31,9 @@ Elle possède notamment :
 
 ### Routine
 
-Une Routine est la planification d’une Séance.
+Une Routine est la planification d’un **contenu planifiable**. Dans le MVP, une Routine cible soit une Séance (`SESSION`), soit une Activité persistante du Catalogue des exercices (`ACTIVITY`).
 
-Une même Séance peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de la Séance et reprend sa couleur.
+Une même Séance ou une même Activité peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de sa source : elle référence la source persistante et ses occurrences utilisent son état courant jusqu’au démarrage de l’Exécution, moment où l’Instantané immuable est créé.
 
 Dans le MVP, une Routine possède zéro ou un rappel.
 
@@ -213,8 +213,8 @@ En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon se
 La planification est incluse dans le MVP.
 
 Le MVP permet de :
-- créer une Routine depuis le Calendrier ;
-- sélectionner la Séance associée ;
+- créer une Routine depuis le Calendrier ou depuis l’action `Planifier` d’une carte de Catalogue ;
+- sélectionner ou conserver la source planifiée, qui est soit une Séance soit une Activité persistante ;
 - définir une Date de début et une Heure ;
 - choisir entre `Aucune` et `Périodique` ;
 - pour `Périodique`, définir une fréquence en semaines, sélectionner un ou plusieurs jours et définir une Date de fin obligatoire ;
