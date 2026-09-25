@@ -42,8 +42,8 @@
 | CAL-12 | Le calcul pouvait produire zéro Série. | Borne minimale `1`. | 04 ; 08 ; 10 | `C = max(1, arrondi(Cth))`. | — | Corrigé | 10 RM-130. |
 | CAL-13 | Durée cible impossible pouvait rester affichée. | Réafficher la durée réalisable. | 06 ; 08 ; 10 | Recalcul de `D` après arrondi. | `3580:4957` | Corrigé | 06 : message « Durée ajustée… ». |
 | CAL-14 | Le pilote pouvait être persisté. | État UI non persisté. | 09 DM-016 ; 10 RM-131 ; 12 | Séries redevient implicite à la réouverture. | — | Corrigé | 09 DM-016. |
-| CAL-15 | Durée totale pouvait apparaître en Répétitions. | La masquer. | 06 ; 08 ; 10 | Masquée, emplacement vide. | `3561:4695` | Corrigé | 10 RM-132. |
-| CAL-16 | Durée totale pouvait apparaître À l’échec. | La masquer. | 06 ; 08 ; 10 | Masquée, emplacement vide. | `3561:7802` | Corrigé | 10 RM-132. |
+| CAL-15 | Ancienne règle Répétitions. | Afficher une estimation `Durée totale >=` avec 1 s conventionnelle par répétition. | 06 ; 08 ; 10 ; 13 | Estimation incluant répétitions, Pauses, Récupération et bilatéralité. | `3561:4695` | Corrigé | D-204 / RM-132. |
+| CAL-16 | Ancienne règle À l’échec. | Ne pas afficher de Durée totale dans le texte éditable. | 06 ; 08 ; 10 ; 13 | Libellé et valeur absents. | `3561:7802` | Corrigé | D-204 / RM-132. |
 | UI-01 | Description devait être optionnelle. | Oui. | 06 ; 08 ; 13 CE-T01-15 | Champ multiligne facultatif. | `3553:4704` | Corrigé | 13 CE-T01-15. |
 | UI-02 | Description devait pouvoir se déployer/replier. | Titre ou chevron actionnable. | 06 ; 08 | Valeur conservée au repli. | `3553:4704` | Corrigé | 08 tableau Activité. |
 | UI-03 | Zone corporelle devait être optionnelle. | Oui. | 06 ; 08 ; 13 | Multisélection facultative. | `3553:4768` | Corrigé | 13 CE-T01-15. |
