@@ -24,9 +24,9 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - ordonner les Exercices dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
-- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage de sa phase de Récupération éventuelle ;
+- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage d’une phase `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY` lorsqu’elle existe ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
-- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant la phase de Récupération après l’Activité ;
+- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant les phases de récupération ;
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
