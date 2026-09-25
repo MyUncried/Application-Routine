@@ -993,7 +993,7 @@ Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuv
 
 ### 2. Finalité fonctionnelle
 
-Exécuter une ActivityDefinition DURATION en autonomie avec Séries, Pauses et Récupération, sans orchestration Session.
+Exécuter une ActivityDefinition DURATION en autonomie avec Séries et Pauses, sans orchestration Session. En unilatéral, aucune phase de récupération n’est ajoutée.
 
 ### 3. Contexte d’entrée
 
@@ -1017,7 +1017,7 @@ Shell Execution, informations Activity, timer, série, commandes moteur. Pas d�
 
 ### 8. Éléments obligatoires
 
-Nom ; timer ; série si C>1 ; Pause/Récupération selon plan ; commandes pause/réinit/suivant selon moteur commun.
+Nom ; timer ; série si C>1 ; Pause entre Séries selon plan ; commandes pause/réinit/suivant selon moteur commun. Aucune récupération post-activité.
 
 ### 9. Layout déterministe
 
@@ -1065,11 +1065,11 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 ### 20. Recette déterministe
 
-C=1/N ; Pause R=0/R>0 ; Recovery ; reset ; passage anticipé ; pause/reprise ; background. Négatifs : Tour/Cycle/SESSION_END, relecture source modifiée.
+C=1/N ; exactement C−1 Pauses ; aucune récupération en unilatéral ; reset ; passage anticipé ; pause/reprise ; background. Négatifs : `POST_ACTIVITY_RECOVERY`, Tour/Cycle/SESSION_END, relecture source modifiée.
 
 ### 21. Traçabilité
 
-E40/E43 → D-139/D-140/D-156/D-172 ; API-ACT-EXE-03 ; modèle Execution.
+E40/E43 → D-139/D-140/D-172/D-208 ; API-ACT-EXE-03 ; modèle Execution.
 
 
 ---
@@ -1090,7 +1090,7 @@ Fin préparation CE-T03-09 avec mode REPS ou TO_FAILURE.
 
 ### 4. Contexte de sortie / destinations
 
-Suivant → fin Série → Pause/Récupération/Série suivante ou CE-T03-13.
+Suivant → fin Série → Pause / Série suivante / `SIDE_RECOVERY` éventuelle selon le côté et le plan, puis CE-T03-13 ; jamais `POST_ACTIVITY_RECOVERY`.
 
 ### 5. Données affichées et source de vérité
 
@@ -1106,7 +1106,7 @@ Shell Execution avec variante de contenu adaptée au mode, commandes communes.
 
 ### 8. Éléments obligatoires
 
-REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause/Récupération si configurées.
+REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause entre Séries ; `SIDE_RECOVERY` uniquement si l’Activité est bilatérale et configurée ; jamais de post-récupération.
 
 ### 9. Layout déterministe
 
@@ -1118,7 +1118,7 @@ Même architecture visuelle que CE-T03-10 ; ne jamais combler un espace Failure 
 
 ### 11. États de l’écran
 
-REPS série ; FAILURE série ; Pause ; Recovery ; série suivante ; fin.
+REPS série ; FAILURE série ; Pause ; `SIDE_RECOVERY` éventuelle entre côtés ; série suivante ; fin.
 
 ### 12. Contrôles et interactions
 
@@ -1246,7 +1246,7 @@ D→G/G→D, C=1/N, R=0/>0, skip premier côté, reset second, interruption/repr
 
 ### 21. Traçabilité
 
-E41 → D-143..D-150/D-156/D-172 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
+E41 → D-143..D-150/D-172/D-208 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
 
 ---
 
