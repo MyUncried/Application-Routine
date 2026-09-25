@@ -1181,3 +1181,11 @@ Une validation sans sélection ne crée aucune donnée.
 
 La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. Les Parcours fonctionnels restent hors du périmètre T03. Les structures T03 ne doivent pas empêcher ces évolutions ultérieures.
 
+## Données cibles — état média de l’Exécution
+
+La conception D-203 n’introduit pas de nouvelle donnée historique d’Exécution. Elle exploite la collection ordonnée de médias de l’Exercice et ajoute un état UI **volatile** limité à la séance courante :
+- face Information/Média par Exercice rencontré ;
+- index du média courant par Exercice ;
+- état de lecture de la vidéo courante.
+
+La face et l’index ne sont pas persistés entre séances, ne sont pas copiés dans l’Instantané et ne font pas partie des résultats historiques. La conception ne décide pas ici d’un nouveau schéma de stockage durable pour les médias ; celui-ci reste régi par le périmètre de la future gestion multiple des médias.
