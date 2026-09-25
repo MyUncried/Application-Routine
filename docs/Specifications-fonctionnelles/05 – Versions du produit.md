@@ -212,7 +212,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### V3
 
-- planification, récurrences, calendrier, rappels et notifications des Parcours.
+- planification, récurrences, calendrier, rappels et notifications des Parcours, **via le même mécanisme de Routine que les Séances et Exercices**, avec une source Parcours distincte.
 
 ## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
