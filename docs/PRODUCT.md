@@ -11,7 +11,7 @@ L’application remplace l’usage dispersé de notes, vidéos, alarmes et minut
 Le MVP est conçu pour un utilisateur individuel qui :
 - crée ses propres séances ;
 - crée et réutilise des Exercices persistantes à partir de T03 ;
-- les exécute immédiatement ou planifie ses Séances ;
+- les exécute immédiatement ou planifie directement ses Séances et Exercices persistants ;
 - consulte l’historique détaillé de ses exécutions ;
 - utilise l’application sans compte et sans synchronisation cloud.
 
