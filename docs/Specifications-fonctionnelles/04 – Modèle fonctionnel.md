@@ -103,7 +103,7 @@ Lorsque la Récupération vaut `0 s`, la Pause éventuelle est exécutée après
 
 En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `R` la Récupération : `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée. Lorsque la Durée totale pilote, les formules inverses de D-156 s’appliquent, puis le nombre de Séries est arrondi selon la règle validée et la durée réalisable est recalculée.
 
-En modes Répétitions et À l’échec, `Durée totale` reste affichée mais n’attribue aucune durée conventionnelle au travail non chronométré : elle est présentée comme `Durée totale : ≥ {durée connue}` en additionnant seulement les temps déterminables.
+En mode Répétitions, le texte éditable présente `Durée totale >= {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement 1 seconde : `D_est = L × [C × N + P(C,R) × B] + R`, avec `N` le nombre de répétitions par Série, `P(C,R)=C` si `R=0`, sinon `C−1`, et les mêmes règles de bilatéralité que le mode Durée. Cette convention ne transforme pas les répétitions en durée cible d’Exécution. En mode À l’échec, aucune Durée totale n’est affichée dans le texte éditable.
 
 ### Activité de référence et Activité de Séance
 
