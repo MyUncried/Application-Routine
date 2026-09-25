@@ -31,7 +31,7 @@ Elle possède notamment :
 
 ### Routine
 
-Une Routine est la planification d’un **contenu planifiable**. Dans le MVP, une Routine cible soit une Séance (`SESSION`), soit une Activité persistante du Catalogue des exercices (`ACTIVITY`).
+Une Routine est la planification d’un **contenu planifiable**. Dans le MVP, une Routine cible soit une Séance (`SESSION`), soit une Activité persistante du Catalogue des exercices (`ACTIVITY`). Lorsqu’un Parcours deviendra fonctionnel et planifiable, il utilisera le **même mécanisme de Routine** ; son type technique de source restera `CIRCUIT` tant que les identifiants techniques ne sont pas renommés.
 
 Une même Séance ou une même Activité peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de sa source : elle référence la source persistante et ses occurrences utilisent son état courant jusqu’au démarrage de l’Exécution, moment où l’Instantané immuable est créé.
 
@@ -415,7 +415,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 L’affichage du média associé dans la carte déployée du Catalogue des Exercices appartient au MVP. Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
 
-Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est visible et désactivé.
+Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est visible et désactivé. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct.
 
 ## 12. Roadmap des tranches MVP
 
