@@ -384,3 +384,14 @@ Le Plan d’Exécution mémorise la direction effective et le côté courant. Ch
 Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
 
 La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Activité. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles déjà validées pour une Activité autonome. Le signal de fin conduit à la Synthèse ; le Ressenti est obligatoire lorsqu’elle est présentée et le Commentaire reste facultatif.
+
+## Modèle cible — média pendant l’Exécution
+
+La conception post-MVP distingue :
+- la collection ordonnée de Médias appartenant à l’Exercice ;
+- l’état durable de l’Exercice et de son Instantané ;
+- un état UI transitoire propre à la séance d’Exécution courante.
+
+Cet état UI porte la face courante et le média courant. Il ne modifie ni l’Exercice, ni l’Instantané, ni le Plan d’Exécution, ni les résultats historiques. Le moteur d’Exécution continue de progresser lorsque la face Média ou le plein écran est affiché.
+
+Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
