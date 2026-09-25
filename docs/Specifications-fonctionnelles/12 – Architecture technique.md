@@ -1288,7 +1288,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la ligne post-activité devient systématique, y compris à `0 s`, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la ligne post-activité devient systématique, y compris à `0 s`, et l’éditeur utilise une pause au changement de côté conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
