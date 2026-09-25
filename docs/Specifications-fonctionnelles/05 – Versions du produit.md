@@ -15,8 +15,8 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-  - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée après tous les côtés de l’Activité ;
+  - une Pause éventuelle appliquée uniquement entre deux Séries successives, donc `C−1` fois par côté ;
+  - une Récupération entre côtés éventuelle, uniquement pour une Activité bilatérale ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - afficher dans le MVP le média associé à une Activité lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
 - ordonner les exercices d’un Tour ;
@@ -193,9 +193,9 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Exercices / Séances / Parcours` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` reste visible mais désactivé ;
 - carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
-- nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
+- nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération entre côtés / Durée totale`, la récupération entre côtés étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
-- modèle et calculs de Récupération après l’Activité préparés avant T04.
+- modèle D-208 : `ActivityDefinition` porte seulement la récupération entre côtés éventuelle ; chaque occurrence de Séance/Parcours porte sa récupération après activité, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Activité.
 
 ### MVP — complément T03
 
