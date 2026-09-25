@@ -282,7 +282,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 ### 5. Données affichées et source de vérité
 
-Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-activité, car elle n’existe pas sur `ActivityDefinition`; seule la récupération entre côtés éventuelle relève de la définition.
+Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-activité, car elle n’existe pas sur `ActivityDefinition`; seule la pause au changement de côté éventuelle relève de la définition.
 
 ### 6. Classification des valeurs Figma
 
@@ -526,7 +526,7 @@ Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais s
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Récupération entre côtés` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, ancienne formule D-156, récupération post-activité dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, ancienne formule D-156, récupération post-activité dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
@@ -1194,7 +1194,7 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 ### 8. Éléments obligatoires
 
-Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause uniquement entre Séries ; récupération entre côtés éventuelle avant le second passage.
+Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause uniquement entre Séries ; pause au changement de côté éventuelle avant le second passage.
 
 ### 9. Layout déterministe
 
@@ -1206,7 +1206,7 @@ Sous-titre côté sous nom, centré selon Shell. Ne pas ajouter un bloc latéral
 
 ### 11. États de l’écran
 
-Premier côté ; Pause intra-côté ; récupération entre côtés éventuelle ; second côté ; Partial side ; fin intrinsèque.
+Premier côté ; Pause intra-côté ; pause au changement de côté éventuelle ; second côté ; Partial side ; fin intrinsèque.
 
 ### 12. Contrôles et interactions
 
@@ -1218,7 +1218,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une récupération entre côtés éventuelle peut intervenir avant le second côté ; aucune récupération post-activité en Exécution directe.
+Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une pause au changement de côté éventuelle peut intervenir avant le second côté ; aucune récupération post-activité en Exécution directe.
 
 ### 15. Brouillon et persistance
 
@@ -1929,7 +1929,7 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 ## Complément D-208 — contrats Récupération
 
 ### Éditeur Exercice
-- Le contrôle visible est `Récupération entre côtés`.
+- Le contrôle visible est `Pause au changement de côté`.
 - Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
 - La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-activité.
 - **À CLARIFIER :** valeur initiale lors de l’activation bilatérale.
@@ -1943,8 +1943,8 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 
 ### Exécution directe
 - Aucun état de récupération post-activité.
-- Si bilatéral, la récupération entre côtés éventuelle intervient entre les deux passages.
+- Si bilatéral, la pause au changement de côté éventuelle intervient entre les deux passages.
 
 ### Exécution de Séance
-- Distinguer explicitement récupération entre côtés et récupération après occurrence.
+- Distinguer explicitement pause au changement de côté et récupération après occurrence.
 - La récupération post-activité est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Activité du Tour.
