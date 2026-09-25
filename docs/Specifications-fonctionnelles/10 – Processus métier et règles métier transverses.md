@@ -70,7 +70,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral et `P(C,R) = C` si `R = 0`, sinon `C − 1`, la Durée totale globale d’une Activité autonome est `D = L × [C × A + P(C,R) × B] + R`. |
 | RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, `R` ou `L` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
-| RM-132 | Le libellé `Durée totale` reste visible dans les trois modes. En Répétitions et À l’échec, la valeur est affichée sous forme de borne minimale `Durée totale : ≥ {durée connue}`, calculée uniquement à partir des temps connus, notamment Pauses et Récupération. |
+| RM-132 | Dans le texte éditable : mode Durée inchangé ; mode Répétitions = `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition, plus Pauses/Récupération et bilatéralité selon les règles existantes ; mode À l’échec = aucune Durée totale affichée. |
 
 ## 5. Planification et Calendrier
 
@@ -206,7 +206,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Tour ne porte pas de direction exposée. |
 | RM-152 | Dans l’écran Ajouter/Modifier une Activité, la synthèse bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
-| RM-153 | Le libellé utilisateur est `Durée totale`; en Répétitions et À l’échec, `≥` signale une borne basse sans changer le calcul. |
+| RM-153 | Le libellé `Durée totale` reste inchangé en mode Durée. En Répétitions, `>=` signale une estimation fondée sur 1 seconde conventionnelle par répétition ; en À l’échec, le libellé et la valeur ne sont pas affichés dans le texte éditable. |
 
 ## 12. Règles métier — Exécution directe d’une Activité — MVP T03
 
