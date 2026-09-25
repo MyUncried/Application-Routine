@@ -153,3 +153,7 @@ La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis d
 La cible post-MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
 
 Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant sans décision de roadmap distincte. Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+### Cible de planification commune
+
+La cible produit considère **Séances, Exercices persistants et Parcours** comme des contenus autonomes pouvant être planifiés directement. Le MVP active cette capacité pour les Séances et les Exercices ; la planification des Parcours reste rattachée à la version prévue pour cette fonctionnalité. Le principe fonctionnel demeure unique : une Routine planifie une source, quel que soit son type.
