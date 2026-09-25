@@ -1362,3 +1362,7 @@ Les services de calcul d’occurrences, rappels locaux, prochaine occurrence et 
 - une source `ACTIVITY` crée une Exécution d’origine `ACTIVITY` et son Instantané autonome d’Exercice.
 
 La suppression ou l’archivage de la source doit arrêter ses occurrences futures selon les règles métier, sans supprimer les Exécutions ni Instantanés historiques. Les noms physiques de champs et migrations seront définis au développement ; l’exigence produit est l’unicité de la source et l’absence de second système de planification propre aux Exercices.
+
+## 12.36 Extensibilité de la source Routine — Parcours
+
+Le discriminateur de source de Routine doit rester extensible. L’implémentation MVP couvre `SESSION` et `ACTIVITY`; la version qui livre la planification des Parcours ajoute `CIRCUIT` comme troisième valeur technique. Cette extension doit réutiliser le même stockage de Routine, le même calcul d’occurrences, le même ordonnanceur de rappels et les mêmes services de Calendrier. Aucun schéma ou moteur parallèle dédié aux Parcours ne doit être introduit.
