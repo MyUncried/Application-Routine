@@ -83,7 +83,8 @@ Le MVP permet de :
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
-- empêcher l’exécution d’une Séance invalide ou vide.
+- empêcher l’exécution d’une Séance invalide ou vide ;
+- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune.
 
 ### Catalogue des exercices — T03
 
@@ -95,6 +96,7 @@ Le MVP permet de :
 - ajouter une ou plusieurs Exercices existantes à une Composition par copie indépendante ;
 - exécuter directement une Activité valide depuis son bouton Lecture ;
 - planifier directement une Activité persistante depuis son action `Planifier`, avec le même mécanisme de Routine que pour une Séance ;
+- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune ;
 - préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
