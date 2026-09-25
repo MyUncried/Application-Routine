@@ -1117,16 +1117,16 @@ Lorsqu’une Activité possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
-- pour `C` Séries, la Pause est appliquée `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0` ;
-- après la dernière Série, la Récupération non nulle est exécutée une fois.
+- pour `C` Séries d’un même côté, la Pause est appliquée exactement `C − 1` fois, uniquement entre Séries successives ;
+- si l’Activité est bilatérale, la Récupération entre côtés éventuelle est exécutée une seule fois entre le premier et le second côté.
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
 
-### Récupération
+### Récupérations
 
-Une Récupération non nulle crée une phase `RECOVERY` chronométrée après tous les côtés de l’Activité. Elle utilise le même écran standard, annonce `Récupération`, joue les sons standards de fin et se termine automatiquement à zéro. Elle s’applique également après la dernière Activité, avant `SESSION_END`.
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Récupération entre côtés d’une Activité bilatérale et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après activité portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernière Activité avant `SESSION_END` et après chaque passage dans un Tour répété.
 
-La zone `À suivre` permet de préparer l’Activité suivante ou la Fin de séance. `Activité suivante` avant zéro demande confirmation ; l’Exercice reste `Terminé`, tandis que `recoveryElapsedSeconds` conserve le temps partiel de Récupération.
+La valeur `postActivityRecoverySeconds = 0` reste visible dans la Composition mais ne crée pas de phase chronométrée positive. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la récupération entre côtés de la récupération après occurrence.
 
 ### Commandes principales
 
