@@ -204,3 +204,8 @@ L’utilisateur doit pouvoir :
 
 Les résultats alimentent les indicateurs compatibles sans compter une Séance.
 
+## Besoin cible — consulter un média sans perdre l’Exécution
+
+Pour une évolution post-MVP, l’utilisateur doit pouvoir vérifier visuellement un mouvement pendant qu’il exécute un Exercice, sans quitter l’Exécution, sans perdre le chrono ni la progression et sans déclencher de pause implicite. Il doit pouvoir revenir instantanément aux informations d’Exécution et conserver, pendant la séance courante, la dernière face et le dernier média consultés.
+
+Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.

@@ -214,3 +214,11 @@ Les Parcours fonctionnels et les médias multiples restent hors MVP.
 - [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
 - [Registre des évidences Figma embarquées](./Specifications-fonctionnelles/images/README-T03-FIGMA.md)
 - [Contrats T03 déterministes](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md)
+
+## 15. Conceptions d’évolution validées
+
+### [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md)
+
+Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `4997:6015`, `4997:6113` et `5009:6069`.
+
+Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas à lui seul le périmètre du MVP.

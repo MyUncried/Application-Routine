@@ -228,3 +228,19 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-191 | Un Point d’arrêt suspend l’enchaînement jusqu’à reprise explicite et son attente est exclue de la durée de la Séance. |
 | RM-192 | Le parcours de composition exposé sélectionne les Exercices dans le Catalogue ; la création locale de SessionActivity reste techniquement et fonctionnellement disponible mais non exposée dans cet enchaînement. |
 | RM-164 | Lorsqu’une roulette est ouverte, le voile grisé bloque l’arrière-plan. Le bouton principal fixe inférieur reste visuellement inchangé mais devient fonctionnellement désactivé et non déclenchable via VoiceOver/TalkBack jusqu’à fermeture de la roulette. |
+
+## RM-203 — Consultation média pendant l’Exécution
+
+- **RM-203.1** — Sans média, aucun bouton de changement de face n’est affiché.
+- **RM-203.2** — Le changement de face ne met jamais l’Exécution en pause.
+- **RM-203.3** — La galerie respecte l’ordre défini pour l’Exercice et un swipe ne change que d’un média.
+- **RM-203.4** — La galerie est bornée et non circulaire.
+- **RM-203.5** — Une vidéo exige une action Lecture et ne démarre jamais automatiquement.
+- **RM-203.6** — Le son vidéo est actif par défaut ; une annonce vocale KODJO déclenche une baisse temporaire de son volume.
+- **RM-203.7** — Retour Information ou changement de média met la vidéo en pause.
+- **RM-203.8** — Face et média courant sont mémorisés uniquement pendant la séance courante et réinitialisés entre séances.
+- **RM-203.9** — Le plein écran n’interrompt pas le moteur et conserve un cadre flottant d’Exécution.
+- **RM-203.10** — La fin de l’Exercice ferme son média / plein écran avant la transition normale.
+- **RM-203.11** — Un média indisponible n’interrompt ni l’Exécution ni l’accès aux autres médias.
+
+Ces règles décrivent une conception post-MVP à planifier.

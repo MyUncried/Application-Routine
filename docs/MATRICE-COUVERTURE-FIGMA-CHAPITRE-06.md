@@ -180,3 +180,13 @@ Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être r
 5. ne pas réexporter les lignes historiques, composants, variantes redondantes ou exclusions ;
 6. mettre à jour les références Markdown de 06 uniquement lorsque `AJOUTER` crée effectivement une nouvelle copie ;
 7. contrôler après export l’intégrité des chemins UTF-8, les liens Markdown, les dimensions/rendus et l’absence de fichiers temporaires.
+
+## Complément D-203 — frames d’Exécution média
+
+| Node | Frame | Classification | Documentée | Référence documentaire | Statut |
+| --- | --- | --- | :---: | --- | --- |
+| `4997:6015` | Test 2 Exécution d’une séance — Initial — Bascule (info) | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+| `4997:6113` | Test 2 Exécution d’une séance — Initial — Bascule (média) | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+| `5009:6069` | Test 2 Exécution d’une séance — Média plein écran | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-02 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+
+Ces frames sont des évidences de la conception validée D-203 et ne constituent pas, à elles seules, une décision d’entrée dans le MVP.
