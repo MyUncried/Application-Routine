@@ -231,7 +231,7 @@ La navigation principale donne accès à quatre destinations :
 
 `Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
 
-L’onglet `Calendrier` permet de visualiser les Séances planifiées et d’accéder à la création et à la gestion des Routines.  
+L’onglet `Calendrier` permet de visualiser les **Séances et Exercices planifiés** et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
 L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application.
 
@@ -298,7 +298,7 @@ Les écrans principaux du MVP sont :
 5. numéro réservé — ancien écran autonome Récupération supprimé ;
 6. `Étiquettes de la séance` dans la Composition ;
 7. `Calendrier` ;
-8. `Planifier une séance` ;
+8. `Planifier un contenu` — Séance ou Exercice ;
 9. `Exécution de séance`, incluant les états et commandes d’interruption ;
 10. `Synthèse de séance` ;
 11. `Suivi — Séances`.
@@ -1870,3 +1870,7 @@ Les points suivants ont été résolus depuis ce contrôle : la modale d’aband
 | Test 2 Exécution d’une séance — Média plein écran | `5009:6069` | Média plein écran avec contrôles média distincts et cadre flottant d’Exécution. |
 
 La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+### Planification depuis les Catalogues — D-206
+
+Une Séance et un Exercice persistant sont tous deux planifiables directement. L’action `Planifier` d’une carte ouvre le même parcours de planification avec la source préremplie. Le parcours depuis le Calendrier permet de choisir une source planifiable parmi les Séances et les Exercices persistants. La famille d’écran historiquement nommée `Planifier une séance` est donc un gabarit de planification générique ; les frames Figma actuellement nommées avec `séance` constituent l’évidence visuelle de cette variante, mais ne limitent plus le comportement fonctionnel aux seules Séances.
