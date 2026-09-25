@@ -127,5 +127,5 @@ Ces chiffres décrivent l’ancien modèle audité et ne constituent plus un ver
 Cette matrice est réinterprétée selon D-208. Toute ligne historique qui suppose une récupération générique `recoverySeconds`, une formule `P(C,R)` ou une carte conditionnelle absente à `0 s` est supersédée. Les axes actifs sont : `sideRecoverySeconds` sur l’Activité bilatérale, `postActivityRecoverySeconds` sur l’occurrence, `C−1` Pauses, Exécution directe sans post-récupération, et durée intrinsèque excluant la post-récupération.
 
 État courant D-208 :
-- **À CLARIFIER : 1 axe** — valeur initiale de `sideRecoverySeconds` lors du passage de `Aucun` à `D→G` ou `G→D`.
+- **DÉFINI :** `sideRecoverySeconds` est initialisé depuis le défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) lors du passage de `Aucun` à `D→G` ou `G→D`, puis reste modifiable dans l’éditeur de l’Exercice.
 - **PARTIELLEMENT CONFORME : Figma** — les écrans historiques de récupération doivent être réalignés avant de redevenir des preuves visuelles normatives sur cet axe.
