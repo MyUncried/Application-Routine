@@ -13,7 +13,7 @@ Le MVP permet à l'utilisateur :
 - de gérer les Étiquettes de Séances, les Catégories d’Exercices et le référentiel de Zones corporelles, puis de sélectionner les Zones corporelles applicables aux Exercices ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
-- de planifier une séance au moyen d'une routine ;
+- de planifier directement une Séance **ou une Activité persistante** au moyen d'une Routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
 - de consulter les Exécutions enregistrées dans le Suivi ;
