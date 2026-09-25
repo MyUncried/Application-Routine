@@ -1192,3 +1192,7 @@ La conception D-203 n’introduit pas de nouvelle donnée historique d’Exécut
 - état de lecture de la vidéo courante.
 
 La face et l’index ne sont pas persistés entre séances, ne sont pas copiés dans l’Instantané et ne font pas partie des résultats historiques. La conception ne décide pas ici d’un nouveau schéma de stockage durable pour les médias ; celui-ci reste régi par le périmètre de la future gestion multiple des médias.
+
+## Extension future de Routine — source Parcours
+
+D-207 étend le modèle cible sans modifier le périmètre MVP : le discriminateur de source de Routine accepte aujourd’hui `SESSION` et `ACTIVITY`; il devra accepter la source Parcours lorsque cette capacité est livrée. Tant que le nommage technique historique est conservé, cette valeur est `CIRCUIT`. La cardinalité reste exactement une source par Routine. Les occurrences et l’Exécution issue de l’occurrence conservent le type de source et son identifiant.
