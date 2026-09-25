@@ -629,21 +629,21 @@ L'exécution d'une séance repose sur les principes suivants :
 
 ## 5.1 Principe général
 
-Une routine est une planification d'une séance.
+Une Routine est la planification d’une source autonome, de type `SESSION` ou `ACTIVITY`.
 
-Elle permet d'associer une séance à une ou plusieurs dates d'exécution selon une fréquence définie par l'utilisateur.
+Elle permet d'associer une Séance ou un Exercice persistant à une ou plusieurs dates d'exécution selon une fréquence définie par l'utilisateur.
 
-Une même séance peut être associée à aucune, une ou plusieurs routines.
+Une même source peut être associée à zéro, une ou plusieurs Routines.
 
-Chaque routine est totalement indépendante des autres, même lorsqu'elles utilisent la même séance.
+Chaque Routine est totalement indépendante des autres, même lorsqu'elles utilisent la même source.
 
 ## 5.2 Création d'une routine
 
-La création d'une routine est réalisée depuis le Calendrier.
+La création d'une Routine est réalisée depuis le Calendrier ou depuis l’action `Planifier` d’une carte de Catalogue.
 
-Elle se déroule en deux étapes successives :
+Elle se déroule en deux étapes fonctionnelles :
 
-1. sélection de la séance à planifier ;
+1. sélection de la source à planifier, sauf lorsqu’elle est déjà préremplie depuis le Catalogue ;
 2. définition des paramètres de planification.
 
 À l'issue de la validation, la Routine est immédiatement créée.
