@@ -1,3 +1,5 @@
+> **MISE À JOUR 25/09/2026 — D-208.** Les conclusions antérieures relatives aux Pauses et à la récupération après les deux côtés sont supersédées. Les autres conclusions de bilatéralité restent lisibles sous réserve de D-189 et D-208.
+
 # Rapport final de conformité — Bilatéralité
 
 > Mise à jour du 24 septembre 2026 : D-189 supersède l’exposition fonctionnelle de la bilatéralité au niveau Tour. Les conclusions historiques relatives au Tour bilatéral doivent être lues comme traces de conception antérieure, pas comme exigences actives.
@@ -19,7 +21,7 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 | Contrôle Activité | CONFORME | Libellé `Changement de côté`, valeurs `Aucun / D→G / G→D`; géométrie selon Figma courant. |
 | Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Activité dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
-| Calculs | CONFORMES À LA RECETTE | Aucun code de calcul modifié. L’arbitrage produit du 14 septembre 2026 conserve la règle existante : `C` Pauses si `R = 0`, sinon `C − 1` Pauses puis Récupération. |
+| Calculs | **SUPERSEDÉS PAR D-208** | La règle du 14 septembre est historique : D-208 impose désormais `C−1` Pauses par côté, une récupération entre côtés éventuelle et exclut la récupération post-activité de la durée intrinsèque. |
 | T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
 
 ## Sources Figma
