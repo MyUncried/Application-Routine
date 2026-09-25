@@ -752,8 +752,8 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
-| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Remplacement de la durée cible par un nombre de répétitions ; contrôle `Durée totale >=` visible | `3561:4695` |
-| Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; ordre `Séries` → cadre `à l’échec` → `Pause`; contrôle `Durée totale >=` visible | `3561:7802` |
+| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Nombre de répétitions avec stepper ; texte éditable `Durée totale >= {estimation}` fondé sur 1 s par répétition | `3561:4695` |
+| Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; aucune Durée totale affichée dans le texte éditable | `3561:7802` |
 | Écran 4c | Durée ouverte | ![[images/ecran-4c-creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite | `3556:7645` |
 | Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
 | Écran 4e | Nombre de Séries ouvert | ![[images/ecran-4e-creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3556:7801` |
@@ -818,13 +818,13 @@ Le nom est obligatoire.
 
 Le contrôle `Durée / Répétitions / À l’échec` partage sa largeur en trois zones égales. Le texte de chaque option reste centré. Les titres des sections utilisent la même typographie que `Mode d’exécution` et le chevron DSF de déploiement. Le contenu central défile indépendamment de la synthèse et du bouton final. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe la largeur utile complète et conserve sa position fixe ; le contenu défilant maintient au moins `spacing/16` avant la synthèse.
 
-Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. En mode Durée, le contrôle porte `Durée totale`. En Répétitions et À l’échec, il reste visible et porte le libellé court **`Durée totale >=`**.
+Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. Dans le texte éditable, le mode Durée conserve l’affichage actuel de `Durée totale`. En Répétitions, afficher **`Durée totale >= {estimation}`**, l’estimation comptant 1 seconde par répétition et les Pauses/Récupération selon les règles existantes. En À l’échec, ne pas afficher de Durée totale.
 
 La synthèse ne préfixe jamais la phrase par le type d’Activité ni par le mode d’exécution. Le **nom de l’Activité est en gras uniquement dans cette Synthèse**. Elle suit les formes fonctionnelles existantes pour les Séries, cibles, directions, Pauses et Récupération.
 
 Pour une direction propre bilatérale, ajouter après la cible du mode — après `jusqu’à l’échec` — et avant toute Pause : `, à droite, puis à gauche` ou `, à gauche, puis à droite`. Ne rien ajouter en `UNILATERAL` ni pour une direction seulement héritée du Tour.
 
-Lorsque la Récupération est non nulle, ajouter `, puis {récupération} de récupération`. En mode Durée, ajouter sur une seconde ligne `Durée totale : {durée totale}`. En modes Répétitions et À l’échec, afficher **`Durée totale : ≥ {durée connue}`** ; cette formulation de Synthèse reste distincte du libellé court UI `Durée totale >=`.
+Lorsque la Récupération est non nulle, ajouter `, puis {récupération} de récupération`. En mode Durée, conserver `Durée totale : {durée totale}`. En mode Répétitions, afficher **`Durée totale >= {estimation}`** dans le texte éditable, avec 1 seconde conventionnelle par répétition. En mode À l’échec, omettre toute ligne ou clause `Durée totale`.
 
 ### Mode d’Exécution
 
