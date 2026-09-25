@@ -107,7 +107,7 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Activité peut définir son propre Compte à rebours et sa propre Fin d’activité, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Tour, dans le Tour ou après le Tour. La première Activité créée est insérée après le Compte à rebours initial et avant le Tour. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque Activité, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, la Récupération, le Changement de côté, le Compte à rebours propre et la Fin d’activité propre. La Description reste facultative. L’action `Terminer` enregistre l’Activité.
+Pour chaque Activité, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, le Changement de côté, la **Récupération entre côtés** lorsque l’Activité est bilatérale, le Compte à rebours propre et la Fin d’activité propre. La Description reste facultative. L’action `Terminer` enregistre l’Activité.
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
 
@@ -126,7 +126,7 @@ Il peut notamment :
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
 
-La Récupération éventuelle est affichée comme une carte attachée sous l’Activité. Le déplacement, la duplication et la suppression portent toujours sur le bloc Activité–Récupération complet.
+Chaque occurrence de Séance affiche systématiquement sa **Récupération après activité**, y compris lorsqu’elle vaut `0 s`. Cette récupération se déplace avec l’occurrence, est copiée lors de sa duplication et disparaît lors de sa suppression. Sa valeur n’est jamais recalculée en fonction de l’Activité suivante.
 ### 3. Démarrer une séance
 
 L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
@@ -360,8 +360,8 @@ Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catal
    - cible du mode lorsqu’elle existe ;
    - nombre de Séries ;
    - Pause entre Séries ;
-   - Récupération ;
    - `Changement de côté` : `Aucun`, `D→G` ou `G→D` ;
+   - Récupération entre côtés, uniquement en `D→G` ou `G→D` ;
    - Compte à rebours propre de l’Activité lorsqu’il est utilisé ;
    - Fin d’activité propre lorsqu’elle est utilisée ;
    - Durée totale dérivée ou pilotée selon le mode.
@@ -372,7 +372,7 @@ Les paramètres métier restent identiques entre création et modification ; seu
 
 ### Déroulement d’une Activité
 
-Lorsqu’elle est exécutée, l’Activité suit son propre enchaînement : Compte à rebours d’Activité éventuel → Séries et côtés → Pauses applicables → Récupération éventuelle → Fin d’activité éventuelle. Ce déroulement est réutilisé dans une Séance comme en Exécution directe.
+Lorsqu’elle est exécutée, l’Activité suit son propre enchaînement intrinsèque : Compte à rebours d’Activité éventuel → Séries du premier côté → Récupération entre côtés éventuelle → Séries du second côté → Fin d’activité éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté. Dans une Séance/Parcours, la Récupération après activité de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
 
 ## Ajouter une Activité depuis une Composition
 
@@ -512,3 +512,7 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 ## Planifier un Parcours — cible future
 
 Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisateur réutilise celui des Routines : sélection ou préremplissage de la source, paramètres de planification, validation, occurrences dans le Calendrier. Aucun parcours parallèle spécifique aux Parcours n’est introduit.
+
+### Règles de Composition liées à la récupération après activité
+
+Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Dans un Tour répété, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-activité depuis l’`ActivityDefinition`.
