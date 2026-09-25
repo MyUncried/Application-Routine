@@ -246,3 +246,5 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 - **RM-203.11** — Un média indisponible n’interrompt ni l’Exécution ni l’accès aux autres médias.
 
 Ces règles décrivent une conception post-MVP à planifier.
+
+| RM-208 | Lorsqu’un Parcours devient planifiable, il utilise les mêmes Routines et règles de planification que les Séances et Exercices : une source par Routine, planification unique ou périodique, rappel facultatif, occurrences calculées dynamiquement et historique conservé. Cette règle n’active pas la capacité avant la version Parcours planifiable. |
