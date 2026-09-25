@@ -332,10 +332,10 @@ Une routine possède directement :
 
 Elle ne contient pas directement :
 
-- le contenu de la séance ;
-- les exercices ;
-- les exécutions de séance ;
- - les occurrences futures du calendrier, calculées à la demande ;
+- le contenu de la source ;
+- les copies de Séance éventuelles ;
+- les Exécutions ;
+- les occurrences futures du calendrier, calculées à la demande ;
 ## Attributs fonctionnels
 
 | Attribut               | Description                                        |  Caractère   | Règle principale                                                                                  |
@@ -370,10 +370,10 @@ Elle ne contient pas directement :
 - Plusieurs routines peuvent générer une occurrence le même jour ou à la même heure.
 - Les conflits entre routines ne sont pas bloquants dans le MVP.
 - Une modification de la Routine s'applique uniquement au calcul des occurrences futures. Elle ne modifie pas les occurrences déjà historisées.
-- Une modification de la routine n’a aucun effet sur les exécutions de séance déjà créées.
+- Une modification de la Routine n’a aucun effet sur les Exécutions déjà créées.
 - La suppression d'une Routine met fin au calcul de ses occurrences futures. Les occurrences déjà historisées et les Exécutions déjà enregistrées sont conservées.
-- La suppression d’une routine ne supprime jamais la séance référencée.
-- La suppression d’une routine ne supprime jamais les exécutions de séance déjà enregistrées.
+- La suppression d’une Routine ne supprime jamais la source référencée.
+- La suppression d’une Routine ne supprime jamais les Exécutions déjà enregistrées.
 
 # 09.3.1 Règles de planification
 
@@ -453,14 +453,14 @@ La suppression d'une routine :
 
 - met fin au calcul de ses occurrences futures ;
 - conserve toutes les occurrences déjà historisées, qu'elles soient `Exécutées` ou `Non exécutées` ;
-- ne supprime jamais la Séance associée ;
+- ne supprime jamais la source associée ;
 - ne supprime jamais les Exécutions déjà enregistrées.
 
 ## Affichage dans l'agenda
 
 Les occurrences sont affichées dans l'agenda.
 Les jours comportant au moins une occurrence sont identifiés par un indicateur visuel.
-La couleur de cet indicateur correspond à la couleur de la séance planifiée.
+Le repère visuel de cet indicateur correspond à la source planifiée : couleur d’Étiquette pour une Séance, couleur de Catégorie pour un Exercice lorsqu’elle existe.
 Lorsque plusieurs occurrences sont prévues le même jour, plusieurs indicateurs sont affichés, dans la limite de l'espace disponible.
 
 # 09.4 Entité Occurrence planifiée
@@ -474,8 +474,8 @@ Les occurrences futures calculées dynamiquement ne constituent pas des objets p
 Une Occurrence planifiée possède directement :
 
 - la Routine qui l'a générée ;
-- la Séance concernée ;
-- la date et l'heure auxquelles la Séance était planifiée ;
+- le type de source et la source concernée ;
+- la date et l'heure auxquelles la source était planifiée ;
 - son statut ;
 - le cas échéant, l'Exécution correspondante.
 
@@ -485,11 +485,12 @@ Une Occurrence planifiée possède directement :
 | ------------ | --------------------------------------------- | -----------: | ---------------------------------------------------- |
 | Identifiant  | Identifiant unique de l'occurrence historisée |  Obligatoire | Stable                                               |
 | Routine      | Routine ayant généré l'occurrence             |  Obligatoire | Référence à la Routine d'origine                     |
-| Séance       | Séance concernée                              |  Obligatoire | Référence à la Séance planifiée                      |
+| Type de source | Type du contenu planifié                     | Obligatoire | `SESSION` ou `ACTIVITY` |
+| Source       | Source concernée                               | Obligatoire | Référence à la source planifiée au moment de l’occurrence |
 | Date prévue  | Date planifiée                                |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
 | Heure prévue | Heure planifiée                               |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
 | Statut       | Résultat de l'occurrence                      |  Obligatoire | `Exécutée` ou `Non exécutée`                         |
-| Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la Séance a été démarrée      |
+| Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la source a été démarrée      |
 ### Règles métier
 
 - Une Occurrence planifiée est normalement persistée à son échéance. **Exception :** lorsqu’une occurrence future est exécutée en avance depuis l’action `Démarrer` de sa carte, elle est persistée immédiatement avec sa date/heure initialement planifiées et son lien vers l’Exécution réelle, afin de ne pas être reproposée à son horaire initial.
