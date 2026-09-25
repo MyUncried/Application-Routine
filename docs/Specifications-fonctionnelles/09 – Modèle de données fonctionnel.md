@@ -46,7 +46,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Séance | Définition réutilisable d'un entraînement | Principale |
 | Cycle | Structure ordonnée de la séance portant son propre nombre de répétitions | Structure interne de séance |
 | Tour | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |
-| Routine | Planification d'une séance | Principale |
+| Routine | Planification d’un contenu source `SESSION` ou `ACTIVITY` | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Activité | Action élémentaire d'une séance | Principale |
 | Média | Média associé à une Activité ; affichable dans le Catalogue MVP | Métier |
@@ -65,7 +65,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
-| DM-006 | Une même séance peut être planifiée par plusieurs routines.                                                                                                                                                  | V1             |
+| DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine référence exactement une source `SESSION` ou `ACTIVITY`. | MVP — D-206 |
 | DM-007 | Une exécution crée automatiquement un instantané fonctionnel immuable et allégé de la séance.                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
@@ -313,15 +313,16 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 
 ## Définition
 
-Une **Routine** est une entité métier qui planifie l'exécution d'une séance.
+Une **Routine** est une entité métier qui planifie l'exécution d’un contenu planifiable.
 
-Elle ne décrit jamais le contenu d'un entraînement. Elle référence une séance existante et définit les règles selon lesquelles celle-ci doit être proposée ou exécutée.
+Elle ne décrit jamais le contenu d'un entraînement. Elle référence exactement une source existante de type `SESSION` ou `ACTIVITY` et définit les règles selon lesquelles celle-ci doit être proposée ou exécutée.
 ## Périmètre
 
 Une routine possède directement :
 
-- la séance référencée ;
-- la couleur héritée de la séance référencée (non stockée) ;
+- le type de source (`SESSION` ou `ACTIVITY`) ;
+- l’identifiant de la source référencée ;
+- le repère visuel hérité de la source (non stocké) ;
 - sa date de début ;
 - sa date de fin éventuelle ;
 - son heure d'exécution ;
@@ -340,7 +341,8 @@ Elle ne contient pas directement :
 | Attribut               | Description                                        |  Caractère   | Règle principale                                                                                  |
 | ---------------------- | -------------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------- |
 | Identifiant            | Identifiant unique de la routine                   | Obligatoire  | Stable pendant toute la durée de vie de la routine                                                |
-| Séance                 | Séance planifiée par la routine                    | Obligatoire  | Référence une seule Séance non archivée appartenant au même Utilisateur                                 |
+| Type de source         | Type du contenu planifié                            | Obligatoire  | `SESSION` ou `ACTIVITY` |
+| Source                  | Contenu planifié par la Routine                     | Obligatoire  | Référence une seule Séance active ou une seule `ActivityDefinition` active appartenant au même Utilisateur |
 | Date de début          | Première date à laquelle la routine s’applique     | Obligatoire  | Ne peut pas être postérieure à la date de fin                                                     |
 | Heure d’exécution      | Heure prévue pour l’occurrence                     | Obligatoire  | Identique pour toutes les occurrences de la routine dans le MVP                                   |
 | Rappel                 | Rappel associé à la Routine                        |  Facultatif  | Zéro ou un rappel maximum ; délai appliqué à chaque occurrence                                    |
@@ -352,19 +354,19 @@ Elle ne contient pas directement :
 ## Règles métier
 
 - Une routine appartient à un seul utilisateur.
-- Une routine référence toujours une seule séance.
-- Une routine reprend toujours la couleur de la séance qu'elle référence.
-- Une Routine peut être créée uniquement à partir d’une Séance non archivée appartenant au même Utilisateur.
-- Une séance peut être planifiée par zéro, une ou plusieurs routines.
-- Une séance peut être exécutée directement sans être associée à une routine.
+- Une Routine référence toujours une seule source, de type `SESSION` ou `ACTIVITY`.
+- Une Routine reprend le repère visuel de sa source : couleur d’Étiquette pour une Séance, couleur de Catégorie pour un Exercice lorsqu’elle existe.
+- Une Routine peut être créée uniquement à partir d’une source active appartenant au même Utilisateur.
+- Une Séance ou une `ActivityDefinition` peut être planifiée par zéro, une ou plusieurs Routines.
+- Une Séance ou une `ActivityDefinition` peut être exécutée directement sans être associée à une Routine.
 - Une routine définit une seule règle de planification.
 - Une Routine utilise le mode affiché `Aucune` ou `Périodique`. Dans le MVP, le mode `Périodique` utilise uniquement une périodicité hebdomadaire.
 - Une Routine périodique possède une date de fin obligatoire.  
 - Une Routine périodique possède une fréquence hebdomadaire supérieure ou égale à 1 et au moins un jour de la semaine sélectionné.  
-- Plusieurs exécutions d'une même Séance à des horaires différents, y compris le même jour, sont représentées par plusieurs Routines distinctes.
+- Plusieurs exécutions d'une même source à des horaires différents, y compris le même jour, sont représentées par plusieurs Routines distinctes.
 - Une Routine génère des occurrences pendant sa période de validité tant qu'elle existe.
 - Les occurrences futures du calendrier sont calculées à la demande à partir des attributs de la Routine et ne sont pas stockées. Une occurrence est historisée lorsqu'elle arrive à échéance afin de conserver son résultat.
-- Plusieurs routines peuvent générer des occurrences pour une même séance.
+- Plusieurs Routines peuvent générer des occurrences pour une même source.
 - Plusieurs routines peuvent générer une occurrence le même jour ou à la même heure.
 - Les conflits entre routines ne sont pas bloquants dans le MVP.
 - Une modification de la Routine s'applique uniquement au calcul des occurrences futures. Elle ne modifie pas les occurrences déjà historisées.
@@ -393,7 +395,7 @@ Le MVP prend en charge deux modes de planification :
 
 Sélectionner les sept jours de la semaine permet d'obtenir une exécution quotidienne. Il n'existe donc pas de type de récurrence `Quotidienne` distinct.
 
-Une Routine ne définit qu'une seule heure d'exécution. Pour planifier plusieurs exécutions d'une même Séance à des horaires différents, l'utilisateur crée plusieurs Routines.
+Une Routine ne définit qu'une seule heure d'exécution. Pour planifier plusieurs exécutions d'une même source à des horaires différents, l'utilisateur crée plusieurs Routines.
 
 Les autres formes de récurrence, notamment mensuelles, annuelles ou personnalisées, ne sont pas prises en charge dans le MVP.
 
@@ -403,7 +405,7 @@ Les occurrences futures d'une Routine ne sont pas stockées. Elles sont calculé
 
 Lorsqu'une occurrence arrive à échéance, elle est historisée afin de conserver son résultat.
 
-Le calcul dynamique est effectué chaque fois que l'application doit afficher les occurrences futures ou déterminer les prochaines séances planifiées.
+Le calcul dynamique est effectué chaque fois que l'application doit afficher les occurrences futures ou déterminer les prochaines planifications de Séances ou d’Exercices.
 
 Elles sont calculées dynamiquement à partir :
 
@@ -412,7 +414,7 @@ Elles sont calculées dynamiquement à partir :
 - des paramètres de récurrence ;
 - de la date de fin éventuelle.
 
-Le calcul est effectué chaque fois que l'application doit afficher les occurrences ou déterminer les prochaines séances planifiées.
+Le calcul est effectué chaque fois que l'application doit afficher les occurrences ou déterminer les prochaines planifications.
 
 ## Rappels
 
