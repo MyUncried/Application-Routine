@@ -34,9 +34,9 @@ Le MVP permet à l'utilisateur :
 | Hors MVP         | Créer et exécuter un Parcours                  | Parcours de création et d’exécution d’un Parcours                                                               | Partiel — à compléter |
 ## Principes communs
 
-- Une séance définit le contenu à exécuter.
-- Une routine définit la planification d'une séance.
-- Une exécution de séance conserve le déroulement réel d'une séance exécutée.
+- Une Séance ou un Exercice persistant définit un contenu pouvant être exécuté directement.
+- Une Routine définit la planification d’une source `SESSION` ou `ACTIVITY`.
+- Une Exécution conserve le déroulement réel de la source exécutée.
 - Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
 - Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
 - La modification de la source planifiée ou d'une Routine n'altère jamais les Exécutions déjà enregistrées.
