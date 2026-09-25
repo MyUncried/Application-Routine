@@ -112,7 +112,7 @@
 | TEC-07 | Alias du contour pilote imprécis. | Documenter l’alias exact. | 12 Couleurs/§12.34 | `color/selection` → `color/blue/selection-5F60EE`. | Variables `2290:52` → `2290:3` | Corrigé | 12 table d’alias. |
 | TEC-08 | Captures pouvaient rester sur les anciens écrans. | Réexporter 15 captures et supprimer 3 obsolètes. | 06 ; 13 ; images | PNG `402×874`, références actuelles. | 15 nodes contrôlés | Corrigé | 06 États Figma + dossier images. |
 
-## Résultat
+## Résultat historique avant D-208
 
 - Total : **98 points**.
 - Corrigés : **98**.
@@ -120,6 +120,12 @@
 - À clarifier : **0**.
 - Couverture partielle : **0**.
 
+Ces chiffres décrivent l’ancien modèle audité et ne constituent plus un verdict courant sur les axes modifiés par D-208.
+
 ## Mise à jour D-208 — 25/09/2026
 
 Cette matrice est réinterprétée selon D-208. Toute ligne historique qui suppose une récupération générique `recoverySeconds`, une formule `P(C,R)` ou une carte conditionnelle absente à `0 s` est supersédée. Les axes actifs sont : `sideRecoverySeconds` sur l’Activité bilatérale, `postActivityRecoverySeconds` sur l’occurrence, `C−1` Pauses, Exécution directe sans post-récupération, et durée intrinsèque excluant la post-récupération.
+
+État courant D-208 :
+- **À CLARIFIER : 1 axe** — valeur initiale de `sideRecoverySeconds` lors du passage de `Aucun` à `D→G` ou `G→D`.
+- **PARTIELLEMENT CONFORME : Figma** — les écrans historiques de récupération doivent être réalignés avant de redevenir des preuves visuelles normatives sur cet axe.
