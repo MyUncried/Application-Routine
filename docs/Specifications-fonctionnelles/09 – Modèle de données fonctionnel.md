@@ -554,7 +554,7 @@ Elle ne contient pas directement :
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
 | Nombre de Séries           | Entier canonique persisté                       |        Obligatoire        | Valeur de 1 à 99 ; valeur par défaut 1                                        |
 | Pause entre Séries         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; insérée `nombreDeSéries − 1` fois                     |
-| Récupération               | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; phase `RECOVERY` insérée une fois si valeur > 0       |
+| Récupération entre côtés   | Durée                                           |        Conditionnel       | `sideRecoverySeconds`; pertinente uniquement en bilatéral, phase `SIDE_RECOVERY` si > 0 |
 | Durée totale               | Durée dérivée                                   |          Calculé          | Non persistée ; disponible uniquement en mode Durée                            |
 | Zones corporelles          | Zones sollicitées                               |        Facultatif         | Zéro à plusieurs                                                              |
 | Médias                     | Média(s) associé(s)                             |        Selon périmètre    | Affichage du média associé dans la carte Catalogue déployée inclus au MVP       |
@@ -745,8 +745,8 @@ Chaque occurrence d’Activité parcourue pendant une Exécution produit un **R�
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Activité | Obligatoire | Chronométré pour les modes Durée, Répétitions et À l’échec |
-| Récupération prévue | Durée de Récupération planifiée | Obligatoire | Champ fonctionnel `recoveryPlannedSeconds`, valeur `0` si absente |
-| Récupération écoulée | Temps réellement exécuté dans la phase `RECOVERY` | Obligatoire | Champ fonctionnel `recoveryElapsedSeconds`, compris entre `0` et la durée prévue |
+| Récupération entre côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
+| Récupération après activité prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
 
 Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Exercices exécutées** et les indicateurs de Suivi.
 
@@ -786,8 +786,8 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 | Attribut            | Description                                |  Caractère  | Règle principale                  |
 | ------------------- | ------------------------------------------ | :---------: | --------------------------------- |
 | Position            | Rang dans le plan d'exécution              |   Calculé   | Numérotation continue             |
-| Activité            | Activité de l'instantané                   | Facultatif  | Absente pour `INITIAL_COUNTDOWN` et `SESSION_END` ; la phase `RECOVERY` référence l’Activité à laquelle elle est attachée |
-| Type de phase       | `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` ou `SESSION_END` | Calculé | Déduit de la structure et des paramètres de l’Activité ; ce n’est pas un type d’Activité |
+| Activité            | Activité de l'instantané                   | Facultatif  | Absente pour `INITIAL_COUNTDOWN` et `SESSION_END`; les phases de récupération référencent leur Activité/occurrence source |
+| Type de phase       | `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` ou `SESSION_END` | Calculé | Déduit de l’Activité et de l’occurrence ; ce n’est pas un type d’Activité |
 | Répétition du Tour  | Numéro de répétition du Tour               |   Calculé   | Généré automatiquement            |
 | Répétition du cycle | Numéro de répétition du cycle              |   Calculé   | Généré automatiquement            |
 | Étape suivante      | Navigation                                 |   Calculé   | Absente uniquement pour `SESSION_END` |
@@ -799,7 +799,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de la dernière Activité active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les répétitions du Tour et du cycle sont résolues lors de la génération.
-- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` suit aussi la dernière Série lorsque `R = 0`; lorsque `R > 0`, elle n’est insérée qu’entre Séries et une phase `RECOVERY` remplace la dernière Pause.
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance/Parcours si sa durée contextuelle est positive.
 - T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
