@@ -1,6 +1,6 @@
 > **MISE À JOUR 25/09/2026 — D-208.** Les conclusions antérieures relatives aux Pauses et à la récupération après les deux côtés sont supersédées. Les autres conclusions de bilatéralité restent lisibles sous réserve de D-189 et D-208.
 
-> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Activité bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après activité appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale reste **À CLARIFIER**.
+> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Activité bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après exercice appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale reste **À CLARIFIER**.
 
 # Rapport final de conformité — Bilatéralité
 
@@ -23,7 +23,7 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 | Contrôle Activité | CONFORME | Libellé `Changement de côté`, valeurs `Aucun / D→G / G→D`; géométrie selon Figma courant. |
 | Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Activité dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
-| Calculs | **SUPERSEDÉS PAR D-208** | La règle du 14 septembre est historique : D-208 impose désormais `C−1` Pauses par côté, une récupération entre côtés éventuelle et exclut la récupération post-activité de la durée intrinsèque. |
+| Calculs | **SUPERSEDÉS PAR D-208** | La règle du 14 septembre est historique : D-208 impose désormais `C−1` Pauses par côté, une pause au changement de côté éventuelle et exclut la récupération post-activité de la durée intrinsèque. |
 | T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
 
 ## Sources Figma
