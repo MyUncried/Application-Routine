@@ -67,13 +67,13 @@ Les API fonctionnelles respectent les principes suivants :
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
-|API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, Catégorie, Zones corporelles, mode d’exécution, cible éventuelle, Séries, Pause, Récupération, Changement de côté, Compte à rebours propre, Fin d’activité propre|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; `Aucun/D→G/G→D` au niveau Activité ; paramètres temporels ≥ 0 selon leur nature|Activité|
-|API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, Récupération `R`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée totale réalisable|Avec `L = 1` ou `2` et `P(C,R) = C` si `R = 0`, sinon `C − 1`, pilote Séries : `D = L × [C × A + P(C,R) × B] + R`. Pilote Durée totale : `Cth = D/[L × (A+B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B)/(A + B)`, arrondi au plus proche avec `.5` vers le haut, minimum `1`, puis recalcul de `D`|Activité, calcul sans entité supplémentaire|
-|API-ACT-03|Définir Pause et Récupération|ID Activité, durée de Pause, durée de Récupération|Activité mise à jour|`C` Pauses par côté si `R = 0`, y compris après la dernière Série, sinon `C − 1`; Récupération positive remplaçant la dernière Pause et exécutée une fois après tous les côtés de l’Activité|Activité|
+|API-ACT-01|Paramétrer une Activité|Nom, description éventuelle, Catégorie, Zones corporelles, mode d’exécution, cible éventuelle, Séries, Pause, `sideRecoverySeconds`, Changement de côté, Compte à rebours propre, Fin d’activité propre|Activité créée ou mise à jour|Mode `Durée`, `Répétitions` ou `À l’échec` ; `sideRecoverySeconds` n’a de sens qu’en `D→G/G→D`; aucune récupération post-activité sur `ActivityDefinition`|Activité|
+|API-ACT-02|Calculer les paramètres temporels|Durée `A`, Pause `B`, Séries `C`, `sideRecoverySeconds` `S`, `sideMode`, pilote et Durée totale cible éventuelle|Séries canoniques et Durée intrinsèque réalisable|Unilatéral : `D=C×A+(C−1)×B`. Bilatéral : `D=2×[C×A+(C−1)×B]+S`. `postActivityRecoverySeconds` est exclu du calcul. L’inversion conserve l’arrondi `.5` vers le haut et le minimum `1`.|Activité, calcul sans entité supplémentaire|
+|API-ACT-03|Définir Pause et récupération entre côtés|ID Activité, durée de Pause, `sideRecoverySeconds`|Activité mise à jour|Pause = `C−1` occurrences par côté ; `sideRecoverySeconds` uniquement en bilatéral et exécuté une fois entre les deux côtés|Activité|
 |API-ACT-04|Lire/afficher les médias associés|ID Activité|Média(s) associé(s) pour l’état déployé de la carte|L’affichage déployé fait partie du MVP ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Activité, Média|
 |API-ACT-05|Associer des zones corporelles|ID Activité, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Activité, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Activité, nombre de Séries|Activité mise à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Activité|
-|API-ACT-07|Dupliquer une Activité de Séance|ID Activité source|Nouvelle Activité de Séance indépendante|Nouvel identifiant ; nom avec suffixe `(copie)` puis numéroté disponible ; copie du mode, de la Description, des paramètres dont Pause et Récupération, des Zones corporelles et des associations média ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Activité, Composition, associations Média|
+|API-ACT-07|Dupliquer une Activité de Séance|ID Activité source|Nouvelle Activité de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Activité, Composition, associations Média|
 ## 11.5 API Routines et Planification
 
 | ID         | Opération                                    | Entrées principales                                                                             | Résultat                                   | Règles / validations                                                                                                                                                    | Objets impactés                            |
@@ -323,3 +323,13 @@ La face courante, l’index de galerie et l’état de lecture sont des états d
 ### Extension future des API Routine — Parcours
 
 Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une troisième source correspondant au Parcours. Fonctionnellement, la source est `PARCOURS`; techniquement, la valeur reste `CIRCUIT` tant que les identifiants existants ne sont pas renommés. Les opérations Créer/Lire/Modifier/Supprimer, Calculer les occurrences, Récupérer la prochaine occurrence, Historiser une occurrence et Gérer le rappel restent communes ; aucune API parallèle de planification des Parcours n’est créée.
+
+### API de récupération contextuelle — D-208
+
+| ID | Opération | Entrées | Résultat | Règle |
+| --- | --- | --- | --- | --- |
+| API-COM-REC-01 | Initialiser la récupération après activité | nouvelle occurrence | `postActivityRecoverySeconds` | Valeur issue du défaut global, jamais copiée depuis `ActivityDefinition`. |
+| API-COM-REC-02 | Modifier la récupération après activité | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. |
+| API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
+| API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
+| API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
