@@ -508,3 +508,7 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 10. Si l’Exercice se termine pendant la consultation média, KODJO ferme le média de cet Exercice et poursuit la transition normale.
 
 Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+## Planifier un Parcours — cible future
+
+Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisateur réutilise celui des Routines : sélection ou préremplissage de la source, paramètres de planification, validation, occurrences dans le Calendrier. Aucun parcours parallèle spécifique aux Parcours n’est introduit.
