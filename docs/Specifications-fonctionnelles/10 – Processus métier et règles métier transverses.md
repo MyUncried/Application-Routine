@@ -70,7 +70,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-129 | En mode Durée, la durée intrinsèque d’une Activité vaut `C×A + (C−1)×B` en unilatéral et `2×[C×A + (C−1)×B] + S` en bilatéral, avec `S = sideRecoverySeconds`. `postActivityRecoverySeconds` n’entre jamais dans cette durée. |
 | RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, du `sideMode` ou de `sideRecoverySeconds` recalcule la durée intrinsèque. Si la Durée totale pilote, l’inversion utilise la formule D-208 correspondante puis arrondit `C` au plus proche avec `.5` vers le haut, minimum `1`, avant recalcul de la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
-| RM-132 | Dans le texte éditable : mode Durée inchangé ; mode Répétitions = `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition, plus Pauses/Récupération et bilatéralité selon les règles existantes ; mode À l’échec = aucune Durée totale affichée. |
+| RM-132 | Dans le texte éditable : mode Durée inchangé ; mode Répétitions = `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition. L’estimation vaut `C×N+(C−1)×B` en unilatéral et `2×[C×N+(C−1)×B]+S` en bilatéral, avec `S=sideRecoverySeconds`; `postActivityRecoverySeconds` est exclu. Mode À l’échec = aucune Durée totale affichée. |
 
 ## 5. Planification et Calendrier
 
@@ -109,11 +109,11 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-059 | `Suivant` termine normalement la Série courante d’une Activité en Répétitions ou À l’échec sans confirmation. |
 | RM-060 | Pour une Activité chronométrée non arrivée à zéro, `Activité suivante` demande confirmation. Si elle est confirmée, le Résultat d’Activité est `Partielle` et l’Exécution continue. |
 | RM-061 | Une Activité chronométrée arrivée à zéro se termine automatiquement. |
-| RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante. Pendant `RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement cette phase ; les Exercices antérieures et leurs Résultats restent inchangés. |
+| RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
 | RM-063 | Aucun retour à une Activité précédente et aucune sélection libre d’une autre Activité ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
 | RM-065 | Le bouton Retour de l’Exécution revient au contexte réel de lancement. Dans le prototype de démonstration, il revient au Catalogue des séances non vide. |
-| RM-065a | Pendant `RECOVERY`, `Activité suivante` avant zéro demande confirmation. Si elle est confirmée, l’Activité demeure terminée, la Récupération est enregistrée partiellement et l’Exécution continue. Un arrêt de la Séance pendant cette phase produit le statut `Interrompue`. |
+| RM-065a | Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, un passage anticipé avant zéro demande confirmation. Si elle est confirmée, la durée partielle de la phase courante est enregistrée et le Plan poursuit vers son étape suivante ; les Séries déjà acquises ne sont pas rejouées. Un arrêt de la Séance pendant une phase de récupération produit le statut `Interrompue`. |
 
 ## 8. Arrière-plan, verrouillage et sécurité temporelle
 
