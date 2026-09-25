@@ -368,10 +368,10 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
 - `Routine` : planification d’une Séance ou d’un Exercice persistant ;
-- `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et, en bilatéral, Récupération entre côtés éventuelle ;
+- `Activité` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et, en bilatéral, Pause au changement de côté éventuelle ;
 - `Exercice` : Activité physique ;
-- `Récupération entre côtés` : durée intrinsèque facultative d’une Activité bilatérale, exécutée une seule fois entre le premier et le second côté ;
-- `Récupération après activité` : durée contextuelle portée par chaque occurrence d’Activité dans une Séance/Parcours, visible y compris à `0 s` et exécutée après l’occurrence lorsqu’elle est positive ;
+- `Pause au changement de côté` : durée intrinsèque facultative d’une Activité bilatérale, exécutée une seule fois entre le premier et le second côté ;
+- `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Activité dans une Séance/Parcours, visible y compris à `0 s` et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour ;
@@ -687,7 +687,7 @@ Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
 Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La valeur `0 s` reste affichée dans la Composition ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
 
-Si deux Exercices s’enchaînent sans Pause entre Séries et avec une récupération après activité à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+Si deux Exercices s’enchaînent sans Pause entre Séries et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
 
 ### Résumé de la ligne d’une Activité (D-095)
 
@@ -717,7 +717,7 @@ Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:
 
 ### Réorganisation
 
-Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’occurrence et sa ligne de Récupération après activité passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’occurrence et sa ligne de Récupération après exercice passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Activité et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
@@ -843,7 +843,7 @@ En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’e
 
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour toute nouvelle Activité, sa valeur par défaut est `1`.
 
-Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée exactement entre les Séries successives d’un même côté, soit `C−1` fois. En bilatéral, la **Récupération entre côtés** éventuelle est exécutée une seule fois entre les Séries du premier et du second côté.
+Une Série correspond à l’Exécution de la cible du mode. Pour une Activité bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée exactement entre les Séries successives d’un même côté, soit `C−1` fois. En bilatéral, la **Pause au changement de côté** éventuelle est exécutée une seule fois entre les Séries du premier et du second côté.
 
 ### Dépendance Séries / Durée totale
 
@@ -861,7 +861,7 @@ Les Exécutions déjà historisées ne sont jamais modifiées.
 
 ## Écran 5 — Réservé
 
-L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. L’Écran 4 expose uniquement la **Récupération entre côtés**, conditionnelle au bilatéral. La **Récupération après activité** se règle sur l’occurrence dans la Composition et ne possède aucun écran autonome.
+L’ancien écran autonome `Création / modification d’une Activité — Récupération` est supprimé. Le numéro reste réservé afin de ne pas renuméroter silencieusement les écrans et références historiques. L’Écran 4 expose uniquement la **Pause au changement de côté**, conditionnelle au bilatéral. La **Récupération après exercice** se règle sur l’occurrence dans la Composition et ne possède aucun écran autonome.
 
 ## Écran 6 – Étiquettes de la séance dans la Composition
 
@@ -1119,15 +1119,15 @@ Lorsqu’une Activité possède plusieurs Séries :
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
 - pour `C` Séries d’un même côté, la Pause est appliquée exactement `C − 1` fois, uniquement entre Séries successives ;
-- si l’Activité est bilatérale, la Récupération entre côtés éventuelle est exécutée une seule fois entre le premier et le second côté.
+- si l’Activité est bilatérale, la Pause au changement de côté éventuelle est exécutée une seule fois entre le premier et le second côté.
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
 
 ### Récupérations
 
-Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Récupération entre côtés d’une Activité bilatérale et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après activité portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernière Activité avant `SESSION_END` et après chaque passage dans un Tour répété.
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’une Activité bilatérale et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernière Activité avant `SESSION_END` et après chaque passage dans un Tour répété.
 
-La valeur `postActivityRecoverySeconds = 0` reste visible dans la Composition mais ne crée pas de phase chronométrée positive. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la récupération entre côtés de la récupération après occurrence.
+La valeur `postActivityRecoverySeconds = 0` reste visible dans la Composition mais ne crée pas de phase chronométrée positive. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la pause au changement de côté de la récupération après occurrence.
 
 ### Commandes principales
 
@@ -1884,7 +1884,7 @@ Les cartes des Catalogues `Séances` et `Exercices` appliquent la même règle :
 
 Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours reste désactivée tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
 
-### Composition — Récupération après activité — D-208
+### Composition — Récupération après exercice — D-208
 
 Sous chaque occurrence d’Exercice de la Composition, afficher systématiquement une ligne légère `Récupération {durée}`, y compris lorsque la durée vaut `0 s`. Un tap sur la durée ouvre la roulette basse de modification. Cette ligne accompagne l’occurrence lors du déplacement, de la duplication et de la suppression.
 
@@ -1893,4 +1893,4 @@ La règle vaut également :
 - à chaque répétition du Tour ;
 - après la dernière Activité de la Séance, avant la Fin de séance.
 
-Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Récupération entre côtés` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après activité ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
+Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause au changement de côté` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
