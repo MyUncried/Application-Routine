@@ -182,7 +182,7 @@ La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de
 
 `Renforcement du genou` est une **valeur de démonstration Figma**, jamais un libellé statique. Seul l’état vide `3943:6064` conserve `Nom de l’activité` comme état vide/placeholder. Les frames `3879:5947` et `3879:6079` utilisent respectivement `Étirement du quadriceps` et `Squat assisté` comme valeurs de démonstration.
 
-En Répétitions et À l’échec, le contrôle visible porte `Durée totale >=`. La Synthèse fonctionnelle reste formulée `Durée totale : ≥ {durée connue}` : le libellé court du contrôle ne modifie pas la règle métier. Ce point a été recontrôlé visuellement sur `3561:4695` et `3561:7802`.
+Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
 
 ## 9. Historique des exports
 
