@@ -57,18 +57,18 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 | --- | --- |
 | RM-033 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
-| RM-034 | Une Activité porte une Pause entre Séries d’un même côté et une durée de Récupération positionnée selon sa direction effective ; ces deux paramètres ont `0 s` comme valeur canonique en leur absence. |
+| RM-034 | Une Activité porte une Pause entre Séries d’un même côté et peut porter `sideRecoverySeconds` lorsqu’elle est bilatérale. La récupération après activité n’est pas une propriété de l’`ActivityDefinition` mais de l’occurrence dans une Séance/Parcours. |
 | RM-035 | Toute Activité possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries, une Pause éventuelle est insérée `C` fois si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`; une Série n’est pas une entité métier autonome. |
-| RM-037 | Une phase `RECOVERY` positive est insérée après tous les côtés de l’Activité. Elle reste attachée à l’Activité et ne constitue pas une Activité. |
-| RM-038 | La phase `RECOVERY` est chronométrée, annoncée par « Récupération », utilise les sons standards de fin et passe automatiquement à la suite à zéro. Après la dernière Activité, elle précède `SESSION_END`. |
+| RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries d’un même côté, une Pause éventuelle est insérée exactement `C − 1` fois, toujours entre Séries successives ; une Série n’est pas une entité métier autonome. |
+| RM-037 | Pour une Activité bilatérale, une phase de récupération entre côtés est insérée uniquement si `sideRecoverySeconds > 0`, entre toutes les Séries du premier côté et toutes celles du second. Elle est intrinsèque à l’Activité et ne constitue pas une Activité. |
+| RM-038 | Toute occurrence de Séance/Parcours porte `postActivityRecoverySeconds`, y compris à `0 s`. La récupération après activité est exécutée après l’occurrence ; si elle est positive, elle constitue une phase chronométrée. Après la dernière Activité d’une Séance elle précède `SESSION_END`; dans un Tour répété elle est exécutée à chaque passage. |
 | RM-039 | Une Activité peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel utilisateur administrable : sélection multiple sur une Activité, création, renommage et suppression sont autorisés dans le MVP. Une suppression utilisée demande confirmation, retire les associations des Exercices courantes et préserve les Instantanés/Exécutions historiques. |
 | RM-200 | Dans les modales de sélection des Étiquettes, Catégories et Zones corporelles, l’appui court sélectionne/désélectionne ; l’appui long ouvre une confirmation de suppression sans modifier la sélection. Toutes les valeurs sont supprimables, initiales comme personnalisées. `Annuler` ne modifie rien ; `Supprimer` retire la valeur du référentiel, de la sélection courante et des associations courantes concernées, puis conserve la modale de sélection ouverte. L’historique reste inchangé. |
 | RM-041 | Dans le MVP, le média associé à une Activité peut être affiché dans la carte déployée du Catalogue. Les capacités d’import/capture et de gestion multiple suivent leur périmètre propre. |
 | RM-042 | L’action de validation de l’édition d’une Activité est libellée `Terminer`. |
-| RM-129 | En mode Durée, avec `L = 1` en unilatéral ou `2` en bilatéral et `P(C,R) = C` si `R = 0`, sinon `C − 1`, la Durée totale globale d’une Activité autonome est `D = L × [C × A + P(C,R) × B] + R`. |
-| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, `R` ou `L` recalcule `D`. Si l’utilisateur confirme une Durée totale cible, calculer `Cth = D / [L × (A + B)]` si `R = 0`, sinon `Cth = ((D − R) / L + B) / (A + B)`, arrondir au plus proche avec `.5` vers le haut, borner à `1`, puis recalculer et afficher la durée réalisable. |
+| RM-129 | En mode Durée, la durée intrinsèque d’une Activité vaut `C×A + (C−1)×B` en unilatéral et `2×[C×A + (C−1)×B] + S` en bilatéral, avec `S = sideRecoverySeconds`. `postActivityRecoverySeconds` n’entre jamais dans cette durée. |
+| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, du `sideMode` ou de `sideRecoverySeconds` recalcule la durée intrinsèque. Si la Durée totale pilote, l’inversion utilise la formule D-208 correspondante puis arrondit `C` au plus proche avec `.5` vers le haut, minimum `1`, avant recalcul de la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
 | RM-132 | Dans le texte éditable : mode Durée inchangé ; mode Répétitions = `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition, plus Pauses/Récupération et bilatéralité selon les règles existantes ; mode À l’échec = aucune Durée totale affichée. |
 
@@ -248,3 +248,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 Ces règles décrivent une conception post-MVP à planifier.
 
 | RM-208 | Lorsqu’un Parcours devient planifiable, il utilise les mêmes Routines et règles de planification que les Séances et Exercices : une source par Routine, planification unique ou périodique, rappel facultatif, occurrences calculées dynamiquement et historique conservé. Cette règle n’active pas la capacité avant la version Parcours planifiable. |
+
+| RM-209 | `postActivityRecoverySeconds` est initialisé lors de la création d’une occurrence depuis le défaut global de récupération après activité puis devient indépendant ; modifier le défaut global ne modifie pas les occurrences existantes. |
+| RM-210 | La récupération après activité se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
+| RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-activité ; elle peut uniquement exécuter la récupération entre côtés si l’Activité est bilatérale. |
+| RM-212 | **À CLARIFIER :** valeur initiale de `sideRecoverySeconds` lorsqu’une Activité passe de `Aucun` à `D→G` ou `G→D`. Le défaut global post-activité ne doit pas être réutilisé implicitement. |
