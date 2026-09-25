@@ -1337,3 +1337,18 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 | Activité sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
 
 Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
+
+## Architecture cible — média pendant l’Exécution
+
+La conception D-203 impose des propriétés techniques observables sans imposer de bibliothèque :
+- le lecteur média est découplé du moteur d’Exécution ; afficher ou lire un média ne suspend pas le moteur ;
+- la galerie consomme un ordre déterministe des médias ;
+- la face et l’index courant vivent dans un état de séance transitoire, non dans les données métier persistées ;
+- l’animation de retournement reste purement UI ;
+- le lecteur vidéo gère pause/reprise explicite et absence d’autoplay ;
+- le mixage audio permet un **ducking** temporaire de la vidéo pendant les annonces vocales KODJO ;
+- le plein écran autorise la rotation de l’appareil et conserve un overlay d’Exécution alimenté par l’état courant du moteur ;
+- une transition de fin d’Exercice ferme tout média de l’Exercice terminé avant d’afficher l’étape suivante ;
+- une erreur de chargement média reste confinée au média concerné.
+
+Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.
