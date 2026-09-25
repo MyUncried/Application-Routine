@@ -122,7 +122,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Bloc** | Ancienne appellation non retenue pour la structure répétable. |
 | **Mes séances** | Ancienne appellation de l’écran désormais nommé **Catalogue des séances**. |
 | **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise **Aucune**. |
-| **Routine** pour désigner un contenu | Usage incorrect. Une Routine désigne la planification d’une source, qui peut être une Séance ou un Exercice persistant. |
+| **Routine** pour désigner un contenu | Usage incorrect. Une Routine désigne la planification d’une source : Séance ou Exercice persistant dans le MVP, et Parcours lorsque sa planification est livrée. |
 
 ## 9. Concepts ajoutés — Exercices, Médias et Parcours
 
