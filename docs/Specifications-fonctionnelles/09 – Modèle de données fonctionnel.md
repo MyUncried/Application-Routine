@@ -30,7 +30,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
 - Un Tour contient une suite ordonnée d'exercices.
 - Une Activité ne possède pas de type `Exercice` ou `Récupération`.
-- Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et une Récupération facultative positionnée selon la direction effective.
+- Une Activité possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-activité appartient à l’occurrence, pas à l’`ActivityDefinition`.
 - Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, une Activité persistante dans le MVP.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
@@ -60,8 +60,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une Activité porte un mode d’exécution et une durée de Récupération facultative. | Prérequis T04 |
-| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté. La Récupération est une durée distincte, exécutée après tous les côtés de l’Activité ; aucune Activité technique n’est créée pour l’une ou l’autre. | Prérequis T04 |
+| DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-activité est contextuelle à l’occurrence. | D-208 |
+| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La récupération entre côtés et la récupération après activité sont deux durées distinctes ; aucune n’est une Activité technique. | D-208 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -73,8 +73,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
 | DM-013 | Une Activité possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
-| DM-014 | Pour `C` Séries, la Pause est insérée `C` fois par côté si `R = 0`, y compris après la dernière Série, ou `C − 1` fois si `R > 0`. La Récupération positive remplace la dernière Pause et intervient une fois après tous les côtés de l’Activité. | Prérequis T04 ; D-156 |
-| DM-015 | En mode Durée, la Durée totale globale d’une Activité autonome est dérivée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` si `R = 0`, sinon `C − 1`, et `L = 1` ou `2`. Elle n’est pas une donnée canonique persistée. | Prérequis T04 ; D-156 |
+| DM-014 | Pour `C` Séries d’un même côté, la Pause est toujours insérée `C−1` fois, uniquement entre Séries successives. | D-208 ; supersède D-156 |
+| DM-015 | En mode Durée, `Dactivité = C×A + (C−1)×B` en unilatéral ; en bilatéral `Dactivité = 2×[C×A + (C−1)×B] + sideRecoverySeconds`. `postActivityRecoverySeconds` est exclu de cette durée intrinsèque. | D-208 |
 | DM-016| DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
 | DM-018 | Une Activité peut porter un Compte à rebours propre et une Fin d’activité propre. | 24/09/2026 |
 | DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
@@ -1196,3 +1196,17 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 ## Extension future de Routine — source Parcours
 
 D-207 étend le modèle cible sans modifier le périmètre MVP : le discriminateur de source de Routine accepte aujourd’hui `SESSION` et `ACTIVITY`; il devra accepter la source Parcours lorsque cette capacité est livrée. Tant que le nommage technique historique est conservé, cette valeur est `CIRCUIT`. La cardinalité reste exactement une source par Routine. Les occurrences et l’Exécution issue de l’occurrence conservent le type de source et son identifiant.
+
+## Données D-208 — récupérations
+
+### ActivityDefinition
+
+`ActivityDefinition` ne contient aucun champ de récupération post-activité. Il peut porter `sideRecoverySeconds`, pertinent uniquement pour `RIGHT_LEFT` ou `LEFT_RIGHT`.
+
+### SessionActivity
+
+Toute `SessionActivity` porte `postActivityRecoverySeconds`, valeur numérique non nulle en donnée et pouvant valoir `0`. Elle est initialisée depuis le défaut global au moment de la création de l’occurrence, puis devient indépendante. Déplacement, duplication et suppression conservent la sémantique d’appartenance à l’occurrence.
+
+### Plan d’Exécution
+
+Le plan distingue au minimum la phase de récupération entre côtés de la phase de récupération après occurrence. Une Exécution `ACTIVITY` directe ne génère jamais de phase post-activité. Une Exécution `SESSION` génère la récupération après chaque occurrence, y compris à chaque répétition de Tour et avant `SESSION_END` pour la dernière occurrence.
