@@ -86,7 +86,7 @@ Une Série correspond à une réalisation de l’Exercice selon son mode d’ex�
 Chaque Exercice possède notamment :
 - un nom ;
 - une Catégorie d’Exercice obligatoire ;
-- une ou plusieurs Zones corporelles facultatives ;
+- une ou plusieurs Zones corporelles obligatoires ;
 - un mode d'exécution ;
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
