@@ -310,7 +310,7 @@ Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel app
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’un Exercice persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’un Exercice persistant.
 
 ### 13. Gestes
 
@@ -380,7 +380,7 @@ Aucun écran intermédiaire et aucune donnée métier intermédiaire. La destina
 
 ### 6. Classification des valeurs Figma
 
-`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle exercice / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
+`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Un nouvel exercice / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
 
 ### 7. Structure de l’écran
 
@@ -436,7 +436,7 @@ Destination déterminée par le Catalogue courant ; aucun écran/arbre interméd
 
 ### 20. Recette déterministe
 
-Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle exercice / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
+Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Un nouvel exercice / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
 
 ### 21. Traçabilité
 
@@ -632,7 +632,7 @@ Bloc B3 ; parcours courant de Composition ; frame cible `3789:5349`. Les ancienn
 
 ### 2. Finalité fonctionnelle
 
-Ouvrir directement la sélection des Exercices persistantes du Catalogue depuis la Composition, sans arbre intermédiaire.
+Ouvrir directement la sélection des Exercices persistants du Catalogue depuis la Composition, sans arbre intermédiaire.
 
 ### 3. Contexte d’entrée
 
@@ -648,7 +648,7 @@ Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composi
 
 ### 6. Classification des valeurs Figma
 
-Les anciennes options `Une nouvelle exercice / Un exercice existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
+Les anciennes options `Un nouvel exercice / Un exercice existant / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
 
 ### 7. Structure de l’écran
 
