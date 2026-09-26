@@ -1956,3 +1956,6 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 - **Composition** : employer Circuit pour le groupe répété et Tours pour son nombre de répétitions. Le réglage global de prise en compte des Compte à rebours/Fins d’exercice est activé par défaut. Les positions de Point d’arrêt juste après le Compte à rebours initial et juste avant la Fin de séance sont absentes. Récupération précède Point d’arrêt sur leur ligne commune.
 - **Média compact** : bouton Lecture central avant lecture, masqué pendant lecture ; retour Information met la vidéo en pause.
 - **Splash** : la frame Splash active de `Prototype MVP` est la référence unique ; aucun statut `À CLARIFIER` n’est associé à son ancien nom.
+
+
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.
