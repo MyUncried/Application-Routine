@@ -1213,7 +1213,7 @@ Si l’application passe en arrière-plan ou si l’écran se verrouille :
 - au retour, l’application reconstitue l’Exercice et la position temporelle qui auraient dû être atteintes, plutôt que de reprendre le compteur à l’endroit où l’interface a été suspendue ;
 - les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
 
-Une mise en pause de sécurité est appliquée en cas d’inexercice prolongée :
+Une mise en pause de sécurité est appliquée en cas d’inactivité prolongée :
 
 - pour une Exercice chronométrée, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
 - pour un Exercice en Répétitions ou À l’échec, après 2 heures sans interaction depuis son démarrage.
