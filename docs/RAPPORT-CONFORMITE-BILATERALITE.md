@@ -1,6 +1,6 @@
 > **MISE À JOUR 25/09/2026 — D-208.** Les conclusions antérieures relatives aux Pauses et à la récupération après les deux côtés sont supersédées. Les autres conclusions de bilatéralité restent lisibles sous réserve de D-189 et D-208.
 
-> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Une Exercice bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après exercice appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+> **RÈGLE COURANTE D-208.** Pour `C` Séries par côté, la Pause intervient toujours `C−1` fois. Un Exercice bilatérale peut porter `sideRecoverySeconds`, exécutée une seule fois **entre** les deux côtés. La Récupération après exercice appartient à l’occurrence de Séance/Parcours et est exclue du calcul intrinsèque. Sa valeur à `0 s` reste une donnée présente. La valeur initiale de `sideRecoverySeconds` à l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
 # Rapport final de conformité — Bilatéralité
 
@@ -21,7 +21,7 @@ La rectification complémentaire part de `main@aea3e6453fc801f4d73a118f0887c4071
 | Confirmation conditionnelle | SUPERSEDED | Aucune confirmation d’activation bilatérale du Tour n’est exposée depuis D-189. |
 | Carte Exercice | CONFORME APRÈS RECTIFICATION | Petit indicateur `D→G` / `G→D` pour la direction propre de l’Exercice ; aucun changement de côté n’est exposé au niveau Tour depuis D-189. |
 | Contrôle Exercice | CONFORME | Libellé `Changement de côté`, valeurs `Aucun / D→G / G→D`; géométrie selon Figma courant. |
-| Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier une Exercice dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
+| Synthèse | CONFORME APRÈS CLARIFICATION | Clause développée réservée à l’écran Ajouter/Modifier un Exercice dans PRODUCT, 06, 08, D-154, RM-152 et CE-T01-13 ; jamais dans le texte de la carte de Composition. |
 | Durée | CONFORME | `Durée totale` et borne `≥` dans PRODUCT, 06, D-155, RM-153, CE-T01-13 ; `3561:4695`, `3561:7673`, `3561:7802`. |
 | Calculs | **SUPERSEDÉS PAR D-208** | La règle du 14 septembre est historique : D-208 impose désormais `C−1` Pauses par côté, une pause au changement de côté éventuelle et exclut la récupération post-exercice de la durée intrinsèque. |
 | T03 | HORS PÉRIMÈTRE | Aucun contrat ni comportement T03 étendu. |
