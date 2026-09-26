@@ -955,7 +955,7 @@ Les exercices référencent zéro, une ou plusieurs zones corporelles. Une zone 
 - Les Zones corporelles constituent un référentiel utilisateur administrable.
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
 - Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
-- La suppression d’une Zone utilisée demande confirmation, retire les associations des Exercices courantes et ne modifie pas les Instantanés/Exécutions historiques.
+- La suppression d’une Zone utilisée demande confirmation, la retire des choix futurs, conserve ses associations aux Exercices existants et ne modifie pas les Instantanés/Exécutions historiques.
 
 ## Valeurs initiales du référentiel (D-093, révisée par D-199)
 
