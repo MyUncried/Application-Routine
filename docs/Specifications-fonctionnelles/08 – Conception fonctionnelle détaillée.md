@@ -200,10 +200,10 @@ Ouvert depuis le Catalogue, `Terminer` crée ou met à jour un Exercice persista
 Depuis la Composition, `Ajouter un exercice` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer un Exercice local à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
 
 - `Une nouvelle exercice` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
-- `Un exercice existante` ouvre la sélection multiple du Catalogue d’Exercices ;
+- `Un exercice existant` ouvre la sélection multiple du Catalogue d’Exercices ;
 - `Annuler` ferme les options sans modifier le brouillon.
 
-La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Un Exercice créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
+La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Un Exercice créé dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
 
 ## 2 bis.4 Exécuter directement un Exercice
 
@@ -477,7 +477,7 @@ Cas particuliers :
 - un Exercice en mode Répétitions ou À l’échec conserve sa part non remplie pendant la Série puis la remplit entièrement lorsque l’utilisateur valide sa fin avec `Suivant` ;
 - un Exercice chronométré passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
 - `Pause` suspend la progression de la part courante ;
-- `Réinitialiser` remet à zéro la progression interne de l'Exercice courante sans modifier les parts déjà franchies.
+- `Réinitialiser` remet à zéro la progression interne de l'Exercice courant sans modifier les parts déjà franchies.
 
 La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée d’exécution.
 
@@ -610,7 +610,7 @@ Chaque exécution enregistre notamment :
 - le statut de l'exécution ;
 - le ressenti de l'utilisateur ;
 - l’instantané fonctionnel de la séance ;
-- les informations propres à chaque exercice exécutée.
+- les informations propres à chaque exercice exécuté.
 
 Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. En V2, il conserve les associations média ordonnées et leurs références stables sans dupliquer les fichiers physiques.
 
@@ -806,7 +806,7 @@ Le MVP distingue les statuts suivants :
 |Statut|Description|
 |---|---|
 |Terminée|Toutes les Exercices ont été terminées normalement et `SESSION_END` a été achevée.|
-|Partielle|La séance est arrivée à son terme, mais au moins un exercice chronométrée a été interrompue avant la fin de sa durée.|
+|Partielle|La séance est arrivée à son terme, mais au moins un exercice chronométré a été interrompue avant la fin de sa durée.|
 |Interrompue|La séance a été arrêtée avant la fin de son exécution.|
 
 Le statut est déterminé automatiquement lors de la fin de la séance.
@@ -1025,13 +1025,13 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Élément affiché | Type | Visible | Obligatoire | Valeur / comportement | Source | Action | Remarques |
 | --- | --- | ---: | ---: | --- | --- | --- | --- |
 | Titre de la séance | Texte | Toujours | Oui | Nom de la séance | Séance | Aucune | En-tête |
-| Nom de l’Exercice courante | Texte | Toujours | Oui | Exercice courante | Plan d’Exécution | Aucune | |
+| Nom de l’Exercice courant | Texte | Toujours | Oui | Exercice courant | Plan d’Exécution | Aucune | |
 | Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
 | Temps de l’Exercice | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
 | Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | En Répétition : un tour par minute |
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
 | À suivre | Texte | Sauf dernier Exercice | Non | Nom + durée/reps de l’Exercice suivant | Plan d’Exécution | Aucune | |
-| Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Exercice courante |
+| Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Exercice courant |
 | Pause | Bouton | Pendant Exécution | Oui | Actif | Statique | Suspendre | Suspend aussi le chrono croissant en Répétitions ou À l’échec |
 | Suivant | Bouton | Pendant Exécution | Oui | Actif | Statique | Terminer la Série ou passer à la suite | Fin normale en Répétitions/À l’échec ; confirmation avant terme pour un Exercice chronométré |
 | Temps total | Texte + barre | Toujours | Oui | Temps écoulé / estimé | Exécution | Aucune | |
@@ -1044,7 +1044,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement la premier Exercice. |
 | Exercice chronométré | Compte à rebours. `Exercice suivant` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Suivant` termine normalement la Série. |
-| Réinitialisation | Demande confirmation et remet l’Exercice courante à son état initial sans revenir à un Exercice antérieure. |
+| Réinitialisation | Demande confirmation et remet l’Exercice courant à son état initial sans revenir à un Exercice antérieur. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
 | Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
 | Navigation | L’utilisateur ne revient pas à un Exercice déjà exécutée. |
