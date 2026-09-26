@@ -282,7 +282,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 ### 5. Données affichées et source de vérité
 
-Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-activité, car elle n’existe pas sur `ActivityDefinition`; seule la pause au changement de côté éventuelle relève de la définition.
+Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la pause au changement de côté éventuelle relève de la définition.
 
 ### 6. Classification des valeurs Figma
 
@@ -310,7 +310,7 @@ Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel app
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’une Exercice persistante.
 
 ### 13. Gestes
 
@@ -334,7 +334,7 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer annonce l’état condensé/déployé ; Filtrer expose son état ; Trier reste disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
+Carte : `Ouvrir l’exercice <nom>` ; Lecture : `Exécuter l’exercice <nom>` ; Déployer annonce l’état condensé/déployé ; Filtrer expose son état ; Trier reste disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
 
 ### 19. Invariants
 
@@ -380,7 +380,7 @@ Aucun écran intermédiaire et aucune donnée métier intermédiaire. La destina
 
 ### 6. Classification des valeurs Figma
 
-`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
+`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle exercice / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
 
 ### 7. Structure de l’écran
 
@@ -436,7 +436,7 @@ Destination déterminée par le Catalogue courant ; aucun écran/arbre interméd
 
 ### 20. Recette déterministe
 
-Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
+Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle exercice / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
 
 ### 21. Traçabilité
 
@@ -454,7 +454,7 @@ Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; référ
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Activité et les règles de calcul existantes. L’éditeur courant n’expose plus de bouton `Ajouter un média` ; la zone Média reste affichable selon les données et le rendu Figma courant.
+Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Exercice et les règles de calcul existantes. L’éditeur courant n’expose plus de bouton `Ajouter un média` ; la zone Média reste affichable selon les données et le rendu Figma courant.
 
 ### 3. Contexte d’entrée
 
@@ -466,11 +466,11 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 5. Données affichées et source de vérité
 
-Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause, Récupération, `Changement de côté`, Durée totale, Compte à rebours d’Activité, Fin d’activité et données média affichables. Source = brouillon ; persistance seulement à validation.
+Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause, Récupération, `Changement de côté`, Durée totale, Compte à rebours d’Exercice, Fin d’exercice et données média affichables. Source = brouillon ; persistance seulement à validation.
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Activité** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’activité` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
+Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’exercice` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
 
 ### 7. Structure de l’écran
 
@@ -478,7 +478,7 @@ Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Paus
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode 3 options égales ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -490,7 +490,7 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
+Création/modification ; état vide avec `Nom de l’exercice` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
 
 ### 12. Contrôles et interactions
 
@@ -522,11 +522,11 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Durée totale inchangée en Durée ; Répétitions = `Durée totale >= {estimation}` avec 1 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée totale inchangée en Durée ; Répétitions = `Durée totale >= {estimation}` avec 1 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, ancienne formule D-156, récupération post-activité dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
@@ -624,7 +624,7 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-C
 
 # 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
-## CE-T03-06 — Composition — `Ajouter une activité` vers le Catalogue
+## CE-T03-06 — Composition — `Ajouter une exercice` vers le Catalogue
 
 ### 1. Identification
 
@@ -636,7 +636,7 @@ Ouvrir directement la sélection des Exercices persistantes du Catalogue depuis 
 
 ### 3. Contexte d’entrée
 
-Tap `+ Ajouter une activité` dans la Composition.
+Tap `+ Ajouter une exercice` dans la Composition.
 
 ### 4. Contexte de sortie / destinations
 
@@ -648,7 +648,7 @@ Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composi
 
 ### 6. Classification des valeurs Figma
 
-Les anciennes options `Une nouvelle activité / Une activité existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
+Les anciennes options `Une nouvelle exercice / Une exercice existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
 
 ### 7. Structure de l’écran
 
@@ -656,7 +656,7 @@ Aucun écran intermédiaire : transition directe de la Composition vers la séle
 
 ### 8. Éléments obligatoires
 
-Action `Ajouter une activité` dans la Composition ; écran de sélection CE-T03-07.
+Action `Ajouter une exercice` dans la Composition ; écran de sélection CE-T03-07.
 
 ### 9. Layout déterministe
 
@@ -676,7 +676,7 @@ Le tap ouvre CE-T03-07. Aucun choix préalable n’est demandé.
 
 ### 13. Gestes
 
-Tap sur `Ajouter une activité`.
+Tap sur `Ajouter une exercice`.
 
 ### 14. Validation
 
@@ -696,7 +696,7 @@ Le brouillon de Composition est conservé. La capacité existante de création d
 
 ### 18. Accessibilité
 
-`Ajouter une activité` annonce l’ouverture de la sélection d’Exercices.
+`Ajouter une exercice` annonce l’ouverture de la sélection d’Exercices.
 
 ### 19. Invariants
 
@@ -724,7 +724,7 @@ Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans
 
 ### 3. Contexte d’entrée
 
-Ouverture directe depuis `Ajouter une activité` dans CE-T03-06.
+Ouverture directe depuis `Ajouter une exercice` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
@@ -823,7 +823,7 @@ Tap Activity → éditeur ; long press Activity → déplacement ; swipe → act
 
 ### 5. Données affichées et source de vérité
 
-Draft Session. Direction propre de l’Activité : D→G/G→D ; rien avec `Aucun`. Aucun changement de côté n’est exposé au niveau Tour.
+Draft Session. Direction propre de l’Exercice : D→G/G→D ; rien avec `Aucun`. Aucun changement de côté n’est exposé au niveau Tour.
 
 ### 6. Classification des valeurs Figma
 
@@ -835,7 +835,7 @@ CR initial → exercices / Points d’arrêt avant Tour → Tour → exercices /
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur de direction propre sur les cartes Activité ; aucun contrôle de changement de côté exposé au niveau Tour.
+CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur de direction propre sur les cartes Exercice ; aucun contrôle de changement de côté exposé au niveau Tour.
 
 ### 9. Layout déterministe
 
@@ -1017,7 +1017,7 @@ Shell Execution, informations Activity, timer, série, commandes moteur. Pas d�
 
 ### 8. Éléments obligatoires
 
-Nom ; timer ; série si C>1 ; Pause entre Séries selon plan ; commandes pause/réinit/suivant selon moteur commun. Aucune récupération post-activité.
+Nom ; timer ; série si C>1 ; Pause entre Séries selon plan ; commandes pause/réinit/suivant selon moteur commun. Aucune récupération post-exercice.
 
 ### 9. Layout déterministe
 
@@ -1106,7 +1106,7 @@ Shell Execution avec variante de contenu adaptée au mode, commandes communes.
 
 ### 8. Éléments obligatoires
 
-REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause entre Séries ; `SIDE_RECOVERY` uniquement si l’Activité est bilatérale et configurée ; jamais de post-récupération.
+REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause entre Séries ; `SIDE_RECOVERY` uniquement si l’Exercice est bilatérale et configurée ; jamais de post-récupération.
 
 ### 9. Layout déterministe
 
@@ -1170,7 +1170,7 @@ Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côt
 
 ### 2. Finalité fonctionnelle
 
-Exécuter RIGHT_LEFT ou LEFT_RIGHT exactement selon règles existantes : toutes Séries premier côté, puis toutes second, Récupération une fois après tous les côtés d’une Activité autonome.
+Exécuter RIGHT_LEFT ou LEFT_RIGHT exactement selon règles existantes : toutes Séries premier côté, puis toutes second, Récupération une fois après tous les côtés d’une Exercice autonome.
 
 ### 3. Contexte d’entrée
 
@@ -1218,7 +1218,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une pause au changement de côté éventuelle peut intervenir avant le second côté ; aucune récupération post-activité en Exécution directe.
+Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une pause au changement de côté éventuelle peut intervenir avant le second côté ; aucune récupération post-exercice en Exécution directe.
 
 ### 15. Brouillon et persistance
 
@@ -1338,7 +1338,7 @@ E43/E44/E49 → D-158..D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
 ---
 
-# 9. B6 — Synthèse Activité
+# 9. B6 — Synthèse Exercice
 
 ## CE-T03-14 — Synthèse d’Exécution directe
 
@@ -1440,7 +1440,7 @@ Bloc B7 ; états S71–S74 ; T03-E E47–E48 ; frames structure `1992:8843`, `19
 
 ### 2. Finalité fonctionnelle
 
-Afficher les Exécutions directes dans le Suivi général comme type Activité sans compter une Séance.
+Afficher les Exécutions directes dans le Suivi général comme type Exercice sans compter une Séance.
 
 ### 3. Contexte d’entrée
 
@@ -1456,7 +1456,7 @@ Execution.snapshot/results, origin ACTIVITY, date, durée réelle, statut, Resse
 
 ### 6. Classification des valeurs Figma
 
-Nom/date/durée/statut = dynamiques ; `Activité` = dérivé origin ; exemples de cartes = démonstration.
+Nom/date/durée/statut = dynamiques ; `Exercice` = dérivé origin ; exemples de cartes = démonstration.
 
 ### 7. Structure de l’écran
 
@@ -1464,7 +1464,7 @@ Liste Suivi mixte ; cartes condensées/déployées ; contenu historique issu du 
 
 ### 8. Éléments obligatoires
 
-Identification Activité ; date/statut/durée ; détails lors du déploiement ; résultats bilatéraux le cas échéant.
+Identification Exercice ; date/statut/durée ; détails lors du déploiement ; résultats bilatéraux le cas échéant.
 
 ### 9. Layout déterministe
 
@@ -1504,7 +1504,7 @@ Source supprimée : carte reste lisible. Snapshot ancien : appliquer compatibili
 
 ### 18. Accessibilité
 
-Type Activité, statut, date et détails annoncés ; déployer/replier accessible.
+Type Exercice, statut, date et détails annoncés ; déployer/replier accessible.
 
 ### 19. Invariants
 
@@ -1733,7 +1733,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E20 | Exercices → création directe ActivityDefinition |
 | E21 | Séances → création directe Séance |
 | E22 | Arbre Ajouter depuis Composition |
-| E23 | Nouvelle activité depuis Composition = SessionActivity |
+| E23 | Nouvelle exercice depuis Composition = SessionActivity |
 | E24 | Pas Enregistrer dans Catalogue T03 |
 | E25 | Multi-sélection ActivityDefinition |
 | E26 | Validation disabled sélection vide |
@@ -1757,7 +1757,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E44 | Signal fin → Synthèse |
 | E45 | Ressenti obligatoire |
 | E46 | Commentaire facultatif |
-| E47 | Suivi type Activité |
+| E47 | Suivi type Exercice |
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour Catalogue exercices état restauré |
 | E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
@@ -1931,23 +1931,23 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 ### Éditeur Exercice
 - Le contrôle visible est `Pause au changement de côté`.
 - Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
-- La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-activité.
+- La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-exercice.
 - **À CLARIFIER :** valeur initiale lors de l’activation bilatérale.
 
 ### Composition
 - Chaque occurrence affiche une ligne `Récupération {durée}`, y compris `0 s`.
 - Tap sur la durée → roulette basse de modification.
 - La ligne suit déplacement, duplication et suppression.
-- La dernière Activité du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
-- La dernière Activité de Séance conserve cette ligne avant la Fin de séance.
+- La dernière Exercice du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
+- La dernière Exercice de Séance conserve cette ligne avant la Fin de séance.
 
 ### Exécution directe
-- Aucun état de récupération post-activité.
+- Aucun état de récupération post-exercice.
 - Si bilatéral, la pause au changement de côté éventuelle intervient entre les deux passages.
 
 ### Exécution de Séance
 - Distinguer explicitement pause au changement de côté et récupération après occurrence.
-- La récupération post-activité est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Activité du Tour.
+- La récupération post-exercice est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Exercice du Tour.
 
 ## Complément contrats — D-209 à D-218
 
