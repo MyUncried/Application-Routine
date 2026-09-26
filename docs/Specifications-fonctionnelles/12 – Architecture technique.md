@@ -1377,3 +1377,9 @@ Le champ historique générique `recovery_seconds` ne constitue plus le schéma 
 Le même principe s’applique aux occurrences d’Activité d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
 
 Le moteur ne déduit jamais une récupération post-activité à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-activité et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
+
+## 12.38 Impacts techniques de la consolidation D-209 à D-217
+
+Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec l’entité autonome Parcours ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur ; (4) un booléen de Séance activé par défaut pour inclure/exclure ensemble les phases Compte à rebours d’exercice et Fin d’exercice.
+
+Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
