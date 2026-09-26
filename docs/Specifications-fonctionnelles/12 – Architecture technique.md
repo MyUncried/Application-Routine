@@ -290,7 +290,7 @@ Le moteur gère ensuite :
 - l’insertion d’une étape `SERIES_PAUSE` uniquement entre Séries successives, donc `C−1` fois par côté ;
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
-- la progression dans le Tour ;
+- la progression dans le Circuit au cours du Tour courant ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
