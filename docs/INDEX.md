@@ -93,8 +93,8 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Exercice — état vide ;
 - `3788:5258` — Composition — Ajouter une exercice — arbre ;
-- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existantes ;
-- `3879:5947` / `3879:6079` — création/modification d’une Exercice persistante ;
+- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;
+- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
 - `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
@@ -182,7 +182,7 @@ Les chapitres 00 à 13 et les matrices transverses constituent la baseline docum
 
 ## 9. Baseline consolidée — Exercices, Récupération et Bilatéralité
 
-La baseline distingue désormais trois concepts : la Pause entre Séries, la **Pause au changement de côté** intrinsèque à une Exercice bilatérale et la **Récupération après exercice** portée par l’occurrence d’Exercice dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-exercice. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
+La baseline distingue désormais trois concepts : la Pause entre Séries, la **Pause au changement de côté** intrinsèque à un Exercice bilatérale et la **Récupération après exercice** portée par l’occurrence d’Exercice dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-exercice. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
 
 ## 10. MVP T03 — Catalogue des exercices
 
@@ -196,7 +196,7 @@ Les cartes du Catalogue des exercices séparent l’ouverture en consultation/mo
 
 `Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. Les options de `Filtrer` sont contextuelles et conçues dans Figma ; `Trier` est visible mais désactivé et le tri par défaut reste la dernière modification décroissante.
 
-La sélection multiple depuis une Composition insère les Exercices selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Exercice créée directement dans une Composition ne rejoint pas le Catalogue.
+La sélection multiple depuis une Composition insère les Exercices selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Un Exercice créée directement dans une Composition ne rejoint pas le Catalogue.
 
 Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Cette suppression ne cascade ni vers les copies déjà placées dans les Séances ni vers l’historique.
 
@@ -227,7 +227,7 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Exercice et ne s’applique qu’entre les deux côtés d’une Exercice bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Exercice. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la pause au changement de côté lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Exercice et ne s’applique qu’entre les deux côtés d’un Exercice bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Exercice. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la pause au changement de côté lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
