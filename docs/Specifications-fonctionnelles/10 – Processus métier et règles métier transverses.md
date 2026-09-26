@@ -32,7 +32,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-017 | `Continuer` reste désactivé tant que le nom est vide ou qu’aucun Exercice valide n’est présent. L’Étiquette est facultative ; lorsqu’elle est renseignée, sa couleur devient celle de la Séance. |
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter un exercice`. |
-| RM-020 | La premier Exercice créée est insérée après le Compte à rebours initial et avant le Circuit. Les suivantes sont insérées après le dernier Exercice existante de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Circuit. |
+| RM-020 | Le premier Exercice créé est insérée après le Compte à rebours initial et avant le Circuit. Les suivantes sont insérées après le dernier Exercice existant de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Circuit. |
 | RM-021 | Toucher brièvement une carte d’Exercice ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucun Exercice dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. |
 | RM-022 | La Séance est classée par Étiquette ; la couleur affichée de la Séance est celle de cette Étiquette. |
 | RM-023 | Une Catégorie qualifie un Exercice et porte sa couleur sémantique ; les Zones corporelles restent distinctes. |
@@ -199,7 +199,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-119 | L’Exécution de Parcours et ses Exécutions de Séance liées utilisent un instantané immuable ; un arrêt confirmé conserve l’exécution partielle et ne crée rien pour les étapes futures. |
 | RM-120 | Exercices, Séances et Parcours peuvent être archivés. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
 | RM-143 | Le `Changement de côté` d’un Exercice propose `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Tour dans la version actuelle. |
-| RM-144 | Un Exercice autonome bilatérale exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
+| RM-144 | Un Exercice autonome bilatéral exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |
 | RM-145 | Le support technique historique de bilatéralité du Tour est conservé pour non-régression mais reste non exposé et contraint à `UNILATERAL` dans la version actuelle. |
 | RM-146 | La direction effective exposée provient de l’Exercice ; le Tour n’impose aucune direction à ses Exercices dans la version actuelle. |
 | RM-147 | Aucun contrôle ni confirmation d’activation bilatérale du Tour n’est exposé dans la version actuelle. |
@@ -223,7 +223,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Exercices pour l’aller-retour courant ; cet état n’est pas persisté après une fermeture/reprise complète de l’application. |
 | RM-162 | Dans le Catalogue des Exercices, un appui sur la carte hors bouton Lecture ouvre l’Exercice en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. `Déployer` affiche/masque le média associé. Un swipe gauche sur un Exercice active expose `Planifier / Dupliquer / Archiver`; dans les archives il expose `Supprimer`. |
-| RM-163 | À la validation d’une sélection multiple d’Exercices existants, `CompositionService` copie les Exercices sélectionnées dans l’ordre où elles sont présentées par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
+| RM-163 | À la validation d’une sélection multiple d’Exercices existants, `CompositionService` copie les Exercices sélectionnés dans l’ordre où ils sont présentés par la liste filtrée à cet instant. L’ordre des actions de sélection n’est pas conservé comme ordre métier. |
 | RM-188 | Un filtre de Catalogue persiste uniquement pendant la session applicative courante. Au relaunch, aucun filtre n’est appliqué ; l’état étendu affiche `Filtres / Aucun` jusqu’à sélection d’un critère. |
 | RM-189 | Toutes les roulettes des écrans actifs s’ouvrent dans une modale basse standardisée avec `Annuler / Confirmer`. |
 | RM-190 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de Séance. |
