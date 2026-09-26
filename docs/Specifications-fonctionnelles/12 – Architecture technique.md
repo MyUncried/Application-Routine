@@ -123,7 +123,7 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | `PreferencesService` | Lecture et modification des Préférences globales |
 | `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Exercice et du référentiel administrable des Zones corporelles |
 
-La couche de référentiels ne distingue pas, pour le droit de suppression, les valeurs initiales des valeurs créées ensuite par l’utilisateur. La suppression d’une valeur et le retrait de ses associations courantes constituent une opération atomique ; les Instantanés historiques ne sont jamais réécrits.
+La couche de référentiels ne distingue pas, pour le droit de suppression, les valeurs initiales des valeurs créées ensuite par l’utilisateur. La suppression d’une valeur la retire atomiquement du référentiel actif et des nouvelles sélections, sans supprimer ses associations aux objets existants ; les Instantanés historiques ne sont jamais réécrits.
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -428,7 +428,7 @@ Les opérations modifiant plusieurs objets liés doivent être atomiques lorsque
 Exemples :
 - création d’une Séance et de sa structure initiale ;
 - archivage d’une Séance et suppression de ses Routines ;
-- suppression d’une Étiquette, d’une Catégorie ou d’une Zone corporelle et retrait atomique de ses associations courantes ;
+- suppression logique d’une Étiquette, d’une Catégorie ou d’une Zone corporelle du référentiel actif, avec conservation de ses associations existantes ;
 - création d’une Exécution et de son Instantané.
 
 Une opération atomique :
