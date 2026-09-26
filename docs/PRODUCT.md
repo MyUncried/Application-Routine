@@ -26,7 +26,7 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 Elle possède notamment :
 - un nom ;
 - une Étiquette de Séance lorsqu’elle est renseignée ; la couleur affichée de la Séance est la couleur de cette Étiquette ;
-- une Composition présentée autour d’un Tour unique ;
+- une Composition présentée autour d’un Circuit unique ;
 - des paramètres de guidage et d’exécution.
 
 ### Routine
@@ -43,7 +43,7 @@ Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme c
 
 Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle définit une Pause entre Séries et peut définir une **Pause au changement de côté** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de récupération après exercice. `Récupération` n’est plus un type d’Activité.
 
-Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
+Une Activité peut être placée avant le Circuit, dans le Circuit ou après le Circuit et peut être réordonnée entre ces zones.
 
 ### Série
 
@@ -59,7 +59,7 @@ Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode
 
 Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Tour est un groupe ordonné d’Exercices exécuté intégralement de 1 à 99 fois. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour : le Tour reste fonctionnellement `UNILATERAL` et son support technique historique éventuel est conservé sans être modifiable ni visible. La bilatéralité reste portée par les Exercices.
+Le Circuit est un groupe ordonné d’Exercices exécuté intégralement de 1 à 99 Tours. Un Tour est une répétition complète du Circuit. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour : le Tour reste fonctionnellement `UNILATERAL` et son support technique historique éventuel est conservé sans être modifiable ni visible. La bilatéralité reste portée par les Exercices.
 
 Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
@@ -120,9 +120,9 @@ Une Activité peut définir un Compte à rebours propre et une Fin d’activité
 
 La structure affichée comprend, dans l’ordre :
 1. un Compte à rebours initial structurellement présent, éventuellement instantané à `0 s` ;
-2. zéro, une ou plusieurs Exercices avant le Tour ;
-3. un Tour unique contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
-4. zéro, une ou plusieurs Exercices après le Tour ;
+2. zéro, une ou plusieurs Exercices avant le Circuit ;
+3. un Circuit unique contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
+4. zéro, une ou plusieurs Exercices après le Circuit ;
 5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
 Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
@@ -301,7 +301,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
 8. Les Étiquettes qualifient les Séances et portent leur couleur.
-9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, un appui court sélectionne/désélectionne une valeur ; un appui long ouvre une confirmation de suppression. La suppression retire les associations des objets courants concernés sans altérer les Instantanés/Exécutions historiques.
+9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, un appui court sélectionne/désélectionne une valeur ; un appui long ouvre une confirmation de suppression. La suppression retire la valeur des choix futurs mais conserve ses affectations sur les objets existants ainsi que les Instantanés/Exécutions historiques.
 10. La couleur affichée d’une Séance est celle de son Étiquette et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 12. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
