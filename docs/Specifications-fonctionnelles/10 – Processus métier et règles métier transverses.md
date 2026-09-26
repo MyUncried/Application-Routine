@@ -60,7 +60,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-034 | Un Exercice porte une Pause entre Séries d’un même côté et peut porter `sideRecoverySeconds` lorsqu’elle est bilatérale. La récupération après exercice n’est pas une propriété de l’`ActivityDefinition` mais de l’occurrence dans une Séance/Parcours. |
 | RM-035 | Toute Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
 | RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries d’un même côté, une Pause éventuelle est insérée exactement `C − 1` fois, toujours entre Séries successives ; une Série n’est pas une entité métier autonome. |
-| RM-037 | Pour un Exercice bilatérale, une phase de pause au changement de côté est insérée uniquement si `sideRecoverySeconds > 0`, entre toutes les Séries du premier côté et toutes celles du second. Elle est intrinsèque à l’Exercice et ne constitue pas un Exercice. |
+| RM-037 | Pour un Exercice bilatéral, une phase de pause au changement de côté est insérée uniquement si `sideRecoverySeconds > 0`, entre toutes les Séries du premier côté et toutes celles du second. Elle est intrinsèque à l’Exercice et ne constitue pas un Exercice. |
 | RM-038 | Toute occurrence de Séance/Parcours porte `postActivityRecoverySeconds`, y compris à `0 s`. La récupération après exercice est exécutée après l’occurrence ; si elle est positive, elle constitue une phase chronométrée. Après le dernier Exercice d’une Séance elle précède `SESSION_END`; lorsqu’elle appartient au Circuit, elle est exécutée à chaque Tour. |
 | RM-039 | Un Exercice peut être associée à zéro, une ou plusieurs Zones corporelles. |
 | RM-040 | Les Zones corporelles constituent un référentiel utilisateur administrable : sélection multiple sur un Exercice, création, renommage et suppression sont autorisés dans le MVP. Une suppression utilisée demande confirmation, retire la valeur des choix futurs, conserve les associations des Exercices existants et préserve les Instantanés/Exécutions historiques. |
@@ -107,8 +107,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |
 | RM-058 | Pour un Exercice en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
 | RM-059 | `Suivant` termine normalement la Série courante d’un Exercice en Répétitions ou À l’échec sans confirmation. |
-| RM-060 | Pour un Exercice chronométrée non arrivée à zéro, `Exercice suivante` demande confirmation. Si elle est confirmée, le Résultat d’Exercice est `Partielle` et l’Exécution continue. |
-| RM-061 | Un Exercice chronométrée arrivée à zéro se termine automatiquement. |
+| RM-060 | Pour un Exercice chronométré non arrivée à zéro, `Exercice suivant` demande confirmation. Si elle est confirmée, le Résultat d’Exercice est `Partielle` et l’Exécution continue. |
+| RM-061 | Un Exercice chronométré arrivée à zéro se termine automatiquement. |
 | RM-062 | `Réinitialiser l’exercice` recommence uniquement l’Exercice ou la Série courante. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
 | RM-063 | Aucun retour à un Exercice précédente et aucune sélection libre d’une autre Exercice ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
@@ -121,7 +121,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-066 | Une Exécution chronométrée ne se fige pas lorsque l’application passe en arrière-plan ou que l’écran se verrouille. |
 | RM-067 | L’état temporel est fondé sur des horodatages de référence ; au retour, l’application recalcule la position qui aurait dû être atteinte. |
-| RM-068 | Sans interaction, une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométrée. |
+| RM-068 | Sans interaction, une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré. |
 | RM-069 | Pour un Exercice en Répétitions ou À l’échec, une pause de sécurité intervient après 2 heures sans interaction depuis son démarrage. |
 | RM-070 | Les limites des mécanismes natifs en arrière-plan doivent être validées sur appareils iOS et Android réels conformément au chapitre 12. |
 
@@ -134,7 +134,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-073 | Le temps total écoulé et la Durée réelle excluent uniquement les Pauses manuelles déclenchées par l’utilisateur. Ils incluent le Compte à rebours initial, les Exercices, les Pauses entre Séries, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et la Fin de séance. |
 | RM-074 | Le Nombre d’Exercices de la Composition compte les Exercices définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Pauses ou les deux types de récupération. |
 | RM-075 | Le Nombre total d’Exercices à exécuter compte les occurrences d’Exercice du plan développé après Séries et Tours, mais ne compte pas `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, le Compte à rebours initial ni la Fin de séance comme Exercices. |
-| RM-076 | Le Nombre d’Exercices exécutées correspond aux Résultats d’Exercice créés. Un Exercice `Partielle` compte ; un Exercice jamais atteinte ne compte pas. |
+| RM-076 | Le Nombre d’Exercices exécutés correspond aux Résultats d’Exercice créés. Un Exercice `Partielle` compte ; un Exercice jamais atteinte ne compte pas. |
 | RM-077 | La progression mathématique est continue. Chaque occurrence en Répétitions ou À l’échec pèse `1/N` ; la part restante est répartie entre les Exercices chronométrées proportionnellement à leur durée. La piste peut être structurée visuellement par Tours conformément au prototype Figma, sans effet sur le calcul. |
 | RM-159 | La Durée synthétique du Catalogue porte sur la durée intrinsèque des Exercices, incluant `sideRecoverySeconds` éventuel. Dans la Composition/Séance, le calcul de durée ajoute les `postActivityRecoverySeconds` des occurrences après développement des Séries et Tours du Circuit ; il exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
 | RM-125 | La fin de la dernier Exercice déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T04, puis la Synthèse dans la tranche qui la livre. |
