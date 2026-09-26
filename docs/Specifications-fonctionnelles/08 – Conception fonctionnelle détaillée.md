@@ -242,7 +242,7 @@ La structure d'une séance est entièrement définie par son contenu. Aucun comp
 Une séance est composée, dans l'ordre, des éléments suivants :
 
 1. un compte à rebours initial ;
-2. un Cycle technique unique contenant, dans l’ordre, les Exercices placées avant le Tour, un Tour unique et les Exercices placées après le Tour ;
+2. un Cycle technique unique contenant, dans l’ordre, les Exercices placées avant le Circuit, un Circuit unique et les Exercices placées après le Circuit ;
 3. une fin de séance.
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à 0 s.
 
@@ -250,7 +250,7 @@ Chaque Activité peut en outre définir un Compte à rebours propre et une Fin d
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
 
-Les Exercices placées après le Tour sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
+Les Exercices placées après le Circuit sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
 
 Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum une Activité pour être exécutable.
 
@@ -363,7 +363,7 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 
 ### Durée synthétique des Exercices
 
-La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour une Activité bilatérale, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Tour. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour une Activité bilatérale, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
 Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
@@ -419,7 +419,7 @@ Chaque activité est exécutée intégralement avant le passage à la suivante.
 
 Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
 
-Les Exercices placées après le Tour sont exécutées une seule fois après la dernière répétition du Tour.
+Les Exercices placées après le Circuit sont exécutées une seule fois après la dernière répétition du Tour.
 
 Lorsque la dernière Activité est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
