@@ -244,3 +244,7 @@ La consultation des médias pendant l’Exécution est **conçue mais non affect
 La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo avec son actif par défaut et baisse temporaire pendant les annonces vocales, le plein écran orientable et le cadre flottant d’Exécution.
 
 Spécification de synthèse : `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+## Consolidation avant planification — 26 septembre 2026
+
+D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la définition de la prochaine tranche. Leur inscription dans la documentation ne vaut pas inclusion automatique dans T03/T04 : le découpage de livraison sera arbitré après l’audit final. Les impacts de modèle de données à considérer en priorité sont les cardinalités Catégorie/Zones corporelles, le retrait logique des référentiels, le Circuit/Tours, le booléen global de Séance pour les phases propres aux Exercices et les propriétés de récupération déjà définies par D-208.
