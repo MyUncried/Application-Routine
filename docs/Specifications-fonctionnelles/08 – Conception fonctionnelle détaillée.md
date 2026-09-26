@@ -1207,3 +1207,13 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
 La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après la dernière Activité du Tour et avant la Fin de séance. Dans un Tour répété, cette même valeur est exécutée à chaque répétition. Une Exécution directe ne possède jamais de récupération post-activité.
+
+## Consolidation détaillée — D-209 à D-217
+
+La Composition présente un **Circuit** interne à la Séance et un nombre de **Tours**. Le terme `Parcours` est réservé au contenu autonome du Catalogue. Le réglage global de Séance `Appliquer compte à rebours et fin des exercices` est activé par défaut et agit sur tous les Exercices de la Séance ; aucun contrôle équivalent n’est ajouté sur chaque occurrence.
+
+L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans le texte éditable, `Durée totale` est toujours présent en mode Durée, même pour une seule Série. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
+
+Dans la Composition, la ligne visuelle Récupération / Point d’arrêt ne fusionne pas les concepts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
+
+Dans la face Média compacte, le bouton Lecture central est affiché avant lecture et disparaît pendant la lecture vidéo. Le retour à Information met la vidéo en pause.
