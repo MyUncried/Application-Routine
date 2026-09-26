@@ -23,7 +23,7 @@ Le modèle fonctionnel repose sur les principes suivants :
 
 Une **Étiquette** qualifie une Séance et porte sa couleur. Une **Catégorie** qualifie un Exercice et porte sa couleur sémantique. Les Zones corporelles restent distinctes de la Catégorie.
 
-Le fonctionnement de l’application repose sur les concepts principaux suivants. À partir du MVP T03, les deux formes d’Exercice sont distinguées explicitement afin qu’un Exercice persistante ne soit jamais confondue avec sa copie dans une Séance.
+Le fonctionnement de l’application repose sur les concepts principaux suivants. À partir du MVP T03, les deux formes d’Exercice sont distinguées explicitement afin qu’un Exercice persistant ne soit jamais confondue avec sa copie dans une Séance.
 
 ## Utilisateur
 
@@ -77,7 +77,7 @@ Un **Tour** est un groupe ordonné d'Exercices exécuté intégralement un nombr
 
 ## Exercice
 
-Une **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’un Exercice bilatérale, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
+Une **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -121,7 +121,7 @@ Une routine est une **planification d’un contenu planifiable**.
 
 Dans le MVP, sa source est exactement l’un des deux types suivants :
 - `SESSION` : une Séance persistante ;
-- `ACTIVITY` : un Exercice persistante du Catalogue des exercices.
+- `ACTIVITY` : un Exercice persistant du Catalogue des exercices.
 
 Elle définit :
 - le type de source et la source concernée ;
@@ -133,14 +133,14 @@ Elle définit :
 
 Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d’une même source à des horaires différents sont représentées par plusieurs routines distinctes.
 
-Une routine ne contient jamais le contenu de sa source. Une même Séance ou une même Exercice persistante peut être associée à plusieurs routines.
+Une routine ne contient jamais le contenu de sa source. Une même Séance ou une même Exercice persistant peut être associée à plusieurs routines.
 
 ## Exécution
 
 Une **Exécution** représente la réalisation effective d’un contenu. Elle porte obligatoirement une origine :
 
 - `SESSION` pour une Séance lancée manuellement ou depuis une Routine ;
-- `ACTIVITY` pour un Exercice persistante lancée directement depuis le Catalogue des exercices **ou depuis une Routine**.
+- `ACTIVITY` pour un Exercice persistant lancée directement depuis le Catalogue des exercices **ou depuis une Routine**.
 
 Une Exécution conserve un instantané immuable correspondant à son origine, les informations de déroulement et les résultats produits. Une Exécution de toute origine peut référencer la Routine éventuellement utilisée. Une Exécution `ACTIVITY` ne crée aucune Séance artificielle et ne contient ni Tour, ni Cycle, ni phase `SESSION_END`.
 
@@ -189,7 +189,7 @@ Une Séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Exercices après le Circuit ;
 6. une Fin de séance.
 
-Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Exercice bilatérale ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance/Parcours. Aucune de ces phases n’est un Exercice autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
+Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance/Parcours. Aucune de ces phases n’est un Exercice autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
@@ -305,7 +305,7 @@ Lorsqu'une Séance est démarrée :
 
 1. un instantané de la Séance est créé ;
 2. le moteur construit le Plan d’Exécution ;
-3. les Exercices sont exécutées dans l'ordre prévu ;
+3. les Exercices sont exécutés dans l'ordre prévu ;
 4. les informations d'Exécution sont enregistrées ;
 5. les résultats sont sauvegardés.
 
@@ -317,7 +317,7 @@ Pendant une Exécution, l'application accompagne l'utilisateur grâce à différ
 
 Elle affiche notamment :
 - l'Exercice en cours ;
-- l'Exercice suivante ;
+- l'Exercice suivant ;
 - le temps restant ou écoulé ;
 - la progression ;
 - les informations de Série et de Tour pertinentes, sans exposer le Cycle.
@@ -352,7 +352,7 @@ Le MVP permet notamment :
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
 - associer éventuellement une Étiquette à une Séance ;
 - associer une Catégorie et des Zones corporelles aux Exercices ;
-- exécuter directement un Exercice persistante à partir de T03 ;
+- exécuter directement un Exercice persistant à partir de T03 ;
 - exécuter une Séance dans T04 et les tranches associées du MVP ;
 - suspendre puis reprendre une Exécution lorsque le parcours concerné le prévoit ;
 - consulter l'historique ;
@@ -384,7 +384,7 @@ Le Parcours est une racine persistante préparée pour une version post-MVP, pos
 
 ## Modèle fonctionnel de bilatéralité
 
-Un Exercice persistante et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
+Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
 
 La direction effective exposée est celle de l’Exercice. Le Tour ne remplace ni ne neutralise les réglages de côté de ses Exercices dans la version actuelle.
 
