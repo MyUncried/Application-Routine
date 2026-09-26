@@ -1212,3 +1212,13 @@ Toute `SessionActivity` porte `postActivityRecoverySeconds`, valeur numérique n
 ### Plan d’Exécution
 
 Le plan distingue au minimum la phase de pause au changement de côté de la phase de récupération après occurrence. Une Exécution `ACTIVITY` directe ne génère jamais de phase post-activité. Une Exécution `SESSION` génère la récupération après chaque occurrence, y compris à chaque répétition de Tour et avant `SESSION_END` pour la dernière occurrence.
+
+## Données D-209 à D-214 — consolidation
+
+- `Session` porte le **Circuit** interne et son `tourCount`; `Tour` n’est pas une entité de contenu distincte du Circuit mais l’occurrence répétée de celui-ci dans le Plan fonctionnel. Les identifiants techniques historiques peuvent rester inchangés jusqu’à refactorisation.
+- `ActivityDefinition` exige une référence de Catégorie active à la création et au moins une association de Zone corporelle. La sélection des Zones est `1..n`.
+- `Session` porte `0..1` Étiquette.
+- Étiquette/Catégorie portent leur couleur. Les objets les référencent sans copier la couleur courante. Une valeur retirée du référentiel actif reste conservée tant qu’elle est référencée afin de préserver nom/couleur et affectations existantes.
+- Les défauts Profil sont lus uniquement à l’initialisation : aucune provenance `hérité/personnalisé` n’est nécessaire et aucune mise à jour rétroactive n’est effectuée.
+- `Session` porte un booléen global, activé par défaut, de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Il n’existe pas de surcharge de ce booléen par occurrence.
+- Un Point d’arrêt placé dans le Circuit appartient au contenu répété et est donc développé à chaque Tour.
