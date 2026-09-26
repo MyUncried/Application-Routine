@@ -494,7 +494,7 @@ Création/modification ; état vide avec `Nom de l’exercice` ; états renseign
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple et impose au moins une Zone pour valider un nouvel Exercice et la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple, impose au moins une Zone pour valider un nouvel Exercice et autorise la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
 
 ### 13. Gestes
 
@@ -502,7 +502,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-204/D-208. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation et ne modifie pas l’historique.
+Nom requis ; exactement une Catégorie ; au moins une Zone corporelle ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-204/D-208. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation, retire la valeur des choix futurs mais conserve les affectations existantes et ne modifie pas l’historique.
 
 ### 15. Brouillon et persistance
 
