@@ -253,3 +253,17 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-activité ; elle peut uniquement exécuter la pause au changement de côté si l’Activité est bilatérale. |
 | RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |
+
+## Règles RM-213 à RM-221 — consolidation du 26 septembre 2026
+
+| ID | Règle |
+|---|---|
+| RM-213 | Un Circuit est le groupe ordonné d’Exercices interne à une Séance ; un Tour est une répétition complète de ce Circuit. Un élément interne au Circuit est exécuté à chaque Tour sauf règle explicite contraire. |
+| RM-214 | Un nouvel Exercice n’est valide qu’avec exactement une Catégorie et au moins une Zone corporelle ; plusieurs Zones corporelles sont autorisées. Une Étiquette de Séance reste facultative. |
+| RM-215 | Supprimer une valeur de référentiel la retire des nouvelles sélections mais conserve ses affectations existantes. Une valeur supprimée déjà affectée peut rester lors d’un enregistrement ultérieur ; si elle est remplacée, elle ne peut plus être réaffectée. |
+| RM-216 | Modifier la couleur d’une Étiquette/Catégorie modifie le rendu de tous les objets qui la référencent. Une valeur retirée conserve sa dernière couleur sur les objets existants. |
+| RM-217 | Les défauts Profil n’ont aucun effet rétroactif sur les Exercices/Séances déjà créés. |
+| RM-218 | Une Séance applique par défaut les Compte à rebours d’exercice et Fin d’exercice. Son réglage global peut neutraliser ensemble ces deux phases pour tous ses Exercices sans modifier leurs définitions. |
+| RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. |
+| RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
+| RM-221 | Dans le texte éditable, Durée affiche toujours `Durée totale`; Répétitions affiche la borne `>=`; À l’échec n’affiche pas de Durée totale numérique. |
