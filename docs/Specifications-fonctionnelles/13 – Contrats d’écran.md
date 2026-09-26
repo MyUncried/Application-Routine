@@ -1932,14 +1932,14 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 - Le contrôle visible est `Pause au changement de côté`.
 - Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
 - La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-exercice.
-- **À CLARIFIER :** valeur initiale lors de l’activation bilatérale.
+- Valeur initiale lors de l’activation bilatérale : défaut Profil **Pause au changement de côté**, `10 s` dans le Figma de référence ; valeur ensuite propre à l’Exercice et modifiable.
 
 ### Composition
 - Chaque occurrence affiche une ligne `Récupération {durée}`, y compris `0 s`.
 - Tap sur la durée → roulette basse de modification.
 - La ligne suit déplacement, duplication et suppression.
-- La dernier Exercice du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
-- La dernier Exercice de Séance conserve cette ligne avant la Fin de séance.
+- Le dernier Exercice du Circuit conserve cette ligne ; elle est exécutée à chaque Tour.
+- Le dernier Exercice de Séance conserve cette ligne avant la Fin de séance.
 
 ### Exécution directe
 - Aucun état de récupération post-exercice.
