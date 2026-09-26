@@ -271,9 +271,9 @@ Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d�
 
 Ouvrir une Séance depuis le Catalogue, ou demander l’Exécution d’une occurrence depuis une Routine, ouvre d’abord l’écran d’Exécution.
 
-L’ouverture de cet écran ne démarre pas immédiatement la premier Exercice.
+L’ouverture de cet écran ne démarre pas immédiatement le premier Exercice.
 
-L’utilisateur déclenche l’Exécution depuis l’écran lui-même. Le Compte à rebours initial est alors exécuté, s’il est configuré avec une durée supérieure à zéro, puis la premier Exercice commence.
+L’utilisateur déclenche l’Exécution depuis l’écran lui-même. Le Compte à rebours initial est alors exécuté, s’il est configuré avec une durée supérieure à zéro, puis le premier Exercice commence.
 
 Lorsque la Séance se termine, l’écran de synthèse est affiché. L’action `Terminer` ramène ensuite l’utilisateur au `Suivi`.
 
@@ -679,7 +679,7 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Circuit ou entre les 
 
 Un appui sur `Ajouter un exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice local à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
-La premier Exercice créé est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivants sont insérées après le dernier Exercice ajouté, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
+La premier Exercice créé est inséré immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivants sont insérés après le dernier Exercice ajouté, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Exercice est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -1064,7 +1064,7 @@ Avant le démarrage, l’utilisateur déclenche la Séance depuis la commande ce
 
 Avant le démarrage, Retour renvoie dans l’application à l’écran depuis lequel l’Exécution a été lancée. Dans le prototype MVP, toutes les zones du bouton Retour renvoient explicitement au `Catalogue des séances — Séance déployée` (`1992:10014`) ; aucune ne pointe vers l’état vide du Catalogue.
 
-Le Compte à rebours initial est alors exécuté s’il est configuré avec une durée supérieure à zéro, puis la premier Exercice commence.
+Le Compte à rebours initial est alors exécuté s’il est configuré avec une durée supérieure à zéro, puis le premier Exercice commence.
 
 ### Hiérarchie des informations affichées
 
