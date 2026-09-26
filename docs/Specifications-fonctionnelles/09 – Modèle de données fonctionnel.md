@@ -540,9 +540,9 @@ Elle ne contient pas directement :
 | Attribut                   | Description                                     |         Caractère         | Règle principale                                                              |
 | -------------------------- | ----------------------------------------------- | :-----------------------: | ----------------------------------------------------------------------------- |
 | Identifiant                | Identifiant unique                              |        Obligatoire        | Stable                                                                        |
-| Position structurelle      | Emplacement de l’Exercice dans la Composition   |        Obligatoire        | `Avant Tour`, `Dans Tour` ou `Après Tour`                                      |
+| Position structurelle | Emplacement fonctionnel de l’Exercice avant, dans ou après le Circuit | Obligatoire | Valeurs techniques historiques : `Avant Tour`, `Dans Tour`, `Après Tour` ; D-209 ne renomme pas à elle seule ces identifiants |
 | Position                   | Ordre au sein de la position structurelle       |        Obligatoire        | Entier déterminant l’ordre d’exécution                                         |
-| Tour                       | Tour contenant l’Exercice                       |       Conditionnel        | Obligatoire uniquement pour un Exercice `Dans Tour`                           |
+| Tour (technique) | Conteneur technique historique représentant le Circuit fonctionnel | Conditionnel | Obligatoire uniquement pour un Exercice fonctionnellement placé dans le Circuit (`Dans Tour` techniquement) |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
 | Catégorie                  | Classification de l’Exercice                    |        Facultatif         | Porte la couleur sémantique de l’Exercice                                      |
@@ -988,7 +988,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 ### Cohérence des relations
 
-- Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies `Dans Tour` appartiennent au Tour pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
+- Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies techniquement `Dans Tour` appartiennent au conteneur `Tour` représentant le Circuit pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute Routine référence exactement une source `SESSION` ou `ACTIVITY`.
@@ -1018,7 +1018,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
 - Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
 - Aucun Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
-- La copie est insérée immédiatement après la source dans la même zone structurelle (`Avant Tour`, `Dans Tour` ou `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
+- La copie est insérée immédiatement après la source dans la même zone fonctionnelle avant/dans/après Circuit (valeurs techniques historiques `Avant Tour`, `Dans Tour`, `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
 
 ## Suppression d’un média
 
@@ -1090,7 +1090,7 @@ Création → Active → Modifier → Archiver → Restaurer
 ```
 
 - Une `ActivityDefinition` est autonome et ne porte aucune position de Séance.
-- Un Exercice de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
+- Un Exercice de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position fonctionnelle avant, dans ou après le Circuit ; les valeurs techniques restent `Avant Tour`, `Dans Tour`, `Après Tour`. La référence technique au conteneur `Tour` n’est obligatoire que pour `Dans Tour`.
 - L’insertion depuis le Catalogue crée une copie indépendante ; aucune synchronisation ultérieure n’existe.
 - La capacité de création directe d’une `SessionActivity` locale à une Séance reste conservée techniquement et fonctionnellement, même si elle n’est pas exposée dans le parcours courant.
 - La suppression définitive d’une `ActivityDefinition` ne supprime ni les `SessionActivity` déjà copiées, ni les Exécutions, ni les Instantanés historiques.
