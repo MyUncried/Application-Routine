@@ -567,7 +567,7 @@ Elle ne contient pas directement :
 - Pour `C` Séries d’un même côté, la Pause apparaît exactement `C − 1` fois.
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une seule fois entre ses deux côtés.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
-- Ni la Pause ni les récupérations ne créent une entité Exercice associée.
+- Ni la Pause ni les récupérations ne créent une entité Exercice associé.
 - En mode Durée, la durée intrinsèque vaut `C×A+(C−1)×B` en unilatéral et `2×[C×A+(C−1)×B]+S` en bilatéral, `S=sideRecoverySeconds`; `postActivityRecoverySeconds` est exclu.
 - Si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
@@ -591,7 +591,7 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 | Attribut | Description | Caractère | Règle principale |
 | --- | --- | :---: | --- |
 | Identifiant | Identifiant unique | Obligatoire | Stable |
-| Exercice | Exercice associée | Obligatoire | Une seule exercice |
+| Exercice | Exercice associé | Obligatoire | Un seul exercice |
 | Type | Photo ou vidéo | Obligatoire | |
 | Emplacement local | Référence du fichier | Obligatoire | Stockage local |
 | Nom du fichier | Nom technique | Obligatoire | |
@@ -679,7 +679,7 @@ L’Instantané est persisté sous forme de **JSON immuable**. Les champs néces
 
 Contient notamment :
 
-- exercice courante ;
+- exercice courant ;
 - Tour courant ;
 - cycle courant ;
 - état temporel courant ;
