@@ -29,9 +29,9 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Un cycle contient un **Tour**.
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
 - Un Tour contient une suite ordonnée d'exercices.
-- Une Exercice ne possède pas de type `Exercice` ou `Récupération`.
-- Une Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
-- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, une Exercice persistante dans le MVP.
+- Un Exercice ne possède pas de type `Exercice` ou `Récupération`.
+- Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
+- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, un Exercice persistante dans le MVP.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
@@ -49,9 +49,9 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Routine | Planification d’un contenu source `SESSION` ou `ACTIVITY` | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Exercice | Action élémentaire d'une séance | Principale |
-| Média | Média associé à une Exercice ; affichable dans le Catalogue MVP | Métier |
+| Média | Média associé à un Exercice ; affichable dans le Catalogue MVP | Métier |
 | Étiquette | Classement d’une Séance et source de sa couleur affichée | Métier |
-| Catégorie | Classement d’une Exercice et source de sa couleur sémantique | Métier |
+| Catégorie | Classement d’un Exercice et source de sa couleur sémantique | Métier |
 | Zone corporelle | Partie du corps sollicitée | Métier |
 | Exécution | Réalisation effective d’une source `SESSION` ou `ACTIVITY` | Principale |
 | Préférences globales | Paramètres généraux | Configuration |
@@ -61,7 +61,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-exercice est contextuelle à l’occurrence. | D-208 |
-| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La pause au changement de côté et la récupération après exercice sont deux durées distinctes ; aucune n’est une Exercice technique. | D-208 |
+| DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La pause au changement de côté et la récupération après exercice sont deux durées distinctes ; aucune n’est un Exercice technique. | D-208 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -72,11 +72,11 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
-| DM-013 | Une Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
+| DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pour `C` Séries d’un même côté, la Pause est toujours insérée `C−1` fois, uniquement entre Séries successives. | D-208 ; supersède D-156 |
 | DM-015 | En mode Durée, `Dexercice = C×A + (C−1)×B` en unilatéral ; en bilatéral `Dexercice = 2×[C×A + (C−1)×B] + sideRecoverySeconds`. `postActivityRecoverySeconds` est exclu de cette durée intrinsèque. | D-208 |
 | DM-016| DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
-| DM-018 | Une Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
+| DM-018 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
 | DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
 | DM-020 | La Séance porte une Étiquette ; l’Exercice porte une Catégorie ; les Zones corporelles restent une association distincte de l’Exercice. | 24/09/2026 |
  | Le nombre de Séries `C` reste la valeur canonique persistée. Le choix temporaire du pilote Séries/Durée totale est un état d’interface non persisté. | Prérequis T04 |
@@ -218,10 +218,10 @@ Elle ne contient pas directement :
 La structure d’une séance est composée, dans l’ordre, de :
 1. un Compte à rebours initial obligatoire, exécuté une seule fois ;
 2. un Cycle technique unique et non affiché, toujours exécuté une fois ;
-3. zéro, une ou plusieurs Exercices placées avant le Circuit ;
+3. zéro, une ou plusieurs Exercices placés avant le Circuit ;
 4. un Circuit unique contenant une suite ordonnée d’Exercices et répété de 1 à 99 fois ;
-5. zéro, une ou plusieurs Exercices placées après le Circuit ;
-6. une Fin de séance obligatoire, exécutée une seule fois après la dernière Exercice.
+5. zéro, une ou plusieurs Exercices placés après le Circuit ;
+6. une Fin de séance obligatoire, exécutée une seule fois après la dernier Exercice.
 
 Dans le MVP, le Cycle contient :
 - son identifiant ;
@@ -236,7 +236,7 @@ Dans le MVP, le Tour contient :
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Exercices.
 
-Le Cycle technique est exécuté une fois : les Exercices placées avant le Circuit sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Exercices placées après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
+Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Exercices placés après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
 
 Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seule la répétition du Tour est modifiable.
 
@@ -248,7 +248,7 @@ Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas
 | Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
 | Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Valeur imposée **1** dans le MVP ; non modifiable et non exposée dans l’interface       |
 | Tours                 | Collection ordonnée des Tours du Cycle   | Obligatoire | Exactement 1 Tour dans le MVP ; extensible à plusieurs Tours dans une version ultérieure |
-| Exercices hors Tour   | Exercices ordonnées avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
+| Exercices hors Tour   | Exercices ordonnés avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
 #### Attributs fonctionnels du Tour
 
 | Attribut              | Description                               |  Caractère  | Règle principale                                              |
@@ -281,7 +281,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Le Cycle contient un Circuit unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
 - Le Cycle peut contenir zéro, une ou plusieurs Exercices avant le Circuit et zéro, une ou plusieurs Exercices après le Circuit.
 - Le Tour contient zéro, une ou plusieurs Exercices pendant l’édition.
-- Une séance exécutable contient au moins une Exercice.
+- Une séance exécutable contient au moins un Exercice.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
 
 ## Règles métier
@@ -290,7 +290,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Deux séances peuvent porter le même nom.
 - Une Séance ne possède pas de couleur métier indépendante : sa couleur affichée est celle de son Étiquette lorsqu’elle est renseignée.
 - Une séance vide peut être conservée et modifiée, mais elle ne peut pas être exécutée.
-- Une séance est exécutable dès qu’elle contient au moins une Exercice valide.
+- Une séance est exécutable dès qu’elle contient au moins un Exercice valide.
 - Une séance peut être modifiée, dupliquée, archivée ou restaurée. Elle ne peut être supprimée qu’après archivage.
 - La duplication crée une nouvelle séance indépendante avec un nouvel identifiant.
 - La duplication conserve l’Étiquette de la Séance d'origine.
@@ -507,7 +507,7 @@ Une **Exercice** est la plus petite unité exécutable d'une séance.
 
 Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. Dans le MVP T03, une `ActivityDefinition` autonome peut être copiée dans plusieurs Séances sans lien de propagation.
 
-Le nom « Récupération » n’a aucune sémantique technique : une Exercice ainsi nommée reste une Exercice ordinaire. Les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` sont dérivées respectivement de `sideRecoverySeconds` et `postActivityRecoverySeconds` ; aucune n’est un type d’Exercice.
+Le nom « Récupération » n’a aucune sémantique technique : un Exercice ainsi nommée reste un Exercice ordinaire. Les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` sont dérivées respectivement de `sideRecoverySeconds` et `postActivityRecoverySeconds` ; aucune n’est un type d’Exercice.
 
 ## Périmètre
 
@@ -542,7 +542,7 @@ Elle ne contient pas directement :
 | Identifiant                | Identifiant unique                              |        Obligatoire        | Stable                                                                        |
 | Position structurelle      | Emplacement de l’Exercice dans la Composition   |        Obligatoire        | `Avant Tour`, `Dans Tour` ou `Après Tour`                                      |
 | Position                   | Ordre au sein de la position structurelle       |        Obligatoire        | Entier déterminant l’ordre d’exécution                                         |
-| Tour                       | Tour contenant l’Exercice                       |       Conditionnel        | Obligatoire uniquement pour une Exercice `Dans Tour`                           |
+| Tour                       | Tour contenant l’Exercice                       |       Conditionnel        | Obligatoire uniquement pour un Exercice `Dans Tour`                           |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
 | Catégorie                  | Classification de l’Exercice                    |        Facultatif         | Porte la couleur sémantique de l’Exercice                                      |
@@ -562,8 +562,8 @@ Elle ne contient pas directement :
 ## Règles métier
 
 - Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` du MVP T03 est autonome et ne porte aucune position de Séance.
-- Une Exercice peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Une Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
+- Un Exercice peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
+- Un Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - Pour `C` Séries d’un même côté, la Pause apparaît exactement `C − 1` fois.
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une seule fois entre ses deux côtés.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
@@ -572,7 +572,7 @@ Elle ne contient pas directement :
 - Si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
 - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
-- Leur ordre est conservé à l’intérieur de leur position structurelle. Une Exercice peut être déplacée manuellement d’une position structurelle à une autre.
+- Leur ordre est conservé à l’intérieur de leur position structurelle. Un Exercice peut être déplacée manuellement d’une position structurelle à une autre.
 
 # 09.6 Entité Média
 
@@ -580,7 +580,7 @@ Elle ne contient pas directement :
 
 ## Définition
 
-Un **Média** est une ressource visuelle qui pourra être associée à une Exercice après le MVP. Aucune association Média n’est créée ni exposée dans le MVP.
+Un **Média** est une ressource visuelle qui pourra être associée à un Exercice après le MVP. Aucune association Média n’est créée ni exposée dans le MVP.
 
 ## Périmètre
 
@@ -601,18 +601,18 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 
 ## Règles métier
 
-- Un fichier média peut être référencé par plusieurs associations appartenant chacune à une Exercice.
+- Un fichier média peut être référencé par plusieurs associations appartenant chacune à un Exercice.
 - Une exercice peut ne posséder aucun média.
 - Une exercice possède zéro à plusieurs associations média ordonnées.
-- La duplication d’une Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliquée ; cette association peut référencer le même fichier physique local.
-- Retirer un média d’une Exercice supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucune Exercice ni aucun instantané ne le référence.
+- La duplication d’un Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliquée ; cette association peut référencer le même fichier physique local.
+- Retirer un média d’un Exercice supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucun Exercice ni aucun instantané ne le référence.
 
 
 # 09.7 Entité Exécution
 
 ## Définition
 
-Une **Exécution** représente la réalisation effective d’une source exécutable. Dans le MVP, son origine vaut `SESSION` ou, à partir de T03, `ACTIVITY` pour une Exercice lancée depuis le Catalogue des Exercices.
+Une **Exécution** représente la réalisation effective d’une source exécutable. Dans le MVP, son origine vaut `SESSION` ou, à partir de T03, `ACTIVITY` pour un Exercice lancée depuis le Catalogue des Exercices.
 
 Elle est créée uniquement au démarrage et reste indépendante des modifications ou de la suppression ultérieures de sa source.
 
@@ -644,7 +644,7 @@ Une Exécution possède directement :
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
-| Nombre d’Exercices exécutées | Nombre de Résultats d’Exercice exécutée effectivement créés | Calculé | Une Exercice `Partielle` compte comme exécutée ; une Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
+| Nombre d’Exercices exécutées | Nombre de Résultats d’Exercice exécutée effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
 | Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lorsqu’une occurrence future est démarrée en avance |
 
 ## Structures internes
@@ -723,7 +723,7 @@ L’ajout d’une définition copie nom, description, zones corporelles, mode, d
 
 ## Contraintes Média
 
-Une Exercice possède `0..n` lignes `ActivityMedia`, chacune avec une position unique dans son exercice. Un nouvel élément reçoit la dernière position et la réorganisation ne touche que cette association. Les fichiers ne sont jamais stockés dans SQLite ; `MediaAsset` contient une URI interne stable, type photo/vidéo, miniature éventuelle et métadonnées. La suppression physique n’est autorisée que lorsque le nombre de références actives, copies et instantanés est nul.
+Un Exercice possède `0..n` lignes `ActivityMedia`, chacune avec une position unique dans son exercice. Un nouvel élément reçoit la dernière position et la réorganisation ne touche que cette association. Les fichiers ne sont jamais stockés dans SQLite ; `MediaAsset` contient une URI interne stable, type photo/vidéo, miniature éventuelle et métadonnées. La suppression physique n’est autorisée que lorsque le nombre de références actives, copies et instantanés est nul.
 
 ## Contraintes Parcours
 
@@ -768,7 +768,7 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
 
-Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placées avant le Circuit, les répétitions du Tour et les Exercices placées après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
+Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les répétitions du Tour et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
 ### Contenu
 
@@ -797,7 +797,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
-- La fin de la dernière Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
+- La fin de la dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les répétitions du Tour et du cycle sont résolues lors de la génération.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance/Parcours si sa durée contextuelle est positive.
 - T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
@@ -840,7 +840,7 @@ Elles ne contiennent pas directement :
 | Durée par défaut d'une exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Pause au changement de côté par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation `D→G` ou `G→D` d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
 | Récupération après exercice par défaut              | Valeur globale utilisée pour initialiser `postActivityRecoverySeconds` lors de la création d’une occurrence | Facultatif | `30 s` dans le Figma de référence ; création de l’occurrence uniquement ; une modification ultérieure ne change pas les occurrences existantes |
-| Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'une Exercice                           | Facultatif  | Création uniquement                                                      |
+| Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'un Exercice                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
 | Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                                                 |
@@ -900,7 +900,7 @@ Une **Catégorie** classe une **Exercice** et porte sa couleur sémantique. Elle
 
 ## Périmètre
 
-Une Catégorie possède son identité, son libellé, sa couleur et son ordre d’affichage. Une Exercice référence zéro ou une Catégorie.
+Une Catégorie possède son identité, son libellé, sa couleur et son ordre d’affichage. Un Exercice référence zéro ou une Catégorie.
 
 ## Attributs fonctionnels
 
@@ -916,8 +916,8 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 
 ## Règles métier
 
-- une Exercice peut ne porter aucune Catégorie ;
-- une Exercice porte au plus une Catégorie dans le modèle courant ;
+- un Exercice peut ne porter aucune Catégorie ;
+- un Exercice porte au plus une Catégorie dans le modèle courant ;
 - la Catégorie et les Zones corporelles sont deux dimensions indépendantes ;
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Exercice dans les cartes et l’éditeur ;
 - une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé ;
@@ -927,7 +927,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 
 ## Définition
 
-Une **Zone corporelle** désigne une partie du corps principalement sollicitée par une Exercice.
+Une **Zone corporelle** désigne une partie du corps principalement sollicitée par un Exercice.
 
 L’application fournit un référentiel utilisateur de Zones corporelles utilisé pour caractériser les Exercices. Il est initialisé avec des valeurs par défaut mais reste administrable par l’utilisateur dans le MVP.
 
@@ -951,7 +951,7 @@ Les exercices référencent zéro, une ou plusieurs zones corporelles. Une zone 
 
 ## Règles métier
 
-- Une Exercice peut être associée à zéro, une ou plusieurs Zones corporelles.
+- Un Exercice peut être associée à zéro, une ou plusieurs Zones corporelles.
 - Les Zones corporelles constituent un référentiel utilisateur administrable.
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
 - Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
@@ -994,13 +994,13 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute Routine référence exactement une source `SESSION` ou `ACTIVITY`.
 - Toute Exécution référence exactement une source selon son origine.
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
-- Une Séance référence au plus une Étiquette ; une Exercice référence au plus une Catégorie.
-- La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’une Exercice dérive uniquement de sa Catégorie.
+- Une Séance référence au plus une Étiquette ; un Exercice référence au plus une Catégorie.
+- La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’un Exercice dérive uniquement de sa Catégorie.
 - Les Zones corporelles appartiennent au référentiel utilisateur local. Elles sont administrables par l’utilisateur local et restent référencées par identifiant stable.
 
 ### Cohérence des données
 
-- Une séance exécutable contient au moins une Exercice.
+- Une séance exécutable contient au moins un Exercice.
 - Une durée de Pause ou de Récupération est toujours supérieure ou égale à `0 s` ; une Récupération à `0 s` ne génère aucune phase.
 - Les nombres de répétitions du Tour et du cycle sont toujours supérieurs ou égaux à 1.
 
@@ -1017,16 +1017,16 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Nouvelle exercice avec un nouvel identifiant.
 - Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
 - Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
-- Aucune Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
-- La copie est insérée immédiatement après la source dans la même zone structurelle (`Avant Tour`, `Dans Tour` ou `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucune Exercice dans le catalogue.
+- Aucun Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
+- La copie est insérée immédiatement après la source dans la même zone structurelle (`Avant Tour`, `Dans Tour` ou `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
 
 ## Suppression d’un média
 
 Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’introduction des médias :
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Exercice.
-- Le retrait d’un média depuis une Exercice supprime uniquement l’association ciblée.
-- Le fichier physique local n’est supprimé que lorsqu’aucune Exercice, copie de Séance ni aucun Instantané ne le référence.
+- Le retrait d’un média depuis un Exercice supprime uniquement l’association ciblée.
+- Le fichier physique local n’est supprimé que lorsqu’aucun Exercice, copie de Séance ni aucun Instantané ne le référence.
 - Les autres Exercices, Séances et Instantanés conservent leurs associations et restent inchangés.
 
 ## Archivage et suppression
@@ -1090,7 +1090,7 @@ Création → Active → Modifier → Archiver → Restaurer
 ```
 
 - Une `ActivityDefinition` est autonome et ne porte aucune position de Séance.
-- Une Exercice de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
+- Un Exercice de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position structurelle : `Avant Tour`, `Dans Tour` ou `Après Tour`. La référence au Tour n’est obligatoire que pour la position `Dans Tour`.
 - L’insertion depuis le Catalogue crée une copie indépendante ; aucune synchronisation ultérieure n’existe.
 - La capacité de création directe d’une `SessionActivity` locale à une Séance reste conservée techniquement et fonctionnellement, même si elle n’est pas exposée dans le parcours courant.
 - La suppression définitive d’une `ActivityDefinition` ne supprime ni les `SessionActivity` déjà copiées, ni les Exécutions, ni les Instantanés historiques.
@@ -1110,7 +1110,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 ### Règles métier
 
-- Une Exécution est créée au démarrage effectif d’une Séance ou d’une Exercice persistante, depuis son Catalogue ou depuis une occurrence planifiée de Routine.
+- Une Exécution est créée au démarrage effectif d’une Séance ou d’un Exercice persistante, depuis son Catalogue ou depuis une occurrence planifiée de Routine.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
@@ -1136,7 +1136,7 @@ La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté
 | `Execution.sourceActivityDefinitionId` | Référence informative pour `ACTIVITY` ; peut devenir nulle si la source est supprimée. |
 | `Execution.snapshot` | Instantané immuable de la Séance ou de l’Exercice selon l’origine. |
 | `Execution.preparationDurationSeconds` | `5` pour `ACTIVITY` ; valeur issue de la Séance pour `SESSION`. |
-| `Execution.completedSeriesCount` | Agrégat compatible avec une Exercice directe. |
+| `Execution.completedSeriesCount` | Agrégat compatible avec un Exercice directe. |
 
 Contraintes : une origine `ACTIVITY` interdit un `sourceSessionId`, ne crée aucun objet Séance et ne contient aucune étape `SESSION_END`. Les résultats conservent les côtés et paramètres figés.
 
