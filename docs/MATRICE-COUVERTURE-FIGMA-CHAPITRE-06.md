@@ -158,11 +158,9 @@ Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la p
 | 121 | `4861:6348` | Ajouter une activité — Zones corporelles — Appui long — Confirmation suppression | ÉCRAN / ÉTAT UTILISATEUR | OUI | — | AJOUTER | Specifications-fonctionnelles/images/figma-4861-6348.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 122 | `4863:6363` | Composition d’une séance — Proposition aérée V2 | EXCLU | NON | — | AUCUNE | — | 0 | Frame explicitement historique, proposition, comparaison ou avant/après ; non normative comme copie active. |
 
-## Point nécessitant un arbitrage avant réexport
+## Splash de référence
 
-### Splash `1992:469`
-
-La frame `1992:469 — Splash — Kodjo` est la référence active et unique du Splash dans `Prototype MVP` (D-218).nt nommée **proposition** dans Figma, alors que le chapitre 06 l’utilise actuellement comme `Écran 0 – Splash KODJO`. Statut : **À CLARIFIER**. Aucun arbitrage n’est inféré.
+La frame `1992:469 — Splash — Kodjo` est la référence active et unique du Splash dans `Prototype MVP` conformément à D-218. Aucun arbitrage Splash ne reste ouvert.
 
 ## Référentiels — suppression par appui long
 
