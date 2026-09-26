@@ -250,7 +250,7 @@ Chaque Exercice peut en outre définir un Compte à rebours propre et une Fin d�
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
 
-Les Exercices placés après le Circuit sont exécutées une seule fois, après la dernière répétition du Tour et avant la Fin de séance.
+Les Exercices placés après le Circuit sont exécutées une seule fois, après la dernier Tour du Circuit et avant la Fin de séance.
 
 Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum un Exercice pour être exécutable.
 
@@ -306,7 +306,7 @@ Dans le MVP :
 - le Cycle contient exactement un Tour ;
 - le Cycle possède son propre nombre de répétitions ;
 - le Tour possède son propre nombre de répétitions ;
-- le Cycle technique est exécuté une fois ; le Tour est exécuté selon son nombre de répétitions, de 1 à 99.
+- le Cycle technique est exécuté une fois ; le Circuit est exécuté de 1 à 99 Tours.
 
 Dans une version ultérieure, une Séance pourra comporter plusieurs Cycles et un Cycle pourra comporter plusieurs Tours.
 ## 3.7 Réorganisation
@@ -352,7 +352,7 @@ Le calcul tient compte :
 - de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatérale ;
 - de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient à un Tour ;
 - des Séries ;
-- des répétitions du Tour ;
+- des Tours du Circuit ;
 - des répétitions du Cycle ;
 - de la position structurelle de chaque Exercice dans la Séance.
 
@@ -419,7 +419,7 @@ Chaque exercice est exécutée intégralement avant le passage à la suivante.
 
 Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
 
-Les Exercices placés après le Circuit sont exécutées une seule fois après la dernière répétition du Tour.
+Les Exercices placés après le Circuit sont exécutées une seule fois après la dernier Tour du Circuit.
 
 Lorsque la dernier Exercice est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
@@ -1206,7 +1206,7 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
-La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après la dernier Exercice du Tour et avant la Fin de séance. Dans un Tour répété, cette même valeur est exécutée à chaque répétition. Une Exécution directe ne possède jamais de récupération post-exercice.
+La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
 ## Consolidation détaillée — D-209 à D-217
 
