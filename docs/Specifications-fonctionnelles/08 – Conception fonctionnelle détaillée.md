@@ -147,7 +147,7 @@ Cet instantané est utilisé pour garantir la cohérence de l'historique, même 
 
 ## 2.7 Planification d’un contenu
 
-Une Séance **ou un Exercice persistante** peut être associée à zéro, une ou plusieurs Routines.
+Une Séance **ou un Exercice persistant** peut être associée à zéro, une ou plusieurs Routines.
 
 Chaque Routine possède sa propre planification et référence exactement une source de type `SESSION` ou `ACTIVITY`.
 
@@ -179,7 +179,7 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 | Exécutée | Qualificatif dérivé, non exclusif | Au moins une Exécution existe dans le Suivi. |
 
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
-# 2 bis. Catalogue des Exercices — cycle de vie d’un Exercice persistante — MVP T03
+# 2 bis. Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03
 
 ## 2 bis.1 Catalogue multi-type
 
@@ -189,15 +189,15 @@ La liste des Exercices conserve recherche, filtres, tri et position de défileme
 
 ## 2 bis.2 Créer, consulter ou modifier un Exercice de référence
 
-Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Exercices, il ouvre directement l’éditeur de création d’un Exercice persistante ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
+Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Exercices, il ouvre directement l’éditeur de création d’un Exercice persistant ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
 
 La création d’un Exercice depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. L’ordre des paramètres est `Séries → cible du mode → Pause`, puis `Changement de côté → Pause au changement de côté → Durée totale` lorsque les contrôles concernés s’appliquent. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
-Ouvert depuis le Catalogue, `Terminer` crée ou met à jour un Exercice persistante et revient au Catalogue. Ouvert depuis une Composition, le même éditeur agit uniquement sur l’Exercice de Séance. Le contexte d’ouverture ne doit jamais être déduit de la seule apparence de l’écran.
+Ouvert depuis le Catalogue, `Terminer` crée ou met à jour un Exercice persistant et revient au Catalogue. Ouvert depuis une Composition, le même éditeur agit uniquement sur l’Exercice de Séance. Le contexte d’ouverture ne doit jamais être déduit de la seule apparence de l’écran.
 
 ## 2 bis.3 Ajouter un Exercice à une Séance
 
-Depuis la Composition, `Ajouter une exercice` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer un Exercice locale à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
+Depuis la Composition, `Ajouter une exercice` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer un Exercice local à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
 
 - `Une nouvelle exercice` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
 - `Une exercice existante` ouvre la sélection multiple du Catalogue d’Exercices ;
@@ -221,7 +221,7 @@ Dans le MVP, le Catalogue permet de déployer/replier une carte d’Exercice pou
 
 `sideMode` est indépendant du mode Durée, Répétitions ou À l’échec. Un Exercice de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
 
-Un Exercice bilatérale exécute toutes les Séries du premier côté puis toutes celles du second. Aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle. Les résultats restent séparés par côté.
+Un Exercice bilatéral exécute toutes les Séries du premier côté puis toutes celles du second. Aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle. Les résultats restent séparés par côté.
 
 ## 2 bis.7 Limite Parcours
 
@@ -250,7 +250,7 @@ Chaque Exercice peut en outre définir un Compte à rebours propre et une Fin d�
 
 Le compte à rebours initial est exécuté une seule fois au démarrage de la séance.
 
-Les Exercices placés après le Circuit sont exécutées une seule fois, après la dernier Tour du Circuit et avant la Fin de séance.
+Les Exercices placés après le Circuit sont exécutés une seule fois, après le dernier Tour du Circuit et avant la Fin de séance.
 
 Une séance contient obligatoirement un Cycle et un Tour et doit contenir au minimum un Exercice pour être exécutable.
 
@@ -269,7 +269,7 @@ Une exercice possède notamment :
 - une Description facultative et une ou plusieurs Zones corporelles obligatoires ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
 
-Les exercices sont exécutées dans l'ordre où elles apparaissent dans la séance.
+Les exercices sont exécutés dans l'ordre où elles apparaissent dans la séance.
 
 ## 3.4 Modes et récupération d’un Exercice
 
@@ -283,13 +283,13 @@ Elle peut être définie :
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
-Le modèle distingue deux récupérations. La **Pause au changement de côté** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatérale ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient une seule fois entre les deux côtés. La **Récupération après exercice** (`postActivityRecoverySeconds`) est contextuelle à chaque occurrence de Séance/Parcours, existe y compris à `0 s` et, lorsqu’elle est positive, produit `POST_ACTIVITY_RECOVERY` après l’occurrence. Une `ActivityDefinition` n’en possède jamais.
+Le modèle distingue deux récupérations. La **Pause au changement de côté** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatéral ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient une seule fois entre les deux côtés. La **Récupération après exercice** (`postActivityRecoverySeconds`) est contextuelle à chaque occurrence de Séance/Parcours, existe y compris à `0 s` et, lorsqu’elle est positive, produit `POST_ACTIVITY_RECOVERY` après l’occurrence. Une `ActivityDefinition` n’en possède jamais.
 
 Un Exercice dont le nom ou l’intention fonctionnelle est « Récupération » reste possible : elle utilise le même modèle et les mêmes modes que toute autre Exercice ; aucun traitement particulier n’est associé à son nom.
 
 ## 3.5 Tours
 
-Un Tour est un conteneur regroupant plusieurs exercices exécutées dans un ordre déterminé.
+Un Circuit est le conteneur regroupant plusieurs Exercices exécutés dans un ordre déterminé ; un Tour est une répétition complète de ce Circuit.
 
 Dans le MVP, chaque cycle contient un seul Tour.
 
@@ -349,7 +349,7 @@ Le calcul tient compte :
 - du Compte à rebours initial et de la Fin de séance ;
 - de toutes les occurrences d'Exercices chronométrées ;
 - des Pauses entre Séries effectivement insérées dans le plan ;
-- de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatérale ;
+- de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatéral ;
 - de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient à un Tour ;
 - des Séries ;
 - des Tours du Circuit ;
@@ -363,7 +363,7 @@ Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée co
 
 ### Durée synthétique des Exercices
 
-La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatérale, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
 Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
 
@@ -413,13 +413,13 @@ Lorsque le Compte à rebours initial est configuré à `0 s`, cette phase est in
 
 ## 4.3 Déroulement
 
-Les exercices sont exécutées dans l'ordre défini dans la séance.
+Les exercices sont exécutés dans l'ordre défini dans la séance.
 
 Chaque exercice est exécutée intégralement avant le passage à la suivante.
 
 Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
 
-Les Exercices placés après le Circuit sont exécutées une seule fois après la dernier Tour du Circuit.
+Les Exercices placés après le Circuit sont exécutés une seule fois après le dernier Tour du Circuit.
 
 Lorsque la dernier Exercice est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
@@ -429,10 +429,10 @@ Pendant l'Exécution, l'écran affiche principalement :
 
 - le nom de l'Exercice en cours ;
 - la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
-- le temps de l’Exercice : compte à rebours pour un Exercice chronométrée, chronomètre croissant pour un Exercice en Répétitions ou À l’échec ;
+- le temps de l’Exercice : compte à rebours pour un Exercice chronométré, chronomètre croissant pour un Exercice en Répétitions ou À l’échec ;
 - la Série et le Tour en cours ; le Cycle n’est jamais affiché ;
-- l'Exercice suivante et sa durée lorsqu'elle est connue ;
-- les commandes Réinitialiser, Pause et Exercice suivante ;
+- l'Exercice suivant et sa durée lorsqu'elle est connue ;
+- les commandes Réinitialiser, Pause et Exercice suivant ;
 - le temps total écoulé / durée estimée d’exécution et sa barre de progression.
 
 La notion d'« étape » n'est pas affichée comme indicateur de progression dans le MVP.
@@ -465,7 +465,7 @@ Son calcul s'appuie cependant sur les occurrences d'Exercices du plan d'Exécuti
 
 Chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids de `1 / N` dans la barre.
 
-La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrées proportionnellement à leur durée. Pour un Exercice chronométrée de durée `d`, son poids est donc :
+La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrées proportionnellement à leur durée. Pour un Exercice chronométré de durée `d`, son poids est donc :
 
 `(1 - R / N) × d / T`
 
@@ -473,9 +473,9 @@ Cas particuliers :
 
 - si `R = 0`, la barre est entièrement proportionnelle aux durées ;
 - si `R = N`, chaque Exercice reçoit un poids de `1 / N` ;
-- un Exercice chronométrée en cours remplit progressivement sa part selon le temps écoulé sur sa durée cible ;
+- un Exercice chronométré en cours remplit progressivement sa part selon le temps écoulé sur sa durée cible ;
 - un Exercice en mode Répétitions ou À l’échec conserve sa part non remplie pendant la Série puis la remplit entièrement lorsque l’utilisateur valide sa fin avec `Suivant` ;
-- un Exercice chronométrée passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
+- un Exercice chronométré passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
 - `Pause` suspend la progression de la part courante ;
 - `Réinitialiser` remet à zéro la progression interne de l'Exercice courante sans modifier les parts déjà franchies.
 
@@ -510,7 +510,7 @@ Si l'utilisateur annule, la séance reprend exactement à l'état où elle se tr
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
 - **Réinitialiser** → confirmation, afin d'éviter une perte involontaire de progression sur l'Exercice ;
-- **Suivant** → pour un Exercice chronométrée avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétitions ou À l’échec, fin normale de la Série sans confirmation ;
+- **Suivant** → pour un Exercice chronométré avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétitions ou À l’échec, fin normale de la Série sans confirmation ;
 - **Pause** → aucune confirmation, l'action étant réversible ;
 - **Arrêter la séance** → confirmation via le modal de pause.
 
@@ -520,7 +520,7 @@ Les confirmations protègent ainsi les actions ayant un impact irréversible sur
 
 L’action **Suivant** a deux comportements selon le mode de l’Exercice :
 
-- pour un Exercice chronométrée utilisée avant son terme, une confirmation est demandée ; après confirmation, l'Exercice est enregistrée avec le statut **Partielle** ;
+- pour un Exercice chronométré utilisée avant son terme, une confirmation est demandée ; après confirmation, l'Exercice est enregistrée avec le statut **Partielle** ;
 - pour un Exercice en mode Répétitions ou À l’échec, l’action constitue la fin normale de la Série courante et ne crée pas de statut Partielle.
 
 Dans les deux cas, l'Exécution poursuit ensuite le plan normal.
@@ -555,7 +555,7 @@ Le passage en arrière-plan ou le verrouillage de l’écran ne constitue pas un
 
 Une pause de sécurité est appliquée si aucune interaction n’a eu lieu :
 
-- 30 minutes après la fin théorique d’un Exercice chronométrée ;
+- 30 minutes après la fin théorique d’un Exercice chronométré ;
 - 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
 
 La pause de sécurité conserve l’état recalculé au moment de son déclenchement et demande à l’utilisateur de reprendre ou d’arrêter la Séance.
@@ -571,7 +571,7 @@ Lorsque l'utilisateur confirme cet arrêt :
 - la séance est enregistrée dans l'historique avec le statut **Interrompue** ;
 - l'écran de synthèse est affiché.
 
-Les exercices restantes ne sont pas exécutées.
+Les exercices restants ne sont pas exécutées.
 ### Pause prolongée
 
 Lorsqu'une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite poursuivre l'Exécution.
@@ -791,7 +791,7 @@ Chaque historique enregistre notamment :
 - la durée réelle ;
 - le statut de l'exécution ;
 - le ressenti de l'utilisateur ;
-- le détail des exercices exécutées ;
+- le détail des exercices exécutés ;
 - les temps réellement réalisés ;
 - les éventuelles interruptions.
 
@@ -1030,10 +1030,10 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Temps de l’Exercice | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
 | Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | En Répétition : un tour par minute |
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
-| À suivre | Texte | Sauf dernier Exercice | Non | Nom + durée/reps de l’Exercice suivante | Plan d’Exécution | Aucune | |
+| À suivre | Texte | Sauf dernier Exercice | Non | Nom + durée/reps de l’Exercice suivant | Plan d’Exécution | Aucune | |
 | Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Exercice courante |
 | Pause | Bouton | Pendant Exécution | Oui | Actif | Statique | Suspendre | Suspend aussi le chrono croissant en Répétitions ou À l’échec |
-| Suivant | Bouton | Pendant Exécution | Oui | Actif | Statique | Terminer la Série ou passer à la suite | Fin normale en Répétitions/À l’échec ; confirmation avant terme pour un Exercice chronométrée |
+| Suivant | Bouton | Pendant Exécution | Oui | Actif | Statique | Terminer la Série ou passer à la suite | Fin normale en Répétitions/À l’échec ; confirmation avant terme pour un Exercice chronométré |
 | Temps total | Texte + barre | Toujours | Oui | Temps écoulé / estimé | Exécution | Aucune | |
 | Bips / annonces | Icônes / états | Toujours | Oui | Selon Préférences | Préférences | Activer / désactiver | |
 
@@ -1042,7 +1042,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Règle | Description |
 | --- | --- |
 | Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement la premier Exercice. |
-| Exercice chronométré | Compte à rebours. `Exercice suivante` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
+| Exercice chronométré | Compte à rebours. `Exercice suivant` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Suivant` termine normalement la Série. |
 | Réinitialisation | Demande confirmation et remet l’Exercice courante à son état initial sans revenir à un Exercice antérieure. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
@@ -1052,7 +1052,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 
 ### Sons et annonces
 
-- bip pendant les trois dernières secondes d’un Exercice chronométrée selon les règles audio ;
+- bip pendant les trois dernières secondes d’un Exercice chronométré selon les règles audio ;
 - annonce vocale du nom de l’Exercice au démarrage ;
 - pour un Exercice en Répétitions ou À l’échec, bip fixe à chaque minute écoulée dans le MVP.
 
