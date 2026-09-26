@@ -333,3 +333,12 @@ Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une trois
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
 | API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
+
+## API fonctionnelles — consolidation D-209 à D-217
+
+- Création/mise à jour d’un Exercice : Catégorie exactement `1`, Zones corporelles `1..n`; une référence retirée du référentiel actif reste acceptable si elle est déjà affectée à l’objet modifié, mais ne peut pas être nouvellement affectée.
+- Suppression référentiel : désactive la valeur pour les nouvelles sélections sans casser les références existantes ; Étiquette/Catégorie conservent nom et couleur nécessaires au rendu des objets existants.
+- Mise à jour couleur Étiquette/Catégorie : agit sur le référentiel source ; les consommateurs relisent cette couleur, sans copie locale par objet.
+- Création Exercice / occurrence : lecture ponctuelle des défauts Profil, sans synchronisation ultérieure.
+- Mise à jour Séance : expose un booléen global de prise en compte des Compte à rebours et Fins propres aux Exercices, activé par défaut.
+- Construction du Plan : développe le Circuit pour `tourCount` Tours ; tout Point d’arrêt interne au Circuit est reproduit à chaque Tour ; après un Exercice, `POST_ACTIVITY_RECOVERY` précède le Point d’arrêt.
