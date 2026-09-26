@@ -12,7 +12,7 @@
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
-> Décision du 24 septembre 2026 — D-200 : Étiquettes, Catégories et Zones corporelles utilisent une règle commune de suppression. Toutes les valeurs, y compris celles fournies initialement par KODJO, sont supprimables. Un appui long sur une option ouvre une modale `Annuler / Supprimer`; la suppression retire les associations courantes et conserve l’historique.
+> Décision du 24 septembre 2026 — D-200 : Étiquettes, Catégories et Zones corporelles utilisent une règle commune de suppression. Toutes les valeurs, y compris celles fournies initialement par KODJO, sont supprimables. Un appui long sur une option ouvre une modale `Annuler / Supprimer`; la suppression retire la valeur des choix futurs mais conserve les affectations existantes et l’historique.
 >
 > Décision du 24 septembre 2026 — D-201 : `Parcours` devient le terme fonctionnel et UX de référence pour l’entité post-MVP correspondante. La documentation de référence est alignée ; les identifiants techniques existants restent inchangés jusqu’à leur éventuel renommage dans le code, et Figma est à aligner dans l’étape suivante.
 >
@@ -228,3 +228,14 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
 > Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Activité et ne s’applique qu’entre les deux côtés d’une Activité bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Activité. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la pause au changement de côté lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+
+## Consolidation fonctionnelle — 26 septembre 2026
+
+- **Exercice** est le terme UX ; **Circuit** est le groupe ordonné d’Exercices interne à une Séance ; un **Tour** est une répétition du Circuit ; **Parcours** reste l’entité autonome du Catalogue.
+- Un nouvel Exercice valide possède exactement **une Catégorie** et **une ou plusieurs Zones corporelles**. L’Étiquette de Séance reste facultative.
+- Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
+- Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause au changement de côté, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
+- Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
+- Dans le texte éditable, Durée affiche toujours `Durée totale`; Répétitions affiche `Durée totale >= {estimation}` ; À l’échec n’affiche pas de Durée totale numérique.
+- Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
+- En face Média compacte, le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
