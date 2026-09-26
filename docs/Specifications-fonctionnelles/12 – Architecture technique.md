@@ -300,7 +300,7 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatérale ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -357,7 +357,7 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’un Exercice chronométrée ;
+- 30 minutes après la fin théorique d’un Exercice chronométré ;
 - 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
@@ -1254,7 +1254,7 @@ Ordre de développement retenu :
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
 3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
-4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivante, arrêt et fin.
+4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
 5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
