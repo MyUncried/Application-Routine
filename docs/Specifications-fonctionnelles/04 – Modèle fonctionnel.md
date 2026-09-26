@@ -199,7 +199,7 @@ Le modèle distingue trois mesures temporelles. La **Durée synthétique des Exe
 
 Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
 
-Chaque **Tour** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Tour sont exécutées une seule fois, avant ou après les répétitions du Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Tour ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
+Le **Circuit** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Circuit sont exécutés une seule fois, avant le premier Tour ou après le dernier Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Circuit ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
 Une **Exercice** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
 
@@ -207,7 +207,7 @@ Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
 - ce Cycle contient exactement un Tour ;
 - le Cycle est exécuté une seule fois et n’est jamais exposé dans l’interface ;
-- le nombre de répétitions du Tour reste configurable de 1 à 99.
+- le nombre de Tours du Circuit reste configurable de 1 à 99.
 
 L'ordre général d'exécution est le suivant :
 
@@ -348,7 +348,7 @@ Le MVP permet notamment :
 - créer et modifier des Exercices de Séance ;
 - à partir de T03, gérer le cycle de vie complet des `ActivityDefinition` persistantes ;
 - ajouter plusieurs Exercices existants à une Séance par copies indépendantes ;
-- organiser les Exercices avant, dans ou après le Circuit et définir le nombre de répétitions du Tour ;
+- organiser les Exercices avant, dans ou après le Circuit et définir le nombre de Tours du Circuit ;
 - conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
 - associer éventuellement une Étiquette à une Séance ;
 - associer une Catégorie et des Zones corporelles aux Exercices ;
@@ -376,7 +376,7 @@ L’Exercice possède deux formes distinctes dans le MVP T03 : la **référence 
 
 Un Exercice accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième mode ne porte ni durée cible ni répétitions cibles. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les répétitions du Tour et les passages bilatéraux décrits dans le Plan d’Exécution.
+L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
 
 Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue peut afficher le média associé dans une carte déployée. Les capacités d’import, capture et gestion multiple restent régies par leur périmètre propre.
 
@@ -413,7 +413,7 @@ Le modèle de Routine est conçu pour être extensible à une troisième source 
 
 ### Récupération après exercice portée par l’occurrence
 
-Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans un Tour, elle est exécutée après chaque occurrence, y compris la dernière, à chaque répétition du Tour. Hors Tour, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
+Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans le Circuit, elle est exécutée après chaque occurrence, y compris la dernière, à chaque Tour. Hors Circuit, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
 
 ## Consolidation du modèle — D-209 à D-217
 
