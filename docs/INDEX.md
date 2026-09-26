@@ -109,7 +109,7 @@ Le contrôle `Déployer` du Catalogue des exercices réutilise le composant du C
 
 Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont vérifiables. Les panneaux ouverts de `Filtrer` sont également conçus dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible disabled dans le périmètre T03.
 
-Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points restés `À CLARIFIER`.
+Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points alors non résolus ; les arbitrages fonctionnels concernés ont depuis été clôturés, les seules limites restantes relevant d’évidences Figma `NON VÉRIFIABLES` à traiter lors du prochain inventaire.
 
 ## 5. Ordre de lecture recommandé
 
