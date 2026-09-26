@@ -13,7 +13,7 @@ KODJO est une application mobile qui permet à une personne de créer, organiser
 
 ## Le problème rencontré
 
-Les exercices et séances sont souvent communiqués oralement, sur papier, par message ou en vidéo. Ils sont difficiles à retrouver, à organiser dans un ordre précis, à planifier et à exécuter sans mobiliser plusieurs outils. Pendant une exercice, l’utilisateur ne peut pas toujours regarder son téléphone. Il manque enfin d’une vision simple de ce qu’il a réellement effectué.
+Les exercices et séances sont souvent communiqués oralement, sur papier, par message ou en vidéo. Ils sont difficiles à retrouver, à organiser dans un ordre précis, à planifier et à exécuter sans mobiliser plusieurs outils. Pendant un exercice, l’utilisateur ne peut pas toujours regarder son téléphone. Il manque enfin d’une vision simple de ce qu’il a réellement effectué.
 
 ## La réponse proposée
 
@@ -25,7 +25,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 - la création et la modification de Séances structurées ;
 - à partir de T03, un Catalogue des exercices persistantes et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
-- une Exécution guidée, adaptée aux Exercices chronométrées, en Répétitions ou À l’échec ;
+- une Exécution guidée, adaptée aux Exercices chronométrés, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
