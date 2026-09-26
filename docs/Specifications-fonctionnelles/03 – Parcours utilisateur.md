@@ -516,3 +516,7 @@ Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisat
 ### Règles de Composition liées à la récupération après exercice
 
 Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Dans un Tour répété, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-activité depuis l’`ActivityDefinition`.
+
+## Parcours consolidés — 26 septembre 2026
+
+Création Exercice : choisir exactement une Catégorie et au moins une Zone corporelle avant validation. Les valeurs par défaut du Profil sont proposées à la création puis deviennent indépendantes. Création/modification Séance : le groupe répété est le **Circuit**, son nombre de répétitions est le nombre de **Tours** ; un réglage global activé par défaut contrôle la prise en compte des Compte à rebours/Fins propres aux Exercices. L’insertion d’un Point d’arrêt ne propose jamais la position immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance ; un Point d’arrêt placé dans le Circuit est rencontré à chaque Tour.
