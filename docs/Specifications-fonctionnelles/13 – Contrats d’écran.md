@@ -310,7 +310,7 @@ Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel app
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’une Exercice persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’un Exercice persistante.
 
 ### 13. Gestes
 
@@ -712,7 +712,7 @@ D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiqu
 
 ---
 
-## CE-T03-07 — Sélection multiple d’Exercices existantes
+## CE-T03-07 — Sélection multiple d’Exercices existants
 
 ### 1. Identification
 
@@ -1170,7 +1170,7 @@ Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côt
 
 ### 2. Finalité fonctionnelle
 
-Exécuter RIGHT_LEFT ou LEFT_RIGHT exactement selon règles existantes : toutes Séries premier côté, puis toutes second, Récupération une fois après tous les côtés d’une Exercice autonome.
+Exécuter RIGHT_LEFT ou LEFT_RIGHT exactement selon règles existantes : toutes Séries premier côté, puis toutes second, Récupération une fois après tous les côtés d’un Exercice autonome.
 
 ### 3. Contexte d’entrée
 
@@ -1938,8 +1938,8 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 - Chaque occurrence affiche une ligne `Récupération {durée}`, y compris `0 s`.
 - Tap sur la durée → roulette basse de modification.
 - La ligne suit déplacement, duplication et suppression.
-- La dernière Exercice du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
-- La dernière Exercice de Séance conserve cette ligne avant la Fin de séance.
+- La dernier Exercice du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
+- La dernier Exercice de Séance conserve cette ligne avant la Fin de séance.
 
 ### Exécution directe
 - Aucun état de récupération post-exercice.
@@ -1947,7 +1947,7 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 
 ### Exécution de Séance
 - Distinguer explicitement pause au changement de côté et récupération après occurrence.
-- La récupération post-exercice est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Exercice du Tour.
+- La récupération post-exercice est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernier Exercice du Tour.
 
 ## Complément contrats — D-209 à D-218
 
