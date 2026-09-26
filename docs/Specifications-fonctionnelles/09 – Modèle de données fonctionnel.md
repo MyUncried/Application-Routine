@@ -63,7 +63,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-001 | Le modèle cible ne possède aucun type d’Activité `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-activité est contextuelle à l’occurrence. | D-208 |
 | DM-002 | La Pause est une durée entre deux Séries successives d’un même côté, exactement `C−1` fois. La pause au changement de côté et la récupération après exercice sont deux durées distinctes ; aucune n’est une Activité technique. | D-208 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
-| DM-004 | Un cycle contient un Tour unique.                                                                                                                                                                            | V1             |
+| DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
 | DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine référence exactement une source `SESSION` ou `ACTIVITY`. | MVP — D-206 |
 | DM-007 | Une Exécution crée automatiquement un Instantané fonctionnel immuable et allégé de sa source (`SESSION` ou `ACTIVITY`).                                                                                                                                       | V1             |
@@ -165,7 +165,7 @@ Il ne contient pas directement les exercices, les médias, les structures intern
 
 Une **Séance** est une entité métier représentant le contenu réutilisable d’un entraînement.
 
-Elle définit les Exercices à réaliser, leur position avant le Tour, dans le Tour ou après le Tour, ainsi que les paramètres nécessaires à leur Exécution. Le Cycle reste une enveloppe technique fixée à une répétition.
+Elle définit les Exercices à réaliser, leur position avant le Circuit, dans le Circuit ou après le Circuit, ainsi que les paramètres nécessaires à leur Exécution. Le Cycle reste une enveloppe technique fixée à une répétition.
 
 Une séance peut être exécutée immédiatement ou planifiée par une ou plusieurs routines. Elle ne contient jamais les informations produites lors d’une exécution réelle.
 
@@ -178,7 +178,7 @@ Une séance possède directement :
 - un compte à rebours initial ;
 - un cycle ;
 - un Tour contenu dans le cycle ;
-- les exercices contenues dans le Tour ;
+- les exercices contenues dans le Circuit ;
 - une fin de séance ;
 - le paramètre de répétition de son Tour ; le Cycle vaut toujours 1 dans le MVP.
 
@@ -218,17 +218,17 @@ Elle ne contient pas directement :
 La structure d’une séance est composée, dans l’ordre, de :
 1. un Compte à rebours initial obligatoire, exécuté une seule fois ;
 2. un Cycle technique unique et non affiché, toujours exécuté une fois ;
-3. zéro, une ou plusieurs Exercices placées avant le Tour ;
-4. un Tour unique contenant une suite ordonnée d’Exercices et répété de 1 à 99 fois ;
-5. zéro, une ou plusieurs Exercices placées après le Tour ;
+3. zéro, une ou plusieurs Exercices placées avant le Circuit ;
+4. un Circuit unique contenant une suite ordonnée d’Exercices et répété de 1 à 99 fois ;
+5. zéro, une ou plusieurs Exercices placées après le Circuit ;
 6. une Fin de séance obligatoire, exécutée une seule fois après la dernière Activité.
 
 Dans le MVP, le Cycle contient :
 - son identifiant ;
 - sa position, égale à 1 ;
 - son nombre de répétitions, imposé à 1 ;
-- un Tour unique ;
-- les Exercices positionnées avant ou après le Tour ;
+- un Circuit unique ;
+- les Exercices positionnées avant ou après le Circuit ;
 
 Dans le MVP, le Tour contient :
 - son identifiant ;
@@ -236,7 +236,7 @@ Dans le MVP, le Tour contient :
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Exercices.
 
-Le Cycle technique est exécuté une fois : les Exercices placées avant le Tour sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Exercices placées après le Tour sont exécutées une fois. La Fin de séance est ensuite exécutée.
+Le Cycle technique est exécuté une fois : les Exercices placées avant le Circuit sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Exercices placées après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
 
 Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seule la répétition du Tour est modifiable.
 
@@ -248,7 +248,7 @@ Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas
 | Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
 | Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Valeur imposée **1** dans le MVP ; non modifiable et non exposée dans l’interface       |
 | Tours                 | Collection ordonnée des Tours du Cycle   | Obligatoire | Exactement 1 Tour dans le MVP ; extensible à plusieurs Tours dans une version ultérieure |
-| Exercices hors Tour   | Exercices ordonnées avant ou après le Tour | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
+| Exercices hors Tour   | Exercices ordonnées avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
 #### Attributs fonctionnels du Tour
 
 | Attribut              | Description                               |  Caractère  | Règle principale                                              |
@@ -278,8 +278,8 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Une séance peut être associée à zéro ou une Étiquette.
 - Une séance peut être référencée par zéro, une ou plusieurs routines.
 - Une séance contient un cycle unique.
-- Le Cycle contient un Tour unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
-- Le Cycle peut contenir zéro, une ou plusieurs Exercices avant le Tour et zéro, une ou plusieurs Exercices après le Tour.
+- Le Cycle contient un Circuit unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
+- Le Cycle peut contenir zéro, une ou plusieurs Exercices avant le Circuit et zéro, une ou plusieurs Exercices après le Circuit.
 - Le Tour contient zéro, une ou plusieurs Exercices pendant l’édition.
 - Une séance exécutable contient au moins une Activité.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
@@ -768,7 +768,7 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
 
-Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placées avant le Tour, les répétitions du Tour et les Exercices placées après le Tour sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
+Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placées avant le Circuit, les répétitions du Tour et les Exercices placées après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
 ### Contenu
 
@@ -889,7 +889,7 @@ Une Étiquette possède son identité, son libellé et sa couleur persistante. U
 - une Séance peut ne porter aucune Étiquette ;
 - lorsqu’une Étiquette est associée, sa couleur est la couleur affichée de la Séance ;
 - créer une nouvelle Étiquette depuis la Composition l’ajoute au référentiel utilisateur selon le parcours validé ;
-- toute Étiquette est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression retire son association aux Séances courantes qui l’utilisent ;
+- toute Étiquette est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Séances existantes qui l’utilisent ;
 - les Instantanés historiques conservent les informations nécessaires à la restitution du libellé et de la couleur.
 
 # 09.10.1 Entité Catégorie
@@ -921,7 +921,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 - la Catégorie et les Zones corporelles sont deux dimensions indépendantes ;
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Activité dans les cartes et l’éditeur ;
 - une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé ;
-- toute Catégorie est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression retire son association aux Exercices courantes qui l’utilisent et préserve l’historique.
+- toute Catégorie est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Exercices existants qui l’utilisent et préserve l’historique.
 
 # 09.11 Entité Zone corporelle
 
