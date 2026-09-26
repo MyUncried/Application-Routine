@@ -62,7 +62,7 @@ Cet état est transitoire et ne constitue pas une préférence utilisateur persi
 - Une vidéo ne démarre jamais automatiquement lorsqu’elle apparaît dans la galerie.
 - Elle présente un état fixe / poster avant lecture.
 - La lecture démarre uniquement après une action explicite de l’utilisateur.
-- La vidéo se lit directement dans la face Média.
+- La vidéo se lit directement dans la face Média. Un bouton Lecture central est affiché avant démarrage ; dès que la lecture commence, ce bouton central disparaît afin de ne pas masquer la vidéo.
 - Le son de la vidéo est actif par défaut.
 - L’Exécution continue normalement pendant la lecture : chrono, progression, transitions, Série et Tour ne sont pas suspendus.
 - Lors d’une annonce vocale KODJO, le volume de la vidéo est temporairement abaissé puis restauré après l’annonce.
