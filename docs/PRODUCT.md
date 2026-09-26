@@ -187,9 +187,9 @@ Trois indicateurs d’Exercices sont distingués :
 - Nombre d’Exercices exécutés.
 
 La barre de progression utilise une pondération hybride :
-- les Exercices chronométrées sont pondérées proportionnellement à leur durée ;
+- les Exercices chronométrés sont pondérées proportionnellement à leur durée ;
 - chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Exercices à exécuter ;
-- la part restante est répartie entre les Exercices chronométrées proportionnellement à leur durée.
+- la part restante est répartie entre les Exercices chronométrés proportionnellement à leur durée.
 
 La barre est visuellement continue, sans frontière de segment visible.
 
@@ -200,7 +200,7 @@ La progression globale tient compte de tous les passages développés. `Exercice
 Le guidage comprend :
 - l’annonce vocale du nom de l’Exercice au démarrage ;
 - l’annonce du côté au début du premier passage et une seule fois lors du passage au second côté ;
-- les sons prévus pendant les Exercices chronométrées, dont le bip grave de rythme ;
+- les sons prévus pendant les Exercices chronométrés, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
 - un réglage global des sons dans le MVP ;
 - un réglage séparé des annonces vocales ;
@@ -389,7 +389,7 @@ Un Exercice de Catalogue est une référence persistante `ActivityDefinition`. L
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances`, et Parcours depuis `Parcours` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter une exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances`, et Parcours depuis `Parcours` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter un exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des exercices portent la couleur de leur Catégorie. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier`, `Dupliquer` et `Archiver` sur un Exercice active ; dans la liste des Exercices archivées, il expose `Supprimer`. Aucune poignée de déplacement n’est affichée.
 
