@@ -1,6 +1,6 @@
 # Matrice de traçabilité — Bilatéralité
 
-> Mise à jour du 24 septembre 2026 — D-189 : le changement de côté n’est plus exposé au niveau du Tour. Les critères historiques relatifs à un Tour bilatéral ne constituent plus des exigences actives. La bilatéralité active est portée par les Exercices ; le support technique historique du Tour reste conservé, fixé à `UNILATERAL`, pour non-régression.
+> Mise à jour du 24 septembre 2026 — D-189 : le changement de côté n’est plus exposé au niveau du Circuit. Les critères historiques relatifs à un Tour bilatéral ne constituent plus des exigences actives. La bilatéralité active est portée par les Exercices ; le support technique historique correspondant reste conservé, fixé à `UNILATERAL`, pour non-régression.
 
 Date de consolidation : 10 septembre 2026. Correction finale contrôlée sur `main@a904c16dc2f77189c42012071ba8ff481f122410` et sur la copie de `docs/PRODUCT.md` issue de `/Dev` fournie le 10 septembre 2026.
 
@@ -29,7 +29,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-019 | Arrondi au plus proche, `.5` vers le haut, minimum 1 | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-020 | Après arrondi, recalcul de D réalisable | 06, 08, 10, 11, 13 | CONFORME |
 | BIL-021 | Tour bilatéral exposé | D-189 | SUPERSÉDÉ |
-| BIL-022 | Paire de passages à chaque répétition du Tour | 03, 08, 10 | CONFORME |
+| BIL-022 | Paire de passages à chaque Tour du Circuit | 03, 08, 10 | CONFORME |
 | BIL-023 | `LEFT_RIGHT` inverse l’ordre sans changer le calcul | 00, 08, 12 | CONFORME |
 | BIL-024 | Récupération par passage de Tour bilatéral | D-189 | SUPERSÉDÉ |
 | BIL-025 | Ancienne règle d’héritage de direction depuis le Tour | D-189 | SUPERSÉDÉ — chaque Exercice porte sa direction propre |
@@ -75,7 +75,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 | BIL-064 | Ancienne confirmation atomique liée au changement de direction du Tour | D-146 supersédée par D-189 | SUPERSÉDÉ — aucune confirmation de bilatéralité Tour |
 | BIL-065 | Carte de Composition : indicateur propre `D→G` / `G→D` pour l’Exercice ; absence avec `Aucun` ; aucune notion d’héritage du Tour | PRODUCT, 00, 06–08, 10, 13 ; D-189/D-198 ; Figma courant | CONFORME |
 | BIL-066 | Contrôle Exercice : ligne 2 colonne 1, `74 × 42 pt`, grille `74/124/124`, espaces `8/10 pt` | 06–08, 12, CE-T01-13/CE-BIL-01 ; Figma `3704:5021`, `3542:4656` | CONFORME |
-| BIL-067 | Synthèse de l’écran Ajouter/Modifier une Exercice : clause après cible et avant Pause ; texte de carte de Composition sans cette clause ; absence en unilatéral/héritage | PRODUCT, 06–08, D-154, RM-152, CE-T01-13/CE-BIL-02A ; Figma `3679:4880`, `3724:5428` | CONFORME |
+| BIL-067 | Synthèse de l’écran Ajouter/Modifier un Exercice : clause après cible et avant Pause ; texte de carte de Composition sans cette clause ; absence en unilatéral/héritage | PRODUCT, 06–08, D-154, RM-152, CE-T01-13/CE-BIL-02A ; Figma `3679:4880`, `3724:5428` | CONFORME |
 | BIL-068 | `Durée totale` dans les trois modes ; borne `≥` en Répétitions/À l’échec | PRODUCT, 06–08, 10, 13 ; Figma `3561:4695`, `3561:7673`, `3561:7802` | CONFORME |
 
 ## Contrôle de cohérence final
@@ -84,7 +84,7 @@ Les statuts portent sur le corpus documentaire canonique composé de `docs/PRODU
 
 ## Formules canoniques
 
-Pour une Exercice autonome en mode Durée, D-208 fixe :
+Pour un Exercice autonome en mode Durée, D-208 fixe :
 
 - `C` = nombre de Séries par côté ;
 - `A` = durée cible d’une Série ;
