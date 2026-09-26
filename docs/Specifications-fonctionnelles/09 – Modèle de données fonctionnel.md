@@ -28,7 +28,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une séance contient un **cycle**.
 - Un cycle contient un **Tour**.
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
-- Un Tour contient une suite ordonnée d'exercices.
+- Un Circuit contient une suite ordonnée d'Exercices ; un Tour est une répétition complète de ce Circuit.
 - Un Exercice ne possède pas de type `Exercice` ou `Récupération`.
 - Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
 - Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, un Exercice persistante dans le MVP.
@@ -206,9 +206,9 @@ Elle ne contient pas directement :
 | Date d’archivage                        | Date de passage au statut archivé                                         |         Conditionnel         | Renseignée uniquement si la séance est archivée                                                                                                                                                                                                        |
 | Structure                               | Organisation complète de la séance                                        | Obligatoire pour l’exécution | Une séance peut être enregistrée vide, mais ne peut pas être exécutée sans Exercice                                                                                                                                                                     |
 | Durée estimée d’exécution               | Somme des durées déterminables de l’Exécution complète                    |           Calculé            | Inclut le Compte à rebours initial, les phases et occurrences chronométrées du plan et la Fin de séance ; si au moins un Exercice est en Répétitions ou À l’échec, aucune durée ne lui est imputée et la valeur affichée est une borne minimale précédée de `≥` |
-| Durée synthétique des Exercices         | Somme des durées déterminables des seules occurrences d’Exercices         |           Calculé            | Développe Séries, Pauses après Série et répétitions du Tour ; exclut toujours le Compte à rebours initial et la Fin de séance ; utilisée dans le Catalogue et la Composition ; borne minimale `≥` si une durée d’Exercice est indéterminable |
+| Durée synthétique des Exercices         | Somme des durées déterminables des seules occurrences d’Exercices         |           Calculé            | Développe Séries, Pauses après Série et Tours du Circuit ; exclut toujours le Compte à rebours initial et la Fin de séance ; utilisée dans le Catalogue et la Composition ; borne minimale `≥` si une durée d’Exercice est indéterminable |
 | Nombre d’Exercices de la Composition    | Nombre d’Exercices définies dans la Composition                            |           Calculé            | Ne compte ni les Pauses entre Séries ni les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY`, et ne multiplie pas les Exercices par les Séries, Tours ou Cycles |
-| Nombre total d’Exercices à exécuter     | Nombre d’occurrences d’Exercices prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, répétitions du Tour et du Cycle ; exclut `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, le Compte à rebours initial et la Fin de séance, qui ne sont pas des Exercices |
+| Nombre total d’Exercices à exécuter     | Nombre d’occurrences d’Exercices prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, Tours du Circuit et du Cycle ; exclut `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, le Compte à rebours initial et la Fin de séance, qui ne sont pas des Exercices |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première exercice                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
 | Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial  |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
 | Durée de la fin de séance               | Durée de la phase suivant la dernière exercice                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
@@ -230,15 +230,15 @@ Dans le MVP, le Cycle contient :
 - un Circuit unique ;
 - les Exercices positionnées avant ou après le Circuit ;
 
-Dans le MVP, le Tour contient :
+Dans le MVP, le Circuit contient :
 - son identifiant ;
 - sa position, égale à 1 ;
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Exercices.
 
-Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutées une fois, le Tour est exécuté selon son nombre de répétitions, puis les Exercices placés après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
+Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutées une fois, le Circuit est exécuté selon son nombre de Tours, puis les Exercices placés après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
 
-Le Cycle et le Tour sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seule la répétition du Tour est modifiable.
+Le Cycle et le Circuit sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seul le nombre de Tours du Circuit est modifiable.
 
 #### Attributs fonctionnels du Cycle
 
@@ -280,7 +280,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Une séance contient un cycle unique.
 - Le Cycle contient un Circuit unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
 - Le Cycle peut contenir zéro, une ou plusieurs Exercices avant le Circuit et zéro, une ou plusieurs Exercices après le Circuit.
-- Le Tour contient zéro, une ou plusieurs Exercices pendant l’édition.
+- Le Circuit contient zéro, un ou plusieurs Exercices pendant l’édition.
 - Une séance exécutable contient au moins un Exercice.
 - Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
 
@@ -301,7 +301,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - La suppression d’une séance ne supprime jamais les exécutions déjà enregistrées ni leurs instantanés.
 - Une modification de la séance n’altère jamais les exécutions déjà présentes dans le suivi.
 - Le cycle et le Tour ne peuvent pas être supprimés.
-- Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de répétitions du Tour est compris entre 1 et 99.
+- Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de Tours du Circuit est compris entre 1 et 99.
 - Les exercices peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
 - La Durée estimée d’exécution, la Durée synthétique des Exercices, le Nombre d’Exercices de la Composition et le Nombre total d’Exercices à exécuter sont recalculés après toute modification influençant leur périmètre.
@@ -768,14 +768,14 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
 
-Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les répétitions du Tour et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
+Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les Tours du Circuit et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
 ### Contenu
 
 - liste ordonnée des étapes d’exécution ;
 - ordre d'exécution ;
 - références vers les exercices de l'instantané ;
-- numéro de répétition du Tour ;
+- numéro de Tour ;
 - numéro de répétition du cycle ;
 - informations de navigation.
 
@@ -788,7 +788,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 | Position            | Rang dans le plan d'exécution              |   Calculé   | Numérotation continue             |
 | Exercice            | Exercice de l'instantané                   | Facultatif  | Absente pour `INITIAL_COUNTDOWN` et `SESSION_END`; les phases de récupération référencent leur Exercice/occurrence source |
 | Type de phase       | `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` ou `SESSION_END` | Calculé | Déduit de l’Exercice et de l’occurrence ; ce n’est pas un type d’Exercice |
-| Répétition du Tour  | Numéro de répétition du Tour               |   Calculé   | Généré automatiquement            |
+| Tour du Circuit  | Numéro de Tour               |   Calculé   | Généré automatiquement            |
 | Répétition du cycle | Numéro de répétition du cycle              |   Calculé   | Généré automatiquement            |
 | Étape suivante      | Navigation                                 |   Calculé   | Absente uniquement pour `SESSION_END` |
 
@@ -798,7 +798,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de la dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
-- Les répétitions du Tour et du cycle sont résolues lors de la génération.
+- Les Tours du Circuit et du cycle sont résolues lors de la génération.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance/Parcours si sa durée contextuelle est positive.
 - T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
@@ -1002,7 +1002,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 - Une séance exécutable contient au moins un Exercice.
 - Une durée de Pause ou de Récupération est toujours supérieure ou égale à `0 s` ; une Récupération à `0 s` ne génère aucune phase.
-- Les nombres de répétitions du Tour et du cycle sont toujours supérieurs ou égaux à 1.
+- Les nombres de Tours du Circuit et du cycle sont toujours supérieurs ou égaux à 1.
 
 ## Duplication d'une séance
 
