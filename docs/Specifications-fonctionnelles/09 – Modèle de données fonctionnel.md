@@ -96,8 +96,8 @@ UTILISATEUR
 │       │      ├── contient 1 TOUR
 │       │      │      │
 │       │      │      ├── nombre de répétitions
-│       │      │      └── contient 0..n ACTIVITÉS DANS LE TOUR
-│       │      └── contient 0..n ACTIVITÉS APRÈS LE TOUR ET DANS LE CYCLE
+│       │      │      └── contient 0..n EXERCICES DANS LE CIRCUIT
+│       │      └── contient 0..n EXERCICES APRÈS LE CIRCUIT ET DANS LE CYCLE
 │       └── contient 0..n ACTIVITÉS APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
 │
 ├── possède 0..n ROUTINES
