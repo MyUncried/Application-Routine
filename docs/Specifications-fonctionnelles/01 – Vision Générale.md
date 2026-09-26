@@ -62,9 +62,9 @@ La création est réalisée dans un écran unique `Composition d’une séance`.
 Une Séance contient :
 
 1. un Compte à rebours initial ;
-2. des Exercices éventuellement placées avant le Tour ;
-3. un Tour unique, visible et répétable de 1 à 99 fois ;
-4. des Exercices éventuellement placées après le Tour ;
+2. des Exercices éventuellement placées avant le Circuit ;
+3. un Circuit unique, visible et répétable de 1 à 99 Tours ;
+4. des Exercices éventuellement placées après le Circuit ;
 5. une Fin de séance.
 
 Une Activité peut également porter son propre Compte à rebours et sa propre Fin d’activité. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
