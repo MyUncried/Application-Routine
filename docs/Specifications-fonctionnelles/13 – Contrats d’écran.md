@@ -466,19 +466,19 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 5. Données affichées et source de vérité
 
-Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause, Récupération, `Changement de côté`, Durée totale, Compte à rebours d’Exercice, Fin d’exercice et données média affichables. Source = brouillon ; persistance seulement à validation.
+Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause entre Séries, `Changement de côté`, Pause au changement de côté, Durée totale, Compte à rebours d’Exercice, Fin d’exercice et données média affichables. Source = brouillon ; persistance seulement à validation.
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’exercice` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause, Récupération, libellés de Durée totale et Terminer = statiques.
+Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’exercice` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause entre Séries, Pause au changement de côté, libellés de Durée totale et Terminer = statiques.
 
 ### 7. Structure de l’écran
 
-Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Pause → deuxième rangée Changement de côté/Récupération/Durée totale → zone Média → Synthèse fixe → Terminer.
+Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Pause entre Séries → deuxième rangée Changement de côté/Pause au changement de côté/Durée totale → zone Média → Synthèse fixe → Terminer.
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode 3 options égales ; en mode Durée, `Durée totale` toujours affichée ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
