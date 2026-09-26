@@ -46,7 +46,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour une Activité bilatérale, régler séparément la **Pause au changement de côté**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
-- Organiser les Exercices avant le Tour, dans le Tour ou après le Tour.
+- Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
 - Régler le `Changement de côté` propre à une Activité sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
 - Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul.
