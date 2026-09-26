@@ -44,14 +44,14 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
 - Ajouter des Exercices ; chaque occurrence créée dans la Composition possède automatiquement une **Récupération après exercice**, y compris à `0 s`, initialisée depuis le défaut global.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour une Exercice bilatérale, régler séparément la **Pause au changement de côté**.
+- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatérale, régler séparément la **Pause au changement de côté**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
-- Régler le `Changement de côté` propre à une Exercice sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
+- Régler le `Changement de côté` propre à un Exercice sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
 - Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul.
 - Régler le Compte à rebours initial et la Fin de séance.
-- Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’une Exercice.
+- Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’un Exercice.
 - Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.
 - Associer une Étiquette à la Séance et une Catégorie aux Exercices ; sélectionner séparément les Zones corporelles des Exercices ; gérer les trois référentiels. Un appui long sur une Étiquette, une Catégorie ou une Zone corporelle permet d’en demander la suppression après confirmation, y compris pour une valeur initialement fournie par KODJO.
 - Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
@@ -62,7 +62,7 @@ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 #### Planifier une Séance ou un Exercice
 
 - Visualiser le Calendrier en vues Jour, Semaine et Mois.
-- Créer une planification unique ou périodique pour une Séance ou une Exercice persistante du Catalogue des exercices.
+- Créer une planification unique ou périodique pour une Séance ou un Exercice persistante du Catalogue des exercices.
 - Définir la date, l’heure, la fréquence, les jours concernés et la date de fin selon le type de planification.
 - Configurer zéro ou un rappel.
 - N’être sollicité pour l’autorisation système des notifications qu’au moment de la première activation d’un rappel.
@@ -75,7 +75,7 @@ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 - Voir l’Exercice en cours, la Série, le Tour, l’Exercice suivante, le temps et la progression.
 - Mettre l’Exécution en pause, reprendre, réinitialiser l’Exercice courante ou passer à l’Exercice suivante.
 - Terminer normalement chaque Série d’un Exercice en Répétitions ou À l’échec avec `Suivant`.
-- Être averti avant de quitter une Exercice chronométrée non terminée, qui devient alors `Partielle` après confirmation.
+- Être averti avant de quitter un Exercice chronométrée non terminée, qui devient alors `Partielle` après confirmation.
 - Continuer l’Exécution lorsque l’application est en arrière-plan ou l’écran verrouillé.
 - Retrouver un état temporel recalculé au retour.
 - Être protégé contre une Exécution laissée sans interaction trop longtemps.
@@ -121,7 +121,7 @@ Un professionnel qui prépare, transmet et fait évoluer des Séances destinées
 ### Besoins futurs
 
 - Créer des modèles et réutiliser des Exercices ou des Séances.
-- Associer un média à une Exercice.
+- Associer un média à un Exercice.
 - Transmettre et mettre à jour une Séance.
 - Consulter uniquement les informations que l’utilisateur a accepté de partager.
 - Distinguer les versions successives et leurs Exécutions.
@@ -177,13 +177,13 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 
 ## 8. Besoins validés pour les évolutions
 
-- Créer dans le MVP T03 une Exercice de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
+- Créer dans le MVP T03 un Exercice de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
-- Associer `0..n` photos ou vidéos à une Exercice, les réordonner et les consulter hors ligne.
+- Associer `0..n` photos ou vidéos à un Exercice, les réordonner et les consulter hors ligne.
 - Créer en V2 un Parcours d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
 - Planifier les Parcours seulement en V3.
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
-- Configurer une Exercice ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
+- Configurer un Exercice ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
 - Activer la bilatéralité d’un Tour après confirmation ; toutes ses Exercices héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
@@ -193,11 +193,11 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 L’utilisateur doit pouvoir :
 
 - ouvrir le Catalogue des Exercices depuis le sélecteur de type ;
-- créer, consulter et modifier une Exercice persistante ;
+- créer, consulter et modifier un Exercice persistante ;
 - distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
 - utiliser `Créer` comme action contextuelle : dans chaque Catalogue, ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire ;
-- depuis une Composition, choisir entre une nouvelle Exercice, une ou plusieurs Exercices existantes et l’annulation ;
-- lancer une Exercice persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
+- depuis une Composition, choisir entre une nouvelle Exercice, une ou plusieurs Exercices existants et l’annulation ;
+- lancer un Exercice persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - renseigner le Ressenti obligatoire dans la Synthèse ;
 - retrouver l’Exécution dans le Suivi général sous le type Exercice ;
 - revenir au Catalogue avec recherche, filtres et position restaurés.
@@ -220,7 +220,7 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 - Dans l’éditeur d’Exercice, n’exposer la Pause au changement de côté que lorsque le Changement de côté vaut `D→G` ou `G→D`.
 - Dans la Composition, voir sous chaque occurrence une ligne `Récupération {durée}`, y compris `Récupération 0 s`, et pouvoir modifier cette durée.
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
-- Exécuter la récupération de la dernière Exercice avant la Fin de séance, et celle de la dernière Exercice d’un Tour à chaque répétition du Tour.
+- Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice d’un Tour à chaque répétition du Tour.
 - Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.
 
 ## Besoins consolidés — 26 septembre 2026
