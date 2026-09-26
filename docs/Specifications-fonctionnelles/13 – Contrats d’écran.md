@@ -624,7 +624,7 @@ E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-C
 
 # 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
-## CE-T03-06 — Composition — `Ajouter une exercice` vers le Catalogue
+## CE-T03-06 — Composition — `Ajouter un exercice` vers le Catalogue
 
 ### 1. Identification
 
@@ -636,7 +636,7 @@ Ouvrir directement la sélection des Exercices persistantes du Catalogue depuis 
 
 ### 3. Contexte d’entrée
 
-Tap `+ Ajouter une exercice` dans la Composition.
+Tap `+ Ajouter un exercice` dans la Composition.
 
 ### 4. Contexte de sortie / destinations
 
@@ -648,7 +648,7 @@ Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composi
 
 ### 6. Classification des valeurs Figma
 
-Les anciennes options `Une nouvelle exercice / Une exercice existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
+Les anciennes options `Une nouvelle exercice / Un exercice existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
 
 ### 7. Structure de l’écran
 
@@ -656,7 +656,7 @@ Aucun écran intermédiaire : transition directe de la Composition vers la séle
 
 ### 8. Éléments obligatoires
 
-Action `Ajouter une exercice` dans la Composition ; écran de sélection CE-T03-07.
+Action `Ajouter un exercice` dans la Composition ; écran de sélection CE-T03-07.
 
 ### 9. Layout déterministe
 
@@ -676,7 +676,7 @@ Le tap ouvre CE-T03-07. Aucun choix préalable n’est demandé.
 
 ### 13. Gestes
 
-Tap sur `Ajouter une exercice`.
+Tap sur `Ajouter un exercice`.
 
 ### 14. Validation
 
@@ -696,7 +696,7 @@ Le brouillon de Composition est conservé. La capacité existante de création d
 
 ### 18. Accessibilité
 
-`Ajouter une exercice` annonce l’ouverture de la sélection d’Exercices.
+`Ajouter un exercice` annonce l’ouverture de la sélection d’Exercices.
 
 ### 19. Invariants
 
@@ -724,7 +724,7 @@ Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans
 
 ### 3. Contexte d’entrée
 
-Ouverture directe depuis `Ajouter une exercice` dans CE-T03-06.
+Ouverture directe depuis `Ajouter un exercice` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
