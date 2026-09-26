@@ -130,7 +130,7 @@ L’utilisateur ne peut :
 
 Il peut uniquement :
 - poursuivre l’enchaînement normal ;
-- réinitialiser l’Exercice courante après confirmation ;
+- réinitialiser l’Exercice courant après confirmation ;
 - passer à l’étape suivante.
 
 Une étape terminée ou passée ne peut pas être rejouée au cours de la même Exécution.
